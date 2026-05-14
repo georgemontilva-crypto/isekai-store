@@ -304,9 +304,10 @@ export default function Checkout() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-2"
+              className="lg:col-span-2 flex flex-col gap-4"
             >
-              <div className="sticky top-24 p-6 rounded-2xl bg-card border border-border/50 space-y-4">
+              <div className="sticky top-24 flex flex-col gap-4">
+              <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
                 <h2 className="font-semibold text-lg">Resumen del pedido</h2>
 
                 <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -369,6 +370,48 @@ export default function Checkout() {
                 <p className="text-xs text-muted-foreground text-center">
                   Al confirmar aceptas nuestros términos y condiciones
                 </p>
+              </div>
+
+              {/* ─── Promo Banner ─────────────────────────────────────────────── */}
+              <div
+                className="rounded-2xl overflow-hidden relative"
+                style={{
+                  minHeight: "150px",
+                  backgroundImage: `url(https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=600&q=80)`,
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                }}
+              >
+                {/* dark overlay */}
+                <div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(135deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 100%)" }}
+                />
+                <div className="relative z-10 p-5">
+                  <span
+                    className="inline-block text-xs font-bold tracking-widest uppercase mb-2 px-2 py-0.5 rounded-full"
+                    style={{ background: "rgba(255,255,255,0.15)", color: "rgba(255,255,255,0.85)" }}
+                  >
+                    Oferta exclusiva
+                  </span>
+                  <p
+                    className="text-xl font-black leading-tight mb-1"
+                    style={{ color: "#ffffff" }}
+                  >
+                    Envío gratis en tu primer pedido
+                  </p>
+                  <p className="text-sm" style={{ color: "rgba(255,255,255,0.75)" }}>
+                    Usa el código{" "}
+                    <span
+                      className="font-bold px-2 py-0.5 rounded"
+                      style={{ background: "rgba(255,255,255,0.2)", color: "#fff" }}
+                    >
+                      FREESHIP
+                    </span>
+                  </p>
+                </div>
+              </div>
+
               </div>
             </motion.div>
           </div>
