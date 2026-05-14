@@ -1,0 +1,9 @@
+{
+  "query": "SELECT id, name, slug, imageUrl FROM categories LIMIT 10;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user oiP1ys9vPpNrfMo.70f61e195d4b --database DDRKBHA2C2MBPhsuc472nG --execute SELECT id, name, slug, imageUrl FROM categories LIMIT 10;",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 259
+}

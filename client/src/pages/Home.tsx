@@ -370,16 +370,7 @@ export default function Home() {
                   letterSpacing: '-0.01em',
                 }}
               >
-                Sound.{' '}
-                <em
-                  style={{
-                    fontStyle: 'italic',
-                    fontFamily: 'Georgia, serif',
-                    fontWeight: 900,
-                  }}
-                >
-                  Sculpted.
-                </em>
+                Sound. Sculpted.
               </h2>
               <p className="text-white/70 text-[15px] mb-7">
                 A speaker that excites the eye and ear from every angle.
@@ -416,21 +407,61 @@ export default function Home() {
 
 
       {/* ══════════════════════════════════════════════
-          6. MARQUEE TEXT
+          6. CATEGORIES CAROUSEL
       ══════════════════════════════════════════════ */}
-      <section className="py-10 border-y border-[#ebebeb] overflow-hidden">
-        <div className="marquee-track">
-          {[...marqueeItems, ...marqueeItems].map((item, i) => (
-            <span
-              key={i}
-              className="text-[48px] md:text-[72px] font-black text-transparent shrink-0 px-8"
-              style={{ WebkitTextStroke: "2px #1a1a1a" }}
-            >
-              {item} ·
-            </span>
-          ))}
-        </div>
-      </section>
+      {categories && categories.length > 0 && (
+        <section style={{ padding: '24px 8px 0 8px' }}>
+          <div
+            className="flex gap-3 overflow-x-auto"
+            style={{
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+            }}
+          >
+            {categories.map((cat) => (
+              <Link
+                key={cat.id}
+                href={`/catalog?category=${cat.slug}`}
+                className="relative shrink-0 rounded-[18px] overflow-hidden block group"
+                style={{
+                  width: 'clamp(62vw, calc((100vw - 16px - 4 * 12px) / 5), 320px)',
+                  flexShrink: 0,
+                  aspectRatio: '3/4',
+                }}
+              >
+                {/* Background image */}
+                {cat.imageUrl ? (
+                  <img
+                    src={cat.imageUrl}
+                    alt={cat.name}
+                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-[#2a2a2a]" />
+                )}
+                {/* Gradient overlay: black bottom → transparent top */}
+                <div
+                  className="absolute inset-0"
+                  style={{
+                    background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 45%, transparent 100%)',
+                  }}
+                />
+                {/* Title */}
+                <div className="absolute bottom-0 left-0 right-0 p-4">
+                  <p className="text-white font-bold text-[15px] leading-tight">{cat.name}</p>
+                  {cat.description && (
+                    <p className="text-white/70 text-[11px] mt-0.5 line-clamp-1">{cat.description}</p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+          <style>{`
+            section div::-webkit-scrollbar { display: none; }
+          `}</style>
+        </section>
+      )}
 
       {/* ══════════════════════════════════════════════
           7. COUNTDOWN SALE BANNER

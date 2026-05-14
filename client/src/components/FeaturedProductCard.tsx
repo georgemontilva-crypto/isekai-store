@@ -80,7 +80,7 @@ export default function FeaturedProductCard({
           </div>
 
           {/* ── Main image ── */}
-          <div className="p-4 bg-[#f7f7f7] flex items-center justify-center">
+          <div className="p-4 bg-white flex items-center justify-center">
             <motion.div
               key={activeIdx}
               initial={{ opacity: 0, scale: 1.04 }}

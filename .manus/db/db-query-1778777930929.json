@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO categories (name, slug, description, imageUrl) VALUES\n('Figuras Anime', 'figuras-anime', 'Personajes de tus series favoritas', 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80'),\n('Videojuegos', 'videojuegos', 'Coleccionables de gaming', 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&q=80'),\n('Sci-Fi & Fantasy', 'sci-fi-fantasy', 'Naves, robots y criaturas', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80'),\n('Superhéroes', 'superheroes', 'Marvel, DC y más', 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=600&q=80'),\n('Edición Limitada', 'edicion-limitada', 'Piezas únicas y exclusivas', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80');",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user oiP1ys9vPpNrfMo.70f61e195d4b --database DDRKBHA2C2MBPhsuc472nG --execute INSERT INTO categories (name, slug, description, imageUrl) VALUES\n('Figuras Anime', 'figuras-anime', 'Personajes de tus series favoritas', 'https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=600&q=80'),\n('Videojuegos', 'videojuegos', 'Coleccionables de gaming', 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=600&q=80'),\n('Sci-Fi & Fantasy', 'sci-fi-fantasy', 'Naves, robots y criaturas', 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=600&q=80'),\n('Superhéroes', 'superheroes', 'Marvel, DC y más', 'https://images.unsplash.com/photo-1531259683007-016a7b628fc3?w=600&q=80'),\n('Edición Limitada', 'edicion-limitada', 'Piezas únicas y exclusivas', 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&q=80');",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 273
+}
