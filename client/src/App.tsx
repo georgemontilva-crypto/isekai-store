@@ -37,7 +37,6 @@ function Layout() {
   return (
     <>
       <Navbar />
-      <CartDrawer />
       <main className="min-h-screen">
         <Router />
       </main>
@@ -49,7 +48,7 @@ function Layout() {
 function App() {
   return (
     <ErrorBoundary>
-      <ThemeProvider defaultTheme="dark">
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <CartProvider>
             <Toaster position="top-right" />

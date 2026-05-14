@@ -1,191 +1,145 @@
 import { Link } from "wouter";
-import { motion } from "framer-motion";
-import { Instagram, Twitter, Youtube, Mail, MapPin, Phone, ArrowRight } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, ArrowRight } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function Footer() {
   const [email, setEmail] = useState("");
-  const [subscribed, setSubscribed] = useState(false);
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email) {
-      setSubscribed(true);
+    if (email.trim()) {
+      toast.success("Thanks for subscribing!");
       setEmail("");
     }
   };
 
   return (
-    <footer className="bg-card/50 border-t border-border/30 mt-20">
-      {/* Newsletter Banner */}
-      <div className="border-b border-border/30 py-12">
-        <div className="container">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
-            <div className="text-center lg:text-left">
-              <h3 className="text-2xl font-bold mb-2">
-                Únete a la <span className="gradient-text">comunidad Isekai</span>
-              </h3>
-              <p className="text-muted-foreground text-sm">
-                Recibe novedades, descuentos exclusivos y contenido especial directo a tu correo.
+    <footer>
+      {/* ── Trust Bar ── */}
+      <div className="border-t border-[#ebebeb] bg-white">
+        <div className="container py-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { icon: "🎧", title: "Customer service", desc: "We're here to help with any questions" },
+              { icon: "🚚", title: "Fast Free Shipping", desc: "Get free shipping on orders of $150 or more" },
+              { icon: "👥", title: "Refer a friend", desc: "Refer a friend and get 15% off each other" },
+              { icon: "🔒", title: "Secure payment", desc: "Your payment information is processed securely" },
+            ].map(({ icon, title, desc }) => (
+              <div key={title} className="flex items-start gap-3">
+                <span className="text-2xl shrink-0 mt-0.5">{icon}</span>
+                <div>
+                  <p className="font-semibold text-[13px] text-[#1a1a1a]">{title}</p>
+                  <p className="text-[12px] text-[#888] mt-0.5 leading-snug">{desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ── Main Footer (dark) ── */}
+      <div className="bg-[#1a1a1a] text-white">
+        <div className="container py-14">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
+
+            {/* Brand */}
+            <div>
+              <div className="flex items-center gap-2 mb-5">
+                <div className="flex items-end gap-[2px]">
+                  {[6, 10, 14, 10, 6].map((h, i) => (
+                    <div key={i} className="w-[3px] bg-white rounded-full" style={{ height: `${h}px` }} />
+                  ))}
+                </div>
+                <span className="font-bold text-[15px] tracking-tight">Isekai Store</span>
+              </div>
+              <p className="text-[13px] text-white/55 leading-relaxed mb-5">
+                Your destination for premium anime &amp; gaming merchandise. Quality gear for true fans.
               </p>
+              <div className="flex items-center gap-2.5 mb-5">
+                {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
+                  <a
+                    key={i}
+                    href="#"
+                    className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/55 hover:text-white hover:border-white/60 transition-all"
+                  >
+                    <Icon size={13} />
+                  </a>
+                ))}
+              </div>
+              <div className="text-[12px] text-white/40 space-y-1">
+                <p>+1 (800) 123-4567</p>
+                <p>hello@isekaistore.com</p>
+              </div>
             </div>
-            {subscribed ? (
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                className="flex items-center gap-3 px-6 py-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary font-medium"
-              >
-                ✓ ¡Suscrito exitosamente!
-              </motion.div>
-            ) : (
-              <form onSubmit={handleSubscribe} className="flex gap-2 w-full lg:w-auto">
+
+            {/* Collections */}
+            <div>
+              <h4 className="font-semibold text-[13px] mb-5 text-white">Collections</h4>
+              <ul className="space-y-3">
+                {["All Products", "Headphones", "Earphones", "Speakers", "Accessories"].map(item => (
+                  <li key={item}>
+                    <Link href="/catalog" className="text-[13px] text-white/55 hover:text-white transition-colors">
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Information */}
+            <div>
+              <h4 className="font-semibold text-[13px] mb-5 text-white">Information</h4>
+              <ul className="space-y-3">
+                {["Our Story", "Our Journal", "FAQs", "Contact Us", "My Account"].map(item => (
+                  <li key={item}>
+                    <Link href={item === "My Account" ? "/account" : "/"} className="text-[13px] text-white/55 hover:text-white transition-colors">
+                      {item}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Newsletter */}
+            <div>
+              <h4 className="font-bold text-[20px] leading-snug mb-5">
+                Stay in the loop with our weekly newsletter
+              </h4>
+              <form onSubmit={handleNewsletter} className="flex gap-2">
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@correo.com"
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="Enter your email"
                   required
-                  className="flex-1 lg:w-72 h-11 px-4 rounded-xl bg-muted border border-border/50 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                  className="flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/50 transition-colors"
                 />
                 <button
                   type="submit"
-                  className="h-11 px-5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors neon-glow-purple flex items-center gap-2"
+                  className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#1a1a1a] hover:bg-white/90 transition-colors shrink-0"
                 >
-                  Suscribirse
-                  <ArrowRight className="w-4 h-4" />
+                  <ArrowRight size={15} />
                 </button>
               </form>
-            )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Main Footer */}
-      <div className="container py-14">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-10">
-          {/* Brand */}
-          <div className="col-span-2 lg:col-span-2">
-            <Link href="/">
-              <div className="flex items-center gap-2.5 mb-5 cursor-pointer">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center neon-glow-purple">
-                  <span className="text-primary-foreground font-black font-display">IS</span>
-                </div>
-                <span className="font-bold text-xl font-display">
-                  <span className="gradient-text">Isekai</span>
-                  <span className="text-foreground"> Store</span>
-                </span>
-              </div>
-            </Link>
-            <p className="text-muted-foreground text-sm leading-relaxed mb-6 max-w-xs">
-              Tu destino definitivo para productos premium inspirados en anime y gaming. Calidad excepcional para los verdaderos otakus.
+        {/* ── Bottom bar ── */}
+        <div className="border-t border-white/10">
+          <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+            <p className="text-[12px] text-white/35">
+              © {new Date().getFullYear()} Isekai Store. All rights reserved.
             </p>
-            {/* Social Links */}
-            <div className="flex items-center gap-3">
-              {[
-                { icon: Instagram, href: "#", label: "Instagram" },
-                { icon: Twitter, href: "#", label: "Twitter" },
-                { icon: Youtube, href: "#", label: "YouTube" },
-              ].map(({ icon: Icon, href, label }) => (
-                <a
-                  key={label}
-                  href={href}
-                  aria-label={label}
-                  className="w-9 h-9 rounded-xl bg-muted border border-border/50 flex items-center justify-center text-muted-foreground hover:text-primary hover:border-primary/30 hover:bg-primary/10 transition-all duration-200"
+            <div className="flex items-center gap-1.5">
+              {["VISA", "MC", "AMEX", "PAYPAL", "DISCOVER"].map(card => (
+                <div
+                  key={card}
+                  className="bg-white/10 rounded px-2 py-1 text-[9px] font-bold text-white/50 uppercase tracking-wide"
                 >
-                  <Icon className="w-4 h-4" />
-                </a>
-              ))}
-            </div>
-          </div>
-
-          {/* Links */}
-          <div>
-            <h4 className="font-semibold text-foreground text-sm mb-4 uppercase tracking-wider">Tienda</h4>
-            <ul className="space-y-3">
-              {[
-                { href: "/catalog", label: "Todos los productos" },
-                { href: "/catalog?featured=true", label: "Destacados" },
-                { href: "/catalog?new=true", label: "Novedades" },
-                { href: "/catalog", label: "Colecciones" },
-              ].map((link) => (
-                <li key={link.href}>
-                  <Link href={link.href}>
-                    <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                      {link.label}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-foreground text-sm mb-4 uppercase tracking-wider">Cuenta</h4>
-            <ul className="space-y-3">
-              {[
-                { href: "/account", label: "Mis pedidos" },
-                { href: "/account", label: "Mi perfil" },
-                { href: "/catalog", label: "Lista de deseos" },
-                { href: "/catalog", label: "Reseñas" },
-              ].map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href}>
-                    <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                      {link.label}
-                    </span>
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="font-semibold text-foreground text-sm mb-4 uppercase tracking-wider">Ayuda</h4>
-            <ul className="space-y-3 mb-6">
-              {[
-                { label: "Centro de ayuda" },
-                { label: "Política de envíos" },
-                { label: "Devoluciones" },
-                { label: "Términos y condiciones" },
-              ].map((link) => (
-                <li key={link.label}>
-                  <span className="text-sm text-muted-foreground hover:text-foreground transition-colors cursor-pointer">
-                    {link.label}
-                  </span>
-                </li>
-              ))}
-            </ul>
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Mail className="w-3.5 h-3.5 text-primary" />
-                <span>hola@isekaistore.com</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Phone className="w-3.5 h-3.5 text-primary" />
-                <span>+57 300 000 0000</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <MapPin className="w-3.5 h-3.5 text-primary" />
-                <span>Colombia</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Bottom Bar */}
-      <div className="border-t border-border/30 py-5">
-        <div className="container flex flex-col sm:flex-row items-center justify-between gap-3">
-          <p className="text-xs text-muted-foreground">
-            © {new Date().getFullYear()} Isekai Store. Todos los derechos reservados.
-          </p>
-          <div className="flex items-center gap-4">
-            <span className="text-xs text-muted-foreground">Pago seguro con</span>
-            <div className="flex items-center gap-2">
-              {["Visa", "MC", "PSE", "Bold"].map((p) => (
-                <span key={p} className="px-2 py-0.5 rounded bg-muted border border-border/50 text-xs text-muted-foreground font-medium">
-                  {p}
-                </span>
+                  {card}
+                </div>
               ))}
             </div>
           </div>
