@@ -228,22 +228,40 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           2. BRAND STORY
       ══════════════════════════════════════════════ */}
-      <section className="py-20 border-b border-[#ebebeb]">
+      <section className="py-12 border-b border-[#ebebeb]">
         <div className="container">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-4xl md:text-5xl font-black leading-tight">
-                We believe in the{" "}
-                <span className="italic-serif">power of sound</span>
-              </h2>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* LEFT: banner image */}
+            <div className="rounded-2xl overflow-hidden" style={{ height: '260px' }}>
+              <img
+                src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"
+                alt="Figuras coleccionables 3D anime"
+                className="w-full h-full object-cover"
+              />
             </div>
-            <div>
-              <p className="text-[15px] text-[#555] leading-relaxed mb-6">
-                At Isekai Store, we curate only the finest audio equipment and accessories for enthusiasts who demand the best. From studio-grade headphones to portable speakers, every product in our collection is chosen for its exceptional quality, design, and performance.
+            {/* RIGHT: brand statement */}
+            <div className="flex flex-col justify-center">
+              <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">Nuestra filosofía</p>
+              <h2
+                style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
+                className="text-3xl md:text-4xl lg:text-5xl font-black text-[#1a1a1a] mb-0"
+              >
+                We believe in the{" "}
+                <span
+                  style={{
+                    fontFamily: "'Orbitron', sans-serif",
+                    background: "linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%)",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    backgroundClip: "text",
+                  }}
+                >
+                  power of craft
+                </span>
+              </h2>
+              <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
+                Cada figura es una obra de arte impresa en 3D, diseñada para coleccionistas que viven el anime y los videojuegos.
               </p>
-              <Link href="/catalog" className="btn-pill-outline">
-                Our Story <ArrowRight size={14} />
-              </Link>
             </div>
           </div>
         </div>
