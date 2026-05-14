@@ -196,19 +196,19 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
             className="text-white text-center md:text-left"
           >
             <span
-              className="inline-block text-[11px] uppercase tracking-[0.2em] text-white/60 mb-3"
-              style={{ fontFamily: 'Orbitron, sans-serif' }}
+              className="inline-block text-[11px] uppercase tracking-[0.2em] mb-3"
+              style={{ fontFamily: 'Orbitron, sans-serif', color: 'rgba(255,255,255,0.65)', letterSpacing: '0.2em' }}
             >
               {slide.label}
             </span>
             <h2
-              className="text-4xl md:text-5xl font-black mb-2 leading-tight"
-              style={{ fontFamily: 'Orbitron, sans-serif' }}
+              className="text-4xl md:text-5xl mb-2 leading-tight"
+              style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#ffffff' }}
             >
               {slide.title}{' '}
-              <span className="italic" style={{ fontFamily: 'Georgia, serif' }}>{slide.highlight}</span>
+              <span style={{ fontFamily: 'Georgia, serif', fontStyle: 'italic', fontWeight: 900, color: '#ffffff' }}>{slide.highlight}</span>
             </h2>
-            <p className="text-white/70 text-[15px] mb-7">{slide.subtitle}</p>
+            <p className="text-[15px] mb-7" style={{ color: 'rgba(255,255,255,0.75)' }}>{slide.subtitle}</p>
             <Link
               href={slide.href}
               className="inline-flex items-center gap-2 bg-white text-black text-[13px] font-semibold px-6 py-3 rounded-full hover:bg-white/90 transition-colors"
@@ -633,60 +633,149 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           8. BEST SELLERS (TABBED)
       ══════════════════════════════════════════════ */}
-      <section className="py-20">
+      <section className="py-16">
         <div className="container">
-          {/* Header */}
-          <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
-            <h2 className="text-3xl font-black">Best Sellers</h2>
-            <div className="flex items-center gap-2 flex-wrap">
-              {tabCategories.map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`tab-pill ${activeTab === tab ? "active" : ""}`}
-                >
-                  {tab}
-                </button>
-              ))}
+          {/* Header row: title + tabs left, arrows right */}
+          <div className="flex items-center justify-between mb-6 gap-4">
+            <div className="flex items-center gap-6 flex-wrap">
+              <h2
+                className="text-4xl md:text-5xl font-black leading-none"
+                style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#1a1a1a' }}
+              >
+                Best Sellers
+              </h2>
+              <div className="flex items-center gap-2 flex-wrap">
+                {tabCategories.map(tab => (
+                  <button
+                    key={tab}
+                    onClick={() => setActiveTab(tab)}
+                    className={`tab-pill ${activeTab === tab ? 'active' : ''}`}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* Navigation arrows */}
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                onClick={() => { const el = document.getElementById('best-sellers-scroll'); if (el) el.scrollBy({ left: -320, behavior: 'smooth' }); }}
+                className="w-10 h-10 rounded-full border border-[#ddd] flex items-center justify-center hover:border-[#1a1a1a] transition-colors bg-white"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button
+                onClick={() => { const el = document.getElementById('best-sellers-scroll'); if (el) el.scrollBy({ left: 320, behavior: 'smooth' }); }}
+                className="w-10 h-10 rounded-full border border-[#ddd] flex items-center justify-center hover:border-[#1a1a1a] transition-colors bg-white"
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
           </div>
 
-          {/* Products grid */}
+          {/* Horizontal scroll container */}
           {productsLoading ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="aspect-square rounded-2xl shimmer" />
+            <div className="flex gap-4 overflow-hidden">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="shrink-0 rounded-2xl shimmer" style={{ width: 'clamp(220px, calc(20% - 12.8px), 320px)', aspectRatio: '3/4' }} />
               ))}
             </div>
           ) : displayProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-8">
-              {displayProducts.map((product: any, i: number) => (
-                <ProductCard
-                  key={product.id}
-                  id={product.id}
-                  name={product.name}
-                  slug={product.slug}
-                  price={product.price}
-                  compareAtPrice={product.compareAtPrice}
-                  imageUrl={(product as any).imageUrl}
-                  category={product.categoryName}
-                  isNew={i < 2}
-                />
-              ))}
+            <div id="best-sellers-scroll" className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+              {displayProducts.map((product: any, i: number) => {
+                const numPrice = parseFloat(product.price);
+                const numCompare = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
+                const hasDiscount = numCompare && numCompare > numPrice;
+                const discountPct = hasDiscount ? Math.round(((numCompare! - numPrice) / numCompare!) * 100) : 0;
+                const isOutOfStock = product.stock <= 0;
+                const isNewProduct = i < 2;
+                return (
+                  <Link
+                    key={product.id}
+                    href={`/product/${product.slug}`}
+                    className="shrink-0 group cursor-pointer"
+                    style={{ width: 'clamp(220px, calc(20% - 12.8px), 320px)' }}
+                  >
+                    <div className="bg-white rounded-2xl border border-[#ebebeb] overflow-hidden hover:shadow-md transition-shadow duration-300">
+                      {/* Image area */}
+                      <div className="relative bg-white overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                        {product.imageUrl ? (
+                          <img
+                            src={product.imageUrl}
+                            alt={product.name}
+                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-[#f9f9f9]">
+                            <ShoppingBag size={40} className="text-[#ddd]" />
+                          </div>
+                        )}
+                        {/* Badges top-left */}
+                        <div className="absolute top-3 left-3 flex flex-col gap-1.5">
+                          {isNewProduct && (
+                            <span className="bg-[#22c55e] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">New</span>
+                          )}
+                          {hasDiscount && (
+                            <span className="bg-[#e63946] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">-{discountPct}%</span>
+                          )}
+                          {isOutOfStock && (
+                            <span className="bg-[#999] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">Sold out</span>
+                          )}
+                        </div>
+                        {/* Rating top-right */}
+                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 rounded-full px-2 py-0.5">
+                          <Star size={10} className="text-[#f59e0b] fill-[#f59e0b]" />
+                          <span className="text-[10px] font-semibold text-[#1a1a1a]">5.0</span>
+                        </div>
+                        {/* Add to cart on hover */}
+                        <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-250">
+                          <button
+                            onClick={async (e) => {
+                              e.preventDefault(); e.stopPropagation();
+                              if (!isOutOfStock) { try { await addItem(product.id); toast.success('Added to cart'); } catch { toast.error('Could not add to cart'); } }
+                            }}
+                            disabled={isOutOfStock}
+                            className="w-full bg-[#1a1a1a] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                          >
+                            <ShoppingBag size={12} />
+                            {isOutOfStock ? 'Sold out' : 'Add to cart'}
+                          </button>
+                        </div>
+                      </div>
+                      {/* Info */}
+                      <div className="p-3 pb-2">
+                        {product.category?.name && (
+                          <p className="text-[10px] font-semibold text-[#888] uppercase tracking-[0.12em] mb-0.5">{product.category.name}</p>
+                        )}
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h3 className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 flex-1">{product.name}</h3>
+                          <div className="text-right shrink-0">
+                            <span className="text-[13px] font-bold text-[#1a1a1a]">${numPrice.toFixed(2)}</span>
+                            {hasDiscount && <div className="text-[11px] text-[#aaa] line-through">${numCompare!.toFixed(2)}</div>}
+                          </div>
+                        </div>
+                        <span className="text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2">Choose options</span>
+                      </div>
+                      {/* Specs bar */}
+                      <div className="border-t border-[#f0f0f0] px-3 py-2.5 grid grid-cols-3 gap-2">
+                        {[['40mm', 'Driver size'], ['285g', 'Product weight'], ['35h', 'Battery life']].map(([val, lbl]) => (
+                          <div key={lbl} className="flex flex-col">
+                            <span className="text-[11px] font-bold text-[#1a1a1a]">{val}</span>
+                            <span className="text-[9px] text-[#999] leading-tight">{lbl}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
             </div>
           ) : (
             <div className="text-center py-20">
               <ShoppingBag size={48} className="text-[#ccc] mx-auto mb-4" />
               <p className="text-[#888] text-lg font-medium">No products yet</p>
               <p className="text-[#aaa] text-sm mt-1">Add products from the admin panel to see them here</p>
-            </div>
-          )}
-
-          {displayProducts.length > 0 && (
-            <div className="text-center mt-10">
-              <Link href="/catalog" className="btn-pill-outline">
-                View all products <ArrowRight size={14} />
-              </Link>
             </div>
           )}
         </div>

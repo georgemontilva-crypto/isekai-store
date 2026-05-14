@@ -79,3 +79,6 @@
 
 ## Countdown Slider
 - [x] Reemplazar countdown banner fullwidth por slider tipo isla con bordes redondeados, múltiples slides con countdown y CTA
+
+## Best Sellers Rediseño
+- [x] Best Sellers: cards horizontales scrolleables (5 desktop), imagen grande sin fondo gris, badge New verde, rating amarillo, nombre+precio misma línea, miniaturas variantes, specs técnicos, flechas navegación
