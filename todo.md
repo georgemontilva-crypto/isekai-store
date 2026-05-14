@@ -87,3 +87,4 @@
 - [x] CartDrawer: textos invisibles (blanco sobre fondo oscuro) — corregir colores de texto en el drawer del carrito
 - [x] Toast notifications: fondo oscuro visible (#1e1e1e), texto blanco (#f5f5f5), posición bottom-right, sin tapar el carrito
 - [x] Checkout: banner con imagen de fondo debajo del resumen del pedido en el sidebar derecho
+- [x] Reemplazar todos los emojis por iconos Lucide minimalistas en toda la web

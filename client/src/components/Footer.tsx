@@ -1,5 +1,5 @@
 import { Link } from "wouter";
-import { Facebook, Twitter, Instagram, Youtube, ArrowRight } from "lucide-react";
+import { Facebook, Twitter, Instagram, Youtube, ArrowRight, Headphones, Truck, Users, Lock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -21,13 +21,13 @@ export default function Footer() {
         <div className="container py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { icon: "🎧", title: "Customer service", desc: "We're here to help with any questions" },
-              { icon: "🚚", title: "Fast Free Shipping", desc: "Get free shipping on orders of $150 or more" },
-              { icon: "👥", title: "Refer a friend", desc: "Refer a friend and get 15% off each other" },
-              { icon: "🔒", title: "Secure payment", desc: "Your payment information is processed securely" },
-            ].map(({ icon, title, desc }) => (
+              { Icon: Headphones, title: "Customer service", desc: "We're here to help with any questions" },
+              { Icon: Truck, title: "Fast Free Shipping", desc: "Get free shipping on orders of $150 or more" },
+              { Icon: Users, title: "Refer a friend", desc: "Refer a friend and get 15% off each other" },
+              { Icon: Lock, title: "Secure payment", desc: "Your payment information is processed securely" },
+            ].map(({ Icon, title, desc }) => (
               <div key={title} className="flex items-start gap-3">
-                <span className="text-2xl shrink-0 mt-0.5">{icon}</span>
+                <Icon className="w-5 h-5 shrink-0 mt-0.5 text-[#1a1a1a]" strokeWidth={1.5} />
                 <div>
                   <p className="font-semibold text-[13px] text-[#1a1a1a]">{title}</p>
                   <p className="text-[12px] text-[#888] mt-0.5 leading-snug">{desc}</p>

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { ArrowRight, Star } from "lucide-react";
+import { ArrowRight, Star, Package, RotateCcw, ShieldCheck, Truck } from "lucide-react";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 
@@ -188,13 +188,13 @@ export default function FeaturedProductCard({
               </button>
               <div className="grid grid-cols-2 gap-y-2">
                 {[
-                  { icon: '📦', text: 'Ships within 1-2 days' },
-                  { icon: '↩', text: '90-day risk-free trial' },
-                  { icon: '🛡', text: '2-Year Warranty' },
-                  { icon: '🚚', text: 'Complimentary shipping' },
-                ].map(({ icon, text }) => (
+                  { Icon: Package, text: 'Ships within 1-2 days' },
+                  { Icon: RotateCcw, text: '90-day risk-free trial' },
+                  { Icon: ShieldCheck, text: '2-Year Warranty' },
+                  { Icon: Truck, text: 'Complimentary shipping' },
+                ].map(({ Icon, text }) => (
                   <div key={text} className="flex items-center gap-1.5 text-[11px] text-[#666]">
-                    <span>{icon}</span>{text}
+                    <Icon className="w-3 h-3 shrink-0" strokeWidth={1.5} />{text}
                   </div>
                 ))}
               </div>

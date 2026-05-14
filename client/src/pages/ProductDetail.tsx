@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Star, Package, ChevronLeft, ChevronRight,
-  Minus, Plus, Shield, Truck, RotateCcw, Heart, Share2, Check
+  Minus, Plus, Shield, Truck, RotateCcw, Heart, Share2, Check, Frown, Gamepad2
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -80,7 +80,9 @@ export default function ProductDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="text-6xl mb-4 opacity-30">😔</div>
+          <div className="flex justify-center mb-4 opacity-30">
+            <Frown className="w-16 h-16" strokeWidth={1} />
+          </div>
           <h2 className="text-2xl font-bold mb-2">Producto no encontrado</h2>
           <Button className="mt-4 bg-primary text-primary-foreground rounded-xl" asChild>
             <Link href="/catalog">Volver al catálogo</Link>
@@ -148,7 +150,7 @@ export default function ProductDetail() {
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/8 via-muted to-accent/8">
-                    <div className="text-9xl opacity-15">🎮</div>
+                    <Gamepad2 className="w-32 h-32 opacity-10" strokeWidth={0.8} />
                   </div>
                 )}
               </AnimatePresence>

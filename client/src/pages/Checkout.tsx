@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, CheckCircle, ShoppingBag, Loader2 } from "lucide-react";
+import { ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2 } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -317,8 +317,8 @@ export default function Checkout() {
                         {item.imageUrl ? (
                           <img src={item.imageUrl} alt="" className="w-full h-full object-cover" />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-xs text-muted-foreground">
-                            🎮
+                          <div className="w-full h-full flex items-center justify-center text-muted-foreground opacity-40">
+                            <Gamepad2 className="w-5 h-5" strokeWidth={1.5} />
                           </div>
                         )}
                       </div>

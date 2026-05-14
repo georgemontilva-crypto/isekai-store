@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ArrowRight } from "lucide-react";
+import { X, ArrowRight, CheckCircle2 } from "lucide-react";
 
 const STORAGE_KEY = "isekai_newsletter_dismissed";
 
@@ -114,9 +114,10 @@ export default function NewsletterPopup() {
                       animate={{ opacity: 1, y: 0 }}
                       className="text-center py-4"
                     >
-                      <p className="text-2xl font-black text-[#1a1a1a] mb-2">
-                        ¡Gracias! 🎉
-                      </p>
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <CheckCircle2 className="w-6 h-6 text-green-500" strokeWidth={2} />
+                        <p className="text-2xl font-black text-[#1a1a1a]">¡Gracias!</p>
+                      </div>
                       <p className="text-sm text-gray-500">
                         Te enviamos tu código de descuento al correo.
                       </p>

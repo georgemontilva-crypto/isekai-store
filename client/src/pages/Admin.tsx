@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
-  DollarSign, ArrowUpRight
+  DollarSign, ArrowUpRight, Lock, CheckCircle2
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -278,7 +278,11 @@ function ProductForm({
               {uploading ? "Subiendo..." : "Subir imagen"}
               <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
             </label>
-            {imageUrl && <span className="text-xs text-green-400">✓ Imagen subida</span>}
+            {imageUrl && (
+              <span className="flex items-center gap-1 text-xs text-green-400">
+                <CheckCircle2 className="w-3 h-3" /> Imagen subida
+              </span>
+            )}
           </div>
         </div>
       )}
@@ -333,7 +337,9 @@ export default function Admin() {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
         <div className="text-center">
-          <div className="text-5xl mb-4">🔒</div>
+          <div className="flex justify-center mb-4 opacity-50">
+            <Lock className="w-14 h-14" strokeWidth={1.5} />
+          </div>
           <h2 className="text-2xl font-bold mb-3">Acceso restringido</h2>
           <p className="text-muted-foreground mb-6">Necesitas permisos de administrador</p>
           {!isAuthenticated && (

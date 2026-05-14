@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList } from "lucide-react";
+import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList, Gamepad2 } from "lucide-react";
 import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import ProductCard from "@/components/ProductCard";
@@ -271,7 +271,9 @@ export default function Catalog() {
             animate={{ opacity: 1 }}
             className="text-center py-32"
           >
-            <div className="text-6xl mb-4 opacity-30">🔍</div>
+            <div className="flex justify-center mb-4 opacity-30">
+              <Search className="w-16 h-16" strokeWidth={1} />
+            </div>
             <p className="text-xl font-bold text-foreground">No se encontraron productos</p>
             <p className="text-muted-foreground mt-2">Intenta con otros filtros o términos de búsqueda</p>
             {hasFilters && (
@@ -301,7 +303,9 @@ export default function Catalog() {
                     {(product as any).imageUrl ? (
                       <img src={(product as any).imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-3xl opacity-20">🎮</div>
+                      <div className="w-full h-full flex items-center justify-center opacity-20">
+                        <Gamepad2 className="w-10 h-10" strokeWidth={1} />
+                      </div>
                     )}
                   </div>
                   <div className="flex-1 flex flex-col justify-between py-1">
