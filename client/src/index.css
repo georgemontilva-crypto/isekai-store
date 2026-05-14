@@ -481,18 +481,18 @@
   .hero-ctrl-btn:hover { color: #fff; }
 
   @media (max-width: 768px) {
-    /* Mobile: full-width single slide, no peek, no rounded corners */
+    /* Mobile: single slide with rounded corners and small side margin */
     .hero-peek-section {
-      padding: 0;
+      padding: 10px 0 10px 0;
       height: 100svh;
-      max-height: 700px;
+      max-height: 720px;
     }
     .hero-peek-slide {
-      border-radius: 0 !important;
+      border-radius: 16px !important;
     }
     .hero-peek-slide.active {
-      left: 0 !important;
-      width: 100% !important;
+      left: 12px !important;
+      width: calc(100% - 24px) !important;
       opacity: 1;
     }
     .hero-peek-slide.prev,
@@ -503,18 +503,18 @@
       pointer-events: none;
     }
     .hero-peek-controls {
-      left: 0 !important;
-      width: 100% !important;
+      left: 12px !important;
+      width: calc(100% - 24px) !important;
       bottom: 24px;
-      padding: 0 20px;
+      padding: 0 12px;
     }
     .hero-peek-content {
-      left: 20px;
-      bottom: 72px;
-      max-width: calc(100% - 40px);
+      left: 24px;
+      bottom: 76px;
+      max-width: calc(100% - 48px);
     }
     .hero-peek-title {
-      font-size: 2rem;
+      font-size: 1.9rem;
     }
     .hero-social-bar { display: none; }
   }
