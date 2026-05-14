@@ -9,23 +9,23 @@ import { toast } from "sonner";
 /* ─── Hero Slides ─── */
 const heroSlides = [
   {
-    bg: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600&q=80",
+    bg: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
     tag: "New Collection",
-    title: "Experience\nPure Sound",
+    title: "Experience\nUnparalleled\nAudio Elegance",
     cta: "Shop Headphones",
     href: "/catalog",
   },
   {
-    bg: "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?w=1600&q=80",
+    bg: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
     tag: "Limited Edition",
-    title: "Sound.\nSculpted.",
+    title: "Sound.\nSculpted.\nPerfected.",
     cta: "Explore Now",
     href: "/catalog",
   },
   {
     bg: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1600&q=80",
     tag: "Best Sellers",
-    title: "Premium\nAudio Gear",
+    title: "Premium\nAudio\nGear",
     cta: "View Collection",
     href: "/catalog",
   },
@@ -149,66 +149,80 @@ export default function Home() {
     <div className="bg-white text-[#1a1a1a]">
 
       {/* ══════════════════════════════════════════════
-          1. HERO SLIDER
+          1. HERO PEEK CAROUSEL
       ══════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden" style={{ height: "min(90vh, 720px)" }}>
-        {/* Slides */}
-        {heroSlides.map((slide, i) => (
-          <div
-            key={i}
-            className={`absolute inset-0 transition-opacity duration-700 ${i === heroIdx ? "opacity-100" : "opacity-0"}`}
+      <section className="hero-peek-section">
+        {/* Social sidebar */}
+        <div className="hero-social-bar">
+          <a href="#" aria-label="Facebook" className="hero-social-icon">f</a>
+          <a href="#" aria-label="Twitter" className="hero-social-icon">𝕏</a>
+          <a href="#" aria-label="Instagram" className="hero-social-icon">◎</a>
+          <a href="#" aria-label="YouTube" className="hero-social-icon">▶</a>
+          <div className="hero-social-promo">GET 20% OFF</div>
+        </div>
+
+        {/* Track */}
+        <div className="hero-peek-track">
+          {heroSlides.map((slide, i) => {
+            const offset = i - heroIdx;
+            const isActive = offset === 0;
+            const isPrev = offset === -1 || (heroIdx === 0 && i === heroSlides.length - 1);
+            const isNext = offset === 1 || (heroIdx === heroSlides.length - 1 && i === 0);
+            return (
+              <div
+                key={i}
+                className={`hero-peek-slide ${
+                  isActive ? "active" : isPrev ? "prev" : isNext ? "next" : "hidden-slide"
+                }`}
+                onClick={() => !isActive && setHeroIdx(i)}
+              >
+                <img
+                  src={slide.bg}
+                  alt={slide.title}
+                  className={`hero-peek-img ${isActive ? "zoomed-in" : ""}`}
+                />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
+                {isActive && (
+                  <div className="hero-peek-content">
+                    <h1 className="hero-peek-title">{slide.title.toUpperCase()}</h1>
+                    <Link href={slide.href} className="btn-pill-white">
+                      {slide.cta}
+                    </Link>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Controls row */}
+        <div className="hero-peek-controls">
+          <button
+            onClick={() => setHeroIdx(i => (i - 1 + heroSlides.length) % heroSlides.length)}
+            className="hero-ctrl-btn"
+            aria-label="Previous"
           >
-            <img
-              src={slide.bg}
-              alt={slide.title}
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute inset-0 hero-overlay" />
+            ←
+          </button>
+          <div className="flex items-center gap-2">
+            {heroSlides.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setHeroIdx(i)}
+                className={`rounded-full transition-all duration-300 ${
+                  i === heroIdx ? "w-5 h-[6px] bg-[#1a1a1a]" : "w-[6px] h-[6px] bg-[#ccc]"
+                }`}
+              />
+            ))}
           </div>
-        ))}
-
-        {/* Content */}
-        <div className="relative z-10 h-full container flex flex-col justify-end pb-16">
-          <div className="max-w-xl">
-            <span className="section-label text-white/70 mb-3 block">
-              {heroSlides[heroIdx].tag}
-            </span>
-            <h1 className="text-5xl md:text-7xl font-black text-white leading-none mb-6 whitespace-pre-line">
-              {heroSlides[heroIdx].title}
-            </h1>
-            <Link href={heroSlides[heroIdx].href} className="btn-pill-white">
-              {heroSlides[heroIdx].cta}
-              <ArrowRight size={15} />
-            </Link>
-          </div>
+          <button
+            onClick={() => setHeroIdx(i => (i + 1) % heroSlides.length)}
+            className="hero-ctrl-btn"
+            aria-label="Next"
+          >
+            →
+          </button>
         </div>
-
-        {/* Slide dots */}
-        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
-          {heroSlides.map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setHeroIdx(i)}
-              className={`rounded-full transition-all duration-300 ${
-                i === heroIdx ? "w-6 h-2 bg-white" : "w-2 h-2 bg-white/40"
-              }`}
-            />
-          ))}
-        </div>
-
-        {/* Prev / Next */}
-        <button
-          onClick={() => setHeroIdx(i => (i - 1 + heroSlides.length) % heroSlides.length)}
-          className="absolute left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/40 transition-colors"
-        >
-          <ChevronLeft size={18} />
-        </button>
-        <button
-          onClick={() => setHeroIdx(i => (i + 1) % heroSlides.length)}
-          className="absolute right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-white/20 backdrop-blur-sm flex items-center justify-center text-white hover:bg-white/40 transition-colors"
-        >
-          <ChevronRight size={18} />
-        </button>
       </section>
 
       {/* ══════════════════════════════════════════════
