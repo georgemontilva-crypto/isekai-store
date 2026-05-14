@@ -8,6 +8,7 @@ import { CartProvider } from "./contexts/CartContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
+import NewsletterPopup from "./components/NewsletterPopup";
 import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
@@ -41,6 +42,7 @@ function Layout() {
         <Router />
       </main>
       {!isAdmin && <Footer />}
+      {!isAdmin && <NewsletterPopup />}
     </>
   );
 }

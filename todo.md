@@ -66,3 +66,6 @@
 - [x] ProductCard: card-hover lift effect
 - [x] CSS: utilidades card-hover, gradient-text-cyan, gradient-text-pink, shimmer, gradient-divider
 - [x] Tipografía Orbitron mejorada (pesos 400-900)
+
+## Popup Newsletter
+- [x] NewsletterPopup: modal aparece suavemente, imagen entra desde la derecha 1s después (Framer Motion, dos fases)
