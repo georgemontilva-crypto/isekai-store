@@ -1,53 +1,20 @@
-import { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
-import type { Express, Request, Response } from "express";
-import * as db from "../db";
-import { getSessionCookieOptions } from "./cookies";
-import { sdk } from "./sdk";
+/**
+ * OAuth routes — pendiente de implementar auth propia.
+ *
+ * El sistema de auth de Manus fue eliminado.
+ * Aquí se registrarán las rutas para:
+ *   - GET  /api/auth/google          → redirect a Google
+ *   - GET  /api/auth/google/callback → recibir code, crear sesión
+ *   - POST /api/auth/magic-link      → enviar email con token
+ *   - GET  /api/auth/verify          → verificar token del email
+ *   - POST /api/auth/logout          → limpiar cookie
+ *
+ * TODO: implementar en el siguiente paso.
+ */
+import type { Express } from "express";
 
-function getQueryParam(req: Request, key: string): string | undefined {
-  const value = req.query[key];
-  return typeof value === "string" ? value : undefined;
-}
-
-export function registerOAuthRoutes(app: Express) {
-  app.get("/api/oauth/callback", async (req: Request, res: Response) => {
-    const code = getQueryParam(req, "code");
-    const state = getQueryParam(req, "state");
-
-    if (!code || !state) {
-      res.status(400).json({ error: "code and state are required" });
-      return;
-    }
-
-    try {
-      const tokenResponse = await sdk.exchangeCodeForToken(code, state);
-      const userInfo = await sdk.getUserInfo(tokenResponse.accessToken);
-
-      if (!userInfo.openId) {
-        res.status(400).json({ error: "openId missing from user info" });
-        return;
-      }
-
-      await db.upsertUser({
-        openId: userInfo.openId,
-        name: userInfo.name || null,
-        email: userInfo.email ?? null,
-        loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
-        lastSignedIn: new Date(),
-      });
-
-      const sessionToken = await sdk.createSessionToken(userInfo.openId, {
-        name: userInfo.name || "",
-        expiresInMs: ONE_YEAR_MS,
-      });
-
-      const cookieOptions = getSessionCookieOptions(req);
-      res.cookie(COOKIE_NAME, sessionToken, { ...cookieOptions, maxAge: ONE_YEAR_MS });
-
-      res.redirect(302, "/");
-    } catch (error) {
-      console.error("[OAuth] Callback failed", error);
-      res.status(500).json({ error: "OAuth callback failed" });
-    }
-  });
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function registerOAuthRoutes(_app: Express): void {
+  // Pendiente: implementación de Google OAuth2 y Magic Link con Resend.
+  console.log("[Auth] Sistema de autenticación pendiente de configurar. Ver server/_core/oauth.ts");
 }

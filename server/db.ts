@@ -13,6 +13,7 @@ import {
   products,
   users,
   siteSettings,
+  authTokens,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -478,4 +479,35 @@ export async function getDashboardMetrics() {
     recentOrders,
     topProducts,
   };
+}
+
+// ─── Auth Tokens ──────────────────────────────────────────────────────────────
+export async function createAuthToken(data: {
+  token: string;
+  email: string;
+  type: "magic_link" | "email_verify";
+  expiresAt: Date;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("Database not available");
+  await db.insert(authTokens).values(data);
+}
+
+export async function getAuthToken(token: string): Promise<typeof authTokens.$inferSelect | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(authTokens).where(eq(authTokens.token, token)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function markAuthTokenUsed(token: string): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(authTokens).set({ used: true }).where(eq(authTokens.token, token));
+}
+
+export async function deleteExpiredAuthTokens(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(authTokens).where(sql`${authTokens.expiresAt} < NOW()`);
 }

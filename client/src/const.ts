@@ -1,17 +1,18 @@
 export { COOKIE_NAME, ONE_YEAR_MS } from "@shared/const";
 
-// Generate login URL at runtime so redirect URI reflects the current origin.
-export const getLoginUrl = () => {
-  const oauthPortalUrl = import.meta.env.VITE_OAUTH_PORTAL_URL;
-  const appId = import.meta.env.VITE_APP_ID;
-  const redirectUri = `${window.location.origin}/api/oauth/callback`;
-  const state = btoa(redirectUri);
+/**
+ * Abre el modal de login en el frontend (AuthDialog).
+ * El modal maneja Google OAuth y Magic Link directamente.
+ *
+ * Esta función se mantiene por compatibilidad con código existente
+ * que llamaba window.location.href = getLoginUrl().
+ * Ahora en vez de redirigir, dispara un evento para abrir el modal.
+ */
+export const getLoginUrl = (): string => {
+  // Retorna "#login" como señal para abrir el modal de auth
+  return "#login";
+};
 
-  const url = new URL(`${oauthPortalUrl}/app-auth`);
-  url.searchParams.set("appId", appId);
-  url.searchParams.set("redirectUri", redirectUri);
-  url.searchParams.set("state", state);
-  url.searchParams.set("type", "signIn");
-
-  return url.toString();
+export const openLoginModal = (): void => {
+  window.dispatchEvent(new CustomEvent("isekai:open-auth-modal"));
 };

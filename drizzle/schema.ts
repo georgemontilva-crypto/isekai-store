@@ -165,3 +165,17 @@ export const siteSettings = mysqlTable("siteSettings", {
 
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type InsertSiteSetting = typeof siteSettings.$inferInsert;
+
+// ─── Auth Tokens (Magic Link / Verificación de email) ─────────────────────────
+export const authTokens = mysqlTable("authTokens", {
+  id:        int("id").autoincrement().primaryKey(),
+  token:     varchar("token", { length: 128 }).notNull().unique(),
+  email:     varchar("email", { length: 320 }).notNull(),
+  type:      mysqlEnum("type", ["magic_link", "email_verify"]).notNull(),
+  used:      boolean("used").default(false).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AuthToken = typeof authTokens.$inferSelect;
+export type InsertAuthToken = typeof authTokens.$inferInsert;
