@@ -78,12 +78,24 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const headerRef = useRef<HTMLElement>(null);
+  const [navBottom, setNavBottom] = useState(96);
   const { user, isAuthenticated } = useAuth();
   const { totalItems, openCart } = useCart();
 
   useEffect(() => {
-    const handler = () => setScrolled(window.scrollY > 10);
+    const handler = () => {
+      setScrolled(window.scrollY > 10);
+      if (headerRef.current) {
+        const rect = headerRef.current.getBoundingClientRect();
+        setNavBottom(rect.bottom);
+      }
+    };
     window.addEventListener("scroll", handler, { passive: true });
+    // Initial measurement
+    if (headerRef.current) {
+      setNavBottom(headerRef.current.getBoundingClientRect().bottom);
+    }
     return () => window.removeEventListener("scroll", handler);
   }, []);
 
@@ -148,6 +160,7 @@ export default function Navbar() {
 
       {/* ── MAIN NAVBAR ── */}
       <header
+        ref={headerRef}
         className={`sticky top-0 z-50 bg-white transition-all duration-200 ${
           scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"
         }`}
@@ -195,50 +208,7 @@ export default function Navbar() {
                 />
               </button>
 
-              <AnimatePresence>
-                {activeMenu === "collections" && (
-                  <motion.div
-                    variants={dropdownVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    transition={{ duration: 0.22, type: "tween" }}
-                    onMouseEnter={cancelClose}
-                    onMouseLeave={scheduleClose}
-                    className="absolute top-[calc(100%+8px)] left-1/2 -translate-x-1/2 z-50"
-                    style={{ width: "min(90vw, 900px)" }}
-                  >
-                    <div className="bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] overflow-hidden border border-[#f0f0f0]">
-                      <div className="grid grid-cols-5">
-                        {collectionsMenu.map((col) => (
-                          <Link
-                            key={col.label}
-                            href={col.href}
-                            className={`group relative flex flex-col overflow-hidden ${col.dark ? "bg-[#1a1a1a]" : "bg-white"}`}
-                          >
-                            {/* Image */}
-                            <div className="aspect-[3/4] overflow-hidden">
-                              <img
-                                src={col.img}
-                                alt={col.label}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                              />
-                            </div>
-                            {/* Label */}
-                            <div className={`p-3 flex items-start justify-between gap-1 ${col.dark ? "text-white" : "text-[#1a1a1a]"}`}>
-                              <div>
-                                <div className="font-bold text-[13px] leading-tight">{col.label}</div>
-                                <div className={`text-[11px] mt-0.5 ${col.dark ? "text-white/60" : "text-[#888]"}`}>{col.desc}</div>
-                              </div>
-                              <ArrowRight size={14} className="shrink-0 mt-0.5 transition-transform duration-200 group-hover:translate-x-0.5" />
-                            </div>
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {/* Full-width mega panel — rendered via portal-like fixed positioning */}
             </div>
 
             {/* Explore — simple dropdown */}
@@ -328,6 +298,60 @@ export default function Navbar() {
           </div>
         </div>
       </header>
+
+      {/* ── COLLECTIONS MEGA MENU (full-width panel) ── */}
+      <AnimatePresence>
+        {activeMenu === "collections" && (
+          <motion.div
+            variants={dropdownVariants}
+            initial="hidden"
+            animate="visible"
+            exit="exit"
+            transition={{ duration: 0.22, type: "tween" }}
+            onMouseEnter={cancelClose}
+            onMouseLeave={scheduleClose}
+            className="fixed left-0 right-0 z-40 bg-white border-b border-[#ebebeb] shadow-[0_12px_40px_rgba(0,0,0,0.10)]"
+            style={{ top: `${navBottom}px` }}
+          >
+            <div className="grid grid-cols-5">
+              {collectionsMenu.map((col) => (
+                <Link
+                  key={col.label}
+                  href={col.href}
+                  onClick={() => setActiveMenu(null)}
+                  className={`group relative flex flex-col overflow-hidden border-r border-[#f0f0f0] last:border-r-0 ${
+                    col.dark ? "bg-[#1a1a1a]" : "bg-white"
+                  }`}
+                >
+                  {/* Image */}
+                  <div className="aspect-[4/3] overflow-hidden">
+                    <img
+                      src={col.img}
+                      alt={col.label}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                  </div>
+                  {/* Label row */}
+                  <div className={`px-5 py-4 flex items-start justify-between gap-2 ${
+                    col.dark ? "text-white" : "text-[#1a1a1a]"
+                  }`}>
+                    <div>
+                      <div className="font-bold text-[14px] leading-tight">{col.label}</div>
+                      <div className={`text-[12px] mt-1 leading-snug ${
+                        col.dark ? "text-white/55" : "text-[#888]"
+                      }`}>{col.desc}</div>
+                    </div>
+                    <ArrowRight
+                      size={15}
+                      className="shrink-0 mt-0.5 transition-transform duration-200 group-hover:translate-x-1"
+                    />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ── SEARCH OVERLAY ── */}
       <AnimatePresence>
