@@ -411,24 +411,18 @@ export default function Home() {
       ══════════════════════════════════════════════ */}
       {categories && categories.length > 0 && (
         <section style={{ padding: '24px 8px 0 8px' }}>
-          <div
-            className="flex gap-3 overflow-x-auto"
-            style={{
-              scrollbarWidth: 'none',
-              msOverflowStyle: 'none',
-              WebkitOverflowScrolling: 'touch',
-            }}
-          >
+          <style>{`
+            .cat-carousel { display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; }
+            .cat-carousel::-webkit-scrollbar { display:none; }
+            .cat-card { flex-shrink:0; width:66vw; aspect-ratio:3/4; }
+            @media(min-width:768px){ .cat-card { width:calc((100vw - 16px - 4 * 12px) / 5); } }
+          `}</style>
+          <div className="cat-carousel">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/catalog?category=${cat.slug}`}
-                className="relative shrink-0 rounded-[18px] overflow-hidden block group"
-                style={{
-                  width: 'clamp(62vw, calc((100vw - 16px - 4 * 12px) / 5), 320px)',
-                  flexShrink: 0,
-                  aspectRatio: '3/4',
-                }}
+                className="cat-card relative rounded-[18px] overflow-hidden block group"
               >
                 {/* Background image */}
                 {cat.imageUrl ? (
@@ -457,9 +451,6 @@ export default function Home() {
               </Link>
             ))}
           </div>
-          <style>{`
-            section div::-webkit-scrollbar { display: none; }
-          `}</style>
         </section>
       )}
 
