@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Star } from "lucide-react";
 import { motion } from "framer-motion";
+import { trpc } from "@/lib/trpc";
 
 export type FeaturedProduct = {
   id: number;
@@ -12,12 +13,6 @@ export type FeaturedProduct = {
   slug: string;
 };
 
-const THUMBNAILS = [
-  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=200&q=80',
-  'https://images.unsplash.com/photo-1484704849700-f032a568e944?w=200&q=80',
-  'https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=200&q=80',
-];
-
 export default function FeaturedProductCard({
   product,
   onAddToCart,
@@ -25,8 +20,32 @@ export default function FeaturedProductCard({
   product: FeaturedProduct;
   onAddToCart: (id: number, name: string) => void;
 }) {
-  const thumbs = [product.imageUrl ?? THUMBNAILS[0], THUMBNAILS[1], THUMBNAILS[2]];
+  // Load full product details (images + variants) via public bySlug
+  const { data: fullProduct } = trpc.products.bySlug.useQuery(
+    { slug: product.slug },
+    { enabled: !!product.slug }
+  );
+
+  // Build gallery: use productImages if available, otherwise fall back to imageUrl
+  const gallery: string[] = fullProduct?.images?.length
+    ? fullProduct.images.map((img) => img.url)
+    : product.imageUrl
+    ? [product.imageUrl]
+    : [];
+
   const [activeIdx, setActiveIdx] = useState(0);
+  const [activeVariantId, setActiveVariantId] = useState<number | null>(null);
+
+  const variants = fullProduct?.variants ?? [];
+  const hasVariants = variants.length > 0;
+
+  // Active variant label
+  const activeVariant = variants.find((v) => v.id === activeVariantId) ?? variants[0] ?? null;
+  const activeVariantLabel = activeVariant
+    ? activeVariant.options
+      ? Object.values(activeVariant.options as Record<string, string>).join(' / ')
+      : activeVariant.name
+    : null;
 
   return (
     <motion.div
@@ -38,26 +57,11 @@ export default function FeaturedProductCard({
       transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
     >
       <div className="bg-white rounded-[20px] shadow-2xl overflow-hidden" style={{ border: '1px solid #ebebeb' }}>
-        {/* Rotating badge */}
-        <div className="flex justify-center" style={{ marginTop: -28 }}>
-          <div className="relative w-14 h-14 bg-white rounded-full shadow-md flex items-center justify-center">
-            <svg viewBox="0 0 100 100" className="w-full h-full spin-slow absolute inset-0">
-              <path id="fp-badge-circle" d="M 50,50 m -37,0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0" fill="none" />
-              <text fontSize="11" fontWeight="600" fill="#1a1a1a" letterSpacing="3">
-                <textPath href="#fp-badge-circle">FEATURED • PRODUCT • </textPath>
-              </text>
-            </svg>
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1a1a1a" strokeWidth="2" className="relative z-10">
-              <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z" />
-              <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3" />
-            </svg>
-          </div>
-        </div>
-
         <div className="grid grid-cols-[72px_1fr_1fr] gap-0" style={{ minHeight: 380 }}>
-          {/* Thumbnails */}
+
+          {/* ── Thumbnails (gallery images) ── */}
           <div className="flex flex-col gap-2 p-3 border-r border-[#f0f0f0]">
-            {thumbs.map((src, ti) => (
+            {gallery.length > 0 ? gallery.map((src, ti) => (
               <button
                 key={ti}
                 onClick={() => setActiveIdx(ti)}
@@ -70,10 +74,12 @@ export default function FeaturedProductCard({
               >
                 <img src={src} alt="" className="w-full h-full object-cover" />
               </button>
-            ))}
+            )) : (
+              <div className="w-full aspect-square rounded-xl bg-[#f5f5f5]" />
+            )}
           </div>
 
-          {/* Main image — square, rounded, object-cover */}
+          {/* ── Main image ── */}
           <div className="p-4 bg-[#f7f7f7] flex items-center justify-center">
             <motion.div
               key={activeIdx}
@@ -82,22 +88,28 @@ export default function FeaturedProductCard({
               transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
               className="w-full aspect-square rounded-2xl overflow-hidden"
             >
-              <img
-                src={thumbs[activeIdx]}
-                alt={product.name}
-                className="w-full h-full object-cover"
-              />
+              {gallery[activeIdx] ? (
+                <img
+                  src={gallery[activeIdx]}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-[#ebebeb] flex items-center justify-center text-[#aaa] text-sm">
+                  No image
+                </div>
+              )}
             </motion.div>
           </div>
 
-          {/* Details panel */}
+          {/* ── Details panel ── */}
           <div className="flex flex-col justify-between p-7 border-l border-[#f0f0f0]">
             <div>
               <p className="text-[12px] text-[#888] font-medium mb-1">Isekai Store</p>
               <div className="flex items-start justify-between gap-4 mb-2">
                 <h3 className="text-[26px] font-black text-[#1a1a1a] leading-tight">{product.name}</h3>
                 <span className="text-[22px] font-black text-[#1a1a1a] whitespace-nowrap">
-                  ${parseFloat(product.price).toFixed(2)}
+                  ${parseFloat(activeVariant?.price ?? product.price).toFixed(2)}
                 </span>
               </div>
               <div className="flex items-center gap-2 mb-3">
@@ -113,25 +125,51 @@ export default function FeaturedProductCard({
                   {product.description}
                 </p>
               )}
-              <div className="mb-4">
-                <p className="text-[12px] font-medium text-[#1a1a1a] mb-2">
-                  Color: <span className="font-normal text-[#555]">Default</span>
-                </p>
-                <div className="flex gap-2">
-                  {['#e8e0d0','#555','#7a5c3a','#1e3a5f','#2a2a2a'].map((c, ci) => (
-                    <div
-                      key={ci}
-                      className="w-8 h-8 rounded-full cursor-pointer"
-                      style={{
-                        background: c,
-                        border: ci === 0 ? '2px solid #1a1a1a' : '2px solid transparent',
-                        outline: ci === 0 ? '2px solid #1a1a1a' : 'none',
-                        outlineOffset: 2,
-                      }}
-                    />
-                  ))}
+
+              {/* Variants — only if the product has them */}
+              {hasVariants && (
+                <div className="mb-4">
+                  <p className="text-[12px] font-medium text-[#1a1a1a] mb-2">
+                    Variant:{' '}
+                    <span className="font-normal text-[#555]">
+                      {activeVariantLabel ?? 'Select'}
+                    </span>
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {variants.map((v, vi) => {
+                      // Try to find a matching gallery image for this variant by index
+                      const variantImg = gallery[vi] ?? gallery[0];
+                      const isActive = activeVariantId === v.id || (activeVariantId === null && vi === 0);
+                      return (
+                        <button
+                          key={v.id}
+                          onClick={() => {
+                            setActiveVariantId(v.id);
+                            if (gallery[vi]) setActiveIdx(vi);
+                          }}
+                          className="w-10 h-10 rounded-xl overflow-hidden cursor-pointer transition-all"
+                          style={{
+                            border: isActive ? '2px solid #1a1a1a' : '2px solid transparent',
+                            outline: isActive ? '2px solid #1a1a1a' : 'none',
+                            outlineOffset: 2,
+                            background: '#f5f5f5',
+                          }}
+                          title={v.name}
+                        >
+                          {variantImg ? (
+                            <img src={variantImg} alt={v.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[9px] text-[#555] leading-tight px-0.5 block text-center">
+                              {v.name.slice(0, 6)}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
+
               <p className="text-[12px] text-[#e53e3e] font-medium mb-1">Hurry, only 5 items left in stock!</p>
               <div className="w-full h-1 bg-[#f0f0f0] rounded-full mb-4">
                 <div className="h-full bg-[#1a1a1a] rounded-full" style={{ width: '20%' }} />
@@ -144,7 +182,9 @@ export default function FeaturedProductCard({
                 className="w-full flex items-center justify-between bg-[#1a1a1a] text-white font-semibold text-[14px] px-6 py-4 rounded-full hover:bg-[#333] transition-colors mb-3 active:scale-[0.98]"
               >
                 <span>Add to cart</span>
-                <span className="text-white/70">— ${parseFloat(product.price).toFixed(2)}</span>
+                <span className="text-white/70">
+                  — ${parseFloat(activeVariant?.price ?? product.price).toFixed(2)}
+                </span>
               </button>
               <div className="grid grid-cols-2 gap-y-2">
                 {[
