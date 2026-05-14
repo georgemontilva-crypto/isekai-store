@@ -72,3 +72,7 @@
 
 ## Carrusel de Colecciones
 - [x] Carrusel horizontal scrolleable debajo del brand story: primera tarjeta grande "All products" con imagen de fondo, resto tarjetas con imagen centrada + nombre + descripción + flecha, bordes redondeados isla
+
+## Sección Video + Producto Flotante
+- [x] Sección video fullwidth: fondo imagen oscuro, título "Sound. Sculpted.", subtítulo, botón pill blanco con flecha, botón pause esquina inferior derecha
+- [x] Tarjeta producto flotante superpuesta al borde inferior del video: galería miniaturas izquierda, imagen grande centro, detalles (nombre, precio, rating, variantes color, add to cart, trust badges) derecha
