@@ -51,3 +51,18 @@
 
 ## Tests
 - [x] Tests de routers principales (products, orders, cart, categories, admin, auth) - 21 tests pasando
+
+## Rediseño Visual (Shopify-inspired)
+- [x] Homepage: marquee ticker animado
+- [x] Homepage: hero cinematográfico con slides automáticos y tarjetas flotantes
+- [x] Homepage: trust bar con iconos
+- [x] Homepage: producto spotlight destacado
+- [x] Homepage: colecciones bento grid
+- [x] Homepage: productos en tabs por categoría
+- [x] Homepage: banner editorial "¿Por qué elegirnos?"
+- [x] Homepage: testimonios de clientes
+- [x] Homepage: CTA newsletter
+- [x] CartDrawer: progress bar envío gratis, trust badges, total animado
+- [x] ProductCard: card-hover lift effect
+- [x] CSS: utilidades card-hover, gradient-text-cyan, gradient-text-pink, shimmer, gradient-divider
+- [x] Tipografía Orbitron mejorada (pesos 400-900)

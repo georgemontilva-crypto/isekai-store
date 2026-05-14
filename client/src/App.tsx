@@ -1,11 +1,12 @@
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch } from "wouter";
+import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { CartProvider } from "./contexts/CartContext";
 import Navbar from "./components/Navbar";
+import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
@@ -29,6 +30,22 @@ function Router() {
   );
 }
 
+function Layout() {
+  const [location] = useLocation();
+  const isAdmin = location.startsWith("/admin");
+
+  return (
+    <>
+      <Navbar />
+      <CartDrawer />
+      <main className="min-h-screen">
+        <Router />
+      </main>
+      {!isAdmin && <Footer />}
+    </>
+  );
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -36,9 +53,7 @@ function App() {
         <TooltipProvider>
           <CartProvider>
             <Toaster position="top-right" />
-            <Navbar />
-            <CartDrawer />
-            <Router />
+            <Layout />
           </CartProvider>
         </TooltipProvider>
       </ThemeProvider>
