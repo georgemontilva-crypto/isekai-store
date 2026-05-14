@@ -82,3 +82,6 @@
 
 ## Best Sellers Rediseño
 - [x] Best Sellers: cards horizontales scrolleables (5 desktop), imagen grande sin fondo gris, badge New verde, rating amarillo, nombre+precio misma línea, miniaturas variantes, specs técnicos, flechas navegación
+
+## Correcciones UI
+- [x] CartDrawer: textos invisibles (blanco sobre fondo oscuro) — corregir colores de texto en el drawer del carrito
