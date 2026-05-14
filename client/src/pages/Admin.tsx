@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
-  DollarSign, ArrowUpRight, Lock, CheckCircle2
+  DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -14,7 +14,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "settings";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -311,6 +311,9 @@ export default function Admin() {
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [igToken, setIgToken] = useState("");
+  const [igUsername, setIgUsername] = useState("");
+  const [igCtaText, setIgCtaText] = useState("");
   const [categoryForm, setCategoryForm] = useState({ name: "", slug: "", description: "" });
 
   // Queries
@@ -330,6 +333,8 @@ export default function Admin() {
   const updateCategory = trpc.categories.update.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); toast.success("Categoría actualizada"); } });
   const deleteCategory = trpc.categories.delete.useMutation({ onSuccess: () => { refetchCategories(); toast.success("Categoría eliminada"); } });
   const updateOrderStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => { refetchOrders(); toast.success("Estado actualizado"); } });
+  const { data: siteSettings, refetch: refetchSettings } = trpc.settings.getAdmin.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const upsertSetting = trpc.settings.upsert.useMutation({ onSuccess: () => { refetchSettings(); toast.success("Configuración guardada"); } });
 
   if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
 
@@ -357,6 +362,7 @@ export default function Admin() {
     { id: "products" as AdminTab, label: "Productos", icon: Package },
     { id: "categories" as AdminTab, label: "Categorías", icon: Tag },
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
+    { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
   ];
 
   return (
@@ -716,6 +722,109 @@ export default function Admin() {
                       <p>No hay pedidos aún</p>
                     </div>
                   )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          {/* ─── Settings Tab ─────────────────────────────────────────────────── */}
+          <AnimatePresence mode="wait">
+            {tab === "settings" && (
+              <motion.div
+                key="settings"
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
+                className="p-8 max-w-2xl"
+              >
+                <h2 className="text-2xl font-bold mb-1">Configuración</h2>
+                <p className="text-muted-foreground text-sm mb-8">Personaliza la tienda y conecta tus redes sociales.</p>
+
+                {/* Instagram Feed */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f09433] via-[#e1306c] to-[#833ab4] flex items-center justify-center">
+                      <Instagram className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Instagram Feed</h3>
+                      <p className="text-xs text-muted-foreground">Conecta tu cuenta para mostrar fotos reales en la homepage</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <Label className="text-sm font-medium">Usuario de Instagram</Label>
+                      <p className="text-xs text-muted-foreground mb-1.5">Ej: @isekaistore (solo para mostrar en la sección)</p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="@isekaistore"
+                          defaultValue={siteSettings?.["instagram_username"] ?? ""}
+                          onChange={(e) => setIgUsername(e.target.value)}
+                          className="bg-muted border-border/50"
+                        />
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground shrink-0"
+                          onClick={() => upsertSetting.mutate({ key: "instagram_username", value: igUsername })}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium">Access Token de Instagram</Label>
+                      <p className="text-xs text-muted-foreground mb-1.5">
+                        Obtén tu token en{" "}
+                        <a href="https://developers.facebook.com/docs/instagram-basic-display-api/getting-started" target="_blank" rel="noopener noreferrer" className="text-primary underline inline-flex items-center gap-0.5">
+                          Meta for Developers <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </p>
+                      <div className="flex gap-2">
+                        <Input
+                          type="password"
+                          placeholder="IGQVJx..."
+                          defaultValue={siteSettings?.["instagram_access_token"] ? "••••••••••••••••" : ""}
+                          onChange={(e) => setIgToken(e.target.value)}
+                          className="bg-muted border-border/50 font-mono text-sm"
+                        />
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground shrink-0"
+                          onClick={() => upsertSetting.mutate({ key: "instagram_access_token", value: igToken })}
+                          disabled={!igToken}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                      {siteSettings?.["instagram_access_token"] && (
+                        <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> Token configurado
+                        </p>
+                      )}
+                    </div>
+
+                    <div>
+                      <Label className="text-sm font-medium">Texto del llamado a la acción</Label>
+                      <p className="text-xs text-muted-foreground mb-1.5">Aparece debajo del título "Shop the Feed" en la homepage</p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Síguenos en Instagram para contenido exclusivo..."
+                          defaultValue={siteSettings?.["instagram_cta_text"] ?? ""}
+                          onChange={(e) => setIgCtaText(e.target.value)}
+                          className="bg-muted border-border/50"
+                        />
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground shrink-0"
+                          onClick={() => upsertSetting.mutate({ key: "instagram_cta_text", value: igCtaText })}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             )}

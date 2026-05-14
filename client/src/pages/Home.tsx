@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, ChevronLeft, ChevronRight, Star, Play, ShoppingBag } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Star, Play, ShoppingBag, Instagram, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/contexts/CartContext";
@@ -281,6 +281,113 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
         >
           <ChevronRight size={18} />
         </button>
+      </div>
+    </section>
+  );
+}
+
+/* ─── Instagram Feed Section ─────────────────────────────────────────────────────────────────────────────────── */
+function InstagramFeedSection() {
+  const { data: settings } = trpc.settings.getAll.useQuery();
+  const { data: feedData } = trpc.settings.instagramFeed.useQuery();
+
+  const username = settings?.["instagram_username"] || "@isekaistore";
+  const ctaText = settings?.["instagram_cta_text"] || "Síguenos en Instagram para contenido exclusivo, novedades y ofertas especiales.";
+  const instagramUrl = `https://www.instagram.com/${username.replace("@", "")}`;
+
+  const posts = feedData?.posts ?? [];
+  const configured = feedData?.configured ?? false;
+
+  // Fallback placeholder images when not configured
+  const placeholderImages = [
+    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
+    "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
+    "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
+    "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
+  ];
+
+  const displayPosts = configured && posts.length > 0
+    ? posts.slice(0, 8)
+    : null;
+
+  return (
+    <section className="py-20 border-b border-[#ebebeb]">
+      <div className="container">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
+          <div className="flex-1 max-w-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <Instagram className="w-5 h-5 text-[#e1306c]" strokeWidth={1.5} />
+              <span className="text-sm font-semibold text-[#888]">{username}</span>
+            </div>
+            <h2 className="text-3xl font-black mb-2" style={{ fontFamily: "'Orbitron', sans-serif" }}>Shop the Feed</h2>
+            <p className="text-[#666] text-[14px] leading-relaxed">{ctaText}</p>
+          </div>
+          <a
+            href={instagramUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full border border-[#1a1a1a] text-[13px] font-semibold hover:bg-[#1a1a1a] hover:text-white transition-all duration-200 self-start md:self-auto"
+          >
+            <Instagram className="w-4 h-4" strokeWidth={1.5} />
+            Follow us
+            <ExternalLink className="w-3 h-3 opacity-60" strokeWidth={1.5} />
+          </a>
+        </div>
+
+        {/* Grid */}
+        {displayPosts ? (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {displayPosts.map((post, i) => (
+              <motion.a
+                key={post.id}
+                href={post.permalink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <img
+                  src={post.media_url}
+                  alt={post.caption?.slice(0, 60) ?? `Post ${i + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors duration-300 flex items-center justify-center">
+                  <span className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-[#1a1a1a] text-[12px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg">
+                    <Instagram className="w-3 h-3" strokeWidth={2} />
+                    Ver post
+                  </span>
+                </div>
+              </motion.a>
+            ))}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            {placeholderImages.map((img, i) => (
+              <motion.div
+                key={i}
+                className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: i * 0.06, duration: 0.4, ease: [0.23, 1, 0.32, 1] }}
+              >
+                <img src={img} alt={`Feed ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/35 transition-colors duration-300 flex items-center justify-center">
+                  <span className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-white text-[#1a1a1a] text-[12px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-300 shadow-lg">
+                    Shop the Look
+                  </span>
+                </div>
+                {!configured && i === 0 && (
+                  <div className="absolute top-2 left-2 px-2 py-1 rounded-md bg-black/60 text-white text-[10px] font-medium">
+                    Configura tu Instagram en Admin
+                  </div>
+                )}
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -824,39 +931,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ══════════════════════════════════════════════
-          11. SHOP THE FEED (Instagram-style)
-      ══════════════════════════════════════════════ */}
-      <section className="py-20 border-b border-[#ebebeb]">
-        <div className="container">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-3xl font-black">Shop the Feed</h2>
-              <p className="text-[#888] text-[14px] mt-1">@isekaistore</p>
-            </div>
-            <a href="#" className="btn-pill-outline text-sm">
-              Follow us <ArrowRight size={13} />
-            </a>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {[
-              "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
-              "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
-              "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
-              "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
-            ].map((img, i) => (
-              <div key={i} className="relative aspect-square rounded-2xl overflow-hidden group cursor-pointer img-zoom">
-                <img src={img} alt={`Feed ${i + 1}`} className="w-full h-full object-cover" />
-                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors duration-300 flex items-center justify-center">
-                  <span className="btn-pill-white text-[12px] opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    Shop the Look
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+        {/* ════════════════════════════════════════════
+          11. SHOP THE FEED (Instagram)
+      ════════════════════════════════════════════ */}
+      <InstagramFeedSection />
 
     </div>
   );

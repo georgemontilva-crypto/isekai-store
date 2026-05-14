@@ -12,6 +12,7 @@ import {
   productVariants,
   products,
   users,
+  siteSettings,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -419,6 +420,33 @@ export async function updateOrderStatus(id: number, status: Order["status"]) {
 }
 
 // ─── Dashboard Metrics ────────────────────────────────────────────────────────
+// ─── Site Settings ─────────────────────────────────────────────────────────────────────────────────
+export async function getSetting(key: string): Promise<string | null> {
+  const db = await getDb();
+  if (!db) return null;
+  const [row] = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
+  return row?.value ?? null;
+}
+
+export async function upsertSetting(key: string, value: string): Promise<void> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const existing = await db.select().from(siteSettings).where(eq(siteSettings.key, key)).limit(1);
+  if (existing[0]) {
+    await db.update(siteSettings).set({ value }).where(eq(siteSettings.key, key));
+  } else {
+    await db.insert(siteSettings).values({ key, value });
+  }
+}
+
+export async function getAllSettings(): Promise<Record<string, string>> {
+  const db = await getDb();
+  if (!db) return {};
+  const rows = await db.select().from(siteSettings);
+  return Object.fromEntries(rows.map((r) => [r.key, r.value ?? ""]));
+}
+
+// ─── Dashboard Metrics ───────────────────────────────────────────────────────────────────────────────
 export async function getDashboardMetrics() {
   const db = await getDb();
   if (!db) return { totalRevenue: 0, totalOrders: 0, recentOrders: [], topProducts: [] };

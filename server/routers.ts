@@ -12,7 +12,7 @@ import {
   addProductImage, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus,
-  getDashboardMetrics,
+  getDashboardMetrics, getAllSettings, upsertSetting,
 } from "./db";
 
 // Admin guard middleware
@@ -236,7 +236,43 @@ export const appRouter = router({
       .mutation(({ input }) => updateOrderStatus(input.id, input.status)),
   }),
 
-  // ─── Admin Dashboard ─────────────────────────────────────────────────────────
+  // ─── Site Settings ────────────────────────────────────────────────────────────────────────────────────────
+  settings: router({
+    // Public: safe settings only — NEVER exposes instagram_access_token
+    getAll: publicProcedure.query(async () => {
+      const all = await getAllSettings();
+      const PRIVATE_KEYS = ["instagram_access_token"];
+      return Object.fromEntries(Object.entries(all).filter(([k]) => !PRIVATE_KEYS.includes(k)));
+    }),
+
+    // Admin: full settings including sensitive keys
+    getAdmin: adminProcedure.query(() => getAllSettings()),
+
+    // Admin: update a setting key/value pair (validates non-empty value)
+    upsert: adminProcedure
+      .input(z.object({ key: z.string().min(1), value: z.string().min(1) }))
+      .mutation(({ input }) => upsertSetting(input.key, input.value)),
+
+    // Proxy Instagram Basic Display API to avoid CORS (token stays server-side)
+    instagramFeed: publicProcedure.query(async () => {
+      const settings = await getAllSettings();
+      const token = settings["instagram_access_token"];
+      if (!token) return { posts: [], configured: false };
+      try {
+        const res = await fetch(
+          `https://graph.instagram.com/me/media?fields=id,media_type,media_url,thumbnail_url,permalink,caption&limit=8&access_token=${token}`
+        );
+        if (!res.ok) return { posts: [], configured: true, error: "Token invalid or expired" };
+        const data = await res.json() as { data?: Array<{ id: string; media_type: string; media_url: string; thumbnail_url?: string; permalink: string; caption?: string }> };
+        const posts = (data.data ?? []).filter((p) => p.media_type === "IMAGE" || p.media_type === "CAROUSEL_ALBUM");
+        return { posts, configured: true };
+      } catch (e) {
+        return { posts: [], configured: true, error: "Failed to fetch feed" };
+      }
+    }),
+  }),
+
+  // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────
   admin: router({
     metrics: adminProcedure.query(() => getDashboardMetrics()),
   }),
