@@ -228,41 +228,53 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           2. BRAND STORY
       ══════════════════════════════════════════════ */}
-      <section className="py-12 border-b border-[#ebebeb]">
-        <div className="container">
-          <div className="grid md:grid-cols-2 gap-8 items-center">
-            {/* LEFT: banner image */}
-            <div className="rounded-2xl overflow-hidden" style={{ height: '260px' }}>
-              <img
-                src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"
-                alt="Figuras coleccionables 3D anime"
-                className="w-full h-full object-cover"
-              />
-            </div>
-            {/* RIGHT: brand statement */}
-            <div className="flex flex-col justify-center">
-              <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">Nuestra filosofía</p>
-              <h2
-                style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
-                className="text-3xl md:text-4xl lg:text-5xl font-black text-[#1a1a1a] mb-0"
+      <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6">
+        {/* Full-bleed grid: image left edge = hero left edge (13% + 8px), text right side has padding */}
+        <div
+          className="grid items-center"
+          style={{
+            gridTemplateColumns: 'calc(13% + 8px + (74% - 16px) / 2) 1fr',
+            gap: 0,
+          }}
+        >
+          {/* LEFT: image from left viewport edge, rounded only on right side */}
+          <div
+            className="overflow-hidden"
+            style={{
+              height: '280px',
+              borderRadius: '0 18px 18px 0',
+              marginLeft: 0,
+            }}
+          >
+            <img
+              src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"
+              alt="Figuras coleccionables 3D anime"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {/* RIGHT: brand statement */}
+          <div className="flex flex-col justify-center px-10 lg:px-16">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">Nuestra filosofía</p>
+            <h2
+              style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
+              className="text-2xl md:text-3xl lg:text-4xl font-black text-[#1a1a1a] mb-0"
+            >
+              We believe in the{" "}
+              <span
+                style={{
+                  fontFamily: "'Orbitron', sans-serif",
+                  background: "linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
               >
-                We believe in the{" "}
-                <span
-                  style={{
-                    fontFamily: "'Orbitron', sans-serif",
-                    background: "linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  power of craft
-                </span>
-              </h2>
-              <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
-                Cada figura es una obra de arte impresa en 3D, diseñada para coleccionistas que viven el anime y los videojuegos.
-              </p>
-            </div>
+                power of craft
+              </span>
+            </h2>
+            <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
+              Cada figura es una obra de arte impresa en 3D, diseñada para coleccionistas que viven el anime y los videojuegos.
+            </p>
           </div>
         </div>
       </section>
