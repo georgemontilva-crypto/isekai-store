@@ -228,23 +228,13 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           2. BRAND STORY
       ══════════════════════════════════════════════ */}
-      <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6">
-        {/* Full-bleed grid: image left edge = hero left edge (13% + 8px), text right side has padding */}
-        <div
-          className="grid items-center"
-          style={{
-            gridTemplateColumns: 'calc(13% + 8px + (74% - 16px) / 2) 1fr',
-            gap: 0,
-          }}
-        >
-          {/* LEFT: image from left viewport edge, rounded only on right side */}
+      <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6 px-[8px]">
+        {/* Same 8px side margin as hero carousel prev/next slides */}
+        <div className="grid items-center" style={{ gridTemplateColumns: '50% 1fr', gap: '0' }}>
+          {/* LEFT: image island with same 8px left margin as hero */}
           <div
             className="overflow-hidden"
-            style={{
-              height: '280px',
-              borderRadius: '0 18px 18px 0',
-              marginLeft: 0,
-            }}
+            style={{ height: '280px', borderRadius: '18px' }}
           >
             <img
               src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"
