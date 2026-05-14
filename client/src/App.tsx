@@ -53,7 +53,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <CartProvider>
-            <Toaster position="top-right" />
+            <Toaster />
             <Layout />
           </CartProvider>
         </TooltipProvider>
