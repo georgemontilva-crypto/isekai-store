@@ -297,9 +297,7 @@ export default function Navbar() {
             </button>
           </div>
         </div>
-      </header>
-
-      {/* ── COLLECTIONS MEGA MENU (full-width panel) ── */}
+      {/* ── COLLECTIONS MEGA MENU (inside sticky wrapper, pushes content down) ── */}
       <AnimatePresence>
         {activeMenu === "collections" && (
           <motion.div
@@ -310,18 +308,18 @@ export default function Navbar() {
             transition={{ duration: 0.22, type: "tween" }}
             onMouseEnter={cancelClose}
             onMouseLeave={scheduleClose}
-            className="fixed left-0 right-0 z-40 bg-white border-b border-[#ebebeb] shadow-[0_12px_40px_rgba(0,0,0,0.10)]"
-            style={{ top: `${navBottom}px` }}
+            className="sticky top-[60px] z-40 bg-[#f2f2f2] border-b border-[#e0e0e0] shadow-[0_4px_20px_rgba(0,0,0,0.06)]"
           >
-            <div className="grid grid-cols-5">
+            <div className="flex gap-3 px-4 py-4 overflow-x-auto scrollbar-hide">
               {collectionsMenu.map((col) => (
                 <Link
                   key={col.label}
                   href={col.href}
                   onClick={() => setActiveMenu(null)}
-                  className={`group relative flex flex-col overflow-hidden border-r border-[#f0f0f0] last:border-r-0 ${
+                  className={`group relative flex flex-col overflow-hidden rounded-2xl shrink-0 shadow-sm ${
                     col.dark ? "bg-[#1a1a1a]" : "bg-white"
                   }`}
+                  style={{ width: "calc(20% - 10px)", minWidth: "200px" }}
                 >
                   {/* Image */}
                   <div className="aspect-[4/3] overflow-hidden">
@@ -332,17 +330,17 @@ export default function Navbar() {
                     />
                   </div>
                   {/* Label row */}
-                  <div className={`px-5 py-4 flex items-start justify-between gap-2 ${
+                  <div className={`px-4 py-3 flex items-start justify-between gap-2 ${
                     col.dark ? "text-white" : "text-[#1a1a1a]"
                   }`}>
                     <div>
-                      <div className="font-bold text-[14px] leading-tight">{col.label}</div>
-                      <div className={`text-[12px] mt-1 leading-snug ${
+                      <div className="font-bold text-[13px] leading-tight">{col.label}</div>
+                      <div className={`text-[11px] mt-0.5 leading-snug ${
                         col.dark ? "text-white/55" : "text-[#888]"
                       }`}>{col.desc}</div>
                     </div>
                     <ArrowRight
-                      size={15}
+                      size={14}
                       className="shrink-0 mt-0.5 transition-transform duration-200 group-hover:translate-x-1"
                     />
                   </div>
@@ -352,6 +350,8 @@ export default function Navbar() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      </header>
 
       {/* ── SEARCH OVERLAY ── */}
       <AnimatePresence>
