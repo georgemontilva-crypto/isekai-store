@@ -36,6 +36,7 @@ const collections = [
   {
     name: "All Products",
     count: "120+ items",
+    desc: "Check out all our products",
     bg: "#1a1a1a",
     textColor: "white",
     href: "/catalog",
@@ -43,7 +44,8 @@ const collections = [
   },
   {
     name: "Headphones",
-    count: "32 products",
+    count: "15 products",
+    desc: "Surround yourself in sound",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
@@ -51,7 +53,8 @@ const collections = [
   },
   {
     name: "Earphones",
-    count: "24 products",
+    count: "8 products",
+    desc: "Small design, great sound",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
@@ -59,7 +62,8 @@ const collections = [
   },
   {
     name: "Speakers",
-    count: "18 products",
+    count: "11 products",
+    desc: "The world's most immersive sound",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
@@ -67,7 +71,8 @@ const collections = [
   },
   {
     name: "Accessories",
-    count: "46 products",
+    count: "24 products",
+    desc: "Optimal condition for years",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
@@ -270,37 +275,84 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════════════
-          3. COLLECTIONS HORIZONTAL SCROLL
+          3. COLLECTIONS CAROUSEL (Shopify Concept style)
       ══════════════════════════════════════════════ */}
-      <section className="py-16 border-b border-[#ebebeb]">
-        <div className="container mb-6">
-          <h2 className="text-2xl font-bold">Shop by Collection</h2>
-        </div>
-        <div className="px-6 lg:px-10">
-          <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-            {collections.map((col) => (
-              <Link key={col.name} href={col.href}>
-                <div
-                  className="shrink-0 w-52 h-64 rounded-2xl overflow-hidden relative cursor-pointer group"
-                  style={{ background: col.bg }}
-                >
+      <section className="bg-white border-b border-[#ebebeb] py-0">
+        {/* Scrollable row with 8px left margin matching hero/brand story */}
+        <div
+          className="flex gap-[10px] overflow-x-auto scrollbar-hide"
+          style={{ padding: '24px 8px 28px 8px' }}
+        >
+          {/* First card: large dark "All products" */}
+          <Link href="/catalog">
+            <div
+              className="shrink-0 relative overflow-hidden cursor-pointer group"
+              style={{
+                width: 280,
+                height: 350,
+                borderRadius: 18,
+                background: '#1a1a1a',
+              }}
+            >
+              <img
+                src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=600&auto=format&fit=crop"
+                alt="All products"
+                className="w-full h-full object-cover opacity-60 group-hover:scale-105 transition-transform duration-700"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
+              {/* Bottom label */}
+              <div className="absolute bottom-0 left-0 right-0 p-5">
+                <p className="text-white font-black text-[22px] leading-tight" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+                  All products
+                  <sup className="text-[11px] font-normal ml-1 opacity-70">59</sup>
+                </p>
+                <p className="text-white/60 text-[12px] mt-0.5">Check out all our products</p>
+                <div className="mt-3 w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center">
+                  <ArrowRight size={13} className="text-white" />
+                </div>
+              </div>
+            </div>
+          </Link>
+
+          {/* Category cards */}
+          {collections.slice(1).map((col) => (
+            <Link key={col.name} href={col.href}>
+              <div
+                className="shrink-0 relative overflow-hidden cursor-pointer group flex flex-col"
+                style={{
+                  width: 280,
+                  height: 350,
+                  borderRadius: 18,
+                  background: '#f5f5f5',
+                }}
+              >
+                {/* Product image centered */}
+                <div className="flex-1 flex items-center justify-center p-6 overflow-hidden">
                   <img
                     src={col.img}
                     alt={col.name}
-                    className="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-500"
+                    className="max-h-[220px] w-auto object-contain group-hover:scale-105 transition-transform duration-500"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="font-bold text-white text-[15px]">{col.name}</p>
-                    <p className="text-white/70 text-[12px]">{col.count}</p>
-                    <div className="mt-2 w-6 h-6 rounded-full bg-white flex items-center justify-center">
-                      <ArrowRight size={12} className="text-[#1a1a1a]" />
-                    </div>
+                </div>
+                {/* Bottom label row */}
+                <div
+                  className="flex items-end justify-between px-5 pb-5"
+                  style={{ borderTop: '1px solid #e8e8e8', paddingTop: 14 }}
+                >
+                  <div>
+                    <p className="font-black text-[#1a1a1a] text-[18px] leading-tight">
+                      {col.name}
+                      <sup className="text-[10px] font-normal ml-1 text-[#888]">{col.count.split(' ')[0]}</sup>
+                    </p>
+                    <p className="text-[#888] text-[11px] mt-0.5">{col.desc ?? 'Explore the collection'}</p>
+                  </div>
+                  <div className="w-7 h-7 rounded-full border border-[#1a1a1a]/20 flex items-center justify-center flex-shrink-0 ml-3">
+                    <ArrowRight size={13} className="text-[#1a1a1a]" />
                   </div>
                 </div>
-              </Link>
-            ))}
-          </div>
+              </div>
+            </Link>
+          ))}
         </div>
       </section>
 

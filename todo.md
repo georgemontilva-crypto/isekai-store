@@ -69,3 +69,6 @@
 
 ## Popup Newsletter
 - [x] NewsletterPopup: modal aparece suavemente, imagen entra desde la derecha 1s después (Framer Motion, dos fases)
+
+## Carrusel de Colecciones
+- [x] Carrusel horizontal scrolleable debajo del brand story: primera tarjeta grande "All products" con imagen de fondo, resto tarjetas con imagen centrada + nombre + descripción + flecha, bordes redondeados isla
