@@ -312,40 +312,42 @@
   }
   .cart-drawer { animation: slide-in-right 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
 
-  /* ── Hero Peek Carousel ── */
+  /* ── Hero Peek Carousel (Island style) ── */
   .hero-peek-section {
     position: relative;
-    background: #111;
+    background: #f5f5f5;
     overflow: hidden;
     height: min(88vh, 680px);
     display: flex;
     flex-direction: column;
+    padding: 12px 0 12px 0;
   }
 
-  /* Social sidebar */
+  /* Social sidebar — floats over the left gap */
   .hero-social-bar {
     position: absolute;
-    left: 0;
+    left: 8px;
     top: 50%;
     transform: translateY(-50%);
-    z-index: 20;
+    z-index: 30;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0;
-    background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(8px);
-    border-radius: 0 8px 8px 0;
-    padding: 12px 8px;
+    gap: 2px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 10px 7px;
+    border: 1px solid rgba(255,255,255,0.18);
   }
   .hero-social-icon {
-    width: 28px;
-    height: 28px;
+    width: 26px;
+    height: 26px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255,255,255,0.7);
-    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    font-size: 12px;
     font-weight: 700;
     text-decoration: none;
     transition: color 0.15s;
@@ -353,10 +355,10 @@
   }
   .hero-social-icon:hover { color: #fff; }
   .hero-social-promo {
-    margin-top: 16px;
-    font-size: 9px;
+    margin-top: 14px;
+    font-size: 8px;
     font-weight: 700;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.13em;
     color: rgba(255,255,255,0.5);
     writing-mode: vertical-rl;
     text-orientation: mixed;
@@ -364,53 +366,53 @@
     text-transform: uppercase;
   }
 
-  /* Track: shows prev (left peek) + active (center) + next (right peek) */
+  /* Track */
   .hero-peek-track {
     position: relative;
     flex: 1;
-    display: flex;
-    align-items: stretch;
   }
 
-  /* Each slide */
+  /* Each slide — island with rounded corners */
   .hero-peek-slide {
     position: absolute;
     top: 0;
     bottom: 0;
     overflow: hidden;
-    transition: left 0.65s cubic-bezier(0.77, 0, 0.175, 1),
-                width 0.65s cubic-bezier(0.77, 0, 0.175, 1),
-                opacity 0.65s ease;
+    border-radius: 18px;
+    transition:
+      left 0.7s cubic-bezier(0.77, 0, 0.175, 1),
+      width 0.7s cubic-bezier(0.77, 0, 0.175, 1),
+      opacity 0.7s ease;
   }
 
-  /* Active: full width, centered */
+  /* Active island: centered, wide — with gap on both sides */
   .hero-peek-slide.active {
-    left: 10%;
-    width: 80%;
+    left: calc(13% + 8px);
+    width: calc(74% - 16px);
     opacity: 1;
     cursor: default;
     z-index: 2;
   }
 
-  /* Prev: peeking from left */
+  /* Prev island: peeking left — small gap from left edge */
   .hero-peek-slide.prev {
-    left: 0;
-    width: 10%;
-    opacity: 0.6;
+    left: 8px;
+    width: calc(13% - 16px);
+    opacity: 0.7;
     cursor: pointer;
     z-index: 1;
   }
-  .hero-peek-slide.prev:hover { opacity: 0.85; }
+  .hero-peek-slide.prev:hover { opacity: 0.9; }
 
-  /* Next: peeking from right */
+  /* Next island: peeking right — small gap from right edge */
   .hero-peek-slide.next {
-    left: 90%;
-    width: 10%;
-    opacity: 0.6;
+    left: calc(87% + 8px);
+    width: calc(13% - 16px);
+    opacity: 0.7;
     cursor: pointer;
     z-index: 1;
   }
-  .hero-peek-slide.next:hover { opacity: 0.85; }
+  .hero-peek-slide.next:hover { opacity: 0.9; }
 
   /* Hidden */
   .hero-peek-slide.hidden-slide {
@@ -421,79 +423,71 @@
     z-index: 0;
   }
 
-  /* Image inside slide: covers the slide, zoom effect */
+  /* Image: zoom effect on entry */
   .hero-peek-img {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.65s cubic-bezier(0.23, 1, 0.32, 1);
-    transform: scale(1.08);
+    transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+    transform: scale(1.09);
   }
   .hero-peek-img.zoomed-in {
     transform: scale(1.0);
   }
 
-  /* Text content on active slide */
+  /* Text content */
   .hero-peek-content {
     position: absolute;
-    bottom: 80px;
-    left: 48px;
+    bottom: 72px;
+    left: 44px;
     z-index: 10;
-    max-width: 520px;
+    max-width: 560px;
   }
   .hero-peek-title {
-    font-size: clamp(2.2rem, 4.5vw, 4rem);
+    font-size: clamp(2rem, 4.2vw, 3.8rem);
     font-weight: 900;
     line-height: 1.0;
     color: #fff;
     letter-spacing: -0.02em;
-    margin-bottom: 24px;
+    margin-bottom: 22px;
     white-space: pre-line;
-    text-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    text-shadow: 0 2px 24px rgba(0,0,0,0.25);
   }
 
-  /* Controls bar below the track */
+  /* Controls: sit inside the active island at the bottom */
   .hero-peek-controls {
     position: absolute;
-    bottom: 24px;
-    left: 10%;
-    width: 80%;
+    bottom: 28px;
+    left: calc(13% + 8px);
+    width: calc(74% - 16px);
     display: flex;
     align-items: center;
     justify-content: space-between;
     z-index: 20;
-    padding: 0 8px;
+    padding: 0 12px;
   }
   .hero-ctrl-btn {
     font-size: 18px;
-    color: rgba(255,255,255,0.7);
+    color: rgba(255,255,255,0.75);
     background: none;
     border: none;
     cursor: pointer;
     padding: 4px 8px;
     transition: color 0.15s;
     font-weight: 300;
-    letter-spacing: -0.02em;
   }
   .hero-ctrl-btn:hover { color: #fff; }
 
-  /* CTA button on the right side of active slide */
-  .hero-peek-cta {
-    position: absolute;
-    bottom: 80px;
-    right: 48px;
-    z-index: 10;
-  }
-
   @media (max-width: 768px) {
-    .hero-peek-slide.active { left: 5%; width: 90%; }
-    .hero-peek-slide.prev { left: 0; width: 5%; }
-    .hero-peek-slide.next { left: 95%; width: 5%; }
-    .hero-peek-controls { left: 5%; width: 90%; }
-    .hero-peek-content { left: 24px; bottom: 72px; }
-    .hero-peek-title { font-size: 2rem; }
+    .hero-peek-section { padding: 8px 0 8px 0; }
+    .hero-peek-slide.active { left: calc(8% + 6px); width: calc(84% - 12px); }
+    .hero-peek-slide.prev { left: 6px; width: calc(8% - 10px); }
+    .hero-peek-slide.next { left: calc(92% + 4px); width: calc(8% - 10px); }
+    .hero-peek-controls { left: calc(8% + 6px); width: calc(84% - 12px); }
+    .hero-peek-content { left: 20px; bottom: 60px; }
+    .hero-peek-title { font-size: 1.8rem; }
     .hero-social-bar { display: none; }
   }
 
