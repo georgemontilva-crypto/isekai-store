@@ -76,3 +76,6 @@
 ## Sección Video + Producto Flotante
 - [x] Sección video fullwidth: fondo imagen oscuro, título "Sound. Sculpted.", subtítulo, botón pill blanco con flecha, botón pause esquina inferior derecha
 - [x] Tarjeta producto flotante superpuesta al borde inferior del video: galería miniaturas izquierda, imagen grande centro, detalles (nombre, precio, rating, variantes color, add to cart, trust badges) derecha
+
+## Countdown Slider
+- [x] Reemplazar countdown banner fullwidth por slider tipo isla con bordes redondeados, múltiples slides con countdown y CTA

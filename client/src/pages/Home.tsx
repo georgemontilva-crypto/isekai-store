@@ -115,6 +115,177 @@ function useCountdown(targetDate: Date) {
 /* ─── Tab categories ─── */
 const tabCategories = ["All", "Headphones", "Earphones", "Speakers", "Accessories"];
 
+/* ─── Sale Slides data ─── */
+const saleSlides = [
+  {
+    bg: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
+    label: "Limited Time Offer",
+    title: "Get up to",
+    highlight: "50% off",
+    subtitle: "On waterproof speakers and premium headphones",
+    cta: "Discover sales",
+    href: "/catalog",
+  },
+  {
+    bg: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600&q=80",
+    label: "Flash Sale",
+    title: "Up to",
+    highlight: "40% off",
+    subtitle: "On premium over-ear headphones — limited stock",
+    cta: "Shop headphones",
+    href: "/catalog",
+  },
+  {
+    bg: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=1600&q=80",
+    label: "Weekend Deal",
+    title: "Save",
+    highlight: "30%",
+    subtitle: "On portable Bluetooth speakers, this weekend only",
+    cta: "View speakers",
+    href: "/catalog",
+  },
+];
+
+/* ─── SaleSlider component ─── */
+function SaleSlider({ countdown }: { countdown: { days: number; hours: number; mins: number; secs: number } }) {
+  const [idx, setIdx] = useState(0);
+  const total = saleSlides.length;
+
+  // Auto-advance every 5 seconds
+  useEffect(() => {
+    const t = setInterval(() => setIdx(i => (i + 1) % total), 5000);
+    return () => clearInterval(t);
+  }, [total]);
+
+  const slide = saleSlides[idx];
+
+  return (
+    <section style={{ padding: '24px 8px 0 8px' }}>
+      <div
+        className="relative overflow-hidden"
+        style={{ borderRadius: 18, minHeight: 320 }}
+      >
+        {/* Background images — crossfade */}
+        {saleSlides.map((s, i) => (
+          <img
+            key={i}
+            src={s.bg}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              opacity: i === idx ? 1 : 0,
+              transition: 'opacity 800ms cubic-bezier(0.23,1,0.32,1)',
+              zIndex: 0,
+            }}
+          />
+        ))}
+        {/* Dark overlay */}
+        <div className="absolute inset-0 bg-black/60" style={{ zIndex: 1 }} />
+
+        {/* Content */}
+        <div
+          className="relative flex flex-col md:flex-row items-center justify-between gap-8 px-8 md:px-16 py-14"
+          style={{ zIndex: 2 }}
+        >
+          {/* Left: text + CTA */}
+          <motion.div
+            key={idx}
+            initial={{ opacity: 0, x: -24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
+            className="text-white text-center md:text-left"
+          >
+            <span
+              className="inline-block text-[11px] uppercase tracking-[0.2em] text-white/60 mb-3"
+              style={{ fontFamily: 'Orbitron, sans-serif' }}
+            >
+              {slide.label}
+            </span>
+            <h2
+              className="text-4xl md:text-5xl font-black mb-2 leading-tight"
+              style={{ fontFamily: 'Orbitron, sans-serif' }}
+            >
+              {slide.title}{' '}
+              <span className="italic" style={{ fontFamily: 'Georgia, serif' }}>{slide.highlight}</span>
+            </h2>
+            <p className="text-white/70 text-[15px] mb-7">{slide.subtitle}</p>
+            <Link
+              href={slide.href}
+              className="inline-flex items-center gap-2 bg-white text-black text-[13px] font-semibold px-6 py-3 rounded-full hover:bg-white/90 transition-colors"
+            >
+              {slide.cta} <ArrowRight size={14} />
+            </Link>
+          </motion.div>
+
+          {/* Right: countdown */}
+          <motion.div
+            key={`cd-${idx}`}
+            initial={{ opacity: 0, x: 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1], delay: 0.1 }}
+            className="flex items-center gap-3 text-white"
+          >
+            {[
+              { value: countdown.days, label: 'Days' },
+              { value: countdown.hours, label: 'Hours' },
+              { value: countdown.mins, label: 'Mins' },
+              { value: countdown.secs, label: 'Secs' },
+            ].map(({ value, label }, i) => (
+              <div key={label} className="flex items-center gap-3">
+                <div className="text-center">
+                  <div
+                    className="text-5xl md:text-6xl font-black tabular-nums leading-none"
+                    style={{ fontFamily: 'Orbitron, sans-serif' }}
+                  >
+                    {String(value).padStart(2, '0')}
+                  </div>
+                  <div className="text-[10px] text-white/50 uppercase tracking-widest mt-1">{label}</div>
+                </div>
+                {i < 3 && <span className="text-3xl font-bold text-white/30 mb-5">:</span>}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        {/* Dot indicators */}
+        <div
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2"
+          style={{ zIndex: 3 }}
+        >
+          {saleSlides.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setIdx(i)}
+              className="rounded-full transition-all duration-300"
+              style={{
+                width: i === idx ? 24 : 8,
+                height: 8,
+                background: i === idx ? 'white' : 'rgba(255,255,255,0.4)',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* Arrow buttons */}
+        <button
+          onClick={() => setIdx(i => (i - 1 + total) % total)}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center text-white transition-colors"
+          style={{ zIndex: 3 }}
+        >
+          <ChevronLeft size={18} />
+        </button>
+        <button
+          onClick={() => setIdx(i => (i + 1) % total)}
+          className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center text-white transition-colors"
+          style={{ zIndex: 3 }}
+        >
+          <ChevronRight size={18} />
+        </button>
+      </div>
+    </section>
+  );
+}
+
 export default function Home() {
   const [heroIdx, setHeroIdx] = useState(0);
   const [activeTab, setActiveTab] = useState("All");
@@ -455,47 +626,9 @@ export default function Home() {
       )}
 
       {/* ══════════════════════════════════════════════
-          7. COUNTDOWN SALE BANNER
+          7. COUNTDOWN SALE SLIDER (ISLAND)
       ══════════════════════════════════════════════ */}
-      <section className="relative overflow-hidden" style={{ minHeight: "340px" }}>
-        <img
-          src="https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80"
-          alt="Sale"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0 bg-black/65" />
-        <div className="relative z-10 container py-16 flex flex-col md:flex-row items-center justify-between gap-10">
-          <div className="text-white text-center md:text-left">
-            <span className="section-label text-white/60 mb-2 block">Limited Time Offer</span>
-            <h2 className="text-4xl md:text-5xl font-black mb-2">
-              Get up to <span className="italic-serif">50% off</span>
-            </h2>
-            <p className="text-white/70 text-[15px] mb-6">
-              On waterproof speakers and premium headphones
-            </p>
-            <Link href="/catalog" className="btn-pill-white">
-              Discover sales <ArrowRight size={14} />
-            </Link>
-          </div>
-          {/* Countdown */}
-          <div className="flex items-center gap-4 text-white">
-            {[
-              { value: countdown.days, label: "Days" },
-              { value: countdown.hours, label: "Hours" },
-              { value: countdown.mins, label: "Mins" },
-              { value: countdown.secs, label: "Secs" },
-            ].map(({ value, label }, i) => (
-              <div key={label} className="flex items-center gap-4">
-                <div className="text-center">
-                  <div className="countdown-digit">{String(value).padStart(2, "0")}</div>
-                  <div className="text-[11px] text-white/60 uppercase tracking-widest mt-1">{label}</div>
-                </div>
-                {i < 3 && <span className="text-3xl font-bold text-white/40 mb-4">:</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <SaleSlider countdown={countdown} />
 
       {/* ══════════════════════════════════════════════
           8. BEST SELLERS (TABBED)
