@@ -1,0 +1,9 @@
+{
+  "query": "INSERT INTO products (name, slug, description, price, compareAtPrice, stock, status, featured, tags)\nVALUES (\n  'Flow Harmony',\n  'flow-harmony',\n  'Experience a harmonious blend of premium sound quality and ergonomic design that allows for all-day comfortable listening.',\n  999.00,\n  1299.00,\n  5,\n  'published',\n  1,\n  '[\"headphones\",\"premium\",\"featured\"]'\n);",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user oiP1ys9vPpNrfMo.70f61e195d4b --database DDRKBHA2C2MBPhsuc472nG --execute INSERT INTO products (name, slug, description, price, compareAtPrice, stock, status, featured, tags)\nVALUES (\n  'Flow Harmony',\n  'flow-harmony',\n  'Experience a harmonious blend of premium sound quality and ergonomic design that allows for all-day comfortable listening.',\n  999.00,\n  1299.00,\n  5,\n  'published',\n  1,\n  '[\"headphones\",\"premium\",\"featured\"]'\n);",
+  "rows": [],
+  "messages": [],
+  "stdout": "",
+  "stderr": "",
+  "execution_time_ms": 269
+}

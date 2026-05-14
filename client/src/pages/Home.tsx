@@ -346,38 +346,60 @@ export default function Home() {
       <div className="relative" style={{ paddingBottom: featuredProduct ? 420 : 0 }}>
 
         {/* ── VIDEO BANNER ── */}
-        <section className="relative overflow-hidden" style={{ height: 480 }}>
-          <img
-            src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
-            alt="Sound sculpted"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-black/50" />
-          {/* Center content */}
-          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-            <h2 className="text-5xl md:text-7xl font-black text-white mb-3 tracking-tight">
-              Sound. <em className="not-italic" style={{ fontStyle: 'italic', fontFamily: 'Georgia, serif' }}>Sculpted.</em>
-            </h2>
-            <p className="text-white/70 text-[15px] mb-7">
-              A speaker that excites the eye and ear from every angle.
-            </p>
-            <Link
-              href="/catalog"
-              className="inline-flex items-center gap-2 bg-white text-[#1a1a1a] font-semibold text-[14px] px-7 py-3.5 rounded-full hover:bg-white/90 transition-colors"
-            >
-              Shop Echo Elegance <ArrowRight size={14} />
-            </Link>
-          </div>
-          {/* Pause button bottom-right */}
-          <button
-            className="absolute bottom-5 right-5 w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center hover:bg-white/30 transition-colors"
-            aria-label="Pause"
+        <section className="bg-[#f5f5f5] py-0" style={{ padding: '0 8px 0 8px' }}>
+          <div
+            className="relative overflow-hidden"
+            style={{ height: 480, borderRadius: 18 }}
           >
-            <svg width="12" height="14" viewBox="0 0 12 14" fill="white">
-              <rect x="0" y="0" width="4" height="14" rx="1.5" />
-              <rect x="8" y="0" width="4" height="14" rx="1.5" />
-            </svg>
-          </button>
+            <img
+              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
+              alt="Sound sculpted"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/50" />
+            {/* Center content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+              <h2
+                className="font-black text-white mb-3"
+                style={{
+                  fontFamily: "'Orbitron', sans-serif",
+                  fontSize: 'clamp(36px, 6vw, 72px)',
+                  lineHeight: 1.1,
+                  letterSpacing: '-0.01em',
+                }}
+              >
+                Sound.{' '}
+                <em
+                  style={{
+                    fontStyle: 'italic',
+                    fontFamily: 'Georgia, serif',
+                    fontWeight: 900,
+                  }}
+                >
+                  Sculpted.
+                </em>
+              </h2>
+              <p className="text-white/70 text-[15px] mb-7">
+                A speaker that excites the eye and ear from every angle.
+              </p>
+              <Link
+                href="/catalog"
+                className="inline-flex items-center gap-2 bg-white text-[#1a1a1a] font-semibold text-[14px] px-7 py-3.5 rounded-full hover:bg-white/90 transition-colors"
+              >
+                Shop Echo Elegance <ArrowRight size={14} />
+              </Link>
+            </div>
+            {/* Pause button bottom-right */}
+            <button
+              className="absolute bottom-5 right-5 w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center hover:bg-white/30 transition-colors"
+              aria-label="Pause"
+            >
+              <svg width="12" height="14" viewBox="0 0 12 14" fill="white">
+                <rect x="0" y="0" width="4" height="14" rx="1.5" />
+                <rect x="8" y="0" width="4" height="14" rx="1.5" />
+              </svg>
+            </button>
+          </div>
         </section>
 
         {/* ── FLOATING FEATURED PRODUCT CARD ── */}
