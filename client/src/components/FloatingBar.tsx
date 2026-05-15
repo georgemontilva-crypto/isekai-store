@@ -20,8 +20,10 @@ export default function FloatingBar() {
   if (!promoEnabled && socialLinks.length === 0) return null;
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-5 bg-white/70 backdrop-blur-md border border-gray-300/60 shadow-xl rounded-full py-5 px-3">
-
+    <div
+      className="fixed left-6 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center bg-white/70 backdrop-blur-md border border-gray-300/60 shadow-xl rounded-full"
+      style={{ width: 52, padding: "8px 0" }}
+    >
       {/* Social icons */}
       {socialLinks.map(({ icon: Icon, url, label }) => (
         <a
@@ -30,7 +32,7 @@ export default function FloatingBar() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={label}
-          className="text-gray-700 hover:text-black transition-colors"
+          className="w-[60px] h-[60px] flex items-center justify-center text-gray-700 hover:text-black transition-colors"
         >
           <Icon size={20} strokeWidth={1.8} />
         </a>
@@ -39,10 +41,21 @@ export default function FloatingBar() {
       {/* Discount pill */}
       {promoEnabled && (
         <Link href="/catalog">
-          <div className="bg-gray-200/80 border border-gray-300 rounded-full px-2 py-4 mt-1 cursor-pointer hover:bg-gray-300/80 transition-colors active:scale-95 transition-transform">
+          <div
+            className="flex items-center justify-center rounded-full cursor-pointer hover:opacity-80 active:scale-95 transition-all mt-1"
+            style={{ width: 36, padding: "16px 0", background: "#171717" }}
+          >
             <span
-              className="block whitespace-nowrap text-[10px] font-bold text-gray-700 tracking-widest uppercase"
-              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+              className="block whitespace-nowrap uppercase"
+              style={{
+                writingMode: "vertical-rl",
+                transform: "rotate(180deg)",
+                fontSize: 10,
+                fontFamily: "Inter, sans-serif",
+                color: "#ffffff",
+                letterSpacing: "0.1em",
+                fontWeight: 700,
+              }}
             >
               {t.floatingBar.promoLabel} {promoText}
             </span>
