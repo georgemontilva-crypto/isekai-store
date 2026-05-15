@@ -21,7 +21,7 @@ export default function FloatingBar() {
 
   return (
     <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center">
-      <div className="bg-white rounded-2xl shadow-lg border border-[#e8e8e8] flex flex-col items-center py-3 px-2 gap-2.5">
+      <div className="bg-white rounded-3xl shadow-lg border border-[#ebebeb] flex flex-col items-center py-4 px-3 gap-5">
 
         {/* Social icons */}
         {socialLinks.map(({ icon: Icon, url, label }) => (
@@ -31,22 +31,22 @@ export default function FloatingBar() {
             target="_blank"
             rel="noopener noreferrer"
             aria-label={label}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#666] hover:text-[#1a1a1a] hover:bg-[#f5f5f5] transition-all duration-150"
+            className="w-10 h-10 flex items-center justify-center rounded-full text-[#555] hover:text-[#1a1a1a] hover:bg-[#f0f0f0] transition-all duration-150"
           >
-            <Icon size={15} strokeWidth={1.8} />
+            <Icon size={20} strokeWidth={1.8} />
           </a>
         ))}
 
         {/* Divider */}
         {socialLinks.length > 0 && promoEnabled && (
-          <div className="w-5 h-px bg-[#e8e8e8] my-0.5" />
+          <div className="w-6 h-px bg-[#e0e0e0]" />
         )}
 
         {/* Promo button */}
         {promoEnabled && (
           <Link href="/catalog">
             <button
-              className="bg-[#f5e642] text-[#1a1a1a] text-[9px] font-black uppercase tracking-widest rounded-lg px-2.5 py-3 hover:bg-[#f0dc20] active:scale-95 transition-all leading-none whitespace-nowrap"
+              className="bg-[#1a1a1a] text-white text-[9px] font-black uppercase tracking-widest rounded-2xl px-3 py-4 hover:bg-[#333] active:scale-95 transition-all leading-none whitespace-nowrap"
               style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
             >
               {t.floatingBar.promoLabel} {promoText}
