@@ -10,7 +10,7 @@ export default function Footer() {
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) { toast.success("¡Gracias! / Thanks!"); setEmail(""); }
+    if (email.trim()) { toast.success("¡Gracias!"); setEmail(""); }
   };
 
   const trustIcons = [Headphones, Truck, Users, Lock];

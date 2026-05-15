@@ -8,15 +8,15 @@ import { Input } from "@/components/ui/input";
 import { useLang } from "@/i18n/LangContext";
 import { Button } from "@/components/ui/button";
 
-const sortOptions = [
-  { value: "newest", label: t.catalog.sort.newest },
-  { value: "price_asc", label: t.catalog.sort.priceAsc },
-  { value: "price_desc", label: t.catalog.sort.priceDesc },
-  { value: "name", label: t.catalog.sort.name },
-];
-
 export default function Catalog() {
   const { t } = useLang();
+
+  const sortOptions = [
+    { value: "newest", label: t.catalog.sort.newest },
+    { value: "price_asc", label: t.catalog.sort.priceAsc },
+    { value: "price_desc", label: t.catalog.sort.priceDesc },
+    { value: "name", label: t.catalog.sort.name },
+  ];
   const searchStr = useSearch();
   const params = new URLSearchParams(searchStr);
   const initialCategory = params.get("category") ? parseInt(params.get("category")!) : undefined;

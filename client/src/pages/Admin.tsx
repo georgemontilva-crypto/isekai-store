@@ -807,7 +807,7 @@ export default function Admin() {
 
                     <div>
                       <Label className="text-sm font-medium">Texto del llamado a la acción</Label>
-                      <p className="text-xs text-muted-foreground mb-1.5">Aparece debajo del título "Shop the Feed" en la homepage</p>
+                      <p className="text-xs text-muted-foreground mb-1.5">Aparece debajo del título "Ve el Feed" en la homepage</p>
                       <div className="flex gap-2">
                         <Input
                           placeholder="Síguenos en Instagram para contenido exclusivo..."

@@ -15,12 +15,12 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const schema = z.object({
-  customerName: z.string().min(2, t.checkout.errors.name),
-  customerEmail: z.string().email(t.checkout.errors.email),
+  customerName: z.string().min(2, "Nombre requerido"),
+  customerEmail: z.string().email("Email inválido"),
   customerPhone: z.string().optional(),
-  street: z.string().min(5, t.checkout.errors.address),
-  city: z.string().min(2, t.checkout.errors.city),
-  state: z.string().min(2, t.checkout.errors.state),
+  street: z.string().min(5, "Dirección requerida"),
+  city: z.string().min(2, "Ciudad requerida"),
+  state: z.string().min(2, "Departamento requerido"),
   country: z.string().optional().default("Colombia"),
   zip: z.string().min(4, "Código postal requerido"),
   notes: z.string().optional(),

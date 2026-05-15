@@ -7,16 +7,16 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
 
-const statusLabels: Record<string, string> = {
-  pending: t.account.status.pending,
-  processing: t.account.status.processing,
-  shipped: t.account.status.shipped,
-  delivered: t.account.status.delivered,
-  cancelled: t.account.status.cancelled,
-};
-
 export default function Account() {
   const { t } = useLang();
+
+  const statusLabels: Record<string, string> = {
+    pending: t.account.status.pending,
+    processing: t.account.status.processing,
+    shipped: t.account.status.shipped,
+    delivered: t.account.status.delivered,
+    cancelled: t.account.status.cancelled,
+  };
   const { user, isAuthenticated, logout, loading } = useAuth();
   const { data: ordersData, isLoading } = trpc.orders.myOrders.useQuery(
     undefined,

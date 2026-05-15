@@ -338,9 +338,9 @@ export default function Home() {
   const handleAddToCart = async (id: number, name: string) => {
     try {
       await addItem(id);
-      toast.success(`${name} added to cart`);
+      toast.success(`${name} agregado al carrito`);
     } catch {
-      toast.error("Could not add to cart");
+      toast.error("No se pudo agregar al carrito");
     }
   };
 
@@ -357,7 +357,7 @@ export default function Home() {
           <a href="#" aria-label="Twitter" className="hero-social-icon">𝕏</a>
           <a href="#" aria-label="Instagram" className="hero-social-icon">◎</a>
           <a href="#" aria-label="YouTube" className="hero-social-icon">▶</a>
-          <div className="hero-social-promo">GET 20% OFF</div>
+          <div className="hero-social-promo">20% DE DESCUENTO</div>
         </div>
 
         {/* Track */}
@@ -399,7 +399,7 @@ export default function Home() {
           <button
             onClick={() => setHeroIdx(i => (i - 1 + heroBgs.length) % heroBgs.length)}
             className="hero-ctrl-btn"
-            aria-label="Previous"
+            aria-label="Anterior"
           >
             ←
           </button>
@@ -417,7 +417,7 @@ export default function Home() {
           <button
             onClick={() => setHeroIdx(i => (i + 1) % heroBgs.length)}
             className="hero-ctrl-btn"
-            aria-label="Next"
+            aria-label="Siguiente"
           >
             →
           </button>
@@ -577,7 +577,7 @@ export default function Home() {
             {/* Pause button bottom-right */}
             <button
               className="absolute bottom-5 right-5 w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center hover:bg-white/30 transition-colors"
-              aria-label="Pause"
+              aria-label="Pausar"
             >
               <svg width="12" height="14" viewBox="0 0 12 14" fill="white">
                 <rect x="0" y="0" width="4" height="14" rx="1.5" />
@@ -735,7 +735,7 @@ export default function Home() {
                         {/* Badges top-left */}
                         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
                           {isNewProduct && (
-                            <span className="bg-[#22c55e] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">New</span>
+                            <span className="bg-[#22c55e] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">{t.common.new}</span>
                           )}
                           {hasDiscount && (
                             <span className="bg-[#e63946] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">-{discountPct}%</span>

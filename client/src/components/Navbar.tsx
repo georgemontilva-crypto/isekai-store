@@ -76,7 +76,7 @@ export default function Navbar() {
         ? "flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#f0f0f0] text-[11px] font-bold"
         : "flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/20 hover:border-white/60 transition-all text-[11px] font-bold tracking-wide"
       }
-      aria-label="Switch language"
+      aria-label="Cambiar idioma"
     >
       <span className={lang === "es" ? (mobile ? "text-[#1a1a1a]" : "text-white") : "opacity-40"}>ES</span>
       <span className={mobile ? "text-[#ccc]" : "text-white/30"}>|</span>

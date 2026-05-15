@@ -115,10 +115,11 @@ export default function FAQ() {
         <div className="container max-w-3xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
-              Preguntas Frecuentes"text-4xl md:text-5xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-              ¿En qué podemos ayudarte?
+              {t.faq.label}
+            </p>
+            <h1 className="text-4xl md:text-5xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              {t.faq.title}
             </h1>
-            <p className="text-white/60 mt-3">How can we help you?</p>
           </motion.div>
         </div>
       </div>
@@ -152,7 +153,8 @@ export default function FAQ() {
           viewport={{ once: true }}
           className="bg-[#f5f5f5] rounded-2xl p-8 text-center"
         >
-          <h3 className="text-xl font-black mb-2 text-[#1a1a1a]">¿Tienes más preguntas?"text-[14px] text-[#666] mb-5">Escríbenos y te respondemos pronto · Write to us and we'll get back to you shortly</p>
+          <h3 className="text-xl font-black mb-2 text-[#1a1a1a]">{t.faq.stillQuestion}</h3>
+          <p className="text-[14px] text-[#666] mb-5">{t.faq.stillDesc}</p>
           <a
             href="mailto:hola@isekaiworld.co"
             className="inline-flex items-center gap-2 bg-[#1a1a1a] text-white text-[14px] font-semibold px-6 py-3 rounded-full hover:bg-[#333] transition-colors"
