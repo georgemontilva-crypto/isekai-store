@@ -150,7 +150,7 @@ export default function NewsletterPopup() {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Enter your email"
+                          placeholder="Tu email / Your email"
                           className="flex-1 bg-transparent text-sm text-[#1a1a1a] placeholder-gray-400 outline-none py-2.5"
                           required
                         />

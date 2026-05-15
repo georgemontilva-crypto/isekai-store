@@ -12,23 +12,23 @@ import FeaturedProductCard from "@/components/FeaturedProductCard";
 const heroSlides = [
   {
     bg: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
-    tag: "New Collection",
-    title: "Experience\nUnparalleled\nAudio Elegance",
-    cta: "Shop Headphones",
+    tag: "Nueva Colección / New Collection",
+    title: "Experiencia\nAudio\nSin Igual",
+    cta: "Ver Audifonos / Shop Now",
     href: "/catalog",
   },
   {
     bg: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
-    tag: "Limited Edition",
+    tag: "Edición Limitada / Limited Edition",
     title: "Sound.\nSculpted.\nPerfected.",
-    cta: "Explore Now",
+    cta: "Explorar / Explore Now",
     href: "/catalog",
   },
   {
     bg: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1600&q=80",
-    tag: "Best Sellers",
-    title: "Premium\nAudio\nGear",
-    cta: "View Collection",
+    tag: "Más Vendidos / Best Sellers",
+    title: "Audio\nPremium\nGear",
+    cta: "Ver Colección / View All",
     href: "/catalog",
   },
 ];
@@ -36,45 +36,45 @@ const heroSlides = [
 /* ─── Collections ─── */
 const collections = [
   {
-    name: "All Products",
+    name: "Todo el Catálogo",
     count: "120+ items",
-    desc: "Check out all our products",
+    desc: "Explora toda la tienda",
     bg: "#1a1a1a",
     textColor: "white",
     href: "/catalog",
     img: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80",
   },
   {
-    name: "Headphones",
+    name: "Audifonos",
     count: "15 products",
-    desc: "Surround yourself in sound",
+    desc: "Sumérgete en el sonido",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
     img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
   },
   {
-    name: "Earphones",
+    name: "Auriculares",
     count: "8 products",
-    desc: "Small design, great sound",
+    desc: "Diseño compacto, gran sonido",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
     img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
   },
   {
-    name: "Speakers",
+    name: "Parlantes",
     count: "11 products",
-    desc: "The world's most immersive sound",
+    desc: "El sonido más inmersivo del mundo",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
     img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
   },
   {
-    name: "Accessories",
+    name: "Accesorios",
     count: "24 products",
-    desc: "Optimal condition for years",
+    desc: "Calidad que dura años",
     bg: "#f5f5f5",
     textColor: "#1a1a1a",
     href: "/catalog",
@@ -113,35 +113,35 @@ function useCountdown(targetDate: Date) {
 }
 
 /* ─── Tab categories ─── */
-const tabCategories = ["All", "Headphones", "Earphones", "Speakers", "Accessories"];
+const tabCategories = ["Todo / All", "Audifonos", "Auriculares", "Parlantes", "Accesorios"];
 
 /* ─── Sale Slides data ─── */
 const saleSlides = [
   {
     bg: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
-    label: "Limited Time Offer",
-    title: "Get up to",
+    label: "Oferta por Tiempo Limitado / Limited Time",
+    title: "Hasta un",
     highlight: "50% off",
-    subtitle: "On waterproof speakers and premium headphones",
-    cta: "Discover sales",
+    subtitle: "En parlantes y audifonos premium · On premium audio gear",
+    cta: "Ver Ofertas / Discover Deals",
     href: "/catalog",
   },
   {
     bg: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600&q=80",
-    label: "Flash Sale",
-    title: "Up to",
+    label: "Flash Sale / Oferta Relámpago",
+    title: "Hasta",
     highlight: "40% off",
-    subtitle: "On premium over-ear headphones — limited stock",
-    cta: "Shop headphones",
+    subtitle: "En audifonos premium — stock limitado / Limited stock",
+    cta: "Ver Audifonos / Shop",
     href: "/catalog",
   },
   {
     bg: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=1600&q=80",
-    label: "Weekend Deal",
-    title: "Save",
+    label: "Deal del Fin de Semana / Weekend Deal",
+    title: "Ahorra",
     highlight: "30%",
-    subtitle: "On portable Bluetooth speakers, this weekend only",
-    cta: "View speakers",
+    subtitle: "En parlantes Bluetooth portátiles · This weekend only",
+    cta: "Ver Parlantes / View",
     href: "/catalog",
   },
 ];
@@ -226,10 +226,10 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
             className="flex items-center gap-3 text-white"
           >
             {[
-              { value: countdown.days, label: 'Days' },
-              { value: countdown.hours, label: 'Hours' },
+              { value: countdown.days, label: 'Días' },
+              { value: countdown.hours, label: 'Horas' },
               { value: countdown.mins, label: 'Mins' },
-              { value: countdown.secs, label: 'Secs' },
+              { value: countdown.secs, label: 'Segs' },
             ].map(({ value, label }, i) => (
               <div key={label} className="flex items-center gap-3">
                 <div className="text-center">
@@ -323,7 +323,7 @@ function InstagramFeedSection() {
               </div>
               <span className="text-white/70 text-sm font-medium">{username}</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-3" style={{ fontFamily: "'Orbitron', sans-serif" }}>Shop the Feed</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-3" style={{ fontFamily: "'Orbitron', sans-serif" }}>Shop the Feed / Síguenos</h2>
             <p className="text-white/70 text-[15px] leading-relaxed max-w-md">{ctaText}</p>
           </div>
 
@@ -343,7 +343,7 @@ function InstagramFeedSection() {
 
 export default function Home() {
   const [heroIdx, setHeroIdx] = useState(0);
-  const [activeTab, setActiveTab] = useState("All");
+  const [activeTab, setActiveTab] = useState("Todo / All");
   const [saleTarget] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
@@ -788,13 +788,13 @@ export default function Home() {
                           <button
                             onClick={async (e) => {
                               e.preventDefault(); e.stopPropagation();
-                              if (!isOutOfStock) { try { await addItem(product.id); toast.success('Added to cart'); } catch { toast.error('Could not add to cart'); } }
+                              if (!isOutOfStock) { try { await addItem(product.id); toast.success('¡Agregado al carrito! / Added to cart'); } catch { toast.error('No se pudo agregar / Could not add'); } }
                             }}
                             disabled={isOutOfStock}
                             className="w-full bg-[#1a1a1a] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                           >
                             <ShoppingBag size={12} />
-                            {isOutOfStock ? 'Sold out' : 'Add to cart'}
+                            {isOutOfStock ? 'Agotado / Sold out' : 'Agregar / Add to cart'}
                           </button>
                         </div>
                       </div>
@@ -810,11 +810,11 @@ export default function Home() {
                             {hasDiscount && <div className="text-[11px] text-[#aaa] line-through">${numCompare!.toFixed(2)}</div>}
                           </div>
                         </div>
-                        <span className="text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2">Choose options</span>
+                        <span className="text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2">Ver opciones / Choose options</span>
                       </div>
                       {/* Specs bar */}
                       <div className="border-t border-[#f0f0f0] px-3 py-2.5 grid grid-cols-3 gap-2">
-                        {[['40mm', 'Driver size'], ['285g', 'Product weight'], ['35h', 'Battery life']].map(([val, lbl]) => (
+                        {[['40mm', 'Driver / Controlador'], ['285g', 'Peso / Weight'], ['35h', 'Batería / Battery']].map(([val, lbl]) => (
                           <div key={lbl} className="flex flex-col">
                             <span className="text-[11px] font-bold text-[#1a1a1a]">{val}</span>
                             <span className="text-[9px] text-[#999] leading-tight">{lbl}</span>
@@ -829,8 +829,8 @@ export default function Home() {
           ) : (
             <div className="text-center py-20">
               <ShoppingBag size={48} className="text-[#ccc] mx-auto mb-4" />
-              <p className="text-[#888] text-lg font-medium">No products yet</p>
-              <p className="text-[#aaa] text-sm mt-1">Add products from the admin panel to see them here</p>
+              <p className="text-[#888] text-lg font-medium">Sin productos / No products yet</p>
+              <p className="text-[#aaa] text-sm mt-1">Agrega productos desde el panel admin</p>
             </div>
           )}
         </div>

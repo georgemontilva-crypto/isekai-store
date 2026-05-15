@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 const sortOptions = [
-  { value: "newest", label: "Más recientes" },
-  { value: "price_asc", label: "Precio: menor a mayor" },
-  { value: "price_desc", label: "Precio: mayor a menor" },
-  { value: "name", label: "Nombre A-Z" },
+  { value: "newest", label: "Más recientes / Newest" },
+  { value: "price_asc", label: "Precio: menor a mayor / Price Low-High" },
+  { value: "price_desc", label: "Precio: mayor a menor / Price High-Low" },
+  { value: "name", label: "Nombre A-Z / Name A-Z" },
 ];
 
 export default function Catalog() {
@@ -78,7 +78,7 @@ export default function Catalog() {
               }
             </h1>
             <p className="text-muted-foreground">
-              {isLoading ? "Cargando productos..." : `${sortedProducts.length} producto${sortedProducts.length !== 1 ? "s" : ""} encontrado${sortedProducts.length !== 1 ? "s" : ""}`}
+              {isLoading ? "Cargando... / Loading..." : `${sortedProducts.length} producto${sortedProducts.length !== 1 ? "s" : ""} / product${sortedProducts.length !== 1 ? "s" : ""}`}
             </p>
           </motion.div>
         </div>

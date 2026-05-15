@@ -12,39 +12,39 @@ import CartDrawer from "./CartDrawer";
 import { AnimatePresence, motion } from "framer-motion";
 
 const announcements = [
-  "Free shipping on orders over $150 · Use code FREESHIP",
-  "New arrivals every week — Shop the latest drops",
-  "Get 20% off your first order · Sign up now",
+  "Envío gratis en pedidos +$150 000 · Free shipping over $150 · Código FREESHIP",
+  "Nuevos drops cada semana — New arrivals every week",
+  "20% off en tu primer pedido · Sign up now · Únete ahora",
 ];
 
 const collectionsMenu = [
   {
     label: "Headphones",
-    desc: "Surround yourself in sound.",
+    desc: "Sumérgete en el sonido / Surround yourself in sound.",
     img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
     href: "/catalog?category=headphones",
   },
   {
     label: "Earphones",
-    desc: "Small design, great sound.",
+    desc: "Diseño compacto, gran sonido / Small design, great sound.",
     img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
     href: "/catalog?category=earphones",
   },
   {
     label: "Speakers",
-    desc: "The world's most immersive sound.",
+    desc: "El sonido más inmersivo / Most immersive sound.",
     img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
     href: "/catalog?category=speakers",
   },
   {
     label: "Accessories",
-    desc: "Optimal condition for years.",
+    desc: "Calidad que dura años / Optimal condition for years.",
     img: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
     href: "/catalog?category=accessories",
   },
   {
-    label: "All Collections",
-    desc: "Check out all our collections.",
+    label: "Todas las Colecciones",
+    desc: "Explora todo el catálogo / All collections.",
     img: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80",
     href: "/catalog",
     dark: true,
@@ -52,13 +52,13 @@ const collectionsMenu = [
 ];
 
 const exploreMenu = [
-  { label: "Our Story", href: "/" },
-  { label: "Our Journal", href: "/" },
-  { label: "FAQ's", href: "/" },
-  { label: "Contact Us", href: "/" },
-  { label: "Contact with Map", href: "/" },
-  { label: "Store Locations", href: "/" },
-  { label: "Build Your Bundle", href: "/" },
+  { label: "Nuestra Historia / Our Story", href: "/" },
+  { label: "Blog / Our Journal", href: "/" },
+  { label: "Preguntas Frecuentes / FAQ's", href: "/" },
+  { label: "Contacto / Contact Us", href: "/" },
+  { label: "Contacto con Mapa / Map", href: "/" },
+  { label: "Tiendas / Store Locations", href: "/" },
+  { label: "Arma tu Bundle / Build Your Bundle", href: "/" },
 ];
 
 const dropdownVariants = {
@@ -371,7 +371,7 @@ export default function Navbar() {
               className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6"
             >
               <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-base">Search products</h3>
+                <h3 className="font-bold text-base">Buscar productos / Search</h3>
                 <button onClick={() => setSearchOpen(false)} className="p-1 hover:bg-[#f5f5f5] rounded-full">
                   <X size={16} />
                 </button>
@@ -382,10 +382,10 @@ export default function Navbar() {
                   type="text"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
-                  placeholder="Search products..."
+                  placeholder="Buscar... / Search..."
                   className="flex-1 border border-[#e5e5e5] rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#1a1a1a] transition-colors"
                 />
-                <button type="submit" className="btn-pill text-sm">Search</button>
+                <button type="submit" className="btn-pill text-sm">Buscar</button>
               </form>
             </motion.div>
           </motion.div>
@@ -410,12 +410,12 @@ export default function Navbar() {
             </div>
             <nav className="flex flex-col px-6 py-8 gap-0 overflow-y-auto">
               {[
-                { href: "/", label: "Home" },
-                { href: "/catalog", label: "Shop" },
-                { href: "/catalog", label: "Collections" },
-                { href: "/catalog", label: "Explore" },
-                { href: "/catalog", label: "Compare" },
-                { href: "/", label: "Contact" },
+                { href: "/", label: "Inicio / Home" },
+                { href: "/catalog", label: "Tienda / Shop" },
+                { href: "/catalog", label: "Colecciones / Collections" },
+                { href: "/catalog", label: "Explorar / Explore" },
+                { href: "/catalog", label: "Comparar / Compare" },
+                { href: "/", label: "Contacto / Contact" },
               ].map(({ href, label }) => (
                 <Link
                   key={label}
@@ -433,7 +433,7 @@ export default function Navbar() {
                     My Account
                   </Link>
                 ) : (
-                  <button onClick={() => { setMobileOpen(false); openLoginModal(); }} className="btn-pill w-full justify-center">Sign In</button>
+                  <button onClick={() => { setMobileOpen(false); openLoginModal(); }} className="btn-pill w-full justify-center">Iniciar Sesión / Sign In</button>
                 )}
               </div>
             </nav>

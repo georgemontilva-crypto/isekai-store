@@ -9,7 +9,7 @@ export default function Footer() {
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
-      toast.success("Thanks for subscribing!");
+      toast.success("¡Gracias por suscribirte! / Thanks for subscribing!");
       setEmail("");
     }
   };
@@ -21,10 +21,10 @@ export default function Footer() {
         <div className="container py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { Icon: Headphones, title: "Customer service", desc: "We're here to help with any questions" },
-              { Icon: Truck, title: "Fast Free Shipping", desc: "Get free shipping on orders of $150 or more" },
-              { Icon: Users, title: "Refer a friend", desc: "Refer a friend and get 15% off each other" },
-              { Icon: Lock, title: "Secure payment", desc: "Your payment information is processed securely" },
+              { Icon: Headphones, title: "Atención al Cliente / Support", desc: "Estamos aquí para ayudarte · We're here to help" },
+              { Icon: Truck, title: "Envío Gratis / Free Shipping", desc: "Pedidos desde $150 000 · Orders over $150" },
+              { Icon: Users, title: "Referidos / Refer a Friend", desc: "Refiere un amigo y ambos ganan 15% off" },
+              { Icon: Lock, title: "Pago Seguro / Secure Payment", desc: "Tu información está protegida · 100% secure" },
             ].map(({ Icon, title, desc }) => (
               <div key={title} className="flex items-start gap-3">
                 <Icon className="w-5 h-5 shrink-0 mt-0.5 text-[#1a1a1a]" strokeWidth={1.5} />
@@ -51,7 +51,7 @@ export default function Footer() {
                     <div key={i} className="w-[3px] bg-white rounded-full" style={{ height: `${h}px` }} />
                   ))}
                 </div>
-                <span className="font-bold text-[15px] tracking-tight">Isekai Store</span>
+                <span className="font-bold text-[15px] tracking-tight">Isekai World</span>
               </div>
               <p className="text-[13px] text-white/55 leading-relaxed mb-5">
                 Your destination for premium anime &amp; gaming merchandise. Quality gear for true fans.
@@ -68,8 +68,8 @@ export default function Footer() {
                 ))}
               </div>
               <div className="text-[12px] text-white/40 space-y-1">
-                <p>+1 (800) 123-4567</p>
-                <p>hello@isekaistore.com</p>
+                <p>+57 (300) 000-0000</p>
+                <p>hola@isekaiworld.co</p>
               </div>
             </div>
 
@@ -77,7 +77,7 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold text-[13px] mb-5 text-white">Collections</h4>
               <ul className="space-y-3">
-                {["All Products", "Headphones", "Earphones", "Speakers", "Accessories"].map(item => (
+                {["Todos los Productos", "Audifonos", "Auriculares", "Parlantes", "Accesorios"].map(item => (
                   <li key={item}>
                     <Link href="/catalog" className="text-[13px] text-white/55 hover:text-white transition-colors">
                       {item}
@@ -91,9 +91,9 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold text-[13px] mb-5 text-white">Information</h4>
               <ul className="space-y-3">
-                {["Our Story", "Our Journal", "FAQs", "Contact Us", "My Account"].map(item => (
+                {["Nuestra Historia", "Blog", "Preguntas Frecuentes", "Contáctanos", "Mi Cuenta"].map(item => (
                   <li key={item}>
-                    <Link href={item === "My Account" ? "/account" : "/"} className="text-[13px] text-white/55 hover:text-white transition-colors">
+                    <Link href={item === "Mi Cuenta" ? "/account" : "/"} className="text-[13px] text-white/55 hover:text-white transition-colors">
                       {item}
                     </Link>
                   </li>
@@ -111,7 +111,7 @@ export default function Footer() {
                   type="email"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="Enter your email"
+                  placeholder="Tu email / Your email"
                   required
                   className="w-full sm:flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/50 transition-colors"
                 />
@@ -130,7 +130,7 @@ export default function Footer() {
         <div className="border-t border-white/10">
           <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-[12px] text-white/35">
-              © {new Date().getFullYear()} Isekai Store. All rights reserved.
+              © {new Date().getFullYear()} Isekai World. All rights reserved.
             </p>
             <div className="flex items-center gap-1.5">
               {["VISA", "MC", "AMEX", "PAYPAL", "DISCOVER"].map(card => (

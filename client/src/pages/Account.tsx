@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
 
 const statusLabels: Record<string, string> = {
-  pending: "Pendiente",
-  processing: "Procesando",
-  shipped: "Enviado",
-  delivered: "Entregado",
-  cancelled: "Cancelado",
+  pending: "Pendiente / Pending",
+  processing: "Procesando / Processing",
+  shipped: "Enviado / Shipped",
+  delivered: "Entregado / Delivered",
+  cancelled: "Cancelado / Cancelled",
 };
 
 export default function Account() {

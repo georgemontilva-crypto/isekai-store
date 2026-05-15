@@ -14,12 +14,12 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const schema = z.object({
-  customerName: z.string().min(2, "Nombre requerido"),
-  customerEmail: z.string().email("Email inválido"),
+  customerName: z.string().min(2, "Nombre requerido / Name required"),
+  customerEmail: z.string().email("Email inválido / Invalid email"),
   customerPhone: z.string().optional(),
-  street: z.string().min(5, "Dirección requerida"),
-  city: z.string().min(2, "Ciudad requerida"),
-  state: z.string().min(2, "Departamento requerido"),
+  street: z.string().min(5, "Dirección / Address required"),
+  city: z.string().min(2, "Ciudad / City required"),
+  state: z.string().min(2, "Departamento / State required"),
   country: z.string().optional().default("Colombia"),
   zip: z.string().min(4, "Código postal requerido"),
   notes: z.string().optional(),
@@ -40,7 +40,7 @@ export default function Checkout() {
       setOrderNumber(order.orderNumber);
       await clearCart();
     },
-    onError: () => toast.error("Error al procesar el pedido. Intenta de nuevo."),
+    onError: () => toast.error("Error al procesar / Could not process order"),
   });
 
   const {

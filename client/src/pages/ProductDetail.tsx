@@ -39,7 +39,7 @@ export default function ProductDetail() {
       await addItem(product.id, selectedVariant, quantity);
       toast.success(`${product.name} agregado al carrito`);
     } catch {
-      toast.error("Error al agregar al carrito");
+      toast.error("No se pudo agregar / Could not add to cart");
     } finally {
       setAdding(false);
     }
@@ -235,7 +235,7 @@ export default function ProductDetail() {
               )}
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={() => { setWishlisted(!wishlisted); toast.success(wishlisted ? "Eliminado de favoritos" : "Agregado a favoritos"); }}
+                  onClick={() => { setWishlisted(!wishlisted); toast.success(wishlisted ? "Eliminado de favoritos / Removed from wishlist" : "¡Favorito! / Added to wishlist"); }}
                   className={`p-2 rounded-xl border transition-all duration-200 ${wishlisted ? "border-red-500/50 bg-red-500/10 text-red-400" : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"}`}
                 >
                   <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />
@@ -342,7 +342,7 @@ export default function ProductDetail() {
               <div className="flex items-center gap-2 text-sm">
                 <Package className={`w-4 h-4 ${isOutOfStock ? "text-destructive" : "text-green-400"}`} />
                 <span className={isOutOfStock ? "text-destructive" : "text-green-400 font-medium"}>
-                  {isOutOfStock ? "Sin stock" : `${currentVariant?.stock ?? product.stock} disponibles`}
+                  {isOutOfStock ? "Agotado / Out of stock" : `${currentVariant?.stock ?? product.stock} disponibles`}
                 </span>
               </div>
             </div>
@@ -362,7 +362,7 @@ export default function ProductDetail() {
               ) : (
                 <span className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5" />
-                  {isOutOfStock ? "Producto agotado" : "Agregar al carrito"}
+                  {isOutOfStock ? "Agotado / Out of stock" : "Agregar al carrito / Add to Cart"}
                 </span>
               )}
             </Button>
@@ -370,7 +370,7 @@ export default function ProductDetail() {
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-3 pt-2">
               {[
-                { icon: Shield, text: "Pago seguro" },
+                { icon: Shield, text: "Pago seguro / Secure payment" },
                 { icon: Truck, text: "Envío gratis +$50" },
                 { icon: RotateCcw, text: "30 días devolución" },
               ].map(({ icon: Icon, text }) => (
