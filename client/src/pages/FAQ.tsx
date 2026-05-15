@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLang } from "@/i18n/LangContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
@@ -106,6 +107,7 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function FAQ() {
+  const { t } = useLang();
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}

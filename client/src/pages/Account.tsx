@@ -2,19 +2,21 @@ import { motion } from "framer-motion";
 import { Package, Clock, ChevronRight, User, LogOut } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { getLoginUrl } from "@/const";
 
 const statusLabels: Record<string, string> = {
-  pending: "Pendiente / Pending",
-  processing: "Procesando / Processing",
-  shipped: "Enviado / Shipped",
-  delivered: "Entregado / Delivered",
-  cancelled: "Cancelado / Cancelled",
+  pending: t.account.status.pending,
+  processing: t.account.status.processing,
+  shipped: t.account.status.shipped,
+  delivered: t.account.status.delivered,
+  cancelled: t.account.status.cancelled,
 };
 
 export default function Account() {
+  const { t } = useLang();
   const { user, isAuthenticated, logout, loading } = useAuth();
   const { data: ordersData, isLoading } = trpc.orders.myOrders.useQuery(
     undefined,

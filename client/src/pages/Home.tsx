@@ -7,34 +7,25 @@ import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 import FeaturedProductCard from "@/components/FeaturedProductCard";
+import { useLang } from "@/i18n/LangContext";
 
 /* ─── Hero Slides ─── */
-const heroSlides = [
-  {
-    bg: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
-    tag: "Nueva Colección / New Collection",
-    title: "Experiencia\nAudio\nSin Igual",
-    cta: "Ver Audifonos / Shop Now",
-    href: "/catalog",
-  },
-  {
-    bg: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
-    tag: "Edición Limitada / Limited Edition",
-    title: "Sound.\nSculpted.\nPerfected.",
-    cta: "Explorar / Explore Now",
-    href: "/catalog",
-  },
-  {
-    bg: "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1600&q=80",
-    tag: "Más Vendidos / Best Sellers",
-    title: "Audio\nPremium\nGear",
-    cta: "Ver Colección / View All",
-    href: "/catalog",
-  },
+const heroBgs = [
+  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
+  "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
+  "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1600&q=80",
 ];
 
 /* ─── Collections ─── */
-const collections = [
+const collectionHrefsHome = ["/catalog","/catalog","/catalog","/catalog","/catalog"];
+const collectionImgsHome = [
+  "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80",
+  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
+  "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
+  "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
+  "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
+];
+const _collections_UNUSED = [
   {
     name: "Todo el Catálogo",
     count: "120+ items",
@@ -148,8 +139,9 @@ const saleSlides = [
 
 /* ─── SaleSlider component ─── */
 function SaleSlider({ countdown }: { countdown: { days: number; hours: number; mins: number; secs: number } }) {
+  const { t } = useLang();
   const [idx, setIdx] = useState(0);
-  const total = saleSlides.length;
+  const total = saleBgs.length;
 
   // Auto-advance every 5 seconds
   useEffect(() => {
@@ -157,7 +149,7 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
     return () => clearInterval(t);
   }, [total]);
 
-  const slide = saleSlides[idx];
+  const slide = { bg: saleBgs[idx], ...t.home.sale[idx], href: "/catalog" };
 
   return (
     <section style={{ padding: '24px 8px 0 8px' }}>
@@ -166,10 +158,10 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
         style={{ borderRadius: 18, minHeight: 320 }}
       >
         {/* Background images — crossfade */}
-        {saleSlides.map((s, i) => (
+        {saleBgs.map((bg, i) => (
           <img
             key={i}
-            src={s.bg}
+            src={bg}
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
             style={{
@@ -226,10 +218,10 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
             className="flex items-center gap-3 text-white"
           >
             {[
-              { value: countdown.days, label: 'Días' },
-              { value: countdown.hours, label: 'Horas' },
-              { value: countdown.mins, label: 'Mins' },
-              { value: countdown.secs, label: 'Segs' },
+              { value: countdown.days, label: t.home.countdown.days },
+              { value: countdown.hours, label: t.home.countdown.hours },
+              { value: countdown.mins, label: t.home.countdown.mins },
+              { value: countdown.secs, label: t.home.countdown.secs },
             ].map(({ value, label }, i) => (
               <div key={label} className="flex items-center gap-3">
                 <div className="text-center">
@@ -288,6 +280,7 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
 
 /* ─── Instagram Feed Section ─────────────────────────────────────────────────────────────────────────────────── */
 function InstagramFeedSection() {
+  const { t } = useLang();
   const { data: settings } = trpc.settings.getAll.useQuery();
 
   const username = settings?.["instagram_username"] || "@isekaistore";
@@ -323,7 +316,7 @@ function InstagramFeedSection() {
               </div>
               <span className="text-white/70 text-sm font-medium">{username}</span>
             </div>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-3" style={{ fontFamily: "'Orbitron', sans-serif" }}>Shop the Feed / Síguenos</h2>
+            <h2 className="text-3xl md:text-4xl font-black text-white mb-3" style={{ fontFamily: "'Orbitron', sans-serif" }}>{t.home.instagram.title}</h2>
             <p className="text-white/70 text-[15px] leading-relaxed max-w-md">{ctaText}</p>
           </div>
 
@@ -342,8 +335,9 @@ function InstagramFeedSection() {
 }
 
 export default function Home() {
+  const { t } = useLang();
   const [heroIdx, setHeroIdx] = useState(0);
-  const [activeTab, setActiveTab] = useState("Todo / All");
+  const [activeTab, setActiveTab] = useState(t.home.tabs[0]);
   const [saleTarget] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
@@ -396,7 +390,7 @@ export default function Home() {
 
         {/* Track */}
         <div className="hero-peek-track">
-          {heroSlides.map((slide, i) => {
+          {heroBgs.map((bg, i) => { const slide = { bg, ...t.home.hero[i], href: "/catalog" };
             const offset = i - heroIdx;
             const isActive = offset === 0;
             const isPrev = offset === -1 || (heroIdx === 0 && i === heroSlides.length - 1);
@@ -496,7 +490,7 @@ export default function Home() {
               </span>
             </h2>
             <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
-              Cada figura es una obra de arte impresa en 3D, diseñada para coleccionistas que viven el anime y los videojuegos.
+              {t.home.brandStory.body}
             </p>
           </div>
         </div>
@@ -511,8 +505,8 @@ export default function Home() {
           className="flex gap-[10px] overflow-x-auto scrollbar-hide"
           style={{ padding: '24px 8px 28px 8px' }}
         >
-          {collections.map((col, idx) => (
-            <Link key={col.name} href={col.href}>
+          {t.home.collections.map((col, idx) => { const img = collectionImgsHome[idx]; const href = collectionHrefsHome[idx]; return (
+            <Link key={col.name} href={href}>
               <div
                 className="shrink-0 relative overflow-hidden cursor-pointer group"
                 style={{
@@ -526,7 +520,7 @@ export default function Home() {
               >
                 {/* Full-cover image with subtle hover zoom */}
                 <img
-                  src={col.img}
+                  src={img}
                   alt={col.name}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
                   style={{ opacity: idx === 0 ? 0.65 : 1 }}
@@ -563,7 +557,7 @@ export default function Home() {
                 </div>
               </div>
             </Link>
-          ))}
+          )})}
         </div>
       </section>
 
@@ -700,7 +694,7 @@ export default function Home() {
                 Best Sellers
               </h2>
               <div className="flex items-center gap-2 flex-wrap">
-                {tabCategories.map(tab => (
+                {t.home.tabs.map(tab => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -788,13 +782,13 @@ export default function Home() {
                           <button
                             onClick={async (e) => {
                               e.preventDefault(); e.stopPropagation();
-                              if (!isOutOfStock) { try { await addItem(product.id); toast.success('¡Agregado al carrito! / Added to cart'); } catch { toast.error('No se pudo agregar / Could not add'); } }
+                              if (!isOutOfStock) { try { await addItem(product.id); toast.success(t.home.addToCart + ' ✓'); } catch { toast.error(t.product.addToCartError); } }
                             }}
                             disabled={isOutOfStock}
                             className="w-full bg-[#1a1a1a] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                           >
                             <ShoppingBag size={12} />
-                            {isOutOfStock ? 'Agotado / Sold out' : 'Agregar / Add to cart'}
+                            {isOutOfStock ? t.home.soldOut : t.home.addToCart}
                           </button>
                         </div>
                       </div>
@@ -810,11 +804,11 @@ export default function Home() {
                             {hasDiscount && <div className="text-[11px] text-[#aaa] line-through">${numCompare!.toFixed(2)}</div>}
                           </div>
                         </div>
-                        <span className="text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2">Ver opciones / Choose options</span>
+                        <span className="text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2">{t.home.chooseOptions}</span>
                       </div>
                       {/* Specs bar */}
                       <div className="border-t border-[#f0f0f0] px-3 py-2.5 grid grid-cols-3 gap-2">
-                        {[['40mm', 'Driver / Controlador'], ['285g', 'Peso / Weight'], ['35h', 'Batería / Battery']].map(([val, lbl]) => (
+                        {[['40mm', t.home.specs.driver], ['285g', t.home.specs.weight], ['35h', t.home.specs.battery]].map(([val, lbl]) => (
                           <div key={lbl} className="flex flex-col">
                             <span className="text-[11px] font-bold text-[#1a1a1a]">{val}</span>
                             <span className="text-[9px] text-[#999] leading-tight">{lbl}</span>
@@ -829,8 +823,8 @@ export default function Home() {
           ) : (
             <div className="text-center py-20">
               <ShoppingBag size={48} className="text-[#ccc] mx-auto mb-4" />
-              <p className="text-[#888] text-lg font-medium">Sin productos / No products yet</p>
-              <p className="text-[#aaa] text-sm mt-1">Agrega productos desde el panel admin</p>
+              <p className="text-[#888] text-lg font-medium">{t.home.noProducts}</p>
+              <p className="text-[#aaa] text-sm mt-1">{t.home.noProductsDesc}</p>
             </div>
           )}
         </div>

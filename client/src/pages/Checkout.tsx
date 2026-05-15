@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { trpc } from "@/lib/trpc";
 import { useCart } from "@/contexts/CartContext";
+import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,12 +15,12 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const schema = z.object({
-  customerName: z.string().min(2, "Nombre requerido / Name required"),
-  customerEmail: z.string().email("Email inválido / Invalid email"),
+  customerName: z.string().min(2, t.checkout.errors.name),
+  customerEmail: z.string().email(t.checkout.errors.email),
   customerPhone: z.string().optional(),
-  street: z.string().min(5, "Dirección / Address required"),
-  city: z.string().min(2, "Ciudad / City required"),
-  state: z.string().min(2, "Departamento / State required"),
+  street: z.string().min(5, t.checkout.errors.address),
+  city: z.string().min(2, t.checkout.errors.city),
+  state: z.string().min(2, t.checkout.errors.state),
   country: z.string().optional().default("Colombia"),
   zip: z.string().min(4, "Código postal requerido"),
   notes: z.string().optional(),
@@ -28,6 +29,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export default function Checkout() {
+  const { t } = useLang();
   const [, navigate] = useLocation();
   const { items, subtotal, clearCart } = useCart();
   const { user } = useAuth();
@@ -40,7 +42,7 @@ export default function Checkout() {
       setOrderNumber(order.orderNumber);
       await clearCart();
     },
-    onError: () => toast.error("Error al procesar / Could not process order"),
+    onError: () => toast.error(t.checkout.errors.error),
   });
 
   const {
@@ -363,7 +365,7 @@ export default function Checkout() {
                       Procesando...
                     </span>
                   ) : (
-                    "Confirmar pedido"
+                    t.checkout.confirm
                   )}
                 </Button>
 

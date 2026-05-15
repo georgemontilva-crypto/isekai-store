@@ -5,16 +5,18 @@ import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import ProductCard from "@/components/ProductCard";
 import { Input } from "@/components/ui/input";
+import { useLang } from "@/i18n/LangContext";
 import { Button } from "@/components/ui/button";
 
 const sortOptions = [
-  { value: "newest", label: "Más recientes / Newest" },
-  { value: "price_asc", label: "Precio: menor a mayor / Price Low-High" },
-  { value: "price_desc", label: "Precio: mayor a menor / Price High-Low" },
-  { value: "name", label: "Nombre A-Z / Name A-Z" },
+  { value: "newest", label: t.catalog.sort.newest },
+  { value: "price_asc", label: t.catalog.sort.priceAsc },
+  { value: "price_desc", label: t.catalog.sort.priceDesc },
+  { value: "name", label: t.catalog.sort.name },
 ];
 
 export default function Catalog() {
+  const { t } = useLang();
   const searchStr = useSearch();
   const params = new URLSearchParams(searchStr);
   const initialCategory = params.get("category") ? parseInt(params.get("category")!) : undefined;
@@ -78,7 +80,7 @@ export default function Catalog() {
               }
             </h1>
             <p className="text-muted-foreground">
-              {isLoading ? "Cargando... / Loading..." : `${sortedProducts.length} producto${sortedProducts.length !== 1 ? "s" : ""} / product${sortedProducts.length !== 1 ? "s" : ""}`}
+              {isLoading ? t.catalog.loading : `${sortedProducts.length} ${sortedProducts.length !== 1 ? t.catalog.productsPlural : t.catalog.products}`}
             </p>
           </motion.div>
         </div>

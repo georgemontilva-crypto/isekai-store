@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { useLang } from "@/i18n/LangContext";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
@@ -20,6 +21,7 @@ export default function ProductDetail() {
   const [adding, setAdding] = useState(false);
   const [wishlisted, setWishlisted] = useState(false);
 
+  const { t } = useLang();
   const { data: product, isLoading } = trpc.products.bySlug.useQuery(
     { slug: params.slug ?? "" },
     { enabled: !!params.slug }
@@ -39,7 +41,7 @@ export default function ProductDetail() {
       await addItem(product.id, selectedVariant, quantity);
       toast.success(`${product.name} agregado al carrito`);
     } catch {
-      toast.error("No se pudo agregar / Could not add to cart");
+      toast.error(t.product.addToCartError);
     } finally {
       setAdding(false);
     }
@@ -235,7 +237,7 @@ export default function ProductDetail() {
               )}
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={() => { setWishlisted(!wishlisted); toast.success(wishlisted ? "Eliminado de favoritos / Removed from wishlist" : "¡Favorito! / Added to wishlist"); }}
+                  onClick={() => { setWishlisted(!wishlisted); toast.success(wishlisted ? t.product.removedFromWishlist : t.product.addedToWishlist); }}
                   className={`p-2 rounded-xl border transition-all duration-200 ${wishlisted ? "border-red-500/50 bg-red-500/10 text-red-400" : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"}`}
                 >
                   <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />
@@ -342,7 +344,7 @@ export default function ProductDetail() {
               <div className="flex items-center gap-2 text-sm">
                 <Package className={`w-4 h-4 ${isOutOfStock ? "text-destructive" : "text-green-400"}`} />
                 <span className={isOutOfStock ? "text-destructive" : "text-green-400 font-medium"}>
-                  {isOutOfStock ? "Agotado / Out of stock" : `${currentVariant?.stock ?? product.stock} disponibles`}
+                  {isOutOfStock ? t.product.outOfStock : `${currentVariant?.stock ?? product.stock} disponibles`}
                 </span>
               </div>
             </div>
@@ -362,7 +364,7 @@ export default function ProductDetail() {
               ) : (
                 <span className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5" />
-                  {isOutOfStock ? "Agotado / Out of stock" : "Agregar al carrito / Add to Cart"}
+                  {isOutOfStock ? t.product.outOfStock : t.product.addToCart}
                 </span>
               )}
             </Button>
@@ -370,7 +372,7 @@ export default function ProductDetail() {
             {/* Trust badges */}
             <div className="grid grid-cols-3 gap-3 pt-2">
               {[
-                { icon: Shield, text: "Pago seguro / Secure payment" },
+                { icon: Shield, text: t.product.secure },
                 { icon: Truck, text: "Envío gratis +$50" },
                 { icon: RotateCcw, text: "30 días devolución" },
               ].map(({ icon: Icon, text }) => (

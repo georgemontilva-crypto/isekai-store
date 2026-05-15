@@ -1,9 +1,11 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, Trash2, Plus, Minus, ArrowRight, Shield, Truck, Package, Gamepad2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { useLang } from "@/i18n/LangContext";
 import { Link } from "wouter";
 
 export default function CartDrawer() {
+  const { t } = useLang();
   const { items, isOpen, closeCart, updateQuantity, removeItem, totalItems, subtotal } = useCart();
 
   const shipping = subtotal >= 50 ? 0 : 5.99;
@@ -54,8 +56,8 @@ export default function CartDrawer() {
                   <h2 className="font-bold text-base" style={{ color: TEXT }}>Mi Carrito</h2>
                   <p className="text-xs" style={{ color: TEXT_MUTED }}>
                     {totalItems === 0
-                      ? "Vacío"
-                      : `${totalItems} artículo${totalItems !== 1 ? "s" : ""}`}
+                      ? t.cart.empty
+                      : `${totalItems} ${totalItems !== 1 ? t.cart.itemsPlural : t.cart.items}`}
                   </p>
                 </div>
               </div>
@@ -230,7 +232,7 @@ export default function CartDrawer() {
                   <div className="flex items-center justify-between text-sm">
                     <span style={{ color: TEXT_MUTED }}>Envío</span>
                     <span className="font-medium" style={{ color: shipping === 0 ? "#22c55e" : TEXT }}>
-                      {shipping === 0 ? "Gratis" : `$${shipping.toFixed(2)}`}
+                      {shipping === 0 ? t.cart.free : `$${shipping.toFixed(2)}`}
                     </span>
                   </div>
                   <div className="h-px" style={{ background: BORDER }} />

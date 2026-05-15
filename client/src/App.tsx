@@ -4,6 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch, useLocation } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { LangProvider } from "./i18n/LangContext";
 import { CartProvider } from "./contexts/CartContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
@@ -56,6 +57,7 @@ function Layout() {
 function App() {
   return (
     <ErrorBoundary>
+      <LangProvider>
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <CartProvider>
@@ -64,6 +66,7 @@ function App() {
           </CartProvider>
         </TooltipProvider>
       </ThemeProvider>
+      </LangProvider>
     </ErrorBoundary>
   );
 }

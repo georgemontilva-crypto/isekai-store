@@ -290,7 +290,7 @@ export default function Politicas() {
       <div className="container max-w-4xl py-10">
         {/* Tab nav */}
         <div className="flex gap-2 flex-wrap mb-10">
-          {sections.map(({ id, label }) => (
+          {(t.policies.tabs as {id:string;label:string}[]).map(({ id, label }) => (
             <button
               key={id}
               onClick={() => setActive(id)}
@@ -317,7 +317,7 @@ export default function Politicas() {
 
         {/* Bottom nav to other policies */}
         <div className="mt-16 pt-8 border-t border-[#ebebeb] flex flex-wrap gap-3">
-          {sections.filter(s => s.id !== active).map(({ id, label }) => (
+          {(t.policies.tabs as {id:string;label:string}[]).filter(s => s.id !== active).map(({ id, label }) => (
             <button
               key={id}
               onClick={() => { setActive(id); window.scrollTo({ top: 0, behavior: "smooth" }); }}

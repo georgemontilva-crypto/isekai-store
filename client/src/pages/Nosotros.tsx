@@ -1,6 +1,8 @@
 import { motion } from "framer-motion";
+import { useLang } from "@/i18n/LangContext";
 
 export default function Nosotros() {
+  const { t } = useLang();
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
