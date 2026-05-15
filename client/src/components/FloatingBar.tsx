@@ -20,7 +20,7 @@ export default function FloatingBar() {
   if (!promoEnabled && socialLinks.length === 0) return null;
 
   return (
-    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center">
+    <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center">
       <div className="bg-white rounded-3xl shadow-lg border border-[#ebebeb] flex flex-col items-center py-4 px-3 gap-5">
 
         {/* Social icons */}
