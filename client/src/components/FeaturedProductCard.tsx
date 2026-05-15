@@ -50,14 +50,14 @@ export default function FeaturedProductCard({
   return (
     <motion.div
       className="relative z-10 mx-auto"
-      style={{ maxWidth: 1200, padding: '0 8px', marginTop: -60 }}
+      style={{ maxWidth: 1200, padding: '0 8px', marginTop: 0 }}
       initial={{ opacity: 0, y: 48 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}
       transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1] }}
     >
       <div className="bg-white rounded-[20px] shadow-2xl overflow-hidden" style={{ border: '1px solid #ebebeb' }}>
-        <div className="grid grid-cols-[72px_1fr_1fr] gap-0" style={{ minHeight: 380 }}>
+        <div className="grid grid-cols-1 md:grid-cols-[72px_1fr_1fr] gap-0" style={{ minHeight: 0 }}>
 
           {/* ── Thumbnails (gallery images) ── */}
           <div className="flex flex-col gap-2 p-3 border-r border-[#f0f0f0]">

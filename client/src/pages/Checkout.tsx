@@ -157,7 +157,7 @@ export default function Checkout() {
 
   return (
     <div className="min-h-screen pt-24 pb-16">
-      <div className="container max-w-5xl">
+      <div className="container max-w-5xl px-4">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -176,7 +176,7 @@ export default function Checkout() {
         </motion.div>
 
         <form onSubmit={handleSubmit(onSubmit as any)}>
-          <div className="grid lg:grid-cols-5 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
             {/* ─── Form ─────────────────────────────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -306,7 +306,7 @@ export default function Checkout() {
               animate={{ opacity: 1, x: 0 }}
               className="lg:col-span-2 flex flex-col gap-4"
             >
-              <div className="sticky top-24 flex flex-col gap-4">
+              <div className="flex flex-col gap-4 lg:sticky lg:top-24">
               <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
                 <h2 className="font-semibold text-lg">Resumen del pedido</h2>
 

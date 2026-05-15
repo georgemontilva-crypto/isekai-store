@@ -184,7 +184,7 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
 
         {/* Content */}
         <div
-          className="relative flex flex-col md:flex-row items-center justify-between gap-8 px-8 md:px-16 py-14"
+          className="relative flex flex-col items-center gap-6 px-5 md:px-16 py-10 md:py-14 text-center md:text-left md:flex-row md:items-center md:justify-between"
           style={{ zIndex: 2 }}
         >
           {/* Left: text + CTA */}
@@ -234,7 +234,7 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
               <div key={label} className="flex items-center gap-3">
                 <div className="text-center">
                   <div
-                    className="text-5xl md:text-6xl font-black tabular-nums leading-none"
+                    className="text-3xl sm:text-5xl md:text-6xl font-black tabular-nums leading-none"
                     style={{ fontFamily: 'Orbitron, sans-serif' }}
                   >
                     {String(value).padStart(2, '0')}
@@ -301,7 +301,7 @@ function InstagramFeedSection() {
           href={instagramUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="relative flex flex-col md:flex-row md:items-center justify-between gap-8 rounded-3xl overflow-hidden px-10 py-14 md:py-16 group cursor-pointer"
+          className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-3xl overflow-hidden px-6 py-10 md:px-10 md:py-16 group cursor-pointer"
           style={{
             background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)",
           }}
@@ -463,11 +463,11 @@ export default function Home() {
       ══════════════════════════════════════════════ */}
       <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6 px-[8px]">
         {/* Same 8px side margin as hero carousel prev/next slides */}
-        <div className="grid items-center" style={{ gridTemplateColumns: '50% 1fr', gap: '0' }}>
+        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-0">
           {/* LEFT: image island with same 8px left margin as hero */}
           <div
             className="overflow-hidden"
-            style={{ height: '280px', borderRadius: '18px' }}
+            style={{ height: '240px', borderRadius: '18px' }}
           >
             <img
               src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"
@@ -476,7 +476,7 @@ export default function Home() {
             />
           </div>
           {/* RIGHT: brand statement */}
-          <div className="flex flex-col justify-center px-10 lg:px-16">
+          <div className="flex flex-col justify-center px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">Nuestra filosofía</p>
             <h2
               style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
@@ -518,7 +518,7 @@ export default function Home() {
                 style={{
                   /* 5 cards fill viewport: (100vw - 8px left - 8px right - 4*10px gaps) / 5 */
                   width: 'calc((100vw - 16px - 40px) / 5)',
-                  minWidth: 200,
+                  minWidth: 160,
                   height: 300,
                   borderRadius: 18,
                   background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
@@ -691,10 +691,10 @@ export default function Home() {
       <section className="py-16">
         <div className="container">
           {/* Header row: title + tabs left, arrows right */}
-          <div className="flex items-center justify-between mb-6 gap-4">
-            <div className="flex items-center gap-6 flex-wrap">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-wrap">
               <h2
-                className="text-4xl md:text-5xl font-black leading-none"
+                className="text-3xl md:text-5xl font-black leading-none"
                 style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#1a1a1a' }}
               >
                 Best Sellers

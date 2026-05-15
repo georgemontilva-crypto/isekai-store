@@ -122,8 +122,8 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <div className="container pt-10">
-        <div className="grid lg:grid-cols-[1fr_480px] gap-12 xl:gap-16">
+      <div className="container px-4 pt-8 md:pt-10">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_440px] gap-8 xl:gap-16">
 
           {/* ══════════════════════════════════════════════════════════════════
               LEFT — Gallery
@@ -250,7 +250,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Title */}
-            <h1 className="text-3xl lg:text-4xl font-black text-foreground leading-tight">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-foreground leading-tight">
               {product.name}
             </h1>
 
@@ -399,7 +399,7 @@ export default function ProductDetail() {
                 Productos <span className="gradient-text">Relacionados</span>
               </h2>
             </motion.div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-5">
               {relatedProducts.map((p: any, i: number) => (
                 <motion.div
                   key={p.id}

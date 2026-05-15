@@ -533,3 +533,225 @@
     color: #fff;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE — ISEKAI WORLD
+   Breakpoints: <480px (xs), <768px (sm/mobile)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Container padding on small screens ──────────────────────────────────── */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+/* ── Collections carousel — 2 cards on mobile, scroll ───────────────────── */
+@media (max-width: 767px) {
+  /* Show ~2 cards at a time on mobile */
+  .hero-peek-section + section .shrink-0[style*="calc((100vw - 16px - 40px) / 5)"],
+  section .shrink-0[style*="minWidth: 160"] {
+    min-width: 150px !important;
+  }
+}
+
+/* ── Best Sellers: scroll arrows hidden on mobile (swipe instead) ─────────── */
+@media (max-width: 640px) {
+  .best-sellers-arrows { display: none; }
+}
+
+/* ── Sale Slider: compact on mobile ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* countdown separator colons */
+  .sale-countdown-sep { display: none; }
+}
+
+/* ── FeaturedProductCard: no float on mobile ─────────────────────────────── */
+@media (max-width: 767px) {
+  .featured-product-floating {
+    position: static !important;
+    margin: 16px !important;
+    transform: none !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+/* ── Product Card — touch-friendly: always show add to cart ─────────────── */
+@media (max-width: 767px) {
+  .group .opacity-0.group-hover\\:opacity-100 {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+/* ── Navbar announcement bar: smaller text on mobile ────────────────────── */
+@media (max-width: 480px) {
+  .announcement-text {
+    font-size: 10px !important;
+  }
+}
+
+/* ── Tab pills: scroll horizontally on mobile ────────────────────────────── */
+@media (max-width: 640px) {
+  .tab-pills-row {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+  }
+  .tab-pills-row::-webkit-scrollbar { display: none; }
+  .tab-pill {
+    flex-shrink: 0;
+  }
+}
+
+/* ── Press Quote: smaller text on mobile ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .press-quote {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* ── Brand logos: readable on mobile ────────────────────────────────────── */
+@media (max-width: 640px) {
+  .brands-bar span {
+    font-size: 1rem !important;
+  }
+}
+
+/* ── Cart Drawer: full width on mobile ───────────────────────────────────── */
+@media (max-width: 480px) {
+  .cart-drawer {
+    max-width: 100vw !important;
+  }
+}
+
+/* ── Admin: sidebar collapses on mobile ─────────────────────────────────── */
+@media (max-width: 767px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+  .admin-sidebar-panel {
+    width: 100% !important;
+    min-height: auto !important;
+  }
+}
+
+/* ── Product Detail: full-width image on mobile ─────────────────────────── */
+@media (max-width: 767px) {
+  .product-detail-container {
+    padding-top: 1.5rem !important;
+  }
+  .product-gallery-main {
+    border-radius: 1rem !important;
+  }
+  /* Thumbnails scroll */
+  .product-thumbnails {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .product-thumbnails::-webkit-scrollbar { display: none; }
+}
+
+/* ── Checkout: form fields full width ────────────────────────────────────── */
+@media (max-width: 640px) {
+  .checkout-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Video banner: shorter on mobile ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  .video-banner {
+    height: 320px !important;
+  }
+  .video-banner h2 {
+    font-size: clamp(28px, 8vw, 48px) !important;
+  }
+}
+
+/* ── Instagram section: compact on mobile ───────────────────────────────── */
+@media (max-width: 640px) {
+  .instagram-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Touch: larger tap targets everywhere ────────────────────────────────── */
+@media (max-width: 767px) {
+  .hero-ctrl-btn {
+    font-size: 22px;
+    padding: 8px 14px;
+  }
+  /* Product card add to cart: always visible */
+  .product-card-cta {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+/* ── Safe area for notched phones ────────────────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-bottom-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  .cart-drawer-footer {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Touch & UX improvements ─────────────────────────────────────────────── */
+html {
+  -webkit-text-size-adjust: 100%; /* prevent font scaling on orientation change */
+  text-size-adjust: 100%;
+}
+
+/* Prevent horizontal overflow on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Better tap highlight */
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth scroll on iOS */
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Input zoom prevention on iOS (font-size >= 16px prevents auto-zoom) */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* ── NewsletterPopup: always full width on mobile ────────────────────────── */
+@media (max-width: 640px) {
+  .newsletter-popup {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+    bottom: 1rem !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    border-radius: 1.25rem !important;
+  }
+}

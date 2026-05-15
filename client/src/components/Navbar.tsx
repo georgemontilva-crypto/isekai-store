@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, openLoginModal } from "@/const";
 import CartDrawer from "./CartDrawer";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -433,7 +433,7 @@ export default function Navbar() {
                     My Account
                   </Link>
                 ) : (
-                  <a href={getLoginUrl()} className="btn-pill w-full justify-center">Sign In</a>
+                  <button onClick={() => { setMobileOpen(false); openLoginModal(); }} className="btn-pill w-full justify-center">Sign In</button>
                 )}
               </div>
             </nav>
