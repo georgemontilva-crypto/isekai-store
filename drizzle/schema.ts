@@ -179,3 +179,16 @@ export const authTokens = mysqlTable("authTokens", {
 
 export type AuthToken = typeof authTokens.$inferSelect;
 export type InsertAuthToken = typeof authTokens.$inferInsert;
+
+// ─── Admin Notifications ───────────────────────────────────────────────────────
+export const adminNotifications = mysqlTable("adminNotifications", {
+  id: int("id").autoincrement().primaryKey(),
+  type: mysqlEnum("type", ["new_order", "new_subscriber", "new_user"]).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
+  body: varchar("body", { length: 500 }).notNull(),
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type AdminNotification = typeof adminNotifications.$inferSelect;
+export type InsertAdminNotification = typeof adminNotifications.$inferInsert;

@@ -14,6 +14,8 @@ import {
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus,
   getDashboardMetrics, getAllSettings, upsertSetting,
+  insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
+  markAllAdminNotificationsRead, markAdminNotificationRead,
 } from "./db";
 
 // Admin guard middleware
@@ -212,6 +214,10 @@ export const appRouter = router({
             content: `Cliente: ${input.customerName} (${input.customerEmail})\nTotal: $${input.total}\nProductos: ${input.items.length} artículo(s)`,
           });
         } catch (e) { console.error("Failed to notify owner:", e); }
+        // Admin notification
+        try {
+          await insertAdminNotification({ type: "new_order", title: "🛒 Nuevo pedido", body: `${input.customerName} · $${input.total}` });
+        } catch (e) { console.error("Failed to insert order notification:", e); }
         return order;
       }),
 
@@ -295,6 +301,9 @@ export const appRouter = router({
           if (err.title === "Member Exists") return { success: true };
           throw new Error(err.detail ?? "Error Mailchimp");
         }
+        try {
+          await insertAdminNotification({ type: "new_subscriber", title: "📧 Nuevo suscriptor", body: input.email });
+        } catch (e) { console.error("Failed to insert subscriber notification:", e); }
         return { success: true };
       }),
   }),
@@ -302,6 +311,19 @@ export const appRouter = router({
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────
   admin: router({
     metrics: adminProcedure.query(() => getDashboardMetrics()),
+  }),
+
+  // ─── Admin Notifications ─────────────────────────────────────────────────────
+  notifications: router({
+    getAll: adminProcedure.query(() => getAdminNotifications()),
+
+    unreadCount: adminProcedure.query(() => getAdminUnreadCount()),
+
+    markAllRead: adminProcedure.mutation(() => markAllAdminNotificationsRead()),
+
+    markRead: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => markAdminNotificationRead(input.id)),
   }),
 });
 

@@ -1,5 +1,6 @@
 import { useLang } from '@/i18n/LangContext';
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -22,11 +23,12 @@ import {
 } from "@/components/ui/sidebar";
 import { getLoginUrl } from "@/const";
 import { useIsMobile } from "@/hooks/useMobile";
-import { LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
+import { Bell, LayoutDashboard, LogOut, PanelLeft, Users } from "lucide-react";
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import { useLocation } from "wouter";
 import { DashboardLayoutSkeleton } from './DashboardLayoutSkeleton';
 import { Button } from "./ui/button";
+import NotificationsDrawer from "./NotificationsDrawer";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Panel", path: "/" },
@@ -113,9 +115,15 @@ function DashboardLayoutContent({
   const { state, toggleSidebar } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
+  const isAdmin = user?.role === "admin";
+  const { data: unreadCount } = trpc.notifications.unreadCount.useQuery(undefined, {
+    enabled: isAdmin,
+    refetchInterval: 30000,
+  });
 
   useEffect(() => {
     if (isCollapsed) {
@@ -171,10 +179,24 @@ function DashboardLayoutContent({
                 <PanelLeft className="h-4 w-4 text-muted-foreground" />
               </button>
               {!isCollapsed ? (
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
                   <span className="font-semibold tracking-tight truncate">
                     Navegación
                   </span>
+                  {isAdmin && (
+                    <button
+                      onClick={() => setNotifOpen(true)}
+                      className="relative ml-auto h-8 w-8 flex items-center justify-center hover:bg-accent rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring shrink-0"
+                      aria-label="Notificaciones"
+                    >
+                      <Bell className="h-4 w-4 text-muted-foreground" />
+                      {unreadCount != null && unreadCount > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </span>
+                      )}
+                    </button>
+                  )}
                 </div>
               ) : null}
             </div>
@@ -259,10 +281,26 @@ function DashboardLayoutContent({
                 </div>
               </div>
             </div>
+            {isAdmin && (
+              <button
+                onClick={() => setNotifOpen(true)}
+                className="relative h-9 w-9 flex items-center justify-center hover:bg-accent rounded-lg transition-colors mr-1"
+                aria-label="Notificaciones"
+              >
+                <Bell className="h-4 w-4 text-muted-foreground" />
+                {unreadCount != null && unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            )}
           </div>
         )}
         <main className="flex-1 p-4">{children}</main>
       </SidebarInset>
+
+      {isAdmin && <NotificationsDrawer open={notifOpen} onClose={() => setNotifOpen(false)} />}
     </>
   );
 }

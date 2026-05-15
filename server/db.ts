@@ -14,6 +14,8 @@ import {
   users,
   siteSettings,
   authTokens,
+  adminNotifications,
+  AdminNotification,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -509,4 +511,36 @@ export async function deleteExpiredAuthTokens(): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.delete(authTokens).where(sql`${authTokens.expiresAt} < NOW()`);
+}
+
+// ─── Admin Notifications ──────────────────────────────────────────────────────
+export async function insertAdminNotification(data: { type: AdminNotification["type"]; title: string; body: string }): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(adminNotifications).values(data);
+}
+
+export async function getAdminNotifications(): Promise<AdminNotification[]> {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(adminNotifications).orderBy(desc(adminNotifications.createdAt)).limit(50);
+}
+
+export async function getAdminUnreadCount(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select().from(adminNotifications).where(eq(adminNotifications.read, false));
+  return rows.length;
+}
+
+export async function markAllAdminNotificationsRead(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(adminNotifications).set({ read: true });
+}
+
+export async function markAdminNotificationRead(id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(adminNotifications).set({ read: true }).where(eq(adminNotifications.id, id));
 }
