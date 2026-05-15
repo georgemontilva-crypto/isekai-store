@@ -13,7 +13,10 @@ const GOOGLE_INFO_URL  = "https://www.googleapis.com/oauth2/v2/userinfo";
 const SESSION_MAX_AGE  = 365 * 24 * 60 * 60 * 1000; // 1 year
 
 function callbackUrl() {
-  return `${ENV.appUrl}/api/auth/google/callback`;
+  const url = `${ENV.appUrl}/api/auth/google/callback`;
+  console.log("[OAuth] APP_URL env:", process.env.APP_URL);
+  console.log("[OAuth] callbackUrl:", url);
+  return url;
 }
 
 function isOwner(email: string | null | undefined): boolean {
