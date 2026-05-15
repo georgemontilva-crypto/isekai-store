@@ -77,7 +77,7 @@ export function registerOAuthRoutes(app: Express): void {
       });
 
       await setSessionCookie(req, res, openId, name ?? "");
-      res.redirect("/");
+      res.redirect("/?welcome=1");
     } catch (err) {
       console.error("[Auth] Google callback error:", err);
       res.redirect("/?auth=error");
@@ -165,7 +165,7 @@ export function registerOAuthRoutes(app: Express): void {
       });
 
       await setSessionCookie(req, res, openId, name);
-      res.redirect("/");
+      res.redirect("/?welcome=1");
     } catch (err) {
       console.error("[Auth] Verify error:", err);
       res.redirect("/?auth=error");

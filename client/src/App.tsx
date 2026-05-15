@@ -1,7 +1,9 @@
+import { useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
-import { Route, Switch, useLocation } from "wouter";
+import { Route, Switch, useLocation, useSearch } from "wouter";
+import { toast } from "sonner";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { LangProvider } from "./i18n/LangContext";
@@ -21,6 +23,33 @@ import Admin from "./pages/Admin";
 import Nosotros from "./pages/Nosotros";
 import FAQ from "./pages/FAQ";
 import Politicas from "./pages/Politicas";
+import { trpc } from "@/lib/trpc";
+
+function WelcomeToastHandler() {
+  const search = useSearch();
+  const [, navigate] = useLocation();
+  const { data: user, isLoading } = trpc.auth.me.useQuery();
+  const handled = useRef(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(search);
+    if (params.get("welcome") !== "1") return;
+    navigate("/", { replace: true });
+    sessionStorage.setItem("_isekai_welcome", "1");
+  }, [search]);
+
+  useEffect(() => {
+    if (isLoading) return;
+    if (!sessionStorage.getItem("_isekai_welcome")) return;
+    if (handled.current) return;
+    handled.current = true;
+    sessionStorage.removeItem("_isekai_welcome");
+    const first = user?.name?.split(" ")[0];
+    toast.success(first ? `¡Bienvenido, ${first}!` : "¡Bienvenido de vuelta!");
+  }, [isLoading, user]);
+
+  return null;
+}
 
 function Router() {
   return (
@@ -46,6 +75,7 @@ function Layout() {
 
   return (
     <>
+      <WelcomeToastHandler />
       <Navbar />
       <main className="min-h-screen">
         <Router />

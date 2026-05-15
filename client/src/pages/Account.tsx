@@ -5,7 +5,7 @@ import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
-import { getLoginUrl } from "@/const";
+import { openLoginModal } from "@/const";
 
 export default function Account() {
   const { t } = useLang();
@@ -50,7 +50,7 @@ export default function Account() {
           </p>
           <Button
             className="bg-primary text-primary-foreground hover:bg-primary/90 neon-glow-purple w-full"
-            onClick={() => (window.location.href = getLoginUrl())}
+            onClick={() => openLoginModal()}
           >
             Iniciar sesión
           </Button>
