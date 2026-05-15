@@ -534,6 +534,11 @@
   }
 }
 
+/* ── shadcn Sidebar menu button colors (admin dark sidebar) ── */
+[data-sidebar="menu-button"] {
+  color: #ffffff !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    RESPONSIVE MOBILE — ISEKAI WORLD
    Breakpoints: <480px (xs), <768px (sm/mobile)

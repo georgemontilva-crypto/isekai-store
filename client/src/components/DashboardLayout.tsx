@@ -213,9 +213,7 @@ function DashboardLayoutContent({
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
                       className={`h-10 transition-all font-medium ${
-                        isActive
-                          ? "bg-white/10 text-white"
-                          : "text-white/70 hover:text-white hover:bg-white/5"
+                        isActive ? "bg-white/10" : "hover:bg-white/5"
                       }`}
                     >
                       <item.icon className="h-4 w-4" />
