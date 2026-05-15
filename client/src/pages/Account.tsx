@@ -45,10 +45,10 @@ function LoginPage() {
 
   return (
     <div
-      className="fixed inset-0 bg-cover bg-center"
-      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=1600&q=80')" }}
+      className="fixed inset-0 flex items-center justify-center p-4"
+      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=1600&q=80')", backgroundSize: "cover", backgroundPosition: "center" }}
     >
-      <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/50" />
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.97 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -122,7 +122,6 @@ function LoginPage() {
           ¿No tienes cuenta? El registro es automático al iniciar sesión.
         </p>
       </motion.div>
-      </div>
     </div>
   );
 }
