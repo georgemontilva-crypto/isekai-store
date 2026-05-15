@@ -535,8 +535,11 @@
 }
 
 /* ── shadcn Sidebar menu button colors (admin dark sidebar) ── */
-[data-sidebar="menu-button"] {
-  color: #ffffff !important;
+[data-sidebar="menu-button"],
+[data-sidebar="menu-button"] svg,
+[data-sidebar="menu-button"] span {
+  color: white !important;
+  fill: white !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
