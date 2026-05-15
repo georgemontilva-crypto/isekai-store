@@ -104,7 +104,7 @@ function useCountdown(targetDate: Date) {
 }
 
 /* ─── Tab categories ─── */
-const tabCategories = ["Todo / All", "Audifonos", "Auriculares", "Parlantes", "Accesorios"];
+// tabCategories removed — using t.home.tabs directly
 
 /* ─── Sale Slides data ─── */
 // saleSlides replaced by saleBgs + t.home.sale
@@ -309,7 +309,7 @@ function InstagramFeedSection() {
 export default function Home() {
   const { t } = useLang();
   const [heroIdx, setHeroIdx] = useState(0);
-  const [activeTab, setActiveTab] = useState(t.home.tabs[0]);
+  const [activeTab, setActiveTab] = useState(() => t.home.tabs[0]);
   const [saleTarget] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
@@ -443,12 +443,12 @@ export default function Home() {
           </div>
           {/* RIGHT: brand statement */}
           <div className="flex flex-col justify-center px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">Nuestra filosofía</p>
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">{t.home.brandStory.label}</p>
             <h2
               style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
               className="text-2xl md:text-3xl lg:text-4xl font-black text-[#1a1a1a] mb-0"
             >
-              We believe in the{" "}
+              {t.home.brandStory.heading}{" "}
               <span
                 style={{
                   fontFamily: "'Orbitron', sans-serif",
@@ -458,7 +458,7 @@ export default function Home() {
                   backgroundClip: "text",
                 }}
               >
-                power of craft
+                {t.home.brandStory.highlight}
               </span>
             </h2>
             <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
@@ -562,16 +562,16 @@ export default function Home() {
                   letterSpacing: '-0.01em',
                 }}
               >
-                Sound. Sculpted.
+                {t.home.videoBanner.title}
               </h2>
               <p className="text-white/70 text-[15px] mb-7">
-                A speaker that excites the eye and ear from every angle.
+                {t.home.videoBanner.subtitle}
               </p>
               <Link
                 href="/catalog"
                 className="inline-flex items-center gap-2 bg-white text-[#1a1a1a] font-semibold text-[14px] px-7 py-3.5 rounded-full hover:bg-white/90 transition-colors"
               >
-                Shop Echo Elegance <ArrowRight size={14} />
+                {t.home.videoBanner.cta} <ArrowRight size={14} />
               </Link>
             </div>
             {/* Pause button bottom-right */}
@@ -663,7 +663,7 @@ export default function Home() {
                 className="text-3xl md:text-5xl font-black leading-none"
                 style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#1a1a1a' }}
               >
-                Best Sellers
+                {t.home.bestSellers}
               </h2>
               <div className="flex items-center gap-2 flex-wrap">
                 {t.home.tabs.map(tab => (

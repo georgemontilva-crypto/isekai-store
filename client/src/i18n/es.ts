@@ -25,7 +25,7 @@ export const es = {
       { href: "/catalog", label: "Tienda" },
       { href: "/catalog", label: "Colecciones" },
       { href: "/nosotros", label: "Nosotros" },
-      { href: "/faq", label: "FAQ" },
+      { href: "/faq", label: "Preguntas Frecuentes" },
     ],
     collectionsMenu: {
       headphones: { label: "Audifonos", desc: "Sumérgete en el sonido." },
@@ -64,7 +64,7 @@ export const es = {
     sale: [
       { label: "Oferta por Tiempo Limitado", title: "Hasta un", highlight: "50% off", subtitle: "En parlantes y audifonos premium", cta: "Ver Ofertas" },
       { label: "Oferta Relámpago",           title: "Hasta",    highlight: "40% off", subtitle: "En audifonos premium — stock limitado", cta: "Ver Audifonos" },
-      { label: "Deal del Fin de Semana",     title: "Ahorra",   highlight: "30%",     subtitle: "En parlantes Bluetooth portátiles, solo este fin de semana", cta: "Ver Parlantes" },
+      { label: "Oferta del Fin de Semana",     title: "Ahorra",   highlight: "30%",     subtitle: "En parlantes Bluetooth portátiles, solo este fin de semana", cta: "Ver Parlantes" },
     ],
     countdown: { days: "Días", hours: "Horas", mins: "Mins", secs: "Segs" },
     tabs: ["Todo", "Audifonos", "Auriculares", "Parlantes", "Accesorios"],
@@ -221,7 +221,7 @@ export const es = {
     collectionsLinks: ["Todos los Productos", "Audifonos", "Auriculares", "Parlantes", "Accesorios"],
     info: "Legal / Info",
     infoLinks: [
-      { label: "Nosotros", href: "/nosotros" },
+      { label: "Sobre Nosotros", href: "/nosotros" },
       { label: "FAQ", href: "/faq" },
       { label: "Devoluciones", href: "/politicas" },
       { label: "Privacidad", href: "/politicas" },

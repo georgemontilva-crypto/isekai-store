@@ -10,7 +10,7 @@ export default function Nosotros() {
         <div className="container max-w-3xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
-              Nuestra Historia / Our Story
+              Nuestra Historia
             </p>
             <h1
               className="text-4xl md:text-5xl font-black mb-4"
@@ -19,7 +19,7 @@ export default function Nosotros() {
               Isekai World
             </h1>
             <p className="text-white/60 text-base leading-relaxed max-w-xl mx-auto">
-              Nacimos de la pasión por el anime, el gaming y la cultura pop. We were born from a love of anime, gaming, and pop culture.
+              Nacimos de la pasión por el anime, el gaming y la cultura pop.
             </p>
           </motion.div>
         </div>
@@ -36,19 +36,19 @@ export default function Nosotros() {
             Somos una tienda colombiana especializada en figuras coleccionables, ropa y accesorios de anime y videojuegos. Cada producto es seleccionado a mano para garantizar la más alta calidad para nuestra comunidad de fans.
           </p>
           <p className="text-[15px] text-[#555] leading-relaxed">
-            We are a Colombian store specializing in collectible figures, apparel, and accessories from anime and video games. Every product is hand-picked to ensure the highest quality for our fan community.
+            
           </p>
         </motion.section>
 
         <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <h2 className="text-2xl font-black mb-4 text-[#1a1a1a]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            Nuestra misión / Our Mission
+            Nuestra Misión
           </h2>
           <p className="text-[15px] text-[#555] leading-relaxed mb-3">
             Acercar la cultura del anime y los videojuegos a Colombia y Latinoamérica con productos premium, auténticos y accesibles. Creemos que cada fan merece tener en sus manos una pieza que represente lo que ama.
           </p>
           <p className="text-[15px] text-[#555] leading-relaxed">
-            To bring anime and gaming culture to Colombia and Latin America through premium, authentic, and accessible products. We believe every fan deserves to hold a piece of what they love.
+            
           </p>
         </motion.section>
 
@@ -66,13 +66,13 @@ export default function Nosotros() {
 
         <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
           <h2 className="text-2xl font-black mb-4 text-[#1a1a1a]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            Contacto / Contact
+            Contacto
           </h2>
           <div className="bg-[#f5f5f5] rounded-2xl p-6 space-y-2 text-[15px] text-[#555]">
             <p>📧 <strong>Email:</strong> hola@isekaiworld.co</p>
             <p>📱 <strong>WhatsApp:</strong> +57 300 000-0000</p>
-            <p>📍 <strong>País / Country:</strong> Colombia 🇨🇴</p>
-            <p>⏰ <strong>Atención / Support:</strong> Lunes a Viernes / Mon–Fri · 9am – 6pm COT</p>
+            <p>📍 <strong>País:</strong> Colombia 🇨🇴</p>
+            <p>⏰ <strong>Atención:</strong> Lunes a Viernes · 9am – 6pm COT</p>
           </div>
         </motion.section>
 

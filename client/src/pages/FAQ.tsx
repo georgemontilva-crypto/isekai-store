@@ -5,70 +5,70 @@ import { ChevronDown } from "lucide-react";
 
 const faqs = [
   {
-    category: "Pedidos / Orders",
+    category: "Pedidos",
     items: [
       {
-        q: "¿Cómo hago un pedido? / How do I place an order?",
-        a: "Agrega los productos que deseas al carrito, completa tus datos de envío en el checkout y realiza el pago a través de Bold. Recibirás una confirmación por email. / Add products to your cart, fill in your shipping details at checkout, and pay through Bold. You'll receive an email confirmation.",
+        q: "¿Cómo hago un pedido?",
+        a: "Agrega los productos que deseas al carrito, completa tus datos de envío en el checkout y realiza el pago a través de Bold. Recibirás una confirmación por email.",
       },
       {
-        q: "¿Puedo modificar o cancelar mi pedido? / Can I modify or cancel my order?",
-        a: "Puedes solicitar cambios dentro de las 2 horas siguientes a realizar el pedido escribiéndonos a hola@isekaiworld.co. Una vez en proceso de empaque, no es posible modificarlo. / You can request changes within 2 hours of placing your order by writing to hola@isekaiworld.co. Once in the packing process, modifications are not possible.",
+        q: "¿Puedo modificar o cancelar mi pedido?",
+        a: "Puedes solicitar cambios dentro de las 2 horas siguientes a realizar el pedido escribiéndonos a hola@isekaiworld.co. Una vez en proceso de empaque, no es posible modificarlo.",
       },
       {
-        q: "¿Qué métodos de pago aceptan? / What payment methods do you accept?",
-        a: "Aceptamos tarjetas de crédito y débito, PSE, Nequi y Daviplata a través de Bold, nuestra pasarela de pagos segura para Colombia. / We accept credit and debit cards, PSE, Nequi and Daviplata through Bold, our secure payment gateway for Colombia.",
+        q: "¿Qué métodos de pago aceptan?",
+        a: "Aceptamos tarjetas de crédito y débito, PSE, Nequi y Daviplata a través de Bold, nuestra pasarela de pagos segura para Colombia.",
       },
     ],
   },
   {
-    category: "Envíos / Shipping",
+    category: "Envíos",
     items: [
       {
-        q: "¿Cuánto tiempo tarda mi pedido en llegar? / How long does delivery take?",
-        a: "Envíos nacionales en Colombia: 3–7 días hábiles. Ciudades principales (Bogotá, Medellín, Cali, Barranquilla): 2–4 días hábiles. / National shipping within Colombia: 3–7 business days. Major cities (Bogotá, Medellín, Cali, Barranquilla): 2–4 business days.",
+        q: "¿Cuánto tiempo tarda mi pedido en llegar?",
+        a: "Envíos nacionales en Colombia: 3–7 días hábiles. Ciudades principales (Bogotá, Medellín, Cali, Barranquilla): 2–4 días hábiles.",
       },
       {
-        q: "¿El envío tiene costo? / Is there a shipping fee?",
-        a: "El envío es gratis en pedidos superiores a $150.000 COP. Para pedidos menores, el costo se calcula según la ciudad de destino al momento del checkout. / Shipping is free on orders over $150,000 COP. For smaller orders, the cost is calculated based on the destination city at checkout.",
+        q: "¿El envío tiene costo?",
+        a: "El envío es gratis en pedidos superiores a $150.000 COP. Para pedidos menores, el costo se calcula según la ciudad de destino al momento del checkout.",
       },
       {
-        q: "¿Hacen envíos internacionales? / Do you ship internationally?",
-        a: "Por el momento solo hacemos envíos dentro de Colombia. Estamos trabajando para ofrecer envíos internacionales pronto. / Currently we only ship within Colombia. We are working to offer international shipping soon.",
+        q: "¿Hacen envíos internacionales?",
+        a: "Por el momento solo hacemos envíos dentro de Colombia. Estamos trabajando para ofrecer envíos internacionales pronto.",
       },
       {
-        q: "¿Cómo rastro mi pedido? / How do I track my order?",
-        a: "Al confirmar el envío te enviaremos un número de guía al correo registrado para que puedas rastrear tu paquete en tiempo real. / When your order ships, we will send a tracking number to your registered email so you can track your package in real time.",
+        q: "¿Cómo rastro mi pedido?",
+        a: "Al confirmar el envío te enviaremos un número de guía al correo registrado para que puedas rastrear tu paquete en tiempo real.",
       },
     ],
   },
   {
-    category: "Productos / Products",
+    category: "Productos",
     items: [
       {
-        q: "¿Los productos son originales? / Are the products original?",
-        a: "Sí, todos nuestros productos son originales y de alta calidad. Trabajamos con fabricantes certificados y proveedores de confianza. / Yes, all our products are original and high quality. We work with certified manufacturers and trusted suppliers.",
+        q: "¿Los productos son originales?",
+        a: "Sí, todos nuestros productos son originales y de alta calidad. Trabajamos con fabricantes certificados y proveedores de confianza.",
       },
       {
-        q: "¿Qué pasa si mi producto llega dañado? / What if my product arrives damaged?",
-        a: "Si tu producto llegó dañado durante el transporte, contáctanos dentro de las 48 horas siguientes a la entrega con fotos del daño y el empaque. Reemplazaremos el producto sin costo. Consulta nuestra política de devoluciones para más detalles. / If your product arrived damaged during transport, contact us within 48 hours of delivery with photos of the damage and packaging. We will replace the product at no cost. See our return policy for details.",
+        q: "¿Qué pasa si mi producto llega dañado?",
+        a: "Si tu producto llegó dañado durante el transporte, contáctanos dentro de las 48 horas siguientes a la entrega con fotos del daño y el empaque. Reemplazaremos el producto sin costo. Consulta nuestra política de devoluciones para más detalles.",
       },
       {
-        q: "¿Los productos tienen garantía? / Do products have a warranty?",
-        a: "Todos nuestros productos tienen garantía de 30 días contra defectos de fabricación o daños ocurridos durante el envío. / All our products have a 30-day warranty against manufacturing defects or damage that occurred during shipping.",
+        q: "¿Los productos tienen garantía?",
+        a: "Todos nuestros productos tienen garantía de 30 días contra defectos de fabricación o daños ocurridos durante el envío.",
       },
     ],
   },
   {
-    category: "Cuenta / Account",
+    category: "Cuenta",
     items: [
       {
-        q: "¿Necesito una cuenta para comprar? / Do I need an account to buy?",
-        a: "Puedes comprar como invitado, pero tener una cuenta te permite rastrear tus pedidos, guardar tu historial de compras y acceder a beneficios exclusivos. / You can buy as a guest, but having an account lets you track orders, save your purchase history, and access exclusive benefits.",
+        q: "¿Necesito una cuenta para comprar?",
+        a: "Puedes comprar como invitado, pero tener una cuenta te permite rastrear tus pedidos, guardar tu historial de compras y acceder a beneficios exclusivos.",
       },
       {
-        q: "¿Cómo creo una cuenta? / How do I create an account?",
-        a: "Haz clic en el ícono de usuario en la barra de navegación. Puedes registrarte con Google o con tu correo electrónico. / Click the user icon in the navigation bar. You can sign up with Google or with your email address.",
+        q: "¿Cómo creo una cuenta?",
+        a: "Haz clic en el ícono de usuario en la barra de navegación. Puedes registrarte con Google o con tu correo electrónico.",
       },
     ],
   },
@@ -115,9 +115,7 @@ export default function FAQ() {
         <div className="container max-w-3xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
-              Preguntas Frecuentes / FAQ
-            </p>
-            <h1 className="text-4xl md:text-5xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
+              Preguntas Frecuentes"text-4xl md:text-5xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
               ¿En qué podemos ayudarte?
             </h1>
             <p className="text-white/60 mt-3">How can we help you?</p>
@@ -154,8 +152,7 @@ export default function FAQ() {
           viewport={{ once: true }}
           className="bg-[#f5f5f5] rounded-2xl p-8 text-center"
         >
-          <h3 className="text-xl font-black mb-2 text-[#1a1a1a]">¿Tienes más preguntas? / Still have questions?</h3>
-          <p className="text-[14px] text-[#666] mb-5">Escríbenos y te respondemos pronto · Write to us and we'll get back to you shortly</p>
+          <h3 className="text-xl font-black mb-2 text-[#1a1a1a]">¿Tienes más preguntas?"text-[14px] text-[#666] mb-5">Escríbenos y te respondemos pronto · Write to us and we'll get back to you shortly</p>
           <a
             href="mailto:hola@isekaiworld.co"
             className="inline-flex items-center gap-2 bg-[#1a1a1a] text-white text-[14px] font-semibold px-6 py-3 rounded-full hover:bg-[#333] transition-colors"

@@ -6,8 +6,8 @@ import { Link } from "wouter";
 type Section = "devoluciones" | "privacidad" | "cookies";
 
 const sections: { id: Section; label: string }[] = [
-  { id: "devoluciones", label: "Devoluciones / Returns" },
-  { id: "privacidad",   label: "Privacidad / Privacy" },
+  { id: "devoluciones", label: "Devoluciones" },
+  { id: "privacidad",   label: "Privacidad" },
   { id: "cookies",      label: "Cookies" },
 ];
 
@@ -139,11 +139,11 @@ function Privacidad() {
         <p className="mb-3">No vendemos ni cedemos tus datos personales a terceros. Solo compartimos la información estrictamente necesaria con: / We do not sell or transfer your personal data to third parties. We only share strictly necessary information with:</p>
         <div className="grid gap-3">
           {[
-            { name: "Bold", desc: "Procesamiento de pagos / Payment processing" },
-            { name: "Resend", desc: "Envío de emails transaccionales / Transactional email delivery" },
+            { name: "Bold", desc: "Procesamiento de pagos" },
+            { name: "Resend", desc: "Envío de emails transaccionales" },
             { name: "Mailchimp", desc: "Newsletter (solo si te suscribes) / Newsletter (only if you subscribe)" },
-            { name: "Cloudflare R2", desc: "Almacenamiento de imágenes de productos / Product image storage" },
-            { name: "Operadora logística", desc: "Entrega de pedidos / Order delivery" },
+            { name: "Cloudflare R2", desc: "Almacenamiento de imágenes" },
+            { name: "Operadora logística", desc: "Entrega de pedidos" },
           ].map(({ name, desc }) => (
             <div key={name} className="flex gap-3 bg-[#f9f9f9] rounded-xl p-4">
               <strong className="shrink-0 text-[#1a1a1a]">{name}</strong>
@@ -208,10 +208,10 @@ function Cookies() {
             </thead>
             <tbody>
               {[
-                { name: "app_session_id", type: "Esencial / Essential", duration: "1 año / 1 year", purpose: "Mantiene tu sesión iniciada / Keeps you logged in" },
-                { name: "isekai-cart-*", type: "Esencial / Essential", duration: "Sesión / Session", purpose: "Guarda los ítems del carrito / Saves cart items" },
-                { name: "_ga, _gid", type: "Analítica / Analytics", duration: "2 años / 1 día", purpose: "Google Analytics — estadísticas de uso anónimas / Anonymous usage stats" },
-                { name: "_fbp", type: "Marketing", duration: "3 meses", purpose: "Facebook Pixel — seguimiento de conversiones / Conversion tracking" },
+                { name: "app_session_id", type: "Esencial", duration: "1 año", purpose: "Mantiene tu sesión iniciada" },
+                { name: "isekai-cart-*", type: "Esencial", duration: "Sesión", purpose: "Guarda los ítems del carrito" },
+                { name: "_ga, _gid", type: "Analítica", duration: "2 años / 1 día", purpose: "Google Analytics — estadísticas de uso anónimas" },
+                { name: "_fbp", type: "Marketing", duration: "3 meses", purpose: "Facebook Pixel — seguimiento de conversiones" },
               ].map((row, i) => (
                 <tr key={row.name} className={i % 2 === 0 ? "" : "bg-[#fafafa]"}>
                   <td className="p-3 font-mono text-[12px] text-[#1a1a1a]">{row.name}</td>
@@ -279,7 +279,7 @@ export default function Politicas() {
         <div className="container max-w-4xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
-              Legal / Policies
+              Legal
             </p>
             <h1 className="text-4xl md:text-5xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
               Políticas
