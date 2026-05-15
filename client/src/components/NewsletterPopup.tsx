@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { useLang } from "@/i18n/LangContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, CheckCircle2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -8,7 +7,6 @@ import { toast } from "sonner";
 const STORAGE_KEY = "isekai_newsletter_dismissed";
 
 export default function NewsletterPopup() {
-  const { t } = useLang();
   const [visible, setVisible] = useState(false);
   const [imageVisible, setImageVisible] = useState(false);
   const [email, setEmail] = useState("");
@@ -21,10 +19,10 @@ export default function NewsletterPopup() {
   });
 
   const popupEnabled = settings?.["popup_enabled"] !== "false";
-  const showOnce = settings?.["popup_show_once"] === "true";
-  const delayMs = parseInt(settings?.["popup_delay_seconds"] ?? "3", 10) * 1000;
-  const popupTitle = settings?.["popup_title"] || "Sign up and get 20% off your first order";
-  const popupSubtitle = settings?.["popup_subtitle"] || "Subscribe and be the first to hear about new arrivals, special promotions and online exclusives.";
+  const showOnce = settings?.["popup_show_once"] !== "false";
+  const delayMs = parseInt(settings?.["popup_delay_seconds"] ?? "5", 10) * 1000;
+  const popupTitle = settings?.["popup_title"] || "¿Primera vez aquí?";
+  const popupSubtitle = settings?.["popup_subtitle"] || "Sé el primero en enterarte de nuevos drops, promociones y exclusivos.";
   const popupImage = settings?.["popup_image"] || "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=400&auto=format&fit=crop";
   const popupCtaText = settings?.["popup_cta_text"] || "";
   const popupCtaUrl = settings?.["popup_cta_url"] || "";
@@ -142,7 +140,7 @@ export default function NewsletterPopup() {
                         className="text-xs font-bold tracking-[0.18em] uppercase text-gray-400 mb-3"
                         style={{ fontFamily: "'Orbitron', sans-serif" }}
                       >
-                        First timer?
+                        ¿Primera vez?
                       </p>
                       <h2 className="text-2xl font-black text-[#1a1a1a] leading-tight mb-5">
                         {popupTitle}
@@ -156,7 +154,7 @@ export default function NewsletterPopup() {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder={t?.nav?.searchPlaceholder ?? "Tu email"}
+                          placeholder="Tu email"
                           className="flex-1 bg-transparent text-sm text-[#1a1a1a] placeholder-gray-400 outline-none py-2.5"
                           required
                           disabled={subscribe.isPending}

@@ -1134,12 +1134,12 @@ export default function Admin() {
                     </div>
                     <button
                       onClick={() => {
-                        const current = siteSettings?.["popup_enabled"] === "true";
+                        const current = siteSettings?.["popup_enabled"] !== "false";
                         upsertSetting.mutate({ key: "popup_enabled", value: current ? "false" : "true" });
                       }}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["popup_enabled"] === "true" ? "bg-primary" : "bg-muted-foreground/30"}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["popup_enabled"] !== "false" ? "bg-primary" : "bg-muted-foreground/30"}`}
                     >
-                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["popup_enabled"] === "true" ? "translate-x-5" : "translate-x-0"}`} />
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["popup_enabled"] !== "false" ? "translate-x-5" : "translate-x-0"}`} />
                     </button>
                   </div>
 
@@ -1151,12 +1151,12 @@ export default function Admin() {
                     </div>
                     <button
                       onClick={() => {
-                        const current = siteSettings?.["popup_show_once"] === "true";
+                        const current = siteSettings?.["popup_show_once"] !== "false";
                         upsertSetting.mutate({ key: "popup_show_once", value: current ? "false" : "true" });
                       }}
-                      className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["popup_show_once"] === "true" ? "bg-primary" : "bg-muted-foreground/30"}`}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["popup_show_once"] !== "false" ? "bg-primary" : "bg-muted-foreground/30"}`}
                     >
-                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["popup_show_once"] === "true" ? "translate-x-5" : "translate-x-0"}`} />
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["popup_show_once"] !== "false" ? "translate-x-5" : "translate-x-0"}`} />
                     </button>
                   </div>
 
