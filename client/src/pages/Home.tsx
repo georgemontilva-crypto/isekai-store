@@ -837,45 +837,54 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════════════
-          9. BRAND LOGOS
+          9. MARQUEE TICKER
       ══════════════════════════════════════════════ */}
-      <section className="py-10 bg-[#f5e642] border-y border-[#e8d800]">
-        <div className="container">
-          <div className="flex items-center justify-between gap-6 overflow-x-auto scrollbar-hide">
-            {brands.map(brand => (
-              <span
-                key={brand}
-                className="text-[#1a1a1a] font-black text-lg md:text-2xl shrink-0 opacity-70 hover:opacity-100 transition-opacity cursor-default"
-              >
-                {brand}
-              </span>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════
-          10. PRESS QUOTE
-      ══════════════════════════════════════════════ */}
-      <section
-        className="py-20 text-center text-white"
-        style={{
-          background: "linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)",
-        }}
-      >
-        <div className="container max-w-3xl">
-          <div className="text-6xl font-black text-white/20 mb-4">"</div>
-          <blockquote className="text-2xl md:text-3xl font-bold leading-snug mb-6">
-            Isekai Store's meticulous curation of premium audio tech truly stands out. Their offerings, from headphones to expansive home theaters, consistently raise the bar.
-          </blockquote>
-          <div className="flex items-center justify-center gap-3">
-            <div className="h-px w-12 bg-white/30" />
-            <div>
-              <p className="font-bold text-[15px]">Rolling Stone</p>
-              <p className="text-white/60 text-[13px]">— Nathan Wright</p>
+      <section className="bg-[#f5e642] border-y border-[#e8d800] overflow-hidden py-5">
+        <style>{`
+          @keyframes marquee-scroll {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+          }
+          .marquee-track {
+            display: flex;
+            width: max-content;
+            animation: marquee-scroll 22s linear infinite;
+          }
+          .marquee-track:hover { animation-play-state: paused; }
+        `}</style>
+        <div className="marquee-track">
+          {[...Array(2)].map((_, rep) => (
+            <div key={rep} className="flex items-center shrink-0">
+              {[
+                "Figuras Anime 3D",
+                "★",
+                "Ediciones Limitadas",
+                "★",
+                "Gaming Culture",
+                "★",
+                "Envío Gratis +$150",
+                "★",
+                "Coleccionables Premium",
+                "★",
+                "Nuevos Drops Semanales",
+                "★",
+                "ISEKAI WORLD",
+                "★",
+              ].map((item, i) => (
+                <span
+                  key={i}
+                  className="text-[#1a1a1a] font-black uppercase tracking-wide px-6 shrink-0"
+                  style={{
+                    fontSize: item === "★" ? "18px" : "clamp(18px, 2.5vw, 26px)",
+                    fontFamily: item === "ISEKAI WORLD" ? "'Orbitron', sans-serif" : "inherit",
+                    opacity: item === "★" ? 0.35 : 1,
+                  }}
+                >
+                  {item}
+                </span>
+              ))}
             </div>
-            <div className="h-px w-12 bg-white/30" />
-          </div>
+          ))}
         </div>
       </section>
 
