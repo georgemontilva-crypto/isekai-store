@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useLang } from "@/i18n/LangContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, CheckCircle2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import { toast } from "sonner";
 
 const STORAGE_KEY = "isekai_newsletter_dismissed";
 
@@ -12,32 +14,46 @@ export default function NewsletterPopup() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
+  const { data: settings } = trpc.settings.getAll.useQuery();
+  const subscribe = trpc.newsletter.subscribe.useMutation({
+    onSuccess: () => { setSubmitted(true); setTimeout(dismiss, 2000); },
+    onError: () => toast.error("Error al suscribirse, intenta de nuevo"),
+  });
+
+  const popupEnabled = settings?.["popup_enabled"] !== "false";
+  const showOnce = settings?.["popup_show_once"] === "true";
+  const delayMs = parseInt(settings?.["popup_delay_seconds"] ?? "3", 10) * 1000;
+  const popupTitle = settings?.["popup_title"] || "Sign up and get 20% off your first order";
+  const popupSubtitle = settings?.["popup_subtitle"] || "Subscribe and be the first to hear about new arrivals, special promotions and online exclusives.";
+  const popupImage = settings?.["popup_image"] || "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=400&auto=format&fit=crop";
+  const popupCtaText = settings?.["popup_cta_text"] || "";
+  const popupCtaUrl = settings?.["popup_cta_url"] || "";
+
   useEffect(() => {
-    // Don't show if already dismissed
-    if (sessionStorage.getItem(STORAGE_KEY)) return;
+    if (!settings) return;
+    if (!popupEnabled) return;
 
-    // Show popup after 3 seconds
-    const popupTimer = setTimeout(() => {
+    const storage = showOnce ? localStorage : sessionStorage;
+    if (storage.getItem(STORAGE_KEY)) return;
+
+    const timer = setTimeout(() => {
       setVisible(true);
-      // Image slides in 1 second after the popup appears
       setTimeout(() => setImageVisible(true), 1000);
-    }, 3000);
+    }, isNaN(delayMs) ? 3000 : delayMs);
 
-    return () => clearTimeout(popupTimer);
-  }, []);
+    return () => clearTimeout(timer);
+  }, [settings, popupEnabled, showOnce, delayMs]);
 
   function dismiss() {
     setVisible(false);
-    sessionStorage.setItem(STORAGE_KEY, "1");
+    const storage = showOnce ? localStorage : sessionStorage;
+    storage.setItem(STORAGE_KEY, "1");
   }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!email.trim()) return;
-    setSubmitted(true);
-    setTimeout(() => {
-      dismiss();
-    }, 2000);
+    subscribe.mutate({ email: email.trim() });
   }
 
   return (
@@ -91,18 +107,14 @@ export default function NewsletterPopup() {
                       transition={{ duration: 0.55, ease: [0.23, 1, 0.32, 1] }}
                     >
                       <img
-                        src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=400&auto=format&fit=crop"
-                        alt="Figura coleccionable"
+                        src={popupImage}
+                        alt="Isekai World"
                         className="w-full h-full object-cover"
                         style={{ minHeight: 280 }}
                       />
-                      {/* Subtle gradient overlay on right edge to blend with content */}
                       <div
                         className="absolute inset-y-0 right-0 w-8"
-                        style={{
-                          background:
-                            "linear-gradient(to right, transparent, white)",
-                        }}
+                        style={{ background: "linear-gradient(to right, transparent, white)" }}
                       />
                     </motion.div>
                   )}
@@ -133,15 +145,7 @@ export default function NewsletterPopup() {
                         First timer?
                       </p>
                       <h2 className="text-2xl font-black text-[#1a1a1a] leading-tight mb-5">
-                        Sign up and get{" "}
-                        <span className="relative inline-block">
-                          20% off
-                          <span
-                            className="absolute bottom-0.5 left-0 right-0 h-[2px] rounded-full"
-                            style={{ background: "#f59e0b" }}
-                          />
-                        </span>{" "}
-                        your first order
+                        {popupTitle}
                       </h2>
 
                       <form
@@ -155,97 +159,30 @@ export default function NewsletterPopup() {
                           placeholder={t?.nav?.searchPlaceholder ?? "Tu email"}
                           className="flex-1 bg-transparent text-sm text-[#1a1a1a] placeholder-gray-400 outline-none py-2.5"
                           required
+                          disabled={subscribe.isPending}
                         />
                         <button
                           type="submit"
-                          className="w-8 h-8 rounded-lg bg-[#1a1a1a] flex items-center justify-center hover:bg-[#333] transition-colors flex-shrink-0 active:scale-95"
+                          disabled={subscribe.isPending}
+                          className="w-8 h-8 rounded-lg bg-[#1a1a1a] flex items-center justify-center hover:bg-[#333] transition-colors flex-shrink-0 active:scale-95 disabled:opacity-50"
                         >
                           <ArrowRight size={15} className="text-white" />
                         </button>
                       </form>
 
                       <p className="text-xs text-gray-400 leading-relaxed mb-5">
-                        Subscribe to our newsletter and be the first to hear
-                        about our new arrivals, special promotions and online
-                        exclusives.
+                        {popupSubtitle}
                       </p>
 
-                      {/* Social icons */}
-                      <div className="flex items-center gap-3">
-                        {[
-                          {
-                            label: "Facebook",
-                            svg: (
-                              <svg
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                className="w-4 h-4"
-                              >
-                                <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
-                              </svg>
-                            ),
-                          },
-                          {
-                            label: "X",
-                            svg: (
-                              <svg
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                className="w-4 h-4"
-                              >
-                                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                              </svg>
-                            ),
-                          },
-                          {
-                            label: "Instagram",
-                            svg: (
-                              <svg
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="2"
-                                className="w-4 h-4"
-                              >
-                                <rect
-                                  x="2"
-                                  y="2"
-                                  width="20"
-                                  height="20"
-                                  rx="5"
-                                  ry="5"
-                                />
-                                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
-                              </svg>
-                            ),
-                          },
-                          {
-                            label: "YouTube",
-                            svg: (
-                              <svg
-                                viewBox="0 0 24 24"
-                                fill="currentColor"
-                                className="w-4 h-4"
-                              >
-                                <path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.95C5.12 20 12 20 12 20s6.88 0 8.59-.47a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z" />
-                                <polygon
-                                  fill="white"
-                                  points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"
-                                />
-                              </svg>
-                            ),
-                          },
-                        ].map(({ label, svg }) => (
-                          <button
-                            key={label}
-                            aria-label={label}
-                            className="text-[#1a1a1a] hover:text-gray-500 transition-colors"
-                          >
-                            {svg}
-                          </button>
-                        ))}
-                      </div>
+                      {popupCtaUrl && popupCtaText && (
+                        <a
+                          href={popupCtaUrl}
+                          onClick={dismiss}
+                          className="text-xs font-semibold text-[#1a1a1a] underline underline-offset-2 hover:text-gray-600 transition-colors"
+                        >
+                          {popupCtaText}
+                        </a>
+                      )}
                     </>
                   )}
                 </div>

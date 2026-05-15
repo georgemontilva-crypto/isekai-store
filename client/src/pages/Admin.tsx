@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
@@ -139,32 +139,34 @@ function ProductForm({
     featured: product?.featured ?? false,
   });
   const [uploading, setUploading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string>("");
+  const [imageUrl, setImageUrl] = useState<string>(product?.images?.[0]?.url ?? "");
+  const [previewUrl, setPreviewUrl] = useState<string>(product?.images?.[0]?.url ?? "");
 
   const uploadImage = trpc.products.uploadImage.useMutation();
   const addImage = trpc.products.addImage.useMutation();
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !product?.id) return;
+    if (!file) return;
+    setPreviewUrl(URL.createObjectURL(file));
     setUploading(true);
     try {
-      const reader = new FileReader();
-      reader.onload = async (ev) => {
-        const base64 = (ev.target?.result as string).split(",")[1];
-        const { url, key } = await uploadImage.mutateAsync({
-          fileName: file.name,
-          contentType: file.type,
-          base64Data: base64,
-        });
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { url, key } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+      setImageUrl(url);
+      if (product?.id) {
         await addImage.mutateAsync({ productId: product.id, url, fileKey: key });
-        setImageUrl(url);
         toast.success("Imagen subida");
-        setUploading(false);
-      };
-      reader.readAsDataURL(file);
+      }
     } catch {
       toast.error("Error al subir imagen");
+      setPreviewUrl("");
+    } finally {
       setUploading(false);
     }
   };
@@ -270,28 +272,34 @@ function ProductForm({
         />
       </div>
 
-      {product?.id && (
-        <div>
-          <Label>Imagen del producto</Label>
-          <div className="mt-1 flex items-center gap-3">
-            <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted border border-border/50 cursor-pointer hover:bg-muted/80 text-sm">
+      <div>
+        <Label>Imagen del producto</Label>
+        <div className="mt-2 flex items-start gap-4">
+          {previewUrl && (
+            <img src={previewUrl} alt="Preview" className="w-20 h-20 object-cover rounded-xl border border-border/50 shrink-0" />
+          )}
+          <div className="flex flex-col gap-2">
+            <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted border border-border/50 cursor-pointer hover:bg-muted/80 text-sm w-fit">
               {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
               {uploading ? "Subiendo..." : "Subir imagen"}
               <input type="file" accept="image/*" className="hidden" onChange={handleFileUpload} disabled={uploading} />
             </label>
-            {imageUrl && (
-              <span className="flex items-center gap-1 text-xs text-green-400">
+            {!product?.id && imageUrl && (
+              <p className="text-xs text-amber-500">La imagen se asociará al guardar el producto.</p>
+            )}
+            {imageUrl && product?.id && (
+              <span className="flex items-center gap-1 text-xs text-green-600">
                 <CheckCircle2 className="w-3 h-3" /> Imagen subida
               </span>
             )}
           </div>
         </div>
-      )}
+      </div>
 
       <div className="flex gap-3 pt-2">
         <Button
           className="bg-primary text-primary-foreground hover:bg-primary/90"
-          onClick={() => onSave({ ...form, categoryId: form.categoryId || undefined })}
+          onClick={() => onSave({ ...form, categoryId: form.categoryId || undefined, firstImageUrl: imageUrl || undefined })}
         >
           <Check className="w-4 h-4 mr-2" />
           {product ? "Actualizar" : "Crear producto"}
@@ -320,7 +328,11 @@ export default function Admin() {
   const [socialIg, setSocialIg] = useState("");
   const [socialYt, setSocialYt] = useState("");
   const [promoBarText, setPromoBarText] = useState("");
-  const [categoryForm, setCategoryForm] = useState({ name: "", slug: "", description: "" });
+  const [categoryForm, setCategoryForm] = useState({ name: "", slug: "", description: "", imageUrl: "" });
+  const [categoryUploading, setCategoryUploading] = useState(false);
+  const [categoryPreviewUrl, setCategoryPreviewUrl] = useState<string>("");
+  const [bannerDrafts, setBannerDrafts] = useState<Record<string, string>>({});
+  const pendingProductImageRef = useRef<string | null>(null);
 
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -332,15 +344,49 @@ export default function Admin() {
   const orders = ordersData?.items ?? [];
 
   // Mutations
-  const createProduct = trpc.products.create.useMutation({ onSuccess: () => { refetchProducts(); setShowProductForm(false); toast.success("Producto creado"); } });
+  const addProductImage = trpc.products.addImage.useMutation();
+  const uploadProductImage = trpc.products.uploadImage.useMutation();
+
+  const createProduct = trpc.products.create.useMutation({
+    onSuccess: async (newProduct) => {
+      if (pendingProductImageRef.current && newProduct?.id) {
+        await addProductImage.mutateAsync({ productId: newProduct.id, url: pendingProductImageRef.current });
+        pendingProductImageRef.current = null;
+      }
+      refetchProducts(); setShowProductForm(false); toast.success("Producto creado");
+    }
+  });
   const updateProduct = trpc.products.update.useMutation({ onSuccess: () => { refetchProducts(); setEditingProduct(null); toast.success("Producto actualizado"); } });
   const deleteProduct = trpc.products.delete.useMutation({ onSuccess: () => { refetchProducts(); toast.success("Producto eliminado"); } });
-  const createCategory = trpc.categories.create.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); toast.success("Categoría creada"); } });
+  const createCategory = trpc.categories.create.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); setCategoryForm({ name: "", slug: "", description: "", imageUrl: "" }); toast.success("Categoría creada"); } });
   const updateCategory = trpc.categories.update.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); toast.success("Categoría actualizada"); } });
   const deleteCategory = trpc.categories.delete.useMutation({ onSuccess: () => { refetchCategories(); toast.success("Categoría eliminada"); } });
   const updateOrderStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => { refetchOrders(); toast.success("Estado actualizado"); } });
   const { data: siteSettings, refetch: refetchSettings } = trpc.settings.getAdmin.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const upsertSetting = trpc.settings.upsert.useMutation({ onSuccess: () => { refetchSettings(); toast.success("Configuración guardada"); } });
+
+  const handleCategoryImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setCategoryPreviewUrl(URL.createObjectURL(file));
+    setCategoryUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+      setCategoryForm(f => ({ ...f, imageUrl: url }));
+      toast.success("Imagen subida");
+    } catch {
+      toast.error("Error al subir imagen");
+      setCategoryPreviewUrl("");
+    } finally {
+      setCategoryUploading(false);
+    }
+  };
 
   if (loading) return <div className="min-h-screen pt-24 flex items-center justify-center"><div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" /></div>;
 
@@ -385,8 +431,8 @@ export default function Admin() {
                   onClick={() => setTab(t.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     tab === t.id
-                      ? "bg-primary/10 text-primary"
-                      : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                      ? "bg-gray-900 text-white hover:bg-gray-800"
+                      : "text-gray-800 hover:text-gray-900 hover:bg-gray-100"
                   }`}
                 >
                   <t.icon className="w-4 h-4" />
@@ -508,7 +554,11 @@ export default function Admin() {
                       <h3 className="font-semibold mb-4">Nuevo producto</h3>
                       <ProductForm
                         categories={categories ?? []}
-                        onSave={(data) => createProduct.mutate(data)}
+                        onSave={(data) => {
+                          const { firstImageUrl, ...productData } = data;
+                          if (firstImageUrl) pendingProductImageRef.current = firstImageUrl;
+                          createProduct.mutate(productData);
+                        }}
                         onCancel={() => setShowProductForm(false)}
                       />
                     </motion.div>
@@ -592,7 +642,7 @@ export default function Admin() {
                   <h1 className="text-2xl font-bold">Categorías</h1>
                   <Button
                     className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => { setEditingCategory("new"); setCategoryForm({ name: "", slug: "", description: "" }); }}
+                    onClick={() => { setEditingCategory("new"); setCategoryForm({ name: "", slug: "", description: "", imageUrl: "" }); setCategoryPreviewUrl(""); }}
                   >
                     <Plus className="w-4 h-4 mr-2" />
                     Nueva categoría
@@ -622,6 +672,19 @@ export default function Admin() {
                           <Input value={categoryForm.description} onChange={(e) => setCategoryForm({ ...categoryForm, description: e.target.value })} className="mt-1 bg-muted border-border/50" />
                         </div>
                       </div>
+                      <div className="mt-4">
+                        <Label>Imagen de la categoría</Label>
+                        <div className="mt-2 flex items-start gap-4">
+                          {categoryPreviewUrl && (
+                            <img src={categoryPreviewUrl} alt="Preview" className="w-16 h-16 object-cover rounded-xl border border-border/50 shrink-0" />
+                          )}
+                          <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted border border-border/50 cursor-pointer hover:bg-muted/80 text-sm w-fit">
+                            {categoryUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                            {categoryUploading ? "Subiendo..." : "Subir imagen"}
+                            <input type="file" accept="image/*" className="hidden" onChange={handleCategoryImageUpload} disabled={categoryUploading} />
+                          </label>
+                        </div>
+                      </div>
                       <div className="flex gap-3 mt-4">
                         <Button className="bg-primary text-primary-foreground" onClick={() => createCategory.mutate(categoryForm)}>
                           <Check className="w-4 h-4 mr-2" />Crear
@@ -644,7 +707,7 @@ export default function Admin() {
                             <p className="text-sm text-muted-foreground">/categorias/{cat.slug}</p>
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={() => { setEditingCategory(cat.id); setCategoryForm({ name: cat.name, slug: cat.slug, description: cat.description ?? "" }); }}>
+                            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={() => { setEditingCategory(cat.id); setCategoryForm({ name: cat.name, slug: cat.slug, description: cat.description ?? "", imageUrl: cat.imageUrl ?? "" }); setCategoryPreviewUrl(cat.imageUrl ?? ""); }}>
                               <Pencil className="w-4 h-4" />
                             </Button>
                             <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => { if (confirm("¿Eliminar categoría?")) deleteCategory.mutate({ id: cat.id }); }}>
@@ -664,6 +727,19 @@ export default function Admin() {
                               <div>
                                 <Label>Slug</Label>
                                 <Input value={categoryForm.slug} onChange={(e) => setCategoryForm({ ...categoryForm, slug: e.target.value })} className="mt-1 bg-muted border-border/50" />
+                              </div>
+                            </div>
+                            <div className="mt-4">
+                              <Label>Imagen de la categoría</Label>
+                              <div className="mt-2 flex items-start gap-4">
+                                {categoryPreviewUrl && (
+                                  <img src={categoryPreviewUrl} alt="Preview" className="w-16 h-16 object-cover rounded-xl border border-border/50 shrink-0" />
+                                )}
+                                <label className="flex items-center gap-2 px-4 py-2 rounded-xl bg-muted border border-border/50 cursor-pointer hover:bg-muted/80 text-sm w-fit">
+                                  {categoryUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
+                                  {categoryUploading ? "Subiendo..." : "Cambiar imagen"}
+                                  <input type="file" accept="image/*" className="hidden" onChange={handleCategoryImageUpload} disabled={categoryUploading} />
+                                </label>
                               </div>
                             </div>
                             <div className="flex gap-3 mt-4">
@@ -914,6 +990,207 @@ export default function Admin() {
                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["promo_bar_enabled"] !== "false" ? "translate-x-5" : "translate-x-0"}`} />
                       </button>
                     </div>
+                  </div>
+                </div>
+
+                {/* Banners del Homepage */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Banners del Homepage</h3>
+                      <p className="text-xs text-muted-foreground">Hero slides, banner de venta y banner de video</p>
+                    </div>
+                  </div>
+
+                  {/* Hero Slides */}
+                  {[1, 2, 3].map((n) => (
+                    <div key={n} className="mb-6">
+                      <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Slide {n}</p>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        {[
+                          { k: `hero_slide_${n}_tag`, label: "Tag / etiqueta", ph: "Ej: Temporada 2025" },
+                          { k: `hero_slide_${n}_title`, label: "Título", ph: "Ej: Nueva colección" },
+                          { k: `hero_slide_${n}_cta`, label: "Texto del botón", ph: "Ej: Ver colección" },
+                          { k: `hero_slide_${n}_image`, label: "URL de imagen", ph: "https://..." },
+                        ].map(({ k, label, ph }) => (
+                          <div key={k}>
+                            <Label className="text-xs font-medium">{label}</Label>
+                            <div className="flex gap-2 mt-1">
+                              <Input
+                                placeholder={ph}
+                                defaultValue={siteSettings?.[k] ?? ""}
+                                onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                                className="bg-muted border-border/50 text-sm"
+                              />
+                              <Button
+                                size="sm"
+                                className="bg-primary text-primary-foreground shrink-0"
+                                onClick={() => {
+                                  const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                                  if (val) upsertSetting.mutate({ key: k, value: val });
+                                }}
+                              >
+                                <Save className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {n < 3 && <div className="border-t border-border/20 mt-5" />}
+                    </div>
+                  ))}
+
+                  {/* Sale Banner */}
+                  <div className="border-t border-border/30 pt-5 mb-5">
+                    <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Banner de venta</p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {[
+                        { k: "sale_banner_title", label: "Título", ph: "Ej: Gran Descuento" },
+                        { k: "sale_banner_discount", label: "Descuento", ph: "Ej: 30% OFF" },
+                        { k: "sale_banner_subtitle", label: "Subtítulo", ph: "Ej: Solo por tiempo limitado" },
+                        { k: "sale_banner_image", label: "URL de imagen", ph: "https://..." },
+                      ].map(({ k, label, ph }) => (
+                        <div key={k}>
+                          <Label className="text-xs font-medium">{label}</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              placeholder={ph}
+                              defaultValue={siteSettings?.[k] ?? ""}
+                              onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                              className="bg-muted border-border/50 text-sm"
+                            />
+                            <Button
+                              size="sm"
+                              className="bg-primary text-primary-foreground shrink-0"
+                              onClick={() => {
+                                const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                                if (val) upsertSetting.mutate({ key: k, value: val });
+                              }}
+                            >
+                              <Save className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Video Banner */}
+                  <div className="border-t border-border/30 pt-5">
+                    <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Banner de video</p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {[
+                        { k: "video_banner_title", label: "Título", ph: "Ej: Sumérgete en el anime" },
+                        { k: "video_banner_subtitle", label: "Subtítulo", ph: "Ej: Descubre nuestra colección" },
+                        { k: "video_banner_cta", label: "Texto del botón", ph: "Ej: Ver más" },
+                        { k: "video_banner_video_url", label: "URL del video (mp4 o YouTube embed)", ph: "https://..." },
+                      ].map(({ k, label, ph }) => (
+                        <div key={k}>
+                          <Label className="text-xs font-medium">{label}</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              placeholder={ph}
+                              defaultValue={siteSettings?.[k] ?? ""}
+                              onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                              className="bg-muted border-border/50 text-sm"
+                            />
+                            <Button
+                              size="sm"
+                              className="bg-primary text-primary-foreground shrink-0"
+                              onClick={() => {
+                                const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                                if (val) upsertSetting.mutate({ key: k, value: val });
+                              }}
+                            >
+                              <Save className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Popup de bienvenida */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Popup de bienvenida</h3>
+                      <p className="text-xs text-muted-foreground">Popup que aparece al entrar a la tienda</p>
+                    </div>
+                  </div>
+
+                  {/* Enabled toggle */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <Label className="text-sm font-medium">Mostrar popup</Label>
+                      <p className="text-xs text-muted-foreground">Activa o desactiva el popup en la tienda</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const current = siteSettings?.["popup_enabled"] === "true";
+                        upsertSetting.mutate({ key: "popup_enabled", value: current ? "false" : "true" });
+                      }}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["popup_enabled"] === "true" ? "bg-primary" : "bg-muted-foreground/30"}`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["popup_enabled"] === "true" ? "translate-x-5" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+
+                  {/* Show once toggle */}
+                  <div className="flex items-center justify-between mb-5">
+                    <div>
+                      <Label className="text-sm font-medium">Mostrar una sola vez</Label>
+                      <p className="text-xs text-muted-foreground">El popup no vuelve a aparecer si el usuario lo cierra</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const current = siteSettings?.["popup_show_once"] === "true";
+                        upsertSetting.mutate({ key: "popup_show_once", value: current ? "false" : "true" });
+                      }}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["popup_show_once"] === "true" ? "bg-primary" : "bg-muted-foreground/30"}`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["popup_show_once"] === "true" ? "translate-x-5" : "translate-x-0"}`} />
+                    </button>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {[
+                      { k: "popup_title", label: "Título", ph: "Ej: ¡Bienvenido a Isekai!" },
+                      { k: "popup_subtitle", label: "Subtítulo", ph: "Ej: Suscríbete y obtén 10% OFF" },
+                      { k: "popup_image", label: "URL de imagen", ph: "https://..." },
+                      { k: "popup_cta_text", label: "Texto del botón", ph: "Ej: Suscribirme" },
+                      { k: "popup_cta_url", label: "URL del botón", ph: "Ej: /catalog o https://..." },
+                      { k: "popup_delay_seconds", label: "Demora en segundos", ph: "Ej: 3" },
+                    ].map(({ k, label, ph }) => (
+                      <div key={k}>
+                        <Label className="text-xs font-medium">{label}</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder={ph}
+                            defaultValue={siteSettings?.[k] ?? ""}
+                            onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                            className="bg-muted border-border/50 text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => {
+                              const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                              if (val) upsertSetting.mutate({ key: k, value: val });
+                            }}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </motion.div>

@@ -327,14 +327,23 @@ export default function Home() {
     status: "published",
   });
   const { data: categories } = trpc.categories.list.useQuery();
+  const { data: settings } = trpc.settings.getAll.useQuery();
   const products = productsData?.items ?? [];
   const { addItem } = useCart();
 
+  const heroSlides = [1, 2, 3].map((n, i) => ({
+    image: settings?.[`hero_slide_${n}_image`] || heroBgs[i],
+    tag: settings?.[`hero_slide_${n}_tag`] || t.home.hero[i].tag,
+    title: settings?.[`hero_slide_${n}_title`] || t.home.hero[i].title,
+    cta: settings?.[`hero_slide_${n}_cta`] || t.home.hero[i].cta,
+    href: "/catalog",
+  }));
+
   // Auto-advance hero
   useEffect(() => {
-    const t = setInterval(() => setHeroIdx(i => (i + 1) % heroBgs.length), 5000);
+    const t = setInterval(() => setHeroIdx(i => (i + 1) % heroSlides.length), 5000);
     return () => clearInterval(t);
-  }, []);
+  }, [heroSlides.length]);
 
   const featuredProduct = products[0];
   const displayProducts = products.slice(0, 8);
@@ -357,11 +366,11 @@ export default function Home() {
       <section className="hero-peek-section">
         {/* Track */}
         <div className="hero-peek-track">
-          {heroBgs.map((bg, i) => { const slide = { bg, ...t.home.hero[i], href: "/catalog" };
+          {heroSlides.map((slide, i) => {
             const offset = i - heroIdx;
             const isActive = offset === 0;
-            const isPrev = offset === -1 || (heroIdx === 0 && i === heroBgs.length - 1);
-            const isNext = offset === 1 || (heroIdx === heroBgs.length - 1 && i === 0);
+            const isPrev = offset === -1 || (heroIdx === 0 && i === heroSlides.length - 1);
+            const isNext = offset === 1 || (heroIdx === heroSlides.length - 1 && i === 0);
             return (
               <div
                 key={i}
@@ -371,7 +380,7 @@ export default function Home() {
                 onClick={() => !isActive && setHeroIdx(i)}
               >
                 <img
-                  src={slide.bg}
+                  src={slide.image}
                   alt={slide.title}
                   className={`hero-peek-img ${isActive ? "zoomed-in" : ""}`}
                 />
@@ -392,14 +401,14 @@ export default function Home() {
         {/* Controls row */}
         <div className="hero-peek-controls">
           <button
-            onClick={() => setHeroIdx(i => (i - 1 + heroBgs.length) % heroBgs.length)}
+            onClick={() => setHeroIdx(i => (i - 1 + heroSlides.length) % heroSlides.length)}
             className="hero-ctrl-btn"
             aria-label="Anterior"
           >
             ←
           </button>
           <div className="flex items-center gap-2">
-            {heroBgs.map((_, i) => (
+            {heroSlides.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setHeroIdx(i)}
@@ -410,7 +419,7 @@ export default function Home() {
             ))}
           </div>
           <button
-            onClick={() => setHeroIdx(i => (i + 1) % heroBgs.length)}
+            onClick={() => setHeroIdx(i => (i + 1) % heroSlides.length)}
             className="hero-ctrl-btn"
             aria-label="Siguiente"
           >
