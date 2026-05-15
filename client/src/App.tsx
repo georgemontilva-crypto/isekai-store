@@ -15,6 +15,9 @@ import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import Account from "./pages/Account";
 import Admin from "./pages/Admin";
+import Nosotros from "./pages/Nosotros";
+import FAQ from "./pages/FAQ";
+import Politicas from "./pages/Politicas";
 
 function Router() {
   return (
@@ -25,6 +28,9 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/account" component={Account} />
       <Route path="/admin" component={Admin} />
+      <Route path="/nosotros" component={Nosotros} />
+      <Route path="/faq" component={FAQ} />
+      <Route path="/politicas" component={Politicas} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>

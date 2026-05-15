@@ -89,15 +89,14 @@ export default function Footer() {
 
             {/* Information */}
             <div>
-              <h4 className="font-semibold text-[13px] mb-5 text-white">Information</h4>
+              <h4 className="font-semibold text-[13px] mb-5 text-white">Legal / Info</h4>
               <ul className="space-y-3">
-                {["Nuestra Historia", "Blog", "Preguntas Frecuentes", "Contáctanos", "Mi Cuenta"].map(item => (
-                  <li key={item}>
-                    <Link href={item === "Mi Cuenta" ? "/account" : "/"} className="text-[13px] text-white/55 hover:text-white transition-colors">
-                      {item}
-                    </Link>
-                  </li>
-                ))}
+                <li><Link href="/nosotros" className="text-[13px] text-white/55 hover:text-white transition-colors">Nosotros / About</Link></li>
+                <li><Link href="/faq" className="text-[13px] text-white/55 hover:text-white transition-colors">FAQ's</Link></li>
+                <li><Link href="/politicas" className="text-[13px] text-white/55 hover:text-white transition-colors">Devoluciones / Returns</Link></li>
+                <li><Link href="/politicas" className="text-[13px] text-white/55 hover:text-white transition-colors">Privacidad / Privacy</Link></li>
+                <li><Link href="/politicas" className="text-[13px] text-white/55 hover:text-white transition-colors">Cookies</Link></li>
+                <li><Link href="/account" className="text-[13px] text-white/55 hover:text-white transition-colors">Mi Cuenta / Account</Link></li>
               </ul>
             </div>
 
@@ -130,7 +129,7 @@ export default function Footer() {
         <div className="border-t border-white/10">
           <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-[12px] text-white/35">
-              © {new Date().getFullYear()} Isekai World. All rights reserved.
+              © {new Date().getFullYear()} Isekai World. · <Link href="/politicas" className="underline underline-offset-2 hover:text-white/60 transition-colors">Políticas</Link> All rights reserved.
             </p>
             <div className="flex items-center gap-1.5">
               {["VISA", "MC", "AMEX", "PAYPAL", "DISCOVER"].map(card => (

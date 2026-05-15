@@ -52,13 +52,9 @@ const collectionsMenu = [
 ];
 
 const exploreMenu = [
-  { label: "Nuestra Historia / Our Story", href: "/" },
-  { label: "Blog / Our Journal", href: "/" },
-  { label: "Preguntas Frecuentes / FAQ's", href: "/" },
-  { label: "Contacto / Contact Us", href: "/" },
-  { label: "Contacto con Mapa / Map", href: "/" },
-  { label: "Tiendas / Store Locations", href: "/" },
-  { label: "Arma tu Bundle / Build Your Bundle", href: "/" },
+  { label: "Sobre Nosotros / About Us", href: "/nosotros" },
+  { label: "Preguntas Frecuentes / FAQ's", href: "/faq" },
+  { label: "Políticas Legales / Legal", href: "/politicas" },
 ];
 
 const dropdownVariants = {
@@ -413,9 +409,9 @@ export default function Navbar() {
                 { href: "/", label: "Inicio / Home" },
                 { href: "/catalog", label: "Tienda / Shop" },
                 { href: "/catalog", label: "Colecciones / Collections" },
-                { href: "/catalog", label: "Explorar / Explore" },
+                { href: "/nosotros", label: "Nosotros / About" },
                 { href: "/catalog", label: "Comparar / Compare" },
-                { href: "/", label: "Contacto / Contact" },
+                
               ].map(({ href, label }) => (
                 <Link
                   key={label}
