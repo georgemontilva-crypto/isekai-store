@@ -107,7 +107,11 @@ function useCountdown(targetDate: Date) {
 // tabCategories removed — using t.home.tabs directly
 
 /* ─── Sale Slides data ─── */
-// saleSlides replaced by saleBgs + t.home.sale
+const saleBgs = [
+  "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
+  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600&q=80",
+  "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=1600&q=80",
+];
 
 /* ─── SaleSlider component ─── */
 function SaleSlider({ countdown }: { countdown: { days: number; hours: number; mins: number; secs: number } }) {
@@ -216,7 +220,7 @@ function SaleSlider({ countdown }: { countdown: { days: number; hours: number; m
           className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2"
           style={{ zIndex: 3 }}
         >
-          {saleSlides.map((_, i) => (
+          {saleBgs.map((_, i) => (
             <button
               key={i}
               onClick={() => setIdx(i)}
