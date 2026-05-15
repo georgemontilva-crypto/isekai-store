@@ -284,6 +284,9 @@ export const appRouter = router({
     subscribe: publicProcedure
       .input(z.object({ email: z.string().email() }))
       .mutation(async ({ input }) => {
+        console.log("[Mailchimp] apiKey:", ENV.mailchimpApiKey ? "SET" : "EMPTY");
+        console.log("[Mailchimp] listId:", ENV.mailchimpListId ? "SET" : "EMPTY");
+        console.log("[Mailchimp] dc:", ENV.mailchimpDc ? "SET" : "EMPTY");
         if (!ENV.mailchimpApiKey || !ENV.mailchimpListId || !ENV.mailchimpDc) {
           throw new Error("Mailchimp no configurado");
         }
