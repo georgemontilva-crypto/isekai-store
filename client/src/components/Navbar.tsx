@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown } from "lucide-react";
+import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { openLoginModal } from "@/const";
@@ -147,8 +147,13 @@ export default function Navbar() {
           <div className="flex items-center gap-0.5 ml-auto">
             <div className="md:hidden mr-1"><LangToggle mobile /></div>
             <button onClick={() => setSearchOpen(true)} className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
+            {isAuthenticated && user?.role === "admin" && (
+              <Link href="/admin" className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
+                <LayoutDashboard size={17} strokeWidth={1.8} />
+              </Link>
+            )}
             {isAuthenticated
-              ? <Link href={user?.role==="admin"?"/admin":"/account"} className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>
+              ? <Link href="/account" className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>
               : <button onClick={openLoginModal} className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></button>
             }
             <button onClick={() => openCart()} className="relative p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
