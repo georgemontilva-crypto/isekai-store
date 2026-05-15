@@ -355,15 +355,6 @@ export default function Home() {
           1. HERO PEEK CAROUSEL
       ══════════════════════════════════════════════ */}
       <section className="hero-peek-section">
-        {/* Social sidebar */}
-        <div className="hero-social-bar">
-          <a href="#" aria-label="Facebook" className="hero-social-icon">f</a>
-          <a href="#" aria-label="Twitter" className="hero-social-icon">𝕏</a>
-          <a href="#" aria-label="Instagram" className="hero-social-icon">◎</a>
-          <a href="#" aria-label="YouTube" className="hero-social-icon">▶</a>
-          <div className="hero-social-promo">20% DE DESCUENTO</div>
-        </div>
-
         {/* Track */}
         <div className="hero-peek-track">
           {heroBgs.map((bg, i) => { const slide = { bg, ...t.home.hero[i], href: "/catalog" };
