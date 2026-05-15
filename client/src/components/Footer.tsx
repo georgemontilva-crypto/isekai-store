@@ -3,14 +3,20 @@ import { Facebook, Twitter, Instagram, Youtube, ArrowRight, Headphones, Truck, U
 import { useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/i18n/LangContext";
+import { trpc } from "@/lib/trpc";
 
 export default function Footer() {
   const { t } = useLang();
   const [email, setEmail] = useState("");
 
+  const subscribe = trpc.newsletter.subscribe.useMutation({
+    onSuccess: () => { toast.success("¡Suscrito! Bienvenido a la comunidad 🎌"); setEmail(""); },
+    onError:   () => toast.error("Error al suscribirse, intenta de nuevo"),
+  });
+
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) { toast.success("¡Gracias!"); setEmail(""); }
+    if (email.trim()) subscribe.mutate({ email: email.trim() });
   };
 
   const trustIcons = [Headphones, Truck, Users, Lock];
@@ -85,10 +91,29 @@ export default function Footer() {
 
             {/* Newsletter */}
             <div>
-              <h4 className="font-bold text-[20px] leading-snug mb-5">{t.footer.newsletter}</h4>
+              {/* CTA */}
+              <p className="text-2xl mb-2">🎌</p>
+              <h4 className="font-bold text-[18px] leading-snug mb-2">
+                Únete a la comunidad Isekai
+              </h4>
+              <p className="text-[12px] text-white/50 leading-relaxed mb-5">
+                Drops exclusivos, preventa anticipada y descuentos solo para suscriptores.
+              </p>
               <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2">
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder={t.footer.newsletterPlaceholder} required className="w-full sm:flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/50 transition-colors"/>
-                <button type="submit" className="w-full sm:w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#1a1a1a] hover:bg-white/90 transition-colors">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder={t.footer.newsletterPlaceholder}
+                  required
+                  disabled={subscribe.isPending}
+                  className="w-full sm:flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/50 transition-colors disabled:opacity-50"
+                />
+                <button
+                  type="submit"
+                  disabled={subscribe.isPending}
+                  className="w-full sm:w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#1a1a1a] hover:bg-white/90 transition-colors disabled:opacity-50"
+                >
                   <ArrowRight size={15}/>
                 </button>
               </form>

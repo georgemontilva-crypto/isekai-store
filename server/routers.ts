@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { notifyOwner } from "./_core/notification";
+import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import {
   getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
@@ -270,6 +271,32 @@ export const appRouter = router({
         return { posts: [], configured: true, error: "Failed to fetch feed" };
       }
     }),
+  }),
+
+  // ─── Newsletter ─────────────────────────────────────────────────────────────
+  newsletter: router({
+    subscribe: publicProcedure
+      .input(z.object({ email: z.string().email() }))
+      .mutation(async ({ input }) => {
+        if (!ENV.mailchimpApiKey || !ENV.mailchimpListId || !ENV.mailchimpDc) {
+          throw new Error("Mailchimp no configurado");
+        }
+        const url = `https://${ENV.mailchimpDc}.api.mailchimp.com/3.0/lists/${ENV.mailchimpListId}/members`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${Buffer.from(`anystring:${ENV.mailchimpApiKey}`).toString("base64")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email_address: input.email, status: "subscribed" }),
+        });
+        if (!res.ok) {
+          const err = await res.json() as { title?: string; detail?: string };
+          if (err.title === "Member Exists") return { success: true };
+          throw new Error(err.detail ?? "Error Mailchimp");
+        }
+        return { success: true };
+      }),
   }),
 
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────
