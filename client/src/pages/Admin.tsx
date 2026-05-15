@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
-  DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save
+  DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
+  Facebook, Twitter, Youtube, Megaphone
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -314,6 +315,11 @@ export default function Admin() {
   const [igToken, setIgToken] = useState("");
   const [igUsername, setIgUsername] = useState("");
   const [igCtaText, setIgCtaText] = useState("");
+  const [socialFb, setSocialFb] = useState("");
+  const [socialTw, setSocialTw] = useState("");
+  const [socialIg, setSocialIg] = useState("");
+  const [socialYt, setSocialYt] = useState("");
+  const [promoBarText, setPromoBarText] = useState("");
   const [categoryForm, setCategoryForm] = useState({ name: "", slug: "", description: "" });
 
   // Queries
@@ -823,6 +829,90 @@ export default function Admin() {
                           <Save className="w-4 h-4" />
                         </Button>
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Social Links + Promo Bar */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Barra Social Flotante</h3>
+                      <p className="text-xs text-muted-foreground">Links de redes sociales y botón de promoción lateral</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Facebook */}
+                    {[
+                      { key: "social_facebook",  label: "Facebook",    icon: Facebook,  state: socialFb,  set: setSocialFb,  placeholder: "https://facebook.com/isekaistore" },
+                      { key: "social_twitter",   label: "X (Twitter)", icon: Twitter,   state: socialTw,  set: setSocialTw,  placeholder: "https://x.com/isekaistore" },
+                      { key: "social_instagram", label: "Instagram",   icon: Instagram, state: socialIg,  set: setSocialIg,  placeholder: "https://instagram.com/isekaistore" },
+                      { key: "social_youtube",   label: "YouTube",     icon: Youtube,   state: socialYt,  set: setSocialYt,  placeholder: "https://youtube.com/@isekaistore" },
+                    ].map(({ key, label, icon: Icon, state, set, placeholder }) => (
+                      <div key={key}>
+                        <Label className="text-sm font-medium flex items-center gap-1.5">
+                          <Icon className="w-3.5 h-3.5" /> {label}
+                        </Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder={placeholder}
+                            defaultValue={siteSettings?.[key] ?? ""}
+                            onChange={(e) => set(e.target.value)}
+                            className="bg-muted border-border/50"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => state && upsertSetting.mutate({ key, value: state })}
+                            disabled={!state}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+
+                    {/* Divider */}
+                    <div className="border-t border-border/30 pt-4">
+                      <Label className="text-sm font-medium">Texto del botón de descuento</Label>
+                      <p className="text-xs text-muted-foreground mb-1.5">Ej: "20% OFF" — se muestra como "OBTÉN 20% OFF" / "GET 20% OFF"</p>
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="20% OFF"
+                          defaultValue={siteSettings?.["promo_bar_text"] ?? ""}
+                          onChange={(e) => setPromoBarText(e.target.value)}
+                          className="bg-muted border-border/50"
+                        />
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground shrink-0"
+                          onClick={() => promoBarText && upsertSetting.mutate({ key: "promo_bar_text", value: promoBarText })}
+                          disabled={!promoBarText}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Promo enabled toggle */}
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-sm font-medium">Mostrar botón de descuento</Label>
+                        <p className="text-xs text-muted-foreground">Activa o desactiva el botón en la barra flotante</p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          const current = siteSettings?.["promo_bar_enabled"] !== "false";
+                          upsertSetting.mutate({ key: "promo_bar_enabled", value: current ? "false" : "true" });
+                        }}
+                        className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["promo_bar_enabled"] !== "false" ? "bg-primary" : "bg-muted-foreground/30"}`}
+                      >
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["promo_bar_enabled"] !== "false" ? "translate-x-5" : "translate-x-0"}`} />
+                      </button>
                     </div>
                   </div>
                 </div>

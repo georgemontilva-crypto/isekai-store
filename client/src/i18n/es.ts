@@ -263,6 +263,11 @@ export const es = {
     viewMore: "Ver",
   },
 
+  // ── Floating Bar ─────────────────────────────────────────────────────────
+  floatingBar: {
+    promoLabel: "OBTÉN",
+  },
+
   // ── Common ───────────────────────────────────────────────────────────────
   common: {
     loading: "Cargando...",

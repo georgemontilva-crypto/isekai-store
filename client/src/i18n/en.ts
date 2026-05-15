@@ -256,6 +256,10 @@ export const en: Translations = {
     viewMore: "View",
   },
 
+  floatingBar: {
+    promoLabel: "GET",
+  },
+
   common: {
     loading: "Loading...",
     error: "An error occurred",

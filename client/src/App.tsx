@@ -10,6 +10,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import NewsletterPopup from "./components/NewsletterPopup";
+import FloatingBar from "./components/FloatingBar";
 import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
@@ -50,6 +51,7 @@ function Layout() {
       </main>
       {!isAdmin && <Footer />}
       {!isAdmin && <NewsletterPopup />}
+      {!isAdmin && <FloatingBar />}
     </>
   );
 }
