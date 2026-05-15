@@ -29,6 +29,7 @@ function WelcomeToastHandler() {
   const search = useSearch();
   const [, navigate] = useLocation();
   const { data: user, isLoading } = trpc.auth.me.useQuery();
+  const utils = trpc.useUtils();
   const handled = useRef(false);
 
   useEffect(() => {
@@ -36,6 +37,7 @@ function WelcomeToastHandler() {
     if (params.get("welcome") !== "1") return;
     navigate("/", { replace: true });
     sessionStorage.setItem("_isekai_welcome", "1");
+    utils.auth.me.invalidate();
   }, [search]);
 
   useEffect(() => {
