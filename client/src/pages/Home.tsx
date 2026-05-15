@@ -25,7 +25,7 @@ const collectionImgsHome = [
   "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
   "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
 ];
-const _collections_UNUSED = [
+const _old_collections_ignore = [
   {
     name: "Todo el Catálogo",
     count: "120+ items",
@@ -78,8 +78,8 @@ const brands = ["B&O", "Bose", "Sennheiser", "Logitech", "Apple", "Sony", "JBL"]
 
 /* ─── Marquee items ─── */
 const marqueeItems = [
-  "Play anything", "Day-long comfort", "Premium sound", "Free shipping",
-  "Play anything", "Day-long comfort", "Premium sound", "Free shipping",
+  "Juega lo que quieras", "Comodidad todo el día", "Sonido premium", "Envío gratis",
+  "Juega lo que quieras", "Comodidad todo el día", "Sonido premium", "Envío gratis",
 ];
 
 /* ─── Countdown hook ─── */
@@ -107,35 +107,7 @@ function useCountdown(targetDate: Date) {
 const tabCategories = ["Todo / All", "Audifonos", "Auriculares", "Parlantes", "Accesorios"];
 
 /* ─── Sale Slides data ─── */
-const saleSlides = [
-  {
-    bg: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
-    label: "Oferta por Tiempo Limitado / Limited Time",
-    title: "Hasta un",
-    highlight: "50% off",
-    subtitle: "En parlantes y audifonos premium · On premium audio gear",
-    cta: "Ver Ofertas / Discover Deals",
-    href: "/catalog",
-  },
-  {
-    bg: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=1600&q=80",
-    label: "Flash Sale / Oferta Relámpago",
-    title: "Hasta",
-    highlight: "40% off",
-    subtitle: "En audifonos premium — stock limitado / Limited stock",
-    cta: "Ver Audifonos / Shop",
-    href: "/catalog",
-  },
-  {
-    bg: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=1600&q=80",
-    label: "Deal del Fin de Semana / Weekend Deal",
-    title: "Ahorra",
-    highlight: "30%",
-    subtitle: "En parlantes Bluetooth portátiles · This weekend only",
-    cta: "Ver Parlantes / View",
-    href: "/catalog",
-  },
-];
+// saleSlides replaced by saleBgs + t.home.sale
 
 /* ─── SaleSlider component ─── */
 function SaleSlider({ countdown }: { countdown: { days: number; hours: number; mins: number; secs: number } }) {
@@ -356,7 +328,7 @@ export default function Home() {
 
   // Auto-advance hero
   useEffect(() => {
-    const t = setInterval(() => setHeroIdx(i => (i + 1) % heroSlides.length), 5000);
+    const t = setInterval(() => setHeroIdx(i => (i + 1) % heroBgs.length), 5000);
     return () => clearInterval(t);
   }, []);
 
@@ -393,8 +365,8 @@ export default function Home() {
           {heroBgs.map((bg, i) => { const slide = { bg, ...t.home.hero[i], href: "/catalog" };
             const offset = i - heroIdx;
             const isActive = offset === 0;
-            const isPrev = offset === -1 || (heroIdx === 0 && i === heroSlides.length - 1);
-            const isNext = offset === 1 || (heroIdx === heroSlides.length - 1 && i === 0);
+            const isPrev = offset === -1 || (heroIdx === 0 && i === heroBgs.length - 1);
+            const isNext = offset === 1 || (heroIdx === heroBgs.length - 1 && i === 0);
             return (
               <div
                 key={i}
@@ -425,14 +397,14 @@ export default function Home() {
         {/* Controls row */}
         <div className="hero-peek-controls">
           <button
-            onClick={() => setHeroIdx(i => (i - 1 + heroSlides.length) % heroSlides.length)}
+            onClick={() => setHeroIdx(i => (i - 1 + heroBgs.length) % heroBgs.length)}
             className="hero-ctrl-btn"
             aria-label="Previous"
           >
             ←
           </button>
           <div className="flex items-center gap-2">
-            {heroSlides.map((_, i) => (
+            {heroBgs.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setHeroIdx(i)}
@@ -443,7 +415,7 @@ export default function Home() {
             ))}
           </div>
           <button
-            onClick={() => setHeroIdx(i => (i + 1) % heroSlides.length)}
+            onClick={() => setHeroIdx(i => (i + 1) % heroBgs.length)}
             className="hero-ctrl-btn"
             aria-label="Next"
           >
@@ -769,7 +741,7 @@ export default function Home() {
                             <span className="bg-[#e63946] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">-{discountPct}%</span>
                           )}
                           {isOutOfStock && (
-                            <span className="bg-[#999] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">Sold out</span>
+                            <span className="bg-[#999] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">{t.home.soldOut}</span>
                           )}
                         </div>
                         {/* Rating top-right */}

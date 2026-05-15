@@ -100,7 +100,7 @@ export default function Catalog() {
             <Input
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder="Buscar productos..."
+              placeholder=t.nav.searchPlaceholder
               className="pl-10 bg-card border-border/50 focus:border-primary/50 rounded-xl h-11"
             />
           </div>
@@ -323,7 +323,7 @@ export default function Catalog() {
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-lg text-foreground">${parseFloat(product.price).toFixed(2)}</span>
                       <span className={`text-xs px-2 py-0.5 rounded-full ${product.stock > 0 ? "bg-green-500/10 text-green-400" : "bg-muted text-muted-foreground"}`}>
-                        {product.stock > 0 ? `${product.stock} disponibles` : "Agotado"}
+                        {product.stock > 0 ? `${product.stock} ${t.catalog.available}` : t.catalog.soldOut}
                       </span>
                     </div>
                   </div>

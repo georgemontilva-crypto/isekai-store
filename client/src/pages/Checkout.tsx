@@ -60,7 +60,7 @@ export default function Checkout() {
 
   const onSubmit = async (data: FormData) => {
     if (items.length === 0) {
-      toast.error("Tu carrito está vacío");
+      toast.error(t.checkout.empty);
       return;
     }
 
@@ -130,10 +130,10 @@ export default function Checkout() {
                 className="bg-primary text-primary-foreground hover:bg-primary/90 neon-glow-purple"
                 asChild
               >
-                <Link href="/account">Ver mis pedidos</Link>
+                <Link href="/account">{t.checkout.success.viewAccount}</Link>
               </Button>
               <Button variant="outline" className="border-border/50" asChild>
-                <Link href="/catalog">Seguir comprando</Link>
+                <Link href="/catalog">{t.checkout.success.continueShopping}</Link>
               </Button>
             </div>
           </motion.div>
@@ -148,7 +148,7 @@ export default function Checkout() {
       <div className="min-h-screen pt-24 flex items-center justify-center">
         <div className="text-center">
           <ShoppingBag className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-          <h2 className="text-2xl font-bold mb-2">Tu carrito está vacío</h2>
+          <h2 className="text-2xl font-bold mb-2">{t.checkout.empty}</h2>
           <Button asChild className="mt-4 bg-primary text-primary-foreground">
             <Link href="/catalog">Explorar productos</Link>
           </Button>
@@ -190,7 +190,7 @@ export default function Checkout() {
                 <h2 className="font-semibold text-lg mb-4">Información del cliente</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="customerName">Nombre completo *</Label>
+                    <Label htmlFor="customerName">{t.checkout.name} *</Label>
                     <Input
                       id="customerName"
                       {...register("customerName")}
@@ -202,7 +202,7 @@ export default function Checkout() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="customerEmail">Email *</Label>
+                    <Label htmlFor="customerEmail">{t.checkout.email} *</Label>
                     <Input
                       id="customerEmail"
                       type="email"
@@ -215,7 +215,7 @@ export default function Checkout() {
                     )}
                   </div>
                   <div className="sm:col-span-2">
-                    <Label htmlFor="customerPhone">Teléfono</Label>
+                    <Label htmlFor="customerPhone">{t.checkout.phone}</Label>
                     <Input
                       id="customerPhone"
                       {...register("customerPhone")}
@@ -231,7 +231,7 @@ export default function Checkout() {
                 <h2 className="font-semibold text-lg mb-4">Dirección de envío</h2>
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
-                    <Label htmlFor="street">Dirección *</Label>
+                    <Label htmlFor="street">{t.checkout.address} *</Label>
                     <Input
                       id="street"
                       {...register("street")}
@@ -243,7 +243,7 @@ export default function Checkout() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="city">Ciudad *</Label>
+                    <Label htmlFor="city">{t.checkout.city} *</Label>
                     <Input
                       id="city"
                       {...register("city")}
@@ -255,7 +255,7 @@ export default function Checkout() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="state">Departamento *</Label>
+                    <Label htmlFor="state">{t.checkout.state} *</Label>
                     <Input
                       id="state"
                       {...register("state")}
@@ -267,7 +267,7 @@ export default function Checkout() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="zip">Código postal *</Label>
+                    <Label htmlFor="zip">{t.checkout.zip} *</Label>
                     <Input
                       id="zip"
                       {...register("zip")}
@@ -279,7 +279,7 @@ export default function Checkout() {
                     )}
                   </div>
                   <div>
-                    <Label htmlFor="country">País</Label>
+                    <Label htmlFor="country">{t.checkout.country}</Label>
                     <Input
                       id="country"
                       {...register("country")}
@@ -297,7 +297,7 @@ export default function Checkout() {
                   {...register("notes")}
                   rows={3}
                   className="w-full bg-muted border border-border/50 rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 resize-none"
-                  placeholder="Instrucciones especiales para el envío..."
+                  placeholder=t.checkout.notes
                 />
               </div>
             </motion.div>
@@ -310,7 +310,7 @@ export default function Checkout() {
             >
               <div className="flex flex-col gap-4 lg:sticky lg:top-24">
               <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
-                <h2 className="font-semibold text-lg">Resumen del pedido</h2>
+                <h2 className="font-semibold text-lg">{t.checkout.summary}</h2>
 
                 <div className="space-y-3 max-h-64 overflow-y-auto">
                   {items.map((item) => (
@@ -340,15 +340,15 @@ export default function Checkout() {
 
                 <div className="border-t border-border/50 pt-4 space-y-2">
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Subtotal</span>
+                    <span>{t.checkout.subtotal}</span>
                     <span>${subtotal.toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>Envío</span>
-                    <span className="text-green-400">Gratis</span>
+                    <span>{t.checkout.shipping}</span>
+                    <span className="text-green-400">{t.checkout.free}</span>
                   </div>
                   <div className="flex justify-between font-bold text-lg border-t border-border/50 pt-2">
-                    <span>Total</span>
+                    <span>{t.checkout.total}</span>
                     <span className="text-primary">${subtotal.toFixed(2)}</span>
                   </div>
                 </div>

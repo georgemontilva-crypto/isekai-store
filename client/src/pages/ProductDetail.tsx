@@ -396,7 +396,7 @@ export default function ProductDetail() {
               viewport={{ once: true }}
               className="mb-8"
             >
-              <span className="text-xs font-semibold text-primary uppercase tracking-widest">También te puede gustar</span>
+              <span className="text-xs font-semibold text-primary uppercase tracking-widest">{t.product.relatedTitle}</span>
               <h2 className="text-2xl font-black mt-1">
                 Productos <span className="gradient-text">Relacionados</span>
               </h2>

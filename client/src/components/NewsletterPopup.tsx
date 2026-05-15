@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useLang } from "@/i18n/LangContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ArrowRight, CheckCircle2 } from "lucide-react";
 
 const STORAGE_KEY = "isekai_newsletter_dismissed";
 
 export default function NewsletterPopup() {
+  const { t } = useLang();
   const [visible, setVisible] = useState(false);
   const [imageVisible, setImageVisible] = useState(false);
   const [email, setEmail] = useState("");
@@ -150,7 +152,7 @@ export default function NewsletterPopup() {
                           type="email"
                           value={email}
                           onChange={(e) => setEmail(e.target.value)}
-                          placeholder="Tu email / Your email"
+                          placeholder={t?.nav?.searchPlaceholder ?? "Tu email"}
                           className="flex-1 bg-transparent text-sm text-[#1a1a1a] placeholder-gray-400 outline-none py-2.5"
                           required
                         />

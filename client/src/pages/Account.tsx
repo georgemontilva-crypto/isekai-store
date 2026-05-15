@@ -104,7 +104,7 @@ export default function Account() {
           ) : orders.length === 0 ? (
             <div className="text-center py-16 bg-card rounded-2xl border border-border/50">
               <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="font-medium text-foreground">No tienes pedidos aún</p>
+              <p className="font-medium text-foreground">{t.account.noOrders}</p>
               <p className="text-sm text-muted-foreground mt-1 mb-6">
                 Explora nuestro catálogo y realiza tu primera compra
               </p>

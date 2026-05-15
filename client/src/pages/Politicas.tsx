@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLang } from "@/i18n/LangContext";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 
@@ -173,7 +174,7 @@ function Privacidad() {
 
       <section>
         <h3 className="text-lg font-bold text-[#1a1a1a] mb-3">Seguridad / Security</h3>
-        <p>Implementamos medidas técnicas y organizativas para proteger tus datos contra acceso no autorizado, pérdida o alteración. Nuestro sitio usa HTTPS y los datos sensibles se procesan a través de plataformas certificadas. / We implement technical and organizational measures to protect your data against unauthorized access, loss or alteration. Our site uses HTTPS and sensitive data is processed through certified platforms.</p>
+        <p>Implementamos medidas técnicas y organizativas para proteger tus datos contra acceso no autorizado, pérdida o alteración. Nuestro sitio usa HTTPS y los datos sensibles se procesan a través de plataformas certificadas. </p>
       </section>
     </div>
   );
@@ -226,7 +227,7 @@ function Cookies() {
 
       <section>
         <h3 className="text-lg font-bold text-[#1a1a1a] mb-3">Cookies esenciales / Essential cookies</h3>
-        <p>Son necesarias para el funcionamiento básico del sitio (sesión de usuario, carrito de compras). No pueden desactivarse. / These are necessary for the basic functioning of the site (user session, shopping cart). They cannot be disabled.</p>
+        <p>Son necesarias para el funcionamiento básico del sitio (sesión de usuario, carrito de compras). No pueden desactivarse. </p>
       </section>
 
       <section>

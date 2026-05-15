@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { ArrowRight, Star, Package, RotateCcw, ShieldCheck, Truck } from "lucide-react";
+import { useLang } from '@/i18n/LangContext';
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 
@@ -33,6 +34,7 @@ export default function FeaturedProductCard({
     ? [product.imageUrl]
     : [];
 
+  const { t } = useLang();
   const [activeIdx, setActiveIdx] = useState(0);
   const [activeVariantId, setActiveVariantId] = useState<number | null>(null);
 
@@ -181,7 +183,7 @@ export default function FeaturedProductCard({
                 onClick={() => onAddToCart(product.id, product.name)}
                 className="w-full flex items-center justify-between bg-[#1a1a1a] text-white font-semibold text-[14px] px-6 py-4 rounded-full hover:bg-[#333] transition-colors mb-3 active:scale-[0.98]"
               >
-                <span>Add to cart</span>
+                <span>{t.product.addToCart}</span>
                 <span className="text-white/70">
                   — ${parseFloat(activeVariant?.price ?? product.price).toFixed(2)}
                 </span>

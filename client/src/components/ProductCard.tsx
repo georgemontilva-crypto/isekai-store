@@ -124,7 +124,7 @@ export default function ProductCard({
               className="w-full bg-[#1a1a1a] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
             >
               <ShoppingBag size={12} />
-              {isOutOfStock ? "Sold out" : "Add to cart"}
+              {isOutOfStock ? t.catalog.soldOut : t.catalog.addToCart}
             </button>
           </div>
         </div>
