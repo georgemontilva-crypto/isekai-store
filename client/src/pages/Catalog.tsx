@@ -100,7 +100,7 @@ export default function Catalog() {
             <Input
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
-              placeholder=t.nav.searchPlaceholder
+              placeholder={t.nav.searchPlaceholder}
               className="pl-10 bg-card border-border/50 focus:border-primary/50 rounded-xl h-11"
             />
           </div>
