@@ -297,7 +297,7 @@ export default function Checkout() {
                   {...register("notes")}
                   rows={3}
                   className="w-full bg-muted border border-border/50 rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 resize-none"
-                  placeholder=t.checkout.notes
+                  placeholder={t.checkout.notes}
                 />
               </div>
             </motion.div>
