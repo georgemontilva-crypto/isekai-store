@@ -20,40 +20,35 @@ export default function FloatingBar() {
   if (!promoEnabled && socialLinks.length === 0) return null;
 
   return (
-    <div className="fixed left-4 top-1/2 -translate-y-1/2 z-40 flex flex-col items-center">
-      <div className="bg-white rounded-3xl shadow-lg border border-[#ebebeb] flex flex-col items-center py-4 px-3 gap-5">
+    <div className="fixed right-4 top-1/2 -translate-y-1/2 z-50 flex flex-col items-center gap-5 bg-white/70 backdrop-blur-md border border-gray-300/60 shadow-xl rounded-full py-5 px-3">
 
-        {/* Social icons */}
-        {socialLinks.map(({ icon: Icon, url, label }) => (
-          <a
-            key={label}
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            aria-label={label}
-            className="w-10 h-10 flex items-center justify-center rounded-full text-[#555] hover:text-[#1a1a1a] hover:bg-[#f0f0f0] transition-all duration-150"
-          >
-            <Icon size={20} strokeWidth={1.8} />
-          </a>
-        ))}
+      {/* Social icons */}
+      {socialLinks.map(({ icon: Icon, url, label }) => (
+        <a
+          key={label}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={label}
+          className="text-gray-700 hover:text-black transition-colors"
+        >
+          <Icon size={20} strokeWidth={1.8} />
+        </a>
+      ))}
 
-        {/* Divider */}
-        {socialLinks.length > 0 && promoEnabled && (
-          <div className="w-6 h-px bg-[#e0e0e0]" />
-        )}
-
-        {/* Promo button */}
-        {promoEnabled && (
-          <Link href="/catalog">
-            <button
-              className="bg-[#1a1a1a] text-white text-[9px] font-black uppercase tracking-widest rounded-2xl px-3 py-4 hover:bg-[#333] active:scale-95 transition-all leading-none whitespace-nowrap"
+      {/* Discount pill */}
+      {promoEnabled && (
+        <Link href="/catalog">
+          <div className="bg-gray-200/80 border border-gray-300 rounded-full px-2 py-4 mt-1 cursor-pointer hover:bg-gray-300/80 transition-colors active:scale-95 transition-transform">
+            <span
+              className="block whitespace-nowrap text-[10px] font-bold text-gray-700 tracking-widest uppercase"
               style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
             >
               {t.floatingBar.promoLabel} {promoText}
-            </button>
-          </Link>
-        )}
-      </div>
+            </span>
+          </div>
+        </Link>
+      )}
     </div>
   );
 }
