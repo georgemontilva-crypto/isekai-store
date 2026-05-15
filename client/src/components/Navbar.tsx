@@ -29,6 +29,7 @@ export default function Navbar() {
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(null);
   const closeTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
   const { user, isAuthenticated } = useAuth();
+  console.log("[Navbar] user:", user?.email, "role:", user?.role);
   const { totalItems, openCart } = useCart();
   const { lang, t, toggleLang } = useLang();
 
