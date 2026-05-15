@@ -1,20 +1,180 @@
-/**
- * OAuth routes — pendiente de implementar auth propia.
- *
- * El sistema de auth de Manus fue eliminado.
- * Aquí se registrarán las rutas para:
- *   - GET  /api/auth/google          → redirect a Google
- *   - GET  /api/auth/google/callback → recibir code, crear sesión
- *   - POST /api/auth/magic-link      → enviar email con token
- *   - GET  /api/auth/verify          → verificar token del email
- *   - POST /api/auth/logout          → limpiar cookie
- *
- * TODO: implementar en el siguiente paso.
- */
-import type { Express } from "express";
+import { randomBytes } from "crypto";
+import type { Express, Request, Response } from "express";
+import axios from "axios";
+import { COOKIE_NAME } from "@shared/const";
+import { signSession } from "./sdk";
+import { getSessionCookieOptions } from "./cookies";
+import { ENV } from "./env";
+import * as db from "../db";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function registerOAuthRoutes(_app: Express): void {
-  // Pendiente: implementación de Google OAuth2 y Magic Link con Resend.
-  console.log("[Auth] Sistema de autenticación pendiente de configurar. Ver server/_core/oauth.ts");
+const GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth";
+const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
+const GOOGLE_INFO_URL  = "https://www.googleapis.com/oauth2/v2/userinfo";
+const SESSION_MAX_AGE  = 365 * 24 * 60 * 60 * 1000; // 1 year
+
+function callbackUrl() {
+  return `${ENV.appUrl}/api/auth/google/callback`;
+}
+
+function isOwner(email: string | null | undefined): boolean {
+  return Boolean(ENV.ownerEmail && email && email.toLowerCase() === ENV.ownerEmail.toLowerCase());
+}
+
+async function setSessionCookie(req: Request, res: Response, openId: string, name: string) {
+  const token = await signSession({ openId, name });
+  res.cookie(COOKIE_NAME, token, {
+    ...getSessionCookieOptions(req),
+    maxAge: SESSION_MAX_AGE,
+  });
+}
+
+export function registerOAuthRoutes(app: Express): void {
+
+  // ── GET /api/auth/google ─────────────────────────────────────────────────────
+  app.get("/api/auth/google", (req: Request, res: Response) => {
+    if (!ENV.googleClientId || !ENV.googleClientSecret) {
+      return res.status(503).json({ error: "Google OAuth no configurado" });
+    }
+    const params = new URLSearchParams({
+      client_id:     ENV.googleClientId,
+      redirect_uri:  callbackUrl(),
+      response_type: "code",
+      scope:         "openid email profile",
+      access_type:   "offline",
+      prompt:        "select_account",
+    });
+    res.redirect(`${GOOGLE_AUTH_URL}?${params.toString()}`);
+  });
+
+  // ── GET /api/auth/google/callback ────────────────────────────────────────────
+  app.get("/api/auth/google/callback", async (req: Request, res: Response) => {
+    const { code } = req.query;
+    if (!code || typeof code !== "string") return res.redirect("/?auth=error");
+
+    try {
+      const { data: tokens } = await axios.post(GOOGLE_TOKEN_URL, {
+        code,
+        client_id:     ENV.googleClientId,
+        client_secret: ENV.googleClientSecret,
+        redirect_uri:  callbackUrl(),
+        grant_type:    "authorization_code",
+      });
+
+      const { data: profile } = await axios.get(GOOGLE_INFO_URL, {
+        headers: { Authorization: `Bearer ${tokens.access_token}` },
+      });
+
+      const { id, email, name } = profile as { id: string; email: string; name: string };
+      const openId = `google:${id}`;
+
+      await db.upsertUser({
+        openId,
+        email,
+        name,
+        loginMethod: "google",
+        role:        isOwner(email) ? "admin" : "user",
+        lastSignedIn: new Date(),
+      });
+
+      await setSessionCookie(req, res, openId, name ?? "");
+      res.redirect("/");
+    } catch (err) {
+      console.error("[Auth] Google callback error:", err);
+      res.redirect("/?auth=error");
+    }
+  });
+
+  // ── POST /api/auth/magic-link ────────────────────────────────────────────────
+  app.post("/api/auth/magic-link", async (req: Request, res: Response) => {
+    const email = typeof req.body?.email === "string" ? req.body.email.trim().toLowerCase() : null;
+    if (!email || !email.includes("@")) {
+      return res.status(400).json({ error: "Email inválido" });
+    }
+
+    try {
+      const token     = randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
+      await db.createAuthToken({ token, email, type: "magic_link", expiresAt });
+
+      const verifyUrl = `${ENV.appUrl}/api/auth/verify?token=${token}`;
+
+      if (ENV.resendApiKey) {
+        await axios.post(
+          "https://api.resend.com/emails",
+          {
+            from:    ENV.resendFrom,
+            to:      email,
+            subject: "Tu enlace de acceso a Isekai World",
+            html: `
+              <div style="font-family:Inter,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;">
+                <h2 style="margin:0 0 8px;font-size:22px;color:#111;">Accede a tu cuenta</h2>
+                <p style="color:#555;margin:0 0 24px;">Haz clic en el botón para iniciar sesión.
+                  El enlace expira en <strong>15 minutos</strong>.</p>
+                <a href="${verifyUrl}"
+                   style="display:inline-block;background:#171717;color:#fff;padding:14px 28px;
+                          border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">
+                  Iniciar sesión
+                </a>
+                <p style="color:#aaa;font-size:12px;margin-top:32px;">
+                  Si no solicitaste esto, puedes ignorar este correo.
+                </p>
+              </div>
+            `,
+          },
+          {
+            headers: {
+              Authorization:  `Bearer ${ENV.resendApiKey}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } else {
+        console.warn("[Auth] Resend no configurado — magic link URL:", verifyUrl);
+      }
+
+      res.json({ success: true });
+    } catch (err) {
+      console.error("[Auth] Magic link error:", err);
+      res.status(500).json({ error: "Error al enviar el correo" });
+    }
+  });
+
+  // ── GET /api/auth/verify ─────────────────────────────────────────────────────
+  app.get("/api/auth/verify", async (req: Request, res: Response) => {
+    const { token } = req.query;
+    if (!token || typeof token !== "string") return res.redirect("/?auth=error");
+
+    try {
+      const record = await db.getAuthToken(token);
+      if (!record || record.used || new Date() > record.expiresAt) {
+        return res.redirect("/?auth=expired");
+      }
+      await db.markAuthTokenUsed(token);
+
+      const email  = record.email;
+      const openId = `magic:${email}`;
+      const name   = email.split("@")[0];
+
+      await db.upsertUser({
+        openId,
+        email,
+        name,
+        loginMethod: "magic_link",
+        role:        isOwner(email) ? "admin" : "user",
+        lastSignedIn: new Date(),
+      });
+
+      await setSessionCookie(req, res, openId, name);
+      res.redirect("/");
+    } catch (err) {
+      console.error("[Auth] Verify error:", err);
+      res.redirect("/?auth=error");
+    }
+  });
+
+  // ── POST /api/auth/logout ────────────────────────────────────────────────────
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(req), maxAge: -1 });
+    res.json({ success: true });
+  });
 }

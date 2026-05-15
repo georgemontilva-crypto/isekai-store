@@ -11,6 +11,7 @@ import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import NewsletterPopup from "./components/NewsletterPopup";
 import FloatingBar from "./components/FloatingBar";
+import AuthDialog from "./components/AuthDialog";
 import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
@@ -52,6 +53,7 @@ function Layout() {
       {!isAdmin && <Footer />}
       {!isAdmin && <NewsletterPopup />}
       {!isAdmin && <FloatingBar />}
+      <AuthDialog />
     </>
   );
 }
