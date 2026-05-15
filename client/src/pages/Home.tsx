@@ -518,7 +518,6 @@ export default function Home() {
                         }}
                       >
                         {col.name}
-                        <sup className="text-[10px] font-normal ml-1 opacity-60">{col.count.split(' ')[0]}</sup>
                       </p>
                       <p className="text-white/60 text-[11px] mt-0.5 leading-tight">{col.desc}</p>
                     </div>
