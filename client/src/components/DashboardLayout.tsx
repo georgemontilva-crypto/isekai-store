@@ -212,11 +212,11 @@ function DashboardLayoutContent({
                       isActive={isActive}
                       onClick={() => setLocation(item.path)}
                       tooltip={item.label}
-                      className={`h-10 transition-all font-medium ${
+                      className={`h-10 transition-all font-medium text-white [&>svg]:text-white ${
                         isActive ? "bg-white/10" : "hover:bg-white/5"
                       }`}
                     >
-                      <item.icon className="h-4 w-4" />
+                      <item.icon className="h-4 w-4 text-white" />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
