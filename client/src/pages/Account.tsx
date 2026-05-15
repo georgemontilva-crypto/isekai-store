@@ -45,7 +45,7 @@ function LoginPage() {
 
   return (
     <div
-      className="fixed left-0 right-0 bottom-0 top-[60px] flex items-center justify-center p-4"
+      className="fixed left-0 right-0 bottom-0 top-[96px] flex items-center justify-center p-4 overflow-hidden"
       style={{ backgroundImage: "url('https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=1600&q=80')", backgroundSize: "cover", backgroundPosition: "center" }}
     >
       <div className="absolute inset-0 bg-black/50" />
