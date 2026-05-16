@@ -11,6 +11,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
@@ -218,16 +219,20 @@ function ProductForm({
         </div>
         <div>
           <Label>Categoría</Label>
-          <select
-            value={form.categoryId}
-            onChange={(e) => setForm({ ...form, categoryId: e.target.value ? parseInt(e.target.value) : "" })}
-            className="mt-1 w-full bg-muted border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground"
+          <Select
+            value={form.categoryId ? String(form.categoryId) : ""}
+            onValueChange={(val) => setForm({ ...form, categoryId: val ? parseInt(val) : "" })}
           >
-            <option value="">Sin categoría</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+            <SelectTrigger className="mt-1 w-full bg-muted border-border/50">
+              <SelectValue placeholder="Sin categoría" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Sin categoría</SelectItem>
+              {categories.map((c) => (
+                <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div>
           <Label>Stock</Label>
@@ -240,14 +245,18 @@ function ProductForm({
         </div>
         <div>
           <Label>Estado</Label>
-          <select
+          <Select
             value={form.status}
-            onChange={(e) => setForm({ ...form, status: e.target.value as "draft" | "published" })}
-            className="mt-1 w-full bg-muted border border-border/50 rounded-lg px-3 py-2 text-sm text-foreground"
+            onValueChange={(val) => setForm({ ...form, status: val as "draft" | "published" })}
           >
-            <option value="draft">Borrador</option>
-            <option value="published">Publicado</option>
-          </select>
+            <SelectTrigger className="mt-1 w-full bg-muted border-border/50">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="draft">Borrador</SelectItem>
+              <SelectItem value="published">Publicado</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex items-center gap-3 mt-6">
           <input
@@ -785,15 +794,19 @@ export default function Admin() {
                           <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <select
+                          <Select
                             value={order.status}
-                            onChange={(e) => updateOrderStatus.mutate({ id: order.id, status: e.target.value as any })}
-                            className="bg-muted border border-border/50 rounded-lg px-3 py-1.5 text-sm text-foreground"
+                            onValueChange={(val) => updateOrderStatus.mutate({ id: order.id, status: val as any })}
                           >
-                            {Object.entries(statusLabels).map(([val, label]) => (
-                              <option key={val} value={val}>{label}</option>
-                            ))}
-                          </select>
+                            <SelectTrigger className="bg-muted border-border/50 text-sm w-36">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.entries(statusLabels).map(([val, label]) => (
+                                <SelectItem key={val} value={val}>{label}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       </div>
                     </div>
