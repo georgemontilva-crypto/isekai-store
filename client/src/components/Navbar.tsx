@@ -106,7 +106,7 @@ export default function Navbar() {
       </div>
 
       {/* MAIN NAVBAR */}
-      <header className={`sticky top-0 z-50 bg-white transition-all duration-200 ${scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"}`}>
+      <header className={`sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"}`}>
         <div className="container flex items-center h-[60px] gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 mr-2">
@@ -168,7 +168,7 @@ export default function Navbar() {
         {/* Collections mega panel */}
         <AnimatePresence>
           {activeMenu==="collections" && (
-            <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" transition={{duration:0.22,type:"tween"}} onMouseEnter={cancelClose} onMouseLeave={scheduleClose} className="sticky top-[60px] z-40 bg-[#f2f2f2] border-b border-[#e0e0e0] shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
+            <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" transition={{duration:0.22,type:"tween"}} onMouseEnter={cancelClose} onMouseLeave={scheduleClose} className="absolute left-0 right-0 top-[60px] z-50 bg-[#f2f2f2] border-b border-[#e0e0e0] shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
               <div className="flex gap-3 px-4 py-4 overflow-x-auto scrollbar-hide">
                 {collectionsMenu.map(col => (
                   <Link key={col.label} href={col.href} onClick={() => setActiveMenu(null)} className={`group relative flex flex-col overflow-hidden rounded-2xl shrink-0 shadow-sm ${col.dark?"bg-[#1a1a1a]":"bg-white"}`} style={{width:"calc(20% - 10px)",minWidth:"200px"}}>
