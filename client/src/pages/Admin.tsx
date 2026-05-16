@@ -1129,38 +1129,69 @@ export default function Admin() {
                     </div>
                   ))}
 
-                  {/* Sale Banner */}
+                  {/* Banners de Ofertas */}
                   <div className="border-t border-border/30 pt-5 mb-5">
-                    <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Banner de venta</p>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {[
-                        { k: "sale_banner_title", label: "Título", ph: "Ej: Gran Descuento" },
-                        { k: "sale_banner_discount", label: "Descuento", ph: "Ej: 30% OFF" },
-                        { k: "sale_banner_subtitle", label: "Subtítulo", ph: "Ej: Solo por tiempo limitado" },
-                        { k: "sale_banner_image", label: "URL de imagen", ph: "https://..." },
-                      ].map(({ k, label, ph }) => (
-                        <div key={k}>
-                          <Label className="text-xs font-medium">{label}</Label>
-                          <div className="flex gap-2 mt-1">
-                            <Input
-                              placeholder={ph}
-                              defaultValue={siteSettings?.[k] ?? ""}
-                              onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
-                              className="bg-muted border-border/50 text-sm"
-                            />
-                            <Button
-                              size="sm"
-                              className="bg-primary text-primary-foreground shrink-0"
-                              onClick={() => {
-                                const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
-                                if (val) upsertSetting.mutate({ key: k, value: val });
-                              }}
-                            >
-                              <Save className="w-4 h-4" />
-                            </Button>
+                    <p className="text-sm font-semibold mb-1 text-muted-foreground uppercase tracking-wide">Banners de Ofertas</p>
+                    <p className="text-xs text-muted-foreground mb-4">3 imágenes para el slider de ofertas en la home. Solo imagen, sin texto.</p>
+                    <div className="space-y-4">
+                      {[1, 2, 3].map((n) => {
+                        const k = `sale_banner_${n}_image`;
+                        const current = bannerDrafts[k] ?? siteSettings?.[k] ?? "";
+                        return (
+                          <div key={k}>
+                            <Label className="text-xs font-medium">Banner {n}</Label>
+                            <div className="flex items-start gap-2 mt-1">
+                              <div className="flex-1">
+                                <Input
+                                  placeholder="https://... o sube una imagen"
+                                  value={current}
+                                  onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                                  className="bg-muted border-border/50 text-sm"
+                                />
+                                {current && (
+                                  <img src={current} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" />
+                                )}
+                              </div>
+                              <label className="cursor-pointer shrink-0">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                                  <Upload className="w-3.5 h-3.5" /> Subir
+                                </span>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={async (e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const base64 = await new Promise<string>((resolve, reject) => {
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                                      reader.onerror = reject;
+                                      reader.readAsDataURL(file);
+                                    });
+                                    try {
+                                      const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                      setBannerDrafts(d => ({ ...d, [k]: url }));
+                                      upsertSetting.mutate({ key: k, value: url });
+                                      toast.success("Banner subido");
+                                    } catch {
+                                      toast.error("Error al subir imagen");
+                                    }
+                                  }}
+                                />
+                              </label>
+                              <Button
+                                size="sm"
+                                className="bg-primary text-primary-foreground shrink-0"
+                                onClick={() => { if (current) upsertSetting.mutate({ key: k, value: current }); }}
+                                disabled={!current}
+                              >
+                                <Save className="w-4 h-4" />
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
 
