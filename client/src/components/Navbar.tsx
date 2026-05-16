@@ -133,7 +133,7 @@ export default function Navbar() {
     <>
       {/* TOP BAR */}
       <div className="bg-[#1a1a1a] text-white text-[11px]">
-        <div className="container flex items-center justify-between h-9">
+        <div className="hidden md:flex container items-center justify-between h-9">
           <div className="hidden md:flex items-center gap-3">
             <a href="#" aria-label="Facebook" className="opacity-60 hover:opacity-100 transition-opacity"><Facebook size={12}/></a>
             <a href="#" aria-label="Twitter"  className="opacity-60 hover:opacity-100 transition-opacity"><Twitter size={12}/></a>
@@ -153,7 +153,7 @@ export default function Navbar() {
       <header className={`sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"}`}>
         <div className="container flex items-center h-[60px] gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 mr-2">
+          <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[120px] md:max-w-none overflow-hidden">
             {logoUrl ? (
               <img src={logoUrl} alt={storeName} className="h-8 object-contain" />
             ) : (
@@ -193,17 +193,16 @@ export default function Navbar() {
           </nav>
 
           {/* Right icons */}
-          <div className="flex items-center gap-0.5 ml-auto">
-            <div className="md:hidden mr-1"><LangToggle mobile /></div>
-            <button onClick={() => setSearchOpen(true)} className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
+          <div className="flex items-center gap-1 ml-auto">
+            <button onClick={() => setSearchOpen(true)} className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
             {isAuthenticated && user?.role === "admin" && (
-              <Link href="/admin" className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
+              <Link href="/admin" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
               </Link>
             )}
             {isRegularUser && (
               <div ref={notifRef} className="relative">
-                <button onClick={handleBellClick} className="relative p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Notificaciones">
+                <button onClick={handleBellClick} className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Notificaciones">
                   <Bell size={17} strokeWidth={1.8} />
                   {notifUnread != null && notifUnread > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -216,7 +215,7 @@ export default function Navbar() {
                     <motion.div
                       variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
                       transition={{ duration: 0.2, type: "tween" }}
-                      className="absolute right-0 top-[calc(100%+8px)] z-50 w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] border border-[#f0f0f0] overflow-hidden"
+                      className="absolute right-0 top-[calc(100%+8px)] z-50 w-[calc(100vw-32px)] md:w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] border border-[#f0f0f0] overflow-hidden"
                     >
                       <div className="px-4 py-3 border-b border-[#f0f0f0]">
                         <p className="font-semibold text-sm text-[#1a1a1a]">Notificaciones</p>
@@ -241,14 +240,14 @@ export default function Navbar() {
               </div>
             )}
             {isAuthenticated
-              ? <Link href="/account" className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>
-              : <button onClick={openLoginModal} className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></button>
+              ? <Link href="/account" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>
+              : <button onClick={openLoginModal} className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></button>
             }
-            <button onClick={() => openCart()} className="relative p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
+            <button onClick={() => openCart()} className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
               <ShoppingBag size={17} strokeWidth={1.8}/>
               {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#1a1a1a] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
             </button>
-            <button onClick={() => setMobileOpen(true)} className="md:hidden p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors ml-1"><Menu size={17} strokeWidth={1.8}/></button>
+            <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 hover:bg-[#f5f5f5] rounded-full transition-colors ml-0.5"><Menu size={17} strokeWidth={1.8}/></button>
           </div>
         </div>
 
@@ -318,6 +317,18 @@ export default function Navbar() {
                   {item.label}<ArrowRight size={12} className="opacity-20"/>
                 </Link>
               ))}
+              {isRegularUser && (
+                <Link href="/account" onClick={() => setMobileOpen(false)}
+                  className="flex items-center gap-3 py-4 border-b border-[#f0f0f0] font-semibold text-[15px] hover:opacity-50 transition-opacity">
+                  <Bell size={18} strokeWidth={1.8} />
+                  Notificaciones
+                  {notifUnread != null && notifUnread > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                      {notifUnread > 9 ? "9+" : notifUnread}
+                    </span>
+                  )}
+                </Link>
+              )}
               <div className="mt-8">
                 {isAuthenticated
                   ? <Link href={user?.role==="admin"?"/admin":"/account"} onClick={() => setMobileOpen(false)} className="btn-pill w-full justify-center">{t.nav.account}</Link>
