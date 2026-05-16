@@ -532,12 +532,38 @@ export default function Home() {
           </div>
         </section>
 
-        {/* ── FLOATING FEATURED PRODUCT CARD ── */}
+        {/* ── FEATURED PRODUCT + CTA ── */}
         {featuredProduct && (
-          <FeaturedProductCard
-            product={featuredProduct}
-            onAddToCart={handleAddToCart}
-          />
+          <section className="py-10 px-[8px]">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-center">
+              {/* Card del producto — izquierda */}
+              <div>
+                <FeaturedProductCard
+                  product={featuredProduct}
+                  onAddToCart={handleAddToCart}
+                />
+              </div>
+
+              {/* CTA — derecha, solo desktop */}
+              <div className="hidden lg:flex flex-col items-center justify-center text-center gap-6 bg-[#f8f8f8] rounded-2xl p-10 h-full">
+                <span className="text-xs font-semibold tracking-widest text-[#888] uppercase">
+                  Nuestra tienda
+                </span>
+                <h3 className="text-3xl font-bold text-[#111] leading-tight">
+                  Explora toda<br/>la colección
+                </h3>
+                <p className="text-[#555] text-sm leading-relaxed">
+                  Figuras únicas impresas en 3D de tus universos favoritos. Anime, gaming y más.
+                </p>
+                <Link
+                  href="/catalog"
+                  className="bg-[#111] text-white px-8 py-3 rounded-full font-semibold text-sm hover:bg-[#333] transition-colors"
+                >
+                  Ver tienda →
+                </Link>
+              </div>
+            </div>
+          </section>
         )}
       </div>
 
