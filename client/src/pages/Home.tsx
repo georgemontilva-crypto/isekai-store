@@ -440,19 +440,21 @@ export default function Home() {
             style={{ height: '240px', borderRadius: '18px' }}
           >
             <img
-              src="https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"
+              src={settings?.["brand_story_image"] || "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"}
               alt="Figuras coleccionables 3D anime"
               className="w-full h-full object-cover"
             />
           </div>
           {/* RIGHT: brand statement */}
           <div className="flex flex-col justify-center px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">{t.home.brandStory.label}</p>
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">
+              {settings?.["brand_story_label"] ?? t.home.brandStory.label}
+            </p>
             <h2
               style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
               className="text-2xl md:text-3xl lg:text-4xl font-black text-[#1a1a1a] mb-0"
             >
-              {t.home.brandStory.heading}{" "}
+              {settings?.["brand_story_heading"] ?? t.home.brandStory.heading}{" "}
               <span
                 style={{
                   fontFamily: "'Orbitron', sans-serif",
@@ -462,11 +464,11 @@ export default function Home() {
                   backgroundClip: "text",
                 }}
               >
-                {t.home.brandStory.highlight}
+                {settings?.["brand_story_highlight"] ?? t.home.brandStory.highlight}
               </span>
             </h2>
             <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
-              {t.home.brandStory.body}
+              {settings?.["brand_story_body"] ?? t.home.brandStory.body}
             </p>
           </div>
         </div>

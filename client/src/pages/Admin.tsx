@@ -1226,6 +1226,108 @@ export default function Admin() {
                     ))}
                   </div>
                 </div>
+                {/* Brand Story */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Sección Filosofía / Brand Story</h3>
+                      <p className="text-xs text-muted-foreground">Texto e imagen de la sección destacada en la home</p>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {[
+                      { k: "brand_story_label", label: "Etiqueta superior", ph: "Ej: Nuestra Filosofía" },
+                      { k: "brand_story_heading", label: "Título parte normal", ph: "Ej: Colecciones del" },
+                      { k: "brand_story_highlight", label: "Título parte destacada", ph: "Ej: Otro Mundo" },
+                      { k: "brand_story_body", label: "Descripción", ph: "Ej: Figuras de edición limitada..." },
+                    ].map(({ k, label, ph }) => (
+                      <div key={k}>
+                        <Label className="text-xs font-medium">{label}</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder={ph}
+                            defaultValue={siteSettings?.[k] ?? ""}
+                            onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                            className="bg-muted border-border/50 text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => {
+                              const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                              if (val) upsertSetting.mutate({ key: k, value: val });
+                            }}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Image upload */}
+                  <div className="mt-4">
+                    <Label className="text-xs font-medium">Imagen</Label>
+                    <div className="flex gap-2 mt-1 items-start">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="URL de imagen o sube un archivo"
+                          value={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? ""}
+                          onChange={(e) => setBannerDrafts(d => ({ ...d, brand_story_image: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                        {(bannerDrafts["brand_story_image"] || siteSettings?.["brand_story_image"]) && (
+                          <img
+                            src={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"]}
+                            className="mt-2 h-24 w-40 object-cover rounded-lg border border-border/30"
+                          />
+                        )}
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const base64 = await new Promise<string>((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                              reader.onerror = reject;
+                              reader.readAsDataURL(file);
+                            });
+                            try {
+                              const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                              setBannerDrafts(d => ({ ...d, brand_story_image: url }));
+                              upsertSetting.mutate({ key: "brand_story_image", value: url });
+                              toast.success("Imagen subida");
+                            } catch {
+                              toast.error("Error al subir imagen");
+                            }
+                          }}
+                        />
+                      </label>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "brand_story_image", value: val });
+                        }}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
