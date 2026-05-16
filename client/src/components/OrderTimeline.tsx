@@ -2,13 +2,13 @@ import { ClipboardList, Settings2, Layers, Sparkles, Package, Truck, CheckCircle
 import { cn } from "@/lib/utils";
 
 export const ORDER_STEPS = [
-  { key: "pending",       label: "Creada",      Icon: ClipboardList, desc: "Recibimos tu pedido y ya lo estamos procesando" },
-  { key: "preparing",     label: "Preparación", Icon: Settings2,     desc: "Nuestro equipo está preparando tu figura" },
-  { key: "printing",      label: "Impresión",   Icon: Layers,        desc: "Tu figura está siendo impresa en 3D" },
-  { key: "post_printing", label: "Post-imp.",   Icon: Sparkles,      desc: "Aplicando los toques finales a tu figura" },
-  { key: "packed",        label: "Empacada",    Icon: Package,       desc: "Tu pedido está listo y empacado" },
-  { key: "shipped",       label: "Enviada",     Icon: Truck,         desc: "Tu pedido está en camino — pronto llegará" },
-  { key: "delivered",     label: "Entregada",   Icon: CheckCircle2,  desc: "¡Llegó! Disfruta tu figura" },
+  { key: "pending",       Icon: ClipboardList, desc: "Recibimos tu pedido y ya lo estamos procesando", tooltip: ["Orden", "creada"]       },
+  { key: "preparing",     Icon: Settings2,     desc: "Nuestro equipo está preparando tu figura",       tooltip: ["En", "preparación"]    },
+  { key: "printing",      Icon: Layers,        desc: "Tu figura está siendo impresa en 3D",            tooltip: ["En impresión", "3D"]   },
+  { key: "post_printing", Icon: Sparkles,      desc: "Aplicando los toques finales a tu figura",       tooltip: ["Post", "impresión"]    },
+  { key: "packed",        Icon: Package,       desc: "Tu pedido está listo y empacado",                tooltip: ["Empacada"]             },
+  { key: "shipped",       Icon: Truck,         desc: "Tu pedido está en camino — pronto llegará",      tooltip: ["Enviada"]              },
+  { key: "delivered",     Icon: CheckCircle2,  desc: "¡Llegó! Disfruta tu figura",                    tooltip: ["Entregada"]            },
 ] as const;
 
 interface Props {
@@ -33,8 +33,8 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
           return (
             <div key={step.key} className="flex items-start flex-1 min-w-0">
               <div className="flex flex-col items-center flex-1 min-w-0">
-                {/* Circle */}
-                <div className="relative">
+                {/* Circle + tooltip wrapper */}
+                <div className="relative group">
                   {isCurrent && (
                     <span className="absolute -inset-1.5 rounded-full animate-ping bg-black/15 pointer-events-none" />
                   )}
@@ -54,19 +54,16 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
                   >
                     {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                   </button>
+                  {/* Tooltip */}
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-900 text-white text-xs font-medium rounded-md px-3 py-2 whitespace-nowrap z-10 shadow-lg text-center leading-snug pointer-events-none">
+                    {step.tooltip.map((line, li) => (
+                      <span key={li}>{li > 0 && <br />}{line}</span>
+                    ))}
+                  </div>
                 </div>
-                {/* Label */}
-                <span className={cn(
-                  "text-[10px] text-center leading-tight mt-1.5 max-w-[64px] w-full",
-                  isCurrent ? "font-bold text-[#1a1a1a]" :
-                  isDone    ? "text-[#666]" :
-                              "text-[#bbb]"
-                )}>
-                  {step.label}
-                </span>
-                {/* Motivational desc (Account only) */}
+                {/* Motivational desc for active step (Account only) */}
                 {showDescriptions && isCurrent && (
-                  <span className="text-[10px] text-center text-[#888] mt-0.5 leading-tight max-w-[96px]">
+                  <span className="text-[10px] text-center text-[#888] mt-2 leading-tight max-w-[96px]">
                     {step.desc}
                   </span>
                 )}
@@ -95,7 +92,7 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
             <div key={step.key} className="flex items-start gap-3">
               {/* Left: circle + vertical connector */}
               <div className="flex flex-col items-center shrink-0">
-                <div className="relative">
+                <div className="relative group">
                   {isCurrent && (
                     <span className="absolute -inset-1.5 rounded-full animate-ping bg-black/15 pointer-events-none" />
                   )}
@@ -115,6 +112,10 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
                   >
                     {isDone ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
                   </button>
+                  {/* Tooltip — appears to the right on mobile to avoid overflow */}
+                  <div className="absolute top-1/2 -translate-y-1/2 left-full ml-2 hidden group-hover:block bg-gray-900 text-white text-xs font-medium rounded-md px-2.5 py-1.5 whitespace-nowrap z-10 shadow-lg pointer-events-none">
+                    {step.tooltip.join(" ")}
+                  </div>
                 </div>
                 {!isLast && (
                   <div className={cn(
@@ -123,18 +124,10 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
                   )} />
                 )}
               </div>
-              {/* Right: label + description */}
+              {/* Right: only show desc for active step */}
               <div className={cn("pt-1.5", !isLast && "pb-5")}>
-                <p className={cn(
-                  "text-sm leading-none",
-                  isCurrent ? "font-bold text-[#1a1a1a]" :
-                  isDone    ? "text-[#555]" :
-                              "text-[#bbb]"
-                )}>
-                  {step.label}
-                </p>
                 {showDescriptions && isCurrent && (
-                  <p className="text-xs text-[#888] mt-1 leading-snug">{step.desc}</p>
+                  <p className="text-xs text-[#888] leading-snug">{step.desc}</p>
                 )}
               </div>
             </div>
