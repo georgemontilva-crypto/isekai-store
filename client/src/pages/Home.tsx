@@ -544,54 +544,6 @@ export default function Home() {
 
 
       {/* ══════════════════════════════════════════════
-          6. CATEGORIES CAROUSEL
-      ══════════════════════════════════════════════ */}
-      {categories && categories.length > 0 && (
-        <section style={{ padding: '24px 8px 0 8px' }}>
-          <style>{`
-            .cat-carousel { display:flex; gap:12px; overflow-x:auto; scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; }
-            .cat-carousel::-webkit-scrollbar { display:none; }
-            .cat-card { flex-shrink:0; width:66vw; aspect-ratio:3/4; }
-            @media(min-width:768px){ .cat-card { width:calc((100vw - 16px - 4 * 12px) / 5); } }
-          `}</style>
-          <div className="cat-carousel">
-            {categories.map((cat) => (
-              <Link
-                key={cat.id}
-                href={`/catalog?category=${cat.slug}`}
-                className="cat-card relative rounded-[18px] overflow-hidden block group"
-              >
-                {/* Background image */}
-                {cat.imageUrl ? (
-                  <img
-                    src={cat.imageUrl}
-                    alt={cat.name}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-[#2a2a2a]" />
-                )}
-                {/* Gradient overlay: black bottom → transparent top */}
-                <div
-                  className="absolute inset-0"
-                  style={{
-                    background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.2) 45%, transparent 100%)',
-                  }}
-                />
-                {/* Title */}
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <p className="text-white font-bold text-[15px] leading-tight">{cat.name}</p>
-                  {cat.description && (
-                    <p className="text-white/70 text-[11px] mt-0.5 line-clamp-1">{cat.description}</p>
-                  )}
-                </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ══════════════════════════════════════════════
           7. COUNTDOWN SALE SLIDER (ISLAND)
       ══════════════════════════════════════════════ */}
       <SaleSlider />
