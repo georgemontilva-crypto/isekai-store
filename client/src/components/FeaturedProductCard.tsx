@@ -37,6 +37,7 @@ export default function FeaturedProductCard({
   const { t } = useLang();
   const [activeIdx, setActiveIdx] = useState(0);
   const [activeVariantId, setActiveVariantId] = useState<number | null>(null);
+  const [variantOverrideImg, setVariantOverrideImg] = useState<string | null>(null);
 
   const variants = fullProduct?.variants ?? [];
   const hasVariants = variants.length > 0;
@@ -48,6 +49,8 @@ export default function FeaturedProductCard({
       ? Object.values(activeVariant.options as Record<string, string>).join(' / ')
       : activeVariant.name
     : null;
+
+  const displayImage = variantOverrideImg ?? gallery[activeIdx];
 
   return (
     <motion.div
@@ -84,21 +87,21 @@ export default function FeaturedProductCard({
           {/* ── Main image ── */}
           <div className="p-4 bg-white flex items-center justify-center">
             <motion.div
-              key={activeIdx}
+              key={variantOverrideImg ?? activeIdx}
               initial={{ opacity: 0, scale: 1.04 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.35, ease: [0.23, 1, 0.32, 1] }}
               className="w-full aspect-square rounded-2xl overflow-hidden"
             >
-              {gallery[activeIdx] ? (
+              {displayImage ? (
                 <img
-                  src={gallery[activeIdx]}
+                  src={displayImage}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="w-full h-full bg-[#ebebeb] flex items-center justify-center text-[#aaa] text-sm">
-                  No image
+                  Sin imagen
                 </div>
               )}
             </motion.div>
@@ -107,7 +110,7 @@ export default function FeaturedProductCard({
           {/* ── Details panel ── */}
           <div className="flex flex-col justify-between p-7 border-l border-[#f0f0f0]">
             <div>
-              <p className="text-[12px] text-[#888] font-medium mb-1">Isekai Store</p>
+              <p className="text-[12px] text-[#888] font-medium mb-1">Isekai World</p>
               <div className="flex items-start justify-between gap-4 mb-2">
                 <h3 className="text-[26px] font-black text-[#1a1a1a] leading-tight">{product.name}</h3>
                 <span className="text-[22px] font-black text-[#1a1a1a] whitespace-nowrap">
@@ -120,7 +123,7 @@ export default function FeaturedProductCard({
                     <Star key={s} size={13} className="text-[#f59e0b] fill-[#f59e0b]" />
                   ))}
                 </div>
-                <span className="text-[12px] text-[#888]">5.0 · 2 reviews</span>
+                <span className="text-[12px] text-[#888]">5.0 · 2 reseñas</span>
               </div>
               {product.description && (
                 <p className="text-[13px] text-[#555] leading-relaxed mb-4 line-clamp-2">
@@ -132,34 +135,38 @@ export default function FeaturedProductCard({
               {hasVariants && (
                 <div className="mb-4">
                   <p className="text-[12px] font-medium text-[#1a1a1a] mb-2">
-                    Variant:{' '}
+                    Variante:{' '}
                     <span className="font-normal text-[#555]">
-                      {activeVariantLabel ?? 'Select'}
+                      {activeVariantLabel ?? 'Selecciona'}
                     </span>
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {variants.map((v, vi) => {
-                      // Try to find a matching gallery image for this variant by index
-                      const variantImg = gallery[vi] ?? gallery[0];
+                      const vImg = (v as any).image as string | undefined;
+                      const fallbackImg = gallery[vi] ?? gallery[0];
+                      const thumbSrc = vImg ?? fallbackImg;
                       const isActive = activeVariantId === v.id || (activeVariantId === null && vi === 0);
                       return (
                         <button
                           key={v.id}
                           onClick={() => {
                             setActiveVariantId(v.id);
-                            if (gallery[vi]) setActiveIdx(vi);
+                            if (vImg) {
+                              setVariantOverrideImg(vImg);
+                            } else {
+                              setVariantOverrideImg(null);
+                              if (gallery[vi]) setActiveIdx(vi);
+                            }
                           }}
-                          className="w-10 h-10 rounded-xl overflow-hidden cursor-pointer transition-all"
+                          className="w-[55px] h-[55px] rounded-lg overflow-hidden cursor-pointer transition-all shrink-0"
                           style={{
-                            border: isActive ? '2px solid #1a1a1a' : '2px solid transparent',
-                            outline: isActive ? '2px solid #1a1a1a' : 'none',
-                            outlineOffset: 2,
+                            border: isActive ? '2px solid #1a1a1a' : '2px solid #e0e0e0',
                             background: '#f5f5f5',
                           }}
                           title={v.name}
                         >
-                          {variantImg ? (
-                            <img src={variantImg} alt={v.name} className="w-full h-full object-cover" />
+                          {thumbSrc ? (
+                            <img src={thumbSrc} alt={v.name} className="w-full h-full object-cover" />
                           ) : (
                             <span className="text-[9px] text-[#555] leading-tight px-0.5 block text-center">
                               {v.name.slice(0, 6)}
@@ -172,7 +179,7 @@ export default function FeaturedProductCard({
                 </div>
               )}
 
-              <p className="text-[12px] text-[#e53e3e] font-medium mb-1">Hurry, only 5 items left in stock!</p>
+              <p className="text-[12px] text-[#e53e3e] font-medium mb-1">¡Solo quedan {activeVariant?.stock ?? fullProduct?.stock ?? 5} unidades!</p>
               <div className="w-full h-1 bg-[#f0f0f0] rounded-full mb-4">
                 <div className="h-full bg-[#1a1a1a] rounded-full" style={{ width: '20%' }} />
               </div>
@@ -190,10 +197,10 @@ export default function FeaturedProductCard({
               </button>
               <div className="grid grid-cols-2 gap-y-2">
                 {[
-                  { Icon: Package, text: 'Ships within 1-2 days' },
-                  { Icon: RotateCcw, text: '90-day risk-free trial' },
-                  { Icon: ShieldCheck, text: '2-Year Warranty' },
-                  { Icon: Truck, text: 'Complimentary shipping' },
+                  { Icon: Package, text: 'Envío en 1-2 días' },
+                  { Icon: RotateCcw, text: '90 días de garantía' },
+                  { Icon: ShieldCheck, text: '2 años de garantía' },
+                  { Icon: Truck, text: 'Envío incluido' },
                 ].map(({ Icon, text }) => (
                   <div key={text} className="flex items-center gap-1.5 text-[11px] text-[#666]">
                     <Icon className="w-3 h-3 shrink-0" strokeWidth={1.5} />{text}
@@ -204,7 +211,7 @@ export default function FeaturedProductCard({
                 href={`/product/${product.slug}`}
                 className="flex items-center justify-between text-[13px] font-medium text-[#1a1a1a] mt-4 pt-3 border-t border-[#f0f0f0] hover:opacity-60 transition-opacity"
               >
-                View full details <ArrowRight size={14} />
+                Ver detalles completos <ArrowRight size={14} />
               </Link>
             </div>
           </div>

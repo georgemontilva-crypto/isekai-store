@@ -334,26 +334,61 @@ export default function ProductDetail() {
                   Variante: <span className="text-primary font-normal">{currentVariant?.name ?? "Selecciona una opción"}</span>
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {product.variants.map((variant) => (
-                    <button
-                      key={variant.id}
-                      onClick={() => { setSelectedVariant(variant.id === selectedVariant ? undefined : variant.id); setActiveImage(0); }}
-                      disabled={variant.stock <= 0}
-                      className={`relative px-4 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
-                        selectedVariant === variant.id
-                          ? "border-primary bg-primary/10 text-primary neon-glow-purple"
-                          : variant.stock <= 0
-                          ? "border-border/30 text-muted-foreground/40 cursor-not-allowed"
-                          : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
-                      }`}
-                    >
-                      {selectedVariant === variant.id && (
-                        <Check className="w-3 h-3 absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5" />
-                      )}
-                      {variant.name}
-                      {variant.stock <= 0 && <span className="ml-1 text-xs">(Agotado)</span>}
-                    </button>
-                  ))}
+                  {product.variants.map((variant) => {
+                    const vImg = (variant as any).image as string | undefined;
+                    const isSelected = selectedVariant === variant.id;
+                    const handleSelect = () => {
+                      setSelectedVariant(variant.id === selectedVariant ? undefined : variant.id);
+                      setActiveImage(0);
+                    };
+                    if (vImg) {
+                      return (
+                        <button
+                          key={variant.id}
+                          onClick={handleSelect}
+                          disabled={variant.stock <= 0}
+                          title={variant.name}
+                          className={`relative w-[55px] h-[55px] rounded-lg overflow-hidden border-2 transition-all duration-200 shrink-0 ${
+                            isSelected
+                              ? "border-primary neon-glow-purple"
+                              : variant.stock <= 0
+                              ? "border-border/20 opacity-40 cursor-not-allowed"
+                              : "border-border/40 hover:border-border"
+                          }`}
+                        >
+                          <img src={vImg} alt={variant.name} className="w-full h-full object-cover" />
+                          {isSelected && (
+                            <Check className="w-3 h-3 absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5" />
+                          )}
+                          {variant.stock <= 0 && (
+                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                              <span className="text-[8px] text-white font-semibold">Agotado</span>
+                            </div>
+                          )}
+                        </button>
+                      );
+                    }
+                    return (
+                      <button
+                        key={variant.id}
+                        onClick={handleSelect}
+                        disabled={variant.stock <= 0}
+                        className={`relative px-4 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
+                          isSelected
+                            ? "border-primary bg-primary/10 text-primary neon-glow-purple"
+                            : variant.stock <= 0
+                            ? "border-border/30 text-muted-foreground/40 cursor-not-allowed"
+                            : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"
+                        }`}
+                      >
+                        {isSelected && (
+                          <Check className="w-3 h-3 absolute -top-1.5 -right-1.5 bg-primary text-primary-foreground rounded-full p-0.5" />
+                        )}
+                        {variant.name}
+                        {variant.stock <= 0 && <span className="ml-1 text-xs">(Agotado)</span>}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
