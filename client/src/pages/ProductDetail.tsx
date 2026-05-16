@@ -153,7 +153,7 @@ export default function ProductDetail() {
       </div>
 
       <div className="container px-4 pt-20 md:pt-24">
-        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_1fr] gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[280px_1fr_1fr] gap-8">
 
           {/* ══════════════════════════════════════════════════════════════════
               SIDEBAR — lateral banner (desktop only)
@@ -281,7 +281,7 @@ export default function ProductDetail() {
 
             {/* Price */}
             <div className="flex items-baseline gap-3 pb-4 border-b border-[#ebebeb]">
-              <span className="text-3xl font-black text-[#1a1a1a]">
+              <span className="text-xl sm:text-2xl lg:text-3xl font-black text-[#1a1a1a]">
                 ${parseFloat(displayPrice).toFixed(2)}
               </span>
               {hasDiscount && (
@@ -330,7 +330,7 @@ export default function ProductDetail() {
                           onClick={handleSelect}
                           disabled={variant.stock <= 0}
                           title={variant.name}
-                          className={`relative w-[55px] h-[55px] rounded-xl overflow-hidden border-2 transition-all duration-200 shrink-0 ${
+                          className={`relative w-[44px] h-[44px] sm:w-[55px] sm:h-[55px] rounded-xl overflow-hidden border-2 transition-all duration-200 shrink-0 ${
                             isSelected
                               ? "border-[#1a1a1a]"
                               : variant.stock <= 0
@@ -423,7 +423,7 @@ export default function ProductDetail() {
             </button>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {[
                 { icon: Shield, text: t.product.secure },
                 { icon: Truck, text: "Envío gratis +$50" },
@@ -431,12 +431,28 @@ export default function ProductDetail() {
               ].map(({ icon: Icon, text }) => (
                 <div key={text} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-[#f5f5f5] text-center">
                   <Icon className="w-4 h-4 text-[#1a1a1a]" strokeWidth={1.5} />
-                  <span className="text-[11px] text-[#666] leading-tight">{text}</span>
+                  <span className="text-[10px] sm:text-[11px] text-[#666] leading-tight">{text}</span>
                 </div>
               ))}
             </div>
           </motion.div>
         </div>
+
+        {/* Mobile/Tablet sidebar banner — full-width below product info */}
+        {siteSettings?.["product_sidebar_banner_image"] ? (
+          <a
+            href={siteSettings["product_sidebar_banner_url"] || "#"}
+            target={siteSettings["product_sidebar_banner_url"]?.startsWith("http") ? "_blank" : "_self"}
+            rel="noopener noreferrer"
+            className="block lg:hidden mt-6 rounded-2xl overflow-hidden"
+          >
+            <img
+              src={siteSettings["product_sidebar_banner_image"]}
+              alt="Banner"
+              className="w-full object-cover max-h-[180px] sm:max-h-[220px]"
+            />
+          </a>
+        ) : null}
 
         {/* ══════════════════════════════════════════════════════════════════
             RELATED PRODUCTS

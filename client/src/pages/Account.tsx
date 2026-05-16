@@ -200,7 +200,7 @@ export default function Account() {
           animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center text-center mb-8"
         >
-          <div className="w-20 h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-3xl font-bold mb-4 shadow-sm">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold mb-4 shadow-sm">
             {initial}
           </div>
           <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
@@ -215,11 +215,14 @@ export default function Account() {
         </motion.div>
 
         {/* ── Tabs pills ── */}
+        <div className="relative mb-8">
+          <div className="absolute left-0 top-0 bottom-1 w-8 bg-gradient-to-r from-[#fafafa] to-transparent pointer-events-none z-10 sm:hidden" />
+          <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-[#fafafa] to-transparent pointer-events-none z-10 sm:hidden" />
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex justify-center gap-2 mb-8 overflow-x-auto pb-1 scrollbar-hide"
+          className="flex justify-center gap-2 overflow-x-auto pb-1 scrollbar-hide px-4 sm:px-0"
         >
           {TABS.map(tab => {
             const Icon = tab.icon;
@@ -240,6 +243,7 @@ export default function Account() {
             );
           })}
         </motion.div>
+        </div>
 
         {/* ── Tab content ── */}
         <AnimatePresence mode="wait">

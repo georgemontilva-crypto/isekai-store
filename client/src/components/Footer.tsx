@@ -29,7 +29,7 @@ export default function Footer() {
       {/* Trust Bar */}
       <div className="border-t border-[#ebebeb] bg-white">
         <div className="container py-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
             {t.footer.trust.map(({ title, desc }, i) => {
               const Icon = trustIcons[i];
               return (
@@ -134,9 +134,9 @@ export default function Footer() {
         <div className="border-t border-white/10">
           <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-[12px] text-white/35">© {new Date().getFullYear()} {storeName}. {t.footer.copyright}.</p>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <Link href="/politicas" className="text-[12px] text-white/35 hover:text-white/60 transition-colors underline underline-offset-2">{t.footer.policies}</Link>
-              <div className="flex items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-1.5">
                 {["VISA","MC","AMEX","PSE","NEQUI"].map(card => (
                   <div key={card} className="bg-white/10 rounded px-2 py-1 text-[9px] font-bold text-white/50 uppercase tracking-wide">{card}</div>
                 ))}

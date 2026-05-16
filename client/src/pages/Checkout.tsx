@@ -182,12 +182,12 @@ export default function Checkout() {
         </motion.div>
 
         <form onSubmit={handleSubmit(onSubmit as any)}>
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-6 lg:gap-8">
             {/* ─── Form ─────────────────────────────────────────────────────── */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-3 space-y-6"
+              className="order-2 md:order-1 md:col-span-3 space-y-6"
             >
               {/* Customer info */}
               <div className="p-6 rounded-2xl bg-card border border-border/50">
@@ -310,7 +310,7 @@ export default function Checkout() {
             <motion.div
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="lg:col-span-2 flex flex-col gap-4"
+              className="order-1 md:order-2 md:col-span-2 flex flex-col gap-4"
             >
               <div className="flex flex-col gap-4 lg:sticky lg:top-24">
               <div className="p-6 rounded-2xl bg-card border border-border/50 space-y-4">
@@ -380,7 +380,7 @@ export default function Checkout() {
 
               {/* ─── Promo Banner ─────────────────────────────────────────────── */}
               <div
-                className="rounded-2xl overflow-hidden relative"
+                className="hidden md:block rounded-2xl overflow-hidden relative"
                 style={{
                   minHeight: "150px",
                   backgroundImage: `url(https://images.unsplash.com/photo-1593305841991-05c297ba4575?w=600&q=80)`,

@@ -254,7 +254,7 @@ export default function Navbar() {
         {/* Collections mega panel */}
         <AnimatePresence>
           {activeMenu==="collections" && (
-            <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" transition={{duration:0.22,type:"tween"}} onMouseEnter={cancelClose} onMouseLeave={scheduleClose} className="absolute left-0 right-0 top-[60px] z-50 bg-[#f2f2f2] border-b border-[#e0e0e0] shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
+            <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" transition={{duration:0.22,type:"tween"}} onMouseEnter={cancelClose} onMouseLeave={scheduleClose} className="hidden lg:block absolute left-0 right-0 top-[60px] z-50 bg-[#f2f2f2] border-b border-[#e0e0e0] shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
               <div className="flex gap-3 px-4 py-4 overflow-x-auto scrollbar-hide">
                 {collectionsMenu.map(col => (
                   <Link key={col.label} href={col.href} onClick={() => setActiveMenu(null)} className={`group relative flex flex-col overflow-hidden rounded-2xl shrink-0 shadow-sm ${col.dark?"bg-[#1a1a1a]":"bg-white"}`} style={{width:"calc(20% - 10px)",minWidth:"200px"}}>
@@ -307,6 +307,11 @@ export default function Navbar() {
               </div>
             </div>
             <nav className="flex flex-col px-6 py-8 gap-0 overflow-y-auto">
+              {/* Search */}
+              <form onSubmit={handleSearch} className="flex gap-2 mb-6">
+                <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Buscar productos..." className="flex-1 border border-[#e5e5e5] rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#1a1a1a] transition-colors bg-[#f8f8f8]"/>
+                <button type="submit" className="btn-pill text-sm px-4"><Search size={15}/></button>
+              </form>
               {t.nav.mobileMenu.map(({href,label}) => (
                 <Link key={label} href={href} onClick={() => setMobileOpen(false)} className="py-4 text-base font-semibold border-b border-[#f0f0f0] hover:opacity-50 transition-opacity flex items-center justify-between">
                   {label}<ArrowRight size={14} className="opacity-30"/>

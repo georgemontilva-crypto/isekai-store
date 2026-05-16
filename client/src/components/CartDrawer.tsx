@@ -146,7 +146,7 @@ export default function CartDrawer() {
                       style={{ background: BG_CARD, border: `1px solid ${BORDER}` }}
                     >
                       {/* Image */}
-                      <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0" style={{ background: BG_MUTED }}>
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl overflow-hidden flex-shrink-0" style={{ background: BG_MUTED }}>
                         {item.imageUrl ? (
                           <img
                             src={item.imageUrl}
