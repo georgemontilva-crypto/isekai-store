@@ -54,8 +54,8 @@ export default function FeaturedProductCard({
 
   return (
     <motion.div
-      className="relative z-10 mx-auto"
-      style={{ maxWidth: 1200, padding: '0 8px', marginTop: 0 }}
+      className="relative z-10 w-full"
+      style={{ marginTop: 0 }}
       initial={{ opacity: 0, y: 48 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-60px' }}

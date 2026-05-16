@@ -534,8 +534,9 @@ export default function Home() {
 
         {/* ── FEATURED PRODUCT + CTA ── */}
         {featuredProduct && (
-          <section className="py-10 px-[8px]">
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-center">
+          <section className="py-16">
+            <div className="container">
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-stretch">
               {/* Card del producto — izquierda */}
               <div>
                 <FeaturedProductCard
@@ -545,7 +546,7 @@ export default function Home() {
               </div>
 
               {/* CTA — derecha, solo desktop */}
-              <div className="hidden lg:flex flex-col items-center justify-center text-center gap-6 bg-[#f8f8f8] rounded-2xl p-10 h-full">
+              <div className="hidden lg:flex flex-col items-center justify-center text-center gap-6 bg-[#f8f8f8] rounded-2xl p-10 min-h-full">
                 <span className="text-xs font-semibold tracking-widest text-[#888] uppercase">
                   Nuestra tienda
                 </span>
@@ -562,6 +563,7 @@ export default function Home() {
                   Ver tienda →
                 </Link>
               </div>
+            </div>
             </div>
           </section>
         )}
