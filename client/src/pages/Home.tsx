@@ -1,4 +1,14 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  const handler = useCallback(() => setWidth(window.innerWidth), []);
+  useEffect(() => {
+    window.addEventListener("resize", handler, { passive: true });
+    return () => window.removeEventListener("resize", handler);
+  }, [handler]);
+  return width;
+}
 import { Link } from "wouter";
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
@@ -89,6 +99,8 @@ const marqueeItems = [
 function SaleSlider() {
   const { data: settings } = trpc.settings.getAll.useQuery();
   const [idx, setIdx] = useState(0);
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 640;
 
   const banners = [
     settings?.["sale_banner_1_image"],
@@ -105,7 +117,7 @@ function SaleSlider() {
   if (!banners.length) {
     return (
       <section style={{ padding: '24px 8px 0 8px' }}>
-        <div className="h-[200px] bg-[#f0f0f0] rounded-[18px] flex items-center justify-center">
+        <div className="h-[140px] sm:h-[200px] bg-[#f0f0f0] rounded-[18px] flex items-center justify-center">
           <p className="text-[#888] text-sm">Configura los banners desde el panel admin → Configuración</p>
         </div>
       </section>
@@ -126,7 +138,7 @@ function SaleSlider() {
             className="w-full object-cover"
             style={{
               display: i === idx ? 'block' : 'none',
-              maxHeight: 420,
+              maxHeight: isMobile ? 220 : 420,
             }}
           />
         ))}
@@ -154,14 +166,14 @@ function SaleSlider() {
           <>
             <button
               onClick={() => setIdx(i => (i - 1 + total) % total)}
-              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center text-white transition-colors"
+              className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 hidden sm:flex items-center justify-center text-white transition-colors"
               style={{ zIndex: 3 }}
             >
               <ChevronLeft size={18} />
             </button>
             <button
               onClick={() => setIdx(i => (i + 1) % total)}
-              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 flex items-center justify-center text-white transition-colors"
+              className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 hidden sm:flex items-center justify-center text-white transition-colors"
               style={{ zIndex: 3 }}
             >
               <ChevronRight size={18} />
@@ -233,6 +245,14 @@ export default function Home() {
   const { t } = useLang();
   const [heroIdx, setHeroIdx] = useState(0);
   const [activeTabId, setActiveTabId] = useState<number | null>(null);
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth >= 640 && windowWidth < 1024;
+  const collectionCardWidth = isMobile
+    ? 'calc((100vw - 16px - 10px) / 2)'
+    : isTablet
+    ? 'calc((100vw - 16px - 20px) / 3)'
+    : 'calc((100vw - 16px - 40px) / 5)';
 
   const { data: categories } = trpc.categories.list.useQuery();
   const { data: productsData, isLoading: productsLoading } = trpc.products.list.useQuery({
@@ -350,7 +370,7 @@ export default function Home() {
           {/* LEFT: image island with same 8px left margin as hero */}
           <div
             className="overflow-hidden"
-            style={{ height: '240px', borderRadius: '18px' }}
+            style={{ height: isMobile ? '180px' : '240px', borderRadius: '18px' }}
           >
             <img
               src={settings?.["brand_story_image"] || "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"}
@@ -413,8 +433,8 @@ export default function Home() {
               <div
                 className="shrink-0 relative overflow-hidden cursor-pointer group"
                 style={{
-                  width: 'calc((100vw - 16px - 40px) / 5)',
-                  minWidth: 160,
+                  width: collectionCardWidth,
+                  minWidth: isMobile ? 140 : 160,
                   height: 300,
                   borderRadius: 18,
                   background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
@@ -609,7 +629,7 @@ export default function Home() {
               </div>
             </div>
             {/* Navigation arrows */}
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="hidden sm:flex items-center gap-2 shrink-0">
               <button
                 onClick={() => { const el = document.getElementById('best-sellers-scroll'); if (el) el.scrollBy({ left: -320, behavior: 'smooth' }); }}
                 className="w-10 h-10 rounded-full border border-[#ddd] flex items-center justify-center hover:border-[#1a1a1a] transition-colors bg-white"
