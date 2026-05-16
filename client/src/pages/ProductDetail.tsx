@@ -17,6 +17,7 @@ export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const [selectedVariant, setSelectedVariant] = useState<number | undefined>();
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -151,11 +152,37 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <div className="container px-4 pt-16 md:pt-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+      <div className="container px-4 pt-20 md:pt-24">
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr_1fr] gap-8">
 
           {/* ══════════════════════════════════════════════════════════════════
-              LEFT — Gallery
+              SIDEBAR — lateral banner (desktop only)
+          ══════════════════════════════════════════════════════════════════ */}
+          <div className="hidden lg:block self-stretch">
+            {siteSettings?.["product_sidebar_banner_image"] ? (
+              <a
+                href={siteSettings["product_sidebar_banner_url"] || "#"}
+                target={siteSettings["product_sidebar_banner_url"]?.startsWith("http") ? "_blank" : "_self"}
+                rel="noopener noreferrer"
+                className="block h-full rounded-2xl overflow-hidden"
+              >
+                <img
+                  src={siteSettings["product_sidebar_banner_image"]}
+                  alt="Banner lateral"
+                  className="w-full h-full object-cover"
+                />
+              </a>
+            ) : (
+              <div className="h-full min-h-[420px] rounded-2xl border-2 border-dashed border-[#e0e0e0] bg-[#fafafa] flex items-center justify-center p-6 text-center">
+                <p className="text-[11px] text-[#bbb] leading-relaxed">
+                  Configura el banner lateral desde<br />Admin → Configuración
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* ══════════════════════════════════════════════════════════════════
+              GALLERY — product images
           ══════════════════════════════════════════════════════════════════ */}
           <motion.div
             initial={{ opacity: 0, x: -30 }}

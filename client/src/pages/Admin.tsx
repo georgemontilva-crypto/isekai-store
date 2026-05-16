@@ -1399,6 +1399,85 @@ export default function Admin() {
                     </div>
                   </div>
 
+                  {/* Banner lateral página de producto */}
+                  <div className="border-t border-border/30 pt-5 mb-5">
+                    <p className="text-sm font-semibold mb-1 text-muted-foreground uppercase tracking-wide">Banner lateral página de producto</p>
+                    <p className="text-xs text-muted-foreground mb-4">Aparece a la izquierda del producto en desktop. Puede ser una promo o imagen de colección.</p>
+                    <div className="space-y-3">
+                      {/* Image upload */}
+                      <div>
+                        <Label className="text-xs font-medium">Imagen del banner</Label>
+                        <div className="flex items-start gap-2 mt-1">
+                          <div className="flex-1">
+                            <Input
+                              placeholder="https://... o sube una imagen"
+                              value={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? ""}
+                              onChange={(e) => setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: e.target.value }))}
+                              className="bg-muted border-border/50 text-sm"
+                            />
+                            {(bannerDrafts["product_sidebar_banner_image"] || siteSettings?.["product_sidebar_banner_image"]) && (
+                              <img src={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"]} className="mt-2 h-28 w-full object-cover rounded-lg border border-border/30" />
+                            )}
+                          </div>
+                          <label className="cursor-pointer shrink-0">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                              <Upload className="w-3.5 h-3.5" /> Subir
+                            </span>
+                            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const base64 = await new Promise<string>((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                              });
+                              try {
+                                const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: url }));
+                                upsertSetting.mutate({ key: "product_sidebar_banner_image", value: url });
+                                toast.success("Banner subido");
+                              } catch { toast.error("Error al subir imagen"); }
+                            }} />
+                          </label>
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => {
+                              const val = bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? "";
+                              if (val) upsertSetting.mutate({ key: "product_sidebar_banner_image", value: val });
+                            }}
+                            disabled={!(bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"])}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                      {/* Destination URL */}
+                      <div>
+                        <Label className="text-xs font-medium">URL destino (al hacer click)</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder="Ej: /catalog o https://..."
+                            defaultValue={siteSettings?.["product_sidebar_banner_url"] ?? ""}
+                            onChange={(e) => setBannerDrafts(d => ({ ...d, product_sidebar_banner_url: e.target.value }))}
+                            className="bg-muted border-border/50 text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => {
+                              const val = bannerDrafts["product_sidebar_banner_url"] !== undefined ? bannerDrafts["product_sidebar_banner_url"] : siteSettings?.["product_sidebar_banner_url"] ?? "";
+                              if (val) upsertSetting.mutate({ key: "product_sidebar_banner_url", value: val });
+                            }}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Video Banner */}
                   <div className="border-t border-border/30 pt-5">
                     <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Banner de video</p>
