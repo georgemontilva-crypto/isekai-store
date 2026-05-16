@@ -249,7 +249,7 @@ export default function Home() {
   const isMobile = windowWidth < 640;
   const isTablet = windowWidth >= 640 && windowWidth < 1024;
   const collectionCardWidth = isMobile
-    ? 'calc((100vw - 16px - 10px) / 2)'
+    ? 'calc(100vw - 48px)'
     : isTablet
     ? 'calc((100vw - 16px - 20px) / 3)'
     : 'calc((100vw - 16px - 40px) / 5)';
@@ -292,7 +292,7 @@ export default function Home() {
   };
 
   return (
-    <div className="bg-white text-[#1a1a1a]">
+    <div className="bg-white text-[#1a1a1a] overflow-x-hidden w-full">
 
       {/* ══════════════════════════════════════════════
           1. HERO PEEK CAROUSEL

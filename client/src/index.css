@@ -575,14 +575,6 @@
   }
 }
 
-/* ── Collections carousel — 2 cards on mobile, scroll ───────────────────── */
-@media (max-width: 767px) {
-  /* Show ~2 cards at a time on mobile */
-  .hero-peek-section + section .shrink-0[style*="calc((100vw - 16px - 40px) / 5)"],
-  section .shrink-0[style*="minWidth: 160"] {
-    min-width: 150px !important;
-  }
-}
 
 /* ── Best Sellers: scroll arrows hidden on mobile (swipe instead) ─────────── */
 @media (max-width: 640px) {
