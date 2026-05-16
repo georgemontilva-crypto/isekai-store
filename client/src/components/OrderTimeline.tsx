@@ -14,11 +14,10 @@ export const ORDER_STEPS = [
 interface Props {
   currentStatus: string;
   interactive?: boolean;
-  showDescriptions?: boolean;
   onStepClick?: (key: string) => void;
 }
 
-export function OrderTimeline({ currentStatus, interactive = false, showDescriptions = false, onStepClick }: Props) {
+export function OrderTimeline({ currentStatus, interactive = false, onStepClick }: Props) {
   const currentIdx = ORDER_STEPS.findIndex(s => s.key === currentStatus);
 
   return (
@@ -61,12 +60,6 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
                     ))}
                   </div>
                 </div>
-                {/* Motivational desc for active step (Account only) */}
-                {showDescriptions && isCurrent && (
-                  <span className="text-[10px] text-center text-[#888] mt-2 leading-tight max-w-[96px]">
-                    {step.desc}
-                  </span>
-                )}
               </div>
               {/* Connector line */}
               {i < ORDER_STEPS.length - 1 && (
@@ -124,12 +117,7 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
                   )} />
                 )}
               </div>
-              {/* Right: only show desc for active step */}
-              <div className={cn("pt-1.5", !isLast && "pb-5")}>
-                {showDescriptions && isCurrent && (
-                  <p className="text-xs text-[#888] leading-snug">{step.desc}</p>
-                )}
-              </div>
+              <div className={cn(!isLast && "pb-5")} />
             </div>
           );
         })}

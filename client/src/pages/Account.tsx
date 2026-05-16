@@ -325,7 +325,6 @@ export default function Account() {
                                   ) : (
                                     <OrderTimeline
                                       currentStatus={order.status}
-                                      showDescriptions
                                     />
                                   )}
 
