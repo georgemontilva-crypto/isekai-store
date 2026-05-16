@@ -200,7 +200,7 @@ export const appRouter = router({
         notes: z.string().optional(),
         items: z.array(z.object({
           productId: z.number(),
-          variantId: z.number().optional(),
+          variantId: z.number().nullable().optional(),
           productName: z.string(),
           variantName: z.string().optional(),
           price: z.string(),
