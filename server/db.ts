@@ -467,7 +467,7 @@ export async function getDashboardMetrics() {
   const [revenueResult] = await db
     .select({ total: sql<string>`SUM(total)` })
     .from(orders)
-    .where(inArray(orders.status, ["processing", "shipped", "delivered"]));
+    .where(inArray(orders.status, ["preparing", "printing", "post_printing", "packed", "shipped", "delivered"]));
 
   const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(orders);
 
