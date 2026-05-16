@@ -38,9 +38,13 @@ export default function Checkout() {
   const sessionId = localStorage.getItem("isekai-session-id") ?? undefined;
 
   const createOrder = trpc.orders.create.useMutation({
-    onSuccess: async (order) => {
-      setOrderNumber(order.orderNumber);
+    onSuccess: async (data) => {
       await clearCart();
+      if (data.paymentUrl) {
+        window.location.href = data.paymentUrl;
+      } else {
+        setOrderNumber(data.orderNumber);
+      }
     },
     onError: () => toast.error(t.checkout.errors.error),
   });

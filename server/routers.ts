@@ -223,7 +223,46 @@ export const appRouter = router({
         try {
           await insertAdminNotification({ type: "new_order", title: "🛒 Nuevo pedido", body: `${input.customerName} · $${input.total}` });
         } catch (e) { console.error("Failed to insert order notification:", e); }
-        return order;
+
+        // Bold payment link
+        if (ENV.boldApiKey) {
+          try {
+            const boldRes = await fetch("https://api.bold.co/online/link/v1", {
+              method: "POST",
+              headers: {
+                Authorization: `x-api-key ${ENV.boldApiKey}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                amount_type: "CLOSE",
+                amount: {
+                  currency: "COP",
+                  total_amount: Math.round(parseFloat(order.total)),
+                },
+                description: `Pedido ${order.orderNumber}`,
+                metadata: { order_id: String(order.id) },
+                payment_method_types: ["CARD", "PSE", "NEQUI", "DAVIPLATA"],
+                redirect_url: `${ENV.appUrl}/checkout/success?order=${order.orderNumber}`,
+              }),
+            });
+            console.log("[Bold] status:", boldRes.status);
+            const boldData = await boldRes.json();
+            console.log("[Bold] response:", JSON.stringify(boldData));
+            if (boldRes.ok && boldData.payload?.url) {
+              return { ...order, paymentUrl: boldData.payload.url as string };
+            }
+            if (boldRes.ok && boldData.payment_link) {
+              return { ...order, paymentUrl: boldData.payment_link as string };
+            }
+            if (boldRes.ok && boldData.url) {
+              return { ...order, paymentUrl: boldData.url as string };
+            }
+          } catch (err) {
+            console.error("[Bold] error:", err);
+          }
+        }
+
+        return { ...order, paymentUrl: null as string | null };
       }),
 
     myOrders: protectedProcedure
