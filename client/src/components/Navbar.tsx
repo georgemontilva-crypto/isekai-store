@@ -58,6 +58,10 @@ export default function Navbar() {
     if (searchQuery.trim()) { window.location.href = `/catalog?search=${encodeURIComponent(searchQuery.trim())}`; setSearchOpen(false); setSearchQuery(""); }
   };
 
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
+  const logoUrl = siteSettings?.["store_logo_url"] ?? null;
+  const storeName = siteSettings?.["store_name"] ?? "Isekai World";
+
   const { data: dbCategories } = trpc.categories.list.useQuery();
   const featuredCats = (dbCategories ?? []).filter(c => c.featured);
   const menuCategories = (featuredCats.length > 0 ? featuredCats : (dbCategories ?? [])).slice(0, 5);
@@ -114,10 +118,14 @@ export default function Navbar() {
         <div className="container flex items-center h-[60px] gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 mr-2">
-            <div className="flex items-end gap-[2px]">
-              {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#1a1a1a] rounded-full" style={{height:`${h}px`}}/>)}
-            </div>
-            <span className="font-bold text-[15px] tracking-tight text-[#1a1a1a] hidden sm:block">Isekai World</span>
+            {logoUrl ? (
+              <img src={logoUrl} alt={storeName} className="h-8 object-contain" />
+            ) : (
+              <div className="flex items-end gap-[2px]">
+                {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#1a1a1a] rounded-full" style={{height:`${h}px`}}/>)}
+              </div>
+            )}
+            {!logoUrl && <span className="font-bold text-[15px] tracking-tight text-[#1a1a1a] hidden sm:block">{storeName}</span>}
           </Link>
 
           {/* Desktop nav */}
@@ -215,7 +223,10 @@ export default function Navbar() {
         {mobileOpen && (
           <motion.div initial={{x:"100%"}} animate={{x:0}} exit={{x:"100%"}} transition={{duration:0.3,ease:"easeOut"}} className="fixed inset-0 z-[60] bg-white flex flex-col">
             <div className="flex items-center justify-between px-6 h-[60px] border-b border-[#ebebeb]">
-              <span className="font-bold text-[15px]">Isekai World</span>
+              {logoUrl
+                ? <img src={logoUrl} alt={storeName} className="h-8 object-contain" />
+                : <span className="font-bold text-[15px]">{storeName}</span>
+              }
               <div className="flex items-center gap-3">
                 <LangToggle mobile />
                 <button onClick={() => setMobileOpen(false)} className="p-2"><X size={18}/></button>

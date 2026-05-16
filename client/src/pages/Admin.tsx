@@ -908,6 +908,149 @@ export default function Admin() {
                 <h2 className="text-2xl font-bold mb-1">Configuración</h2>
                 <p className="text-muted-foreground text-sm mb-8">Personaliza la tienda y conecta tus redes sociales.</p>
 
+                {/* Identidad de la tienda */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Identidad de la tienda</h3>
+                      <p className="text-xs text-muted-foreground">Logo y nombre que aparecen en navbar y footer</p>
+                    </div>
+                  </div>
+
+                  {/* Store name */}
+                  <div className="mb-5">
+                    <Label className="text-sm font-medium">Nombre de la tienda</Label>
+                    <p className="text-xs text-muted-foreground mb-1.5">Aparece en la navbar si no hay logo</p>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Ej: Isekai World"
+                        defaultValue={siteSettings?.["store_name"] ?? ""}
+                        onChange={(e) => setBannerDrafts(d => ({ ...d, store_name: e.target.value }))}
+                        className="bg-muted border-border/50"
+                      />
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["store_name"] !== undefined ? bannerDrafts["store_name"] : siteSettings?.["store_name"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "store_name", value: val });
+                        }}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Logo light (navbar) */}
+                  <div className="mb-5">
+                    <Label className="text-sm font-medium">Logo principal (navbar, fondo claro)</Label>
+                    <p className="text-xs text-muted-foreground mb-1.5">Versión para fondo blanco — PNG con transparencia recomendado</p>
+                    <div className="flex items-start gap-3">
+                      {(bannerDrafts["store_logo_url"] || siteSettings?.["store_logo_url"]) && (
+                        <div className="w-20 h-20 rounded-xl border border-border/50 bg-[#f5f5f5] flex items-center justify-center overflow-hidden shrink-0">
+                          <img src={bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"]} className="w-full h-full object-contain p-1" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <Input
+                          placeholder="https://... o sube una imagen"
+                          value={bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"] ?? ""}
+                          onChange={(e) => setBannerDrafts(d => ({ ...d, store_logo_url: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const base64 = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                          });
+                          try {
+                            const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                            setBannerDrafts(d => ({ ...d, store_logo_url: url }));
+                            upsertSetting.mutate({ key: "store_logo_url", value: url });
+                            toast.success("Logo subido");
+                          } catch { toast.error("Error al subir logo"); }
+                        }} />
+                      </label>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "store_logo_url", value: val });
+                        }}
+                        disabled={!(bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"])}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Logo dark (footer) */}
+                  <div>
+                    <Label className="text-sm font-medium">Logo oscuro (footer, fondo negro)</Label>
+                    <p className="text-xs text-muted-foreground mb-1.5">Versión blanca o clara del logo para el footer — si no hay, se usa el logo principal</p>
+                    <div className="flex items-start gap-3">
+                      {(bannerDrafts["store_logo_dark_url"] || siteSettings?.["store_logo_dark_url"]) && (
+                        <div className="w-20 h-20 rounded-xl border border-border/50 bg-[#1a1a1a] flex items-center justify-center overflow-hidden shrink-0">
+                          <img src={bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"]} className="w-full h-full object-contain p-1" />
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <Input
+                          placeholder="https://... o sube una imagen"
+                          value={bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"] ?? ""}
+                          onChange={(e) => setBannerDrafts(d => ({ ...d, store_logo_dark_url: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          const base64 = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                          });
+                          try {
+                            const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                            setBannerDrafts(d => ({ ...d, store_logo_dark_url: url }));
+                            upsertSetting.mutate({ key: "store_logo_dark_url", value: url });
+                            toast.success("Logo oscuro subido");
+                          } catch { toast.error("Error al subir logo"); }
+                        }} />
+                      </label>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "store_logo_dark_url", value: val });
+                        }}
+                        disabled={!(bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"])}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Instagram Feed */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
                   <div className="flex items-center gap-3 mb-5">

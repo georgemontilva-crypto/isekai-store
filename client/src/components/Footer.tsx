@@ -8,6 +8,9 @@ import { trpc } from "@/lib/trpc";
 export default function Footer() {
   const { t } = useLang();
   const [email, setEmail] = useState("");
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
+  const storeName = siteSettings?.["store_name"] ?? "Isekai World";
+  const logoUrl = siteSettings?.["store_logo_dark_url"] ?? siteSettings?.["store_logo_url"] ?? null;
 
   const subscribe = trpc.newsletter.subscribe.useMutation({
     onSuccess: () => { toast.success("¡Suscrito! Bienvenido a la comunidad 🎌"); setEmail(""); },
@@ -50,10 +53,16 @@ export default function Footer() {
             {/* Brand */}
             <div>
               <div className="flex items-center gap-2 mb-5">
-                <div className="flex items-end gap-[2px]">
-                  {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-white rounded-full" style={{height:`${h}px`}}/>)}
-                </div>
-                <span className="font-bold text-[15px] tracking-tight">Isekai World</span>
+                {logoUrl ? (
+                  <img src={logoUrl} alt={storeName} className="h-8 object-contain" />
+                ) : (
+                  <>
+                    <div className="flex items-end gap-[2px]">
+                      {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-white rounded-full" style={{height:`${h}px`}}/>)}
+                    </div>
+                    <span className="font-bold text-[15px] tracking-tight">{storeName}</span>
+                  </>
+                )}
               </div>
               <p className="text-[13px] text-white/55 leading-relaxed mb-5">{t.footer.tagline}</p>
               <div className="flex items-center gap-2.5 mb-5">
@@ -124,7 +133,7 @@ export default function Footer() {
         {/* Bottom bar */}
         <div className="border-t border-white/10">
           <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
-            <p className="text-[12px] text-white/35">© {new Date().getFullYear()} Isekai World. {t.footer.copyright}.</p>
+            <p className="text-[12px] text-white/35">© {new Date().getFullYear()} {storeName}. {t.footer.copyright}.</p>
             <div className="flex items-center gap-3">
               <Link href="/politicas" className="text-[12px] text-white/35 hover:text-white/60 transition-colors underline underline-offset-2">{t.footer.policies}</Link>
               <div className="flex items-center gap-1.5">
