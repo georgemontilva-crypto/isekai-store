@@ -4,6 +4,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+:root {
+  --sidebar-foreground: 0 0% 98%;
+  --sidebar-accent-foreground: 0 0% 98%;
+  --sidebar-primary-foreground: 0 0% 98%;
+  --sidebar-border: 0 0% 30%;
+  --sidebar-ring: 0 0% 98%;
+}
+
 @theme inline {
   --radius-sm: 0.25rem;
   --radius-md: 0.375rem;
@@ -540,6 +548,11 @@
 [data-sidebar="menu-button"] span {
   color: white !important;
   fill: white !important;
+}
+
+.sidebar-wrapper *,
+[data-sidebar] * {
+  color: white !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
