@@ -554,56 +554,57 @@ export default function Home() {
       ══════════════════════════════════════════════ */}
       <section className="py-16">
         <div className="container">
-          {/* Header row: title + tabs left, arrows right */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 flex-wrap">
+          {/* Header: título + flechas en una fila, filtros debajo ancho completo */}
+          <div className="flex flex-col justify-between mb-6 gap-3">
+            <div className="flex items-center justify-between gap-4">
               <h2
                 className="text-3xl md:text-5xl font-black leading-none"
                 style={{ fontFamily: 'Orbitron, sans-serif', fontWeight: 900, color: '#1a1a1a' }}
               >
                 {t.home.bestSellers}
               </h2>
-              <div
-                className="flex gap-2 pb-2"
-                style={{
-                  overflowX: 'auto',
-                  WebkitOverflowScrolling: 'touch',
-                  msOverflowStyle: 'none',
-                  scrollbarWidth: 'none',
-                }}
-              >
+              {/* Navigation arrows — solo desktop */}
+              <div className="hidden sm:flex items-center gap-2 shrink-0">
                 <button
-                  onClick={() => setActiveTabId(null)}
-                  className={`tab-pill flex-shrink-0 ${activeTabId === null ? 'active' : ''}`}
+                  onClick={() => { const el = document.getElementById('best-sellers-scroll'); if (el) el.scrollBy({ left: -320, behavior: 'smooth' }); }}
+                  className="w-10 h-10 rounded-full border border-[#ddd] flex items-center justify-center hover:border-[#1a1a1a] transition-colors bg-white"
                 >
-                  Todo
+                  <ChevronLeft size={16} />
                 </button>
-                {(categories ?? []).map(cat => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setActiveTabId(cat.id)}
-                    className={`tab-pill flex-shrink-0 ${activeTabId === cat.id ? 'active' : ''}`}
-                  >
-                    {cat.name}
-                  </button>
-                ))}
-                <div className="flex-shrink-0 w-6" />
+                <button
+                  onClick={() => { const el = document.getElementById('best-sellers-scroll'); if (el) el.scrollBy({ left: 320, behavior: 'smooth' }); }}
+                  className="w-10 h-10 rounded-full border border-[#ddd] flex items-center justify-center hover:border-[#1a1a1a] transition-colors bg-white"
+                >
+                  <ChevronRight size={16} />
+                </button>
               </div>
             </div>
-            {/* Navigation arrows */}
-            <div className="hidden sm:flex items-center gap-2 shrink-0">
+            {/* Filtros — hermano directo, ancho completo, scroll sin clip */}
+            <div
+              className="flex gap-2 pb-2 -mx-4 px-4"
+              style={{
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch',
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+              }}
+            >
               <button
-                onClick={() => { const el = document.getElementById('best-sellers-scroll'); if (el) el.scrollBy({ left: -320, behavior: 'smooth' }); }}
-                className="w-10 h-10 rounded-full border border-[#ddd] flex items-center justify-center hover:border-[#1a1a1a] transition-colors bg-white"
+                onClick={() => setActiveTabId(null)}
+                className={`tab-pill flex-shrink-0 ${activeTabId === null ? 'active' : ''}`}
               >
-                <ChevronLeft size={16} />
+                Todo
               </button>
-              <button
-                onClick={() => { const el = document.getElementById('best-sellers-scroll'); if (el) el.scrollBy({ left: 320, behavior: 'smooth' }); }}
-                className="w-10 h-10 rounded-full border border-[#ddd] flex items-center justify-center hover:border-[#1a1a1a] transition-colors bg-white"
-              >
-                <ChevronRight size={16} />
-              </button>
+              {(categories ?? []).map(cat => (
+                <button
+                  key={cat.id}
+                  onClick={() => setActiveTabId(cat.id)}
+                  className={`tab-pill flex-shrink-0 ${activeTabId === cat.id ? 'active' : ''}`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+              <div className="flex-shrink-0 w-6" />
             </div>
           </div>
 
