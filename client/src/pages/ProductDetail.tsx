@@ -21,6 +21,7 @@ export default function ProductDetail() {
   const [selectedVariant, setSelectedVariant] = useState<number | undefined>();
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [mainImageOverride, setMainImageOverride] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
   const { t } = useLang();
@@ -74,8 +75,8 @@ export default function ProductDetail() {
 
   const currentVariant = product?.variants?.find((v) => v.id === selectedVariant);
   const displayPrice = currentVariant?.price ?? product?.price ?? "0";
-  const variantImage = (currentVariant as any)?.image as string | undefined;
-  const isOutOfStock = (currentVariant?.stock ?? product?.stock ?? 0) <= 0;
+  const displayStock = currentVariant?.stock ?? product?.stock ?? 0;
+  const isOutOfStock = displayStock <= 0;
   const hasDiscount = product?.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(displayPrice);
   const discountPct = hasDiscount
     ? Math.round((1 - parseFloat(displayPrice) / parseFloat(product!.compareAtPrice!)) * 100)
@@ -121,7 +122,8 @@ export default function ProductDetail() {
   }
 
   const images = product.images ?? [];
-  const hasImages = images.length > 0 || !!variantImage;
+  const mainImageSrc = mainImageOverride ?? images[activeImage]?.url ?? null;
+  const hasImages = !!mainImageSrc || images.length > 0;
 
   return (
     <div className="min-h-screen pb-20">
@@ -165,22 +167,11 @@ export default function ProductDetail() {
             {/* Main image */}
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-card border border-border/50 group">
               <AnimatePresence mode="wait">
-                {variantImage ? (
+                {mainImageSrc ? (
                   <motion.img
-                    key={`variant-${selectedVariant}`}
-                    src={variantImage}
+                    key={mainImageSrc}
+                    src={mainImageSrc}
                     alt={currentVariant?.name ?? product.name}
-                    className="w-full h-full object-cover"
-                    initial={{ opacity: 0, scale: 1.04 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.96 }}
-                    transition={{ duration: 0.35 }}
-                  />
-                ) : hasImages ? (
-                  <motion.img
-                    key={activeImage}
-                    src={images[activeImage]?.url}
-                    alt={images[activeImage]?.altText ?? product.name}
                     className="w-full h-full object-cover"
                     initial={{ opacity: 0, scale: 1.04 }}
                     animate={{ opacity: 1, scale: 1 }}
@@ -201,15 +192,15 @@ export default function ProductDetail() {
                     -{discountPct}%
                   </span>
                 )}
-                {!isOutOfStock && (product.stock ?? 0) <= 5 && (
+                {!isOutOfStock && displayStock <= 5 && (
                   <span className="px-3 py-1.5 rounded-full bg-orange-500/80 text-white text-xs font-medium backdrop-blur-sm">
-                    ¡Últimas {product.stock}!
+                    ¡Solo quedan {displayStock}!
                   </span>
                 )}
               </div>
 
-              {/* Nav arrows */}
-              {images.length > 1 && (
+              {/* Nav arrows — only for product gallery, not variant override */}
+              {!mainImageOverride && images.length > 1 && (
                 <>
                   <button
                     onClick={() => setActiveImage((p) => (p - 1 + images.length) % images.length)}
@@ -226,23 +217,23 @@ export default function ProductDetail() {
                 </>
               )}
 
-              {/* Image counter */}
-              {images.length > 1 && (
+              {/* Image counter — only for product gallery */}
+              {!mainImageOverride && images.length > 1 && (
                 <div className="absolute bottom-4 right-4 px-3 py-1 rounded-full glass text-xs text-white/80">
                   {activeImage + 1} / {images.length}
                 </div>
               )}
             </div>
 
-            {/* Thumbnails */}
-            {images.length > 1 && (
+            {/* Thumbnails — clicking any restores product gallery and clears variant override */}
+            {images.length > 0 && (
               <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-hide">
                 {images.map((img, i) => (
                   <button
                     key={img.id}
-                    onClick={() => setActiveImage(i)}
+                    onClick={() => { setMainImageOverride(null); setActiveImage(i); }}
                     className={`flex-shrink-0 w-20 h-20 rounded-2xl overflow-hidden border-2 transition-all duration-200 ${
-                      i === activeImage
+                      !mainImageOverride && i === activeImage
                         ? "border-primary neon-glow-purple scale-105"
                         : "border-border/50 hover:border-border opacity-70 hover:opacity-100"
                     }`}
@@ -338,8 +329,14 @@ export default function ProductDetail() {
                     const vImg = (variant as any).image as string | undefined;
                     const isSelected = selectedVariant === variant.id;
                     const handleSelect = () => {
-                      setSelectedVariant(variant.id === selectedVariant ? undefined : variant.id);
-                      setActiveImage(0);
+                      if (isSelected) {
+                        setSelectedVariant(undefined);
+                        setMainImageOverride(null);
+                      } else {
+                        setSelectedVariant(variant.id);
+                        if (vImg) setMainImageOverride(vImg);
+                        else { setMainImageOverride(null); setActiveImage(0); }
+                      }
                     };
                     if (vImg) {
                       return (
@@ -416,7 +413,7 @@ export default function ProductDetail() {
               <div className="flex items-center gap-2 text-sm">
                 <Package className={`w-4 h-4 ${isOutOfStock ? "text-destructive" : "text-green-400"}`} />
                 <span className={isOutOfStock ? "text-destructive" : "text-green-400 font-medium"}>
-                  {isOutOfStock ? t.product.outOfStock : `${currentVariant?.stock ?? product.stock} disponibles`}
+                  {isOutOfStock ? t.product.outOfStock : `${displayStock} disponibles`}
                 </span>
               </div>
             </div>
