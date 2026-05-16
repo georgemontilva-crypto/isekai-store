@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Package, Clock, ChevronRight, LogOut } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
@@ -126,28 +126,46 @@ function LoginPage() {
   );
 }
 
+const STATUS_COLORS: Record<string, string> = {
+  pending:    "bg-yellow-50 text-yellow-700 border border-yellow-200",
+  processing: "bg-blue-50 text-blue-700 border border-blue-200",
+  shipped:    "bg-purple-50 text-purple-700 border border-purple-200",
+  delivered:  "bg-green-50 text-green-700 border border-green-200",
+  cancelled:  "bg-red-50 text-red-700 border border-red-200",
+};
+
+type Tab = "orders" | "wishlist" | "coupons" | "profile";
+
+const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
+  { id: "orders",   label: "Mis Pedidos", icon: Package },
+  { id: "wishlist", label: "Guardados",   icon: Heart },
+  { id: "coupons",  label: "Cupones",     icon: Ticket },
+  { id: "profile",  label: "Mi Perfil",   icon: User },
+];
+
 export default function Account() {
   const { t } = useLang();
+  const { user, isAuthenticated, logout, loading } = useAuth();
+  const [activeTab, setActiveTab] = useState<Tab>("orders");
 
   const statusLabels: Record<string, string> = {
-    pending: t.account.status.pending,
+    pending:    t.account.status.pending,
     processing: t.account.status.processing,
-    shipped: t.account.status.shipped,
-    delivered: t.account.status.delivered,
-    cancelled: t.account.status.cancelled,
+    shipped:    t.account.status.shipped,
+    delivered:  t.account.status.delivered,
+    cancelled:  t.account.status.cancelled,
   };
-  const { user, isAuthenticated, logout, loading } = useAuth();
-  const { data: ordersData, isLoading } = trpc.orders.myOrders.useQuery(
+
+  const { data: ordersData, isLoading: ordersLoading } = trpc.orders.myOrders.useQuery(
     undefined,
     { enabled: isAuthenticated }
   );
-
   const orders = ordersData?.items ?? [];
 
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+        <div className="w-8 h-8 border-2 border-[#1a1a1a]/20 border-t-[#1a1a1a] rounded-full animate-spin" />
       </div>
     );
   }
@@ -156,94 +174,189 @@ export default function Account() {
     return <LoginPage />;
   }
 
+  const initial = user?.name?.charAt(0).toUpperCase() ?? "?";
+
   return (
-    <div className="min-h-screen pt-24 pb-16">
-      <div className="container max-w-3xl">
-        {/* Header */}
+    <div className="min-h-screen bg-white pt-24 pb-20">
+      <div className="container max-w-2xl">
+
+        {/* ── Avatar + Header ── */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
+          className="flex flex-col items-center text-center mb-8"
         >
-          <div>
-            <h1 className="text-3xl font-bold">
-              Mi <span className="gradient-text">cuenta</span>
-            </h1>
-            <p className="text-muted-foreground mt-1">Bienvenido, {user?.name}</p>
+          <div className="w-20 h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-3xl font-bold mb-4 shadow-sm">
+            {initial}
           </div>
-          <Button
-            variant="outline"
-            className="border-border/50 text-muted-foreground hover:text-foreground gap-2"
+          <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
+          <p className="text-sm text-[#888] mt-0.5">{user?.email}</p>
+          <button
             onClick={() => logout()}
+            className="mt-4 flex items-center gap-1.5 text-xs text-[#888] hover:text-[#1a1a1a] transition-colors"
           >
-            <LogOut className="w-4 h-4" />
-            Salir
-          </Button>
+            <LogOut className="w-3.5 h-3.5" />
+            Cerrar sesión
+          </button>
         </motion.div>
 
-        {/* Orders */}
+        {/* ── Tabs pills ── */}
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.05 }}
+          className="flex gap-2 mb-8 overflow-x-auto pb-1 scrollbar-hide"
         >
-          <div className="flex items-center gap-3 mb-4">
-            <Package className="w-5 h-5 text-primary" />
-            <h2 className="font-semibold text-lg">Mis pedidos</h2>
-          </div>
-
-          {isLoading ? (
-            <div className="space-y-3">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-20 rounded-2xl bg-card animate-pulse" />
-              ))}
-            </div>
-          ) : orders.length === 0 ? (
-            <div className="text-center py-16 bg-card rounded-2xl border border-border/50">
-              <Package className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-              <p className="font-medium text-foreground">{t.account.noOrders}</p>
-              <p className="text-sm text-muted-foreground mt-1 mb-6">
-                Explora nuestro catálogo y realiza tu primera compra
-              </p>
-              <Button
-                className="bg-primary text-primary-foreground hover:bg-primary/90"
-                asChild
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  isActive
+                    ? "bg-[#1a1a1a] text-white"
+                    : "bg-white border border-[#ebebeb] text-[#555] hover:border-[#1a1a1a]/30"
+                }`}
               >
-                <Link href="/catalog">Explorar productos</Link>
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {orders.map((order, i) => (
-                <motion.div
-                  key={order.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-1">
-                        <span className="font-semibold text-foreground">{order.orderNumber}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium status-${order.status}`}>
-                          {statusLabels[order.status] ?? order.status}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{new Date(order.createdAt).toLocaleDateString("es-CO")}</span>
-                        <span>·</span>
-                        <span className="text-primary font-medium">${parseFloat(order.total).toFixed(2)}</span>
+                <Icon className="w-3.5 h-3.5" />
+                {tab.label}
+              </button>
+            );
+          })}
+        </motion.div>
+
+        {/* ── Tab content ── */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+          >
+
+            {/* ORDERS */}
+            {activeTab === "orders" && (
+              <div>
+                {ordersLoading ? (
+                  <div className="space-y-3">
+                    {[1, 2, 3].map(i => (
+                      <div key={i} className="h-20 rounded-2xl bg-[#f5f5f5] animate-pulse" />
+                    ))}
+                  </div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                    <Package className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
+                    <p className="font-medium text-[#1a1a1a]">{t.account.noOrders}</p>
+                    <p className="text-sm text-[#888] mt-1 mb-6">Explora el catálogo y realiza tu primera compra</p>
+                    <Link href="/catalog">
+                      <button className="btn-pill text-sm">Explorar tienda</button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {orders.map((order, i) => (
+                      <motion.div
+                        key={order.id}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.04 }}
+                        className="p-4 rounded-2xl border border-[#ebebeb] hover:border-[#1a1a1a]/20 transition-colors bg-white"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <span className="font-semibold text-sm text-[#1a1a1a]">{order.orderNumber}</span>
+                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${STATUS_COLORS[order.status] ?? "bg-[#f5f5f5] text-[#555]"}`}>
+                                {statusLabels[order.status] ?? order.status}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-[#888]">
+                              <Clock className="w-3 h-3" />
+                              <span>{new Date(order.createdAt).toLocaleDateString("es-CO")}</span>
+                              <span>·</span>
+                              <span className="font-semibold text-[#1a1a1a]">${parseFloat(order.total).toFixed(2)}</span>
+                            </div>
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-[#ccc]" />
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* WISHLIST */}
+            {activeTab === "wishlist" && (
+              <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                <Heart className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
+                <p className="font-medium text-[#1a1a1a]">No tienes productos guardados aún</p>
+                <p className="text-sm text-[#888] mt-1 mb-6">Guarda tus productos favoritos para encontrarlos fácilmente</p>
+                <Link href="/catalog">
+                  <button className="btn-pill text-sm">
+                    <ShoppingBag className="w-3.5 h-3.5 mr-1.5 inline" />
+                    Explorar tienda
+                  </button>
+                </Link>
+              </div>
+            )}
+
+            {/* COUPONS */}
+            {activeTab === "coupons" && (
+              <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                <Ticket className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
+                <p className="font-medium text-[#1a1a1a]">No tienes cupones activos</p>
+                <p className="text-sm text-[#888] mt-1">Los cupones aparecerán aquí cuando los recibas</p>
+              </div>
+            )}
+
+            {/* PROFILE */}
+            {activeTab === "profile" && (
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-[#ebebeb] divide-y divide-[#ebebeb]">
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <User className="w-4 h-4 text-[#888] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-[#888] mb-0.5">Nombre</p>
+                      <p className="text-sm font-medium text-[#1a1a1a] truncate">{user?.name ?? "—"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <Mail className="w-4 h-4 text-[#888] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-[#888] mb-0.5">Email</p>
+                      <p className="text-sm font-medium text-[#1a1a1a] truncate">{user?.email ?? "—"}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 px-5 py-4">
+                    <Chrome className="w-4 h-4 text-[#888] shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs text-[#888] mb-0.5">Método de acceso</p>
+                      <p className="text-sm font-medium text-[#1a1a1a]">
+                        {user?.openId ? "Google" : "Magic Link (Email)"}
+                      </p>
+                    </div>
+                  </div>
+                  {user?.createdAt && (
+                    <div className="flex items-center gap-3 px-5 py-4">
+                      <Calendar className="w-4 h-4 text-[#888] shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-[#888] mb-0.5">Miembro desde</p>
+                        <p className="text-sm font-medium text-[#1a1a1a]">
+                          {new Date(user.createdAt).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}
+                        </p>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
+                  )}
+                </div>
+              </div>
+            )}
+
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
