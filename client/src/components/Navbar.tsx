@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard } from "lucide-react";
+import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { openLoginModal } from "@/const";
@@ -28,7 +28,9 @@ export default function Navbar() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(null);
+  const [notifOpen, setNotifOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
+  const notifRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
   console.log("[Navbar] user:", user?.email, "role:", user?.role);
   const { totalItems, openCart } = useCart();
@@ -48,6 +50,40 @@ export default function Navbar() {
   }, [announcements.length]);
 
   useEffect(() => { setActiveMenu(null); }, [location]);
+
+  const isRegularUser = isAuthenticated && user?.role !== "admin";
+  const { data: notifUnread, refetch: refetchUnread } = trpc.userNotifications.unreadCount.useQuery(
+    undefined, { enabled: isRegularUser, refetchInterval: 30000 }
+  );
+  const { data: notifList } = trpc.userNotifications.list.useQuery(
+    undefined, { enabled: isRegularUser && notifOpen }
+  );
+  const markAllRead = trpc.userNotifications.markAllRead.useMutation({
+    onSuccess: () => refetchUnread(),
+  });
+
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [notifOpen]);
+
+  function handleBellClick() {
+    const next = !notifOpen;
+    setNotifOpen(next);
+    if (next && notifUnread && notifUnread > 0) markAllRead.mutate();
+  }
+
+  function formatRelative(date: Date | string) {
+    const diff = (Date.now() - new Date(date).getTime()) / 1000;
+    if (diff < 60) return "ahora mismo";
+    if (diff < 3600) return `hace ${Math.floor(diff / 60)} min`;
+    if (diff < 86400) return `hace ${Math.floor(diff / 3600)} h`;
+    return `hace ${Math.floor(diff / 86400)} días`;
+  }
 
   const openMenu = (m: ActiveMenu) => { if (closeTimer.current) clearTimeout(closeTimer.current); setActiveMenu(m); };
   const scheduleClose = () => { closeTimer.current = setTimeout(() => setActiveMenu(null), 120); };
@@ -164,6 +200,45 @@ export default function Navbar() {
               <Link href="/admin" className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
               </Link>
+            )}
+            {isRegularUser && (
+              <div ref={notifRef} className="relative">
+                <button onClick={handleBellClick} className="relative p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Notificaciones">
+                  <Bell size={17} strokeWidth={1.8} />
+                  {notifUnread != null && notifUnread > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                      {notifUnread > 9 ? "9+" : notifUnread}
+                    </span>
+                  )}
+                </button>
+                <AnimatePresence>
+                  {notifOpen && (
+                    <motion.div
+                      variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
+                      transition={{ duration: 0.2, type: "tween" }}
+                      className="absolute right-0 top-[calc(100%+8px)] z-50 w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] border border-[#f0f0f0] overflow-hidden"
+                    >
+                      <div className="px-4 py-3 border-b border-[#f0f0f0]">
+                        <p className="font-semibold text-sm text-[#1a1a1a]">Notificaciones</p>
+                      </div>
+                      <div className="max-h-80 overflow-y-auto">
+                        {!notifList || notifList.length === 0 ? (
+                          <div className="px-4 py-6 text-center text-sm text-[#888]">No tienes notificaciones aún</div>
+                        ) : (
+                          notifList.map(n => (
+                            <Link key={n.id} href="/account" onClick={() => setNotifOpen(false)}
+                              className="block px-4 py-3 hover:bg-[#fafafa] border-b border-[#f5f5f5] last:border-0 transition-colors">
+                              <p className="font-semibold text-sm text-[#1a1a1a]">{n.title}</p>
+                              <p className="text-xs text-[#888] mt-0.5 leading-snug">{n.body}</p>
+                              <p className="text-[10px] text-[#bbb] mt-1">{formatRelative(n.createdAt as Date)}</p>
+                            </Link>
+                          ))
+                        )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             )}
             {isAuthenticated
               ? <Link href="/account" className="p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>

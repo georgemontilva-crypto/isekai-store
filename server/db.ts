@@ -16,6 +16,7 @@ import {
   authTokens,
   adminNotifications,
   AdminNotification,
+  orderNotifications,
   wishlist,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
@@ -554,6 +555,39 @@ export async function markAdminNotificationRead(id: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.update(adminNotifications).set({ read: true }).where(eq(adminNotifications.id, id));
+}
+
+// ─── Order Notifications (customer) ──────────────────────────────────────────
+export async function insertOrderNotification(data: {
+  userId: number; orderId: number; orderNumber: string;
+  type: string; title: string; body: string;
+}): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(orderNotifications).values(data);
+}
+
+export async function getUserOrderNotifications(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orderNotifications)
+    .where(eq(orderNotifications.userId, userId))
+    .orderBy(desc(orderNotifications.createdAt))
+    .limit(15);
+}
+
+export async function getOrderNotificationUnreadCount(userId: number): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const rows = await db.select().from(orderNotifications)
+    .where(and(eq(orderNotifications.userId, userId), eq(orderNotifications.read, false)));
+  return rows.length;
+}
+
+export async function markAllOrderNotificationsRead(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(orderNotifications).set({ read: true }).where(eq(orderNotifications.userId, userId));
 }
 
 // ─── Wishlist ──────────────────────────────────────────────────────────────────

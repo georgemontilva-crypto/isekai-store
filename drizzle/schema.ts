@@ -200,6 +200,22 @@ export const adminNotifications = mysqlTable("adminNotifications", {
 export type AdminNotification = typeof adminNotifications.$inferSelect;
 export type InsertAdminNotification = typeof adminNotifications.$inferInsert;
 
+// ─── Order Notifications (customer) ──────────────────────────────────────────
+export const orderNotifications = mysqlTable("orderNotifications", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  orderId: int("orderId").notNull(),
+  orderNumber: varchar("orderNumber", { length: 100 }).notNull(),
+  type: varchar("type", { length: 50 }).notNull(),
+  title: varchar("title", { length: 200 }).notNull(),
+  body: varchar("body", { length: 500 }).notNull(),
+  read: boolean("read").default(false),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export type OrderNotification = typeof orderNotifications.$inferSelect;
+export type InsertOrderNotification = typeof orderNotifications.$inferInsert;
+
 // ─── Wishlist ──────────────────────────────────────────────────────────────────
 export const wishlist = mysqlTable("wishlist", {
   id: int("id").autoincrement().primaryKey(),

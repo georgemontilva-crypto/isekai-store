@@ -4,7 +4,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { notifyOwner } from "./_core/notification";
+import { notifyOwner, notifyCustomerOrderStatus } from "./_core/notification";
 import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import {
@@ -16,6 +16,8 @@ import {
   getDashboardMetrics, getAllSettings, upsertSetting,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
+  insertOrderNotification, getUserOrderNotifications,
+  getOrderNotificationUnreadCount, markAllOrderNotificationsRead,
   getWishlist, toggleWishlist, isInWishlist,
 } from "./db";
 
@@ -278,7 +280,40 @@ export const appRouter = router({
         trackingNumber: z.string().optional(),
         trackingCarrier: z.string().optional(),
       }))
-      .mutation(({ input }) => updateOrderStatus(input.id, input.status, input.trackingNumber, input.trackingCarrier)),
+      .mutation(async ({ input }) => {
+        await updateOrderStatus(input.id, input.status, input.trackingNumber, input.trackingCarrier);
+
+        const STATUS_MESSAGES: Record<string, { title: string; body: string }> = {
+          pending:       { title: "Orden recibida",    body: "Hemos recibido tu pedido" },
+          preparing:     { title: "En preparación",    body: "Tu pedido está siendo preparado" },
+          printing:      { title: "En impresión 3D",   body: "Tu pedido está en proceso de impresión" },
+          post_printing: { title: "Post impresión",    body: "Tu pedido completó la impresión" },
+          packed:        { title: "Empacado",          body: "Tu pedido está listo para envío" },
+          shipped:       { title: "¡Enviado!",         body: `Tu pedido está en camino. Guía: ${input.trackingNumber ?? "—"} — ${input.trackingCarrier ?? "—"}` },
+          delivered:     { title: "¡Entregado!",       body: "Tu pedido fue entregado exitosamente" },
+        };
+
+        const msg = STATUS_MESSAGES[input.status];
+        if (!msg) return;
+
+        const order = await getOrderById(input.id);
+        if (!order || !order.userId) return;
+
+        try {
+          await insertOrderNotification({
+            userId: order.userId,
+            orderId: order.id,
+            orderNumber: order.orderNumber,
+            type: input.status,
+            title: msg.title,
+            body: msg.body,
+          });
+        } catch (e) { console.error("Failed to insert order notification:", e); }
+
+        try {
+          await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, msg.title, msg.body);
+        } catch (e) { console.error("Failed to send customer email:", e); }
+      }),
   }),
 
   // ─── Site Settings ────────────────────────────────────────────────────────────────────────────────────────
@@ -365,6 +400,15 @@ export const appRouter = router({
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────
   admin: router({
     metrics: adminProcedure.query(() => getDashboardMetrics()),
+  }),
+
+  // ─── User Notifications (customer) ──────────────────────────────────────────
+  userNotifications: router({
+    list: protectedProcedure.query(({ ctx }) => getUserOrderNotifications(ctx.user.id)),
+
+    unreadCount: protectedProcedure.query(({ ctx }) => getOrderNotificationUnreadCount(ctx.user.id)),
+
+    markAllRead: protectedProcedure.mutation(({ ctx }) => markAllOrderNotificationsRead(ctx.user.id)),
   }),
 
   // ─── Admin Notifications ─────────────────────────────────────────────────────
