@@ -1092,42 +1092,98 @@ export default function Admin() {
                   </div>
 
                   {/* Hero Slides */}
-                  {[1, 2, 3].map((n) => (
-                    <div key={n} className="mb-6">
-                      <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Slide {n}</p>
-                      <div className="grid sm:grid-cols-2 gap-3">
-                        {[
-                          { k: `hero_slide_${n}_tag`, label: "Tag / etiqueta", ph: "Ej: Temporada 2025" },
-                          { k: `hero_slide_${n}_title`, label: "Título", ph: "Ej: Nueva colección" },
-                          { k: `hero_slide_${n}_cta`, label: "Texto del botón", ph: "Ej: Ver colección" },
-                          { k: `hero_slide_${n}_image`, label: "URL de imagen", ph: "https://..." },
-                        ].map(({ k, label, ph }) => (
-                          <div key={k}>
-                            <Label className="text-xs font-medium">{label}</Label>
-                            <div className="flex gap-2 mt-1">
+                  {[1, 2, 3].map((n) => {
+                    const imgKey = `hero_slide_${n}_image`;
+                    const currentImg = bannerDrafts[imgKey] ?? siteSettings?.[imgKey] ?? "";
+                    return (
+                      <div key={n} className="mb-6">
+                        <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Slide {n}</p>
+                        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                          {[
+                            { k: `hero_slide_${n}_tag`, label: "Tag / etiqueta", ph: "Ej: Temporada 2025" },
+                            { k: `hero_slide_${n}_title`, label: "Título", ph: "Ej: Nueva colección" },
+                            { k: `hero_slide_${n}_cta`, label: "Texto del botón", ph: "Ej: Ver colección" },
+                          ].map(({ k, label, ph }) => (
+                            <div key={k}>
+                              <Label className="text-xs font-medium">{label}</Label>
+                              <div className="flex gap-2 mt-1">
+                                <Input
+                                  placeholder={ph}
+                                  defaultValue={siteSettings?.[k] ?? ""}
+                                  onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                                  className="bg-muted border-border/50 text-sm"
+                                />
+                                <Button
+                                  size="sm"
+                                  className="bg-primary text-primary-foreground shrink-0"
+                                  onClick={() => {
+                                    const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                                    if (val) upsertSetting.mutate({ key: k, value: val });
+                                  }}
+                                >
+                                  <Save className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        {/* Slide image upload */}
+                        <div>
+                          <Label className="text-xs font-medium">Imagen del slide</Label>
+                          <div className="flex items-start gap-2 mt-1">
+                            <div className="flex-1">
                               <Input
-                                placeholder={ph}
-                                defaultValue={siteSettings?.[k] ?? ""}
-                                onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                                placeholder="https://... o sube una imagen"
+                                value={currentImg}
+                                onChange={(e) => setBannerDrafts(d => ({ ...d, [imgKey]: e.target.value }))}
                                 className="bg-muted border-border/50 text-sm"
                               />
-                              <Button
-                                size="sm"
-                                className="bg-primary text-primary-foreground shrink-0"
-                                onClick={() => {
-                                  const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
-                                  if (val) upsertSetting.mutate({ key: k, value: val });
-                                }}
-                              >
-                                <Save className="w-4 h-4" />
-                              </Button>
+                              {currentImg && (
+                                <img src={currentImg} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" />
+                              )}
                             </div>
+                            <label className="cursor-pointer shrink-0">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                                <Upload className="w-3.5 h-3.5" /> Subir
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const base64 = await new Promise<string>((resolve, reject) => {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(file);
+                                  });
+                                  try {
+                                    const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                    setBannerDrafts(d => ({ ...d, [imgKey]: url }));
+                                    upsertSetting.mutate({ key: imgKey, value: url });
+                                    toast.success("Imagen subida");
+                                  } catch {
+                                    toast.error("Error al subir imagen");
+                                  }
+                                }}
+                              />
+                            </label>
+                            <Button
+                              size="sm"
+                              className="bg-primary text-primary-foreground shrink-0"
+                              onClick={() => { if (currentImg) upsertSetting.mutate({ key: imgKey, value: currentImg }); }}
+                              disabled={!currentImg}
+                            >
+                              <Save className="w-4 h-4" />
+                            </Button>
                           </div>
-                        ))}
+                        </div>
+                        {n < 3 && <div className="border-t border-border/20 mt-5" />}
                       </div>
-                      {n < 3 && <div className="border-t border-border/20 mt-5" />}
-                    </div>
-                  ))}
+                    );
+                  })}
 
                   {/* Banners de Ofertas */}
                   <div className="border-t border-border/30 pt-5 mb-5">
@@ -1281,7 +1337,6 @@ export default function Admin() {
                     {[
                       { k: "popup_title", label: "Título", ph: "Ej: ¡Bienvenido a Isekai!" },
                       { k: "popup_subtitle", label: "Subtítulo", ph: "Ej: Suscríbete y obtén 10% OFF" },
-                      { k: "popup_image", label: "URL de imagen", ph: "https://..." },
                       { k: "popup_cta_text", label: "Texto del botón", ph: "Ej: Suscribirme" },
                       { k: "popup_cta_url", label: "URL del botón", ph: "Ej: /catalog o https://..." },
                       { k: "popup_delay_seconds", label: "Demora en segundos", ph: "Ej: 3" },
@@ -1308,6 +1363,63 @@ export default function Admin() {
                         </div>
                       </div>
                     ))}
+                  </div>
+
+                  {/* Popup image upload */}
+                  <div className="mt-4">
+                    <Label className="text-xs font-medium">Imagen del popup</Label>
+                    <div className="flex items-start gap-2 mt-1">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="https://... o sube una imagen"
+                          value={bannerDrafts["popup_image"] ?? siteSettings?.["popup_image"] ?? ""}
+                          onChange={(e) => setBannerDrafts(d => ({ ...d, popup_image: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                        {(bannerDrafts["popup_image"] || siteSettings?.["popup_image"]) && (
+                          <img src={bannerDrafts["popup_image"] ?? siteSettings?.["popup_image"]} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" />
+                        )}
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const base64 = await new Promise<string>((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                              reader.onerror = reject;
+                              reader.readAsDataURL(file);
+                            });
+                            try {
+                              const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                              setBannerDrafts(d => ({ ...d, popup_image: url }));
+                              upsertSetting.mutate({ key: "popup_image", value: url });
+                              toast.success("Imagen subida");
+                            } catch {
+                              toast.error("Error al subir imagen");
+                            }
+                          }}
+                        />
+                      </label>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["popup_image"] ?? siteSettings?.["popup_image"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "popup_image", value: val });
+                        }}
+                        disabled={!(bannerDrafts["popup_image"] ?? siteSettings?.["popup_image"])}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 {/* Brand Story */}
