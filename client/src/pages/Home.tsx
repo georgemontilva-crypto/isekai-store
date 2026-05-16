@@ -258,6 +258,7 @@ export default function Home() {
   const { data: productsData, isLoading: productsLoading } = trpc.products.list.useQuery({
     limit: 12,
     status: "published",
+    featured: true,
     categoryId: activeTabId ?? undefined,
   });
   const { data: settings } = trpc.settings.getAll.useQuery();
@@ -562,10 +563,10 @@ export default function Home() {
               >
                 {t.home.bestSellers}
               </h2>
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
                 <button
                   onClick={() => setActiveTabId(null)}
-                  className={`tab-pill ${activeTabId === null ? 'active' : ''}`}
+                  className={`tab-pill flex-shrink-0 ${activeTabId === null ? 'active' : ''}`}
                 >
                   Todo
                 </button>
@@ -573,7 +574,7 @@ export default function Home() {
                   <button
                     key={cat.id}
                     onClick={() => setActiveTabId(cat.id)}
-                    className={`tab-pill ${activeTabId === cat.id ? 'active' : ''}`}
+                    className={`tab-pill flex-shrink-0 ${activeTabId === cat.id ? 'active' : ''}`}
                   >
                     {cat.name}
                   </button>

@@ -153,15 +153,15 @@ export default function Navbar() {
       <header className={`sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"}`}>
         <div className="container flex items-center h-[60px] gap-4">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[120px] md:max-w-none overflow-hidden">
+          <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[160px] md:max-w-none overflow-hidden">
             {logoUrl ? (
-              <img src={logoUrl} alt={storeName} className="h-8 object-contain" />
+              <img src={logoUrl} alt={storeName} className="h-10 md:h-8 object-contain" />
             ) : (
               <div className="flex items-end gap-[2px]">
                 {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#1a1a1a] rounded-full" style={{height:`${h}px`}}/>)}
               </div>
             )}
-            {!logoUrl && <span className="font-bold text-[15px] tracking-tight text-[#1a1a1a] hidden sm:block">{storeName}</span>}
+            {!logoUrl && <span className="font-bold text-xl md:text-[15px] tracking-tight text-[#1a1a1a]">{storeName}</span>}
           </Link>
 
           {/* Desktop nav */}

@@ -65,7 +65,7 @@ export default function FeaturedProductCard({
         <div className="grid grid-cols-1 md:grid-cols-[72px_1fr_1fr] gap-0" style={{ minHeight: 0 }}>
 
           {/* ── Thumbnails (gallery images) ── */}
-          <div className="flex flex-col gap-2 p-3 border-r border-[#f0f0f0]">
+          <div className="hidden md:flex flex-col gap-2 p-3 border-r border-[#f0f0f0]">
             {gallery.length > 0 ? gallery.map((src, ti) => (
               <button
                 key={ti}

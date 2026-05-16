@@ -54,13 +54,13 @@ export default function Footer() {
             <div>
               <div className="flex items-center gap-2 mb-5">
                 {logoUrl ? (
-                  <img src={logoUrl} alt={storeName} className="h-8 object-contain" />
+                  <img src={logoUrl} alt={storeName} className="h-10 md:h-8 object-contain" />
                 ) : (
                   <>
                     <div className="flex items-end gap-[2px]">
                       {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-white rounded-full" style={{height:`${h}px`}}/>)}
                     </div>
-                    <span className="font-bold text-[15px] tracking-tight">{storeName}</span>
+                    <span className="font-bold text-lg md:text-[15px] tracking-tight">{storeName}</span>
                   </>
                 )}
               </div>

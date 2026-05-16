@@ -215,14 +215,11 @@ export default function Account() {
         </motion.div>
 
         {/* ── Tabs pills ── */}
-        <div className="relative mb-8">
-          <div className="absolute left-0 top-0 bottom-1 w-8 bg-gradient-to-r from-[#fafafa] to-transparent pointer-events-none z-10 sm:hidden" />
-          <div className="absolute right-0 top-0 bottom-1 w-8 bg-gradient-to-l from-[#fafafa] to-transparent pointer-events-none z-10 sm:hidden" />
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex justify-center gap-2 overflow-x-auto pb-1 scrollbar-hide px-4 sm:px-0"
+          className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 mb-8"
         >
           {TABS.map(tab => {
             const Icon = tab.icon;
@@ -231,7 +228,7 @@ export default function Account() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                   isActive
                     ? "bg-[#1a1a1a] text-white"
                     : "bg-white border border-[#ebebeb] text-[#555] hover:border-[#1a1a1a]/30"
@@ -243,7 +240,6 @@ export default function Account() {
             );
           })}
         </motion.div>
-        </div>
 
         {/* ── Tab content ── */}
         <AnimatePresence mode="wait">

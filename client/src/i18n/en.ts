@@ -68,7 +68,7 @@ export const en: Translations = {
     ],
     countdown: { days: "Days", hours: "Hours", mins: "Mins", secs: "Secs" },
     tabs: ["All", "Headphones", "Earphones", "Speakers", "Accessories"],
-    bestSellers: "Best Sellers",
+    bestSellers: "Featured",
     addToCart: "Add to cart",
     soldOut: "Sold out",
     chooseOptions: "Choose options",

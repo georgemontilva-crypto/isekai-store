@@ -68,7 +68,7 @@ export const es = {
     ],
     countdown: { days: "Días", hours: "Horas", mins: "Mins", secs: "Segs" },
     tabs: ["Todo", "Audifonos", "Auriculares", "Parlantes", "Accesorios"],
-    bestSellers: "Más Vendidos",
+    bestSellers: "Destacados",
     addToCart: "Agregar al carrito",
     soldOut: "Agotado",
     chooseOptions: "Ver opciones",
