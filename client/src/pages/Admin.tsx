@@ -361,7 +361,12 @@ function ProductForm({
       <div className="flex gap-3 pt-2">
         <Button
           className="bg-primary text-primary-foreground hover:bg-primary/90"
-          onClick={() => onSave({ ...form, categoryId: form.categoryId ? Number(form.categoryId) : null, firstImageUrl: imageUrl || undefined })}
+          onClick={() => onSave({
+            ...form,
+            categoryId: form.categoryId ? Number(form.categoryId) : undefined,
+            compareAtPrice: form.compareAtPrice || undefined,
+            firstImageUrl: imageUrl || undefined,
+          })}
         >
           <Check className="w-4 h-4 mr-2" />
           {product ? "Actualizar" : "Crear producto"}
