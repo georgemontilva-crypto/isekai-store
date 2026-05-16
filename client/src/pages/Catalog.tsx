@@ -19,10 +19,10 @@ export default function Catalog() {
   ];
   const searchStr = useSearch();
   const params = new URLSearchParams(searchStr);
-  const initialCategory = params.get("category") ? parseInt(params.get("category")!) : undefined;
+  const categoryParam = params.get("category") ?? "";
   const initialSearch = params.get("search") ?? "";
 
-  const [selectedCategory, setSelectedCategory] = useState<number | undefined>(initialCategory);
+  const [selectedCategory, setSelectedCategory] = useState<number | undefined>(undefined);
   const [search, setSearch] = useState(initialSearch);
   const [debouncedSearch, setDebouncedSearch] = useState(initialSearch);
   const [showFilters, setShowFilters] = useState(false);
@@ -31,6 +31,19 @@ export default function Catalog() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
 
   const { data: categories } = trpc.categories.list.useQuery();
+
+  // Resolve categoryParam (slug or numeric ID) to a numeric ID once categories load
+  useEffect(() => {
+    if (!categoryParam || !categories) return;
+    const numericId = parseInt(categoryParam, 10);
+    if (!isNaN(numericId)) {
+      setSelectedCategory(numericId);
+    } else {
+      const match = categories.find(c => c.slug === categoryParam);
+      setSelectedCategory(match?.id);
+    }
+  }, [categoryParam, categories]);
+
   const { data: productsData, isLoading } = trpc.products.list.useQuery({
     categoryId: selectedCategory,
     search: debouncedSearch || undefined,
