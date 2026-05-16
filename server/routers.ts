@@ -227,36 +227,25 @@ export const appRouter = router({
         // Bold payment link
         if (ENV.boldApiKey) {
           try {
-            const boldRes = await fetch("https://api.bold.co/online/link/v1", {
+            const boldRes = await fetch("https://checkout.bold.co/integration/payment_link", {
               method: "POST",
               headers: {
                 Authorization: `x-api-key ${ENV.boldApiKey}`,
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                amount_type: "CLOSE",
-                amount: {
-                  currency: "COP",
-                  total_amount: Math.round(parseFloat(order.total)),
-                },
-                description: `Pedido ${order.orderNumber}`,
-                metadata: { order_id: String(order.id) },
-                payment_method_types: ["CARD", "PSE", "NEQUI", "DAVIPLATA"],
+                amount_in_cents: Math.round(parseFloat(order.total) * 100),
+                currency: "COP",
+                description: `Pedido ${order.orderNumber} - Isekai World`,
                 redirect_url: `${ENV.appUrl}/checkout/success?order=${order.orderNumber}`,
+                reference: order.orderNumber,
               }),
             });
             console.log("[Bold] status:", boldRes.status);
             const boldData = await boldRes.json();
             console.log("[Bold] response:", JSON.stringify(boldData));
-            if (boldRes.ok && boldData.payload?.url) {
-              return { ...order, paymentUrl: boldData.payload.url as string };
-            }
-            if (boldRes.ok && boldData.payment_link) {
-              return { ...order, paymentUrl: boldData.payment_link as string };
-            }
-            if (boldRes.ok && boldData.url) {
-              return { ...order, paymentUrl: boldData.url as string };
-            }
+            const paymentUrl = boldData.url ?? boldData.payment_url ?? boldData.checkout_url ?? null;
+            return { ...order, paymentUrl: paymentUrl as string | null };
           } catch (err) {
             console.error("[Bold] error:", err);
           }

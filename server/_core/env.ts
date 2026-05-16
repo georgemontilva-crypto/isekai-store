@@ -15,7 +15,7 @@ export const ENV = {
 
   // ── Email: Resend ─────────────────────────────────────────────────────────
   resendApiKey:  process.env.RESEND_API_KEY ?? "",
-  resendFrom:    process.env.RESEND_FROM ?? "noreply@isekaiworld.co",
+  resendFrom:    process.env.RESEND_FROM ?? "ISEKAI WORLD <noreply@isekaiworld.co>",
 
   // ── Storage: Cloudflare R2 ────────────────────────────────────────────────
   r2AccountId:       process.env.R2_ACCOUNT_ID ?? "",
