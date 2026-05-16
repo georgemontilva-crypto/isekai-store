@@ -59,16 +59,13 @@ export default function Navbar() {
   };
 
   const { data: dbCategories } = trpc.categories.list.useQuery();
-  const collectionsMenu = [
-    ...(dbCategories ?? []).slice(0, 4).map((cat, i) => ({
-      label: cat.name,
-      desc: "",
-      img: cat.imageUrl || collectionImgs[i % collectionImgs.length],
-      href: `/catalog?category=${cat.slug}`,
-      dark: false,
-    })),
-    { label: t.nav.collectionsMenu.all.label, desc: t.nav.collectionsMenu.all.desc, img: collectionImgs[4], href: DEFAULT_ALL_HREF, dark: true },
-  ];
+  const collectionsMenu = (dbCategories ?? []).slice(0, 5).map((cat, i) => ({
+    label: cat.name,
+    desc: "",
+    img: cat.imageUrl || collectionImgs[i % collectionImgs.length],
+    href: `/catalog?category=${cat.slug}`,
+    dark: false,
+  }));
   const exploreMenu = [
     { label: t.nav.exploreMenu.about, href: "/nosotros" },
     { label: t.nav.exploreMenu.faq,   href: "/faq" },
