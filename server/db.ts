@@ -239,13 +239,14 @@ export async function upsertProductVariant(data: {
   price?: string;
   stock?: number;
   sku?: string;
+  image?: string;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   if (data.id) {
-    await db.update(productVariants).set({ name: data.name, options: data.options, price: data.price, stock: data.stock ?? 0, sku: data.sku }).where(eq(productVariants.id, data.id));
+    await db.update(productVariants).set({ name: data.name, options: data.options, price: data.price, stock: data.stock ?? 0, sku: data.sku, image: data.image }).where(eq(productVariants.id, data.id));
   } else {
-    await db.insert(productVariants).values({ productId: data.productId, name: data.name, options: data.options, price: data.price, stock: data.stock ?? 0, sku: data.sku });
+    await db.insert(productVariants).values({ productId: data.productId, name: data.name, options: data.options, price: data.price, stock: data.stock ?? 0, sku: data.sku, image: data.image });
   }
 }
 

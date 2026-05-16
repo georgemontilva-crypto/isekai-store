@@ -25,7 +25,10 @@ function VariantManager({ productId }: { productId: number }) {
   const variants = productData?.variants ?? [];
   const [showForm, setShowForm] = useState(false);
   const [editingVariant, setEditingVariant] = useState<any | null>(null);
-  const [vForm, setVForm] = useState({ name: "", price: "", stock: 0, sku: "" });
+  const [vForm, setVForm] = useState({ name: "", price: "", stock: 0, sku: "", image: "" });
+  const [vUploading, setVUploading] = useState(false);
+
+  const uploadVariantImage = trpc.products.uploadImage.useMutation();
 
   const upsertVariant = trpc.products.upsertVariant.useMutation({
     onSuccess: () => { utils.products.byId.invalidate({ id: productId }); setShowForm(false); setEditingVariant(null); toast.success("Variante guardada"); },
@@ -33,6 +36,27 @@ function VariantManager({ productId }: { productId: number }) {
   const deleteVariant = trpc.products.deleteVariant.useMutation({
     onSuccess: () => { utils.products.byId.invalidate({ id: productId }); toast.success("Variante eliminada"); },
   });
+
+  const handleVariantImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setVUploading(true);
+    try {
+      const base64 = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+      const { url } = await uploadVariantImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+      setVForm(f => ({ ...f, image: url }));
+      toast.success("Imagen subida");
+    } catch {
+      toast.error("Error al subir imagen");
+    } finally {
+      setVUploading(false);
+    }
+  };
 
   const handleSave = () => {
     upsertVariant.mutate({
@@ -42,12 +66,13 @@ function VariantManager({ productId }: { productId: number }) {
       price: vForm.price || undefined,
       stock: vForm.stock,
       sku: vForm.sku || undefined,
+      image: vForm.image || undefined,
     });
   };
 
   const startEdit = (v: any) => {
     setEditingVariant(v);
-    setVForm({ name: v.name, price: v.price ?? "", stock: v.stock, sku: v.sku ?? "" });
+    setVForm({ name: v.name, price: v.price ?? "", stock: v.stock, sku: v.sku ?? "", image: v.image ?? "" });
     setShowForm(true);
   };
 
@@ -55,7 +80,7 @@ function VariantManager({ productId }: { productId: number }) {
     <div className="mt-4 border-t border-border/30 pt-4">
       <div className="flex items-center justify-between mb-3">
         <span className="text-sm font-medium text-muted-foreground">Variantes ({variants.length})</span>
-        <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => { setEditingVariant(null); setVForm({ name: "", price: "", stock: 0, sku: "" }); setShowForm(!showForm); }}>
+        <Button size="sm" variant="ghost" className="text-xs text-primary" onClick={() => { setEditingVariant(null); setVForm({ name: "", price: "", stock: 0, sku: "", image: "" }); setShowForm(!showForm); }}>
           <Plus className="w-3 h-3 mr-1" />Agregar variante
         </Button>
       </div>
@@ -76,8 +101,31 @@ function VariantManager({ productId }: { productId: number }) {
                 <Input type="number" value={vForm.stock} onChange={(e) => setVForm({ ...vForm, stock: parseInt(e.target.value) || 0 })} className="mt-1 h-8 text-xs bg-muted border-border/50" />
               </div>
             </div>
+
+            {/* Image upload */}
+            <div className="mt-3">
+              <Label className="text-xs">Imagen de variante</Label>
+              <div className="flex items-center gap-2 mt-1">
+                {vForm.image && (
+                  <img src={vForm.image} className="w-14 h-14 rounded-lg object-cover border border-border/40 shrink-0" />
+                )}
+                <label className="cursor-pointer">
+                  <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors ${vUploading ? "opacity-50 pointer-events-none" : ""}`}>
+                    {vUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                    {vUploading ? "Subiendo..." : "Subir imagen"}
+                  </span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleVariantImageUpload} disabled={vUploading} />
+                </label>
+                {vForm.image && (
+                  <button onClick={() => setVForm(f => ({ ...f, image: "" }))} className="text-xs text-muted-foreground hover:text-destructive transition-colors">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+            </div>
+
             <div className="flex gap-2 mt-3">
-              <Button size="sm" className="bg-primary text-primary-foreground text-xs h-7" onClick={handleSave} disabled={!vForm.name}>
+              <Button size="sm" className="bg-primary text-primary-foreground text-xs h-7" onClick={handleSave} disabled={!vForm.name || upsertVariant.isPending}>
                 <Check className="w-3 h-3 mr-1" />{editingVariant ? "Actualizar" : "Crear"}
               </Button>
               <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowForm(false); setEditingVariant(null); }}>
@@ -91,10 +139,15 @@ function VariantManager({ productId }: { productId: number }) {
         <div className="space-y-1.5">
           {variants.map((v: any) => (
             <div key={v.id} className="flex items-center justify-between px-3 py-2 rounded-lg bg-muted/30 text-xs">
-              <div>
-                <span className="font-medium">{v.name}</span>
-                {v.price && <span className="ml-2 text-primary">${parseFloat(v.price).toFixed(2)}</span>}
-                <span className="ml-2 text-muted-foreground">Stock: {v.stock}</span>
+              <div className="flex items-center gap-2">
+                {v.image && (
+                  <img src={v.image} className="w-8 h-8 rounded-md object-cover border border-border/30 shrink-0" />
+                )}
+                <div>
+                  <span className="font-medium">{v.name}</span>
+                  {v.price && <span className="ml-2 text-primary">${parseFloat(v.price).toFixed(2)}</span>}
+                  <span className="ml-2 text-muted-foreground">Stock: {v.stock}</span>
+                </div>
               </div>
               <div className="flex gap-1">
                 <button onClick={() => startEdit(v)} className="p-1 hover:text-primary transition-colors"><Pencil className="w-3 h-3" /></button>

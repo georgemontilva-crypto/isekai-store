@@ -142,6 +142,7 @@ export const appRouter = router({
         price: z.string().optional(),
         stock: z.number().optional(),
         sku: z.string().optional(),
+        image: z.string().optional(),
       }))
       .mutation(({ input }) => upsertProductVariant(input)),
 

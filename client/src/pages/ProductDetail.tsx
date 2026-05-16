@@ -74,6 +74,7 @@ export default function ProductDetail() {
 
   const currentVariant = product?.variants?.find((v) => v.id === selectedVariant);
   const displayPrice = currentVariant?.price ?? product?.price ?? "0";
+  const variantImage = (currentVariant as any)?.image as string | undefined;
   const isOutOfStock = (currentVariant?.stock ?? product?.stock ?? 0) <= 0;
   const hasDiscount = product?.compareAtPrice && parseFloat(product.compareAtPrice) > parseFloat(displayPrice);
   const discountPct = hasDiscount
@@ -120,7 +121,7 @@ export default function ProductDetail() {
   }
 
   const images = product.images ?? [];
-  const hasImages = images.length > 0;
+  const hasImages = images.length > 0 || !!variantImage;
 
   return (
     <div className="min-h-screen pb-20">
@@ -164,7 +165,18 @@ export default function ProductDetail() {
             {/* Main image */}
             <div className="relative aspect-square rounded-3xl overflow-hidden bg-card border border-border/50 group">
               <AnimatePresence mode="wait">
-                {hasImages ? (
+                {variantImage ? (
+                  <motion.img
+                    key={`variant-${selectedVariant}`}
+                    src={variantImage}
+                    alt={currentVariant?.name ?? product.name}
+                    className="w-full h-full object-cover"
+                    initial={{ opacity: 0, scale: 1.04 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.96 }}
+                    transition={{ duration: 0.35 }}
+                  />
+                ) : hasImages ? (
                   <motion.img
                     key={activeImage}
                     src={images[activeImage]?.url}
@@ -325,7 +337,7 @@ export default function ProductDetail() {
                   {product.variants.map((variant) => (
                     <button
                       key={variant.id}
-                      onClick={() => setSelectedVariant(variant.id === selectedVariant ? undefined : variant.id)}
+                      onClick={() => { setSelectedVariant(variant.id === selectedVariant ? undefined : variant.id); setActiveImage(0); }}
                       disabled={variant.stock <= 0}
                       className={`relative px-4 py-2.5 rounded-xl text-sm font-medium border transition-all duration-200 ${
                         selectedVariant === variant.id

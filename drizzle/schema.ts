@@ -84,6 +84,7 @@ export const productVariants = mysqlTable("productVariants", {
   price: decimal("price", { precision: 10, scale: 2 }),
   stock: int("stock").default(0).notNull(),
   sku: varchar("sku", { length: 128 }),
+  image: varchar("image", { length: 500 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
