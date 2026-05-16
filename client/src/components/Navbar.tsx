@@ -60,14 +60,14 @@ export default function Navbar() {
 
   const { data: dbCategories } = trpc.categories.list.useQuery();
   const collectionsMenu = [
-    ...(dbCategories ?? []).map((cat, i) => ({
+    ...(dbCategories ?? []).slice(0, 4).map((cat, i) => ({
       label: cat.name,
       desc: "",
       img: cat.imageUrl || collectionImgs[i % collectionImgs.length],
-      href: `/catalog?category=${cat.id}`,
+      href: `/catalog?category=${cat.slug}`,
       dark: false,
     })),
-    { ...t.nav.collectionsMenu.all, img: collectionImgs[4], href: DEFAULT_ALL_HREF, dark: true },
+    { label: t.nav.collectionsMenu.all.label, desc: t.nav.collectionsMenu.all.desc, img: collectionImgs[4], href: DEFAULT_ALL_HREF, dark: true },
   ];
   const exploreMenu = [
     { label: t.nav.exploreMenu.about, href: "/nosotros" },
