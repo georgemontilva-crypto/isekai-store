@@ -362,53 +362,7 @@ export default function Home() {
       </section>
 
       {/* ══════════════════════════════════════════════
-          2. BRAND STORY
-      ══════════════════════════════════════════════ */}
-      <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6 px-[8px]">
-        {/* Same 8px side margin as hero carousel prev/next slides */}
-        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-0">
-          {/* LEFT: image island with same 8px left margin as hero */}
-          <div
-            className="overflow-hidden"
-            style={{ height: isMobile ? '180px' : '240px', borderRadius: '18px' }}
-          >
-            <img
-              src={settings?.["brand_story_image"] || "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"}
-              alt="Figuras coleccionables 3D anime"
-              className="w-full h-full object-cover"
-            />
-          </div>
-          {/* RIGHT: brand statement */}
-          <div className="flex flex-col justify-center px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">
-              {settings?.["brand_story_label"] ?? t.home.brandStory.label}
-            </p>
-            <h2
-              style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
-              className="text-2xl md:text-3xl lg:text-4xl font-black text-[#1a1a1a] mb-0"
-            >
-              {settings?.["brand_story_heading"] ?? t.home.brandStory.heading}{" "}
-              <span
-                style={{
-                  fontFamily: "'Orbitron', sans-serif",
-                  background: "linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {settings?.["brand_story_highlight"] ?? t.home.brandStory.highlight}
-              </span>
-            </h2>
-            <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
-              {settings?.["brand_story_body"] ?? t.home.brandStory.body}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════
-          3. COLLECTIONS CAROUSEL (Shopify Concept style)
+          2. COLLECTIONS CAROUSEL (Shopify Concept style)
       ══════════════════════════════════════════════ */}
       <section className="bg-white border-b border-[#ebebeb] py-0">
         {/* 5 cards visible, scrollable, 8px left margin matching hero */}
@@ -475,6 +429,52 @@ export default function Home() {
               </div>
             </Link>
           );})}
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════
+          3. BRAND STORY
+      ══════════════════════════════════════════════ */}
+      <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6 px-[8px]">
+        {/* Same 8px side margin as hero carousel prev/next slides */}
+        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-0">
+          {/* LEFT: image island with same 8px left margin as hero */}
+          <div
+            className="overflow-hidden"
+            style={{ height: isMobile ? '180px' : '240px', borderRadius: '18px' }}
+          >
+            <img
+              src={settings?.["brand_story_image"] || "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"}
+              alt="Figuras coleccionables 3D anime"
+              className="w-full h-full object-cover"
+            />
+          </div>
+          {/* RIGHT: brand statement */}
+          <div className="flex flex-col justify-center px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
+            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">
+              {settings?.["brand_story_label"] ?? t.home.brandStory.label}
+            </p>
+            <h2
+              style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
+              className="text-2xl md:text-3xl lg:text-4xl font-black text-[#1a1a1a] mb-0"
+            >
+              {settings?.["brand_story_heading"] ?? t.home.brandStory.heading}{" "}
+              <span
+                style={{
+                  fontFamily: "'Orbitron', sans-serif",
+                  background: "linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                {settings?.["brand_story_highlight"] ?? t.home.brandStory.highlight}
+              </span>
+            </h2>
+            <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
+              {settings?.["brand_story_body"] ?? t.home.brandStory.body}
+            </p>
+          </div>
         </div>
       </section>
 
