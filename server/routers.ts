@@ -272,8 +272,13 @@ export const appRouter = router({
       .query(({ input }) => getOrderById(input.id)),
 
     updateStatus: adminProcedure
-      .input(z.object({ id: z.number(), status: z.enum(["pending", "processing", "shipped", "delivered", "cancelled"]) }))
-      .mutation(({ input }) => updateOrderStatus(input.id, input.status)),
+      .input(z.object({
+        id: z.number(),
+        status: z.enum(["pending","preparing","printing","post_printing","packed","shipped","delivered","cancelled"]),
+        trackingNumber: z.string().optional(),
+        trackingCarrier: z.string().optional(),
+      }))
+      .mutation(({ input }) => updateOrderStatus(input.id, input.status, input.trackingNumber, input.trackingCarrier)),
   }),
 
   // ─── Site Settings ────────────────────────────────────────────────────────────────────────────────────────

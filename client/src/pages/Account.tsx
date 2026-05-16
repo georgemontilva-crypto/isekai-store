@@ -126,12 +126,31 @@ function LoginPage() {
   );
 }
 
+const ORDER_STEPS = [
+  { key: "pending",       label: "Orden creada",    icon: "📋" },
+  { key: "preparing",     label: "En preparación",  icon: "⚙️" },
+  { key: "printing",      label: "En impresión 3D", icon: "🖨️" },
+  { key: "post_printing", label: "Post impresión",  icon: "✨" },
+  { key: "packed",        label: "Empacada",        icon: "📦" },
+  { key: "shipped",       label: "Enviada",         icon: "🚚" },
+  { key: "delivered",     label: "Entregada",       icon: "✅" },
+] as const;
+
+const STATUS_MESSAGES: Record<string, string> = {
+  printing:  "¡Tu figura está siendo impresa en 3D! 🖨️",
+  shipped:   "¡Tu pedido está en camino! 🚚",
+  delivered: "¡Disfruta tu figura! ¡Gracias por tu compra! 🎉",
+};
+
 const STATUS_COLORS: Record<string, string> = {
-  pending:    "bg-yellow-50 text-yellow-700 border border-yellow-200",
-  processing: "bg-blue-50 text-blue-700 border border-blue-200",
-  shipped:    "bg-purple-50 text-purple-700 border border-purple-200",
-  delivered:  "bg-green-50 text-green-700 border border-green-200",
-  cancelled:  "bg-red-50 text-red-700 border border-red-200",
+  pending:       "bg-[#f5f5f5] text-[#555]",
+  preparing:     "bg-blue-50 text-blue-700",
+  printing:      "bg-violet-50 text-violet-700",
+  post_printing: "bg-purple-50 text-purple-700",
+  packed:        "bg-orange-50 text-orange-700",
+  shipped:       "bg-indigo-50 text-indigo-700",
+  delivered:     "bg-green-50 text-green-700",
+  cancelled:     "bg-red-50 text-red-700",
 };
 
 type Tab = "orders" | "wishlist" | "coupons" | "profile";
@@ -149,12 +168,16 @@ export default function Account() {
   const [activeTab, setActiveTab] = useState<Tab>("orders");
 
   const statusLabels: Record<string, string> = {
-    pending:    t.account.status.pending,
-    processing: t.account.status.processing,
-    shipped:    t.account.status.shipped,
-    delivered:  t.account.status.delivered,
-    cancelled:  t.account.status.cancelled,
+    pending:       "Orden creada",
+    preparing:     "En preparación",
+    printing:      "En impresión 3D",
+    post_printing: "Post impresión",
+    packed:        "Empacada",
+    shipped:       "Enviada",
+    delivered:     "Entregada",
+    cancelled:     "Cancelada",
   };
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
 
   const { data: ordersData, isLoading: ordersLoading } = trpc.orders.myOrders.useQuery(
     undefined,
@@ -263,33 +286,117 @@ export default function Account() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {orders.map((order, i) => (
-                      <motion.div
-                        key={order.id}
-                        initial={{ opacity: 0, y: 8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: i * 0.04 }}
-                        className="p-4 rounded-2xl border border-[#ebebeb] hover:border-[#1a1a1a]/20 transition-colors bg-white"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <span className="font-semibold text-sm text-[#1a1a1a]">{order.orderNumber}</span>
-                              <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${STATUS_COLORS[order.status] ?? "bg-[#f5f5f5] text-[#555]"}`}>
-                                {statusLabels[order.status] ?? order.status}
-                              </span>
+                    {orders.map((order, i) => {
+                      const isExpanded = expandedOrderId === order.id;
+                      const currentIdx = ORDER_STEPS.findIndex(s => s.key === order.status);
+                      const isCancelled = order.status === "cancelled";
+                      const statusMsg = STATUS_MESSAGES[order.status];
+                      const hasTracking = ["shipped", "delivered"].includes(order.status) && ((order as any).trackingNumber || (order as any).trackingCarrier);
+                      return (
+                        <motion.div
+                          key={order.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.04 }}
+                          className="rounded-2xl border border-[#ebebeb] bg-white overflow-hidden"
+                        >
+                          {/* Header */}
+                          <button
+                            className="w-full p-4 text-left hover:bg-[#fafafa] transition-colors"
+                            onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                          >
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                  <span className="font-semibold text-sm text-[#1a1a1a]">{order.orderNumber}</span>
+                                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${STATUS_COLORS[order.status] ?? "bg-[#f5f5f5] text-[#555]"}`}>
+                                    {statusLabels[order.status] ?? order.status}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-[#888]">
+                                  <Clock className="w-3 h-3" />
+                                  <span>{new Date(order.createdAt).toLocaleDateString("es-CO")}</span>
+                                  <span>·</span>
+                                  <span className="font-semibold text-[#1a1a1a]">${parseFloat(order.total).toFixed(2)}</span>
+                                </div>
+                              </div>
+                              <ChevronRight className={`w-4 h-4 text-[#ccc] transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`} />
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-[#888]">
-                              <Clock className="w-3 h-3" />
-                              <span>{new Date(order.createdAt).toLocaleDateString("es-CO")}</span>
-                              <span>·</span>
-                              <span className="font-semibold text-[#1a1a1a]">${parseFloat(order.total).toFixed(2)}</span>
-                            </div>
-                          </div>
-                          <ChevronRight className="w-4 h-4 text-[#ccc]" />
-                        </div>
-                      </motion.div>
-                    ))}
+                          </button>
+
+                          {/* Expanded timeline */}
+                          <AnimatePresence>
+                            {isExpanded && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                transition={{ duration: 0.25 }}
+                                className="overflow-hidden"
+                              >
+                                <div className="px-4 pb-4 border-t border-[#f0f0f0]">
+                                  {/* Motivational message */}
+                                  {statusMsg && (
+                                    <div className="mt-3 mb-3 p-3 rounded-xl bg-[#f5f5f5] text-[13px] font-medium text-[#1a1a1a] text-center">
+                                      {statusMsg}
+                                    </div>
+                                  )}
+                                  {isCancelled && (
+                                    <div className="mt-3 mb-3 p-3 rounded-xl bg-red-50 text-[13px] font-medium text-red-600 text-center">
+                                      Este pedido fue cancelado.
+                                    </div>
+                                  )}
+
+                                  {/* Timeline */}
+                                  {!isCancelled && (
+                                    <div className="mt-3 overflow-x-auto">
+                                      <div className="flex items-start gap-0 min-w-max pb-1">
+                                        {ORDER_STEPS.map((step, si) => {
+                                          const isDone = si < currentIdx;
+                                          const isCurrent = si === currentIdx;
+                                          return (
+                                            <div key={step.key} className="flex items-center">
+                                              <div className="flex flex-col items-center gap-1 w-14">
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
+                                                  isDone ? "bg-[#22c55e] text-white" :
+                                                  isCurrent ? "bg-[#1a1a1a] text-white ring-2 ring-offset-1 ring-[#1a1a1a] animate-pulse" :
+                                                  "bg-[#f0f0f0] text-[#bbb]"
+                                                }`}>
+                                                  {isDone ? "✓" : step.icon}
+                                                </div>
+                                                <span className={`text-[9px] text-center leading-tight w-full px-0.5 ${isCurrent ? "font-bold text-[#1a1a1a]" : "text-[#aaa]"}`}>
+                                                  {step.label}
+                                                </span>
+                                              </div>
+                                              {si < ORDER_STEPS.length - 1 && (
+                                                <div className={`w-4 h-0.5 mb-4 ${si < currentIdx ? "bg-[#22c55e]" : "bg-[#e0e0e0]"}`} />
+                                              )}
+                                            </div>
+                                          );
+                                        })}
+                                      </div>
+                                    </div>
+                                  )}
+
+                                  {/* Tracking info */}
+                                  {hasTracking && (
+                                    <div className="mt-3 p-3 rounded-xl border border-[#ebebeb] text-sm">
+                                      <p className="font-semibold text-[#1a1a1a] mb-1">📦 Información de envío</p>
+                                      {(order as any).trackingCarrier && (
+                                        <p className="text-[#555]">Transportadora: <span className="font-medium">{(order as any).trackingCarrier}</span></p>
+                                      )}
+                                      {(order as any).trackingNumber && (
+                                        <p className="text-[#555]">N° de guía: <span className="font-mono font-medium">{(order as any).trackingNumber}</span></p>
+                                      )}
+                                    </div>
+                                  )}
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 )}
               </div>

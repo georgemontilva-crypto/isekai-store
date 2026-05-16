@@ -161,13 +161,175 @@ function VariantManager({ productId }: { productId: number }) {
   );
 }
 
+const ORDER_STEPS = [
+  { key: "pending",       label: "Orden creada",    icon: "📋" },
+  { key: "preparing",     label: "En preparación",  icon: "⚙️" },
+  { key: "printing",      label: "En impresión 3D", icon: "🖨️" },
+  { key: "post_printing", label: "Post impresión",  icon: "✨" },
+  { key: "packed",        label: "Empacada",        icon: "📦" },
+  { key: "shipped",       label: "Enviada",         icon: "🚚" },
+  { key: "delivered",     label: "Entregada",       icon: "✅" },
+] as const;
+
 const statusLabels: Record<string, string> = {
-  pending: "Pendiente",
-  processing: "Procesando",
-  shipped: "Enviado",
-  delivered: "Entregado",
-  cancelled: "Cancelado",
+  pending:       "Orden creada",
+  preparing:     "En preparación",
+  printing:      "En impresión 3D",
+  post_printing: "Post impresión",
+  packed:        "Empacada",
+  shipped:       "Enviada",
+  delivered:     "Entregada",
+  cancelled:     "Cancelada",
 };
+
+// ─── Admin Order Detail ───────────────────────────────────────────────────────
+function AdminOrderDetail({
+  order,
+  onSaved,
+  onClose,
+}: {
+  order: any;
+  onSaved: () => void;
+  onClose: () => void;
+}) {
+  const { data: detail } = trpc.orders.adminById.useQuery({ id: order.id });
+  const [pendingStatus, setPendingStatus] = useState<string>(order.status);
+  const [trackingNumber, setTrackingNumber] = useState<string>(order.trackingNumber ?? "");
+  const [trackingCarrier, setTrackingCarrier] = useState<string>(order.trackingCarrier ?? "");
+  const updateStatus = trpc.orders.updateStatus.useMutation({
+    onSuccess: () => { onSaved(); toast.success("Pedido actualizado"); },
+  });
+
+  const currentIdx = ORDER_STEPS.findIndex(s => s.key === pendingStatus);
+  const isShippedOrLater = ["shipped", "delivered"].includes(pendingStatus);
+
+  return (
+    <div className="border-t border-border/30 pt-4 mt-3 space-y-5">
+      {/* Items */}
+      {detail?.items && detail.items.length > 0 && (
+        <div>
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Productos</p>
+          <div className="space-y-2">
+            {detail.items.map((item: any) => (
+              <div key={item.id} className="flex items-center gap-3 text-sm">
+                {item.imageUrl && <img src={item.imageUrl} className="w-9 h-9 rounded-lg object-cover bg-muted shrink-0" />}
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{item.productName}</p>
+                  {item.variantName && <p className="text-xs text-muted-foreground">{item.variantName}</p>}
+                </div>
+                <span className="text-muted-foreground shrink-0">×{item.quantity}</span>
+                <span className="font-semibold shrink-0">${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Timeline */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Estado del pedido</p>
+        <div className="flex items-start gap-0 overflow-x-auto pb-1">
+          {ORDER_STEPS.map((step, i) => {
+            const isDone = i < currentIdx;
+            const isCurrent = i === currentIdx;
+            return (
+              <div key={step.key} className="flex items-center shrink-0">
+                <div className="flex flex-col items-center gap-1 w-14">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                    isDone ? "bg-[#22c55e] text-white" :
+                    isCurrent ? "bg-[#1a1a1a] text-white ring-2 ring-offset-1 ring-[#1a1a1a]" :
+                    "bg-[#f0f0f0] text-[#aaa]"
+                  }`}>
+                    {isDone ? "✓" : step.icon}
+                  </div>
+                  <span className="text-[9px] text-center leading-tight text-muted-foreground w-full px-0.5">{step.label}</span>
+                </div>
+                {i < ORDER_STEPS.length - 1 && (
+                  <div className={`w-4 h-0.5 mb-4 shrink-0 ${i < currentIdx ? "bg-[#22c55e]" : "bg-[#e0e0e0]"}`} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Status buttons */}
+      <div>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Cambiar estado</p>
+        <div className="flex flex-wrap gap-2">
+          {ORDER_STEPS.map(step => (
+            <button
+              key={step.key}
+              onClick={() => setPendingStatus(step.key)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+                pendingStatus === step.key
+                  ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
+                  : "border-border/50 text-muted-foreground hover:border-foreground hover:text-foreground"
+              }`}
+            >
+              {step.icon} {step.label}
+            </button>
+          ))}
+          <button
+            onClick={() => setPendingStatus("cancelled")}
+            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+              pendingStatus === "cancelled"
+                ? "bg-red-500 text-white border-red-500"
+                : "border-border/50 text-muted-foreground hover:border-red-400 hover:text-red-500"
+            }`}
+          >
+            ❌ Cancelada
+          </button>
+        </div>
+      </div>
+
+      {/* Tracking fields */}
+      {isShippedOrLater && (
+        <div className="grid sm:grid-cols-2 gap-3">
+          <div>
+            <Label className="text-xs font-medium">Número de guía / tracking</Label>
+            <Input
+              value={trackingNumber}
+              onChange={e => setTrackingNumber(e.target.value)}
+              placeholder="Ej: 123456789"
+              className="mt-1 text-sm bg-muted border-border/50"
+            />
+          </div>
+          <div>
+            <Label className="text-xs font-medium">Transportadora</Label>
+            <Input
+              value={trackingCarrier}
+              onChange={e => setTrackingCarrier(e.target.value)}
+              placeholder="Ej: Envia, Servientrega, Coordinadora"
+              className="mt-1 text-sm bg-muted border-border/50"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="flex gap-2 pt-1">
+        <Button
+          size="sm"
+          className="bg-primary text-primary-foreground"
+          disabled={updateStatus.isPending}
+          onClick={() => updateStatus.mutate({
+            id: order.id,
+            status: pendingStatus as any,
+            trackingNumber: trackingNumber || undefined,
+            trackingCarrier: trackingCarrier || undefined,
+          })}
+        >
+          <Save className="w-3.5 h-3.5 mr-1.5" />
+          {updateStatus.isPending ? "Guardando..." : "Guardar cambios"}
+        </Button>
+        <Button size="sm" variant="outline" onClick={onClose}>
+          <X className="w-3.5 h-3.5 mr-1.5" /> Cerrar
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 // ─── Product Form ─────────────────────────────────────────────────────────────
 function ProductForm({
@@ -387,6 +549,7 @@ export default function Admin() {
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
+  const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [igToken, setIgToken] = useState("");
   const [igUsername, setIgUsername] = useState("");
   const [igCtaText, setIgCtaText] = useState("");
@@ -857,38 +1020,59 @@ export default function Admin() {
               <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
                 <div className="space-y-3">
-                  {orders.map((order) => (
-                    <div key={order.id} className="p-4 rounded-2xl bg-card border border-border/50">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div>
-                          <div className="flex items-center gap-3 mb-1">
-                            <span className="font-semibold">{order.orderNumber}</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs status-${order.status}`}>
-                              {statusLabels[order.status]}
-                            </span>
+                  {orders.map((order) => {
+                    const isExpanded = expandedOrderId === order.id;
+                    return (
+                      <div key={order.id} className="rounded-2xl bg-card border border-border/50 overflow-hidden">
+                        {/* Header row */}
+                        <button
+                          className="w-full p-4 text-left hover:bg-muted/30 transition-colors"
+                          onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                        >
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                            <div>
+                              <div className="flex items-center gap-3 mb-1 flex-wrap">
+                                <span className="font-semibold">{order.orderNumber}</span>
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0f0f0] text-[#555]">
+                                  {statusLabels[order.status] ?? order.status}
+                                </span>
+                                {order.status === "cancelled" && (
+                                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Cancelada</span>
+                                )}
+                              </div>
+                              <p className="text-sm text-muted-foreground">{order.customerName} · {order.customerEmail}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
+                            </div>
+                            <div className="flex items-center gap-3 shrink-0">
+                              <span className="font-bold text-base">${parseFloat(order.total).toFixed(2)}</span>
+                              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground">{order.customerName} · {order.customerEmail}</p>
-                          <p className="text-sm text-primary font-semibold mt-1">${parseFloat(order.total).toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={order.status}
-                            onValueChange={(val) => updateOrderStatus.mutate({ id: order.id, status: val as any })}
-                          >
-                            <SelectTrigger className="bg-muted border-border/50 text-sm w-36">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {Object.entries(statusLabels).map(([val, label]) => (
-                                <SelectItem key={val} value={val}>{label}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
+                        </button>
+
+                        {/* Expanded detail */}
+                        <AnimatePresence>
+                          {isExpanded && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: "auto", opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25, ease: "easeInOut" }}
+                              className="overflow-hidden"
+                            >
+                              <div className="px-4 pb-4">
+                                <AdminOrderDetail
+                                  order={order}
+                                  onSaved={() => { refetchOrders(); }}
+                                  onClose={() => setExpandedOrderId(null)}
+                                />
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                   {orders.length === 0 && (
                     <div className="text-center py-16 text-muted-foreground">
                       <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30" />

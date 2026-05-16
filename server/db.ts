@@ -417,10 +417,19 @@ export async function getOrderByNumber(orderNumber: string) {
   return { ...order, items };
 }
 
-export async function updateOrderStatus(id: number, status: Order["status"]) {
+export async function updateOrderStatus(
+  id: number,
+  status: Order["status"],
+  trackingNumber?: string,
+  trackingCarrier?: string
+) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  await db.update(orders).set({ status }).where(eq(orders.id, id));
+  await db.update(orders).set({
+    status,
+    ...(trackingNumber !== undefined ? { trackingNumber } : {}),
+    ...(trackingCarrier !== undefined ? { trackingCarrier } : {}),
+  }).where(eq(orders.id, id));
 }
 
 // ─── Dashboard Metrics ────────────────────────────────────────────────────────

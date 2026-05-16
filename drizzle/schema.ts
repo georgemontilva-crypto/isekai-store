@@ -126,13 +126,18 @@ export const orders = mysqlTable("orders", {
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   status: mysqlEnum("status", [
     "pending",
-    "processing",
+    "preparing",
+    "printing",
+    "post_printing",
+    "packed",
     "shipped",
     "delivered",
     "cancelled",
   ])
     .default("pending")
     .notNull(),
+  trackingNumber: varchar("trackingNumber", { length: 255 }),
+  trackingCarrier: varchar("trackingCarrier", { length: 100 }),
   notes: text("notes"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
