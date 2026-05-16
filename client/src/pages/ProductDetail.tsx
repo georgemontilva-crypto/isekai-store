@@ -151,7 +151,7 @@ export default function ProductDetail() {
         </div>
       </div>
 
-      <div className="container px-4 pt-8 md:pt-10">
+      <div className="container px-4 pt-16 md:pt-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
 
           {/* ══════════════════════════════════════════════════════════════════
