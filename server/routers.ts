@@ -16,6 +16,7 @@ import {
   getDashboardMetrics, getAllSettings, upsertSetting,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
+  getWishlist, toggleWishlist, isInWishlist,
 } from "./db";
 
 // Admin guard middleware
@@ -312,6 +313,19 @@ export const appRouter = router({
         } catch (e) { console.error("Failed to insert subscriber notification:", e); }
         return { success: true };
       }),
+  }),
+
+  // ─── Wishlist ────────────────────────────────────────────────────────────────
+  wishlist: router({
+    getAll: protectedProcedure.query(({ ctx }) => getWishlist(ctx.user.id)),
+
+    isSaved: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(({ ctx, input }) => isInWishlist(ctx.user.id, input.productId)),
+
+    toggle: protectedProcedure
+      .input(z.object({ productId: z.number() }))
+      .mutation(({ ctx, input }) => toggleWishlist(ctx.user.id, input.productId)),
   }),
 
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────

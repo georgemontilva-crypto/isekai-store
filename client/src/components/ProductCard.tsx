@@ -4,6 +4,9 @@ import { Star, ShoppingBag, Heart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { useLang } from "@/i18n/LangContext";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { openLoginModal } from "@/const";
 
 interface ProductCardProps {
   id: number;
@@ -31,9 +34,24 @@ export default function ProductCard({
   isNew,
 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
-  const [wishlist, setWishlist] = useState(false);
   const { t } = useLang();
+  const { isAuthenticated } = useAuth();
   const { addItem, isLoading } = useCart();
+  const utils = trpc.useUtils();
+
+  const { data: savedData } = trpc.wishlist.isSaved.useQuery(
+    { productId: id },
+    { enabled: isAuthenticated }
+  );
+  const saved = savedData ?? false;
+
+  const toggleMutation = trpc.wishlist.toggle.useMutation({
+    onSuccess: (data) => {
+      utils.wishlist.isSaved.invalidate({ productId: id });
+      utils.wishlist.getAll.invalidate();
+      toast.success(data.saved ? "¡Guardado!" : "Eliminado de guardados");
+    },
+  });
 
   const numPrice = parseFloat(price);
   const numCompare = compareAtPrice ? parseFloat(compareAtPrice) : null;
@@ -58,7 +76,12 @@ export default function ProductCard({
   const handleWishlist = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    setWishlist(w => !w);
+    if (!isAuthenticated) {
+      toast.error("Inicia sesión para guardar productos");
+      openLoginModal();
+      return;
+    }
+    toggleMutation.mutate({ productId: id });
   };
 
   return (
@@ -106,12 +129,12 @@ export default function ProductCard({
           <button
             onClick={handleWishlist}
             className={`absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center shadow-sm transition-all duration-200 ${
-              wishlist
+              saved
                 ? "bg-[#1a1a1a] text-white opacity-100"
                 : "bg-white text-[#1a1a1a] opacity-0 group-hover:opacity-100"
             }`}
           >
-            <Heart size={13} fill={wishlist ? "currentColor" : "none"} />
+            <Heart size={13} fill={saved ? "currentColor" : "none"} />
           </button>
 
           {/* Add to cart overlay */}

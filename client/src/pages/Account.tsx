@@ -162,6 +162,12 @@ export default function Account() {
   );
   const orders = ordersData?.items ?? [];
 
+  const { data: wishlistData, isLoading: wishlistLoading } = trpc.wishlist.getAll.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+  const wishlistItems = wishlistData ?? [];
+
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -291,17 +297,49 @@ export default function Account() {
 
             {/* WISHLIST */}
             {activeTab === "wishlist" && (
-              <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
-                <Heart className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
-                <p className="font-medium text-[#1a1a1a]">No tienes productos guardados aún</p>
-                <p className="text-sm text-[#888] mt-1 mb-6">Guarda tus productos favoritos para encontrarlos fácilmente</p>
-                <Link href="/catalog">
-                  <button className="btn-pill text-sm">
-                    <ShoppingBag className="w-3.5 h-3.5 mr-1.5 inline" />
-                    Explorar tienda
-                  </button>
-                </Link>
-              </div>
+              wishlistLoading ? (
+                <div className="grid grid-cols-2 gap-3">
+                  {[1,2,3,4].map(i => <div key={i} className="h-48 rounded-2xl bg-[#f5f5f5] animate-pulse" />)}
+                </div>
+              ) : wishlistItems.length === 0 ? (
+                <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                  <Heart className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
+                  <p className="font-medium text-[#1a1a1a]">No tienes productos guardados aún</p>
+                  <p className="text-sm text-[#888] mt-1 mb-6">Guarda tus productos favoritos para encontrarlos fácilmente</p>
+                  <Link href="/catalog">
+                    <button className="btn-pill text-sm">
+                      <ShoppingBag className="w-3.5 h-3.5 mr-1.5 inline" />
+                      Explorar tienda
+                    </button>
+                  </Link>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                  {wishlistItems.map((item, i) => item.product && (
+                    <motion.div
+                      key={item.id}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                    >
+                      <Link href={`/product/${item.product.slug}`}>
+                        <div className="rounded-2xl border border-[#ebebeb] overflow-hidden hover:border-[#1a1a1a]/20 transition-colors bg-white">
+                          <div className="aspect-square bg-[#f5f5f5] overflow-hidden">
+                            {item.product.imageUrl
+                              ? <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                              : <div className="w-full h-full flex items-center justify-center text-[#ccc]"><ShoppingBag className="w-8 h-8" /></div>
+                            }
+                          </div>
+                          <div className="p-3">
+                            <p className="text-xs font-medium text-[#1a1a1a] truncate">{item.product.name}</p>
+                            <p className="text-xs text-[#888] mt-0.5">${parseFloat(item.product.price).toFixed(2)}</p>
+                          </div>
+                        </div>
+                      </Link>
+                    </motion.div>
+                  ))}
+                </div>
+              )
             )}
 
             {/* COUPONS */}

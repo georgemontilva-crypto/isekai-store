@@ -7,25 +7,50 @@ import {
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { Button } from "@/components/ui/button";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
+import { openLoginModal } from "@/const";
 
 export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
   const { addItem } = useCart();
+  const { isAuthenticated } = useAuth();
   const [selectedVariant, setSelectedVariant] = useState<number | undefined>();
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
   const [adding, setAdding] = useState(false);
-  const [wishlisted, setWishlisted] = useState(false);
 
   const { t } = useLang();
   const { data: product, isLoading } = trpc.products.bySlug.useQuery(
     { slug: params.slug ?? "" },
     { enabled: !!params.slug }
   );
+
+  const utils = trpc.useUtils();
+  const { data: savedData } = trpc.wishlist.isSaved.useQuery(
+    { productId: product?.id ?? 0 },
+    { enabled: isAuthenticated && !!product?.id }
+  );
+  const wishlisted = savedData ?? false;
+  const toggleWishlist = trpc.wishlist.toggle.useMutation({
+    onSuccess: (data) => {
+      utils.wishlist.isSaved.invalidate({ productId: product?.id });
+      utils.wishlist.getAll.invalidate();
+      toast.success(data.saved ? "¡Guardado!" : "Eliminado de guardados");
+    },
+  });
+
+  const handleWishlist = () => {
+    if (!isAuthenticated) {
+      toast.error("Inicia sesión para guardar productos");
+      openLoginModal();
+      return;
+    }
+    if (product) toggleWishlist.mutate({ productId: product.id });
+  };
 
   // Related products from same category
   const { data: relatedData } = trpc.products.list.useQuery(
@@ -237,7 +262,7 @@ export default function ProductDetail() {
               )}
               <div className="flex items-center gap-2 ml-auto">
                 <button
-                  onClick={() => { setWishlisted(!wishlisted); toast.success(wishlisted ? t.product.removedFromWishlist : t.product.addedToWishlist); }}
+                  onClick={handleWishlist}
                   className={`p-2 rounded-xl border transition-all duration-200 ${wishlisted ? "border-red-500/50 bg-red-500/10 text-red-400" : "border-border/50 text-muted-foreground hover:border-border hover:text-foreground"}`}
                 >
                   <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />

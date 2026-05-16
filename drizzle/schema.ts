@@ -193,3 +193,11 @@ export const adminNotifications = mysqlTable("adminNotifications", {
 
 export type AdminNotification = typeof adminNotifications.$inferSelect;
 export type InsertAdminNotification = typeof adminNotifications.$inferInsert;
+
+// ─── Wishlist ──────────────────────────────────────────────────────────────────
+export const wishlist = mysqlTable("wishlist", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  productId: int("productId").notNull().references(() => products.id),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});

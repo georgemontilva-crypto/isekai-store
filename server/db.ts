@@ -16,6 +16,7 @@ import {
   authTokens,
   adminNotifications,
   AdminNotification,
+  wishlist,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -543,4 +544,40 @@ export async function markAdminNotificationRead(id: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
   await db.update(adminNotifications).set({ read: true }).where(eq(adminNotifications.id, id));
+}
+
+// ─── Wishlist ──────────────────────────────────────────────────────────────────
+export async function getWishlist(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const rows = await db
+    .select()
+    .from(wishlist)
+    .leftJoin(products, eq(wishlist.productId, products.id))
+    .leftJoin(productImages, and(eq(productImages.productId, products.id), eq(productImages.position, 0)))
+    .where(eq(wishlist.userId, userId));
+  return rows.map(r => ({ ...r.wishlist, product: r.products ? { ...r.products, imageUrl: r.productImages?.url ?? null } : null }));
+}
+
+export async function toggleWishlist(userId: number, productId: number): Promise<{ saved: boolean }> {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const existing = await db.select().from(wishlist)
+    .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)))
+    .limit(1);
+  if (existing.length) {
+    await db.delete(wishlist).where(eq(wishlist.id, existing[0].id));
+    return { saved: false };
+  }
+  await db.insert(wishlist).values({ userId, productId });
+  return { saved: true };
+}
+
+export async function isInWishlist(userId: number, productId: number): Promise<boolean> {
+  const db = await getDb();
+  if (!db) return false;
+  const rows = await db.select().from(wishlist)
+    .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)))
+    .limit(1);
+  return rows.length > 0;
 }
