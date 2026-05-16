@@ -9,7 +9,7 @@ function useWindowWidth() {
   }, [handler]);
   return width;
 }
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import ProductCard from "@/components/ProductCard";
@@ -243,8 +243,8 @@ function InstagramFeedSection() {
 
 export default function Home() {
   const { t } = useLang();
+  const [, navigate] = useLocation();
   const [heroIdx, setHeroIdx] = useState(0);
-  const [activeTabId, setActiveTabId] = useState<number | null>(null);
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 640;
   const isTablet = windowWidth >= 640 && windowWidth < 1024;
@@ -259,7 +259,6 @@ export default function Home() {
     limit: 12,
     status: "published",
     featured: true,
-    categoryId: activeTabId ?? undefined,
   });
   const { data: settings } = trpc.settings.getAll.useQuery();
   const products = productsData?.items ?? [];
@@ -590,16 +589,16 @@ export default function Home() {
               }}
             >
               <button
-                onClick={() => setActiveTabId(null)}
-                className={`tab-pill flex-shrink-0 ${activeTabId === null ? 'active' : ''}`}
+                onClick={() => navigate('/catalog')}
+                className="tab-pill flex-shrink-0"
               >
                 Todo
               </button>
               {(categories ?? []).map(cat => (
                 <button
                   key={cat.id}
-                  onClick={() => setActiveTabId(cat.id)}
-                  className={`tab-pill flex-shrink-0 ${activeTabId === cat.id ? 'active' : ''}`}
+                  onClick={() => navigate(`/catalog?category=${cat.slug}`)}
+                  className="tab-pill flex-shrink-0"
                 >
                   {cat.name}
                 </button>

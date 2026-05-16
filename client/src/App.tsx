@@ -52,6 +52,14 @@ function WelcomeToastHandler() {
   return null;
 }
 
+function ScrollToTop() {
+  const [location] = useLocation();
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' });
+  }, [location]);
+  return null;
+}
+
 function Router() {
   return (
     <Switch>
@@ -76,6 +84,7 @@ function Layout() {
 
   return (
     <>
+      <ScrollToTop />
       <WelcomeToastHandler />
       <Navbar />
       <main className="min-h-screen">
