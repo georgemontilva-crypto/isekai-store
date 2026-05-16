@@ -2,13 +2,13 @@ import { ClipboardList, Settings2, Layers, Sparkles, Package, Truck, CheckCircle
 import { cn } from "@/lib/utils";
 
 export const ORDER_STEPS = [
-  { key: "pending",       label: "Orden creada",    Icon: ClipboardList, desc: "Recibimos tu pedido y ya lo estamos procesando" },
-  { key: "preparing",     label: "En preparación",  Icon: Settings2,     desc: "Nuestro equipo está preparando tu figura" },
-  { key: "printing",      label: "En impresión 3D", Icon: Layers,        desc: "Tu figura está siendo impresa en 3D" },
-  { key: "post_printing", label: "Post impresión",  Icon: Sparkles,      desc: "Aplicando los toques finales a tu figura" },
-  { key: "packed",        label: "Empacada",        Icon: Package,       desc: "Tu pedido está listo y empacado" },
-  { key: "shipped",       label: "Enviada",         Icon: Truck,         desc: "Tu pedido está en camino — pronto llegará" },
-  { key: "delivered",     label: "Entregada",       Icon: CheckCircle2,  desc: "¡Llegó! Disfruta tu figura" },
+  { key: "pending",       label: "Creada",      Icon: ClipboardList, desc: "Recibimos tu pedido y ya lo estamos procesando" },
+  { key: "preparing",     label: "Preparación", Icon: Settings2,     desc: "Nuestro equipo está preparando tu figura" },
+  { key: "printing",      label: "Impresión",   Icon: Layers,        desc: "Tu figura está siendo impresa en 3D" },
+  { key: "post_printing", label: "Post-imp.",   Icon: Sparkles,      desc: "Aplicando los toques finales a tu figura" },
+  { key: "packed",        label: "Empacada",    Icon: Package,       desc: "Tu pedido está listo y empacado" },
+  { key: "shipped",       label: "Enviada",     Icon: Truck,         desc: "Tu pedido está en camino — pronto llegará" },
+  { key: "delivered",     label: "Entregada",   Icon: CheckCircle2,  desc: "¡Llegó! Disfruta tu figura" },
 ] as const;
 
 interface Props {
@@ -57,7 +57,7 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
                 </div>
                 {/* Label */}
                 <span className={cn(
-                  "text-[10px] text-center leading-tight mt-1.5 w-full px-0.5",
+                  "text-[10px] text-center leading-tight mt-1.5 max-w-[64px] w-full",
                   isCurrent ? "font-bold text-[#1a1a1a]" :
                   isDone    ? "text-[#666]" :
                               "text-[#bbb]"
@@ -66,7 +66,7 @@ export function OrderTimeline({ currentStatus, interactive = false, showDescript
                 </span>
                 {/* Motivational desc (Account only) */}
                 {showDescriptions && isCurrent && (
-                  <span className="text-[10px] text-center text-[#888] mt-0.5 leading-tight px-0.5">
+                  <span className="text-[10px] text-center text-[#888] mt-0.5 leading-tight max-w-[96px]">
                     {step.desc}
                   </span>
                 )}

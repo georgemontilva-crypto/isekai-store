@@ -219,7 +219,7 @@ export default function Account() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="flex gap-2 mb-8 overflow-x-auto pb-1 scrollbar-hide"
+          className="flex justify-center gap-2 mb-8 overflow-x-auto pb-1 scrollbar-hide"
         >
           {TABS.map(tab => {
             const Icon = tab.icon;
