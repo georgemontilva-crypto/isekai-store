@@ -337,7 +337,7 @@ export default function Admin() {
   const [socialIg, setSocialIg] = useState("");
   const [socialYt, setSocialYt] = useState("");
   const [promoBarText, setPromoBarText] = useState("");
-  const [categoryForm, setCategoryForm] = useState({ name: "", slug: "", description: "", imageUrl: "" });
+  const [categoryForm, setCategoryForm] = useState({ name: "", slug: "", description: "", imageUrl: "", featured: false });
   const [categoryUploading, setCategoryUploading] = useState(false);
   const [categoryPreviewUrl, setCategoryPreviewUrl] = useState<string>("");
   const [bannerDrafts, setBannerDrafts] = useState<Record<string, string>>({});
@@ -367,7 +367,7 @@ export default function Admin() {
   });
   const updateProduct = trpc.products.update.useMutation({ onSuccess: () => { refetchProducts(); setEditingProduct(null); toast.success("Producto actualizado"); } });
   const deleteProduct = trpc.products.delete.useMutation({ onSuccess: () => { refetchProducts(); toast.success("Producto eliminado"); } });
-  const createCategory = trpc.categories.create.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); setCategoryForm({ name: "", slug: "", description: "", imageUrl: "" }); toast.success("Categoría creada"); } });
+  const createCategory = trpc.categories.create.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); setCategoryForm({ name: "", slug: "", description: "", imageUrl: "", featured: false }); toast.success("Categoría creada"); } });
   const updateCategory = trpc.categories.update.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); toast.success("Categoría actualizada"); } });
   const deleteCategory = trpc.categories.delete.useMutation({ onSuccess: () => { refetchCategories(); toast.success("Categoría eliminada"); } });
   const updateOrderStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => { refetchOrders(); toast.success("Estado actualizado"); } });
@@ -694,6 +694,16 @@ export default function Admin() {
                           </label>
                         </div>
                       </div>
+                      <div className="flex items-center gap-2 mt-4">
+                        <input
+                          type="checkbox"
+                          id="cat-featured-new"
+                          checked={categoryForm.featured}
+                          onChange={(e) => setCategoryForm({ ...categoryForm, featured: e.target.checked })}
+                          className="w-4 h-4 accent-primary"
+                        />
+                        <Label htmlFor="cat-featured-new">Destacar en menú principal</Label>
+                      </div>
                       <div className="flex gap-3 mt-4">
                         <Button className="bg-primary text-primary-foreground" onClick={() => createCategory.mutate(categoryForm)}>
                           <Check className="w-4 h-4 mr-2" />Crear
@@ -716,7 +726,7 @@ export default function Admin() {
                             <p className="text-sm text-muted-foreground">/categorias/{cat.slug}</p>
                           </div>
                           <div className="flex gap-2">
-                            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={() => { setEditingCategory(cat.id); setCategoryForm({ name: cat.name, slug: cat.slug, description: cat.description ?? "", imageUrl: cat.imageUrl ?? "" }); setCategoryPreviewUrl(cat.imageUrl ?? ""); }}>
+                            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground" onClick={() => { setEditingCategory(cat.id); setCategoryForm({ name: cat.name, slug: cat.slug, description: cat.description ?? "", imageUrl: cat.imageUrl ?? "", featured: cat.featured ?? false }); setCategoryPreviewUrl(cat.imageUrl ?? ""); }}>
                               <Pencil className="w-4 h-4" />
                             </Button>
                             <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive" onClick={() => { if (confirm("¿Eliminar categoría?")) deleteCategory.mutate({ id: cat.id }); }}>
@@ -750,6 +760,16 @@ export default function Admin() {
                                   <input type="file" accept="image/*" className="hidden" onChange={handleCategoryImageUpload} disabled={categoryUploading} />
                                 </label>
                               </div>
+                            </div>
+                            <div className="flex items-center gap-2 mt-4">
+                              <input
+                                type="checkbox"
+                                id={`cat-featured-${cat.id}`}
+                                checked={categoryForm.featured}
+                                onChange={(e) => setCategoryForm({ ...categoryForm, featured: e.target.checked })}
+                                className="w-4 h-4 accent-primary"
+                              />
+                              <Label htmlFor={`cat-featured-${cat.id}`}>Destacar en menú principal</Label>
                             </div>
                             <div className="flex gap-3 mt-4">
                               <Button className="bg-primary text-primary-foreground" onClick={() => updateCategory.mutate({ id: cat.id, ...categoryForm })}>

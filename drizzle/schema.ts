@@ -33,6 +33,7 @@ export const categories = mysqlTable("categories", {
   slug: varchar("slug", { length: 128 }).notNull().unique(),
   description: text("description"),
   imageUrl: text("imageUrl"),
+  featured: boolean("featured").default(false).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

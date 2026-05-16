@@ -81,7 +81,7 @@ export async function getCategoryBySlug(slug: string) {
   return result[0];
 }
 
-export async function createCategory(data: { name: string; slug: string; description?: string; imageUrl?: string }) {
+export async function createCategory(data: { name: string; slug: string; description?: string; imageUrl?: string; featured?: boolean }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.insert(categories).values(data);
@@ -89,7 +89,7 @@ export async function createCategory(data: { name: string; slug: string; descrip
   return result[0];
 }
 
-export async function updateCategory(id: number, data: Partial<{ name: string; slug: string; description: string; imageUrl: string }>) {
+export async function updateCategory(id: number, data: Partial<{ name: string; slug: string; description: string; imageUrl: string; featured: boolean }>) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.update(categories).set(data).where(eq(categories.id, id));

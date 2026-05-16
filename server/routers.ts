@@ -48,11 +48,11 @@ export const appRouter = router({
       .query(({ input }) => getCategoryBySlug(input.slug)),
 
     create: adminProcedure
-      .input(z.object({ name: z.string(), slug: z.string(), description: z.string().optional(), imageUrl: z.string().optional() }))
+      .input(z.object({ name: z.string(), slug: z.string(), description: z.string().optional(), imageUrl: z.string().optional(), featured: z.boolean().optional() }))
       .mutation(({ input }) => createCategory(input)),
 
     update: adminProcedure
-      .input(z.object({ id: z.number(), name: z.string().optional(), slug: z.string().optional(), description: z.string().optional(), imageUrl: z.string().optional() }))
+      .input(z.object({ id: z.number(), name: z.string().optional(), slug: z.string().optional(), description: z.string().optional(), imageUrl: z.string().optional(), featured: z.boolean().optional() }))
       .mutation(({ input }) => { const { id, ...data } = input; return updateCategory(id, data); }),
 
     delete: adminProcedure

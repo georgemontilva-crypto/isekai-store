@@ -59,7 +59,9 @@ export default function Navbar() {
   };
 
   const { data: dbCategories } = trpc.categories.list.useQuery();
-  const collectionsMenu = (dbCategories ?? []).slice(0, 5).map((cat, i) => ({
+  const featuredCats = (dbCategories ?? []).filter(c => c.featured);
+  const menuCategories = (featuredCats.length > 0 ? featuredCats : (dbCategories ?? [])).slice(0, 5);
+  const collectionsMenu = menuCategories.map((cat, i) => ({
     label: cat.name,
     desc: "",
     img: cat.imageUrl || collectionImgs[i % collectionImgs.length],
