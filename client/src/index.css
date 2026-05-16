@@ -555,6 +555,13 @@
   color: white !important;
 }
 
+/* Force sidebar text white */
+.group\/menu-button,
+.group\/menu-button span,
+.group\/menu-button svg {
+  color: white !important;
+}
+
 /* ═══════════════════════════════════════════════════════════════════════════
    RESPONSIVE MOBILE — ISEKAI WORLD
    Breakpoints: <480px (xs), <768px (sm/mobile)
