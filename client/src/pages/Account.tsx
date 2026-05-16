@@ -192,7 +192,7 @@ export default function Account() {
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-20">
-      <div className="container max-w-2xl">
+      <div className="container max-w-4xl">
 
         {/* ── Avatar + Header ── */}
         <motion.div
