@@ -563,7 +563,7 @@ export default function Home() {
               >
                 {t.home.bestSellers}
               </h2>
-              <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+              <div className="flex overflow-x-auto scrollbar-hide gap-2 pb-2 -mx-4 px-4">
                 <button
                   onClick={() => setActiveTabId(null)}
                   className={`tab-pill flex-shrink-0 ${activeTabId === null ? 'active' : ''}`}
@@ -579,6 +579,7 @@ export default function Home() {
                     {cat.name}
                   </button>
                 ))}
+                <div className="flex-shrink-0 w-4" />
               </div>
             </div>
             {/* Navigation arrows */}
