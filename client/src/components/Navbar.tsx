@@ -7,6 +7,7 @@ import { openLoginModal } from "@/const";
 import CartDrawer from "./CartDrawer";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLang } from "@/i18n/LangContext";
+import { trpc } from "@/lib/trpc";
 
 const collectionImgs = [
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
@@ -15,7 +16,7 @@ const collectionImgs = [
   "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
   "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80",
 ];
-const collectionHrefs = ["/catalog?category=headphones","/catalog?category=earphones","/catalog?category=speakers","/catalog?category=accessories","/catalog"];
+const DEFAULT_ALL_HREF = "/catalog";
 const dropdownVariants = { hidden:{opacity:0,y:-8,scale:0.98}, visible:{opacity:1,y:0,scale:1}, exit:{opacity:0,y:-6,scale:0.98} };
 type ActiveMenu = "collections"|"explore"|null;
 
@@ -57,12 +58,16 @@ export default function Navbar() {
     if (searchQuery.trim()) { window.location.href = `/catalog?search=${encodeURIComponent(searchQuery.trim())}`; setSearchOpen(false); setSearchQuery(""); }
   };
 
+  const { data: dbCategories } = trpc.categories.list.useQuery();
   const collectionsMenu = [
-    { ...t.nav.collectionsMenu.headphones, img: collectionImgs[0], href: collectionHrefs[0], dark: false },
-    { ...t.nav.collectionsMenu.earphones,  img: collectionImgs[1], href: collectionHrefs[1], dark: false },
-    { ...t.nav.collectionsMenu.speakers,   img: collectionImgs[2], href: collectionHrefs[2], dark: false },
-    { ...t.nav.collectionsMenu.accessories,img: collectionImgs[3], href: collectionHrefs[3], dark: false },
-    { ...t.nav.collectionsMenu.all,        img: collectionImgs[4], href: collectionHrefs[4], dark: true  },
+    ...(dbCategories ?? []).map((cat, i) => ({
+      label: cat.name,
+      desc: "",
+      img: cat.imageUrl || collectionImgs[i % collectionImgs.length],
+      href: `/catalog?category=${cat.id}`,
+      dark: false,
+    })),
+    { ...t.nav.collectionsMenu.all, img: collectionImgs[4], href: DEFAULT_ALL_HREF, dark: true },
   ];
   const exploreMenu = [
     { label: t.nav.exploreMenu.about, href: "/nosotros" },

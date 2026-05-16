@@ -184,7 +184,7 @@ export default function Catalog() {
 
         {/* ── Category Pills ── */}
         <AnimatePresence>
-          {(showFilters || selectedCategory !== undefined) && (
+          {showFilters && (
             <motion.div
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
