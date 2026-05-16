@@ -1,6 +1,5 @@
-import { useState } from "react";
 import { Link } from "wouter";
-import { Star, ShoppingBag, Heart } from "lucide-react";
+import { ShoppingBag, Heart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { useLang } from "@/i18n/LangContext";
@@ -33,7 +32,6 @@ export default function ProductCard({
   vendor,
   isNew,
 }: ProductCardProps) {
-  const [hovered, setHovered] = useState(false);
   const { t } = useLang();
   const { isAuthenticated } = useAuth();
   const { addItem, isLoading } = useCart();
@@ -67,9 +65,9 @@ export default function ProductCard({
     if (isOutOfStock) return;
     try {
       await addItem(id);
-      toast.success("Added to cart");
+      toast.success("Agregado al carrito");
     } catch {
-      toast.error("Could not add to cart");
+      toast.error("No se pudo agregar al carrito");
     }
   };
 
@@ -86,11 +84,8 @@ export default function ProductCard({
 
   return (
     <Link href={`/product/${slug}`}>
-      <div
-        className="product-card group cursor-pointer"
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
+      <div className="product-card group cursor-pointer">
+
         {/* ── Image ── */}
         <div className="relative bg-[#f5f5f5] overflow-hidden" style={{ aspectRatio: "1/1" }}>
           {imageUrl ? (
@@ -110,7 +105,7 @@ export default function ProductCard({
           <div className="absolute top-3 left-3 flex flex-col gap-1.5">
             {isNew && (
               <span className="bg-[#1a1a1a] text-white text-[10px] font-semibold px-2.5 py-1 rounded-full leading-none">
-                New
+                Nuevo
               </span>
             )}
             {hasDiscount && (
@@ -120,7 +115,7 @@ export default function ProductCard({
             )}
             {isOutOfStock && (
               <span className="bg-[#999] text-white text-[10px] font-semibold px-2.5 py-1 rounded-full leading-none">
-                Sold out
+                Agotado
               </span>
             )}
           </div>
@@ -136,65 +131,45 @@ export default function ProductCard({
           >
             <Heart size={13} fill={saved ? "currentColor" : "none"} />
           </button>
-
-          {/* Add to cart overlay */}
-          <div
-            className={`absolute bottom-0 left-0 right-0 p-3 transition-all duration-250 ${
-              hovered ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"
-            }`}
-          >
-            <button
-              onClick={handleAddToCart}
-              disabled={isLoading || isOutOfStock}
-              className="w-full bg-[#1a1a1a] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
-            >
-              <ShoppingBag size={12} />
-              {isOutOfStock ? t.catalog.soldOut : t.catalog.addToCart}
-            </button>
-          </div>
         </div>
 
         {/* ── Info ── */}
-        <div className="pt-3 pb-2">
-          {/* Vendor */}
+        <div className="pt-2.5 pb-1">
+          {/* Category / Vendor */}
           {(vendor || category) && (
-            <p className="text-[10px] font-semibold text-[#888] uppercase tracking-[0.12em] mb-0.5">
+            <p className="text-[10px] font-semibold text-[#888] uppercase tracking-[0.08em] mb-0.5">
               {vendor ?? category}
             </p>
           )}
 
-          {/* Name + Price */}
-          <div className="flex items-start justify-between gap-2">
-            <h3 className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 flex-1">
-              {name}
-            </h3>
-            <div className="text-right shrink-0">
-              <span className="text-[13px] font-bold text-[#1a1a1a]">
-                ${numPrice.toFixed(2)}
-              </span>
-              {hasDiscount && (
-                <div className="text-[11px] text-[#aaa] line-through">
-                  ${numCompare!.toFixed(2)}
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Name */}
+          <h3 className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 mb-1">
+            {name}
+          </h3>
 
-          {/* Stars */}
-          <div className="flex items-center gap-1 mt-1.5">
-            {[1,2,3,4,5].map(s => (
-              <Star key={s} size={10} className="text-[#f59e0b] fill-[#f59e0b]" />
-            ))}
-            <span className="text-[10px] text-[#888] ml-0.5">5.0</span>
+          {/* Price */}
+          <div className="flex items-baseline gap-1.5 mb-2">
+            <span className="text-[13px] font-bold text-[#1a1a1a]">
+              ${numPrice.toFixed(2)}
+            </span>
+            {hasDiscount && (
+              <span className="text-[11px] text-[#aaa] line-through">
+                ${numCompare!.toFixed(2)}
+              </span>
+            )}
           </div>
 
           {/* CTA */}
-          <div className="mt-2">
-            <span className="text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2 hover:opacity-60 transition-opacity">
-              Choose options
-            </span>
-          </div>
+          <button
+            onClick={handleAddToCart}
+            disabled={isLoading || isOutOfStock}
+            className="w-full bg-[#1a1a1a] text-white text-[11px] font-semibold py-2 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+          >
+            <ShoppingBag size={11} />
+            {isOutOfStock ? t.catalog.soldOut : t.catalog.addToCart}
+          </button>
         </div>
+
       </div>
     </Link>
   );
