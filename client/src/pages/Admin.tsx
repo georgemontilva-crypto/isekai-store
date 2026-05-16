@@ -4,8 +4,9 @@ import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
-  Facebook, Twitter, Youtube, Megaphone
+  Facebook, Twitter, Youtube, Megaphone, XCircle
 } from "lucide-react";
+import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
@@ -161,16 +162,6 @@ function VariantManager({ productId }: { productId: number }) {
   );
 }
 
-const ORDER_STEPS = [
-  { key: "pending",       label: "Orden creada",    icon: "📋" },
-  { key: "preparing",     label: "En preparación",  icon: "⚙️" },
-  { key: "printing",      label: "En impresión 3D", icon: "🖨️" },
-  { key: "post_printing", label: "Post impresión",  icon: "✨" },
-  { key: "packed",        label: "Empacada",        icon: "📦" },
-  { key: "shipped",       label: "Enviada",         icon: "🚚" },
-  { key: "delivered",     label: "Entregada",       icon: "✅" },
-] as const;
-
 const statusLabels: Record<string, string> = {
   pending:       "Orden creada",
   preparing:     "En preparación",
@@ -200,7 +191,6 @@ function AdminOrderDetail({
     onSuccess: () => { onSaved(); toast.success("Pedido actualizado"); },
   });
 
-  const currentIdx = ORDER_STEPS.findIndex(s => s.key === pendingStatus);
   const isShippedOrLater = ["shipped", "delivered"].includes(pendingStatus);
 
   return (
@@ -225,62 +215,26 @@ function AdminOrderDetail({
         </div>
       )}
 
-      {/* Timeline */}
+      {/* Interactive timeline */}
       <div>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Estado del pedido</p>
-        <div className="flex items-start gap-0 overflow-x-auto pb-1">
-          {ORDER_STEPS.map((step, i) => {
-            const isDone = i < currentIdx;
-            const isCurrent = i === currentIdx;
-            return (
-              <div key={step.key} className="flex items-center shrink-0">
-                <div className="flex flex-col items-center gap-1 w-14">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                    isDone ? "bg-[#22c55e] text-white" :
-                    isCurrent ? "bg-[#1a1a1a] text-white ring-2 ring-offset-1 ring-[#1a1a1a]" :
-                    "bg-[#f0f0f0] text-[#aaa]"
-                  }`}>
-                    {isDone ? "✓" : step.icon}
-                  </div>
-                  <span className="text-[9px] text-center leading-tight text-muted-foreground w-full px-0.5">{step.label}</span>
-                </div>
-                {i < ORDER_STEPS.length - 1 && (
-                  <div className={`w-4 h-0.5 mb-4 shrink-0 ${i < currentIdx ? "bg-[#22c55e]" : "bg-[#e0e0e0]"}`} />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Status buttons */}
-      <div>
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Cambiar estado</p>
-        <div className="flex flex-wrap gap-2">
-          {ORDER_STEPS.map(step => (
-            <button
-              key={step.key}
-              onClick={() => setPendingStatus(step.key)}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-                pendingStatus === step.key
-                  ? "bg-[#1a1a1a] text-white border-[#1a1a1a]"
-                  : "border-border/50 text-muted-foreground hover:border-foreground hover:text-foreground"
-              }`}
-            >
-              {step.icon} {step.label}
-            </button>
-          ))}
-          <button
-            onClick={() => setPendingStatus("cancelled")}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
-              pendingStatus === "cancelled"
-                ? "bg-red-500 text-white border-red-500"
-                : "border-border/50 text-muted-foreground hover:border-red-400 hover:text-red-500"
-            }`}
-          >
-            ❌ Cancelada
-          </button>
-        </div>
+        <OrderTimeline
+          currentStatus={pendingStatus}
+          interactive
+          onStepClick={setPendingStatus}
+        />
+        {/* Cancelled option */}
+        <button
+          onClick={() => setPendingStatus("cancelled")}
+          className={`mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${
+            pendingStatus === "cancelled"
+              ? "bg-red-500 text-white border-red-500"
+              : "border-border/50 text-muted-foreground hover:border-red-400 hover:text-red-500"
+          }`}
+        >
+          <XCircle className="w-3.5 h-3.5" />
+          Cancelar pedido
+        </button>
       </div>
 
       {/* Tracking fields */}

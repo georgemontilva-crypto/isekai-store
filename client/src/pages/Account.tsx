@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome } from "lucide-react";
+import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin } from "lucide-react";
+import { OrderTimeline } from "@/components/OrderTimeline";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
@@ -125,22 +126,6 @@ function LoginPage() {
     </div>
   );
 }
-
-const ORDER_STEPS = [
-  { key: "pending",       label: "Orden creada",    icon: "📋" },
-  { key: "preparing",     label: "En preparación",  icon: "⚙️" },
-  { key: "printing",      label: "En impresión 3D", icon: "🖨️" },
-  { key: "post_printing", label: "Post impresión",  icon: "✨" },
-  { key: "packed",        label: "Empacada",        icon: "📦" },
-  { key: "shipped",       label: "Enviada",         icon: "🚚" },
-  { key: "delivered",     label: "Entregada",       icon: "✅" },
-] as const;
-
-const STATUS_MESSAGES: Record<string, string> = {
-  printing:  "¡Tu figura está siendo impresa en 3D! 🖨️",
-  shipped:   "¡Tu pedido está en camino! 🚚",
-  delivered: "¡Disfruta tu figura! ¡Gracias por tu compra! 🎉",
-};
 
 const STATUS_COLORS: Record<string, string> = {
   pending:       "bg-[#f5f5f5] text-[#555]",
@@ -288,9 +273,7 @@ export default function Account() {
                   <div className="space-y-3">
                     {orders.map((order, i) => {
                       const isExpanded = expandedOrderId === order.id;
-                      const currentIdx = ORDER_STEPS.findIndex(s => s.key === order.status);
                       const isCancelled = order.status === "cancelled";
-                      const statusMsg = STATUS_MESSAGES[order.status];
                       const hasTracking = ["shipped", "delivered"].includes(order.status) && ((order as any).trackingNumber || (order as any).trackingCarrier);
                       return (
                         <motion.div
@@ -334,60 +317,33 @@ export default function Account() {
                                 transition={{ duration: 0.25 }}
                                 className="overflow-hidden"
                               >
-                                <div className="px-4 pb-4 border-t border-[#f0f0f0]">
-                                  {/* Motivational message */}
-                                  {statusMsg && (
-                                    <div className="mt-3 mb-3 p-3 rounded-xl bg-[#f5f5f5] text-[13px] font-medium text-[#1a1a1a] text-center">
-                                      {statusMsg}
-                                    </div>
-                                  )}
-                                  {isCancelled && (
-                                    <div className="mt-3 mb-3 p-3 rounded-xl bg-red-50 text-[13px] font-medium text-red-600 text-center">
+                                <div className="px-4 pb-5 pt-4 border-t border-[#f0f0f0]">
+                                  {isCancelled ? (
+                                    <div className="py-3 px-4 rounded-xl bg-red-50 text-sm font-medium text-red-600 text-center">
                                       Este pedido fue cancelado.
                                     </div>
+                                  ) : (
+                                    <OrderTimeline
+                                      currentStatus={order.status}
+                                      showDescriptions
+                                    />
                                   )}
 
-                                  {/* Timeline */}
-                                  {!isCancelled && (
-                                    <div className="mt-3 overflow-x-auto">
-                                      <div className="flex items-start gap-0 min-w-max pb-1">
-                                        {ORDER_STEPS.map((step, si) => {
-                                          const isDone = si < currentIdx;
-                                          const isCurrent = si === currentIdx;
-                                          return (
-                                            <div key={step.key} className="flex items-center">
-                                              <div className="flex flex-col items-center gap-1 w-14">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm transition-all ${
-                                                  isDone ? "bg-[#22c55e] text-white" :
-                                                  isCurrent ? "bg-[#1a1a1a] text-white ring-2 ring-offset-1 ring-[#1a1a1a] animate-pulse" :
-                                                  "bg-[#f0f0f0] text-[#bbb]"
-                                                }`}>
-                                                  {isDone ? "✓" : step.icon}
-                                                </div>
-                                                <span className={`text-[9px] text-center leading-tight w-full px-0.5 ${isCurrent ? "font-bold text-[#1a1a1a]" : "text-[#aaa]"}`}>
-                                                  {step.label}
-                                                </span>
-                                              </div>
-                                              {si < ORDER_STEPS.length - 1 && (
-                                                <div className={`w-4 h-0.5 mb-4 ${si < currentIdx ? "bg-[#22c55e]" : "bg-[#e0e0e0]"}`} />
-                                              )}
-                                            </div>
-                                          );
-                                        })}
-                                      </div>
-                                    </div>
-                                  )}
-
-                                  {/* Tracking info */}
+                                  {/* Tracking card — only when shipped/delivered and data exists */}
                                   {hasTracking && (
-                                    <div className="mt-3 p-3 rounded-xl border border-[#ebebeb] text-sm">
-                                      <p className="font-semibold text-[#1a1a1a] mb-1">📦 Información de envío</p>
-                                      {(order as any).trackingCarrier && (
-                                        <p className="text-[#555]">Transportadora: <span className="font-medium">{(order as any).trackingCarrier}</span></p>
-                                      )}
-                                      {(order as any).trackingNumber && (
-                                        <p className="text-[#555]">N° de guía: <span className="font-mono font-medium">{(order as any).trackingNumber}</span></p>
-                                      )}
+                                    <div className="mt-4 flex items-start gap-3 p-3.5 rounded-xl border border-[#ebebeb] bg-[#fafafa]">
+                                      <div className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0">
+                                        <MapPin className="w-4 h-4 text-white" />
+                                      </div>
+                                      <div className="text-sm">
+                                        <p className="font-semibold text-[#1a1a1a] mb-0.5">Información de envío</p>
+                                        {(order as any).trackingCarrier && (
+                                          <p className="text-[#555]">Transportadora: <span className="font-medium">{(order as any).trackingCarrier}</span></p>
+                                        )}
+                                        {(order as any).trackingNumber && (
+                                          <p className="text-[#555]">N° de guía: <span className="font-mono font-medium text-[#1a1a1a]">{(order as any).trackingNumber}</span></p>
+                                        )}
+                                      </div>
                                     </div>
                                   )}
                                 </div>
