@@ -220,14 +220,14 @@ function ProductForm({
         <div>
           <Label>Categoría</Label>
           <Select
-            value={form.categoryId ? String(form.categoryId) : ""}
-            onValueChange={(val) => setForm({ ...form, categoryId: val ? parseInt(val) : "" })}
+            value={form.categoryId ? String(form.categoryId) : "none"}
+            onValueChange={(val) => setForm({ ...form, categoryId: val === "none" ? "" : parseInt(val) })}
           >
             <SelectTrigger className="mt-1 w-full bg-muted border-border/50">
               <SelectValue placeholder="Sin categoría" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Sin categoría</SelectItem>
+              <SelectItem value="none">Sin categoría</SelectItem>
               {categories.map((c) => (
                 <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
               ))}
@@ -308,7 +308,7 @@ function ProductForm({
       <div className="flex gap-3 pt-2">
         <Button
           className="bg-primary text-primary-foreground hover:bg-primary/90"
-          onClick={() => onSave({ ...form, categoryId: form.categoryId || undefined, firstImageUrl: imageUrl || undefined })}
+          onClick={() => onSave({ ...form, categoryId: form.categoryId ? Number(form.categoryId) : null, firstImageUrl: imageUrl || undefined })}
         >
           <Check className="w-4 h-4 mr-2" />
           {product ? "Actualizar" : "Crear producto"}
