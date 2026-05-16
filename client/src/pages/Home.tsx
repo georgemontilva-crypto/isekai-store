@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
-import { ArrowRight, ChevronLeft, ChevronRight, Star, Play, ShoppingBag, Instagram, ExternalLink } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/contexts/CartContext";
@@ -313,7 +313,7 @@ function InstagramFeedSection() {
 export default function Home() {
   const { t } = useLang();
   const [heroIdx, setHeroIdx] = useState(0);
-  const [activeTab, setActiveTab] = useState(() => t.home.tabs[0]);
+  const [activeTabId, setActiveTabId] = useState<number | null>(null);
   const [saleTarget] = useState(() => {
     const d = new Date();
     d.setDate(d.getDate() + 3);
@@ -322,11 +322,12 @@ export default function Home() {
   });
   const countdown = useCountdown(saleTarget);
 
+  const { data: categories } = trpc.categories.list.useQuery();
   const { data: productsData, isLoading: productsLoading } = trpc.products.list.useQuery({
     limit: 12,
     status: "published",
+    categoryId: activeTabId ?? undefined,
   });
-  const { data: categories } = trpc.categories.list.useQuery();
   const { data: settings } = trpc.settings.getAll.useQuery();
   const products = productsData?.items ?? [];
   const { addItem } = useCart();
@@ -346,7 +347,7 @@ export default function Home() {
   }, [heroSlides.length]);
 
   const featuredProduct = products[0];
-  const displayProducts = products.slice(0, 8);
+  const displayProducts = products;
 
   const handleAddToCart = async (id: number, name: string) => {
     try {
@@ -678,13 +679,19 @@ export default function Home() {
                 {t.home.bestSellers}
               </h2>
               <div className="flex items-center gap-2 flex-wrap">
-                {t.home.tabs.map(tab => (
+                <button
+                  onClick={() => setActiveTabId(null)}
+                  className={`tab-pill ${activeTabId === null ? 'active' : ''}`}
+                >
+                  Todo
+                </button>
+                {(categories ?? []).map(cat => (
                   <button
-                    key={tab}
-                    onClick={() => setActiveTab(tab)}
-                    className={`tab-pill ${activeTab === tab ? 'active' : ''}`}
+                    key={cat.id}
+                    onClick={() => setActiveTabId(cat.id)}
+                    className={`tab-pill ${activeTabId === cat.id ? 'active' : ''}`}
                   >
-                    {tab}
+                    {cat.name}
                   </button>
                 ))}
               </div>
@@ -715,13 +722,12 @@ export default function Home() {
             </div>
           ) : displayProducts.length > 0 ? (
             <div id="best-sellers-scroll" className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
-              {displayProducts.map((product: any, i: number) => {
+              {displayProducts.map((product: any) => {
                 const numPrice = parseFloat(product.price);
                 const numCompare = product.compareAtPrice ? parseFloat(product.compareAtPrice) : null;
                 const hasDiscount = numCompare && numCompare > numPrice;
                 const discountPct = hasDiscount ? Math.round(((numCompare! - numPrice) / numCompare!) * 100) : 0;
                 const isOutOfStock = product.stock <= 0;
-                const isNewProduct = i < 2;
                 return (
                   <Link
                     key={product.id}
@@ -731,7 +737,7 @@ export default function Home() {
                   >
                     <div className="bg-white rounded-2xl border border-[#ebebeb] overflow-hidden hover:shadow-md transition-shadow duration-300">
                       {/* Image area */}
-                      <div className="relative bg-white overflow-hidden" style={{ aspectRatio: '1/1' }}>
+                      <div className="relative bg-[#f5f5f5] overflow-hidden" style={{ aspectRatio: '1/1' }}>
                         {product.imageUrl ? (
                           <img
                             src={product.imageUrl}
@@ -746,58 +752,38 @@ export default function Home() {
                         )}
                         {/* Badges top-left */}
                         <div className="absolute top-3 left-3 flex flex-col gap-1.5">
-                          {isNewProduct && (
-                            <span className="bg-[#22c55e] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">{t.common.new}</span>
-                          )}
                           {hasDiscount && (
                             <span className="bg-[#e63946] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">-{discountPct}%</span>
                           )}
                           {isOutOfStock && (
-                            <span className="bg-[#999] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">{t.home.soldOut}</span>
+                            <span className="bg-[#999] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">Agotado</span>
                           )}
-                        </div>
-                        {/* Rating top-right */}
-                        <div className="absolute top-3 right-3 flex items-center gap-1 bg-white/90 rounded-full px-2 py-0.5">
-                          <Star size={10} className="text-[#f59e0b] fill-[#f59e0b]" />
-                          <span className="text-[10px] font-semibold text-[#1a1a1a]">5.0</span>
                         </div>
                         {/* Add to cart on hover */}
                         <div className="absolute bottom-0 left-0 right-0 p-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-250">
                           <button
                             onClick={async (e) => {
                               e.preventDefault(); e.stopPropagation();
-                              if (!isOutOfStock) { try { await addItem(product.id); toast.success(t.home.addToCart + ' ✓'); } catch { toast.error(t.product.addToCartError); } }
+                              if (!isOutOfStock) { try { await addItem(product.id); toast.success("Agregado al carrito"); } catch { toast.error("No se pudo agregar"); } }
                             }}
                             disabled={isOutOfStock}
                             className="w-full bg-[#1a1a1a] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                           >
                             <ShoppingBag size={12} />
-                            {isOutOfStock ? t.home.soldOut : t.home.addToCart}
+                            {isOutOfStock ? "Agotado" : "Agregar al carrito"}
                           </button>
                         </div>
                       </div>
                       {/* Info */}
-                      <div className="p-3 pb-2">
+                      <div className="p-3 pb-3">
                         {product.category?.name && (
-                          <p className="text-[10px] font-semibold text-[#888] uppercase tracking-[0.12em] mb-0.5">{product.category.name}</p>
+                          <p className="text-[10px] font-semibold text-[#888] uppercase tracking-[0.08em] mb-0.5">{product.category.name}</p>
                         )}
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h3 className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 flex-1">{product.name}</h3>
-                          <div className="text-right shrink-0">
-                            <span className="text-[13px] font-bold text-[#1a1a1a]">${numPrice.toFixed(2)}</span>
-                            {hasDiscount && <div className="text-[11px] text-[#aaa] line-through">${numCompare!.toFixed(2)}</div>}
-                          </div>
+                        <h3 className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 mb-1">{product.name}</h3>
+                        <div className="flex items-baseline gap-1.5">
+                          <span className="text-[13px] font-bold text-[#1a1a1a]">${numPrice.toFixed(2)}</span>
+                          {hasDiscount && <span className="text-[11px] text-[#aaa] line-through">${numCompare!.toFixed(2)}</span>}
                         </div>
-                        <span className="text-[11px] font-medium text-[#1a1a1a] underline underline-offset-2">{t.home.chooseOptions}</span>
-                      </div>
-                      {/* Specs bar */}
-                      <div className="border-t border-[#f0f0f0] px-3 py-2.5 grid grid-cols-3 gap-2">
-                        {[['40mm', t.home.specs.driver], ['285g', t.home.specs.weight], ['35h', t.home.specs.battery]].map(([val, lbl]) => (
-                          <div key={lbl} className="flex flex-col">
-                            <span className="text-[11px] font-bold text-[#1a1a1a]">{val}</span>
-                            <span className="text-[9px] text-[#999] leading-tight">{lbl}</span>
-                          </div>
-                        ))}
                       </div>
                     </div>
                   </Link>
