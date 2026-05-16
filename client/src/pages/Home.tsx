@@ -481,12 +481,23 @@ export default function Home() {
           className="flex gap-[10px] overflow-x-auto scrollbar-hide"
           style={{ padding: '24px 8px 28px 8px' }}
         >
-          {t.home.collections.map((col, idx) => { const img = collectionImgsHome[idx]; const href = collectionHrefsHome[idx]; return (
-            <Link key={col.name} href={href}>
+          {(categories && categories.length > 0 ? categories : t.home.collections.map((col, idx) => ({
+            id: idx,
+            name: col.name,
+            slug: "",
+            description: col.desc ?? "",
+            imageUrl: collectionImgsHome[idx] ?? null,
+            featured: false,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          }))).map((cat, idx) => {
+            const img = cat.imageUrl || collectionImgsHome[idx % collectionImgsHome.length];
+            const href = 'slug' in cat && cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
+            return (
+            <Link key={cat.id} href={href}>
               <div
                 className="shrink-0 relative overflow-hidden cursor-pointer group"
                 style={{
-                  /* 5 cards fill viewport: (100vw - 8px left - 8px right - 4*10px gaps) / 5 */
                   width: 'calc((100vw - 16px - 40px) / 5)',
                   minWidth: 160,
                   height: 300,
@@ -494,14 +505,12 @@ export default function Home() {
                   background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
                 }}
               >
-                {/* Full-cover image with subtle hover zoom */}
                 <img
                   src={img}
-                  alt={col.name}
+                  alt={cat.name}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
                   style={{ opacity: idx === 0 ? 0.65 : 1 }}
                 />
-                {/* Gradient overlay for text legibility */}
                 <div
                   className="absolute inset-0"
                   style={{
@@ -510,20 +519,18 @@ export default function Home() {
                       : 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 50%, transparent 100%)',
                   }}
                 />
-                {/* Bottom label */}
                 <div className="absolute bottom-0 left-0 right-0 p-4">
                   <div className="flex items-end justify-between">
                     <div>
                       <p
                         className="font-black text-white leading-tight"
-                        style={{
-                          fontSize: idx === 0 ? 18 : 16,
-                          fontFamily: idx === 0 ? "'Orbitron', sans-serif" : 'inherit',
-                        }}
+                        style={{ fontSize: idx === 0 ? 18 : 16, fontFamily: idx === 0 ? "'Orbitron', sans-serif" : 'inherit' }}
                       >
-                        {col.name}
+                        {cat.name}
                       </p>
-                      <p className="text-white/60 text-[11px] mt-0.5 leading-tight">{col.desc}</p>
+                      {'description' in cat && cat.description && (
+                        <p className="text-white/60 text-[11px] mt-0.5 leading-tight">{cat.description}</p>
+                      )}
                     </div>
                     <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0 ml-2">
                       <ArrowRight size={12} className="text-white" />
@@ -532,7 +539,7 @@ export default function Home() {
                 </div>
               </div>
             </Link>
-          )})}
+          );})}
         </div>
       </section>
 
