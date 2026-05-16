@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { Star, ShoppingBag, Heart } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
+import { useLang } from "@/i18n/LangContext";
 
 interface ProductCardProps {
   id: number;
@@ -31,6 +32,7 @@ export default function ProductCard({
 }: ProductCardProps) {
   const [hovered, setHovered] = useState(false);
   const [wishlist, setWishlist] = useState(false);
+  const { t } = useLang();
   const { addItem, isLoading } = useCart();
 
   const numPrice = parseFloat(price);
