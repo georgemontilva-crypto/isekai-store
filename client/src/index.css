@@ -770,6 +770,11 @@ body {
   }
 }
 
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
 /* ── NewsletterPopup: always full width on mobile ────────────────────────── */
 @media (max-width: 640px) {
   .newsletter-popup {
