@@ -9,6 +9,7 @@ export default function Footer() {
   const { t } = useLang();
   const [email, setEmail] = useState("");
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
+  const { data: categories = [] } = trpc.categories.list.useQuery();
   const storeName = siteSettings?.["store_name"] ?? "Isekai World";
   const logoUrl = siteSettings?.["store_logo_dark_url"] ?? siteSettings?.["store_logo_url"] ?? null;
   const logoHeightFooter = parseInt(siteSettings?.["store_logo_height_footer"] ?? "36");
@@ -74,7 +75,6 @@ export default function Footer() {
                 ))}
               </div>
               <div className="text-[12px] text-white/40 space-y-1">
-                <p>+57 300 000-0000</p>
                 <p>hola@isekaiworld.co</p>
               </div>
             </div>
@@ -83,8 +83,8 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold text-[13px] mb-5 text-white">{t.footer.collections}</h4>
               <ul className="space-y-3">
-                {t.footer.collectionsLinks.map(item => (
-                  <li key={item}><Link href="/catalog" className="text-[13px] text-white/55 hover:text-white transition-colors">{item}</Link></li>
+                {categories.map(cat => (
+                  <li key={cat.id}><Link href={`/catalog?category=${cat.slug}`} className="text-[13px] text-white/55 hover:text-white transition-colors">{cat.name}</Link></li>
                 ))}
               </ul>
             </div>
@@ -136,11 +136,6 @@ export default function Footer() {
             <p className="text-[12px] text-white/35">© {new Date().getFullYear()} {storeName}. {t.footer.copyright}.</p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/politicas" className="text-[12px] text-white/35 hover:text-white/60 transition-colors underline underline-offset-2">{t.footer.policies}</Link>
-              <div className="flex flex-wrap items-center gap-1.5">
-                {["VISA","MC","AMEX","PSE","NEQUI"].map(card => (
-                  <div key={card} className="bg-white/10 rounded px-2 py-1 text-[9px] font-bold text-white/50 uppercase tracking-wide">{card}</div>
-                ))}
-              </div>
             </div>
           </div>
         </div>
