@@ -1075,13 +1075,15 @@ export default function Admin() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.3, ease: [0.23, 1, 0.32, 1] }}
-                className="p-8 max-w-2xl"
+                className="p-8"
               >
                 <h2 className="text-2xl font-bold mb-1">Configuración</h2>
                 <p className="text-muted-foreground text-sm mb-8">Personaliza la tienda y conecta tus redes sociales.</p>
 
-                {/* Identidad de la tienda */}
-                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                {/* 1. Identidad de la tienda — left col */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
@@ -1223,8 +1225,8 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* Instagram Feed */}
-                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                {/* 2. Instagram Feed — right col */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#f09433] via-[#e1306c] to-[#833ab4] flex items-center justify-center">
                       <Instagram className="w-5 h-5 text-white" strokeWidth={1.5} />
@@ -1310,8 +1312,111 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* Social Links + Promo Bar */}
-                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                {/* 3. Brand Story — left col */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Sección Filosofía / Brand Story</h3>
+                      <p className="text-xs text-muted-foreground">Texto e imagen de la sección destacada en la home</p>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {[
+                      { k: "brand_story_label", label: "Etiqueta superior", ph: "Ej: Nuestra Filosofía" },
+                      { k: "brand_story_heading", label: "Título parte normal", ph: "Ej: Colecciones del" },
+                      { k: "brand_story_highlight", label: "Título parte destacada", ph: "Ej: Otro Mundo" },
+                      { k: "brand_story_body", label: "Descripción", ph: "Ej: Figuras de edición limitada..." },
+                    ].map(({ k, label, ph }) => (
+                      <div key={k}>
+                        <Label className="text-xs font-medium">{label}</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder={ph}
+                            defaultValue={siteSettings?.[k] ?? ""}
+                            onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                            className="bg-muted border-border/50 text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => {
+                              const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                              if (val) upsertSetting.mutate({ key: k, value: val });
+                            }}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Image upload */}
+                  <div className="mt-4">
+                    <Label className="text-xs font-medium">Imagen</Label>
+                    <div className="flex gap-2 mt-1 items-start">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="URL de imagen o sube un archivo"
+                          value={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? ""}
+                          onChange={(e) => setBannerDrafts(d => ({ ...d, brand_story_image: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                        {(bannerDrafts["brand_story_image"] || siteSettings?.["brand_story_image"]) && (
+                          <img
+                            src={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"]}
+                            className="mt-2 h-24 w-40 object-cover rounded-lg border border-border/30"
+                          />
+                        )}
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+                            const base64 = await new Promise<string>((resolve, reject) => {
+                              const reader = new FileReader();
+                              reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                              reader.onerror = reject;
+                              reader.readAsDataURL(file);
+                            });
+                            try {
+                              const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                              setBannerDrafts(d => ({ ...d, brand_story_image: url }));
+                              upsertSetting.mutate({ key: "brand_story_image", value: url });
+                              toast.success("Imagen subida");
+                            } catch {
+                              toast.error("Error al subir imagen");
+                            }
+                          }}
+                        />
+                      </label>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "brand_story_image", value: val });
+                        }}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Redes sociales / Promo bar — right col */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
@@ -1394,295 +1499,8 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* Banners del Homepage */}
-                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">Banners del Homepage</h3>
-                      <p className="text-xs text-muted-foreground">Hero slides, banner de venta y banner de video</p>
-                    </div>
-                  </div>
-
-                  {/* Hero Slides */}
-                  {[1, 2, 3].map((n) => {
-                    const imgKey = `hero_slide_${n}_image`;
-                    const currentImg = bannerDrafts[imgKey] ?? siteSettings?.[imgKey] ?? "";
-                    return (
-                      <div key={n} className="mb-6">
-                        <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Slide {n}</p>
-                        <div className="grid sm:grid-cols-2 gap-3 mb-3">
-                          {[
-                            { k: `hero_slide_${n}_tag`, label: "Tag / etiqueta", ph: "Ej: Temporada 2025" },
-                            { k: `hero_slide_${n}_title`, label: "Título", ph: "Ej: Nueva colección" },
-                            { k: `hero_slide_${n}_cta`, label: "Texto del botón", ph: "Ej: Ver colección" },
-                          ].map(({ k, label, ph }) => (
-                            <div key={k}>
-                              <Label className="text-xs font-medium">{label}</Label>
-                              <div className="flex gap-2 mt-1">
-                                <Input
-                                  placeholder={ph}
-                                  defaultValue={siteSettings?.[k] ?? ""}
-                                  onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
-                                  className="bg-muted border-border/50 text-sm"
-                                />
-                                <Button
-                                  size="sm"
-                                  className="bg-primary text-primary-foreground shrink-0"
-                                  onClick={() => {
-                                    const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
-                                    if (val) upsertSetting.mutate({ key: k, value: val });
-                                  }}
-                                >
-                                  <Save className="w-4 h-4" />
-                                </Button>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                        {/* Slide image upload */}
-                        <div>
-                          <Label className="text-xs font-medium">Imagen del slide</Label>
-                          <div className="flex items-start gap-2 mt-1">
-                            <div className="flex-1">
-                              <Input
-                                placeholder="https://... o sube una imagen"
-                                value={currentImg}
-                                onChange={(e) => setBannerDrafts(d => ({ ...d, [imgKey]: e.target.value }))}
-                                className="bg-muted border-border/50 text-sm"
-                              />
-                              {currentImg && (
-                                <img src={currentImg} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" />
-                              )}
-                            </div>
-                            <label className="cursor-pointer shrink-0">
-                              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                                <Upload className="w-3.5 h-3.5" /> Subir
-                              </span>
-                              <input
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={async (e) => {
-                                  const file = e.target.files?.[0];
-                                  if (!file) return;
-                                  const base64 = await new Promise<string>((resolve, reject) => {
-                                    const reader = new FileReader();
-                                    reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
-                                    reader.onerror = reject;
-                                    reader.readAsDataURL(file);
-                                  });
-                                  try {
-                                    const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                                    setBannerDrafts(d => ({ ...d, [imgKey]: url }));
-                                    upsertSetting.mutate({ key: imgKey, value: url });
-                                    toast.success("Imagen subida");
-                                  } catch {
-                                    toast.error("Error al subir imagen");
-                                  }
-                                }}
-                              />
-                            </label>
-                            <Button
-                              size="sm"
-                              className="bg-primary text-primary-foreground shrink-0"
-                              onClick={() => { if (currentImg) upsertSetting.mutate({ key: imgKey, value: currentImg }); }}
-                              disabled={!currentImg}
-                            >
-                              <Save className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                        {n < 3 && <div className="border-t border-border/20 mt-5" />}
-                      </div>
-                    );
-                  })}
-
-                  {/* Banners de Ofertas */}
-                  <div className="border-t border-border/30 pt-5 mb-5">
-                    <p className="text-sm font-semibold mb-1 text-muted-foreground uppercase tracking-wide">Banners de Ofertas</p>
-                    <p className="text-xs text-muted-foreground mb-4">3 imágenes para el slider de ofertas en la home. Solo imagen, sin texto.</p>
-                    <div className="space-y-4">
-                      {[1, 2, 3].map((n) => {
-                        const k = `sale_banner_${n}_image`;
-                        const current = bannerDrafts[k] ?? siteSettings?.[k] ?? "";
-                        return (
-                          <div key={k}>
-                            <Label className="text-xs font-medium">Banner {n}</Label>
-                            <div className="flex items-start gap-2 mt-1">
-                              <div className="flex-1">
-                                <Input
-                                  placeholder="https://... o sube una imagen"
-                                  value={current}
-                                  onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
-                                  className="bg-muted border-border/50 text-sm"
-                                />
-                                {current && (
-                                  <img src={current} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" />
-                                )}
-                              </div>
-                              <label className="cursor-pointer shrink-0">
-                                <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                                  <Upload className="w-3.5 h-3.5" /> Subir
-                                </span>
-                                <input
-                                  type="file"
-                                  accept="image/*"
-                                  className="hidden"
-                                  onChange={async (e) => {
-                                    const file = e.target.files?.[0];
-                                    if (!file) return;
-                                    const base64 = await new Promise<string>((resolve, reject) => {
-                                      const reader = new FileReader();
-                                      reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
-                                      reader.onerror = reject;
-                                      reader.readAsDataURL(file);
-                                    });
-                                    try {
-                                      const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                                      setBannerDrafts(d => ({ ...d, [k]: url }));
-                                      upsertSetting.mutate({ key: k, value: url });
-                                      toast.success("Banner subido");
-                                    } catch {
-                                      toast.error("Error al subir imagen");
-                                    }
-                                  }}
-                                />
-                              </label>
-                              <Button
-                                size="sm"
-                                className="bg-primary text-primary-foreground shrink-0"
-                                onClick={() => { if (current) upsertSetting.mutate({ key: k, value: current }); }}
-                                disabled={!current}
-                              >
-                                <Save className="w-4 h-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Banner lateral página de producto */}
-                  <div className="border-t border-border/30 pt-5 mb-5">
-                    <p className="text-sm font-semibold mb-1 text-muted-foreground uppercase tracking-wide">Banner lateral página de producto</p>
-                    <p className="text-xs text-muted-foreground mb-4">Aparece a la izquierda del producto en desktop. Puede ser una promo o imagen de colección.</p>
-                    <div className="space-y-3">
-                      {/* Image upload */}
-                      <div>
-                        <Label className="text-xs font-medium">Imagen del banner</Label>
-                        <div className="flex items-start gap-2 mt-1">
-                          <div className="flex-1">
-                            <Input
-                              placeholder="https://... o sube una imagen"
-                              value={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? ""}
-                              onChange={(e) => setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: e.target.value }))}
-                              className="bg-muted border-border/50 text-sm"
-                            />
-                            {(bannerDrafts["product_sidebar_banner_image"] || siteSettings?.["product_sidebar_banner_image"]) && (
-                              <img src={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"]} className="mt-2 h-28 w-full object-cover rounded-lg border border-border/30" />
-                            )}
-                          </div>
-                          <label className="cursor-pointer shrink-0">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                              <Upload className="w-3.5 h-3.5" /> Subir
-                            </span>
-                            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                              const file = e.target.files?.[0];
-                              if (!file) return;
-                              const base64 = await new Promise<string>((resolve, reject) => {
-                                const reader = new FileReader();
-                                reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
-                                reader.onerror = reject;
-                                reader.readAsDataURL(file);
-                              });
-                              try {
-                                const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                                setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: url }));
-                                upsertSetting.mutate({ key: "product_sidebar_banner_image", value: url });
-                                toast.success("Banner subido");
-                              } catch { toast.error("Error al subir imagen"); }
-                            }} />
-                          </label>
-                          <Button
-                            size="sm"
-                            className="bg-primary text-primary-foreground shrink-0"
-                            onClick={() => {
-                              const val = bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? "";
-                              if (val) upsertSetting.mutate({ key: "product_sidebar_banner_image", value: val });
-                            }}
-                            disabled={!(bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"])}
-                          >
-                            <Save className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                      {/* Destination URL */}
-                      <div>
-                        <Label className="text-xs font-medium">URL destino (al hacer click)</Label>
-                        <div className="flex gap-2 mt-1">
-                          <Input
-                            placeholder="Ej: /catalog o https://..."
-                            defaultValue={siteSettings?.["product_sidebar_banner_url"] ?? ""}
-                            onChange={(e) => setBannerDrafts(d => ({ ...d, product_sidebar_banner_url: e.target.value }))}
-                            className="bg-muted border-border/50 text-sm"
-                          />
-                          <Button
-                            size="sm"
-                            className="bg-primary text-primary-foreground shrink-0"
-                            onClick={() => {
-                              const val = bannerDrafts["product_sidebar_banner_url"] !== undefined ? bannerDrafts["product_sidebar_banner_url"] : siteSettings?.["product_sidebar_banner_url"] ?? "";
-                              if (val) upsertSetting.mutate({ key: "product_sidebar_banner_url", value: val });
-                            }}
-                          >
-                            <Save className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Video Banner */}
-                  <div className="border-t border-border/30 pt-5">
-                    <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Banner de video</p>
-                    <div className="grid sm:grid-cols-2 gap-3">
-                      {[
-                        { k: "video_banner_title", label: "Título", ph: "Ej: Sumérgete en el anime" },
-                        { k: "video_banner_subtitle", label: "Subtítulo", ph: "Ej: Descubre nuestra colección" },
-                        { k: "video_banner_cta", label: "Texto del botón", ph: "Ej: Ver más" },
-                        { k: "video_banner_video_url", label: "URL del video (mp4 o YouTube embed)", ph: "https://..." },
-                      ].map(({ k, label, ph }) => (
-                        <div key={k}>
-                          <Label className="text-xs font-medium">{label}</Label>
-                          <div className="flex gap-2 mt-1">
-                            <Input
-                              placeholder={ph}
-                              defaultValue={siteSettings?.[k] ?? ""}
-                              onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
-                              className="bg-muted border-border/50 text-sm"
-                            />
-                            <Button
-                              size="sm"
-                              className="bg-primary text-primary-foreground shrink-0"
-                              onClick={() => {
-                                const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
-                                if (val) upsertSetting.mutate({ key: k, value: val });
-                              }}
-                            >
-                              <Save className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Popup de bienvenida */}
-                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                {/* 5. Popup de bienvenida — left col */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
@@ -1816,76 +1634,37 @@ export default function Admin() {
                     </div>
                   </div>
                 </div>
-                {/* Brand Story */}
-                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6">
+                {/* 6. Banner lateral producto — right col */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
                     <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
                     </div>
                     <div>
-                      <h3 className="font-semibold">Sección Filosofía / Brand Story</h3>
-                      <p className="text-xs text-muted-foreground">Texto e imagen de la sección destacada en la home</p>
+                      <h3 className="font-semibold">Banner lateral página de producto</h3>
+                      <p className="text-xs text-muted-foreground">Aparece a la izquierda del producto en desktop</p>
                     </div>
                   </div>
-
-                  <div className="grid sm:grid-cols-2 gap-3">
-                    {[
-                      { k: "brand_story_label", label: "Etiqueta superior", ph: "Ej: Nuestra Filosofía" },
-                      { k: "brand_story_heading", label: "Título parte normal", ph: "Ej: Colecciones del" },
-                      { k: "brand_story_highlight", label: "Título parte destacada", ph: "Ej: Otro Mundo" },
-                      { k: "brand_story_body", label: "Descripción", ph: "Ej: Figuras de edición limitada..." },
-                    ].map(({ k, label, ph }) => (
-                      <div key={k}>
-                        <Label className="text-xs font-medium">{label}</Label>
-                        <div className="flex gap-2 mt-1">
+                  <div className="space-y-3">
+                    <div>
+                      <Label className="text-xs font-medium">Imagen del banner</Label>
+                      <div className="flex items-start gap-2 mt-1">
+                        <div className="flex-1">
                           <Input
-                            placeholder={ph}
-                            defaultValue={siteSettings?.[k] ?? ""}
-                            onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                            placeholder="https://... o sube una imagen"
+                            value={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? ""}
+                            onChange={(e) => setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: e.target.value }))}
                             className="bg-muted border-border/50 text-sm"
                           />
-                          <Button
-                            size="sm"
-                            className="bg-primary text-primary-foreground shrink-0"
-                            onClick={() => {
-                              const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
-                              if (val) upsertSetting.mutate({ key: k, value: val });
-                            }}
-                          >
-                            <Save className="w-4 h-4" />
-                          </Button>
+                          {(bannerDrafts["product_sidebar_banner_image"] || siteSettings?.["product_sidebar_banner_image"]) && (
+                            <img src={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"]} className="mt-2 h-28 w-full object-cover rounded-lg border border-border/30" />
+                          )}
                         </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Image upload */}
-                  <div className="mt-4">
-                    <Label className="text-xs font-medium">Imagen</Label>
-                    <div className="flex gap-2 mt-1 items-start">
-                      <div className="flex-1">
-                        <Input
-                          placeholder="URL de imagen o sube un archivo"
-                          value={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? ""}
-                          onChange={(e) => setBannerDrafts(d => ({ ...d, brand_story_image: e.target.value }))}
-                          className="bg-muted border-border/50 text-sm"
-                        />
-                        {(bannerDrafts["brand_story_image"] || siteSettings?.["brand_story_image"]) && (
-                          <img
-                            src={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"]}
-                            className="mt-2 h-24 w-40 object-cover rounded-lg border border-border/30"
-                          />
-                        )}
-                      </div>
-                      <label className="cursor-pointer shrink-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Subir
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={async (e) => {
+                        <label className="cursor-pointer shrink-0">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                            <Upload className="w-3.5 h-3.5" /> Subir
+                          </span>
+                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
                             const file = e.target.files?.[0];
                             if (!file) return;
                             const base64 = await new Promise<string>((resolve, reject) => {
@@ -1896,28 +1675,260 @@ export default function Admin() {
                             });
                             try {
                               const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                              setBannerDrafts(d => ({ ...d, brand_story_image: url }));
-                              upsertSetting.mutate({ key: "brand_story_image", value: url });
-                              toast.success("Imagen subida");
-                            } catch {
-                              toast.error("Error al subir imagen");
-                            }
+                              setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: url }));
+                              upsertSetting.mutate({ key: "product_sidebar_banner_image", value: url });
+                              toast.success("Banner subido");
+                            } catch { toast.error("Error al subir imagen"); }
+                          }} />
+                        </label>
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground shrink-0"
+                          onClick={() => {
+                            const val = bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? "";
+                            if (val) upsertSetting.mutate({ key: "product_sidebar_banner_image", value: val });
                           }}
+                          disabled={!(bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"])}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium">URL destino (al hacer click)</Label>
+                      <div className="flex gap-2 mt-1">
+                        <Input
+                          placeholder="Ej: /catalog o https://..."
+                          defaultValue={siteSettings?.["product_sidebar_banner_url"] ?? ""}
+                          onChange={(e) => setBannerDrafts(d => ({ ...d, product_sidebar_banner_url: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
                         />
-                      </label>
-                      <Button
-                        size="sm"
-                        className="bg-primary text-primary-foreground shrink-0"
-                        onClick={() => {
-                          const val = bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? "";
-                          if (val) upsertSetting.mutate({ key: "brand_story_image", value: val });
-                        }}
-                      >
-                        <Save className="w-4 h-4" />
-                      </Button>
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground shrink-0"
+                          onClick={() => {
+                            const val = bannerDrafts["product_sidebar_banner_url"] !== undefined ? bannerDrafts["product_sidebar_banner_url"] : siteSettings?.["product_sidebar_banner_url"] ?? "";
+                            if (val) upsertSetting.mutate({ key: "product_sidebar_banner_url", value: val });
+                          }}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                {/* 7. Hero Slides + Video Banner — full width */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 lg:col-span-2">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Hero Slides</h3>
+                      <p className="text-xs text-muted-foreground">Imágenes y textos de los 3 slides del hero principal</p>
+                    </div>
+                  </div>
+                  {[1, 2, 3].map((n) => {
+                    const imgKey = `hero_slide_${n}_image`;
+                    const currentImg = bannerDrafts[imgKey] ?? siteSettings?.[imgKey] ?? "";
+                    return (
+                      <div key={n} className="mb-6">
+                        <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Slide {n}</p>
+                        <div className="grid sm:grid-cols-2 gap-3 mb-3">
+                          {[
+                            { k: `hero_slide_${n}_tag`, label: "Tag / etiqueta", ph: "Ej: Temporada 2025" },
+                            { k: `hero_slide_${n}_title`, label: "Título", ph: "Ej: Nueva colección" },
+                            { k: `hero_slide_${n}_cta`, label: "Texto del botón", ph: "Ej: Ver colección" },
+                          ].map(({ k, label, ph }) => (
+                            <div key={k}>
+                              <Label className="text-xs font-medium">{label}</Label>
+                              <div className="flex gap-2 mt-1">
+                                <Input
+                                  placeholder={ph}
+                                  defaultValue={siteSettings?.[k] ?? ""}
+                                  onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                                  className="bg-muted border-border/50 text-sm"
+                                />
+                                <Button
+                                  size="sm"
+                                  className="bg-primary text-primary-foreground shrink-0"
+                                  onClick={() => {
+                                    const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                                    if (val) upsertSetting.mutate({ key: k, value: val });
+                                  }}
+                                >
+                                  <Save className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                        <div>
+                          <Label className="text-xs font-medium">Imagen del slide</Label>
+                          <div className="flex items-start gap-2 mt-1">
+                            <div className="flex-1">
+                              <Input
+                                placeholder="https://... o sube una imagen"
+                                value={currentImg}
+                                onChange={(e) => setBannerDrafts(d => ({ ...d, [imgKey]: e.target.value }))}
+                                className="bg-muted border-border/50 text-sm"
+                              />
+                              {currentImg && (
+                                <img src={currentImg} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" />
+                              )}
+                            </div>
+                            <label className="cursor-pointer shrink-0">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                                <Upload className="w-3.5 h-3.5" /> Subir
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const base64 = await new Promise<string>((resolve, reject) => {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(file);
+                                  });
+                                  try {
+                                    const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                    setBannerDrafts(d => ({ ...d, [imgKey]: url }));
+                                    upsertSetting.mutate({ key: imgKey, value: url });
+                                    toast.success("Imagen subida");
+                                  } catch {
+                                    toast.error("Error al subir imagen");
+                                  }
+                                }}
+                              />
+                            </label>
+                            <Button
+                              size="sm"
+                              className="bg-primary text-primary-foreground shrink-0"
+                              onClick={() => { if (currentImg) upsertSetting.mutate({ key: imgKey, value: currentImg }); }}
+                              disabled={!currentImg}
+                            >
+                              <Save className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        {n < 3 && <div className="border-t border-border/20 mt-5" />}
+                      </div>
+                    );
+                  })}
+                  <div className="border-t border-border/30 pt-5">
+                    <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Banner de video</p>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                      {[
+                        { k: "video_banner_title", label: "Título", ph: "Ej: Sumérgete en el anime" },
+                        { k: "video_banner_subtitle", label: "Subtítulo", ph: "Ej: Descubre nuestra colección" },
+                        { k: "video_banner_cta", label: "Texto del botón", ph: "Ej: Ver más" },
+                        { k: "video_banner_video_url", label: "URL del video (mp4 o YouTube embed)", ph: "https://..." },
+                      ].map(({ k, label, ph }) => (
+                        <div key={k}>
+                          <Label className="text-xs font-medium">{label}</Label>
+                          <div className="flex gap-2 mt-1">
+                            <Input
+                              placeholder={ph}
+                              defaultValue={siteSettings?.[k] ?? ""}
+                              onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                              className="bg-muted border-border/50 text-sm"
+                            />
+                            <Button
+                              size="sm"
+                              className="bg-primary text-primary-foreground shrink-0"
+                              onClick={() => {
+                                const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                                if (val) upsertSetting.mutate({ key: k, value: val });
+                              }}
+                            >
+                              <Save className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* 8. Sale Banners — full width */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 lg:col-span-2">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Banners de Ofertas</h3>
+                      <p className="text-xs text-muted-foreground">3 imágenes para el slider de ofertas en la home. Solo imagen, sin texto.</p>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    {[1, 2, 3].map((n) => {
+                      const k = `sale_banner_${n}_image`;
+                      const current = bannerDrafts[k] ?? siteSettings?.[k] ?? "";
+                      return (
+                        <div key={k}>
+                          <Label className="text-xs font-medium">Banner {n}</Label>
+                          <div className="flex items-start gap-2 mt-1">
+                            <div className="flex-1">
+                              <Input
+                                placeholder="https://... o sube una imagen"
+                                value={current}
+                                onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                                className="bg-muted border-border/50 text-sm"
+                              />
+                              {current && (
+                                <img src={current} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" />
+                              )}
+                            </div>
+                            <label className="cursor-pointer shrink-0">
+                              <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                                <Upload className="w-3.5 h-3.5" /> Subir
+                              </span>
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={async (e) => {
+                                  const file = e.target.files?.[0];
+                                  if (!file) return;
+                                  const base64 = await new Promise<string>((resolve, reject) => {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                                    reader.onerror = reject;
+                                    reader.readAsDataURL(file);
+                                  });
+                                  try {
+                                    const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                    setBannerDrafts(d => ({ ...d, [k]: url }));
+                                    upsertSetting.mutate({ key: k, value: url });
+                                    toast.success("Banner subido");
+                                  } catch {
+                                    toast.error("Error al subir imagen");
+                                  }
+                                }}
+                              />
+                            </label>
+                            <Button
+                              size="sm"
+                              className="bg-primary text-primary-foreground shrink-0"
+                              onClick={() => { if (current) upsertSetting.mutate({ key: k, value: current }); }}
+                              disabled={!current}
+                            >
+                              <Save className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                </div>{/* end grid */}
               </motion.div>
             )}
           </AnimatePresence>
