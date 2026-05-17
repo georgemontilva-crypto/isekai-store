@@ -75,7 +75,7 @@ export async function notifyOwner(payload: NotificationPayload): Promise<boolean
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from:    ENV.resendFrom,
+        from:    "ISEKAI WORLD <noreply@isekaiworld.co>",
         to:      ENV.ownerEmail,
         subject: payload.title,
         text:    payload.content,
@@ -92,6 +92,46 @@ export async function notifyOwner(payload: NotificationPayload): Promise<boolean
     return true;
   } catch (err) {
     console.warn("[Notification] Error enviando email:", err);
+    return false;
+  }
+}
+
+export async function notifyWelcome(userEmail: string, userName: string): Promise<boolean> {
+  if (!ENV.resendApiKey) {
+    console.warn("[Notification] Resend no configurado. Email de bienvenida omitido.");
+    return false;
+  }
+  const html = `
+    <div style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:32px 24px;color:#1a1a1a">
+      <div style="margin-bottom:24px">
+        <span style="font-weight:700;font-size:16px;letter-spacing:-0.3px">ISEKAI WORLD</span>
+      </div>
+      <h1 style="font-size:24px;font-weight:700;margin:0 0 12px;color:#e5007d">¡Bienvenido, ${userName}!</h1>
+      <p style="font-size:14px;color:#555;margin:0 0 8px">Tu cuenta en Isekai World ha sido creada exitosamente.</p>
+      <p style="font-size:14px;color:#555;margin:0 0 24px">Explora nuestra tienda y encuentra tus figuras favoritas.</p>
+      <a href="https://isekaiworld.co/catalog"
+         style="display:inline-block;background:#111;color:#fff;text-decoration:none;font-size:14px;font-weight:600;padding:12px 24px;border-radius:24px">
+        Ver tienda →
+      </a>
+    </div>`;
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${ENV.resendApiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: "ISEKAI WORLD <noreply@isekaiworld.co>",
+        to: userEmail,
+        subject: "¡Bienvenido a Isekai World!",
+        html,
+      }),
+    });
+    if (!res.ok) {
+      console.warn(`[Notification] Resend error bienvenida (${res.status}):`, await res.text().catch(() => ""));
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.warn("[Notification] Error enviando email de bienvenida:", err);
     return false;
   }
 }

@@ -298,18 +298,20 @@ export const appRouter = router({
         if (!msg) return;
 
         const order = await getOrderById(input.id);
-        if (!order || !order.userId) return;
+        if (!order) return;
 
-        try {
-          await insertOrderNotification({
-            userId: order.userId,
-            orderId: order.id,
-            orderNumber: order.orderNumber,
-            type: input.status,
-            title: msg.title,
-            body: msg.body,
-          });
-        } catch (e) { console.error("Failed to insert order notification:", e); }
+        if (order.userId) {
+          try {
+            await insertOrderNotification({
+              userId: order.userId,
+              orderId: order.id,
+              orderNumber: order.orderNumber,
+              type: input.status,
+              title: msg.title,
+              body: msg.body,
+            });
+          } catch (e) { console.error("Failed to insert order notification:", e); }
+        }
 
         try {
           await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, msg.title, msg.body);
