@@ -216,12 +216,12 @@ export default function Navbar() {
                     <motion.div
                       variants={dropdownVariants} initial="hidden" animate="visible" exit="exit"
                       transition={{ duration: 0.2, type: "tween" }}
-                      className="absolute right-0 top-[calc(100%+8px)] z-50 w-[calc(100vw-32px)] md:w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] border border-[#f0f0f0] overflow-hidden"
+                      className="fixed sm:absolute left-4 right-4 sm:left-auto sm:right-0 top-[70px] sm:top-[calc(100%+8px)] z-50 sm:w-80 bg-white rounded-2xl shadow-[0_8px_40px_rgba(0,0,0,0.12)] border border-[#f0f0f0] overflow-hidden"
                     >
                       <div className="px-4 py-3 border-b border-[#f0f0f0]">
                         <p className="font-semibold text-sm text-[#1a1a1a]">Notificaciones</p>
                       </div>
-                      <div className="max-h-80 overflow-y-auto">
+                      <div className="max-h-[70vh] sm:max-h-80 overflow-y-auto">
                         {!notifList || notifList.length === 0 ? (
                           <div className="px-4 py-6 text-center text-sm text-[#888]">No tienes notificaciones aún</div>
                         ) : (
