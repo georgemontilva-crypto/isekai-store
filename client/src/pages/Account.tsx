@@ -200,36 +200,36 @@ export default function Account() {
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-20">
-      <div className="container max-w-4xl">
 
-        {/* ── Avatar + Header ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="relative overflow-hidden py-12 mb-8 rounded-2xl"
-          style={textureEnabled ? {
-            backgroundImage: 'url(/textura-isekai.svg)',
-            backgroundSize: 'cover',
-            backgroundPosition: `center ${offsetY * 0.2}px`,
-          } : {}}
-        >
-          {textureEnabled && <div className="absolute inset-0 bg-white/85 pointer-events-none" />}
-          <div className="relative z-10 flex flex-col items-center text-center">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold mb-4 shadow-sm">
-              {initial}
-            </div>
-            <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
-            <p className="text-sm text-[#888] mt-0.5">{user?.email}</p>
-            <button
-              onClick={() => logout()}
-              className="mt-4 flex items-center gap-1.5 text-xs text-[#888] hover:text-[#1a1a1a] transition-colors"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              Cerrar sesión
-            </button>
+      {/* ── Avatar + Header — full width ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative overflow-hidden py-16"
+        style={{
+          backgroundImage: textureEnabled ? 'url(/textura-isekai.svg)' : 'none',
+          backgroundSize: 'cover',
+          backgroundPosition: `center ${offsetY * 0.2}px`,
+        }}
+      >
+        <div className="absolute inset-0 bg-white/85 pointer-events-none" />
+        <div className="relative z-10 flex flex-col items-center gap-2 text-center">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-sm">
+            {initial}
           </div>
-        </motion.div>
+          <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
+          <p className="text-sm text-[#888]">{user?.email}</p>
+          <button
+            onClick={() => logout()}
+            className="mt-2 flex items-center gap-1.5 text-xs text-[#888] hover:text-[#1a1a1a] transition-colors"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            Cerrar sesión
+          </button>
+        </div>
+      </motion.div>
 
+      <div className="container max-w-4xl py-8">
         {/* ── Tabs pills ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
