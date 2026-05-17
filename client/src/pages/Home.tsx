@@ -245,6 +245,12 @@ export default function Home() {
   const { t } = useLang();
   const [, navigate] = useLocation();
   const [heroIdx, setHeroIdx] = useState(0);
+  const [offsetY, setOffsetY] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => setOffsetY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 640;
   const isTablet = windowWidth >= 640 && windowWidth < 1024;
@@ -534,8 +540,17 @@ export default function Home() {
 
         {/* ── FEATURED PRODUCT + CTA ── */}
         {featuredProduct && (
-          <section className="py-16">
-            <div className="container">
+          <section
+            className="py-16 relative overflow-hidden"
+            style={{
+              backgroundImage: `url(/textura-isekai.svg)`,
+              backgroundSize: 'cover',
+              backgroundPosition: `center ${offsetY * 0.3}px`,
+              backgroundRepeat: 'no-repeat',
+            }}
+          >
+            <div className="absolute inset-0 bg-white/80" />
+            <div className="container relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-stretch">
               {/* Card del producto — izquierda */}
               <div>
@@ -564,7 +579,7 @@ export default function Home() {
                 </Link>
               </div>
             </div>
-            </div>
+            </div>{/* container */}
           </section>
         )}
       </div>
