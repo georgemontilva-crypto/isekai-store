@@ -20,71 +20,6 @@ import FeaturedProductCard from "@/components/FeaturedProductCard";
 import { useLang } from "@/i18n/LangContext";
 
 /* ─── Collections ─── */
-const collectionHrefsHome = ["/catalog","/catalog","/catalog","/catalog","/catalog"];
-const collectionImgsHome = [
-  "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80",
-  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
-  "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
-  "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
-  "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
-];
-const _old_collections_ignore = [
-  {
-    name: "Todo el Catálogo",
-    count: "120+ items",
-    desc: "Explora toda la tienda",
-    bg: "#1a1a1a",
-    textColor: "white",
-    href: "/catalog",
-    img: "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80",
-  },
-  {
-    name: "Audifonos",
-    count: "15 products",
-    desc: "Sumérgete en el sonido",
-    bg: "#f5f5f5",
-    textColor: "#1a1a1a",
-    href: "/catalog",
-    img: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
-  },
-  {
-    name: "Auriculares",
-    count: "8 products",
-    desc: "Diseño compacto, gran sonido",
-    bg: "#f5f5f5",
-    textColor: "#1a1a1a",
-    href: "/catalog",
-    img: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
-  },
-  {
-    name: "Parlantes",
-    count: "11 products",
-    desc: "El sonido más inmersivo del mundo",
-    bg: "#f5f5f5",
-    textColor: "#1a1a1a",
-    href: "/catalog",
-    img: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
-  },
-  {
-    name: "Accesorios",
-    count: "24 products",
-    desc: "Calidad que dura años",
-    bg: "#f5f5f5",
-    textColor: "#1a1a1a",
-    href: "/catalog",
-    img: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
-  },
-];
-
-/* ─── Brand logos ─── */
-const brands = ["B&O", "Bose", "Sennheiser", "Logitech", "Apple", "Sony", "JBL"];
-
-/* ─── Marquee items ─── */
-const marqueeItems = [
-  "Juega lo que quieras", "Comodidad todo el día", "Sonido premium", "Envío gratis",
-  "Juega lo que quieras", "Comodidad todo el día", "Sonido premium", "Envío gratis",
-];
-
 /* ─── Tab categories ─── */
 // tabCategories removed — using DB categories directly
 
@@ -279,6 +214,12 @@ export default function Home() {
     return () => clearInterval(t);
   }, [heroSlides.length]);
 
+  const videoUrl      = settings?.["video_banner_video_url"] ?? "";
+  const videoTitle    = settings?.["video_banner_title"]     ?? "";
+  const videoSubtitle = settings?.["video_banner_subtitle"]  ?? "";
+  const videoCta      = settings?.["video_banner_cta"]       ?? "";
+  const videoCtaUrl   = settings?.["video_banner_cta_url"]   ?? "/catalog";
+
   const featuredProduct = products[0];
   const displayProducts = products;
 
@@ -379,24 +320,14 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           2. COLLECTIONS CAROUSEL (Shopify Concept style)
       ══════════════════════════════════════════════ */}
+      {categories && categories.length > 0 && (
       <section className="bg-white border-b border-[#ebebeb] py-0">
-        {/* 5 cards visible, scrollable, 8px left margin matching hero */}
         <div
           className="flex gap-[10px] overflow-x-auto scrollbar-hide"
           style={{ padding: '24px 8px 28px 8px' }}
         >
-          {(categories && categories.length > 0 ? categories : t.home.collections.map((col, idx) => ({
-            id: idx,
-            name: col.name,
-            slug: "",
-            description: col.desc ?? "",
-            imageUrl: collectionImgsHome[idx] ?? null,
-            featured: false,
-            createdAt: new Date(),
-            updatedAt: new Date(),
-          }))).map((cat, idx) => {
-            const img = cat.imageUrl || collectionImgsHome[idx % collectionImgsHome.length];
-            const href = 'slug' in cat && cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
+          {categories.map((cat, idx) => {
+            const href = cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
             return (
             <Link key={cat.id} href={href}>
               <div
@@ -409,12 +340,14 @@ export default function Home() {
                   background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
                 }}
               >
-                <img
-                  src={img}
-                  alt={cat.name}
-                  className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                  style={{ opacity: idx === 0 ? 0.65 : 1 }}
-                />
+                {cat.imageUrl && (
+                  <img
+                    src={cat.imageUrl}
+                    alt={cat.name}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                    style={{ opacity: idx === 0 ? 0.65 : 1 }}
+                  />
+                )}
                 <div
                   className="absolute inset-0"
                   style={{
@@ -432,7 +365,7 @@ export default function Home() {
                       >
                         {cat.name}
                       </p>
-                      {'description' in cat && cat.description && (
+                      {cat.description && (
                         <p className="text-white/60 text-[11px] mt-0.5 leading-tight">{cat.description}</p>
                       )}
                     </div>
@@ -446,6 +379,7 @@ export default function Home() {
           );})}
         </div>
       </section>
+      )}
 
       {/* ══════════════════════════════════════════════
           3. BRAND STORY
@@ -453,17 +387,19 @@ export default function Home() {
       <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6 px-[8px]">
         {/* Same 8px side margin as hero carousel prev/next slides */}
         <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-0">
-          {/* LEFT: image island with same 8px left margin as hero */}
+          {/* LEFT: image island — only shown when configured from admin */}
+          {settings?.["brand_story_image"] && (
           <div
             className="overflow-hidden"
             style={{ height: isMobile ? '180px' : '240px', borderRadius: '18px' }}
           >
             <img
-              src={settings?.["brand_story_image"] || "https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=900&auto=format&fit=crop"}
+              src={settings["brand_story_image"]}
               alt="Figuras coleccionables 3D anime"
               className="w-full h-full object-cover"
             />
           </div>
+          )}
           {/* RIGHT: brand statement */}
           <div className="flex flex-col justify-center w-full px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">
@@ -498,52 +434,52 @@ export default function Home() {
       <div className="relative">
 
         {/* ── VIDEO BANNER ── */}
+        {videoUrl && (
         <section className="bg-[#f5f5f5] py-0" style={{ padding: '0 8px 0 8px' }}>
           <div
             className="relative overflow-hidden"
             style={{ height: 480, borderRadius: 18 }}
           >
-            <img
-              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80"
-              alt="Sound sculpted"
-              className="w-full h-full object-cover"
+            <video
+              src={videoUrl}
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="absolute inset-0 w-full h-full object-cover"
             />
             <div className="absolute inset-0 bg-black/50" />
-            {/* Center content */}
+            {(videoTitle || videoSubtitle || videoCta) && (
             <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
-              <h2
-                className="font-black text-white mb-3"
-                style={{
-                  fontFamily: "'Orbitron', sans-serif",
-                  fontSize: 'clamp(36px, 6vw, 72px)',
-                  lineHeight: 1.1,
-                  letterSpacing: '-0.01em',
-                }}
-              >
-                {t.home.videoBanner.title}
-              </h2>
-              <p className="text-white/70 text-[15px] mb-7">
-                {t.home.videoBanner.subtitle}
-              </p>
-              <Link
-                href="/catalog"
-                className="inline-flex items-center gap-2 bg-white text-[#1a1a1a] font-semibold text-[14px] px-7 py-3.5 rounded-full hover:bg-white/90 transition-colors"
-              >
-                {t.home.videoBanner.cta} <ArrowRight size={14} />
-              </Link>
+              {videoTitle && (
+                <h2
+                  className="font-black text-white mb-3"
+                  style={{
+                    fontFamily: "'Orbitron', sans-serif",
+                    fontSize: 'clamp(36px, 6vw, 72px)',
+                    lineHeight: 1.1,
+                    letterSpacing: '-0.01em',
+                  }}
+                >
+                  {videoTitle}
+                </h2>
+              )}
+              {videoSubtitle && (
+                <p className="text-white/70 text-[15px] mb-7">{videoSubtitle}</p>
+              )}
+              {videoCta && (
+                <Link
+                  href={videoCtaUrl}
+                  className="inline-flex items-center gap-2 bg-white text-[#1a1a1a] font-semibold text-[14px] px-7 py-3.5 rounded-full hover:bg-white/90 transition-colors"
+                >
+                  {videoCta} <ArrowRight size={14} />
+                </Link>
+              )}
             </div>
-            {/* Pause button bottom-right */}
-            <button
-              className="absolute bottom-5 right-5 w-9 h-9 rounded-full bg-white/20 border border-white/30 flex items-center justify-center hover:bg-white/30 transition-colors"
-              aria-label="Pausar"
-            >
-              <svg width="12" height="14" viewBox="0 0 12 14" fill="white">
-                <rect x="0" y="0" width="4" height="14" rx="1.5" />
-                <rect x="8" y="0" width="4" height="14" rx="1.5" />
-              </svg>
-            </button>
+            )}
           </div>
         </section>
+        )}
 
         {/* ── FEATURED PRODUCT + CTA ── */}
         {featuredProduct && (
