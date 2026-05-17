@@ -5,6 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
+  CreditCard, Eye, CheckCheck, Ban,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -17,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "settings" | "faq";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -307,6 +308,8 @@ function ProductForm({
     stock: product?.stock ?? 0,
     status: product?.status ?? "draft",
     featured: product?.featured ?? false,
+    installmentsEnabled: product?.installmentsEnabled ?? false,
+    initialPayment: product?.initialPayment ?? "",
   });
   const [uploading, setUploading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string>(product?.images?.[0]?.url ?? "");
@@ -437,6 +440,29 @@ function ProductForm({
           />
           <Label htmlFor="featured">Destacado en homepage</Label>
         </div>
+        <div className="flex items-center gap-3 mt-2">
+          <input
+            type="checkbox"
+            id="installmentsEnabled"
+            checked={form.installmentsEnabled}
+            onChange={(e) => setForm({ ...form, installmentsEnabled: e.target.checked })}
+            className="w-4 h-4 accent-primary"
+          />
+          <Label htmlFor="installmentsEnabled">Permitir pago en cuotas (Isekai Reserve)</Label>
+        </div>
+        {form.installmentsEnabled && (
+          <div className="mt-2">
+            <Label>Cuota inicial ($)</Label>
+            <Input
+              type="number"
+              step="0.01"
+              value={form.initialPayment}
+              onChange={(e) => setForm({ ...form, initialPayment: e.target.value })}
+              className="mt-1 bg-muted border-border/50 max-w-[160px]"
+              placeholder="0.00"
+            />
+          </div>
+        )}
       </div>
 
       <div>
@@ -482,6 +508,7 @@ function ProductForm({
             categoryId: form.categoryId ? Number(form.categoryId) : undefined,
             compareAtPrice: form.compareAtPrice || undefined,
             firstImageUrl: imageUrl || undefined,
+            initialPayment: form.initialPayment || undefined,
           })}
         >
           <Check className="w-4 h-4 mr-2" />
@@ -519,6 +546,10 @@ export default function Admin() {
   const [bannerDrafts, setBannerDrafts] = useState<Record<string, string>>({});
   const pendingProductImageRef = useRef<string | null>(null);
 
+  // Payments state
+  const [paymentsFilter, setPaymentsFilter] = useState<string>("all");
+  const [expandedPaymentId, setExpandedPaymentId] = useState<number | null>(null);
+
   // FAQ state
   const [faqForm, setFaqForm] = useState({ question: "", answer: "", category: "General", position: 0, active: true });
   const [editingFaqId, setEditingFaqId] = useState<number | null>(null);
@@ -547,6 +578,7 @@ export default function Admin() {
     }
   });
   const updateProduct = trpc.products.update.useMutation({ onSuccess: () => { refetchProducts(); setEditingProduct(null); toast.success("Producto actualizado"); } });
+  const updateProductPaymentSettings = trpc.products.updatePaymentSettings.useMutation();
   const deleteProduct = trpc.products.delete.useMutation({ onSuccess: () => { refetchProducts(); toast.success("Producto eliminado"); } });
   const createCategory = trpc.categories.create.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); setCategoryForm({ name: "", slug: "", description: "", imageUrl: "", featured: false }); toast.success("Categoría creada"); } });
   const updateCategory = trpc.categories.update.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); toast.success("Categoría actualizada"); } });
@@ -554,6 +586,13 @@ export default function Admin() {
   const updateOrderStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => { refetchOrders(); toast.success("Estado actualizado"); } });
   const { data: siteSettings, refetch: refetchSettings } = trpc.settings.getAdmin.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const upsertSetting = trpc.settings.upsert.useMutation({ onSuccess: () => { refetchSettings(); toast.success("Configuración guardada"); } });
+
+  // Payments queries + mutations
+  const { data: paymentsData, refetch: refetchPayments } = trpc.orders.adminPayments.useQuery(
+    { paymentStatus: paymentsFilter === "all" ? undefined : paymentsFilter },
+    { enabled: isAuthenticated && user?.role === "admin" }
+  );
+  const verifyPayment = trpc.orders.verifyPayment.useMutation({ onSuccess: () => { refetchPayments(); toast.success("Pago verificado"); } });
 
   // FAQ queries + mutations
   const { data: faqItems = [], refetch: refetchFaq } = trpc.faq.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -619,6 +658,7 @@ export default function Admin() {
     { id: "products" as AdminTab, label: "Productos", icon: Package },
     { id: "categories" as AdminTab, label: "Categorías", icon: Tag },
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
+    { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
     { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
     { id: "faq" as AdminTab,      label: "FAQ",           icon: HelpCircle },
   ];
@@ -822,7 +862,15 @@ export default function Admin() {
                             <ProductForm
                               product={editingProduct}
                               categories={categories ?? []}
-                              onSave={(data) => updateProduct.mutate({ id: product.id, ...data })}
+                              onSave={(data) => {
+                                const { firstImageUrl, installmentsEnabled, initialPayment, ...productData } = data;
+                                updateProduct.mutate({ id: product.id, ...productData });
+                                updateProductPaymentSettings.mutate({
+                                  id: product.id,
+                                  installmentsEnabled: installmentsEnabled ?? false,
+                                  initialPayment: initialPayment || undefined,
+                                });
+                              }}
                               onCancel={() => setEditingProduct(null)}
                             />
                             <VariantManager productId={product.id} />
@@ -1087,6 +1135,122 @@ export default function Admin() {
               </motion.div>
             )}
           </AnimatePresence>
+            {/* ─── Payments Tab ───────────────────────────────────────────────── */}
+            {tab === "payments" && (
+              <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                  <h1 className="text-2xl font-bold">Pagos</h1>
+                  <div className="flex gap-2 flex-wrap">
+                    {[
+                      { id: "all", label: "Todos" },
+                      { id: "pending", label: "Pendiente" },
+                      { id: "verifying", label: "En revisión" },
+                      { id: "approved", label: "Aprobado" },
+                      { id: "rejected", label: "Rechazado" },
+                    ].map(f => (
+                      <button
+                        key={f.id}
+                        onClick={() => setPaymentsFilter(f.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
+                          paymentsFilter === f.id ? "border-primary bg-primary/10 text-primary" : "border-border/50 text-muted-foreground hover:border-primary/40"
+                        }`}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {(paymentsData?.items ?? []).length === 0 && (
+                    <div className="text-center py-12 text-muted-foreground">No hay pagos en esta categoría</div>
+                  )}
+                  {(paymentsData?.items ?? []).map((order: any) => {
+                    const isExpanded = expandedPaymentId === order.id;
+                    const statusColors: Record<string, string> = {
+                      pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
+                      verifying: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+                      approved: "bg-green-500/10 text-green-400 border-green-500/30",
+                      rejected: "bg-red-500/10 text-red-400 border-red-500/30",
+                    };
+                    const statusLabels: Record<string, string> = {
+                      pending: "Pendiente", verifying: "En revisión", approved: "Aprobado", rejected: "Rechazado",
+                    };
+                    return (
+                      <div key={order.id} className="rounded-2xl bg-card border border-border/50 overflow-hidden">
+                        <button
+                          className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
+                          onClick={() => setExpandedPaymentId(isExpanded ? null : order.id)}
+                        >
+                          <div className="flex items-center gap-4 min-w-0">
+                            <div className="min-w-0">
+                              <p className="font-semibold text-sm">{order.orderNumber}</p>
+                              <p className="text-xs text-muted-foreground truncate">{order.customerName} · {order.customerEmail}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-3 ml-4 shrink-0">
+                            <span className="font-bold text-primary text-sm">${parseFloat(order.total).toFixed(2)}</span>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${statusColors[order.paymentStatus ?? "pending"]}`}>
+                              {statusLabels[order.paymentStatus ?? "pending"]}
+                            </span>
+                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </div>
+                        </button>
+
+                        {isExpanded && (
+                          <div className="px-4 pb-4 space-y-4 border-t border-border/30 pt-4">
+                            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                              <div><span className="text-muted-foreground">Método:</span> <span className="font-medium">{order.paymentMethod ?? "—"}</span></div>
+                              <div><span className="text-muted-foreground">País:</span> <span className="font-medium">{order.country ?? "—"}</span></div>
+                              <div><span className="text-muted-foreground">Referencia:</span> <span className="font-mono font-medium">{order.paymentReference ?? "—"}</span></div>
+                              <div><span className="text-muted-foreground">Titular:</span> <span className="font-medium">{order.receiptHolder ?? "—"}</span></div>
+                            </div>
+
+                            {order.receiptUrl && (
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Comprobante:</p>
+                                {order.receiptUrl.endsWith(".pdf") ? (
+                                  <a href={order.receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-primary underline">
+                                    <Eye className="w-4 h-4" /> Ver PDF
+                                  </a>
+                                ) : (
+                                  <a href={order.receiptUrl} target="_blank" rel="noreferrer">
+                                    <img src={order.receiptUrl} alt="Comprobante" className="max-h-48 rounded-xl border border-border/50 object-contain" />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+
+                            {order.paymentStatus === "verifying" && (
+                              <div className="flex gap-3">
+                                <Button
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  disabled={verifyPayment.isPending}
+                                  onClick={() => verifyPayment.mutate({ orderId: order.id, approved: true })}
+                                >
+                                  <CheckCheck className="w-4 h-4 mr-1.5" /> Aprobar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                  disabled={verifyPayment.isPending}
+                                  onClick={() => verifyPayment.mutate({ orderId: order.id, approved: false })}
+                                >
+                                  <Ban className="w-4 h-4 mr-1.5" /> Rechazar
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+
           {/* ─── Settings Tab ─────────────────────────────────────────────────── */}
           <AnimatePresence mode="wait">
             {tab === "settings" && (
@@ -2154,6 +2318,57 @@ export default function Admin() {
                       </div>
                     );
                   })()}
+                </div>
+
+                {/* Payment methods card */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 lg:col-span-2">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-white" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Métodos de Pago</h3>
+                      <p className="text-xs text-muted-foreground">Datos de cuenta que se muestran al cliente al hacer checkout</p>
+                    </div>
+                  </div>
+                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {([
+                      { k: "nequi_number",         label: "Nequi — Número",             ph: "Ej: 3001234567" },
+                      { k: "daviplata_number",      label: "Daviplata — Número",         ph: "Ej: 3009876543" },
+                      { k: "bancolombia_number",    label: "Bancolombia — Cuenta",       ph: "Ej: 12345678901" },
+                      { k: "bancolombia_type",      label: "Bancolombia — Tipo",         ph: "Ahorros / Corriente" },
+                      { k: "bancolombia_owner",     label: "Bancolombia — Titular",      ph: "Nombre del titular" },
+                      { k: "daviplata_number",      label: "Daviplata — Número",         ph: "Ej: 3001234567" },
+                      { k: "pago_movil_number",     label: "Pago Móvil — Teléfono",      ph: "Ej: 04141234567" },
+                      { k: "pago_movil_bank",       label: "Pago Móvil — Banco",         ph: "Ej: Mercantil" },
+                      { k: "pago_movil_id",         label: "Pago Móvil — Cédula/RIF",    ph: "Ej: V-12345678" },
+                      { k: "binance_id",            label: "Binance — Pay ID",           ph: "Ej: 123456789" },
+                      { k: "zelle_email",           label: "Zelle — Email",              ph: "Ej: pagos@ejemplo.com" },
+                      { k: "transferencia_details", label: "Transferencia — Detalles",   ph: "IBAN, banco, titular..." },
+                    ] as { k: string; label: string; ph: string }[]).map(({ k, label, ph }) => (
+                      <div key={k}>
+                        <Label className="text-xs font-medium">{label}</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder={ph}
+                            defaultValue={siteSettings?.[k] ?? ""}
+                            onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                            className="bg-muted border-border/50 text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => {
+                              const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                              if (val) upsertSetting.mutate({ key: k, value: val });
+                            }}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 </div>{/* end grid */}
