@@ -77,7 +77,6 @@ type FormData = z.infer<typeof schema>;
 
 // ─── Receipt form schema ───────────────────────────────────────────────────────
 const receiptSchema = z.object({
-  paymentReference: z.string().min(1, "Referencia requerida"),
   receiptHolder: z.string().min(2, "Nombre del titular requerido"),
 });
 type ReceiptFormData = z.infer<typeof receiptSchema>;
@@ -92,7 +91,7 @@ export default function Checkout() {
   // ─── State ─────────────────────────────────────────────────────────────────
   const [selectedCountry, setSelectedCountry] = useState<string>("Colombia");
   const [selectedMethod, setSelectedMethod] = useState<string | null>(null);
-  const [createdOrder, setCreatedOrder] = useState<{ id: number; orderNumber: string } | null>(null);
+  const [createdOrder, setCreatedOrder] = useState<{ id: number; orderNumber: string; total: string } | null>(null);
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptSubmitted, setReceiptSubmitted] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -165,7 +164,7 @@ export default function Checkout() {
         return;
       }
 
-      setCreatedOrder({ id: order.id, orderNumber: order.orderNumber });
+      setCreatedOrder({ id: order.id, orderNumber: order.orderNumber, total: order.total });
     } catch {
       toast.error(t.checkout.errors.error);
     }
@@ -190,7 +189,7 @@ export default function Checkout() {
       await submitReceipt.mutateAsync({
         orderId: createdOrder.id,
         receiptUrl: url,
-        paymentReference: data.paymentReference,
+        paymentReference: createdOrder.orderNumber,
         receiptHolder: data.receiptHolder,
       });
 
@@ -276,7 +275,7 @@ export default function Checkout() {
                 )}
               </div>
               <div className="bg-primary/10 rounded-xl px-3 py-2">
-                <p className="text-sm font-bold text-primary">Total a pagar: ${subtotal.toFixed(2)}</p>
+                <p className="text-sm font-bold text-primary">Total a pagar: ${parseFloat(createdOrder.total).toFixed(2)}</p>
               </div>
             </div>
 
@@ -306,15 +305,12 @@ export default function Checkout() {
                 </div>
 
                 <div>
-                  <Label>Número de referencia *</Label>
+                  <Label>Número de pedido</Label>
                   <Input
-                    {...regReceipt("paymentReference")}
-                    className="mt-1 bg-muted border-border/50 focus:border-primary/50"
-                    placeholder="Ej: 1234567890"
+                    value={createdOrder.orderNumber}
+                    readOnly
+                    className="mt-1 bg-muted border-border/50 text-muted-foreground cursor-default"
                   />
-                  {receiptErrors.paymentReference && (
-                    <p className="text-destructive text-xs mt-1">{receiptErrors.paymentReference.message}</p>
-                  )}
                 </div>
 
                 <div>
