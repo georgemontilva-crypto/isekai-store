@@ -199,7 +199,7 @@ export default function Account() {
   const initial = user?.name?.charAt(0).toUpperCase() ?? "?";
 
   return (
-    <div className="min-h-screen bg-white pt-24 pb-20">
+    <div className="min-h-screen bg-white pt-0 pb-20">
 
       {/* ── Avatar + Header — full width ── */}
       <motion.div
@@ -213,7 +213,7 @@ export default function Account() {
         }}
       >
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 100%)' }} />
-        <div className="relative z-10 flex flex-col items-center gap-2 text-center pt-6 sm:pt-0">
+        <div className="relative z-10 flex flex-col items-center gap-2 text-center pt-4 sm:pt-0">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-sm">
             {initial}
           </div>
