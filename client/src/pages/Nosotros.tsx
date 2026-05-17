@@ -169,10 +169,11 @@ export default function Nosotros() {
       </section>
 
       {/* ── 5. Misión / Visión ────────────────────────────────────────── */}
-      <section className="py-24 lg:py-32 bg-[#f8f8f8]">
-        <div className="px-6 lg:px-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
-          {/* Columna izquierda — textos */}
-          <div className="max-w-xl">
+      <section className="bg-[#f8f8f8]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 items-stretch">
+
+          {/* Columna texto */}
+          <div className="px-8 lg:px-16 py-24 lg:py-32">
             <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-16 font-medium">Propósito</p>
             {[
               {
@@ -198,25 +199,23 @@ export default function Nosotros() {
             ))}
           </div>
 
-          {/* Columna derecha — imagen */}
-          <div className="lg:sticky lg:top-24">
+          {/* Columna imagen — altura completa */}
+          <div className="relative min-h-[400px] lg:min-h-full">
             {misionImage ? (
-              <motion.img
+              <img
                 src={misionImage}
                 alt="Misión y Visión"
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5 }}
-                className="w-full h-full object-cover rounded-2xl"
+                className="absolute inset-0 w-full h-full object-cover"
               />
             ) : (
-              <div className="w-full aspect-square bg-[#f0f0f0] rounded-2xl flex items-center justify-center">
+              <div className="absolute inset-0 bg-[#f0f0f0] flex items-center justify-center">
                 <p className="text-[#bbb] text-sm text-center px-6">
                   Configura la imagen desde<br />Admin → Configuración → Página Nosotros
                 </p>
               </div>
             )}
           </div>
+
         </div>
       </section>
 
