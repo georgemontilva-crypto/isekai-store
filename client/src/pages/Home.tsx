@@ -68,6 +68,8 @@ function SaleSlider() {
               src={src}
               alt=""
               className="w-full h-full object-cover object-center"
+              loading="lazy"
+              decoding="async"
             />
           </div>
         ))}
@@ -222,6 +224,21 @@ export default function Home() {
   const videoCta      = settings?.["video_banner_cta"]       ?? "";
   const videoCtaUrl   = settings?.["video_banner_cta_url"]   ?? "/catalog";
 
+  const videoRef = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !videoUrl) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) { video.play().catch(() => {}); }
+        else { video.pause(); }
+      },
+      { rootMargin: "0px 0px 300px 0px" }
+    );
+    observer.observe(video);
+    return () => observer.disconnect();
+  }, [videoUrl]);
+
   const featuredProduct = products[0];
   const displayProducts = products;
 
@@ -351,6 +368,8 @@ export default function Home() {
                     alt={cat.name}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
                     style={{ opacity: idx === 0 ? 0.65 : 1 }}
+                    loading="lazy"
+                    decoding="async"
                   />
                 )}
                 <div
@@ -402,6 +421,8 @@ export default function Home() {
               src={settings["brand_story_image"]}
               alt="Figuras coleccionables 3D anime"
               className="w-full h-full object-cover"
+              loading="lazy"
+              decoding="async"
             />
           </div>
           )}
@@ -446,8 +467,9 @@ export default function Home() {
             style={{ height: 480, borderRadius: 18 }}
           >
             <video
+              ref={videoRef}
               src={videoUrl}
-              autoPlay
+              preload="none"
               muted
               loop
               playsInline

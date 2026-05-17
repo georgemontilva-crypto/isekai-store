@@ -17,7 +17,6 @@ export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
   const { addItem } = useCart();
   const { isAuthenticated } = useAuth();
-  const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const [selectedVariant, setSelectedVariant] = useState<number | undefined>();
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
@@ -153,33 +152,7 @@ export default function ProductDetail() {
       </div>
 
       <div className="container px-4 pt-20 md:pt-24">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-[280px_1fr_1fr] gap-8">
-
-          {/* ══════════════════════════════════════════════════════════════════
-              SIDEBAR — lateral banner (desktop only)
-          ══════════════════════════════════════════════════════════════════ */}
-          <div className="hidden lg:block self-stretch">
-            {siteSettings?.["product_sidebar_banner_image"] ? (
-              <a
-                href={siteSettings["product_sidebar_banner_url"] || "#"}
-                target={siteSettings["product_sidebar_banner_url"]?.startsWith("http") ? "_blank" : "_self"}
-                rel="noopener noreferrer"
-                className="block h-full rounded-2xl overflow-hidden"
-              >
-                <img
-                  src={siteSettings["product_sidebar_banner_image"]}
-                  alt="Banner lateral"
-                  className="w-full h-full object-cover"
-                />
-              </a>
-            ) : (
-              <div className="h-full min-h-[420px] rounded-2xl border-2 border-dashed border-[#e0e0e0] bg-[#fafafa] flex items-center justify-center p-6 text-center">
-                <p className="text-[11px] text-[#bbb] leading-relaxed">
-                  Configura el banner lateral desde<br />Admin → Configuración
-                </p>
-              </div>
-            )}
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
 
           {/* ══════════════════════════════════════════════════════════════════
               GALLERY — product images
@@ -455,22 +428,6 @@ export default function ProductDetail() {
             </div>
           </motion.div>
         </div>
-
-        {/* Mobile/Tablet sidebar banner — full-width below product info */}
-        {siteSettings?.["product_sidebar_banner_image"] ? (
-          <a
-            href={siteSettings["product_sidebar_banner_url"] || "#"}
-            target={siteSettings["product_sidebar_banner_url"]?.startsWith("http") ? "_blank" : "_self"}
-            rel="noopener noreferrer"
-            className="block lg:hidden mt-6 rounded-2xl overflow-hidden"
-          >
-            <img
-              src={siteSettings["product_sidebar_banner_image"]}
-              alt="Banner"
-              className="w-full object-cover max-h-[180px] sm:max-h-[220px]"
-            />
-          </a>
-        ) : null}
 
         {/* ══════════════════════════════════════════════════════════════════
             RELATED PRODUCTS
