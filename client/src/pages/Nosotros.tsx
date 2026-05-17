@@ -133,7 +133,7 @@ export default function Nosotros() {
           {SERVICES.map((s, i) => (
             <div
               key={i}
-              className="group relative border-t border-[#e5e5e5] py-7 px-6 lg:px-20 flex items-center justify-between cursor-default overflow-hidden"
+              className="group relative border-t border-[#e5e5e5] cursor-default overflow-hidden"
               onMouseEnter={() => setHoveredService(i)}
               onMouseLeave={() => setHoveredService(null)}
             >
@@ -141,15 +141,26 @@ export default function Nosotros() {
                 className="absolute inset-0 bg-[#e5007d] transition-opacity duration-500"
                 style={{ opacity: hoveredService === i ? 0.06 : 0 }}
               />
-              <div className="relative flex items-center gap-6 lg:gap-10">
-                <span className="text-xs text-[#bbb] font-mono w-6 shrink-0">{String(i + 1).padStart(2, "0")}</span>
-                <span className="text-xl sm:text-2xl lg:text-4xl font-black group-hover:text-[#e5007d] transition-colors duration-300">
-                  {s.name}
-                </span>
+              {/* Móvil: número + título arriba, descripción abajo con indent */}
+              <div className="relative lg:hidden py-7 px-6">
+                <div className="flex items-center gap-6 mb-2">
+                  <span className="text-xs text-[#bbb] font-mono w-6 shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="text-xl font-black group-hover:text-[#e5007d] transition-colors duration-300">
+                    {s.name}
+                  </span>
+                </div>
+                <p className="text-sm text-[#555] leading-relaxed pl-12">{s.desc}</p>
               </div>
-              <span className="relative text-sm text-[#777] max-w-[280px] text-right hidden lg:block leading-relaxed">
-                {s.desc}
-              </span>
+              {/* Desktop: número + título a la izquierda, descripción a la derecha */}
+              <div className="hidden lg:flex items-center justify-between py-7 px-20">
+                <div className="flex items-center gap-10">
+                  <span className="text-xs text-[#bbb] font-mono w-6 shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                  <span className="text-4xl font-black group-hover:text-[#e5007d] transition-colors duration-300">
+                    {s.name}
+                  </span>
+                </div>
+                <span className="text-sm text-[#777] max-w-[280px] text-right leading-relaxed">{s.desc}</span>
+              </div>
             </div>
           ))}
           <div className="border-t border-[#e5e5e5]" />
