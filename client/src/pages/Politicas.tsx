@@ -264,6 +264,7 @@ function Cookies() {
 }
 
 export default function Politicas() {
+  const { t } = useLang();
   const [active, setActive] = useState<Section>("devoluciones");
 
   const content = {
