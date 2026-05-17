@@ -468,7 +468,7 @@ export default function Home() {
               <span
                 style={{
                   fontFamily: "'Orbitron', sans-serif",
-                  background: "linear-gradient(135deg, #7c3aed 0%, #06b6d4 100%)",
+                  background: "linear-gradient(to right, #e5007d, #ff0099)",
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                   backgroundClip: "text",
@@ -477,7 +477,7 @@ export default function Home() {
                 {settings?.["brand_story_highlight"] ?? t.home.brandStory.highlight}
               </span>
             </h2>
-            <p className="mt-4 text-[14px] text-[#666] leading-relaxed max-w-sm">
+            <p className="mt-4 text-[14px] text-[#666] leading-relaxed">
               {settings?.["brand_story_body"] ?? t.home.brandStory.body}
             </p>
           </div>
