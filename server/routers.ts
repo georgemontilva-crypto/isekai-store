@@ -406,9 +406,9 @@ export const appRouter = router({
       .input(z.object({
         productId: z.number(),
         productName: z.string(),
-        totalAmount: z.string(),
+        totalAmount: z.string().refine(v => parseFloat(v) >= 150, { message: "CredIsekai solo aplica para montos ≥ $150 USD" }),
         amountPaid: z.string(),
-        installments: z.number().min(1).max(12),
+        installments: z.union([z.literal(2), z.literal(3)]),
       }))
       .mutation(({ ctx, input }) => createInstallmentPlan({ ...input, userId: ctx.user.id })),
 

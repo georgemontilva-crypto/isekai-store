@@ -448,7 +448,7 @@ function ProductForm({
             onChange={(e) => setForm({ ...form, installmentsEnabled: e.target.checked })}
             className="w-4 h-4 accent-primary"
           />
-          <Label htmlFor="installmentsEnabled">Permitir pago en cuotas (Isekai Reserve)</Label>
+          <Label htmlFor="installmentsEnabled">Permitir pago en cuotas (CredIsekai · mínimo $150)</Label>
         </div>
         {form.installmentsEnabled && (
           <div className="mt-2">

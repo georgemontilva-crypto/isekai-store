@@ -145,7 +145,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
   { id: "orders",   label: "Mis Pedidos",     icon: Package },
   { id: "wishlist", label: "Guardados",        icon: Heart },
   { id: "coupons",  label: "Cupones",          icon: Ticket },
-  { id: "reserve",  label: "Isekai Reserve",   icon: Layers },
+  { id: "reserve",  label: "CredIsekai",         icon: Layers },
   { id: "profile",  label: "Mi Perfil",        icon: User },
 ];
 
@@ -476,19 +476,27 @@ export default function Account() {
               </div>
             )}
 
-            {/* RESERVE */}
+            {/* CREDISEKAI */}
             {activeTab === "reserve" && (
               <div className="space-y-4">
-                <div className="text-center mb-6">
-                  <h2 className="text-xl font-bold text-[#1a1a1a]">Isekai Reserve</h2>
+                <div className="text-center mb-2">
+                  <h2 className="text-xl font-bold text-[#1a1a1a]">CredIsekai</h2>
                   <p className="text-sm text-[#888] mt-1">Tus planes de pago en cuotas</p>
+                </div>
+
+                {/* Disclaimer */}
+                <div className="flex gap-2.5 items-start bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                  <span className="text-amber-500 text-base shrink-0 mt-0.5">⚠️</span>
+                  <p className="text-xs text-amber-800 leading-relaxed">
+                    <strong>Importante:</strong> El pedido solo será enviado una vez que se complete el pago total. Disponible únicamente para productos con valor superior a <strong>$150 USD</strong> (o su equivalente en Bs a tasa BCV / COP a tasa del día).
+                  </p>
                 </div>
 
                 {installmentPlans.length === 0 ? (
                   <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
                     <Layers className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
                     <p className="font-medium text-[#1a1a1a]">No tienes planes activos</p>
-                    <p className="text-sm text-[#888] mt-1 mb-6">Reserva productos con cuota inicial desde la página del producto</p>
+                    <p className="text-sm text-[#888] mt-1 mb-6">Reserva productos elegibles desde la página del producto</p>
                     <Link href="/catalog">
                       <button className="btn-pill text-sm">Explorar tienda</button>
                     </Link>
@@ -500,13 +508,22 @@ export default function Account() {
                       const total = parseFloat(plan.totalAmount);
                       const pct = Math.min(100, Math.round((paid / total) * 100));
                       const isActive = reservePayingPlanId === plan.id;
+                      const cuotaAmount = (total / plan.installments).toFixed(2);
+                      const startDate = new Date(plan.createdAt);
+                      const schedule = Array.from({ length: plan.installments }, (_, i) => {
+                        const d = new Date(startDate);
+                        d.setDate(d.getDate() + i * 15);
+                        return d;
+                      });
+                      const approvedCount = (plan.payments as any[]).filter((p: any) => p.status === "approved").length;
+
                       return (
                         <div key={plan.id} className="rounded-2xl border border-[#ebebeb] overflow-hidden bg-white">
                           <div className="p-4">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1 min-w-0">
                                 <p className="font-semibold text-sm text-[#1a1a1a] truncate">{plan.productName}</p>
-                                <div className="flex items-center gap-2 mt-1">
+                                <div className="flex items-center gap-2 mt-1 flex-wrap">
                                   <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
                                     plan.status === "active" ? "bg-blue-50 text-blue-700" :
                                     plan.status === "completed" ? "bg-green-50 text-green-700" :
@@ -514,7 +531,7 @@ export default function Account() {
                                   }`}>
                                     {plan.status === "active" ? "Activo" : plan.status === "completed" ? "Completado" : "Cancelado"}
                                   </span>
-                                  <span className="text-xs text-[#888]">{plan.installments} cuotas</span>
+                                  <span className="text-xs text-[#888]">{plan.installments} cuotas · ${cuotaAmount} c/u</span>
                                 </div>
                               </div>
                               <div className="text-right shrink-0">
@@ -528,6 +545,22 @@ export default function Account() {
                                 className="h-full rounded-full bg-gradient-to-r from-violet-500 to-primary transition-all duration-500"
                                 style={{ width: `${pct}%` }}
                               />
+                            </div>
+
+                            {/* Payment schedule */}
+                            <div className="mt-3 space-y-1">
+                              {schedule.map((date, i) => {
+                                const isPaid = i < approvedCount;
+                                return (
+                                  <div key={i} className="flex items-center justify-between text-xs">
+                                    <span className={isPaid ? "text-green-600 font-medium" : "text-[#555]"}>
+                                      {isPaid ? "✓ " : `Cuota ${i + 1}: `}
+                                      {date.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}
+                                    </span>
+                                    <span className={isPaid ? "text-green-600 font-semibold" : "text-[#888]"}>${cuotaAmount}</span>
+                                  </div>
+                                );
+                              })}
                             </div>
 
                             {plan.status === "active" && (
