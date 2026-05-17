@@ -200,7 +200,7 @@ export default function Nosotros() {
           </div>
 
           {/* Columna imagen — altura completa */}
-          <div className="relative min-h-[400px] lg:min-h-full">
+          <div className="relative min-h-full hidden lg:block">
             {misionImage ? (
               <img
                 src={misionImage}
