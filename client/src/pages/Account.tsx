@@ -205,7 +205,7 @@ export default function Account() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden pt-8 pb-12 sm:pt-16 sm:pb-16"
+        className="relative overflow-hidden py-16"
         style={{
           backgroundImage: textureEnabled ? 'url(/textura-isekai.svg)' : 'none',
           backgroundSize: 'cover',
