@@ -465,7 +465,7 @@ export default function Home() {
             />
           </div>
           {/* RIGHT: brand statement */}
-          <div className="flex flex-col justify-center px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
+          <div className="flex flex-col justify-center w-full px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">
               {settings?.["brand_story_label"] ?? t.home.brandStory.label}
             </p>
@@ -477,21 +477,10 @@ export default function Home() {
               return (
                 <h2
                   style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
-                  className="text-2xl md:text-3xl lg:text-4xl font-black mb-0"
+                  className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight break-words mb-0"
                 >
                   {blackPart && <span className="text-[#111]">{blackPart} </span>}
-                  {magentaPart && (
-                    <span
-                      style={{
-                        background: "linear-gradient(to right, #e5007d, #ff0099)",
-                        WebkitBackgroundClip: "text",
-                        WebkitTextFillColor: "transparent",
-                        backgroundClip: "text",
-                      }}
-                    >
-                      {magentaPart}
-                    </span>
-                  )}
+                  {magentaPart && <span className="text-[#e5007d]">{magentaPart}</span>}
                 </h2>
               );
             })()}
