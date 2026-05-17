@@ -21,6 +21,9 @@ import {
   getOrderNotificationUnreadCount, markAllOrderNotificationsRead,
   getWishlist, toggleWishlist, isInWishlist,
   getPublicFaqItems, getAllFaqItems, createFaqItem, updateFaqItem, deleteFaqItem,
+  submitOrderReceipt, verifyOrderPayment, getOrdersByPaymentStatus,
+  createInstallmentPlan, getMyInstallmentPlans, submitInstallmentPayment,
+  verifyInstallmentPayment, getAllInstallmentPlans, updateProductPaymentSettings,
 } from "./db";
 
 // Admin guard middleware
@@ -162,6 +165,14 @@ export const appRouter = router({
         const { url } = await storagePut(key, buffer, input.contentType);
         return { url, key };
       }),
+
+    updatePaymentSettings: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        installmentsEnabled: z.boolean(),
+        initialPayment: z.string().optional(),
+      }))
+      .mutation(({ input }) => updateProductPaymentSettings(input.id, { installmentsEnabled: input.installmentsEnabled, initialPayment: input.initialPayment })),
   }),
 
   // ─── Cart ────────────────────────────────────────────────────────────────────
@@ -202,6 +213,8 @@ export const appRouter = router({
         subtotal: z.string(),
         total: z.string(),
         notes: z.string().optional(),
+        paymentMethod: z.string().optional(),
+        country: z.string().optional(),
         items: z.array(z.object({
           productId: z.number(),
           variantId: z.number().nullable().optional(),
@@ -326,6 +339,108 @@ export const appRouter = router({
           io.to(`user:${order.userId}`).emit("notification:new");
         }
       }),
+
+    submitReceipt: protectedProcedure
+      .input(z.object({
+        orderId: z.number(),
+        receiptUrl: z.string().url(),
+        paymentReference: z.string().min(1),
+        receiptHolder: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const order = await getOrderById(input.orderId);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+        if (order.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN" });
+        await submitOrderReceipt(input.orderId, input);
+        try {
+          await insertAdminNotification({ type: "new_order", title: "💳 Comprobante recibido", body: `Pedido ${order.orderNumber} · ${ctx.user.name ?? ctx.user.email}` });
+        } catch { /* non-critical */ }
+        try {
+          await notifyOwner({ title: `💳 Comprobante: ${order.orderNumber}`, content: `${ctx.user.name ?? ctx.user.email} subió su comprobante de pago. Ref: ${input.paymentReference}` });
+        } catch { /* non-critical */ }
+        return { success: true };
+      }),
+
+    verifyPayment: adminProcedure
+      .input(z.object({ orderId: z.number(), approved: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const order = await getOrderById(input.orderId);
+        if (!order) throw new TRPCError({ code: "NOT_FOUND" });
+        await verifyOrderPayment(input.orderId, input.approved);
+        const title = input.approved ? "Pago aprobado" : "Pago rechazado";
+        const body = input.approved
+          ? "Tu pago fue verificado. ¡Estamos preparando tu pedido!"
+          : "Tu pago fue rechazado. Contáctanos para más información.";
+        if (order.userId) {
+          try {
+            await insertOrderNotification({ userId: order.userId, orderId: order.id, orderNumber: order.orderNumber, type: "payment", title, body });
+          } catch { /* non-critical */ }
+          if (io) {
+            io.to(`user:${order.userId}`).emit("order:updated", { orderId: order.id, status: input.approved ? "preparing" : order.status });
+            io.to(`user:${order.userId}`).emit("notification:new");
+          }
+        }
+        try {
+          await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, title, body);
+        } catch { /* non-critical */ }
+        return { success: true };
+      }),
+
+    adminPayments: adminProcedure
+      .input(z.object({ paymentStatus: z.string().optional() }).optional())
+      .query(({ input }) => getOrdersByPaymentStatus(input?.paymentStatus)),
+
+    uploadReceipt: protectedProcedure
+      .input(z.object({ fileName: z.string(), fileType: z.string(), fileBase64: z.string() }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.fileBase64, "base64");
+        const key = `receipts/${Date.now()}-${input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { url } = await storagePut(key, buffer, input.fileType);
+        return { url };
+      }),
+  }),
+
+  // ─── Installments ────────────────────────────────────────────────────────────
+  installments: router({
+    createPlan: protectedProcedure
+      .input(z.object({
+        productId: z.number(),
+        productName: z.string(),
+        totalAmount: z.string(),
+        amountPaid: z.string(),
+        installments: z.number().min(1).max(12),
+      }))
+      .mutation(({ ctx, input }) => createInstallmentPlan({ ...input, userId: ctx.user.id })),
+
+    submitPayment: protectedProcedure
+      .input(z.object({
+        planId: z.number(),
+        amount: z.string(),
+        paymentReference: z.string().min(1),
+        receiptUrl: z.string().url(),
+        receiptHolder: z.string().min(1),
+        paymentMethod: z.string().min(1),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const plans = await getMyInstallmentPlans(ctx.user.id);
+        const plan = plans.find(p => p.id === input.planId);
+        if (!plan) throw new TRPCError({ code: "NOT_FOUND" });
+        await submitInstallmentPayment(input);
+        try {
+          await insertAdminNotification({ type: "new_order", title: "💳 Cuota recibida", body: `${ctx.user.name ?? ctx.user.email} · ${plan.productName}` });
+        } catch { /* non-critical */ }
+        return { success: true };
+      }),
+
+    getMyPlans: protectedProcedure
+      .query(({ ctx }) => getMyInstallmentPlans(ctx.user.id)),
+
+    verifyPayment: adminProcedure
+      .input(z.object({ paymentId: z.number(), approved: z.boolean() }))
+      .mutation(({ input }) => verifyInstallmentPayment(input.paymentId, input.approved)),
+
+    adminList: adminProcedure
+      .query(() => getAllInstallmentPlans()),
   }),
 
   // ─── Site Settings ────────────────────────────────────────────────────────────────────────────────────────

@@ -20,6 +20,9 @@ import {
   wishlist,
   faqItems,
   InsertFaqItem,
+  installmentPlans,
+  installmentPayments,
+  InstallmentPlan,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -340,6 +343,8 @@ export async function createOrder(data: {
   subtotal: string;
   total: string;
   notes?: string;
+  paymentMethod?: string;
+  country?: string;
   items: Array<{
     productId: number;
     variantId?: number;
@@ -365,7 +370,10 @@ export async function createOrder(data: {
     subtotal: data.subtotal,
     total: data.total,
     notes: data.notes,
+    paymentMethod: data.paymentMethod,
+    country: data.country,
     status: "pending",
+    paymentStatus: "pending",
   });
 
   const [orderResult] = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);
@@ -659,4 +667,134 @@ export async function deleteFaqItem(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.delete(faqItems).where(eq(faqItems.id, id));
+}
+
+// ─── Payment helpers ──────────────────────────────────────────────────────────
+export async function submitOrderReceipt(
+  orderId: number,
+  data: { receiptUrl: string; paymentReference: string; receiptHolder: string }
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(orders).set({
+    receiptUrl: data.receiptUrl,
+    paymentReference: data.paymentReference,
+    receiptHolder: data.receiptHolder,
+    paymentStatus: "verifying",
+  }).where(eq(orders.id, orderId));
+}
+
+export async function verifyOrderPayment(
+  orderId: number,
+  approved: boolean
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  if (approved) {
+    await db.update(orders).set({ paymentStatus: "approved", status: "preparing" }).where(eq(orders.id, orderId));
+  } else {
+    await db.update(orders).set({ paymentStatus: "rejected" }).where(eq(orders.id, orderId));
+  }
+}
+
+export async function getOrdersByPaymentStatus(paymentStatus?: string) {
+  const db = await getDb();
+  if (!db) return { items: [], total: 0 };
+  const where = paymentStatus
+    ? eq(orders.paymentStatus, paymentStatus as Order["paymentStatus"])
+    : undefined;
+  const items = await db.select().from(orders).where(where).orderBy(desc(orders.createdAt)).limit(50);
+  const [countResult] = await db.select({ count: sql<number>`count(*)` }).from(orders).where(where);
+  return { items, total: Number(countResult?.count ?? 0) };
+}
+
+// ─── Installment Plans ────────────────────────────────────────────────────────
+export async function createInstallmentPlan(data: {
+  userId: number;
+  productId: number;
+  productName: string;
+  totalAmount: string;
+  amountPaid: string;
+  installments: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(installmentPlans).values({ ...data, status: "active" });
+  const [plan] = await db.select().from(installmentPlans)
+    .where(and(eq(installmentPlans.userId, data.userId), eq(installmentPlans.productId, data.productId)))
+    .orderBy(desc(installmentPlans.createdAt)).limit(1);
+  return plan!;
+}
+
+export async function getMyInstallmentPlans(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const plans = await db.select().from(installmentPlans)
+    .where(eq(installmentPlans.userId, userId))
+    .orderBy(desc(installmentPlans.createdAt));
+  const result = [];
+  for (const plan of plans) {
+    const payments = await db.select().from(installmentPayments)
+      .where(eq(installmentPayments.planId, plan.id))
+      .orderBy(desc(installmentPayments.createdAt));
+    result.push({ ...plan, payments });
+  }
+  return result;
+}
+
+export async function submitInstallmentPayment(data: {
+  planId: number;
+  amount: string;
+  paymentReference: string;
+  receiptUrl: string;
+  receiptHolder: string;
+  paymentMethod: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(installmentPayments).values({ ...data, status: "pending" });
+}
+
+export async function verifyInstallmentPayment(paymentId: number, approved: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const status = approved ? "approved" : "rejected";
+  await db.update(installmentPayments).set({ status }).where(eq(installmentPayments.id, paymentId));
+  if (approved) {
+    const [payment] = await db.select().from(installmentPayments).where(eq(installmentPayments.id, paymentId)).limit(1);
+    if (payment) {
+      const [plan] = await db.select().from(installmentPlans).where(eq(installmentPlans.id, payment.planId)).limit(1);
+      if (plan) {
+        const newPaid = (parseFloat(plan.amountPaid) + parseFloat(payment.amount)).toFixed(2);
+        const completed = parseFloat(newPaid) >= parseFloat(plan.totalAmount);
+        await db.update(installmentPlans).set({
+          amountPaid: newPaid,
+          status: completed ? "completed" : "active",
+        }).where(eq(installmentPlans.id, plan.id));
+      }
+    }
+  }
+}
+
+export async function getAllInstallmentPlans() {
+  const db = await getDb();
+  if (!db) return [];
+  const plans = await db.select().from(installmentPlans).orderBy(desc(installmentPlans.createdAt));
+  const result = [];
+  for (const plan of plans) {
+    const payments = await db.select().from(installmentPayments)
+      .where(eq(installmentPayments.planId, plan.id))
+      .orderBy(desc(installmentPayments.createdAt));
+    result.push({ ...plan, payments });
+  }
+  return result;
+}
+
+export async function updateProductPaymentSettings(id: number, data: { installmentsEnabled: boolean; initialPayment?: string | null }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(products).set({
+    installmentsEnabled: data.installmentsEnabled,
+    initialPayment: data.initialPayment ?? null,
+  }).where(eq(products.id, id));
 }

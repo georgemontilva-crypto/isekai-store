@@ -54,6 +54,8 @@ export const products = mysqlTable("products", {
   status: mysqlEnum("status", ["draft", "published"]).default("draft").notNull(),
   featured: boolean("featured").default(false).notNull(),
   tags: json("tags").$type<string[]>(),
+  installmentsEnabled: boolean("installmentsEnabled").default(false).notNull(),
+  initialPayment: decimal("initialPayment", { precision: 10, scale: 2 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -139,6 +141,12 @@ export const orders = mysqlTable("orders", {
   trackingNumber: varchar("trackingNumber", { length: 255 }),
   trackingCarrier: varchar("trackingCarrier", { length: 100 }),
   notes: text("notes"),
+  paymentMethod: varchar("paymentMethod", { length: 64 }),
+  paymentStatus: mysqlEnum("paymentStatus", ["pending", "verifying", "approved", "rejected"]).default("pending").notNull(),
+  paymentReference: varchar("paymentReference", { length: 256 }),
+  receiptUrl: text("receiptUrl"),
+  receiptHolder: varchar("receiptHolder", { length: 256 }),
+  country: varchar("country", { length: 64 }),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -237,3 +245,36 @@ export const faqItems = mysqlTable("faqItems", {
 
 export type FaqItem = typeof faqItems.$inferSelect;
 export type InsertFaqItem = typeof faqItems.$inferInsert;
+
+// ─── Installment Plans ────────────────────────────────────────────────────────
+export const installmentPlans = mysqlTable("installmentPlans", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id),
+  productId: int("productId").notNull().references(() => products.id),
+  productName: varchar("productName", { length: 256 }).notNull(),
+  totalAmount: decimal("totalAmount", { precision: 10, scale: 2 }).notNull(),
+  amountPaid: decimal("amountPaid", { precision: 10, scale: 2 }).default("0").notNull(),
+  installments: int("installments").default(3).notNull(),
+  status: mysqlEnum("status", ["active", "completed", "cancelled"]).default("active").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type InstallmentPlan = typeof installmentPlans.$inferSelect;
+export type InsertInstallmentPlan = typeof installmentPlans.$inferInsert;
+
+// ─── Installment Payments ─────────────────────────────────────────────────────
+export const installmentPayments = mysqlTable("installmentPayments", {
+  id: int("id").autoincrement().primaryKey(),
+  planId: int("planId").notNull().references(() => installmentPlans.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paymentReference: varchar("paymentReference", { length: 256 }),
+  receiptUrl: text("receiptUrl"),
+  receiptHolder: varchar("receiptHolder", { length: 256 }),
+  paymentMethod: varchar("paymentMethod", { length: 64 }),
+  status: mysqlEnum("status", ["pending", "verifying", "approved", "rejected"]).default("pending").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type InstallmentPayment = typeof installmentPayments.$inferSelect;
+export type InsertInstallmentPayment = typeof installmentPayments.$inferInsert;
