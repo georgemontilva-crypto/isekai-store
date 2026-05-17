@@ -34,6 +34,7 @@ export default function Nosotros() {
   const heroImage      = siteSettings?.["nosotros_hero_image"]      ?? "";
   const aboutImage     = siteSettings?.["nosotros_about_image"]     ?? "";
   const filosofiaImage = siteSettings?.["nosotros_filosofia_image"] ?? "";
+  const misionImage    = siteSettings?.["nosotros_mision_image"]    ?? "";
   const gallery        = [1, 2, 3, 4, 5].map(i => siteSettings?.[`nosotros_gallery_${i}`] ?? "");
 
   return (
@@ -169,30 +170,53 @@ export default function Nosotros() {
 
       {/* ── 5. Misión / Visión ────────────────────────────────────────── */}
       <section className="py-24 lg:py-32 bg-[#f8f8f8]">
-        <div className="px-6 lg:px-20 max-w-4xl">
-          <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-16 font-medium">Propósito</p>
-          {[
-            {
-              label: "Misión",
-              text: "Acercar la cultura del anime y los videojuegos a Colombia y Latinoamérica con productos premium, auténticos y accesibles. Creemos que cada fan merece tener en sus manos una pieza que represente lo que ama.",
-            },
-            {
-              label: "Visión",
-              text: "Ser la tienda de referencia en Latinoamérica para fans del anime y el gaming, reconocida por la calidad de sus productos, la autenticidad de su comunidad y el impacto positivo en la cultura pop de la región.",
-            },
-          ].map(({ label, text }) => (
-            <motion.div
-              key={label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="group mb-16 pb-16 border-b border-[#e5e5e5] last:border-0 last:mb-0 last:pb-0"
-            >
-              <p className="text-xs tracking-[0.3em] uppercase text-[#999] mb-5 font-medium">{label}</p>
-              <p className="text-2xl lg:text-3xl font-light text-[#111] leading-relaxed mb-6">{text}</p>
-              <div className="h-[2px] w-0 group-hover:w-24 bg-[#e5007d] transition-all duration-700 rounded-full" />
-            </motion.div>
-          ))}
+        <div className="px-6 lg:px-20 grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+          {/* Columna izquierda — textos */}
+          <div className="max-w-xl">
+            <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-16 font-medium">Propósito</p>
+            {[
+              {
+                label: "Misión",
+                text: "Acercar la cultura del anime y los videojuegos a Colombia y Latinoamérica con productos premium, auténticos y accesibles. Creemos que cada fan merece tener en sus manos una pieza que represente lo que ama.",
+              },
+              {
+                label: "Visión",
+                text: "Ser la tienda de referencia en Latinoamérica para fans del anime y el gaming, reconocida por la calidad de sus productos, la autenticidad de su comunidad y el impacto positivo en la cultura pop de la región.",
+              },
+            ].map(({ label, text }) => (
+              <motion.div
+                key={label}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="group mb-16 pb-16 border-b border-[#e5e5e5] last:border-0 last:mb-0 last:pb-0"
+              >
+                <p className="text-xs tracking-[0.3em] uppercase text-[#999] mb-5 font-medium">{label}</p>
+                <p className="text-2xl lg:text-3xl font-light text-[#111] leading-relaxed mb-6">{text}</p>
+                <div className="h-[2px] w-0 group-hover:w-24 bg-[#e5007d] transition-all duration-700 rounded-full" />
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Columna derecha — imagen */}
+          <div className="lg:sticky lg:top-24">
+            {misionImage ? (
+              <motion.img
+                src={misionImage}
+                alt="Misión y Visión"
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="w-full h-full object-cover rounded-2xl"
+              />
+            ) : (
+              <div className="w-full aspect-square bg-[#f0f0f0] rounded-2xl flex items-center justify-center">
+                <p className="text-[#bbb] text-sm text-center px-6">
+                  Configura la imagen desde<br />Admin → Configuración → Página Nosotros
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

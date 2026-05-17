@@ -2036,6 +2036,7 @@ export default function Admin() {
                     {([
                       { k: "nosotros_hero_image",      label: "Hero (imagen principal)",        hint: "Foto a pantalla completa — equipo, tienda o ambiente" },
                       { k: "nosotros_about_image",     label: "Quiénes somos (imagen lateral)", hint: "Foto del estudio o proceso de trabajo" },
+                      { k: "nosotros_mision_image",    label: "Imagen Misión/Visión",            hint: "Foto lateral junto a la sección de Misión y Visión" },
                       { k: "nosotros_filosofia_image", label: "Filosofía (fondo oscuro)",       hint: "Imagen de fondo de la sección de cita" },
                       { k: "nosotros_gallery_1",       label: "Galería — foto 1",              hint: "" },
                       { k: "nosotros_gallery_2",       label: "Galería — foto 2",              hint: "" },
