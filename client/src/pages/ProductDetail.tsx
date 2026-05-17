@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Package,
-  Minus, Plus, Shield, Truck, RotateCcw, Heart, Share2, Check, Frown, Gamepad2
+  Minus, Plus, Shield, Truck, RotateCcw, Heart, Share2, Check, Frown, Gamepad2, Layers
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -295,6 +295,21 @@ export default function ProductDetail() {
                 </span>
               )}
             </div>
+
+            {/* Installments badge */}
+            {(product as any).installmentsEnabled && (product as any).initialPayment && (
+              <Link href="/account">
+                <div className="flex items-center gap-2.5 p-3 rounded-xl bg-violet-50 border border-violet-200 cursor-pointer hover:bg-violet-100 transition-colors">
+                  <Layers className="w-4 h-4 text-violet-600 shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-semibold text-violet-700">Isekai Reserve disponible</p>
+                    <p className="text-[11px] text-violet-600">
+                      Cuota inicial: <strong>${parseFloat((product as any).initialPayment).toFixed(2)}</strong> · Ve a tu cuenta para reservar
+                    </p>
+                  </div>
+                </div>
+              </Link>
+            )}
 
             {/* Description */}
             {product.description && (

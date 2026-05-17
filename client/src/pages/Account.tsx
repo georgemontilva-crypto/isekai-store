@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin } from "lucide-react";
+import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin, Layers, Upload, Loader2 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -139,13 +139,14 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled:     "bg-red-50 text-red-700",
 };
 
-type Tab = "orders" | "wishlist" | "coupons" | "profile";
+type Tab = "orders" | "wishlist" | "coupons" | "reserve" | "profile";
 
 const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: "orders",   label: "Mis Pedidos", icon: Package },
-  { id: "wishlist", label: "Guardados",   icon: Heart },
-  { id: "coupons",  label: "Cupones",     icon: Ticket },
-  { id: "profile",  label: "Mi Perfil",   icon: User },
+  { id: "orders",   label: "Mis Pedidos",     icon: Package },
+  { id: "wishlist", label: "Guardados",        icon: Heart },
+  { id: "coupons",  label: "Cupones",          icon: Ticket },
+  { id: "reserve",  label: "Isekai Reserve",   icon: Layers },
+  { id: "profile",  label: "Mi Perfil",        icon: User },
 ];
 
 export default function Account() {
@@ -175,6 +176,13 @@ export default function Account() {
 
   const socket = useSocket();
   const utils = trpc.useUtils();
+  const reserveFileRef = useRef<HTMLInputElement>(null);
+  const [reservePayingPlanId, setReservePayingPlanId] = useState<number | null>(null);
+  const [reserveFile, setReserveFile] = useState<File | null>(null);
+  const [reserveRef, setReserveRef] = useState("");
+  const [reserveHolder, setReserveHolder] = useState("");
+  const [reserveMethod, setReserveMethod] = useState("nequi");
+  const [reserveUploading, setReserveUploading] = useState(false);
 
   useEffect(() => {
     if (!socket) return;
@@ -196,6 +204,22 @@ export default function Account() {
     { enabled: isAuthenticated }
   );
   const wishlistItems = wishlistData ?? [];
+
+  const { data: installmentPlans = [], refetch: refetchPlans } = trpc.installments.getMyPlans.useQuery(
+    undefined,
+    { enabled: isAuthenticated }
+  );
+  const uploadReceipt = trpc.orders.uploadReceipt.useMutation();
+  const submitInstallmentPayment = trpc.installments.submitPayment.useMutation({
+    onSuccess: () => {
+      refetchPlans();
+      setReservePayingPlanId(null);
+      setReserveFile(null);
+      setReserveRef("");
+      setReserveHolder("");
+      toast.success("¡Cuota enviada! La verificaremos pronto.");
+    },
+  });
 
   if (loading) {
     return (
@@ -449,6 +473,203 @@ export default function Account() {
                 <Ticket className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
                 <p className="font-medium text-[#1a1a1a]">No tienes cupones activos</p>
                 <p className="text-sm text-[#888] mt-1">Los cupones aparecerán aquí cuando los recibas</p>
+              </div>
+            )}
+
+            {/* RESERVE */}
+            {activeTab === "reserve" && (
+              <div className="space-y-4">
+                <div className="text-center mb-6">
+                  <h2 className="text-xl font-bold text-[#1a1a1a]">Isekai Reserve</h2>
+                  <p className="text-sm text-[#888] mt-1">Tus planes de pago en cuotas</p>
+                </div>
+
+                {installmentPlans.length === 0 ? (
+                  <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                    <Layers className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
+                    <p className="font-medium text-[#1a1a1a]">No tienes planes activos</p>
+                    <p className="text-sm text-[#888] mt-1 mb-6">Reserva productos con cuota inicial desde la página del producto</p>
+                    <Link href="/catalog">
+                      <button className="btn-pill text-sm">Explorar tienda</button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {(installmentPlans as any[]).map((plan) => {
+                      const paid = parseFloat(plan.amountPaid);
+                      const total = parseFloat(plan.totalAmount);
+                      const pct = Math.min(100, Math.round((paid / total) * 100));
+                      const isActive = reservePayingPlanId === plan.id;
+                      return (
+                        <div key={plan.id} className="rounded-2xl border border-[#ebebeb] overflow-hidden bg-white">
+                          <div className="p-4">
+                            <div className="flex items-start justify-between gap-4">
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-sm text-[#1a1a1a] truncate">{plan.productName}</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                                    plan.status === "active" ? "bg-blue-50 text-blue-700" :
+                                    plan.status === "completed" ? "bg-green-50 text-green-700" :
+                                    "bg-red-50 text-red-700"
+                                  }`}>
+                                    {plan.status === "active" ? "Activo" : plan.status === "completed" ? "Completado" : "Cancelado"}
+                                  </span>
+                                  <span className="text-xs text-[#888]">{plan.installments} cuotas</span>
+                                </div>
+                              </div>
+                              <div className="text-right shrink-0">
+                                <p className="text-sm font-bold text-[#1a1a1a]">${paid.toFixed(2)} / ${total.toFixed(2)}</p>
+                                <p className="text-xs text-[#888]">{pct}% pagado</p>
+                              </div>
+                            </div>
+
+                            <div className="mt-3 h-2 bg-[#f5f5f5] rounded-full overflow-hidden">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-violet-500 to-primary transition-all duration-500"
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+
+                            {plan.status === "active" && (
+                              <button
+                                onClick={() => setReservePayingPlanId(isActive ? null : plan.id)}
+                                className="mt-3 btn-pill text-xs"
+                              >
+                                {isActive ? "Cancelar" : "Pagar cuota"}
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Payment form */}
+                          <AnimatePresence>
+                            {isActive && (
+                              <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: "auto", opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="border-t border-[#ebebeb] overflow-hidden"
+                              >
+                                <div className="p-4 space-y-3">
+                                  <p className="text-sm font-medium text-[#1a1a1a]">Subir comprobante de cuota</p>
+
+                                  <div>
+                                    <label className="text-xs text-[#888]">Método de pago</label>
+                                    <select
+                                      value={reserveMethod}
+                                      onChange={e => setReserveMethod(e.target.value)}
+                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] rounded-xl px-3 py-2 focus:outline-none"
+                                    >
+                                      <option value="nequi">Nequi</option>
+                                      <option value="daviplata">Daviplata</option>
+                                      <option value="bancolombia">Bancolombia</option>
+                                      <option value="pago_movil">Pago Móvil</option>
+                                      <option value="binance">Binance Pay</option>
+                                      <option value="zelle">Zelle</option>
+                                      <option value="transferencia">Transferencia</option>
+                                    </select>
+                                  </div>
+
+                                  <div>
+                                    <label className="text-xs text-[#888]">Referencia de pago *</label>
+                                    <input
+                                      value={reserveRef}
+                                      onChange={e => setReserveRef(e.target.value)}
+                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] rounded-xl px-3 py-2 focus:outline-none focus:border-[#1a1a1a]/30"
+                                      placeholder="Número de referencia"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-xs text-[#888]">Titular de la cuenta *</label>
+                                    <input
+                                      value={reserveHolder}
+                                      onChange={e => setReserveHolder(e.target.value)}
+                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] rounded-xl px-3 py-2 focus:outline-none focus:border-[#1a1a1a]/30"
+                                      placeholder="Nombre de quien pagó"
+                                    />
+                                  </div>
+
+                                  <div>
+                                    <label className="text-xs text-[#888]">Comprobante (JPG, PNG, PDF) *</label>
+                                    <div
+                                      className="mt-1 border-2 border-dashed border-[#ebebeb] rounded-xl p-3 cursor-pointer hover:border-[#1a1a1a]/20 transition-colors flex items-center gap-2"
+                                      onClick={() => reserveFileRef.current?.click()}
+                                    >
+                                      <Upload className="w-4 h-4 text-[#888]" />
+                                      <p className="text-xs text-[#888]">{reserveFile ? reserveFile.name : "Seleccionar archivo"}</p>
+                                      <input
+                                        ref={reserveFileRef}
+                                        type="file"
+                                        accept="image/jpeg,image/png,image/webp,application/pdf"
+                                        className="hidden"
+                                        onChange={e => setReserveFile(e.target.files?.[0] ?? null)}
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <button
+                                    className="btn-pill text-xs w-full justify-center"
+                                    disabled={reserveUploading || !reserveFile || !reserveRef || !reserveHolder}
+                                    onClick={async () => {
+                                      if (!reserveFile) return;
+                                      setReserveUploading(true);
+                                      try {
+                                        const base64 = await new Promise<string>((resolve, reject) => {
+                                          const reader = new FileReader();
+                                          reader.onload = () => resolve((reader.result as string).split(",")[1]);
+                                          reader.onerror = reject;
+                                          reader.readAsDataURL(reserveFile);
+                                        });
+                                        const { url } = await uploadReceipt.mutateAsync({ fileName: reserveFile.name, fileType: reserveFile.type, fileBase64: base64 });
+                                        await submitInstallmentPayment.mutateAsync({
+                                          planId: plan.id,
+                                          amount: (total / plan.installments).toFixed(2),
+                                          paymentReference: reserveRef,
+                                          receiptUrl: url,
+                                          receiptHolder: reserveHolder,
+                                          paymentMethod: reserveMethod,
+                                        });
+                                      } catch {
+                                        toast.error("Error al subir el comprobante");
+                                      } finally {
+                                        setReserveUploading(false);
+                                      }
+                                    }}
+                                  >
+                                    {reserveUploading ? (
+                                      <span className="flex items-center gap-2"><Loader2 className="w-3.5 h-3.5 animate-spin" /> Enviando...</span>
+                                    ) : "Confirmar pago de cuota"}
+                                  </button>
+                                </div>
+                              </motion.div>
+                            )}
+                          </AnimatePresence>
+
+                          {/* Payment history */}
+                          {plan.payments.length > 0 && (
+                            <div className="border-t border-[#ebebeb] px-4 py-3">
+                              <p className="text-xs font-medium text-[#888] uppercase tracking-wide mb-2">Historial de cuotas</p>
+                              <div className="space-y-1.5">
+                                {plan.payments.map((p: any) => (
+                                  <div key={p.id} className="flex items-center justify-between text-xs">
+                                    <span className="text-[#555]">${parseFloat(p.amount).toFixed(2)} · {p.paymentMethod ?? "—"}</span>
+                                    <span className={`px-2 py-0.5 rounded-full font-medium ${
+                                      p.status === "approved" ? "bg-green-50 text-green-700" :
+                                      p.status === "rejected" ? "bg-red-50 text-red-700" :
+                                      "bg-yellow-50 text-yellow-700"
+                                    }`}>
+                                      {p.status === "approved" ? "Aprobado" : p.status === "rejected" ? "Rechazado" : "En revisión"}
+                                    </span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
             )}
 
