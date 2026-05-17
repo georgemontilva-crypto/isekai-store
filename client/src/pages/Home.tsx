@@ -549,7 +549,7 @@ export default function Home() {
               backgroundRepeat: 'no-repeat',
             }}
           >
-            <div className="absolute inset-0 bg-white/80" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.92) 60%, rgba(255,255,255,1) 100%)' }} />
             <div className="container relative z-10">
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-8 items-stretch">
               {/* Card del producto — izquierda */}
