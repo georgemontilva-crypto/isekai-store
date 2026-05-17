@@ -19,6 +19,7 @@ import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import Account from "./pages/Account";
 import Admin from "./pages/Admin";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Nosotros from "./pages/Nosotros";
 import FAQ from "./pages/FAQ";
 import Politicas from "./pages/Politicas";
@@ -68,6 +69,7 @@ function Router() {
       <Route path="/catalog" component={Catalog} />
       <Route path="/product/:slug" component={ProductDetail} />
       <Route path="/checkout" component={Checkout} />
+      <Route path="/checkout/success" component={CheckoutSuccess} />
       <Route path="/account" component={Account} />
       <Route path="/admin" component={Admin} />
       <Route path="/nosotros" component={Nosotros} />
