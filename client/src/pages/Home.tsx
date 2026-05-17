@@ -543,7 +543,7 @@ export default function Home() {
           <section
             className="py-16 relative overflow-hidden"
             style={{
-              backgroundImage: `url(/textura-isekai.svg)`,
+              backgroundImage: settings?.["texture_enabled"] === "true" ? `url(/textura-isekai.svg)` : 'none',
               backgroundSize: 'cover',
               backgroundPosition: `center ${offsetY * 0.3}px`,
               backgroundRepeat: 'no-repeat',

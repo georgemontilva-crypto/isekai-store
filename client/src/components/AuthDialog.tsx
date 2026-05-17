@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { X, Mail, ArrowRight, Loader2 } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
 export default function AuthDialog() {
   const [open, setOpen]       = useState(false);
@@ -7,6 +8,8 @@ export default function AuthDialog() {
   const [sent, setSent]       = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError]     = useState("");
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
+  const textureEnabled = siteSettings?.["texture_enabled"] === "true";
 
   useEffect(() => {
     const open = () => setOpen(true);
@@ -52,7 +55,16 @@ export default function AuthDialog() {
       />
 
       <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 pointer-events-none">
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-8 relative pointer-events-auto">
+        <div
+          className="rounded-2xl shadow-2xl w-full max-w-sm relative pointer-events-auto overflow-hidden"
+          style={textureEnabled ? {
+            backgroundImage: 'url(/textura-isekai.svg)',
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          } : { background: 'white' }}
+        >
+          {textureEnabled && <div className="absolute inset-0 bg-white/90 pointer-events-none" />}
+          <div className="relative z-10 p-8">
 
           <button
             onClick={close}
@@ -139,6 +151,7 @@ export default function AuthDialog() {
               </form>
             </>
           )}
+          </div>{/* relative z-10 */}
         </div>
       </div>
     </>

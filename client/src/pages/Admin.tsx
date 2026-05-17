@@ -1277,6 +1277,23 @@ export default function Admin() {
                       </Button>
                     </div>
                   </div>
+
+                  {/* Texture toggle */}
+                  <div className="mt-4 flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium">Textura de fondo</p>
+                      <p className="text-xs text-muted-foreground">Muestra la textura Isekai en secciones clave</p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const current = siteSettings?.["texture_enabled"] === "true";
+                        upsertSetting.mutate({ key: "texture_enabled", value: current ? "false" : "true" });
+                      }}
+                      className={`relative w-11 h-6 rounded-full transition-colors ${siteSettings?.["texture_enabled"] === "true" ? "bg-primary" : "bg-muted-foreground/30"}`}
+                    >
+                      <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["texture_enabled"] === "true" ? "translate-x-5" : "translate-x-0"}`} />
+                    </button>
+                  </div>
                 </div>
 
                 {/* 2. Instagram Feed — right col */}

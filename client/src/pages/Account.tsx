@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
@@ -151,6 +151,14 @@ export default function Account() {
   const { t } = useLang();
   const { user, isAuthenticated, logout, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("orders");
+  const [offsetY, setOffsetY] = useState(0);
+  useEffect(() => {
+    const handleScroll = () => setOffsetY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
+  const textureEnabled = siteSettings?.["texture_enabled"] === "true";
 
   const statusLabels: Record<string, string> = {
     pending:       "Orden creada",
@@ -198,20 +206,28 @@ export default function Account() {
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center text-center mb-8"
+          className="relative overflow-hidden py-12 mb-8 rounded-2xl"
+          style={textureEnabled ? {
+            backgroundImage: 'url(/textura-isekai.svg)',
+            backgroundSize: 'cover',
+            backgroundPosition: `center ${offsetY * 0.2}px`,
+          } : {}}
         >
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold mb-4 shadow-sm">
-            {initial}
+          {textureEnabled && <div className="absolute inset-0 bg-white/85 pointer-events-none" />}
+          <div className="relative z-10 flex flex-col items-center text-center">
+            <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold mb-4 shadow-sm">
+              {initial}
+            </div>
+            <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
+            <p className="text-sm text-[#888] mt-0.5">{user?.email}</p>
+            <button
+              onClick={() => logout()}
+              className="mt-4 flex items-center gap-1.5 text-xs text-[#888] hover:text-[#1a1a1a] transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              Cerrar sesión
+            </button>
           </div>
-          <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
-          <p className="text-sm text-[#888] mt-0.5">{user?.email}</p>
-          <button
-            onClick={() => logout()}
-            className="mt-4 flex items-center gap-1.5 text-xs text-[#888] hover:text-[#1a1a1a] transition-colors"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            Cerrar sesión
-          </button>
         </motion.div>
 
         {/* ── Tabs pills ── */}
