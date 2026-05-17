@@ -59,16 +59,17 @@ function SaleSlider() {
       <div className="relative overflow-hidden rounded-[18px]">
         {/* Images — crossfade */}
         {banners.map((src, i) => (
-          <img
+          <div
             key={i}
-            src={src}
-            alt=""
-            className="w-full object-cover"
-            style={{
-              display: i === idx ? 'block' : 'none',
-              maxHeight: isMobile ? 220 : 420,
-            }}
-          />
+            className="w-full h-[200px] sm:h-auto sm:aspect-[1920/600] overflow-hidden"
+            style={{ display: i === idx ? 'block' : 'none' }}
+          >
+            <img
+              src={src}
+              alt=""
+              className="w-full h-full object-cover object-center"
+            />
+          </div>
         ))}
 
         {/* Dots */}
