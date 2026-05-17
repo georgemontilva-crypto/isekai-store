@@ -1808,9 +1808,10 @@ export default function Admin() {
                         <p className="text-sm font-semibold mb-3 text-muted-foreground uppercase tracking-wide">Slide {n}</p>
                         <div className="grid sm:grid-cols-2 gap-3 mb-3">
                           {[
-                            { k: `hero_slide_${n}_tag`, label: "Tag / etiqueta", ph: "Ej: Temporada 2025" },
-                            { k: `hero_slide_${n}_title`, label: "Título", ph: "Ej: Nueva colección" },
-                            { k: `hero_slide_${n}_cta`, label: "Texto del botón", ph: "Ej: Ver colección" },
+                            { k: `hero_slide_${n}_tag`,     label: "Tag / etiqueta",   ph: "Ej: Temporada 2025" },
+                            { k: `hero_slide_${n}_title`,   label: "Título",           ph: "Ej: Nueva colección" },
+                            { k: `hero_slide_${n}_cta`,     label: "Texto del botón",  ph: "Ej: Ver colección" },
+                            { k: `hero_slide_${n}_cta_url`, label: "URL del botón",    ph: "/catalog o https://..." },
                           ].map(({ k, label, ph }) => (
                             <div key={k}>
                               <Label className="text-xs font-medium">{label}</Label>

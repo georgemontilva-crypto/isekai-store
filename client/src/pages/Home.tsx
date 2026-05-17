@@ -200,11 +200,11 @@ export default function Home() {
 
   const heroSlides = [1, 2, 3]
     .map(n => ({
-      image:      settings?.[`hero_slide_${n}_image`]       ?? "",
-      title:      settings?.[`hero_slide_${n}_title`]       ?? "",
-      subtitle:   settings?.[`hero_slide_${n}_subtitle`]    ?? "",
-      buttonText: settings?.[`hero_slide_${n}_button_text`] ?? "",
-      buttonUrl:  settings?.[`hero_slide_${n}_button_url`]  ?? "/catalog",
+      image:      settings?.[`hero_slide_${n}_image`]    ?? "",
+      title:      settings?.[`hero_slide_${n}_title`]    ?? "",
+      subtitle:   settings?.[`hero_slide_${n}_subtitle`] ?? "",
+      buttonText: settings?.[`hero_slide_${n}_cta`]      ?? "",
+      buttonUrl:  settings?.[`hero_slide_${n}_cta_url`]  ?? "/catalog",
     }))
     .filter(s => s.image);
 
@@ -274,9 +274,12 @@ export default function Home() {
                     {slide.subtitle && (
                       <p className="text-white/80 text-base mb-4">{slide.subtitle}</p>
                     )}
-                    {slide.buttonText && (
-                      <Link href={slide.buttonUrl} className="btn-pill-white">
-                        {slide.buttonText}
+                    {slide.buttonText && slide.buttonUrl && (
+                      <Link
+                        href={slide.buttonUrl}
+                        className="inline-flex items-center gap-2 bg-white text-[#111] px-6 py-3 rounded-full font-semibold text-sm hover:bg-white/90 transition-colors mt-4"
+                      >
+                        {slide.buttonText} →
                       </Link>
                     )}
                   </div>
@@ -301,7 +304,7 @@ export default function Home() {
                 key={i}
                 onClick={() => setHeroIdx(i)}
                 className={`rounded-full transition-all duration-300 ${
-                  i === heroIdx ? "w-5 h-[6px] bg-[#1a1a1a]" : "w-[6px] h-[6px] bg-[#ccc]"
+                  i === heroIdx ? "w-5 h-[6px] bg-white" : "w-[6px] h-[6px] bg-white/40"
                 }`}
               />
             ))}
