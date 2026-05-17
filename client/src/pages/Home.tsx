@@ -19,13 +19,6 @@ import { motion } from "framer-motion";
 import FeaturedProductCard from "@/components/FeaturedProductCard";
 import { useLang } from "@/i18n/LangContext";
 
-/* ─── Hero Slides ─── */
-const heroBgs = [
-  "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=1600&q=80",
-  "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=1600&q=80",
-  "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=1600&q=80",
-];
-
 /* ─── Collections ─── */
 const collectionHrefsHome = ["/catalog","/catalog","/catalog","/catalog","/catalog"];
 const collectionImgsHome = [
@@ -270,13 +263,15 @@ export default function Home() {
   const products = productsData?.items ?? [];
   const { addItem } = useCart();
 
-  const heroSlides = [1, 2, 3].map((n, i) => ({
-    image: settings?.[`hero_slide_${n}_image`] || heroBgs[i],
-    tag: settings?.[`hero_slide_${n}_tag`] || t.home.hero[i].tag,
-    title: settings?.[`hero_slide_${n}_title`] || t.home.hero[i].title,
-    cta: settings?.[`hero_slide_${n}_cta`] || t.home.hero[i].cta,
-    href: "/catalog",
-  }));
+  const heroSlides = [1, 2, 3]
+    .map(n => ({
+      image:      settings?.[`hero_slide_${n}_image`]       ?? "",
+      title:      settings?.[`hero_slide_${n}_title`]       ?? "",
+      subtitle:   settings?.[`hero_slide_${n}_subtitle`]    ?? "",
+      buttonText: settings?.[`hero_slide_${n}_button_text`] ?? "",
+      buttonUrl:  settings?.[`hero_slide_${n}_button_url`]  ?? "/catalog",
+    }))
+    .filter(s => s.image);
 
   // Auto-advance hero
   useEffect(() => {
@@ -302,6 +297,7 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           1. HERO PEEK CAROUSEL
       ══════════════════════════════════════════════ */}
+      {heroSlides.length > 0 && (
       <section className="hero-peek-section">
         {/* Track */}
         <div className="hero-peek-track">
@@ -324,12 +320,19 @@ export default function Home() {
                   className={`hero-peek-img ${isActive ? "zoomed-in" : ""}`}
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
-                {isActive && (
+                {isActive && (slide.title || slide.buttonText) && (
                   <div className="hero-peek-content">
-                    <h1 className="hero-peek-title">{slide.title.toUpperCase()}</h1>
-                    <Link href={slide.href} className="btn-pill-white">
-                      {slide.cta}
-                    </Link>
+                    {slide.title && (
+                      <h1 className="hero-peek-title">{slide.title.toUpperCase()}</h1>
+                    )}
+                    {slide.subtitle && (
+                      <p className="text-white/80 text-base mb-4">{slide.subtitle}</p>
+                    )}
+                    {slide.buttonText && (
+                      <Link href={slide.buttonUrl} className="btn-pill-white">
+                        {slide.buttonText}
+                      </Link>
+                    )}
                   </div>
                 )}
               </div>
@@ -366,6 +369,7 @@ export default function Home() {
           </button>
         </div>
       </section>
+      )}
 
       {/* ══════════════════════════════════════════════
           2. COLLECTIONS CAROUSEL (Shopify Concept style)

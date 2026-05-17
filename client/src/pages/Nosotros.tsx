@@ -4,11 +4,11 @@ import { AlertTriangle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 const SERVICES = [
-  { name: "Figuras coleccionables", desc: "Statuas, figmas y artículos de edición limitada de tus series favoritas." },
-  { name: "Ropa y accesorios",      desc: "Prendas y complementos con diseños originales para llevar el anime a tu día a día." },
-  { name: "Arte y papelería",       desc: "Prints, stickers, cuadernos y más, creados por artistas de la comunidad." },
-  { name: "Personalización",        desc: "Pedidos personalizados para regalos únicos o artículos temáticos especiales." },
-  { name: "Ediciones especiales",   desc: "Drops exclusivos y colecciones de temporada disponibles por tiempo limitado." },
+  { name: "Impresión 3D Especializada", desc: "Fabricamos figuras, props y piezas decorativas con tecnología FDM y resina de alta resolución. Cada pieza pasa por un proceso de postprocesado, lijado y pintura para lograr acabados profesionales." },
+  { name: "Cosplay Lab",               desc: "Diseñamos y fabricamos accesorios, armaduras, máscaras y piezas especiales para cosplay. Trabajamos con el cosplayer para lograr la mayor fidelidad posible al personaje original." },
+  { name: "Diseño y Modelado 3D",      desc: "Creamos modelos digitales desde cero usando software de modelado profesional. Desde referencias en imagen hasta archivos listos para impresión, nos encargamos de todo el proceso de diseño." },
+  { name: "Restauración y Adaptación", desc: "Escalamos, modificamos y personalizamos piezas existentes según tus necesidades. También restauramos figuras o coleccionables dañados devolviéndoles su apariencia original." },
+  { name: "Ediciones Especiales",      desc: "Producimos series limitadas y colecciones exclusivas de figuras y coleccionables. Piezas numeradas, certificadas y pensadas para el coleccionista más exigente." },
 ];
 
 const VALUES = [
