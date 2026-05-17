@@ -490,10 +490,10 @@ export default function Home() {
           <section
             className="py-16 relative overflow-hidden"
             style={{
-              backgroundImage: 'url(/textura-isekai.svg)',
-              backgroundSize: '600px',
+              backgroundImage: settings?.["texture_enabled"] === "true" ? 'url(/textura-isekai.svg)' : 'none',
+              backgroundSize: '500px 500px',
               backgroundRepeat: 'repeat',
-              backgroundPosition: 'center center',
+              backgroundPosition: 'center top',
             }}
           >
             <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.92) 60%, rgba(255,255,255,1) 100%)' }} />
