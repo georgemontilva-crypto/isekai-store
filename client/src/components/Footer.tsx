@@ -102,11 +102,10 @@ export default function Footer() {
             {/* Newsletter */}
             <div>
               {/* CTA */}
-              <p className="text-2xl mb-2">🎌</p>
-              <h4 className="font-bold text-[18px] leading-snug mb-2">
-                Únete a la comunidad Isekai
-              </h4>
-              <p className="text-[12px] text-white/50 leading-relaxed mb-5">
+              <h3 className="text-2xl font-black text-[#e5007d] mb-2">
+                ¡No te pierdas nada!
+              </h3>
+              <p className="text-[#aaa] text-sm leading-relaxed mb-5">
                 Drops exclusivos, preventa anticipada y descuentos solo para suscriptores.
               </p>
               <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2">
