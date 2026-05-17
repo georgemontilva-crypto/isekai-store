@@ -19,6 +19,7 @@ import {
   insertOrderNotification, getUserOrderNotifications,
   getOrderNotificationUnreadCount, markAllOrderNotificationsRead,
   getWishlist, toggleWishlist, isInWishlist,
+  getPublicFaqItems, getAllFaqItems, createFaqItem, updateFaqItem, deleteFaqItem,
 } from "./db";
 
 // Admin guard middleware
@@ -395,6 +396,37 @@ export const appRouter = router({
     toggle: protectedProcedure
       .input(z.object({ productId: z.number() }))
       .mutation(({ ctx, input }) => toggleWishlist(ctx.user.id, input.productId)),
+  }),
+
+  // ─── FAQ ─────────────────────────────────────────────────────────────────────
+  faq: router({
+    list: publicProcedure.query(() => getPublicFaqItems()),
+
+    adminList: adminProcedure.query(() => getAllFaqItems()),
+
+    create: adminProcedure
+      .input(z.object({
+        question: z.string().min(1),
+        answer: z.string().min(1),
+        category: z.string().optional(),
+        position: z.number().optional(),
+      }))
+      .mutation(({ input }) => createFaqItem(input)),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        question: z.string().optional(),
+        answer: z.string().optional(),
+        category: z.string().optional(),
+        position: z.number().optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(({ input }) => { const { id, ...data } = input; return updateFaqItem(id, data); }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteFaqItem(input.id)),
   }),
 
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────

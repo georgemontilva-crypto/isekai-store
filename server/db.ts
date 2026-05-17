@@ -18,6 +18,8 @@ import {
   AdminNotification,
   orderNotifications,
   wishlist,
+  faqItems,
+  InsertFaqItem,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -624,4 +626,37 @@ export async function isInWishlist(userId: number, productId: number): Promise<b
     .where(and(eq(wishlist.userId, userId), eq(wishlist.productId, productId)))
     .limit(1);
   return rows.length > 0;
+}
+
+// ─── FAQ ──────────────────────────────────────────────────────────────────────
+export async function getPublicFaqItems() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(faqItems)
+    .where(eq(faqItems.active, true))
+    .orderBy(faqItems.position);
+}
+
+export async function getAllFaqItems() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(faqItems).orderBy(faqItems.position);
+}
+
+export async function createFaqItem(data: Pick<InsertFaqItem, "question" | "answer" | "category" | "position">) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(faqItems).values(data);
+}
+
+export async function updateFaqItem(id: number, data: Partial<Pick<InsertFaqItem, "question" | "answer" | "category" | "position" | "active">>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(faqItems).set(data).where(eq(faqItems.id, id));
+}
+
+export async function deleteFaqItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(faqItems).where(eq(faqItems.id, id));
 }

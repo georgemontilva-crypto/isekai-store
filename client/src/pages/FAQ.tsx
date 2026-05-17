@@ -1,91 +1,22 @@
 import { useState } from "react";
-import { useLang } from "@/i18n/LangContext";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
+import { trpc } from "@/lib/trpc";
 
-const faqs = [
-  {
-    category: "Pedidos",
-    items: [
-      {
-        q: "¿Cómo hago un pedido?",
-        a: "Agrega los productos que deseas al carrito, completa tus datos de envío en el checkout y realiza el pago a través de Bold. Recibirás una confirmación por email.",
-      },
-      {
-        q: "¿Puedo modificar o cancelar mi pedido?",
-        a: "Puedes solicitar cambios dentro de las 2 horas siguientes a realizar el pedido escribiéndonos a hola@isekaiworld.co. Una vez en proceso de empaque, no es posible modificarlo.",
-      },
-      {
-        q: "¿Qué métodos de pago aceptan?",
-        a: "Aceptamos tarjetas de crédito y débito, PSE, Nequi y Daviplata a través de Bold, nuestra pasarela de pagos segura para Colombia.",
-      },
-    ],
-  },
-  {
-    category: "Envíos",
-    items: [
-      {
-        q: "¿Cuánto tiempo tarda mi pedido en llegar?",
-        a: "Envíos nacionales en Colombia: 3–7 días hábiles. Ciudades principales (Bogotá, Medellín, Cali, Barranquilla): 2–4 días hábiles.",
-      },
-      {
-        q: "¿El envío tiene costo?",
-        a: "El envío es gratis en pedidos superiores a $150.000 COP. Para pedidos menores, el costo se calcula según la ciudad de destino al momento del checkout.",
-      },
-      {
-        q: "¿Hacen envíos internacionales?",
-        a: "Por el momento solo hacemos envíos dentro de Colombia. Estamos trabajando para ofrecer envíos internacionales pronto.",
-      },
-      {
-        q: "¿Cómo rastro mi pedido?",
-        a: "Al confirmar el envío te enviaremos un número de guía al correo registrado para que puedas rastrear tu paquete en tiempo real.",
-      },
-    ],
-  },
-  {
-    category: "Productos",
-    items: [
-      {
-        q: "¿Los productos son originales?",
-        a: "Sí, todos nuestros productos son originales y de alta calidad. Trabajamos con fabricantes certificados y proveedores de confianza.",
-      },
-      {
-        q: "¿Qué pasa si mi producto llega dañado?",
-        a: "Si tu producto llegó dañado durante el transporte, contáctanos dentro de las 48 horas siguientes a la entrega con fotos del daño y el empaque. Reemplazaremos el producto sin costo. Consulta nuestra política de devoluciones para más detalles.",
-      },
-      {
-        q: "¿Los productos tienen garantía?",
-        a: "Todos nuestros productos tienen garantía de 30 días contra defectos de fabricación o daños ocurridos durante el envío.",
-      },
-    ],
-  },
-  {
-    category: "Cuenta",
-    items: [
-      {
-        q: "¿Necesito una cuenta para comprar?",
-        a: "Puedes comprar como invitado, pero tener una cuenta te permite rastrear tus pedidos, guardar tu historial de compras y acceder a beneficios exclusivos.",
-      },
-      {
-        q: "¿Cómo creo una cuenta?",
-        a: "Haz clic en el ícono de usuario en la barra de navegación. Puedes registrarte con Google o con tu correo electrónico.",
-      },
-    ],
-  },
-];
-
-function FAQItem({ q, a }: { q: string; a: string }) {
+function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-[#ebebeb] last:border-0">
+    <div className="border-b border-[#e5e5e5] last:border-0">
       <button
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-4 py-5 text-left"
+        className="w-full flex items-center justify-between gap-4 py-5 text-left group"
       >
-        <span className="text-[15px] font-semibold text-[#1a1a1a] leading-snug">{q}</span>
+        <span className="text-[15px] font-semibold text-[#111] leading-snug group-hover:text-[#e5007d] transition-colors">
+          {question}
+        </span>
         <ChevronDown
-          size={18}
-          className="shrink-0 text-[#888] transition-transform duration-300"
+          size={16}
+          className="shrink-0 text-[#aaa] transition-transform duration-300"
           style={{ transform: open ? "rotate(180deg)" : "rotate(0deg)" }}
         />
       </button>
@@ -95,10 +26,10 @@ function FAQItem({ q, a }: { q: string; a: string }) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.23, 1, 0.32, 1] }}
+            transition={{ duration: 0.26, ease: [0.23, 1, 0.32, 1] }}
             className="overflow-hidden"
           >
-            <p className="text-[14px] text-[#666] leading-relaxed pb-5">{a}</p>
+            <p className="text-[14px] text-[#666] leading-relaxed pb-5 pr-6">{answer}</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -107,61 +38,91 @@ function FAQItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function FAQ() {
-  const { t } = useLang();
+  const { data: items = [] } = trpc.faq.list.useQuery();
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
+  const faqImage = siteSettings?.["faq_image"] ?? "";
+
+  const categories = [...new Set(items.map(i => i.category ?? "General"))];
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <div className="bg-[#1a1a1a] text-white py-20">
-        <div className="container max-w-3xl text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
-              {t.faq.label}
-            </p>
-            <h1 className="text-4xl md:text-5xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-              {t.faq.title}
-            </h1>
-          </motion.div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-white pt-20">
+      <div className="container py-16">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
 
-      {/* FAQ Sections */}
-      <div className="container max-w-3xl py-16 space-y-12">
-        {faqs.map((section) => (
-          <motion.section
-            key={section.category}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-          >
-            <h2
-              className="text-sm font-bold uppercase tracking-[0.15em] text-[#888] mb-4"
+          {/* ── Columna izquierda — FAQs ── */}
+          <div>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
             >
-              {section.category}
-            </h2>
-            <div className="rounded-2xl border border-[#ebebeb] px-6 divide-y-0">
-              {section.items.map((item) => (
-                <FAQItem key={item.q} q={item.q} a={item.a} />
-              ))}
-            </div>
-          </motion.section>
-        ))}
+              <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-2 font-medium">FAQ</p>
+              <h1 className="text-4xl font-black text-[#111] mb-10">Preguntas frecuentes</h1>
+            </motion.div>
 
-        {/* Still have questions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="bg-[#f5f5f5] rounded-2xl p-8 text-center"
-        >
-          <h3 className="text-xl font-black mb-2 text-[#1a1a1a]">{t.faq.stillQuestion}</h3>
-          <p className="text-[14px] text-[#666] mb-5">{t.faq.stillDesc}</p>
-          <a
-            href="mailto:hola@isekaiworld.co"
-            className="inline-flex items-center gap-2 bg-[#1a1a1a] text-white text-[14px] font-semibold px-6 py-3 rounded-full hover:bg-[#333] transition-colors"
-          >
-            hola@isekaiworld.co
-          </a>
-        </motion.div>
+            {items.length === 0 ? (
+              <p className="text-[#aaa] text-sm">No hay preguntas frecuentes configuradas aún.</p>
+            ) : (
+              categories.map((cat, ci) => (
+                <motion.div
+                  key={cat}
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: ci * 0.07 }}
+                  className="mb-10"
+                >
+                  <p className="text-xs tracking-[0.25em] uppercase text-[#999] mb-4 border-b border-[#e5e5e5] pb-2 font-medium">
+                    {cat}
+                  </p>
+                  {items.filter(f => (f.category ?? "General") === cat).map(item => (
+                    <FAQItem key={item.id} question={item.question} answer={item.answer} />
+                  ))}
+                </motion.div>
+              ))
+            )}
+
+            {/* CTA contacto */}
+            <motion.div
+              initial={{ opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="mt-12 bg-[#f8f8f8] rounded-2xl p-8"
+            >
+              <h3 className="text-lg font-black text-[#111] mb-2">¿No encontraste tu respuesta?</h3>
+              <p className="text-sm text-[#666] mb-5 leading-relaxed">
+                Escríbenos directamente y te respondemos en menos de 24 horas.
+              </p>
+              <a
+                href="mailto:hola@isekaiworld.co"
+                className="inline-flex items-center gap-2 bg-[#111] text-white text-sm font-semibold px-6 py-3 rounded-full hover:bg-[#333] transition-colors"
+              >
+                hola@isekaiworld.co
+              </a>
+            </motion.div>
+          </div>
+
+          {/* ── Columna derecha — imagen sticky ── */}
+          <div className="lg:sticky lg:top-24">
+            {faqImage ? (
+              <motion.img
+                src={faqImage}
+                alt="FAQ"
+                initial={{ opacity: 0, scale: 0.97 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.5 }}
+                className="w-full rounded-2xl object-cover"
+              />
+            ) : (
+              <div className="w-full aspect-[3/4] bg-[#f0f0f0] rounded-2xl flex items-center justify-center">
+                <p className="text-[#bbb] text-sm text-center px-6">
+                  Configura la imagen desde<br />Admin → Configuración → Página FAQ
+                </p>
+              </div>
+            )}
+          </div>
+
+        </div>
       </div>
     </div>
   );

@@ -223,3 +223,17 @@ export const wishlist = mysqlTable("wishlist", {
   productId: int("productId").notNull().references(() => products.id),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
+
+// ─── FAQ Items ────────────────────────────────────────────────────────────────
+export const faqItems = mysqlTable("faqItems", {
+  id: int("id").autoincrement().primaryKey(),
+  question: varchar("question", { length: 500 }).notNull(),
+  answer: text("answer").notNull(),
+  category: varchar("category", { length: 100 }).default("General"),
+  position: int("position").default(0),
+  active: boolean("active").default(true),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export type FaqItem = typeof faqItems.$inferSelect;
+export type InsertFaqItem = typeof faqItems.$inferInsert;
