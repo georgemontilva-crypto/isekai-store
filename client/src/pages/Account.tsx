@@ -212,7 +212,7 @@ export default function Account() {
           backgroundPosition: `center ${offsetY * 0.2}px`,
         }}
       >
-        <div className="absolute inset-0 bg-white/85 pointer-events-none" />
+        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 100%)' }} />
         <div className="relative z-10 flex flex-col items-center gap-2 text-center">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-sm">
             {initial}
