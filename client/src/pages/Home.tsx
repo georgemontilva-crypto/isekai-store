@@ -491,9 +491,8 @@ export default function Home() {
             className="py-16 relative overflow-hidden"
             style={{
               backgroundImage: settings?.["texture_enabled"] === "true" ? 'url(/textura-isekai.svg)' : 'none',
-              backgroundSize: '500px 500px',
-              backgroundRepeat: 'repeat',
-              backgroundPosition: 'center top',
+              backgroundSize: 'cover',
+              backgroundPosition: `center ${offsetY * 0.2}px`,
             }}
           >
             <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.92) 60%, rgba(255,255,255,1) 100%)' }} />
