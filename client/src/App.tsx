@@ -1,4 +1,4 @@
-import { useEffect, useRef, lazy, Suspense } from "react";
+import { useEffect, useRef } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -14,18 +14,17 @@ import CartDrawer from "./components/CartDrawer";
 import NewsletterPopup from "./components/NewsletterPopup";
 import AuthDialog from "./components/AuthDialog";
 import Home from "./pages/Home";
+import Catalog from "./pages/Catalog";
+import ProductDetail from "./pages/ProductDetail";
+import Checkout from "./pages/Checkout";
+import Account from "./pages/Account";
+import Admin from "./pages/Admin";
+import CheckoutSuccess from "./pages/CheckoutSuccess";
+import Nosotros from "./pages/Nosotros";
+import FAQ from "./pages/FAQ";
+import Politicas from "./pages/Politicas";
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "./hooks/useSocket";
-
-const Catalog = lazy(() => import("./pages/Catalog"));
-const ProductDetail = lazy(() => import("./pages/ProductDetail"));
-const Checkout = lazy(() => import("./pages/Checkout"));
-const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
-const Account = lazy(() => import("./pages/Account"));
-const Admin = lazy(() => import("./pages/Admin"));
-const Nosotros = lazy(() => import("./pages/Nosotros"));
-const FAQ = lazy(() => import("./pages/FAQ"));
-const Politicas = lazy(() => import("./pages/Politicas"));
 
 function WelcomeToastHandler() {
   const search = useSearch();
@@ -93,9 +92,7 @@ function Layout() {
       <WelcomeToastHandler />
       <Navbar />
       <main className="min-h-screen">
-        <Suspense fallback={<div className="min-h-screen" />}>
-          <Router />
-        </Suspense>
+        <Router />
       </main>
       {!isAdmin && <Footer />}
       {!isAdmin && <NewsletterPopup />}
