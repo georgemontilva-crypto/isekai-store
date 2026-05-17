@@ -73,7 +73,7 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
         })}
       </div>
 
-      {/* ── Mobile: vertical ── */}
+      {/* ── Mobile: vertical list, text always visible ── */}
       <div className="flex sm:hidden flex-col">
         {ORDER_STEPS.map((step, i) => {
           const isDone    = i < currentIdx;
@@ -85,7 +85,7 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
             <div key={step.key} className="flex items-start gap-3">
               {/* Left: circle + vertical connector */}
               <div className="flex flex-col items-center shrink-0">
-                <div className="relative group">
+                <div className="relative">
                   {isCurrent && (
                     <span className="absolute -inset-1.5 rounded-full animate-ping bg-black/15 pointer-events-none" />
                   )}
@@ -105,19 +105,25 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
                   >
                     {isDone ? <Check className="w-3.5 h-3.5" /> : <Icon className="w-3.5 h-3.5" />}
                   </button>
-                  {/* Tooltip — appears to the right on mobile to avoid overflow */}
-                  <div className="absolute top-1/2 -translate-y-1/2 left-full ml-2 hidden group-hover:block bg-gray-900 text-white text-xs font-medium rounded-md px-2.5 py-1.5 whitespace-nowrap z-10 shadow-lg pointer-events-none">
-                    {step.tooltip.join(" ")}
-                  </div>
                 </div>
                 {!isLast && (
                   <div className={cn(
-                    "w-0.5 flex-1 min-h-[28px]",
+                    "w-0.5 flex-1 min-h-[20px]",
                     isDone ? "bg-green-500" : "bg-[#e5e5e5]"
                   )} />
                 )}
               </div>
-              <div className={cn(!isLast && "pb-5")} />
+              {/* Right: label always visible */}
+              <div className={cn("pt-2", !isLast && "pb-4")}>
+                <p className={cn(
+                  "text-sm font-semibold leading-none",
+                  isDone    && "text-green-600",
+                  isCurrent && "text-[#1a1a1a]",
+                  !isDone && !isCurrent && "text-[#aaa]"
+                )}>
+                  {step.tooltip.join(" ")}
+                </p>
+              </div>
             </div>
           );
         })}
