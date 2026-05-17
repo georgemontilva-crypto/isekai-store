@@ -400,9 +400,13 @@ export const appRouter = router({
 
   // ─── FAQ ─────────────────────────────────────────────────────────────────────
   faq: router({
-    list: publicProcedure.query(() => getPublicFaqItems()),
+    list: publicProcedure.query(async () => {
+      try { return await getPublicFaqItems(); } catch { return []; }
+    }),
 
-    adminList: adminProcedure.query(() => getAllFaqItems()),
+    adminList: adminProcedure.query(async () => {
+      try { return await getAllFaqItems(); } catch { return []; }
+    }),
 
     create: adminProcedure
       .input(z.object({
