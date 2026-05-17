@@ -6,6 +6,7 @@ import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useSocket } from "@/hooks/useSocket";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
@@ -171,6 +172,18 @@ export default function Account() {
     cancelled:     "Cancelada",
   };
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+
+  const socket = useSocket();
+  const utils = trpc.useUtils();
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleOrderUpdated = () => {
+      utils.orders.myOrders.invalidate();
+    };
+    socket.on("order:updated", handleOrderUpdated);
+    return () => { socket.off("order:updated", handleOrderUpdated); };
+  }, [socket, utils]);
 
   const { data: ordersData, isLoading: ordersLoading } = trpc.orders.myOrders.useQuery(
     undefined,

@@ -8,6 +8,7 @@ import CartDrawer from "./CartDrawer";
 import { AnimatePresence, motion } from "framer-motion";
 import { useLang } from "@/i18n/LangContext";
 import { trpc } from "@/lib/trpc";
+import { useSocket } from "@/hooks/useSocket";
 
 const collectionImgs = [
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
@@ -52,8 +53,21 @@ export default function Navbar() {
   useEffect(() => { setActiveMenu(null); }, [location]);
 
   const isRegularUser = isAuthenticated && user?.role !== "admin";
+  const socket = useSocket();
+  const utils = trpc.useUtils();
+
+  useEffect(() => {
+    if (!socket) return;
+    const handleNewNotification = () => {
+      utils.userNotifications.unreadCount.invalidate();
+      utils.userNotifications.list.invalidate();
+    };
+    socket.on("notification:new", handleNewNotification);
+    return () => { socket.off("notification:new", handleNewNotification); };
+  }, [socket, utils]);
+
   const { data: notifUnread, refetch: refetchUnread } = trpc.userNotifications.unreadCount.useQuery(
-    undefined, { enabled: isRegularUser, refetchInterval: 30000 }
+    undefined, { enabled: isRegularUser }
   );
   const { data: notifList } = trpc.userNotifications.list.useQuery(
     undefined, { enabled: isRegularUser && notifOpen }

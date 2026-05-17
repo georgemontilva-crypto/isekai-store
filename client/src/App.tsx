@@ -23,6 +23,7 @@ import Nosotros from "./pages/Nosotros";
 import FAQ from "./pages/FAQ";
 import Politicas from "./pages/Politicas";
 import { trpc } from "@/lib/trpc";
+import { useSocket } from "./hooks/useSocket";
 
 function WelcomeToastHandler() {
   const search = useSearch();
@@ -79,6 +80,7 @@ function Router() {
 }
 
 function Layout() {
+  useSocket(); // inicializar conexión global al autenticarse
   const [location] = useLocation();
   const isAdmin = location.startsWith("/admin");
 

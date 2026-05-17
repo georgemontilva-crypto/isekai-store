@@ -5,6 +5,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { notifyOwner, notifyCustomerOrderStatus } from "./_core/notification";
+import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut } from "./storage";
 import {
@@ -316,6 +317,14 @@ export const appRouter = router({
         try {
           await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, msg.title, msg.body);
         } catch (e) { console.error("Failed to send customer email:", e); }
+
+        if (order.userId && io) {
+          io.to(`user:${order.userId}`).emit("order:updated", {
+            orderId: order.id,
+            status: input.status,
+          });
+          io.to(`user:${order.userId}`).emit("notification:new");
+        }
       }),
   }),
 
