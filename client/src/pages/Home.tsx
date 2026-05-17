@@ -460,23 +460,32 @@ export default function Home() {
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">
               {settings?.["brand_story_label"] ?? t.home.brandStory.label}
             </p>
-            <h2
-              style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
-              className="text-2xl md:text-3xl lg:text-4xl font-black text-[#1a1a1a] mb-0"
-            >
-              {settings?.["brand_story_heading"] ?? t.home.brandStory.heading}{" "}
-              <span
-                style={{
-                  fontFamily: "'Orbitron', sans-serif",
-                  background: "linear-gradient(to right, #e5007d, #ff0099)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                {settings?.["brand_story_highlight"] ?? t.home.brandStory.highlight}
-              </span>
-            </h2>
+            {(() => {
+              const raw = settings?.["brand_story_heading"] ?? `${t.home.brandStory.heading} | ${t.home.brandStory.highlight}`;
+              const parts = raw.split("|");
+              const blackPart = parts[0]?.trim();
+              const magentaPart = parts[1]?.trim();
+              return (
+                <h2
+                  style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
+                  className="text-2xl md:text-3xl lg:text-4xl font-black mb-0"
+                >
+                  {blackPart && <span className="text-[#111]">{blackPart} </span>}
+                  {magentaPart && (
+                    <span
+                      style={{
+                        background: "linear-gradient(to right, #e5007d, #ff0099)",
+                        WebkitBackgroundClip: "text",
+                        WebkitTextFillColor: "transparent",
+                        backgroundClip: "text",
+                      }}
+                    >
+                      {magentaPart}
+                    </span>
+                  )}
+                </h2>
+              );
+            })()}
             <p className="mt-4 text-[14px] text-[#666] leading-relaxed">
               {settings?.["brand_story_body"] ?? t.home.brandStory.body}
             </p>

@@ -243,6 +243,12 @@
     width: max-content;
   }
   .marquee-track:hover { animation-play-state: paused; }
+  .marquee-track-slow {
+    animation: marquee-left 30s linear infinite;
+    display: flex;
+    width: max-content;
+  }
+  .marquee-track-slow:hover { animation-play-state: paused; }
 
   /* ── Rotating Badge ── */
   @keyframes spin-slow {

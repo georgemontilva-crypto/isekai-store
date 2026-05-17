@@ -1,82 +1,261 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { useLang } from "@/i18n/LangContext";
+import { AlertTriangle } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+
+const SERVICES = [
+  { name: "Figuras coleccionables", desc: "Statuas, figmas y artículos de edición limitada de tus series favoritas." },
+  { name: "Ropa y accesorios",      desc: "Prendas y complementos con diseños originales para llevar el anime a tu día a día." },
+  { name: "Arte y papelería",       desc: "Prints, stickers, cuadernos y más, creados por artistas de la comunidad." },
+  { name: "Personalización",        desc: "Pedidos personalizados para regalos únicos o artículos temáticos especiales." },
+  { name: "Ediciones especiales",   desc: "Drops exclusivos y colecciones de temporada disponibles por tiempo limitado." },
+];
+
+const VALUES = [
+  { title: "Pasión",        desc: "Todo lo que hacemos nace del amor genuino por el anime y la cultura pop." },
+  { title: "Autenticidad",  desc: "Productos cuidadosamente seleccionados. Sin imitaciones, sin compromisos." },
+  { title: "Confianza",     desc: "Comprás con seguridad. Envíos rastreables y atención real siempre." },
+  { title: "Comunidad",     desc: "Somos fans antes que vendedores. Tu experiencia importa más que la venta." },
+  { title: "Innovación",    desc: "Nuevos drops, colaboraciones y ediciones especiales que sorprenden." },
+  { title: "Cultura",       desc: "Promovemos el anime y el gaming como formas legítimas de arte y expresión." },
+];
 
 export default function Nosotros() {
-  const { t } = useLang();
+  const [offsetY, setOffsetY] = useState(0);
+  const [hoveredService, setHoveredService] = useState<number | null>(null);
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
+
+  useEffect(() => {
+    const handleScroll = () => setOffsetY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const heroImage      = siteSettings?.["nosotros_hero_image"]      ?? "";
+  const aboutImage     = siteSettings?.["nosotros_about_image"]     ?? "";
+  const filosofiaImage = siteSettings?.["nosotros_filosofia_image"] ?? "";
+  const gallery        = [1, 2, 3, 4, 5].map(i => siteSettings?.[`nosotros_gallery_${i}`] ?? "");
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <div className="bg-[#1a1a1a] text-white py-20">
-        <div className="container max-w-3xl text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
-              Nuestra Historia
-            </p>
-            <h1
-              className="text-4xl md:text-5xl font-black mb-4"
-              style={{ fontFamily: "'Orbitron', sans-serif" }}
-            >
-              Isekai World
-            </h1>
-            <p className="text-white/60 text-base leading-relaxed max-w-xl mx-auto">
-              Nacimos de la pasión por el anime, el gaming y la cultura pop.
-            </p>
-          </motion.div>
+    <div className="min-h-screen bg-white overflow-x-hidden">
+
+      {/* ── 1. Hero full-bleed parallax ───────────────────────────────── */}
+      <section className="relative h-[90vh] overflow-hidden flex items-end pb-20">
+        <div
+          className="absolute inset-0 bg-[#111]"
+          style={{ transform: `translateY(${offsetY * 0.4}px)`, willChange: "transform" }}
+        >
+          {heroImage ? (
+            <img src={heroImage} className="w-full h-full object-cover opacity-60" alt="" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] via-[#222] to-[#0d0d0d]" />
+          )}
         </div>
-      </div>
+        <div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.25) 55%, transparent 100%)" }}
+        />
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="relative z-10 px-6 lg:px-20 max-w-5xl"
+        >
+          <p className="text-xs tracking-[0.35em] uppercase text-[#e5007d] mb-5 font-medium">Isekai World</p>
+          <h1 className="text-6xl sm:text-7xl lg:text-[108px] font-black text-white leading-[0.92] tracking-tight">
+            Somos fans<br />
+            <span className="text-[#e5007d]">creando</span><br />
+            para fans.
+          </h1>
+        </motion.div>
+      </section>
 
-      {/* Content */}
-      <div className="container max-w-3xl py-16 space-y-12">
+      {/* ── 2. Quiénes somos — split sticky ──────────────────────────── */}
+      <section className="grid grid-cols-1 lg:grid-cols-2">
+        {/* Imagen izquierda sticky */}
+        <div className="lg:sticky lg:top-0 lg:h-screen overflow-hidden bg-[#f0f0f0]">
+          {aboutImage ? (
+            <img src={aboutImage} className="w-full h-full object-cover" alt="" />
+          ) : (
+            <div className="w-full h-full min-h-[50vh] flex items-center justify-center bg-[#f0f0f0]">
+              <span className="text-[#ccc] text-sm select-none">nosotros_about_image</span>
+            </div>
+          )}
+        </div>
 
-        <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-2xl font-black mb-4 text-[#1a1a1a]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            ¿Quiénes somos? / Who we are
+        {/* Texto derecha scrolleable */}
+        <div className="px-8 lg:px-16 xl:px-24 py-24 lg:py-32 flex flex-col justify-center gap-8">
+          <p className="text-xs tracking-[0.3em] uppercase text-[#999] font-medium">Nuestra historia</p>
+          <h2 className="text-2xl lg:text-3xl font-light leading-relaxed text-[#111]">
+            Isekai World es un estudio creativo colombiano especializado en cultura pop, anime y gaming — donde cada producto cuenta una historia.
           </h2>
-          <p className="text-[15px] text-[#555] leading-relaxed mb-3">
-            Somos una tienda colombiana especializada en figuras coleccionables, ropa y accesorios de anime y videojuegos. Cada producto es seleccionado a mano para garantizar la más alta calidad para nuestra comunidad de fans.
+          <p className="text-[#555] leading-relaxed text-[15px]">
+            Nacimos de la pasión genuina por el anime y los videojuegos. Somos fans antes que vendedores, y eso se nota en cada decisión: desde la curaduría de productos hasta el packaging de cada pedido.
           </p>
-          <p className="text-[15px] text-[#555] leading-relaxed">
-            
+          <p className="text-[#555] leading-relaxed text-[15px]">
+            Más que una tienda, somos una comunidad. Queremos que cada pieza que llegue a tus manos sea una conexión real con el universo que amás.
           </p>
-        </motion.section>
-
-        <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-2xl font-black mb-4 text-[#1a1a1a]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            Nuestra Misión
-          </h2>
-          <p className="text-[15px] text-[#555] leading-relaxed mb-3">
-            Acercar la cultura del anime y los videojuegos a Colombia y Latinoamérica con productos premium, auténticos y accesibles. Creemos que cada fan merece tener en sus manos una pieza que represente lo que ama.
-          </p>
-          <p className="text-[15px] text-[#555] leading-relaxed">
-            
-          </p>
-        </motion.section>
-
-        <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-2xl font-black mb-4 text-[#1a1a1a]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            ¿Por qué Isekai? / Why Isekai?
-          </h2>
-          <p className="text-[15px] text-[#555] leading-relaxed mb-3">
-            "Isekai" en japonés significa ser transportado a otro mundo. Eso es exactamente lo que queremos que sientas cuando recibes nuestros productos: que entras en el universo de tus personajes favoritos.
-          </p>
-          <p className="text-[15px] text-[#555] leading-relaxed">
-            "Isekai" in Japanese means to be transported to another world. That's exactly what we want you to feel when you receive our products: that you step into the universe of your favorite characters.
-          </p>
-        </motion.section>
-
-        <motion.section initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-          <h2 className="text-2xl font-black mb-4 text-[#1a1a1a]" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            Contacto
-          </h2>
-          <div className="bg-[#f5f5f5] rounded-2xl p-6 space-y-2 text-[15px] text-[#555]">
-            <p>📧 <strong>Email:</strong> hola@isekaiworld.co</p>
-            <p>📱 <strong>WhatsApp:</strong> +57 300 000-0000</p>
-            <p>📍 <strong>País:</strong> Colombia 🇨🇴</p>
-            <p>⏰ <strong>Atención:</strong> Lunes a Viernes · 9am – 6pm COT</p>
+          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#e5e5e5]">
+            {[["3+", "años de experiencia"], ["500+", "productos curados"], ["10k+", "fans en la comunidad"]].map(([num, label]) => (
+              <div key={label}>
+                <p className="text-2xl font-black text-[#111]">{num}</p>
+                <p className="text-xs text-[#999] mt-0.5 leading-snug">{label}</p>
+              </div>
+            ))}
           </div>
-        </motion.section>
+        </div>
+      </section>
 
-      </div>
+      {/* ── 3. Galería marquee ────────────────────────────────────────── */}
+      <section className="py-5 overflow-hidden bg-[#f8f8f8] border-y border-[#e5e5e5]">
+        <div className="flex gap-4 marquee-track-slow">
+          {[...gallery, ...gallery].map((src, idx) => (
+            <div key={idx} className="flex-shrink-0 w-[280px] h-[360px] bg-[#e5e5e5] rounded-xl overflow-hidden">
+              {src ? (
+                <img src={src} className="w-full h-full object-cover" alt="" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center bg-[#ebebeb]">
+                  <span className="text-[#ccc] text-xs select-none">Foto {(idx % 5) + 1}</span>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 4. Servicios con hover ────────────────────────────────────── */}
+      <section className="bg-white">
+        <div className="px-6 lg:px-20 pt-20 pb-8">
+          <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">Lo que ofrecemos</p>
+          <h2 className="text-3xl lg:text-5xl font-black text-[#111]">Nuestros servicios</h2>
+        </div>
+        <div>
+          {SERVICES.map((s, i) => (
+            <div
+              key={i}
+              className="group relative border-t border-[#e5e5e5] py-7 px-6 lg:px-20 flex items-center justify-between cursor-default overflow-hidden"
+              onMouseEnter={() => setHoveredService(i)}
+              onMouseLeave={() => setHoveredService(null)}
+            >
+              <div
+                className="absolute inset-0 bg-[#e5007d] transition-opacity duration-500"
+                style={{ opacity: hoveredService === i ? 0.06 : 0 }}
+              />
+              <div className="relative flex items-center gap-6 lg:gap-10">
+                <span className="text-xs text-[#bbb] font-mono w-6 shrink-0">{String(i + 1).padStart(2, "0")}</span>
+                <span className="text-xl sm:text-2xl lg:text-4xl font-black group-hover:text-[#e5007d] transition-colors duration-300">
+                  {s.name}
+                </span>
+              </div>
+              <span className="relative text-sm text-[#777] max-w-[280px] text-right hidden lg:block leading-relaxed">
+                {s.desc}
+              </span>
+            </div>
+          ))}
+          <div className="border-t border-[#e5e5e5]" />
+        </div>
+      </section>
+
+      {/* ── 5. Misión / Visión ────────────────────────────────────────── */}
+      <section className="py-24 lg:py-32 bg-[#f8f8f8]">
+        <div className="px-6 lg:px-20 max-w-4xl">
+          <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-16 font-medium">Propósito</p>
+          {[
+            {
+              label: "Misión",
+              text: "Acercar la cultura del anime y los videojuegos a Colombia y Latinoamérica con productos premium, auténticos y accesibles. Creemos que cada fan merece tener en sus manos una pieza que represente lo que ama.",
+            },
+            {
+              label: "Visión",
+              text: "Ser la tienda de referencia en Latinoamérica para fans del anime y el gaming, reconocida por la calidad de sus productos, la autenticidad de su comunidad y el impacto positivo en la cultura pop de la región.",
+            },
+          ].map(({ label, text }) => (
+            <motion.div
+              key={label}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="group mb-16 pb-16 border-b border-[#e5e5e5] last:border-0 last:mb-0 last:pb-0"
+            >
+              <p className="text-xs tracking-[0.3em] uppercase text-[#999] mb-5 font-medium">{label}</p>
+              <p className="text-2xl lg:text-3xl font-light text-[#111] leading-relaxed mb-6">{text}</p>
+              <div className="h-[2px] w-0 group-hover:w-24 bg-[#e5007d] transition-all duration-700 rounded-full" />
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 6. Valores — grid asimétrico ─────────────────────────────── */}
+      <section className="bg-white">
+        <div className="px-6 lg:px-20 py-16 pb-10">
+          <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] font-medium">Lo que nos define</p>
+        </div>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-px bg-[#e5e5e5]">
+          {VALUES.map((v, i) => (
+            <motion.div
+              key={v.title}
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.05 }}
+              className={`bg-white p-8 lg:p-12 group hover:bg-[#fafafa] transition-colors ${i === 0 ? "lg:col-span-2" : ""}`}
+            >
+              <p className="text-xs tracking-[0.25em] uppercase text-[#e5007d] mb-4 font-mono">
+                {String(i + 1).padStart(2, "0")}
+              </p>
+              <h3 className={`font-black mb-3 text-[#111] ${i === 0 ? "text-2xl lg:text-3xl" : "text-lg lg:text-xl"}`}>
+                {v.title}
+              </h3>
+              <p className="text-[#777] text-sm leading-relaxed">{v.desc}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── 7. Filosofía full-bleed ───────────────────────────────────── */}
+      <section className="relative h-[70vh] overflow-hidden flex items-center justify-center">
+        <div className="absolute inset-0 bg-[#111]">
+          {filosofiaImage ? (
+            <img src={filosofiaImage} className="w-full h-full object-cover opacity-40" alt="" />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#1a1a1a] to-[#050505]" />
+          )}
+        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="relative z-10 text-center px-6 max-w-4xl"
+        >
+          <p className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+            "No somos una fábrica masiva.<br />
+            <span className="text-[#e5007d]">Somos una comunidad</span><br />
+            de apasionados."
+          </p>
+        </motion.div>
+      </section>
+
+      {/* ── 8. Aviso legal ────────────────────────────────────────────── */}
+      <section className="border-t border-[#e5e5e5] bg-white py-12">
+        <div className="px-6 lg:px-20 max-w-4xl flex gap-5 items-start">
+          <AlertTriangle size={16} className="text-yellow-500 shrink-0 mt-0.5" strokeWidth={1.5} />
+          <div>
+            <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-2">
+              Aviso sobre propiedad intelectual
+            </p>
+            <p className="text-[13px] text-[#aaa] leading-relaxed">
+              Los nombres, personajes e imágenes de anime y videojuegos son propiedad de sus respectivos titulares
+              (Toei Animation, Bandai Namco, Shueisha, Nintendo, etc.). Isekai World no está afiliada a ninguna de
+              estas marcas. Los productos fan-made que comercializamos son creaciones originales inspiradas en estas
+              obras y no representan mercancía oficial licenciada, salvo que se indique expresamente. Consultas:{" "}
+              <a href="mailto:hola@isekaiworld.co" className="text-[#e5007d] underline underline-offset-2">
+                hola@isekaiworld.co
+              </a>.
+            </p>
+          </div>
+        </div>
+      </section>
+
     </div>
   );
 }
