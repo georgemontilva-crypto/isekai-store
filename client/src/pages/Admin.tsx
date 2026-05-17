@@ -607,7 +607,7 @@ export default function Admin() {
         {/* Sidebar */}
         <aside className="w-56 min-h-screen bg-sidebar border-r border-sidebar-border fixed top-16 left-0 bottom-0 overflow-y-auto z-40">
           <div className="p-4">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mb-3 px-2">Panel Admin</p>
+            <p className="text-xs font-medium !text-white uppercase tracking-wider mb-3 px-2">Panel Admin</p>
             <nav className="space-y-1">
               {tabs.map((t) => (
                 <button
@@ -615,8 +615,8 @@ export default function Admin() {
                   onClick={() => setTab(t.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     tab === t.id
-                      ? "bg-gray-900 text-white hover:bg-gray-800"
-                      : "text-gray-800 hover:text-gray-900 hover:bg-gray-100"
+                      ? "bg-white/20 !text-white hover:bg-white/25"
+                      : "!text-white hover:bg-white/10"
                   }`}
                 >
                   <t.icon className="w-4 h-4" />
