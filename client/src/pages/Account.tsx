@@ -205,7 +205,7 @@ export default function Account() {
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden pt-2 pb-8 sm:pt-16 sm:pb-16"
+        className="relative overflow-hidden pb-8 sm:py-16"
         style={{
           backgroundImage: textureEnabled ? 'url(/textura-isekai.svg)' : 'none',
           backgroundSize: 'cover',
@@ -213,7 +213,7 @@ export default function Account() {
         }}
       >
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 100%)' }} />
-        <div className="relative z-10 flex flex-col items-center gap-2 text-center">
+        <div className="relative z-10 flex flex-col items-center gap-2 text-center pt-6 sm:pt-0">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-sm">
             {initial}
           </div>
