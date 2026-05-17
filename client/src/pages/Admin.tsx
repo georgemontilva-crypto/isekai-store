@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
-  Facebook, Twitter, Youtube, Megaphone, XCircle
+  Facebook, Twitter, Youtube, Megaphone, XCircle, Search
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -504,6 +504,7 @@ export default function Admin() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [orderSearch, setOrderSearch] = useState('');
   const [igToken, setIgToken] = useState("");
   const [igUsername, setIgUsername] = useState("");
   const [igCtaText, setIgCtaText] = useState("");
@@ -973,8 +974,29 @@ export default function Admin() {
             {tab === "orders" && (
               <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
+                <div className="relative mb-4">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre, correo o número de orden..."
+                    value={orderSearch}
+                    onChange={e => setOrderSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#e5e5e5] rounded-lg outline-none focus:border-[#111] transition-colors"
+                  />
+                </div>
+                {(() => {
+                  const filteredOrders = orders.filter(order => {
+                    const q = orderSearch.toLowerCase();
+                    if (!q) return true;
+                    return (
+                      order.orderNumber?.toLowerCase().includes(q) ||
+                      order.customerName?.toLowerCase().includes(q) ||
+                      order.customerEmail?.toLowerCase().includes(q)
+                    );
+                  });
+                  return (
                 <div className="space-y-3">
-                  {orders.map((order) => {
+                  {filteredOrders.map((order) => {
                     const isExpanded = expandedOrderId === order.id;
                     return (
                       <div key={order.id} className="rounded-2xl bg-card border border-border/50 overflow-hidden">
@@ -1027,13 +1049,20 @@ export default function Admin() {
                       </div>
                     );
                   })}
-                  {orders.length === 0 && (
+                  {filteredOrders.length === 0 && orderSearch && (
+                    <p className="text-center text-[#999] text-sm py-8">
+                      No se encontraron pedidos para "{orderSearch}"
+                    </p>
+                  )}
+                  {filteredOrders.length === 0 && !orderSearch && (
                     <div className="text-center py-16 text-muted-foreground">
                       <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30" />
                       <p>No hay pedidos aún</p>
                     </div>
                   )}
                 </div>
+                  );
+                })()}
               </motion.div>
             )}
           </AnimatePresence>
