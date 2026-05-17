@@ -11,6 +11,7 @@ export default function Footer() {
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const storeName = siteSettings?.["store_name"] ?? "Isekai World";
   const logoUrl = siteSettings?.["store_logo_dark_url"] ?? siteSettings?.["store_logo_url"] ?? null;
+  const logoHeightFooter = parseInt(siteSettings?.["store_logo_height_footer"] ?? "36");
 
   const subscribe = trpc.newsletter.subscribe.useMutation({
     onSuccess: () => { toast.success("¡Suscrito! Bienvenido a la comunidad 🎌"); setEmail(""); },
@@ -54,7 +55,7 @@ export default function Footer() {
             <div>
               <div className="flex items-center gap-2 mb-5">
                 {logoUrl ? (
-                  <img src={logoUrl} alt={storeName} className="h-10 md:h-8 object-contain" />
+                  <img src={logoUrl} alt={storeName} style={{ height: logoHeightFooter, width: 'auto' }} className="object-contain" />
                 ) : (
                   <>
                     <div className="flex items-end gap-[2px]">

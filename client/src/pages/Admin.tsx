@@ -1171,8 +1171,35 @@ export default function Admin() {
                     </div>
                   </div>
 
+                  {/* Navbar logo height */}
+                  <div className="mt-4">
+                    <Label className="text-sm font-medium">Tamaño del logo (navbar)</Label>
+                    <p className="text-xs text-muted-foreground mb-2">Alto en píxeles — recomendado entre 28 y 48</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={20} max={80}
+                        placeholder="36"
+                        defaultValue={siteSettings?.["store_logo_height"] ?? "36"}
+                        onChange={(e) => setBannerDrafts(d => ({ ...d, store_logo_height: e.target.value }))}
+                        className="w-24 bg-muted border-border/50 text-sm"
+                      />
+                      <span className="text-sm text-muted-foreground">px</span>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["store_logo_height"] !== undefined ? bannerDrafts["store_logo_height"] : siteSettings?.["store_logo_height"] ?? "36";
+                          upsertSetting.mutate({ key: "store_logo_height", value: val });
+                        }}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
                   {/* Logo dark (footer) */}
-                  <div>
+                  <div className="mt-5">
                     <Label className="text-sm font-medium">Logo oscuro (footer, fondo negro)</Label>
                     <p className="text-xs text-muted-foreground mb-1.5">Versión blanca o clara del logo para el footer — si no hay, se usa el logo principal</p>
                     <div className="flex items-start gap-3">
@@ -1218,6 +1245,33 @@ export default function Admin() {
                           if (val) upsertSetting.mutate({ key: "store_logo_dark_url", value: val });
                         }}
                         disabled={!(bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"])}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Footer logo height */}
+                  <div className="mt-4">
+                    <Label className="text-sm font-medium">Tamaño del logo (footer)</Label>
+                    <p className="text-xs text-muted-foreground mb-2">Alto en píxeles — recomendado entre 28 y 48</p>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="number"
+                        min={20} max={80}
+                        placeholder="36"
+                        defaultValue={siteSettings?.["store_logo_height_footer"] ?? "36"}
+                        onChange={(e) => setBannerDrafts(d => ({ ...d, store_logo_height_footer: e.target.value }))}
+                        className="w-24 bg-muted border-border/50 text-sm"
+                      />
+                      <span className="text-sm text-muted-foreground">px</span>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["store_logo_height_footer"] !== undefined ? bannerDrafts["store_logo_height_footer"] : siteSettings?.["store_logo_height_footer"] ?? "36";
+                          upsertSetting.mutate({ key: "store_logo_height_footer", value: val });
+                        }}
                       >
                         <Save className="w-4 h-4" />
                       </Button>

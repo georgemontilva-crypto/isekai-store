@@ -97,6 +97,7 @@ export default function Navbar() {
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const logoUrl = siteSettings?.["store_logo_url"] ?? null;
   const storeName = siteSettings?.["store_name"] ?? "Isekai World";
+  const logoHeight = parseInt(siteSettings?.["store_logo_height"] ?? "36");
 
   const { data: dbCategories } = trpc.categories.list.useQuery();
   const featuredCats = (dbCategories ?? []).filter(c => c.featured);
@@ -155,7 +156,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[160px] md:max-w-none overflow-hidden">
             {logoUrl ? (
-              <img src={logoUrl} alt={storeName} className="h-10 md:h-8 object-contain" />
+              <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
             ) : (
               <div className="flex items-end gap-[2px]">
                 {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#1a1a1a] rounded-full" style={{height:`${h}px`}}/>)}
@@ -298,7 +299,7 @@ export default function Navbar() {
           <motion.div initial={{x:"100%"}} animate={{x:0}} exit={{x:"100%"}} transition={{duration:0.3,ease:"easeOut"}} className="fixed inset-0 z-[60] bg-white flex flex-col">
             <div className="flex items-center justify-between px-6 h-[60px] border-b border-[#ebebeb]">
               {logoUrl
-                ? <img src={logoUrl} alt={storeName} className="h-8 object-contain" />
+                ? <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
                 : <span className="font-bold text-[15px]">{storeName}</span>
               }
               <div className="flex items-center gap-3">
