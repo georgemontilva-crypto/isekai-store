@@ -317,8 +317,13 @@ export default function Home() {
                 <img
                   src={slide.image}
                   alt={slide.title}
-                  className={`hero-peek-img ${isActive ? "zoomed-in" : ""}`}
+                  className={`hero-peek-img object-right sm:object-center ${isActive ? "zoomed-in" : ""}`}
+                  loading={i === 0 ? "eager" : "lazy"}
+                  decoding="async"
                 />
+                <div className="absolute inset-0 sm:hidden" style={{
+                  background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)'
+                }} />
                 <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
                 {isActive && (slide.title || slide.buttonText) && (
                   <div className="hero-peek-content">
