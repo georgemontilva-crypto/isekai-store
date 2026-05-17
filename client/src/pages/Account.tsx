@@ -314,7 +314,7 @@ export default function Account() {
                         >
                           {/* Header */}
                           <button
-                            className="w-full p-4 text-left hover:bg-[#fafafa] transition-colors relative"
+                            className="w-full p-4 text-left hover:bg-[#fafafa] transition-colors"
                             onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                           >
                             <div className="flex items-center justify-between">
@@ -334,15 +334,6 @@ export default function Account() {
                               </div>
                               <ChevronRight className={`w-4 h-4 text-[#ccc] transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`} />
                             </div>
-                            {["post_printing", "packed", "shipped", "delivered"].includes(order.status) && (
-                              <div className="hidden sm:block absolute right-10 top-1/2 -translate-y-1/2">
-                                <img
-                                  src="https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/ya%20casi%20listo-11-11.png"
-                                  className="h-16 object-contain animate-pulse"
-                                  alt=""
-                                />
-                              </div>
-                            )}
                           </button>
 
                           {/* Expanded timeline */}
