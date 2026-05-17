@@ -196,6 +196,7 @@ export default function Home() {
     featured: true,
   });
   const { data: settings } = trpc.settings.getAll.useQuery();
+  const textureEnabled = settings?.["texture_enabled"] === "true";
   const products = productsData?.items ?? [];
   const { addItem } = useCart();
 
@@ -490,7 +491,7 @@ export default function Home() {
           <section
             className="py-16 relative overflow-hidden"
             style={{
-              backgroundImage: settings?.["texture_enabled"] === "true" ? 'url(/textura-isekai.svg)' : 'none',
+              backgroundImage: textureEnabled ? 'url(/textura-isekai.svg)' : 'none',
               backgroundSize: 'cover',
               backgroundPosition: `center ${offsetY * 0.2}px`,
             }}
