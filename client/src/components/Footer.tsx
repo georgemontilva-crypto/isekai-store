@@ -68,8 +68,8 @@ export default function Footer() {
               </div>
               <p className="text-[13px] text-white/55 leading-relaxed mb-5">{t.footer.tagline}</p>
               <div className="flex items-center gap-2.5 mb-5">
-                {[Facebook, Twitter, Instagram, Youtube].map((Icon, i) => (
-                  <a key={i} href="#" className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/55 hover:text-white hover:border-white/60 transition-all">
+                {([["Facebook", Facebook], ["Twitter", Twitter], ["Instagram", Instagram], ["YouTube", Youtube]] as const).map(([name, Icon]) => (
+                  <a key={name} href="#" aria-label={name} className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/55 hover:text-white hover:border-white/60 transition-all">
                     <Icon size={13}/>
                   </a>
                 ))}
@@ -120,6 +120,7 @@ export default function Footer() {
                 />
                 <button
                   type="submit"
+                  aria-label="Suscribirse"
                   disabled={subscribe.isPending}
                   className="w-full sm:w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#1a1a1a] hover:bg-white/90 transition-colors disabled:opacity-50"
                 >

@@ -156,9 +156,9 @@ export default function Navbar() {
             <a href="#" aria-label="YouTube"  className="opacity-60 hover:opacity-100 transition-opacity"><Youtube size={12}/></a>
           </div>
           <div className="flex items-center gap-2 flex-1 justify-center">
-            <button onClick={() => setAnnouncementIdx(i => (i - 1 + announcements.length) % announcements.length)} className="opacity-50 hover:opacity-100 transition-opacity"><ChevronLeft size={12}/></button>
+            <button onClick={() => setAnnouncementIdx(i => (i - 1 + announcements.length) % announcements.length)} aria-label="Anuncio anterior" className="opacity-50 hover:opacity-100 transition-opacity"><ChevronLeft size={12}/></button>
             <span className="font-medium tracking-wide text-center px-2">{announcements[announcementIdx]}</span>
-            <button onClick={() => setAnnouncementIdx(i => (i + 1) % announcements.length)} className="opacity-50 hover:opacity-100 transition-opacity"><ChevronRight size={12}/></button>
+            <button onClick={() => setAnnouncementIdx(i => (i + 1) % announcements.length)} aria-label="Siguiente anuncio" className="opacity-50 hover:opacity-100 transition-opacity"><ChevronRight size={12}/></button>
           </div>
           <div className="hidden md:flex items-center"><LangToggle /></div>
         </div>
@@ -209,7 +209,7 @@ export default function Navbar() {
 
           {/* Right icons */}
           <div className="flex items-center gap-1 ml-auto">
-            <button onClick={() => setSearchOpen(true)} className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
+            <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
             {isAuthenticated && user?.role === "admin" && (
               <Link href="/admin" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
@@ -255,14 +255,14 @@ export default function Navbar() {
               </div>
             )}
             {isAuthenticated
-              ? <Link href="/account" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>
-              : <button onClick={openLoginModal} className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></button>
+              ? <Link href="/account" aria-label="Mi cuenta" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>
+              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></button>
             }
-            <button onClick={() => openCart()} className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
+            <button onClick={() => openCart()} aria-label="Abrir carrito" className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
               <ShoppingBag size={17} strokeWidth={1.8}/>
               {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#1a1a1a] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
             </button>
-            <button onClick={() => setMobileOpen(true)} className="md:hidden p-2 hover:bg-[#f5f5f5] rounded-full transition-colors ml-0.5"><Menu size={17} strokeWidth={1.8}/></button>
+            <button onClick={() => setMobileOpen(true)} aria-label="Abrir menú" className="md:hidden p-2 hover:bg-[#f5f5f5] rounded-full transition-colors ml-0.5"><Menu size={17} strokeWidth={1.8}/></button>
           </div>
         </div>
 
@@ -296,7 +296,7 @@ export default function Navbar() {
             <motion.div initial={{opacity:0,y:-16,scale:0.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-8,scale:0.97}} transition={{duration:0.22,ease:"easeOut"}} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="font-bold text-base">{t.nav.searchTitle}</h3>
-                <button onClick={() => setSearchOpen(false)} className="p-1 hover:bg-[#f5f5f5] rounded-full"><X size={16}/></button>
+                <button onClick={() => setSearchOpen(false)} aria-label="Cerrar búsqueda" className="p-1 hover:bg-[#f5f5f5] rounded-full"><X size={16}/></button>
               </div>
               <form onSubmit={handleSearch} className="flex gap-2">
                 <input autoFocus type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder={t.nav.searchPlaceholder} className="flex-1 border border-[#e5e5e5] rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#1a1a1a] transition-colors"/>
@@ -318,14 +318,14 @@ export default function Navbar() {
               }
               <div className="flex items-center gap-3">
                 <LangToggle mobile />
-                <button onClick={() => setMobileOpen(false)} className="p-2"><X size={18}/></button>
+                <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" className="p-2"><X size={18}/></button>
               </div>
             </div>
             <nav className="flex flex-col px-6 py-8 gap-0 overflow-y-auto">
               {/* Search */}
               <form onSubmit={handleSearch} className="flex gap-2 mb-6">
                 <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Buscar productos..." className="flex-1 border border-[#e5e5e5] rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#1a1a1a] transition-colors bg-[#f8f8f8]"/>
-                <button type="submit" className="btn-pill text-sm px-4"><Search size={15}/></button>
+                <button type="submit" aria-label="Buscar" className="btn-pill text-sm px-4"><Search size={15}/></button>
               </form>
               {t.nav.mobileMenu.map(({href,label}) => (
                 <Link key={label} href={href} onClick={() => setMobileOpen(false)} className="py-4 text-base font-semibold border-b border-[#f0f0f0] hover:opacity-50 transition-opacity flex items-center justify-between">

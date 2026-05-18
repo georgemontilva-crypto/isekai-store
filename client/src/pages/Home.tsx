@@ -81,6 +81,7 @@ function SaleSlider() {
               <button
                 key={i}
                 onClick={() => setIdx(i)}
+                aria-label={`Banner ${i + 1}`}
                 className="rounded-full transition-all duration-300"
                 style={{
                   width: i === idx ? 24 : 8,
@@ -97,6 +98,7 @@ function SaleSlider() {
           <>
             <button
               onClick={() => setIdx(i => (i - 1 + total) % total)}
+              aria-label="Banner anterior"
               className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 hidden sm:flex items-center justify-center text-white transition-colors"
               style={{ zIndex: 3 }}
             >
@@ -104,6 +106,7 @@ function SaleSlider() {
             </button>
             <button
               onClick={() => setIdx(i => (i + 1) % total)}
+              aria-label="Siguiente banner"
               className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/20 hover:bg-white/35 hidden sm:flex items-center justify-center text-white transition-colors"
               style={{ zIndex: 3 }}
             >
@@ -279,7 +282,8 @@ export default function Home() {
                   alt={slide.title}
                   className={`hero-peek-img object-right sm:object-center ${isActive ? "zoomed-in" : ""}`}
                   loading={i === 0 ? "eager" : "lazy"}
-                  decoding="async"
+                  decoding={i === 0 ? "sync" : "async"}
+                  fetchPriority={i === 0 ? "high" : "low"}
                 />
                 <div className="absolute inset-0 sm:hidden" style={{
                   background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)'
@@ -322,6 +326,7 @@ export default function Home() {
               <button
                 key={i}
                 onClick={() => setHeroIdx(i)}
+                aria-label={`Slide ${i + 1}`}
                 className={`rounded-full transition-all duration-300 ${
                   i === heroIdx ? "w-5 h-[6px] bg-white" : "w-[6px] h-[6px] bg-white/40"
                 }`}
