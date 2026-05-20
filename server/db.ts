@@ -697,6 +697,20 @@ export async function verifyOrderPayment(
   }
 }
 
+export async function updateOrderPaymentStatus(orderNumber: string, paymentStatus: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  // 'paid' is Bold's conceptual status; map to 'approved' for the DB enum
+  const dbPaymentStatus = paymentStatus === "paid" ? "approved" : (paymentStatus as Order["paymentStatus"]);
+  return db.update(orders)
+    .set({
+      paymentStatus: dbPaymentStatus,
+      ...(paymentStatus === "paid" ? { status: "preparing" as Order["status"] } : {}),
+      updatedAt: new Date(),
+    })
+    .where(eq(orders.orderNumber, orderNumber));
+}
+
 export async function getOrdersByPaymentStatus(paymentStatus?: string) {
   const db = await getDb();
   if (!db) return { items: [], total: 0 };

@@ -95,6 +95,7 @@ export default function Checkout() {
   const [receiptFile, setReceiptFile] = useState<File | null>(null);
   const [receiptSubmitted, setReceiptSubmitted] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [boldCheckoutActive, setBoldCheckoutActive] = useState(false);
 
   const sessionId = localStorage.getItem("isekai-session-id") ?? undefined;
 
@@ -123,6 +124,25 @@ export default function Checkout() {
     handleSubmit: handleReceipt,
     formState: { errors: receiptErrors },
   } = useForm<ReceiptFormData>({ resolver: zodResolver(receiptSchema) as any });
+
+  const loadBoldCheckout = (orderNumber: string, total: number) => {
+    const existing = document.getElementById("bold-script");
+    if (existing) existing.remove();
+
+    const script = document.createElement("script");
+    script.id = "bold-script";
+    script.src = "https://checkout.bold.co/library/boldPaymentButton.js";
+    script.setAttribute("data-bold-button", "");
+    script.setAttribute("data-api-key", "pmaMwwbbhOsDiMdIPdQ37ne0ZlDoBiMV1_1LGJ0wn6Q");
+    script.setAttribute("data-description", `Orden ${orderNumber}`);
+    script.setAttribute("data-redirection-url", "https://isekaiworld.co/checkout/success");
+    script.setAttribute("data-render-mode", "embedded");
+    script.setAttribute("data-amount", String(Math.round(total * 100)));
+    script.setAttribute("data-currency", "COP");
+    script.setAttribute("data-order-id", orderNumber);
+    document.body.appendChild(script);
+    setBoldCheckoutActive(true);
+  };
 
   const onSubmitOrder = async (data: FormData) => {
     if (items.length === 0) { toast.error(t.checkout.empty); return; }
@@ -158,13 +178,12 @@ export default function Checkout() {
       });
 
       await clearCart();
+      setCreatedOrder({ id: order.id, orderNumber: order.orderNumber, total: order.total });
 
       if (order.paymentUrl) {
-        window.location.href = order.paymentUrl;
+        loadBoldCheckout(order.orderNumber, parseFloat(order.total));
         return;
       }
-
-      setCreatedOrder({ id: order.id, orderNumber: order.orderNumber, total: order.total });
     } catch {
       toast.error(t.checkout.errors.error);
     }
@@ -231,6 +250,34 @@ export default function Checkout() {
               <Link href="/catalog">{t.checkout.success.continueShopping}</Link>
             </Button>
           </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // ─── Bold Embedded Checkout screen ───────────────────────────────────────────
+  if (boldCheckoutActive && createdOrder) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="container max-w-lg px-4 space-y-6 text-center"
+        >
+          <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center mx-auto">
+            <CreditCard className="w-8 h-8 text-primary" />
+          </div>
+          <h1 className="text-2xl font-black">Completa tu pago</h1>
+          <p className="text-muted-foreground text-sm">
+            Pedido <span className="font-bold text-primary">{createdOrder.orderNumber}</span>
+          </p>
+          <div className="p-4 rounded-2xl bg-card border border-border/50">
+            <p className="text-sm text-muted-foreground mb-1">Total a pagar</p>
+            <p className="text-xl font-bold text-primary">${parseFloat(createdOrder.total).toFixed(2)} COP</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            El formulario de pago Bold se cargará en un momento...
+          </p>
         </motion.div>
       </div>
     );
