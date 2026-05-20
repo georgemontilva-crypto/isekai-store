@@ -258,10 +258,19 @@ export const appRouter = router({
                 reference: order.orderNumber,
               }),
             });
-            console.log("[Bold] status:", boldRes.status);
             const boldData = await boldRes.json();
-            console.log("[Bold] response:", JSON.stringify(boldData));
-            const paymentUrl = boldData.url ?? boldData.payment_url ?? boldData.checkout_url ?? null;
+            console.log('[Bold] Status:', boldRes.status);
+            console.log('[Bold] Full response:', JSON.stringify(boldData, null, 2));
+
+            const paymentUrl = boldData?.payload?.payment_link
+              ?? boldData?.payment_link
+              ?? boldData?.url
+              ?? boldData?.payment_url
+              ?? boldData?.checkout_url
+              ?? boldData?.link
+              ?? null;
+
+            console.log('[Bold] paymentUrl resolved:', paymentUrl);
             return { ...order, paymentUrl: paymentUrl as string | null };
           } catch (err) {
             console.error("[Bold] error:", err);
