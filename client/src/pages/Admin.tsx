@@ -2654,6 +2654,39 @@ export default function Admin() {
                     </div>
                   </div>
 
+                  {/* Avatar image */}
+                  <div>
+                    <Label className="text-xs font-medium">Avatar / Logo del LinkBio</Label>
+                    <p className="text-xs text-muted-foreground mb-1">Imagen circular que aparece en la página de links (independiente del logo principal)</p>
+                    <div className="flex gap-2 mt-1 items-start">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="URL de imagen"
+                          value={bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"] ?? ""}
+                          onChange={e => setBannerDrafts(d => ({ ...d, linkbio_avatar_image: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                        {(bannerDrafts["linkbio_avatar_image"] || siteSettings?.["linkbio_avatar_image"]) && (
+                          <img src={bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"]} className="mt-2 h-20 w-20 object-cover rounded-full border border-border/30" alt="" />
+                        )}
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          const base64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = ev => res((ev.target?.result as string).split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
+                          try { const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 }); setBannerDrafts(d => ({ ...d, linkbio_avatar_image: url })); upsertSetting.mutate({ key: "linkbio_avatar_image", value: url }); toast.success("Imagen subida"); } catch { toast.error("Error al subir imagen"); }
+                        }} />
+                      </label>
+                      <Button size="sm" className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => { const val = bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"] ?? ""; if (val) upsertSetting.mutate({ key: "linkbio_avatar_image", value: val }); }}
+                        disabled={!(bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"])}
+                      ><Save className="w-4 h-4" /></Button>
+                    </div>
+                  </div>
+
                   {/* Bottom image */}
                   <div>
                     <Label className="text-xs font-medium">Imagen decorativa inferior (opcional)</Label>

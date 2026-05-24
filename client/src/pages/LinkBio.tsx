@@ -4,8 +4,8 @@ export default function LinkBio() {
   const { data: items = [] } = trpc.linkBio.list.useQuery();
   const { data: settings } = trpc.settings.getAll.useQuery();
 
-  const storeName    = settings?.["store_name"]          ?? "Isekai World";
-  const logoUrl      = settings?.["store_logo_url"]      ?? "";
+  const storeName    = settings?.["store_name"]           ?? "Isekai World";
+  const logoUrl      = settings?.["linkbio_avatar_image"] ?? settings?.["store_logo_url"] ?? "";
   const bannerImage  = settings?.["linkbio_banner_image"] ?? "";
   const bioText      = settings?.["linkbio_bio_text"]    ?? "";
   const bottomImage  = settings?.["linkbio_bottom_image"] ?? "";
