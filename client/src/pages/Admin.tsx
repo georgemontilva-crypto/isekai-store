@@ -2584,12 +2584,7 @@ export default function Admin() {
             {/* ─── LINKBIO ───────────────────────────────────────────────────── */}
             {tab === "linkbio" && (
               <motion.div key="linkbio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold">LinkBio</h1>
-                  <Button onClick={() => { setEditingLinkId(null); setLinkBioForm({ label: "", url: "" }); setShowLinkForm(true); }} className="bg-primary text-primary-foreground">
-                    <Plus className="w-4 h-4 mr-2" /> Agregar link
-                  </Button>
-                </div>
+                <h1 className="text-2xl font-bold mb-6">LinkBio</h1>
 
                 {/* Copy link banner */}
                 <div className="flex items-center gap-3 mb-6 p-4 bg-[#f8f8f8] rounded-xl border border-border/50">
@@ -2692,32 +2687,8 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* Form crear/editar link */}
-                {showLinkForm && (
-                  <div className="bg-card border border-border/50 rounded-2xl p-6 mb-6">
-                    <h2 className="font-semibold mb-4">{editingLinkId !== null ? "Editar link" : "Nuevo link"}</h2>
-                    <div className="space-y-3">
-                      <div>
-                        <Label className="text-xs font-medium">Etiqueta</Label>
-                        <Input value={linkBioForm.label} onChange={e => setLinkBioForm(f => ({ ...f, label: e.target.value }))} placeholder="Ej: Tienda online" className="bg-muted border-border/50 mt-1" />
-                      </div>
-                      <div>
-                        <Label className="text-xs font-medium">URL</Label>
-                        <Input value={linkBioForm.url} onChange={e => setLinkBioForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." className="bg-muted border-border/50 mt-1" />
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-5">
-                      <Button onClick={handleLinkSubmit} disabled={createLink.isPending || updateLink.isPending} className="bg-primary text-primary-foreground">
-                        {(createLink.isPending || updateLink.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
-                        Guardar
-                      </Button>
-                      <Button variant="outline" onClick={() => { setShowLinkForm(false); setEditingLinkId(null); }}>Cancelar</Button>
-                    </div>
-                  </div>
-                )}
-
                 {/* Lista de links */}
-                <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
+                <div className="bg-card border border-border/50 rounded-2xl overflow-hidden mb-4">
                   {linkBioItems.length === 0 ? (
                     <div className="p-12 text-center text-muted-foreground text-sm">No hay links aún. Agrega el primero.</div>
                   ) : (
@@ -2756,6 +2727,34 @@ export default function Admin() {
                     </div>
                   )}
                 </div>
+
+                {/* Form nuevo/editar link — aparece debajo de la lista */}
+                {showLinkForm && (
+                  <div className="bg-card border border-border/50 rounded-2xl p-6 mb-4">
+                    <h2 className="font-semibold mb-4">{editingLinkId !== null ? "Editar link" : "Nuevo link"}</h2>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs font-medium">Etiqueta</Label>
+                        <Input value={linkBioForm.label} onChange={e => setLinkBioForm(f => ({ ...f, label: e.target.value }))} placeholder="Ej: Tienda online" className="bg-muted border-border/50 mt-1" />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium">URL</Label>
+                        <Input value={linkBioForm.url} onChange={e => setLinkBioForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." className="bg-muted border-border/50 mt-1" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-5">
+                      <Button onClick={handleLinkSubmit} disabled={createLink.isPending || updateLink.isPending} className="bg-primary text-primary-foreground">
+                        {(createLink.isPending || updateLink.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+                        Guardar
+                      </Button>
+                      <Button variant="outline" onClick={() => { setShowLinkForm(false); setEditingLinkId(null); }}>Cancelar</Button>
+                    </div>
+                  </div>
+                )}
+
+                <Button onClick={() => { setEditingLinkId(null); setLinkBioForm({ label: "", url: "" }); setShowLinkForm(true); }} className="bg-primary text-primary-foreground w-full">
+                  <Plus className="w-4 h-4 mr-2" /> Agregar link
+                </Button>
               </motion.div>
             )}
 
