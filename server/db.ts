@@ -809,6 +809,6 @@ export async function updateProductPaymentSettings(id: number, data: { installme
   if (!db) throw new Error("DB not available");
   await db.update(products).set({
     installmentsEnabled: data.installmentsEnabled,
-    initialPayment: data.initialPayment ?? null,
+    initialPayment: data.initialPayment && data.initialPayment !== '' ? data.initialPayment : null,
   }).where(eq(products.id, id));
 }

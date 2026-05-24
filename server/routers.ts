@@ -172,7 +172,7 @@ export const appRouter = router({
         installmentsEnabled: z.boolean(),
         initialPayment: z.string().optional(),
       }))
-      .mutation(({ input }) => updateProductPaymentSettings(input.id, { installmentsEnabled: input.installmentsEnabled, initialPayment: input.initialPayment })),
+      .mutation(({ input }) => updateProductPaymentSettings(input.id, { installmentsEnabled: input.installmentsEnabled, initialPayment: input.initialPayment && input.initialPayment !== '' ? input.initialPayment : null })),
   }),
 
   // ─── Cart ────────────────────────────────────────────────────────────────────
