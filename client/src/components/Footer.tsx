@@ -52,7 +52,7 @@ export default function Footer() {
       <div className="container mx-auto flex justify-center py-6 px-4">
         <div className="max-w-3xl w-full border border-yellow-200 bg-yellow-50 rounded-lg p-4">
           <p className="text-[12px] font-semibold text-yellow-800 mb-1">Aviso de propiedad intelectual</p>
-          <p className="text-[11px] text-yellow-700 leading-relaxed">
+          <p className="text-[11px] text-yellow-700 leading-relaxed text-center">
             Los personajes, nombres, logos y marcas de anime son propiedad intelectual de sus respectivos creadores y titulares de derechos.
             Nuestros productos son piezas originales de impresión 3D de carácter fan-made, sin afiliación oficial con ninguna franquicia o estudio de animación.
           </p>
@@ -144,7 +144,7 @@ export default function Footer() {
 
         {/* Bottom bar */}
         <div className="border-t border-white/10">
-          <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3 text-center mx-auto max-w-2xl">
+          <div className="container py-4 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p className="text-[12px] text-white/35">© {new Date().getFullYear()} {storeName}. {t.footer.copyright}.</p>
             <div className="flex flex-wrap items-center gap-3">
               <Link href="/politicas" className="text-[12px] text-white/35 hover:text-white/60 transition-colors underline underline-offset-2">{t.footer.policies}</Link>
