@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -18,10 +18,10 @@ import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
 import Checkout from "./pages/Checkout";
 import Account from "./pages/Account";
-import Admin from "./pages/Admin";
 import CheckoutSuccess from "./pages/CheckoutSuccess";
-import Nosotros from "./pages/Nosotros";
-import FAQ from "./pages/FAQ";
+const Admin = lazy(() => import("./pages/Admin"));
+const Nosotros = lazy(() => import("./pages/Nosotros"));
+const FAQ = lazy(() => import("./pages/FAQ"));
 import Politicas from "./pages/Politicas";
 import LinkBio from "./pages/LinkBio";
 import { trpc } from "@/lib/trpc";
@@ -72,9 +72,15 @@ function Router() {
       <Route path="/checkout" component={Checkout} />
       <Route path="/checkout/success" component={CheckoutSuccess} />
       <Route path="/account" component={Account} />
-      <Route path="/admin" component={Admin} />
-      <Route path="/nosotros" component={Nosotros} />
-      <Route path="/faq" component={FAQ} />
+      <Route path="/admin">
+        <Suspense fallback={null}><Admin /></Suspense>
+      </Route>
+      <Route path="/nosotros">
+        <Suspense fallback={null}><Nosotros /></Suspense>
+      </Route>
+      <Route path="/faq">
+        <Suspense fallback={null}><FAQ /></Suspense>
+      </Route>
       <Route path="/politicas" component={Politicas} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

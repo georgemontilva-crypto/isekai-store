@@ -7,8 +7,14 @@ import { toast } from "sonner";
 const STORAGE_KEY = "isekai_newsletter_dismissed";
 
 export default function NewsletterPopup() {
+  const [mounted, setMounted] = useState(false);
   const [visible, setVisible] = useState(false);
   const [imageVisible, setImageVisible] = useState(false);
+
+  useEffect(() => {
+    const t = setTimeout(() => setMounted(true), 3000);
+    return () => clearTimeout(t);
+  }, []);
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
 
@@ -53,6 +59,8 @@ export default function NewsletterPopup() {
     if (!email.trim()) return;
     subscribe.mutate({ email: email.trim() });
   }
+
+  if (!mounted) return null;
 
   return (
     <AnimatePresence>

@@ -56,12 +56,12 @@ function SaleSlider() {
 
   return (
     <section style={{ padding: '24px 8px 0 8px' }}>
-      <div className="relative overflow-hidden rounded-[18px]">
+      <div className="relative overflow-hidden rounded-[18px]" style={{ aspectRatio: '1920/600' }}>
         {/* Images — crossfade */}
         {banners.map((src, i) => (
           <div
             key={i}
-            className="w-full h-[200px] sm:h-auto sm:aspect-[1920/600] overflow-hidden"
+            className="absolute inset-0 w-full h-full overflow-hidden"
             style={{ display: i === idx ? 'block' : 'none' }}
           >
             <img
@@ -366,7 +366,7 @@ export default function Home() {
                 style={{
                   width: collectionCardWidth,
                   minWidth: isMobile ? 140 : 160,
-                  height: 300,
+                  aspectRatio: '1/1',
                   borderRadius: 18,
                   background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
                 }}
@@ -425,14 +425,14 @@ export default function Home() {
           {/* LEFT: image island — only shown when configured from admin */}
           {settings?.["brand_story_image"] && (
           <div
-            className="overflow-hidden"
-            style={{ height: isMobile ? '180px' : '240px', borderRadius: '18px' }}
+            className="overflow-hidden w-full"
+            style={{ aspectRatio: '16/9', borderRadius: '18px' }}
           >
             <img
               src={settings["brand_story_image"]}
               alt="Figuras coleccionables 3D anime"
               width={800}
-              height={240}
+              height={450}
               className="w-full h-full object-cover"
               loading="lazy"
               decoding="async"
