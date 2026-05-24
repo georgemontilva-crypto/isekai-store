@@ -23,15 +23,15 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
   return (
     <>
       {/* ── Desktop: horizontal ── */}
-      <div className="hidden sm:flex items-start w-full">
+      <div className="hidden sm:flex items-center w-full overflow-visible">
         {ORDER_STEPS.map((step, i) => {
           const isDone    = i < currentIdx;
           const isCurrent = i === currentIdx;
           const { Icon }  = step;
 
           return (
-            <div key={step.key} className="flex items-start flex-1 min-w-0">
-              <div className="flex flex-col items-center flex-1 min-w-0">
+            <div key={step.key} className="flex items-start flex-1 min-w-0 overflow-visible">
+              <div className="flex flex-col items-center flex-1 min-w-0 overflow-visible">
                 {/* Circle + tooltip wrapper */}
                 <div className={cn("relative group", isCurrent && "z-10")}>
                   {isCurrent && (
