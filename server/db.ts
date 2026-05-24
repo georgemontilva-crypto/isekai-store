@@ -202,7 +202,19 @@ export async function createProduct(data: {
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  await db.insert(products).values({ ...data, stock: data.stock ?? 0 });
+  await db.insert(products).values({
+    name: data.name,
+    slug: data.slug,
+    description: data.description,
+    price: data.price,
+    compareAtPrice: data.compareAtPrice,
+    categoryId: data.categoryId,
+    stock: data.stock ?? 0,
+    status: data.status ?? "draft",
+    featured: data.featured ?? false,
+    installmentsEnabled: false,
+    initialPayment: null,
+  });
   const result = await db.select().from(products).where(eq(products.slug, data.slug)).limit(1);
   return result[0];
 }
