@@ -1,4 +1,4 @@
-import { and, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   CartItem,
@@ -825,6 +825,13 @@ export async function updateProductPaymentSettings(id: number, data: { installme
     installmentsEnabled: data.installmentsEnabled,
     initialPayment: data.initialPayment && data.initialPayment !== '' ? data.initialPayment : null,
   }).where(eq(products.id, id));
+}
+
+export async function getPendingOrdersCount(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: count() }).from(orders).where(eq(orders.status, "pending"));
+  return result[0]?.count ?? 0;
 }
 
 // ─── LinkBio ──────────────────────────────────────────────────────────────────

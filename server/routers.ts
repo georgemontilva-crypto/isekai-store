@@ -25,7 +25,7 @@ import {
   createInstallmentPlan, getMyInstallmentPlans, submitInstallmentPayment,
   verifyInstallmentPayment, getAllInstallmentPlans, updateProductPaymentSettings,
   getPublicLinkBioItems, getAllLinkBioItems, createLinkBioItem, updateLinkBioItem,
-  deleteLinkBioItem, reorderLinkBioItems,
+  deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount,
 } from "./db";
 
 // Admin guard middleware
@@ -369,6 +369,8 @@ export const appRouter = router({
         } catch { /* non-critical */ }
         return { success: true };
       }),
+
+    pendingCount: adminProcedure.query(() => getPendingOrdersCount()),
 
     adminPayments: adminProcedure
       .input(z.object({ paymentStatus: z.string().optional() }).optional())

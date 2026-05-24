@@ -615,6 +615,8 @@ export default function Admin() {
   const updateFaq = trpc.faq.update.useMutation({ onSuccess: () => { refetchFaq(); setShowFaqForm(false); setEditingFaqId(null); setFaqForm({ question: "", answer: "", category: "General", position: 0, active: true }); toast.success("Pregunta actualizada"); } });
   const deleteFaq = trpc.faq.delete.useMutation({ onSuccess: () => { refetchFaq(); toast.success("Pregunta eliminada"); } });
 
+  const { data: pendingCount = 0 } = trpc.orders.pendingCount.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin", refetchInterval: 30000 });
+
   // LinkBio queries + mutations
   const { data: linkBioItems = [], refetch: refetchLinkBio } = trpc.linkBio.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const createLink = trpc.linkBio.create.useMutation({ onSuccess: () => { refetchLinkBio(); setShowLinkForm(false); setLinkBioForm({ label: "", url: "" }); toast.success("Link creado"); } });
@@ -726,7 +728,12 @@ export default function Admin() {
                   }`}
                 >
                   <t.icon className="w-4 h-4" />
-                  {t.label}
+                  <span className="flex-1 text-left">{t.label}</span>
+                  {t.id === "orders" && pendingCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>
