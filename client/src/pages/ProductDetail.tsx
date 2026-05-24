@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Package,
-  Minus, Plus, Shield, Truck, RotateCcw, Heart, Share2, Check, Frown, Gamepad2, Layers
+  Minus, Plus, Shield, Truck, RotateCcw, Heart, Share2, Check, Frown, Gamepad2, Layers,
+  Printer, Globe, Star
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -414,15 +415,16 @@ export default function ProductDetail() {
             </button>
 
             {/* Trust badges */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="grid grid-cols-2 gap-2 mt-4">
               {[
-                { icon: Shield, text: t.product.secure },
-                { icon: Truck, text: "Envío gratis +$50" },
-                { icon: RotateCcw, text: "30 días devolución" },
-              ].map(({ icon: Icon, text }) => (
-                <div key={text} className="flex flex-col items-center gap-1.5 p-3 rounded-xl bg-[#f5f5f5] text-center">
-                  <Icon className="w-4 h-4 text-[#1a1a1a]" strokeWidth={1.5} />
-                  <span className="text-[10px] sm:text-[11px] text-[#666] leading-tight">{text}</span>
+                { icon: <Printer size={14} />, text: 'Impresión 3D de alta precisión' },
+                { icon: <Package size={14} />, text: 'Empaque seguro para tu pedido' },
+                { icon: <Globe size={14} />, text: 'Envíos nacionales e internacionales' },
+                { icon: <Star size={14} />, text: 'Diseños exclusivos para coleccionistas' },
+              ].map((badge, i) => (
+                <div key={i} className="flex items-center gap-2 text-xs text-[#555]">
+                  <span className="text-[#999]">{badge.icon}</span>
+                  {badge.text}
                 </div>
               ))}
             </div>
