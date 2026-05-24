@@ -368,7 +368,7 @@ export default function Account() {
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.25 }}
-                                className="overflow-hidden"
+                                className="overflow-visible"
                               >
                                 <div className="px-4 pb-5 pt-4 border-t border-[#f0f0f0]">
                                   {isCancelled ? (

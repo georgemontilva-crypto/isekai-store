@@ -33,7 +33,7 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
             <div key={step.key} className="flex items-start flex-1 min-w-0">
               <div className="flex flex-col items-center flex-1 min-w-0">
                 {/* Circle + tooltip wrapper */}
-                <div className="relative group">
+                <div className={cn("relative group", isCurrent && "z-10")}>
                   {isCurrent && (
                     <span className="absolute -inset-1.5 rounded-full animate-ping bg-black/15 pointer-events-none" />
                   )}
@@ -54,7 +54,7 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
                     {isDone ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
                   </button>
                   {/* Tooltip */}
-                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-900 text-white text-xs font-medium rounded-md px-3 py-2 whitespace-nowrap z-10 shadow-lg text-center leading-snug pointer-events-none">
+                  <div className="absolute top-full mt-2 left-1/2 -translate-x-1/2 hidden group-hover:block bg-gray-900 text-white text-xs font-medium rounded-md px-3 py-2 whitespace-nowrap z-50 shadow-lg text-center leading-snug pointer-events-none">
                     {step.tooltip.map((line, li) => (
                       <span key={li}>{li > 0 && <br />}{line}</span>
                     ))}
