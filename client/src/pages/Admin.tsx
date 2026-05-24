@@ -529,6 +529,7 @@ export default function Admin() {
   const [tab, setTab] = useState<AdminTab>("dashboard");
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
+  const [productSearch, setProductSearch] = useState('');
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
@@ -562,6 +563,15 @@ export default function Admin() {
   const { data: ordersData, refetch: refetchOrders } = trpc.orders.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
 
   const products = productsData?.items ?? [];
+  const filteredProducts = products.filter(p => {
+    const q = productSearch.toLowerCase();
+    if (!q) return true;
+    return (
+      p.name?.toLowerCase().includes(q) ||
+      (p as any).categoryName?.toLowerCase().includes(q) ||
+      p.slug?.toLowerCase().includes(q)
+    );
+  });
   const orders = ordersData?.items ?? [];
 
   // Mutations
@@ -811,8 +821,24 @@ export default function Admin() {
                   )}
                 </AnimatePresence>
 
+                <div className="relative mb-4">
+                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nombre o categoría..."
+                    value={productSearch}
+                    onChange={e => setProductSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#e5e5e5] rounded-lg outline-none focus:border-[#111] transition-colors"
+                  />
+                </div>
+
                 <div className="space-y-3">
-                  {products.map((product) => (
+                  {filteredProducts.length === 0 && productSearch && (
+                    <p className="text-center text-[#999] text-sm py-8">
+                      No se encontraron productos para "{productSearch}"
+                    </p>
+                  )}
+                  {filteredProducts.map((product) => (
                     <div key={product.id}>
                       <div className="p-4 rounded-2xl bg-card border border-border/50 hover:border-border transition-colors">
                         <div className="flex items-center justify-between">
