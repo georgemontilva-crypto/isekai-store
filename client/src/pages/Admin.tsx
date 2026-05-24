@@ -2423,57 +2423,6 @@ export default function Admin() {
                   })()}
                 </div>
 
-                {/* Payment methods card */}
-                <div className="p-6 rounded-2xl bg-card border border-border/50 lg:col-span-2">
-                  <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
-                      <CreditCard className="w-5 h-5 text-white" strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold">Métodos de Pago</h3>
-                      <p className="text-xs text-muted-foreground">Datos de cuenta que se muestran al cliente al hacer checkout</p>
-                    </div>
-                  </div>
-                  <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {([
-                      { k: "nequi_number",         label: "Nequi — Número",             ph: "Ej: 3001234567" },
-                      { k: "daviplata_number",      label: "Daviplata — Número",         ph: "Ej: 3009876543" },
-                      { k: "bancolombia_number",    label: "Bancolombia — Cuenta",       ph: "Ej: 12345678901" },
-                      { k: "bancolombia_type",      label: "Bancolombia — Tipo",         ph: "Ahorros / Corriente" },
-                      { k: "bancolombia_owner",     label: "Bancolombia — Titular",      ph: "Nombre del titular" },
-                      { k: "daviplata_number",      label: "Daviplata — Número",         ph: "Ej: 3001234567" },
-                      { k: "pago_movil_number",     label: "Pago Móvil — Teléfono",      ph: "Ej: 04141234567" },
-                      { k: "pago_movil_bank",       label: "Pago Móvil — Banco",         ph: "Ej: Mercantil" },
-                      { k: "pago_movil_id",         label: "Pago Móvil — Cédula/RIF",    ph: "Ej: V-12345678" },
-                      { k: "binance_id",            label: "Binance — Pay ID",           ph: "Ej: 123456789" },
-                      { k: "zelle_email",           label: "Zelle — Email",              ph: "Ej: pagos@ejemplo.com" },
-                      { k: "transferencia_details", label: "Transferencia — Detalles",   ph: "IBAN, banco, titular..." },
-                    ] as { k: string; label: string; ph: string }[]).map(({ k, label, ph }) => (
-                      <div key={k}>
-                        <Label className="text-xs font-medium">{label}</Label>
-                        <div className="flex gap-2 mt-1">
-                          <Input
-                            placeholder={ph}
-                            defaultValue={siteSettings?.[k] ?? ""}
-                            onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
-                            className="bg-muted border-border/50 text-sm"
-                          />
-                          <Button
-                            size="sm"
-                            className="bg-primary text-primary-foreground shrink-0"
-                            onClick={() => {
-                              const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
-                              if (val) upsertSetting.mutate({ key: k, value: val });
-                            }}
-                          >
-                            <Save className="w-4 h-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 </div>{/* end grid */}
               </motion.div>
             )}
