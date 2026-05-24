@@ -111,7 +111,14 @@ export const appRouter = router({
         status: z.enum(["draft", "published"]).optional(),
         featured: z.boolean().optional(),
       }))
-      .mutation(({ input }) => createProduct(input)),
+      .mutation(async ({ input }) => {
+        try {
+          return await createProduct(input);
+        } catch (err) {
+          console.error('[products.create] Error:', err);
+          throw err;
+        }
+      }),
 
     update: adminProcedure
       .input(z.object({
