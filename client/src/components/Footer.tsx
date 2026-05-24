@@ -48,6 +48,17 @@ export default function Footer() {
         </div>
       </div>
 
+      {/* IP Notice */}
+      <div className="container mx-auto flex justify-center py-6 px-4">
+        <div className="max-w-3xl w-full border border-yellow-200 bg-yellow-50 rounded-lg p-4">
+          <p className="text-[12px] font-semibold text-yellow-800 mb-1">Aviso de propiedad intelectual</p>
+          <p className="text-[11px] text-yellow-700 leading-relaxed">
+            Los personajes, nombres, logos y marcas de anime son propiedad intelectual de sus respectivos creadores y titulares de derechos.
+            Nuestros productos son piezas originales de impresión 3D de carácter fan-made, sin afiliación oficial con ninguna franquicia o estudio de animación.
+          </p>
+        </div>
+      </div>
+
       {/* Main Footer */}
       <div className="bg-[#1a1a1a] text-white">
         <div className="container py-14">
