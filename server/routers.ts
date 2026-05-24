@@ -241,42 +241,8 @@ export const appRouter = router({
           await insertAdminNotification({ type: "new_order", title: "🛒 Nuevo pedido", body: `${input.customerName} · $${input.total}` });
         } catch (e) { console.error("Failed to insert order notification:", e); }
 
-        // Bold payment link
-        if (ENV.boldApiKey) {
-          try {
-            const boldRes = await fetch("https://checkout.bold.co/integration/payment_link", {
-              method: "POST",
-              headers: {
-                Authorization: `x-api-key ${ENV.boldApiKey}`,
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                amount_in_cents: Math.round(parseFloat(order.total) * 100),
-                currency: "COP",
-                description: `Pedido ${order.orderNumber} - Isekai World`,
-                redirect_url: `${ENV.appUrl}/checkout/success?order=${order.orderNumber}`,
-                reference: order.orderNumber,
-              }),
-            });
-            const boldData = await boldRes.json();
-            console.log('[Bold] Status:', boldRes.status);
-            console.log('[Bold] Full response:', JSON.stringify(boldData, null, 2));
-
-            const paymentUrl = boldData?.payload?.payment_link
-              ?? boldData?.payment_link
-              ?? boldData?.url
-              ?? boldData?.payment_url
-              ?? boldData?.checkout_url
-              ?? boldData?.link
-              ?? null;
-
-            console.log('[Bold] paymentUrl resolved:', paymentUrl);
-            return { ...order, paymentUrl: paymentUrl as string | null };
-          } catch (err) {
-            console.error("[Bold] error:", err);
-          }
-        }
-
+        // Bold integration removed — WhatsApp payment flow is active.
+        // To re-enable Bold, restore the boldApiKey block here and update Checkout.tsx.
         return { ...order, paymentUrl: null as string | null };
       }),
 

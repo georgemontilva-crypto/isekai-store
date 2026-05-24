@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -1751,6 +1751,42 @@ export default function Admin() {
                       >
                         <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["promo_bar_enabled"] !== "false" ? "translate-x-5" : "translate-x-0"}`} />
                       </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* WhatsApp de atención al cliente */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#25D366]/10 flex items-center justify-center">
+                      <MessageCircle className="w-5 h-5 text-[#25D366]" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Atención al cliente</h3>
+                      <p className="text-xs text-muted-foreground">Número de WhatsApp para recibir pedidos</p>
+                    </div>
+                  </div>
+                  <div>
+                    <Label className="text-sm font-medium">Número de WhatsApp (con código de país, sin +)</Label>
+                    <p className="text-xs text-muted-foreground mb-1.5">Ej: 584141234567</p>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="584141234567"
+                        defaultValue={siteSettings?.["whatsapp_number"] ?? ""}
+                        onChange={(e) => setBannerDrafts(d => ({ ...d, whatsapp_number: e.target.value }))}
+                        className="bg-muted border-border/50"
+                      />
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["whatsapp_number"] !== undefined ? bannerDrafts["whatsapp_number"] : siteSettings?.["whatsapp_number"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "whatsapp_number", value: val });
+                        }}
+                        disabled={!(bannerDrafts["whatsapp_number"] !== undefined ? bannerDrafts["whatsapp_number"] : siteSettings?.["whatsapp_number"])}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
