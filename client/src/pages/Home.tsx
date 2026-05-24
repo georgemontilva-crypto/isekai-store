@@ -67,6 +67,8 @@ function SaleSlider() {
             <img
               src={src}
               alt=""
+              width={1920}
+              height={600}
               className="w-full h-full object-cover object-center"
               loading="lazy"
               decoding="async"
@@ -280,6 +282,8 @@ export default function Home() {
                 <img
                   src={slide.image}
                   alt={slide.title}
+                  width={1920}
+                  height={1080}
                   className={`hero-peek-img object-right sm:object-center ${isActive ? "zoomed-in" : ""}`}
                   loading={i === 0 ? "eager" : "lazy"}
                   decoding={i === 0 ? "sync" : "async"}
@@ -371,6 +375,8 @@ export default function Home() {
                   <img
                     src={cat.imageUrl}
                     alt={cat.name}
+                    width={300}
+                    height={300}
                     className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
                     style={{ opacity: idx === 0 ? 0.65 : 1 }}
                     loading="lazy"
@@ -425,6 +431,8 @@ export default function Home() {
             <img
               src={settings["brand_story_image"]}
               alt="Figuras coleccionables 3D anime"
+              width={800}
+              height={240}
               className="w-full h-full object-cover"
               loading="lazy"
               decoding="async"
@@ -653,6 +661,8 @@ export default function Home() {
                           <img
                             src={product.imageUrl}
                             alt={product.name}
+                            width={400}
+                            height={400}
                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                             loading="lazy"
                           />

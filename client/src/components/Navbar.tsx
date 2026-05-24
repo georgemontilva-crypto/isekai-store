@@ -170,7 +170,7 @@ export default function Navbar() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[160px] md:max-w-none overflow-hidden">
             {logoUrl ? (
-              <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
+              <img src={logoUrl} alt={storeName} width={120} height={40} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
             ) : (
               <div className="flex items-end gap-[2px]">
                 {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#1a1a1a] rounded-full" style={{height:`${h}px`}}/>)}
@@ -273,7 +273,7 @@ export default function Navbar() {
               <div className="flex gap-3 px-4 py-4 overflow-x-auto scrollbar-hide">
                 {collectionsMenu.map(col => (
                   <Link key={col.label} href={col.href} onClick={() => setActiveMenu(null)} className={`group relative flex flex-col overflow-hidden rounded-2xl shrink-0 shadow-sm ${col.dark?"bg-[#1a1a1a]":"bg-white"}`} style={{width:"calc(20% - 10px)",minWidth:"200px"}}>
-                    <div className="aspect-[4/3] overflow-hidden"><img src={col.img} alt={col.label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/></div>
+                    <div className="aspect-[4/3] overflow-hidden"><img src={col.img} alt={col.label} width={400} height={300} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/></div>
                     <div className={`px-4 py-3 flex items-start justify-between gap-2 ${col.dark?"text-white":"text-[#1a1a1a]"}`}>
                       <div>
                         <div className="font-bold text-[13px] leading-tight">{col.label}</div>

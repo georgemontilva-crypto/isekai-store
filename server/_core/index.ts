@@ -74,6 +74,12 @@ async function startServer() {
     }
   });
 
+  // Long-lived cache for hashed static assets
+  app.use('/assets', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    next();
+  });
+
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
