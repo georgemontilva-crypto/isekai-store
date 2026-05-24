@@ -24,6 +24,8 @@ import {
   submitOrderReceipt, verifyOrderPayment, getOrdersByPaymentStatus,
   createInstallmentPlan, getMyInstallmentPlans, submitInstallmentPayment,
   verifyInstallmentPayment, getAllInstallmentPlans, updateProductPaymentSettings,
+  getPublicLinkBioItems, getAllLinkBioItems, createLinkBioItem, updateLinkBioItem,
+  deleteLinkBioItem, reorderLinkBioItems,
 } from "./db";
 
 // Admin guard middleware
@@ -566,6 +568,33 @@ export const appRouter = router({
     markRead: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => markAdminNotificationRead(input.id)),
+  }),
+
+  // ─── LinkBio ──────────────────────────────────────────────────────────────────
+  linkBio: router({
+    list: publicProcedure.query(async () => {
+      try { return await getPublicLinkBioItems(); } catch { return []; }
+    }),
+
+    adminList: adminProcedure.query(async () => {
+      try { return await getAllLinkBioItems(); } catch { return []; }
+    }),
+
+    create: adminProcedure
+      .input(z.object({ label: z.string().min(1), url: z.string().min(1), position: z.number().optional() }))
+      .mutation(({ input }) => createLinkBioItem({ label: input.label, url: input.url, position: input.position ?? 0 })),
+
+    update: adminProcedure
+      .input(z.object({ id: z.number(), label: z.string().optional(), url: z.string().optional(), position: z.number().optional(), active: z.boolean().optional() }))
+      .mutation(({ input }) => { const { id, ...data } = input; return updateLinkBioItem(id, data); }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteLinkBioItem(input.id)),
+
+    reorder: adminProcedure
+      .input(z.object({ ids: z.array(z.number()) }))
+      .mutation(({ input }) => reorderLinkBioItems(input.ids)),
   }),
 });
 

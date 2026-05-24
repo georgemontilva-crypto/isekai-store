@@ -23,6 +23,8 @@ import {
   installmentPlans,
   installmentPayments,
   InstallmentPlan,
+  linkBioItems,
+  InsertLinkBioItem,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -823,4 +825,45 @@ export async function updateProductPaymentSettings(id: number, data: { installme
     installmentsEnabled: data.installmentsEnabled,
     initialPayment: data.initialPayment && data.initialPayment !== '' ? data.initialPayment : null,
   }).where(eq(products.id, id));
+}
+
+// ─── LinkBio ──────────────────────────────────────────────────────────────────
+export async function getPublicLinkBioItems() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(linkBioItems)
+    .where(eq(linkBioItems.active, true))
+    .orderBy(linkBioItems.position);
+}
+
+export async function getAllLinkBioItems() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(linkBioItems).orderBy(linkBioItems.position);
+}
+
+export async function createLinkBioItem(data: Pick<InsertLinkBioItem, "label" | "url" | "position">) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(linkBioItems).values(data);
+}
+
+export async function updateLinkBioItem(id: number, data: Partial<Pick<InsertLinkBioItem, "label" | "url" | "position" | "active">>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(linkBioItems).set(data).where(eq(linkBioItems.id, id));
+}
+
+export async function deleteLinkBioItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(linkBioItems).where(eq(linkBioItems.id, id));
+}
+
+export async function reorderLinkBioItems(ids: number[]) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await Promise.all(ids.map((id, i) =>
+    db.update(linkBioItems).set({ position: i }).where(eq(linkBioItems.id, id))
+  ));
 }

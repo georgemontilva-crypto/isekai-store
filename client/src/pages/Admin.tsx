@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -556,6 +556,11 @@ export default function Admin() {
   const [editingFaqId, setEditingFaqId] = useState<number | null>(null);
   const [showFaqForm, setShowFaqForm] = useState(false);
 
+  // LinkBio state
+  const [linkBioForm, setLinkBioForm] = useState({ label: "", url: "" });
+  const [editingLinkId, setEditingLinkId] = useState<number | null>(null);
+  const [showLinkForm, setShowLinkForm] = useState(false);
+
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -609,6 +614,34 @@ export default function Admin() {
   const createFaq = trpc.faq.create.useMutation({ onSuccess: () => { refetchFaq(); setShowFaqForm(false); setFaqForm({ question: "", answer: "", category: "General", position: 0, active: true }); toast.success("Pregunta creada"); } });
   const updateFaq = trpc.faq.update.useMutation({ onSuccess: () => { refetchFaq(); setShowFaqForm(false); setEditingFaqId(null); setFaqForm({ question: "", answer: "", category: "General", position: 0, active: true }); toast.success("Pregunta actualizada"); } });
   const deleteFaq = trpc.faq.delete.useMutation({ onSuccess: () => { refetchFaq(); toast.success("Pregunta eliminada"); } });
+
+  // LinkBio queries + mutations
+  const { data: linkBioItems = [], refetch: refetchLinkBio } = trpc.linkBio.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const createLink = trpc.linkBio.create.useMutation({ onSuccess: () => { refetchLinkBio(); setShowLinkForm(false); setLinkBioForm({ label: "", url: "" }); toast.success("Link creado"); } });
+  const updateLink = trpc.linkBio.update.useMutation({ onSuccess: () => { refetchLinkBio(); setShowLinkForm(false); setEditingLinkId(null); setLinkBioForm({ label: "", url: "" }); toast.success("Link actualizado"); } });
+  const deleteLink = trpc.linkBio.delete.useMutation({ onSuccess: () => { refetchLinkBio(); toast.success("Link eliminado"); } });
+  const reorderLinks = trpc.linkBio.reorder.useMutation({ onSuccess: () => refetchLinkBio() });
+
+  const moveLinkUp = (i: number) => {
+    if (i === 0) return;
+    const ids = linkBioItems.map(it => it.id);
+    [ids[i - 1], ids[i]] = [ids[i], ids[i - 1]];
+    reorderLinks.mutate({ ids });
+  };
+  const moveLinkDown = (i: number) => {
+    if (i === linkBioItems.length - 1) return;
+    const ids = linkBioItems.map(it => it.id);
+    [ids[i], ids[i + 1]] = [ids[i + 1], ids[i]];
+    reorderLinks.mutate({ ids });
+  };
+  const handleLinkSubmit = () => {
+    if (!linkBioForm.label.trim() || !linkBioForm.url.trim()) { toast.error("Label y URL son requeridos"); return; }
+    if (editingLinkId !== null) {
+      updateLink.mutate({ id: editingLinkId, ...linkBioForm });
+    } else {
+      createLink.mutate({ ...linkBioForm, position: linkBioItems.length });
+    }
+  };
 
   const handleFaqSubmit = () => {
     if (!faqForm.question.trim() || !faqForm.answer.trim()) { toast.error("Pregunta y respuesta son requeridas"); return; }
@@ -671,6 +704,7 @@ export default function Admin() {
     { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
     { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
     { id: "faq" as AdminTab,      label: "FAQ",           icon: HelpCircle },
+    { id: "linkbio" as AdminTab,  label: "LinkBio",       icon: Link2 },
   ];
 
   return (
@@ -2547,6 +2581,184 @@ export default function Admin() {
                 </div>
               </motion.div>
             )}
+            {/* ─── LINKBIO ───────────────────────────────────────────────────── */}
+            {tab === "linkbio" && (
+              <motion.div key="linkbio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold">LinkBio</h1>
+                  <Button onClick={() => { setEditingLinkId(null); setLinkBioForm({ label: "", url: "" }); setShowLinkForm(true); }} className="bg-primary text-primary-foreground">
+                    <Plus className="w-4 h-4 mr-2" /> Agregar link
+                  </Button>
+                </div>
+
+                {/* Copy link banner */}
+                <div className="flex items-center gap-3 mb-6 p-4 bg-[#f8f8f8] rounded-xl border border-border/50">
+                  <p className="text-sm font-mono text-[#555] flex-1">https://isekaiworld.co/links</p>
+                  <button
+                    onClick={() => { navigator.clipboard.writeText("https://isekaiworld.co/links"); toast.success("Link copiado"); }}
+                    className="text-sm font-semibold bg-[#111] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors"
+                  >
+                    Copiar
+                  </button>
+                  <a href="/links" target="_blank" className="text-sm text-[#e5007d] underline whitespace-nowrap">
+                    Ver página
+                  </a>
+                </div>
+
+                {/* Visual settings */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 mb-6 space-y-5">
+                  <h2 className="font-semibold">Configuración visual</h2>
+
+                  {/* Bio text */}
+                  <div>
+                    <Label className="text-xs font-medium">Texto descriptivo</Label>
+                    <div className="flex gap-2 mt-1">
+                      <Input
+                        placeholder="Figuras anime 3D hechas con amor ✨"
+                        defaultValue={siteSettings?.["linkbio_bio_text"] ?? ""}
+                        onChange={e => setBannerDrafts(d => ({ ...d, linkbio_bio_text: e.target.value }))}
+                        className="bg-muted border-border/50"
+                      />
+                      <Button size="sm" className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => { const val = bannerDrafts["linkbio_bio_text"] !== undefined ? bannerDrafts["linkbio_bio_text"] : siteSettings?.["linkbio_bio_text"] ?? ""; if (val !== undefined) upsertSetting.mutate({ key: "linkbio_bio_text", value: val }); }}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Banner image */}
+                  <div>
+                    <Label className="text-xs font-medium">Imagen de banner</Label>
+                    <div className="flex gap-2 mt-1 items-start">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="URL de imagen"
+                          value={bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"] ?? ""}
+                          onChange={e => setBannerDrafts(d => ({ ...d, linkbio_banner_image: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                        {(bannerDrafts["linkbio_banner_image"] || siteSettings?.["linkbio_banner_image"]) && (
+                          <img src={bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"]} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" alt="" />
+                        )}
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          const base64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = ev => res((ev.target?.result as string).split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
+                          try { const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 }); setBannerDrafts(d => ({ ...d, linkbio_banner_image: url })); upsertSetting.mutate({ key: "linkbio_banner_image", value: url }); toast.success("Imagen subida"); } catch { toast.error("Error al subir imagen"); }
+                        }} />
+                      </label>
+                      <Button size="sm" className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => { const val = bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"] ?? ""; if (val) upsertSetting.mutate({ key: "linkbio_banner_image", value: val }); }}
+                        disabled={!(bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"])}
+                      ><Save className="w-4 h-4" /></Button>
+                    </div>
+                  </div>
+
+                  {/* Bottom image */}
+                  <div>
+                    <Label className="text-xs font-medium">Imagen decorativa inferior (opcional)</Label>
+                    <div className="flex gap-2 mt-1 items-start">
+                      <div className="flex-1">
+                        <Input
+                          placeholder="URL de imagen"
+                          value={bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"] ?? ""}
+                          onChange={e => setBannerDrafts(d => ({ ...d, linkbio_bottom_image: e.target.value }))}
+                          className="bg-muted border-border/50 text-sm"
+                        />
+                        {(bannerDrafts["linkbio_bottom_image"] || siteSettings?.["linkbio_bottom_image"]) && (
+                          <img src={bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"]} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" alt="" />
+                        )}
+                      </div>
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0]; if (!file) return;
+                          const base64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = ev => res((ev.target?.result as string).split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
+                          try { const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 }); setBannerDrafts(d => ({ ...d, linkbio_bottom_image: url })); upsertSetting.mutate({ key: "linkbio_bottom_image", value: url }); toast.success("Imagen subida"); } catch { toast.error("Error al subir imagen"); }
+                        }} />
+                      </label>
+                      <Button size="sm" className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => { const val = bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"] ?? ""; if (val) upsertSetting.mutate({ key: "linkbio_bottom_image", value: val }); }}
+                        disabled={!(bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"])}
+                      ><Save className="w-4 h-4" /></Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Form crear/editar link */}
+                {showLinkForm && (
+                  <div className="bg-card border border-border/50 rounded-2xl p-6 mb-6">
+                    <h2 className="font-semibold mb-4">{editingLinkId !== null ? "Editar link" : "Nuevo link"}</h2>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-xs font-medium">Etiqueta</Label>
+                        <Input value={linkBioForm.label} onChange={e => setLinkBioForm(f => ({ ...f, label: e.target.value }))} placeholder="Ej: Tienda online" className="bg-muted border-border/50 mt-1" />
+                      </div>
+                      <div>
+                        <Label className="text-xs font-medium">URL</Label>
+                        <Input value={linkBioForm.url} onChange={e => setLinkBioForm(f => ({ ...f, url: e.target.value }))} placeholder="https://..." className="bg-muted border-border/50 mt-1" />
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-5">
+                      <Button onClick={handleLinkSubmit} disabled={createLink.isPending || updateLink.isPending} className="bg-primary text-primary-foreground">
+                        {(createLink.isPending || updateLink.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 mr-1" />}
+                        Guardar
+                      </Button>
+                      <Button variant="outline" onClick={() => { setShowLinkForm(false); setEditingLinkId(null); }}>Cancelar</Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Lista de links */}
+                <div className="bg-card border border-border/50 rounded-2xl overflow-hidden">
+                  {linkBioItems.length === 0 ? (
+                    <div className="p-12 text-center text-muted-foreground text-sm">No hay links aún. Agrega el primero.</div>
+                  ) : (
+                    <div className="divide-y divide-border/30">
+                      {linkBioItems.map((item, i) => (
+                        <div key={item.id} className="flex items-center gap-3 p-4 hover:bg-muted/20 transition-colors">
+                          <div className="flex flex-col gap-0.5">
+                            <button onClick={() => moveLinkUp(i)} disabled={i === 0} className="p-0.5 rounded hover:bg-muted disabled:opacity-20 transition-colors">
+                              <ChevronUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button onClick={() => moveLinkDown(i)} disabled={i === linkBioItems.length - 1} className="p-0.5 rounded hover:bg-muted disabled:opacity-20 transition-colors">
+                              <ChevronDown className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{item.label}</p>
+                            <p className="text-xs text-muted-foreground truncate">{item.url}</p>
+                          </div>
+                          <button
+                            onClick={() => updateLink.mutate({ id: item.id, active: !item.active })}
+                            className={`relative w-10 h-5 rounded-full transition-colors shrink-0 ${item.active ? "bg-primary" : "bg-muted-foreground/30"}`}
+                          >
+                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${item.active ? "translate-x-5" : "translate-x-0"}`} />
+                          </button>
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline" onClick={() => { setEditingLinkId(item.id); setLinkBioForm({ label: item.label, url: item.url }); setShowLinkForm(true); }}>
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button size="sm" variant="outline" className="text-destructive hover:text-destructive"
+                              onClick={() => { if (confirm("¿Eliminar este link?")) deleteLink.mutate({ id: item.id }); }}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
           </AnimatePresence>
         </main>
       </div>

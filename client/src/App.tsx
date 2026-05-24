@@ -23,6 +23,7 @@ import CheckoutSuccess from "./pages/CheckoutSuccess";
 import Nosotros from "./pages/Nosotros";
 import FAQ from "./pages/FAQ";
 import Politicas from "./pages/Politicas";
+import LinkBio from "./pages/LinkBio";
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "./hooks/useSocket";
 
@@ -101,6 +102,12 @@ function Layout() {
   );
 }
 
+function AppRoot() {
+  const [location] = useLocation();
+  if (location.startsWith("/links")) return <LinkBio />;
+  return <Layout />;
+}
+
 function App() {
   return (
     <ErrorBoundary>
@@ -109,7 +116,7 @@ function App() {
         <TooltipProvider>
           <CartProvider>
             <Toaster />
-            <Layout />
+            <AppRoot />
           </CartProvider>
         </TooltipProvider>
       </ThemeProvider>

@@ -278,3 +278,16 @@ export const installmentPayments = mysqlTable("installmentPayments", {
 
 export type InstallmentPayment = typeof installmentPayments.$inferSelect;
 export type InsertInstallmentPayment = typeof installmentPayments.$inferInsert;
+
+// ─── LinkBio Items ────────────────────────────────────────────────────────────
+export const linkBioItems = mysqlTable("linkBioItems", {
+  id: int("id").autoincrement().primaryKey(),
+  label: varchar("label", { length: 200 }).notNull(),
+  url: varchar("url", { length: 500 }).notNull(),
+  position: int("position").default(0),
+  active: boolean("active").default(true),
+  createdAt: timestamp("createdAt").defaultNow(),
+});
+
+export type LinkBioItem = typeof linkBioItems.$inferSelect;
+export type InsertLinkBioItem = typeof linkBioItems.$inferInsert;
