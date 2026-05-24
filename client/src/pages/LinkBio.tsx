@@ -1,6 +1,28 @@
+import { useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 
 export default function LinkBio() {
+  useEffect(() => {
+    const metaTheme = document.createElement("meta");
+    metaTheme.name = "theme-color";
+    metaTheme.content = "#0d0d0d";
+    document.head.appendChild(metaTheme);
+
+    const metaApple = document.createElement("meta");
+    metaApple.name = "apple-mobile-web-app-status-bar-style";
+    metaApple.content = "black-translucent";
+    document.head.appendChild(metaApple);
+
+    document.documentElement.style.backgroundColor = "#0d0d0d";
+    document.body.style.backgroundColor = "#0d0d0d";
+
+    return () => {
+      document.head.removeChild(metaTheme);
+      document.head.removeChild(metaApple);
+      document.documentElement.style.backgroundColor = "";
+      document.body.style.backgroundColor = "";
+    };
+  }, []);
   const { data: items = [] } = trpc.linkBio.list.useQuery();
   const { data: settings } = trpc.settings.getAll.useQuery();
 
