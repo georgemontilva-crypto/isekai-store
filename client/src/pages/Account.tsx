@@ -334,7 +334,7 @@ export default function Account() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.04 }}
-                          className="rounded-2xl border border-[#ebebeb] bg-white overflow-hidden"
+                          className="rounded-2xl border border-[#ebebeb] bg-white overflow-visible"
                         >
                           {/* Header */}
                           <button
