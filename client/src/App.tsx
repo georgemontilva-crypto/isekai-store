@@ -14,16 +14,16 @@ import CartDrawer from "./components/CartDrawer";
 import NewsletterPopup from "./components/NewsletterPopup";
 import AuthDialog from "./components/AuthDialog";
 import Home from "./pages/Home";
-import Catalog from "./pages/Catalog";
-import ProductDetail from "./pages/ProductDetail";
-import Checkout from "./pages/Checkout";
-import Account from "./pages/Account";
-import CheckoutSuccess from "./pages/CheckoutSuccess";
+const Catalog = lazy(() => import("./pages/Catalog"));
+const ProductDetail = lazy(() => import("./pages/ProductDetail"));
+const Checkout = lazy(() => import("./pages/Checkout"));
+const Account = lazy(() => import("./pages/Account"));
+const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const Admin = lazy(() => import("./pages/Admin"));
 const Nosotros = lazy(() => import("./pages/Nosotros"));
 const FAQ = lazy(() => import("./pages/FAQ"));
-import Politicas from "./pages/Politicas";
-import LinkBio from "./pages/LinkBio";
+const Politicas = lazy(() => import("./pages/Politicas"));
+const LinkBio = lazy(() => import("./pages/LinkBio"));
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "./hooks/useSocket";
 
@@ -65,26 +65,22 @@ function ScrollToTop() {
 
 function Router() {
   return (
-    <Switch>
-      <Route path="/" component={Home} />
-      <Route path="/catalog" component={Catalog} />
-      <Route path="/product/:slug" component={ProductDetail} />
-      <Route path="/checkout" component={Checkout} />
-      <Route path="/checkout/success" component={CheckoutSuccess} />
-      <Route path="/account" component={Account} />
-      <Route path="/admin">
-        <Suspense fallback={null}><Admin /></Suspense>
-      </Route>
-      <Route path="/nosotros">
-        <Suspense fallback={null}><Nosotros /></Suspense>
-      </Route>
-      <Route path="/faq">
-        <Suspense fallback={null}><FAQ /></Suspense>
-      </Route>
-      <Route path="/politicas" component={Politicas} />
-      <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
+    <Suspense fallback={<div className="min-h-screen bg-white" />}>
+      <Switch>
+        <Route path="/" component={Home} />
+        <Route path="/catalog" component={Catalog} />
+        <Route path="/product/:slug" component={ProductDetail} />
+        <Route path="/checkout" component={Checkout} />
+        <Route path="/checkout/success" component={CheckoutSuccess} />
+        <Route path="/account" component={Account} />
+        <Route path="/admin" component={Admin} />
+        <Route path="/nosotros" component={Nosotros} />
+        <Route path="/faq" component={FAQ} />
+        <Route path="/politicas" component={Politicas} />
+        <Route path="/404" component={NotFound} />
+        <Route component={NotFound} />
+      </Switch>
+    </Suspense>
   );
 }
 
@@ -110,7 +106,11 @@ function Layout() {
 
 function AppRoot() {
   const [location] = useLocation();
-  if (location.startsWith("/links")) return <LinkBio />;
+  if (location.startsWith("/links")) return (
+    <Suspense fallback={<div className="min-h-screen bg-[#0d0d0d]" />}>
+      <LinkBio />
+    </Suspense>
+  );
   return <Layout />;
 }
 

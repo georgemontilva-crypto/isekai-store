@@ -3,6 +3,7 @@ import { validateEnv } from "./env";
 validateEnv();
 import crypto from "crypto";
 import express from "express";
+import compression from "compression";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -72,6 +73,17 @@ async function startServer() {
       console.error("[Bold webhook]", err);
       res.status(500).json({ error: "Webhook error" });
     }
+  });
+
+  // Gzip compression
+  app.use(compression());
+
+  // Cache headers for static file extensions
+  app.use((req, res, next) => {
+    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2)$/)) {
+      res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+    }
+    next();
   });
 
   // Dynamic sitemap
