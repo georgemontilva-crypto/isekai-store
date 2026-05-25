@@ -14,7 +14,7 @@ import {
   addProductImage, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus,
-  getDashboardMetrics, getAllSettings, upsertSetting, getSetting,
+  getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
   insertOrderNotification, getUserOrderNotifications,
@@ -27,6 +27,28 @@ import {
   getPublicLinkBioItems, getAllLinkBioItems, createLinkBioItem, updateLinkBioItem,
   deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount,
 } from "./db";
+
+// ─── File upload validation ───────────────────────────────────────────────────
+const ALLOWED_MIME_TYPES = ['image/jpeg','image/png','image/webp','image/gif','image/svg+xml','application/pdf'];
+const MAGIC_BYTES: Record<string, Buffer[]> = {
+  'image/jpeg': [Buffer.from([0xFF, 0xD8, 0xFF])],
+  'image/png':  [Buffer.from([0x89, 0x50, 0x4E, 0x47])],
+  'image/webp': [Buffer.from('RIFF')],
+  'application/pdf': [Buffer.from('%PDF')],
+};
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+
+function validateUpload(contentType: string, buffer: Buffer) {
+  if (!ALLOWED_MIME_TYPES.includes(contentType))
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Tipo de archivo no permitido' });
+  if (buffer.length > MAX_UPLOAD_BYTES)
+    throw new TRPCError({ code: 'BAD_REQUEST', message: 'El archivo no puede superar 10 MB' });
+  const magic = MAGIC_BYTES[contentType];
+  if (magic) {
+    const valid = magic.some(m => buffer.subarray(0, m.length).equals(m));
+    if (!valid) throw new TRPCError({ code: 'BAD_REQUEST', message: 'El archivo no corresponde al tipo declarado' });
+  }
+}
 
 // Admin guard middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
@@ -58,11 +80,11 @@ export const appRouter = router({
       .query(({ input }) => getCategoryBySlug(input.slug)),
 
     create: adminProcedure
-      .input(z.object({ name: z.string(), slug: z.string(), description: z.string().optional(), imageUrl: z.string().optional(), featured: z.boolean().optional() }))
+      .input(z.object({ name: z.string().min(1).max(256), slug: z.string().min(1).max(256), description: z.string().max(2000).optional(), imageUrl: z.string().url().optional(), featured: z.boolean().optional() }))
       .mutation(({ input }) => createCategory(input)),
 
     update: adminProcedure
-      .input(z.object({ id: z.number(), name: z.string().optional(), slug: z.string().optional(), description: z.string().optional(), imageUrl: z.string().optional(), featured: z.boolean().optional() }))
+      .input(z.object({ id: z.number(), name: z.string().min(1).max(256).optional(), slug: z.string().min(1).max(256).optional(), description: z.string().max(2000).optional(), imageUrl: z.string().url().optional(), featured: z.boolean().optional() }))
       .mutation(({ input }) => { const { id, ...data } = input; return updateCategory(id, data); }),
 
     delete: adminProcedure
@@ -103,13 +125,13 @@ export const appRouter = router({
 
     create: adminProcedure
       .input(z.object({
-        name: z.string(),
-        slug: z.string(),
-        description: z.string().optional(),
-        price: z.string(),
-        compareAtPrice: z.string().optional(),
+        name: z.string().min(1).max(256),
+        slug: z.string().min(1).max(256),
+        description: z.string().max(10000).optional(),
+        price: z.string().regex(/^\d+(\.\d{1,2})?$/),
+        compareAtPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
         categoryId: z.number().optional(),
-        stock: z.number().optional(),
+        stock: z.number().min(0).max(999999).optional(),
         status: z.enum(["draft", "published"]).optional(),
         featured: z.boolean().optional(),
       }))
@@ -125,13 +147,13 @@ export const appRouter = router({
     update: adminProcedure
       .input(z.object({
         id: z.number(),
-        name: z.string().optional(),
-        slug: z.string().optional(),
-        description: z.string().optional(),
-        price: z.string().optional(),
-        compareAtPrice: z.string().optional(),
+        name: z.string().min(1).max(256).optional(),
+        slug: z.string().min(1).max(256).optional(),
+        description: z.string().max(10000).optional(),
+        price: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+        compareAtPrice: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
         categoryId: z.number().optional(),
-        stock: z.number().optional(),
+        stock: z.number().min(0).max(999999).optional(),
         status: z.enum(["draft", "published"]).optional(),
         featured: z.boolean().optional(),
       }))
@@ -167,10 +189,11 @@ export const appRouter = router({
       .mutation(({ input }) => deleteProductVariant(input.id)),
 
     uploadImage: adminProcedure
-      .input(z.object({ fileName: z.string(), contentType: z.string(), base64Data: z.string() }))
+      .input(z.object({ fileName: z.string().max(256), contentType: z.string().max(100), base64Data: z.string() }))
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.base64Data, "base64");
-        const key = `products/${Date.now()}-${input.fileName}`;
+        validateUpload(input.contentType, buffer);
+        const key = `products/${Date.now()}-${input.fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
         const { url } = await storagePut(key, buffer, input.contentType);
         return { url, key };
       }),
@@ -203,7 +226,12 @@ export const appRouter = router({
 
     remove: publicProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => removeCartItem(input.id)),
+      .mutation(async ({ ctx, input }) => {
+        const item = await getCartItem(input.id);
+        if (!item) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (item.userId && item.userId !== ctx.user?.id) throw new TRPCError({ code: 'FORBIDDEN' });
+        return removeCartItem(input.id);
+      }),
 
     clear: publicProcedure
       .input(z.object({ sessionId: z.string().optional() }).optional())
@@ -215,24 +243,24 @@ export const appRouter = router({
     create: publicProcedure
       .input(z.object({
         sessionId: z.string().optional(),
-        customerName: z.string(),
-        customerEmail: z.string().email(),
-        customerPhone: z.string().optional(),
-        shippingAddress: z.object({ street: z.string(), city: z.string(), state: z.string(), country: z.string(), zip: z.string() }).optional(),
-        subtotal: z.string(),
-        total: z.string(),
-        notes: z.string().optional(),
-        paymentMethod: z.string().optional(),
-        country: z.string().optional(),
+        customerName: z.string().min(2).max(200),
+        customerEmail: z.string().email().max(254),
+        customerPhone: z.string().max(30).optional(),
+        shippingAddress: z.object({ street: z.string().max(300), city: z.string().max(100), state: z.string().max(100), country: z.string().max(100), zip: z.string().max(20) }).optional(),
+        subtotal: z.string().regex(/^\d+(\.\d{1,2})?$/),
+        total: z.string().regex(/^\d+(\.\d{1,2})?$/),
+        notes: z.string().max(1000).optional(),
+        paymentMethod: z.string().max(50).optional(),
+        country: z.string().max(100).optional(),
         items: z.array(z.object({
           productId: z.number(),
           variantId: z.number().nullable().optional(),
-          productName: z.string(),
-          variantName: z.string().optional(),
-          price: z.string(),
-          quantity: z.number(),
-          imageUrl: z.string().optional(),
-        })),
+          productName: z.string().max(256),
+          variantName: z.string().max(256).optional(),
+          price: z.string().regex(/^\d+(\.\d{1,2})?$/),
+          quantity: z.number().min(1).max(999),
+          imageUrl: z.string().url().max(2048).optional(),
+        })).min(1).max(100),
       }))
       .mutation(async ({ ctx, input }) => {
         const order = await createOrder({ ...input, userId: ctx.user?.id });
@@ -259,9 +287,14 @@ export const appRouter = router({
       .input(z.object({ limit: z.number().optional(), offset: z.number().optional() }).optional())
       .query(({ ctx, input }) => getOrders({ userId: ctx.user.id, ...input })),
 
-    byNumber: publicProcedure
-      .input(z.object({ orderNumber: z.string() }))
-      .query(({ input }) => getOrderByNumber(input.orderNumber)),
+    byNumber: protectedProcedure
+      .input(z.object({ orderNumber: z.string().max(64) }))
+      .query(async ({ ctx, input }) => {
+        const order = await getOrderByNumber(input.orderNumber);
+        if (!order) throw new TRPCError({ code: 'NOT_FOUND' });
+        if (order.userId !== ctx.user.id && ctx.user.role !== 'admin') throw new TRPCError({ code: 'FORBIDDEN' });
+        return order;
+      }),
 
     // Admin routes
     adminList: adminProcedure
@@ -377,9 +410,10 @@ export const appRouter = router({
       .query(({ input }) => getOrdersByPaymentStatus(input?.paymentStatus)),
 
     uploadReceipt: protectedProcedure
-      .input(z.object({ fileName: z.string(), fileType: z.string(), fileBase64: z.string() }))
+      .input(z.object({ fileName: z.string().max(256), fileType: z.string().max(100), fileBase64: z.string() }))
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.fileBase64, "base64");
+        validateUpload(input.fileType, buffer);
         const key = `receipts/${Date.now()}-${input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
         const { url } = await storagePut(key, buffer, input.fileType);
         return { url };
@@ -522,9 +556,9 @@ export const appRouter = router({
 
     create: adminProcedure
       .input(z.object({
-        question: z.string().min(1),
-        answer: z.string().min(1),
-        category: z.string().optional(),
+        question: z.string().min(1).max(500),
+        answer: z.string().min(1).max(5000),
+        category: z.string().max(100).optional(),
         position: z.number().optional(),
       }))
       .mutation(({ input }) => createFaqItem(input)),
@@ -532,9 +566,9 @@ export const appRouter = router({
     update: adminProcedure
       .input(z.object({
         id: z.number(),
-        question: z.string().optional(),
-        answer: z.string().optional(),
-        category: z.string().optional(),
+        question: z.string().min(1).max(500).optional(),
+        answer: z.string().min(1).max(5000).optional(),
+        category: z.string().max(100).optional(),
         position: z.number().optional(),
         active: z.boolean().optional(),
       }))

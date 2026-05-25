@@ -63,13 +63,9 @@ export async function authenticateRequest(req: Request): Promise<AuthenticatedUs
   const cookieVal  = cookies.get(COOKIE_NAME);
   const session    = await verifySession(cookieVal);
 
-  console.log("[sdk] session:", session);
-
   if (!session) return null;
 
   const user = await db.getUserByOpenId(session.openId);
-
-  console.log("[sdk] user found:", user?.email ?? "null");
 
   return user ?? null;
 }

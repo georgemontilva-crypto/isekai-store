@@ -11,7 +11,7 @@ export let io: Server;
 export function initSocket(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
     cors: {
-      origin: ENV.appUrl || true,
+      origin: ENV.appUrl || 'https://isekaiworld.co',
       credentials: true,
     },
     transports: ["websocket", "polling"],

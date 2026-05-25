@@ -4,6 +4,8 @@ validateEnv();
 import crypto from "crypto";
 import express from "express";
 import compression from "compression";
+import helmet from "helmet";
+import { rateLimit } from "express-rate-limit";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -74,6 +76,40 @@ async function startServer() {
       res.status(500).json({ error: "Webhook error" });
     }
   });
+
+  // Security headers
+  app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false,
+  }));
+  app.use((_req, res, next) => {
+    res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    next();
+  });
+  app.use((req, res, next) => {
+    const proto = req.headers['x-forwarded-proto'];
+    const isHttps = req.secure || proto === 'https' || (Array.isArray(proto) && proto[0] === 'https');
+    if (isHttps) res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    next();
+  });
+
+  // Rate limiting
+  app.use('/api/auth/magic-link', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 5,
+    message: { error: 'Demasiados intentos. Espera 15 minutos.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  }));
+  app.use('/api/auth', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+  }));
 
   // Gzip compression
   app.use(compression());

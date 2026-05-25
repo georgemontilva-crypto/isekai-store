@@ -334,6 +334,13 @@ export async function upsertCartItem(data: {
   }
 }
 
+export async function getCartItem(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const rows = await db.select().from(cartItems).where(eq(cartItems.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
 export async function removeCartItem(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");

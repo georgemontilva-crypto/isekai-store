@@ -48,6 +48,12 @@ export function validateEnv() {
   const missing = required.filter((k) => !ENV[k]);
   if (missing.length) {
     console.error(`[ENV] Variables requeridas faltantes: ${missing.join(", ")}`);
+    process.exit(1);
+  }
+
+  if (ENV.cookieSecret.length < 32) {
+    console.error("[ENV] JWT_SECRET debe tener al menos 32 caracteres");
+    process.exit(1);
   }
 
   const optional: { key: keyof typeof ENV; service: string }[] = [
