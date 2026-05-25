@@ -14,7 +14,7 @@ import {
   addProductImage, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus,
-  getDashboardMetrics, getAllSettings, upsertSetting,
+  getDashboardMetrics, getAllSettings, upsertSetting, getSetting,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
   insertOrderNotification, getUserOrderNotifications,
@@ -597,6 +597,18 @@ export const appRouter = router({
     reorder: adminProcedure
       .input(z.object({ ids: z.array(z.number()) }))
       .mutation(({ input }) => reorderLinkBioItems(input.ids)),
+
+    trackVisit: publicProcedure.mutation(async () => {
+      const current = await getSetting('linkbio_visit_count');
+      const count = parseInt(current ?? '0') + 1;
+      await upsertSetting('linkbio_visit_count', String(count));
+      return { count };
+    }),
+
+    getVisitCount: adminProcedure.query(async () => {
+      const count = await getSetting('linkbio_visit_count');
+      return { count: parseInt(count ?? '0') };
+    }),
   }),
 });
 

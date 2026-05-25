@@ -1,7 +1,19 @@
 import { useEffect } from "react";
+import { Eye } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
 export default function LinkBio() {
+  const { data: me } = trpc.auth.me.useQuery();
+  const trackVisit = trpc.linkBio.trackVisit.useMutation();
+  const { data: visitData } = trpc.linkBio.getVisitCount.useQuery(undefined, {
+    enabled: me?.role === 'admin',
+  });
+  const visitCount = visitData?.count ?? 0;
+
+  useEffect(() => {
+    trackVisit.mutate();
+  }, []);
+
   useEffect(() => {
     const metaTheme = document.createElement("meta");
     metaTheme.name = "theme-color";
@@ -89,6 +101,13 @@ export default function LinkBio() {
         {/* Footer */}
         <p className="text-[#555] text-xs mt-8 text-center">isekaiworld.co</p>
       </div>
+
+      {me?.role === 'admin' && (
+        <div className="fixed bottom-4 right-4 bg-black/80 text-white text-xs px-3 py-2 rounded-full backdrop-blur-sm border border-white/20 flex items-center gap-2">
+          <Eye size={12} />
+          <span>{visitCount} visitas</span>
+        </div>
+      )}
     </div>
   );
 }
