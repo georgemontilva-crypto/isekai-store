@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import { motion } from "framer-motion";
 import FeaturedProductCard from "@/components/FeaturedProductCard";
 import { useLang } from "@/i18n/LangContext";
+import { useSEO } from "@/hooks/useSEO";
 
 /* ─── Collections ─── */
 /* ─── Tab categories ─── */
@@ -178,6 +179,12 @@ function InstagramFeedSection() {
 }
 
 export default function Home() {
+  useSEO({
+    title: 'Figuras de Impresión 3D Anime & Gaming',
+    description: 'Descubre figuras únicas impresas en 3D inspiradas en anime, videojuegos y cultura geek. Fan-made para coleccionistas.',
+    url: 'https://isekaiworld.co',
+  });
+
   const { t } = useLang();
   const [, navigate] = useLocation();
   const [heroIdx, setHeroIdx] = useState(0);

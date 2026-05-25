@@ -7,9 +7,16 @@ import ProductCard from "@/components/ProductCard";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/i18n/LangContext";
 import { Button } from "@/components/ui/button";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function Catalog() {
   const { t } = useLang();
+
+  useSEO({
+    title: 'Tienda — Figuras 3D Anime y Gaming',
+    description: 'Explora nuestra colección de figuras impresas en 3D. Pokémon, Star Wars, Stranger Things y más.',
+    url: 'https://isekaiworld.co/catalog',
+  });
 
   const sortOptions = [
     { value: "newest", label: t.catalog.sort.newest },

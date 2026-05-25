@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Package,
@@ -13,6 +13,7 @@ import { useCart } from "@/contexts/CartContext";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
 import { openLoginModal } from "@/const";
+import { useSEO } from "@/hooks/useSEO";
 
 export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
@@ -29,6 +30,39 @@ export default function ProductDetail() {
     { slug: params.slug ?? "" },
     { enabled: !!params.slug }
   );
+
+  useSEO({
+    title: product?.name ?? 'Producto',
+    description: product?.description?.slice(0, 160),
+    image: product?.images?.[0]?.url,
+    url: `https://isekaiworld.co/product/${product?.slug}`,
+    type: 'product',
+  });
+
+  useEffect(() => {
+    if (!product) return;
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.text = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'Product',
+      name: product.name,
+      description: product.description,
+      image: product.images?.[0]?.url,
+      brand: { '@type': 'Brand', name: 'Isekai World' },
+      offers: {
+        '@type': 'Offer',
+        price: parseFloat(product.price),
+        priceCurrency: 'COP',
+        availability: (product.stock ?? 0) > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+        url: `https://isekaiworld.co/product/${product.slug}`,
+      },
+    });
+    document.head.appendChild(script);
+    return () => { document.head.removeChild(script); };
+  }, [product]);
 
   const utils = trpc.useUtils();
   const { data: savedData } = trpc.wishlist.isSaved.useQuery(

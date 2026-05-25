@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useSEO } from "@/hooks/useSEO";
 
 function FAQItem({ question, answer }: { question: string; answer: string }) {
   const [open, setOpen] = useState(false);
@@ -38,6 +39,12 @@ function FAQItem({ question, answer }: { question: string; answer: string }) {
 }
 
 export default function FAQ() {
+  useSEO({
+    title: 'Preguntas Frecuentes',
+    description: 'Respuestas sobre pedidos, envíos, pagos y el proceso de impresión 3D en Isekai World.',
+    url: 'https://isekaiworld.co/faq',
+  });
+
   const { data: items = [] } = trpc.faq.list.useQuery();
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const faqImage = siteSettings?.["faq_image"] ?? "";

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useSEO } from "@/hooks/useSEO";
 
 const SERVICES = [
   { name: "Impresión 3D Especializada", desc: "Fabricamos figuras, props y piezas decorativas con tecnología FDM y resina de alta resolución. Cada pieza pasa por un proceso de postprocesado, lijado y pintura para lograr acabados profesionales." },
@@ -21,6 +22,12 @@ const VALUES = [
 ];
 
 export default function Nosotros() {
+  useSEO({
+    title: 'Sobre Nosotros — Estudio de Impresión 3D',
+    description: 'Isekai World es un estudio creativo especializado en impresión 3D y fabricación de piezas inspiradas en universos de anime y videojuegos.',
+    url: 'https://isekaiworld.co/nosotros',
+  });
+
   const [offsetY, setOffsetY] = useState(0);
   const [hoveredService, setHoveredService] = useState<number | null>(null);
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
