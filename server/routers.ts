@@ -7,11 +7,11 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { notifyOwner, notifyCustomerOrderStatus } from "./_core/notification";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
-import { storagePut } from "./storage";
+import { storagePut, storageDelete } from "./storage";
 import {
   getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
-  addProductImage, deleteProductImage, upsertProductVariant, deleteProductVariant,
+  addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
@@ -168,8 +168,20 @@ export const appRouter = router({
       .mutation(({ input }) => addProductImage(input.productId, input.url, input.fileKey, input.altText, input.position)),
 
     deleteImage: adminProcedure
-      .input(z.object({ id: z.number() }))
-      .mutation(({ input }) => deleteProductImage(input.id)),
+      .input(z.object({ imageId: z.number() }))
+      .mutation(async ({ input }) => {
+        const image = await getProductImage(input.imageId);
+        if (image?.url) {
+          const R2_PREFIX = "https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/";
+          const key = image.url.startsWith(R2_PREFIX) ? image.url.slice(R2_PREFIX.length) : null;
+          if (key) await storageDelete(key).catch(() => {});
+        }
+        await deleteProductImage(input.imageId);
+      }),
+
+    getImages: adminProcedure
+      .input(z.object({ productId: z.number() }))
+      .query(({ input }) => getProductImages(input.productId)),
 
     upsertVariant: adminProcedure
       .input(z.object({

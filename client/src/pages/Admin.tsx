@@ -317,6 +317,22 @@ function ProductForm({
 
   const uploadImage = trpc.products.uploadImage.useMutation();
   const addImage = trpc.products.addImage.useMutation();
+  const deleteImageMutation = trpc.products.deleteImage.useMutation();
+  const productImagesQuery = trpc.products.getImages.useQuery(
+    { productId: product?.id ?? 0 },
+    { enabled: !!product?.id }
+  );
+  const productImages = productImagesQuery.data ?? [];
+
+  const handleDeleteImage = async (imageId: number) => {
+    try {
+      await deleteImageMutation.mutateAsync({ imageId });
+      await productImagesQuery.refetch();
+      toast.success("Imagen eliminada");
+    } catch {
+      toast.error("Error al eliminar imagen");
+    }
+  };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -498,6 +514,34 @@ function ProductForm({
             )}
           </div>
         </div>
+
+        {product?.id && productImages.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-3">
+            {productImages.map((img: any) => (
+              <div key={img.id} className="relative group">
+                <img
+                  src={img.url}
+                  alt={img.altText ?? ""}
+                  className="w-20 h-20 object-cover rounded-lg border border-border/50"
+                />
+                {img.position === 0 && (
+                  <span className="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1 rounded">
+                    Principal
+                  </span>
+                )}
+                {productImages.length > 1 && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteImage(img.id)}
+                    className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-red-500 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="flex gap-3 pt-2">

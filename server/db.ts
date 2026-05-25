@@ -245,6 +245,19 @@ export async function addProductImage(productId: number, url: string, fileKey?: 
   await db.insert(productImages).values({ productId, url, fileKey, altText, position: position ?? 0 });
 }
 
+export async function getProductImage(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const rows = await db.select().from(productImages).where(eq(productImages.id, id)).limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getProductImages(productId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  return db.select().from(productImages).where(eq(productImages.productId, productId)).orderBy(productImages.position);
+}
+
 export async function deleteProductImage(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
