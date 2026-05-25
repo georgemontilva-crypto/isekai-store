@@ -5,7 +5,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { signSession } from "./sdk";
 import { getSessionCookieOptions } from "./cookies";
 import { ENV } from "./env";
-import { notifyWelcome } from "./notification";
+import { notifyWelcome, sendMagicLinkEmail } from "./notification";
 import * as db from "../db";
 
 const GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth";
@@ -110,35 +110,7 @@ export function registerOAuthRoutes(app: Express): void {
         return res.status(503).json({ error: "El servicio de email no está disponible en este momento" });
       }
 
-      await axios.post(
-        "https://api.resend.com/emails",
-        {
-          from:    "ISEKAI WORLD <noreply@isekaiworld.co>",
-          to:      email,
-          subject: "Tu enlace de acceso a Isekai World",
-          html: `
-            <div style="font-family:Inter,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#fff;">
-              <h2 style="margin:0 0 8px;font-size:22px;color:#111;">Accede a tu cuenta</h2>
-              <p style="color:#555;margin:0 0 24px;">Haz clic en el botón para iniciar sesión.
-                El enlace expira en <strong>15 minutos</strong>.</p>
-              <a href="${verifyUrl}"
-                 style="display:inline-block;background:#171717;color:#fff;padding:14px 28px;
-                        border-radius:10px;text-decoration:none;font-weight:600;font-size:15px;">
-                Iniciar sesión
-              </a>
-              <p style="color:#aaa;font-size:12px;margin-top:32px;">
-                Si no solicitaste esto, puedes ignorar este correo.
-              </p>
-            </div>
-          `,
-        },
-        {
-          headers: {
-            Authorization:  `Bearer ${ENV.resendApiKey}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await sendMagicLinkEmail(email, verifyUrl);
 
       res.json({ success: true });
     } catch (err) {
