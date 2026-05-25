@@ -13,6 +13,7 @@ import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import NewsletterPopup from "./components/NewsletterPopup";
 import AuthDialog from "./components/AuthDialog";
+import { WhatsAppChat } from "./components/WhatsAppChat";
 import Home from "./pages/Home";
 const Catalog = lazy(() => import("./pages/Catalog"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
@@ -99,6 +100,7 @@ function Layout() {
       </main>
       {!isAdmin && <Footer />}
       {!isAdmin && <NewsletterPopup />}
+      {!isAdmin && <WhatsAppChat />}
       <AuthDialog />
     </>
   );
