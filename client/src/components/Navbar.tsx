@@ -10,14 +10,6 @@ import { useLang } from "@/i18n/LangContext";
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "@/hooks/useSocket";
 
-const collectionImgs = [
-  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
-  "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=400&q=80",
-  "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&q=80",
-  "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&q=80",
-  "https://images.unsplash.com/photo-1484704849700-f032a568e944?w=400&q=80",
-];
-const DEFAULT_ALL_HREF = "/catalog";
 const dropdownVariants = { hidden:{opacity:0,y:-8,scale:0.98}, visible:{opacity:1,y:0,scale:1}, exit:{opacity:0,y:-6,scale:0.98} };
 type ActiveMenu = "collections"|"explore"|null;
 
@@ -114,15 +106,6 @@ export default function Navbar() {
   const logoHeight = parseInt(siteSettings?.["store_logo_height"] ?? "36");
 
   const { data: dbCategories } = trpc.categories.list.useQuery();
-  const featuredCats = (dbCategories ?? []).filter(c => c.featured);
-  const menuCategories = (featuredCats.length > 0 ? featuredCats : (dbCategories ?? [])).slice(0, 5);
-  const collectionsMenu = menuCategories.map((cat, i) => ({
-    label: cat.name,
-    desc: "",
-    img: cat.imageUrl || collectionImgs[i % collectionImgs.length],
-    href: `/catalog?category=${cat.slug}`,
-    dark: false,
-  }));
   const exploreMenu = [
     { label: t.nav.exploreMenu.about, href: "/nosotros" },
     { label: t.nav.exploreMenu.faq,   href: "/faq" },
@@ -269,20 +252,28 @@ export default function Navbar() {
         {/* Collections mega panel */}
         <AnimatePresence>
           {activeMenu==="collections" && (
-            <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" transition={{duration:0.22,type:"tween"}} onMouseEnter={cancelClose} onMouseLeave={scheduleClose} className="hidden lg:block absolute left-0 right-0 top-[60px] z-50 bg-[#f2f2f2] border-b border-[#e0e0e0] shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
-              <div className="flex gap-3 px-4 py-4 overflow-x-auto scrollbar-hide">
-                {collectionsMenu.map(col => (
-                  <Link key={col.label} href={col.href} onClick={() => setActiveMenu(null)} className={`group relative flex flex-col overflow-hidden rounded-2xl shrink-0 shadow-sm ${col.dark?"bg-[#1a1a1a]":"bg-white"}`} style={{width:"calc(20% - 10px)",minWidth:"200px"}}>
-                    <div className="aspect-[4/3] overflow-hidden"><img src={col.img} alt={col.label} width={400} height={300} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/></div>
-                    <div className={`px-4 py-3 flex items-start justify-between gap-2 ${col.dark?"text-white":"text-[#1a1a1a]"}`}>
-                      <div>
-                        <div className="font-bold text-[13px] leading-tight">{col.label}</div>
-                        <div className={`text-[11px] mt-0.5 leading-snug ${col.dark?"text-white/55":"text-[#888]"}`}>{col.desc}</div>
-                      </div>
-                      <ArrowRight size={14} className="shrink-0 mt-0.5 transition-transform duration-200 group-hover:translate-x-1"/>
+            <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" transition={{duration:0.22,type:"tween"}} onMouseEnter={cancelClose} onMouseLeave={scheduleClose} className="hidden lg:block absolute left-0 right-0 top-[60px] z-50 bg-white border-t border-[#f0f0f0] shadow-lg px-8 py-6">
+              <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2" style={{ WebkitOverflowScrolling: "touch" }}>
+                <Link href="/catalog" onClick={() => setActiveMenu(null)} className="flex-shrink-0 group flex flex-col items-center gap-2 cursor-pointer">
+                  <div className="w-[160px] h-[120px] bg-[#f0f0f0] rounded-xl flex items-center justify-center group-hover:bg-[#e5e5e5] transition-colors">
+                    <span className="text-3xl">🛍️</span>
+                  </div>
+                  <span className="text-xs font-semibold text-[#111]">Ver todo</span>
+                </Link>
+                {(dbCategories ?? []).map(cat => (
+                  <Link key={cat.id} href={`/catalog?category=${cat.slug}`} onClick={() => setActiveMenu(null)} className="flex-shrink-0 group flex flex-col items-center gap-2 cursor-pointer">
+                    <div className="w-[160px] h-[120px] rounded-xl overflow-hidden bg-[#f0f0f0] relative">
+                      {cat.imageUrl ? (
+                        <img src={cat.imageUrl} alt={cat.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-[#f0f0f0] text-3xl">🎮</div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
                     </div>
+                    <span className="text-xs font-semibold text-[#111] text-center max-w-[160px] truncate">{cat.name}</span>
                   </Link>
                 ))}
+                <div className="flex-shrink-0 w-4" />
               </div>
             </motion.div>
           )}
