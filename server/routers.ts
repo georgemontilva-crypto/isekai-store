@@ -26,6 +26,7 @@ import {
   verifyInstallmentPayment, getAllInstallmentPlans, updateProductPaymentSettings,
   getPublicLinkBioItems, getAllLinkBioItems, createLinkBioItem, updateLinkBioItem,
   deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount,
+  getUsers, updateUserRole, deleteUser,
 } from "./db";
 
 // ─── File upload validation ───────────────────────────────────────────────────
@@ -589,6 +590,33 @@ export const appRouter = router({
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteFaqItem(input.id)),
+  }),
+
+  // ─── Users (admin) ───────────────────────────────────────────────────────────
+  users: router({
+    list: adminProcedure
+      .input(z.object({
+        search: z.string().optional(),
+        role: z.enum(['user', 'admin', 'all']).optional(),
+      }))
+      .query(async ({ input }) => {
+        return await getUsers(input);
+      }),
+
+    updateRole: adminProcedure
+      .input(z.object({
+        userId: z.number(),
+        role: z.enum(['user', 'admin']),
+      }))
+      .mutation(async ({ input }) => {
+        return await updateUserRole(input.userId, input.role);
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ userId: z.number() }))
+      .mutation(async ({ input }) => {
+        return await deleteUser(input.userId);
+      }),
   }),
 
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────

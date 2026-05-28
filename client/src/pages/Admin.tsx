@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -600,6 +600,10 @@ export default function Admin() {
   const [editingFaqId, setEditingFaqId] = useState<number | null>(null);
   const [showFaqForm, setShowFaqForm] = useState(false);
 
+  // Users state
+  const [userSearch, setUserSearch] = useState('');
+  const [userRoleFilter, setUserRoleFilter] = useState('all');
+
   // LinkBio state
   const [linkBioForm, setLinkBioForm] = useState({ label: "", url: "" });
   const [editingLinkId, setEditingLinkId] = useState<number | null>(null);
@@ -667,6 +671,21 @@ export default function Admin() {
   const updateLink = trpc.linkBio.update.useMutation({ onSuccess: () => { refetchLinkBio(); setShowLinkForm(false); setEditingLinkId(null); setLinkBioForm({ label: "", url: "" }); toast.success("Link actualizado"); } });
   const deleteLink = trpc.linkBio.delete.useMutation({ onSuccess: () => { refetchLinkBio(); toast.success("Link eliminado"); } });
   const reorderLinks = trpc.linkBio.reorder.useMutation({ onSuccess: () => refetchLinkBio() });
+
+  // Users queries + mutations
+  const usersQuery = trpc.users.list.useQuery(
+    { search: userSearch, role: userRoleFilter as 'user' | 'admin' | 'all' },
+    { enabled: isAuthenticated && user?.role === "admin" }
+  );
+  const filteredUsers = usersQuery.data ?? [];
+
+  const updateUserRole = trpc.users.updateRole.useMutation({
+    onSuccess: () => { usersQuery.refetch(); toast.success("Rol actualizado"); },
+  });
+
+  const deleteUser = trpc.users.delete.useMutation({
+    onSuccess: () => { usersQuery.refetch(); toast.success("Usuario eliminado"); },
+  });
 
   const moveLinkUp = (i: number) => {
     if (i === 0) return;
@@ -751,6 +770,7 @@ export default function Admin() {
     { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
     { id: "faq" as AdminTab,      label: "FAQ",           icon: HelpCircle },
     { id: "linkbio" as AdminTab,  label: "LinkBio",       icon: Link2 },
+    { id: "users" as AdminTab,    label: "Usuarios",      icon: Users },
   ];
 
   return (
@@ -2788,6 +2808,115 @@ export default function Admin() {
                 <Button onClick={() => { setEditingLinkId(null); setLinkBioForm({ label: "", url: "" }); setShowLinkForm(true); }} className="bg-primary text-primary-foreground w-full">
                   <Plus className="w-4 h-4 mr-2" /> Agregar link
                 </Button>
+              </motion.div>
+            )}
+
+            {/* ─── Users Tab ──────────────────────────────────────────────── */}
+            {tab === "users" && (
+              <motion.div key="users" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold">Usuarios</h2>
+                    <p className="text-sm text-[#999]">{filteredUsers.length} usuarios registrados</p>
+                  </div>
+                </div>
+
+                {/* Filtros */}
+                <div className="flex gap-3 mb-4">
+                  <div className="relative flex-1">
+                    <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
+                    <input
+                      type="text"
+                      placeholder="Buscar por nombre o correo..."
+                      value={userSearch}
+                      onChange={e => setUserSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#e5e5e5] rounded-lg outline-none focus:border-[#111]"
+                    />
+                  </div>
+                  <select
+                    value={userRoleFilter}
+                    onChange={e => setUserRoleFilter(e.target.value)}
+                    className="text-sm border border-[#e5e5e5] rounded-lg px-3 py-2.5 outline-none bg-background"
+                  >
+                    <option value="all">Todos</option>
+                    <option value="user">Clientes</option>
+                    <option value="admin">Admins</option>
+                  </select>
+                </div>
+
+                {/* Tabla de usuarios */}
+                <div className="border border-[#e5e5e5] rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[#f8f8f8] border-b border-[#e5e5e5]">
+                      <tr>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Usuario</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Método</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Rol</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Registro</th>
+                        <th className="text-right px-4 py-3 font-semibold text-[#555]">Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredUsers.map((u: any) => (
+                        <tr key={u.id} className="border-b border-[#f0f0f0] hover:bg-[#fafafa]">
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 rounded-full bg-[#111] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                {u.name?.charAt(0).toUpperCase() ?? '?'}
+                              </div>
+                              <div>
+                                <p className="font-medium text-[#111]">{u.name ?? 'Sin nombre'}</p>
+                                <p className="text-xs text-[#999]">{u.email}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className="text-xs bg-[#f0f0f0] px-2 py-1 rounded-full">
+                              {u.loginMethod === 'google' ? '🔵 Google' : '📧 Magic Link'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <select
+                              value={u.role}
+                              onChange={e => updateUserRole.mutate({ userId: u.id, role: e.target.value as 'user' | 'admin' })}
+                              className={`text-xs px-2 py-1 rounded-full border outline-none font-semibold ${
+                                u.role === 'admin'
+                                  ? 'bg-purple-50 border-purple-200 text-purple-700'
+                                  : 'bg-green-50 border-green-200 text-green-700'
+                              }`}
+                            >
+                              <option value="user">Cliente</option>
+                              <option value="admin">Admin</option>
+                            </select>
+                          </td>
+                          <td className="px-4 py-3 text-xs text-[#999]">
+                            {new Date(u.createdAt).toLocaleDateString('es-CO', {
+                              day: '2-digit', month: 'short', year: 'numeric'
+                            })}
+                          </td>
+                          <td className="px-4 py-3 text-right">
+                            <button
+                              onClick={() => {
+                                if (confirm(`¿Eliminar a ${u.name}? Esta acción no se puede deshacer.`)) {
+                                  deleteUser.mutate({ userId: u.id });
+                                }
+                              }}
+                              className="text-red-400 hover:text-red-600 transition-colors p-1"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+
+                  {filteredUsers.length === 0 && (
+                    <p className="text-center text-[#999] text-sm py-8">
+                      No se encontraron usuarios
+                    </p>
+                  )}
+                </div>
               </motion.div>
             )}
 

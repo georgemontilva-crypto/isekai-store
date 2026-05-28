@@ -854,6 +854,50 @@ export async function getPendingOrdersCount(): Promise<number> {
   return result[0]?.count ?? 0;
 }
 
+// ─── Users (admin) ────────────────────────────────────────────────────────────
+export async function getUsers({ search, role }: { search?: string; role?: string }) {
+  const db = await getDb();
+  if (!db) return [];
+  let query = db.select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    role: users.role,
+    loginMethod: users.loginMethod,
+    createdAt: users.createdAt,
+  }).from(users);
+
+  const conditions = [];
+  if (search) {
+    conditions.push(
+      or(
+        like(users.name, `%${search}%`),
+        like(users.email, `%${search}%`)
+      )
+    );
+  }
+  if (role && role !== 'all') {
+    conditions.push(eq(users.role, role as 'user' | 'admin'));
+  }
+  if (conditions.length) {
+    query = query.where(and(...conditions)) as typeof query;
+  }
+
+  return query.orderBy(desc(users.createdAt));
+}
+
+export async function updateUserRole(userId: number, role: 'user' | 'admin') {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(users).set({ role }).where(eq(users.id, userId));
+}
+
+export async function deleteUser(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(users).where(eq(users.id, userId));
+}
+
 // ─── LinkBio ──────────────────────────────────────────────────────────────────
 export async function getPublicLinkBioItems() {
   const db = await getDb();
