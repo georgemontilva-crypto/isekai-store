@@ -161,6 +161,7 @@ export default function ProductDetail() {
   const hasImages = !!mainImageSrc || images.length > 0;
 
   return (
+    <>
     <div className="min-h-screen pb-20">
       {/* ── Breadcrumb ── */}
       <div className="border-b border-border/30 bg-card/20">
@@ -509,5 +510,6 @@ export default function ProductDetail() {
       </div>
     </div>
     <PopupManager productId={product?.id} />
+    </>
   );
 }
