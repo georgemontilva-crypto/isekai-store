@@ -2407,6 +2407,76 @@ export default function Admin() {
                   })()}
                 </div>
 
+                {/* 11. Cosplay Guild */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                      <Sparkles className="w-4 h-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-semibold text-sm">Cosplay Guild</p>
+                      <p className="text-xs text-muted-foreground">Imágenes para las páginas del Cosplay Guild</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {([
+                      { k: "cosplay_hero_image",    label: "Hero landing",         hint: "Imagen de fondo del hero principal (página /cosplay)" },
+                      { k: "cosplay_cta_image",     label: "CTA final",            hint: "Imagen de fondo de la sección de llamada a la acción" },
+                      { k: "cosplay_guild_banner",  label: "Banner directorio",    hint: "Banner superior de la página /cosplay/guild" },
+                      { k: "cosplay_apply_banner",  label: "Banner solicitud",     hint: "Imagen de cabecera de la página de solicitud" },
+                    ] as { k: string; label: string; hint: string }[]).map(({ k, label, hint }) => (
+                      <div key={k}>
+                        <Label className="text-sm font-medium">{label}</Label>
+                        {hint && <p className="text-xs text-muted-foreground mb-1.5">{hint}</p>}
+                        <div className="flex items-start gap-3 mt-1.5">
+                          {(bannerDrafts[k] || siteSettings?.[k]) && (
+                            <div className="w-16 h-16 rounded-xl border border-border/50 bg-[#f5f5f5] overflow-hidden shrink-0">
+                              <img src={bannerDrafts[k] ?? siteSettings?.[k]} className="w-full h-full object-cover" />
+                            </div>
+                          )}
+                          <div className="flex-1">
+                            <Input
+                              placeholder="https://... o sube una imagen"
+                              value={bannerDrafts[k] ?? siteSettings?.[k] ?? ""}
+                              onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                              className="bg-muted border-border/50 text-sm"
+                            />
+                          </div>
+                          <label className="cursor-pointer shrink-0">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                              <Upload className="w-3.5 h-3.5" /> Subir
+                            </span>
+                            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const base64 = await new Promise<string>((resolve, reject) => {
+                                const reader = new FileReader();
+                                reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                                reader.onerror = reject;
+                                reader.readAsDataURL(file);
+                              });
+                              try {
+                                const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                setBannerDrafts(d => ({ ...d, [k]: url }));
+                                upsertSetting.mutate({ key: k, value: url });
+                                toast.success("Imagen subida");
+                              } catch { toast.error("Error al subir imagen"); }
+                            }} />
+                          </label>
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => { const val = bannerDrafts[k] ?? siteSettings?.[k] ?? ""; if (val) upsertSetting.mutate({ key: k, value: val }); }}
+                            disabled={!(bannerDrafts[k] ?? siteSettings?.[k])}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 </div>{/* end grid */}
               </motion.div>
             )}
