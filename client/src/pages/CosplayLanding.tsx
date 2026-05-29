@@ -2,14 +2,14 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, Instagram, Youtube } from "lucide-react";
+import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown } from "lucide-react";
 
 const TIERS = [
-  { name: "Bronce",   color: "#cd7f32", emoji: "🥉", followers: "0–5k",    multiplier: 1   },
-  { name: "Plata",    color: "#c0c0c0", emoji: "🥈", followers: "5k–20k",  multiplier: 1.5 },
-  { name: "Oro",      color: "#ffd700", emoji: "🥇", followers: "20k–50k", multiplier: 2   },
-  { name: "Diamante", color: "#b9f2ff", emoji: "💎", followers: "50k–200k",multiplier: 3   },
-  { name: "Platino",  color: "#e8e8e8", emoji: "👑", followers: "200k+",   multiplier: 5   },
+  { name: "Bronce",   color: "#cd7f32", icon: Medal,  followers: "1K – 3K",    mult: "×1",   width: "30%"  },
+  { name: "Plata",    color: "#c0c0c0", icon: Shield, followers: "3K – 6K",    mult: "×1.5", width: "45%"  },
+  { name: "Oro",      color: "#ffd700", icon: Zap,    followers: "6K – 50K",   mult: "×2",   width: "60%"  },
+  { name: "Diamante", color: "#7dd3fc", icon: Gem,    followers: "50K – 300K", mult: "×3",   width: "80%"  },
+  { name: "Platino",  color: "#e8e8e8", icon: Crown,  followers: "300K – 1M+", mult: "×5",   width: "100%" },
 ];
 
 const STEPS = [
@@ -135,30 +135,59 @@ export default function CosplayLanding() {
       </section>
 
       {/* ── 3. Tiers ── */}
-      <section className="py-24 bg-[#111]">
-        <div className="px-6 lg:px-20 mb-12">
-          <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">Niveles</p>
-          <h2 className="text-3xl lg:text-5xl font-black text-white">Tu tier, tus beneficios</h2>
-        </div>
-        <div className="px-6 lg:px-20">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {TIERS.map((tier, i) => (
-              <motion.div
-                key={tier.name}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.07 }}
-                className="bg-[#1a1a1a] rounded-2xl p-6 border-t-4"
-                style={{ borderColor: tier.color }}
-              >
-                <span className="text-3xl mb-3 block">{tier.emoji}</span>
-                <h3 className="text-white font-black text-xl mb-1">{tier.name}</h3>
-                <p className="text-[#888] text-xs mb-4">{tier.followers} seguidores</p>
-                <p className="font-black text-sm" style={{ color: tier.color }}>×{tier.multiplier} tickets</p>
-              </motion.div>
-            ))}
+      <section className="py-24 bg-[#0d0d0d] overflow-hidden">
+        <div className="container">
+          <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2 font-medium">Niveles del Guild</p>
+          <h2 className="text-4xl lg:text-6xl font-black text-white mb-4">
+            Cuanto más crezcas,<br />
+            <span className="text-[#e5007d]">más ganas.</span>
+          </h2>
+          <p className="text-[#888] mb-16 max-w-xl leading-relaxed">
+            Tu tier se actualiza automáticamente según tu audiencia.
+            Cada nivel multiplica los tickets que ganas por actividad.
+          </p>
+
+          <div className="flex flex-col gap-3">
+            {TIERS.map((tier, i) => {
+              const Icon = tier.icon;
+              return (
+                <motion.div
+                  key={tier.name}
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: i * 0.08 }}
+                  className="group flex items-center gap-4"
+                >
+                  <div
+                    className="relative h-16 lg:h-20 rounded-2xl flex items-center px-6 transition-all duration-500 group-hover:brightness-110 flex-shrink-0"
+                    style={{
+                      width: tier.width,
+                      minWidth: "200px",
+                      background: `linear-gradient(135deg, ${tier.color}22, ${tier.color}44)`,
+                      border: `1px solid ${tier.color}66`,
+                    }}
+                  >
+                    <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl" style={{ background: tier.color }} />
+                    <Icon size={22} style={{ color: tier.color }} className="mr-3 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-black text-white text-lg leading-none">{tier.name}</p>
+                      <p className="text-xs mt-0.5" style={{ color: tier.color }}>{tier.followers} seguidores</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-2xl lg:text-3xl font-black" style={{ color: tier.color }}>{tier.mult}</span>
+                    <span className="text-[#555] text-xs hidden lg:block leading-tight">tickets<br />por actividad</span>
+                  </div>
+                </motion.div>
+              );
+            })}
           </div>
+
+          <p className="text-[#555] text-sm mt-10 border-t border-[#222] pt-6">
+            El admin asigna puntos base por actividad. Tu tier multiplica ese valor automáticamente.
+          </p>
         </div>
       </section>
 
