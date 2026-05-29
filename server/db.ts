@@ -1,4 +1,4 @@
-import { and, count, desc, eq, ilike, inArray, like, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   CartItem,
@@ -25,6 +25,8 @@ import {
   InstallmentPlan,
   linkBioItems,
   InsertLinkBioItem,
+  popups,
+  Popup,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -937,4 +939,51 @@ export async function reorderLinkBioItems(ids: number[]) {
   await Promise.all(ids.map((id, i) =>
     db.update(linkBioItems).set({ position: i }).where(eq(linkBioItems.id, id))
   ));
+}
+
+// ─── Popups ───────────────────────────────────────────────────────────────────
+export async function getActivePopups({ page, productId }: { page?: string; productId?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+  const now = new Date();
+  const result = await db.select().from(popups).where(
+    and(
+      eq(popups.active, true),
+      or(isNull(popups.startDate), lte(popups.startDate, now)),
+      or(isNull(popups.endDate), gte(popups.endDate, now))
+    )
+  );
+  return result.filter(p => {
+    if (p.triggerType === 'page' && p.triggerPage && page) {
+      return page.includes(p.triggerPage);
+    }
+    if (p.triggerType === 'product' && p.triggerProductId && productId) {
+      return p.triggerProductId === productId;
+    }
+    return true;
+  });
+}
+
+export async function getAllPopups() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(popups).orderBy(desc(popups.createdAt));
+}
+
+export async function createPopup(data: Omit<Popup, 'id' | 'createdAt'>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(popups).values(data as any);
+}
+
+export async function updatePopup(id: number, data: Partial<Omit<Popup, 'id' | 'createdAt'>>) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(popups).set(data as any).where(eq(popups.id, id));
+}
+
+export async function deletePopup(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.delete(popups).where(eq(popups.id, id));
 }

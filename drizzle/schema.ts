@@ -291,3 +291,30 @@ export const linkBioItems = mysqlTable("linkBioItems", {
 
 export type LinkBioItem = typeof linkBioItems.$inferSelect;
 export type InsertLinkBioItem = typeof linkBioItems.$inferInsert;
+
+// ─── Popups ───────────────────────────────────────────────────────────────────
+export const popups = mysqlTable('popups', {
+  id: int('id').autoincrement().primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  active: boolean('active').default(false),
+  title: varchar('title', { length: 300 }),
+  subtitle: varchar('subtitle', { length: 500 }),
+  bodyText: text('bodyText'),
+  buttonText: varchar('buttonText', { length: 200 }),
+  buttonUrl: varchar('buttonUrl', { length: 500 }),
+  image: varchar('image', { length: 500 }),
+  showEmail: boolean('showEmail').default(false),
+  couponCode: varchar('couponCode', { length: 100 }),
+  triggerType: varchar('triggerType', { length: 50 }).default('time'),
+  triggerDelay: int('triggerDelay').default(3),
+  triggerPage: varchar('triggerPage', { length: 200 }),
+  triggerProductId: int('triggerProductId'),
+  showOnce: boolean('showOnce').default(true),
+  startDate: timestamp('startDate'),
+  endDate: timestamp('endDate'),
+  position: varchar('position', { length: 50 }).default('center'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+export type Popup = typeof popups.$inferSelect;
+export type InsertPopup = typeof popups.$inferInsert;

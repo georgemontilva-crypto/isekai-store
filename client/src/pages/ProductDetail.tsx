@@ -14,6 +14,7 @@ import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
 import { openLoginModal } from "@/const";
 import { useSEO } from "@/hooks/useSEO";
+import { PopupManager } from "@/components/PopupManager";
 
 export default function ProductDetail() {
   const params = useParams<{ slug: string }>();
@@ -507,5 +508,6 @@ export default function ProductDetail() {
         )}
       </div>
     </div>
+    <PopupManager productId={product?.id} />
   );
 }

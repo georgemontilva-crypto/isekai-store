@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -609,6 +609,18 @@ export default function Admin() {
   const [editingLinkId, setEditingLinkId] = useState<number | null>(null);
   const [showLinkForm, setShowLinkForm] = useState(false);
 
+  // Popups state
+  const emptyPopupForm = {
+    name: "", active: false, title: "", subtitle: "", bodyText: "", buttonText: "", buttonUrl: "",
+    image: "", showEmail: false, couponCode: "", triggerType: "time" as const,
+    triggerDelay: 3, triggerPage: "", triggerProductId: "" as string | number,
+    showOnce: true, position: "center" as const, startDate: "", endDate: "",
+  };
+  const [showPopupModal, setShowPopupModal] = useState(false);
+  const [editingPopup, setEditingPopup] = useState<any | null>(null);
+  const [popupForm, setPopupForm] = useState<typeof emptyPopupForm>(emptyPopupForm);
+  const [popupImageUploading, setPopupImageUploading] = useState(false);
+
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -686,6 +698,13 @@ export default function Admin() {
   const deleteUser = trpc.users.delete.useMutation({
     onSuccess: () => { usersQuery.refetch(); toast.success("Usuario eliminado"); },
   });
+
+  // Popups queries + mutations
+  const { data: popupItems = [], refetch: refetchPopups } = trpc.popups.list.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const createPopupMutation = trpc.popups.create.useMutation({ onSuccess: () => { refetchPopups(); setShowPopupModal(false); toast.success("Popup creado"); } });
+  const updatePopupMutation = trpc.popups.update.useMutation({ onSuccess: () => { refetchPopups(); setShowPopupModal(false); setEditingPopup(null); toast.success("Popup actualizado"); } });
+  const deletePopupMutation = trpc.popups.delete.useMutation({ onSuccess: () => { refetchPopups(); toast.success("Popup eliminado"); } });
+  const togglePopupActive = trpc.popups.toggleActive.useMutation({ onSuccess: () => refetchPopups() });
 
   const moveLinkUp = (i: number) => {
     if (i === 0) return;
@@ -771,6 +790,7 @@ export default function Admin() {
     { id: "faq" as AdminTab,      label: "FAQ",           icon: HelpCircle },
     { id: "linkbio" as AdminTab,  label: "LinkBio",       icon: Link2 },
     { id: "users" as AdminTab,    label: "Usuarios",      icon: Users },
+    { id: "popups" as AdminTab,   label: "Popups",        icon: Megaphone },
   ];
 
   return (
@@ -2917,6 +2937,331 @@ export default function Admin() {
                     </p>
                   )}
                 </div>
+              </motion.div>
+            )}
+
+            {/* ─── Popups ─────────────────────────────────────────────────────── */}
+            {tab === "popups" && (
+              <motion.div key="popups" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold">Popups</h1>
+                  <Button
+                    className="bg-primary text-primary-foreground hover:bg-primary/90"
+                    onClick={() => { setEditingPopup(null); setPopupForm(emptyPopupForm); setShowPopupModal(true); }}
+                  >
+                    <Plus className="w-4 h-4 mr-2" /> Nuevo popup
+                  </Button>
+                </div>
+
+                {/* Popup list */}
+                <div className="rounded-2xl bg-card border border-border/50 overflow-hidden">
+                  {popupItems.length === 0 ? (
+                    <p className="text-center text-muted-foreground py-12 text-sm">No hay popups creados aún</p>
+                  ) : (
+                    <table className="w-full text-sm">
+                      <thead className="bg-muted/40 border-b border-border/50">
+                        <tr>
+                          <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre</th>
+                          <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Trigger</th>
+                          <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Posición</th>
+                          <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Creado</th>
+                          <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Activo</th>
+                          <th className="px-4 py-3" />
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {popupItems.map((p: any) => (
+                          <tr key={p.id} className="border-b border-border/30 hover:bg-muted/20 transition-colors">
+                            <td className="px-4 py-3 font-medium">{p.name}</td>
+                            <td className="px-4 py-3 text-muted-foreground capitalize">{p.triggerType}</td>
+                            <td className="px-4 py-3 text-muted-foreground capitalize">{p.position ?? 'center'}</td>
+                            <td className="px-4 py-3 text-muted-foreground text-xs">
+                              {p.createdAt ? new Date(p.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={() => togglePopupActive.mutate({ id: p.id, active: !p.active })}
+                                className={`relative w-10 h-5 rounded-full transition-colors ${p.active ? "bg-primary" : "bg-muted-foreground/30"}`}
+                              >
+                                <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${p.active ? "translate-x-5" : "translate-x-0"}`} />
+                              </button>
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => {
+                                    setEditingPopup(p);
+                                    setPopupForm({
+                                      name: p.name ?? "",
+                                      active: p.active ?? false,
+                                      title: p.title ?? "",
+                                      subtitle: p.subtitle ?? "",
+                                      bodyText: p.bodyText ?? "",
+                                      buttonText: p.buttonText ?? "",
+                                      buttonUrl: p.buttonUrl ?? "",
+                                      image: p.image ?? "",
+                                      showEmail: p.showEmail ?? false,
+                                      couponCode: p.couponCode ?? "",
+                                      triggerType: p.triggerType ?? "time",
+                                      triggerDelay: p.triggerDelay ?? 3,
+                                      triggerPage: p.triggerPage ?? "",
+                                      triggerProductId: p.triggerProductId ?? "",
+                                      showOnce: p.showOnce ?? true,
+                                      position: p.position ?? "center",
+                                      startDate: p.startDate ? new Date(p.startDate).toISOString().slice(0,16) : "",
+                                      endDate: p.endDate ? new Date(p.endDate).toISOString().slice(0,16) : "",
+                                    });
+                                    setShowPopupModal(true);
+                                  }}
+                                  className="text-muted-foreground hover:text-foreground transition-colors p-1"
+                                >
+                                  <Pencil size={14} />
+                                </button>
+                                <button
+                                  onClick={() => { if (confirm(`¿Eliminar popup "${p.name}"?`)) deletePopupMutation.mutate({ id: p.id }); }}
+                                  className="text-red-400 hover:text-red-600 transition-colors p-1"
+                                >
+                                  <Trash2 size={14} />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  )}
+                </div>
+
+                {/* Popup modal */}
+                {showPopupModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                      <div className="flex items-center justify-between p-6 border-b border-border/30">
+                        <h2 className="text-lg font-bold">{editingPopup ? "Editar popup" : "Nuevo popup"}</h2>
+                        <button onClick={() => { setShowPopupModal(false); setEditingPopup(null); }} className="text-muted-foreground hover:text-foreground">
+                          <X size={18} />
+                        </button>
+                      </div>
+
+                      <div className="p-6 space-y-5">
+                        {/* Name + active */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-xs mb-1 block">Nombre (interno) *</Label>
+                            <Input value={popupForm.name} onChange={e => setPopupForm(f => ({ ...f, name: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="Ej: Popup descuento verano" />
+                          </div>
+                          <div className="flex items-center gap-3 mt-5">
+                            <button
+                              onClick={() => setPopupForm(f => ({ ...f, active: !f.active }))}
+                              className={`relative w-11 h-6 rounded-full transition-colors ${popupForm.active ? "bg-primary" : "bg-muted-foreground/30"}`}
+                            >
+                              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${popupForm.active ? "translate-x-5" : "translate-x-0"}`} />
+                            </button>
+                            <Label className="text-xs">Activo</Label>
+                          </div>
+                        </div>
+
+                        {/* Título, subtítulo */}
+                        <div>
+                          <Label className="text-xs mb-1 block">Título</Label>
+                          <Input value={popupForm.title} onChange={e => setPopupForm(f => ({ ...f, title: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="¡Oferta especial!" />
+                        </div>
+                        <div>
+                          <Label className="text-xs mb-1 block">Subtítulo</Label>
+                          <Input value={popupForm.subtitle} onChange={e => setPopupForm(f => ({ ...f, subtitle: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="Solo por hoy" />
+                        </div>
+
+                        {/* Cuerpo */}
+                        <div>
+                          <Label className="text-xs mb-1 block">Texto del cuerpo</Label>
+                          <textarea
+                            value={popupForm.bodyText}
+                            onChange={e => setPopupForm(f => ({ ...f, bodyText: e.target.value }))}
+                            rows={3}
+                            className="w-full text-sm px-3 py-2 rounded-xl border border-border/50 bg-muted outline-none focus:border-primary resize-none"
+                            placeholder="Descripción del popup..."
+                          />
+                        </div>
+
+                        {/* Imagen */}
+                        <div>
+                          <Label className="text-xs mb-1 block">Imagen (URL o subir)</Label>
+                          <div className="flex gap-2">
+                            <Input value={popupForm.image} onChange={e => setPopupForm(f => ({ ...f, image: e.target.value }))} className="bg-muted border-border/50 text-sm flex-1" placeholder="https://..." />
+                            <label className={`cursor-pointer flex items-center gap-1.5 px-3 py-2 rounded-xl border border-border/50 text-xs font-medium hover:bg-muted transition-colors ${popupImageUploading ? "opacity-50 pointer-events-none" : ""}`}>
+                              <Upload size={13} />
+                              {popupImageUploading ? "Subiendo..." : "Subir"}
+                              <input type="file" accept="image/*" className="hidden" onChange={async e => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                setPopupImageUploading(true);
+                                try {
+                                  const base64 = await new Promise<string>((res, rej) => {
+                                    const reader = new FileReader();
+                                    reader.onload = ev => res((ev.target?.result as string).split(",")[1]);
+                                    reader.onerror = rej;
+                                    reader.readAsDataURL(file);
+                                  });
+                                  const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                  setPopupForm(f => ({ ...f, image: url }));
+                                  toast.success("Imagen subida");
+                                } catch { toast.error("Error al subir imagen"); }
+                                finally { setPopupImageUploading(false); }
+                              }} />
+                            </label>
+                          </div>
+                          {popupForm.image && <img src={popupForm.image} className="mt-2 h-24 rounded-xl object-cover border border-border/30" />}
+                        </div>
+
+                        {/* Botón CTA */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-xs mb-1 block">Texto del botón CTA</Label>
+                            <Input value={popupForm.buttonText} onChange={e => setPopupForm(f => ({ ...f, buttonText: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="Ver oferta" />
+                          </div>
+                          <div>
+                            <Label className="text-xs mb-1 block">URL del botón CTA</Label>
+                            <Input value={popupForm.buttonUrl} onChange={e => setPopupForm(f => ({ ...f, buttonUrl: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="/catalog" />
+                          </div>
+                        </div>
+
+                        {/* Código cupón + email */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-xs mb-1 block">Código de cupón</Label>
+                            <Input value={popupForm.couponCode} onChange={e => setPopupForm(f => ({ ...f, couponCode: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="VERANO20" />
+                          </div>
+                          <div className="flex items-center gap-3 mt-5">
+                            <button
+                              onClick={() => setPopupForm(f => ({ ...f, showEmail: !f.showEmail }))}
+                              className={`relative w-11 h-6 rounded-full transition-colors ${popupForm.showEmail ? "bg-primary" : "bg-muted-foreground/30"}`}
+                            >
+                              <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${popupForm.showEmail ? "translate-x-5" : "translate-x-0"}`} />
+                            </button>
+                            <Label className="text-xs">Incluir campo email</Label>
+                          </div>
+                        </div>
+
+                        {/* Trigger */}
+                        <div>
+                          <Label className="text-xs mb-1 block">Tipo de trigger</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {(['time', 'entry', 'exit', 'page', 'product'] as const).map(t => (
+                              <button
+                                key={t}
+                                onClick={() => setPopupForm(f => ({ ...f, triggerType: t }))}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${popupForm.triggerType === t ? "bg-primary text-white border-primary" : "border-border/50 text-muted-foreground hover:border-primary/50"}`}
+                              >
+                                {t === 'time' ? 'Tiempo' : t === 'entry' ? 'Al entrar' : t === 'exit' ? 'Al salir' : t === 'page' ? 'Página' : 'Producto'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {(popupForm.triggerType === 'time' || popupForm.triggerType === 'product') && (
+                          <div>
+                            <Label className="text-xs mb-1 block">Demora en segundos</Label>
+                            <Input type="number" value={popupForm.triggerDelay} onChange={e => setPopupForm(f => ({ ...f, triggerDelay: parseInt(e.target.value) || 0 }))} className="bg-muted border-border/50 text-sm max-w-[120px]" />
+                          </div>
+                        )}
+
+                        {popupForm.triggerType === 'page' && (
+                          <div>
+                            <Label className="text-xs mb-1 block">Ruta de página (ej: /catalog)</Label>
+                            <Input value={popupForm.triggerPage} onChange={e => setPopupForm(f => ({ ...f, triggerPage: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="/catalog" />
+                          </div>
+                        )}
+
+                        {popupForm.triggerType === 'product' && (
+                          <div>
+                            <Label className="text-xs mb-1 block">ID del producto</Label>
+                            <Input type="number" value={popupForm.triggerProductId as string} onChange={e => setPopupForm(f => ({ ...f, triggerProductId: e.target.value }))} className="bg-muted border-border/50 text-sm max-w-[120px]" placeholder="123" />
+                          </div>
+                        )}
+
+                        {/* Posición */}
+                        <div>
+                          <Label className="text-xs mb-1 block">Posición</Label>
+                          <div className="flex flex-wrap gap-2">
+                            {(['center', 'bottom-left', 'bottom-right', 'top'] as const).map(pos => (
+                              <button
+                                key={pos}
+                                onClick={() => setPopupForm(f => ({ ...f, position: pos }))}
+                                className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${popupForm.position === pos ? "bg-primary text-white border-primary" : "border-border/50 text-muted-foreground hover:border-primary/50"}`}
+                              >
+                                {pos === 'center' ? 'Centro' : pos === 'bottom-left' ? 'Abajo izq.' : pos === 'bottom-right' ? 'Abajo der.' : 'Arriba'}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Show once */}
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => setPopupForm(f => ({ ...f, showOnce: !f.showOnce }))}
+                            className={`relative w-11 h-6 rounded-full transition-colors ${popupForm.showOnce ? "bg-primary" : "bg-muted-foreground/30"}`}
+                          >
+                            <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${popupForm.showOnce ? "translate-x-5" : "translate-x-0"}`} />
+                          </button>
+                          <Label className="text-xs">Mostrar solo una vez por visitante</Label>
+                        </div>
+
+                        {/* Fechas */}
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-xs mb-1 block">Fecha de inicio (opcional)</Label>
+                            <Input type="datetime-local" value={popupForm.startDate} onChange={e => setPopupForm(f => ({ ...f, startDate: e.target.value }))} className="bg-muted border-border/50 text-sm" />
+                          </div>
+                          <div>
+                            <Label className="text-xs mb-1 block">Fecha de fin (opcional)</Label>
+                            <Input type="datetime-local" value={popupForm.endDate} onChange={e => setPopupForm(f => ({ ...f, endDate: e.target.value }))} className="bg-muted border-border/50 text-sm" />
+                          </div>
+                        </div>
+
+                        {/* Actions */}
+                        <div className="flex gap-3 pt-2 border-t border-border/30">
+                          <Button
+                            className="bg-primary text-primary-foreground"
+                            disabled={!popupForm.name.trim() || createPopupMutation.isPending || updatePopupMutation.isPending}
+                            onClick={() => {
+                              const payload: any = {
+                                name: popupForm.name,
+                                active: popupForm.active,
+                                title: popupForm.title || undefined,
+                                subtitle: popupForm.subtitle || undefined,
+                                bodyText: popupForm.bodyText || undefined,
+                                buttonText: popupForm.buttonText || undefined,
+                                buttonUrl: popupForm.buttonUrl || undefined,
+                                image: popupForm.image || undefined,
+                                showEmail: popupForm.showEmail,
+                                couponCode: popupForm.couponCode || undefined,
+                                triggerType: popupForm.triggerType,
+                                triggerDelay: popupForm.triggerDelay,
+                                triggerPage: popupForm.triggerPage || undefined,
+                                triggerProductId: popupForm.triggerProductId ? Number(popupForm.triggerProductId) : undefined,
+                                showOnce: popupForm.showOnce,
+                                position: popupForm.position,
+                                startDate: popupForm.startDate || undefined,
+                                endDate: popupForm.endDate || undefined,
+                              };
+                              if (editingPopup) {
+                                updatePopupMutation.mutate({ id: editingPopup.id, ...payload });
+                              } else {
+                                createPopupMutation.mutate(payload);
+                              }
+                            }}
+                          >
+                            <Check className="w-4 h-4 mr-2" />
+                            {editingPopup ? "Actualizar" : "Crear popup"}
+                          </Button>
+                          <Button variant="outline" className="border-border/50" onClick={() => { setShowPopupModal(false); setEditingPopup(null); }}>
+                            <X className="w-4 h-4 mr-2" /> Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 

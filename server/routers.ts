@@ -27,6 +27,7 @@ import {
   getPublicLinkBioItems, getAllLinkBioItems, createLinkBioItem, updateLinkBioItem,
   deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount,
   getUsers, updateUserRole, deleteUser,
+  getActivePopups, getAllPopups, createPopup, updatePopup, deletePopup,
 } from "./db";
 
 // ─── File upload validation ───────────────────────────────────────────────────
@@ -617,6 +618,86 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return await deleteUser(input.userId);
       }),
+  }),
+
+  // ─── Popups ──────────────────────────────────────────────────────────────────
+  popups: router({
+    getActive: publicProcedure
+      .input(z.object({ page: z.string().optional(), productId: z.number().optional() }))
+      .query(({ input }) => getActivePopups(input)),
+
+    list: adminProcedure.query(() => getAllPopups()),
+
+    create: adminProcedure
+      .input(z.object({
+        name: z.string().min(1).max(200),
+        title: z.string().max(300).optional(),
+        subtitle: z.string().max(500).optional(),
+        bodyText: z.string().max(5000).optional(),
+        buttonText: z.string().max(200).optional(),
+        buttonUrl: z.string().max(500).optional(),
+        image: z.string().max(500).optional(),
+        showEmail: z.boolean().optional(),
+        couponCode: z.string().max(100).optional(),
+        triggerType: z.enum(['time', 'entry', 'page', 'product', 'exit']).optional(),
+        triggerDelay: z.number().optional(),
+        triggerPage: z.string().max(200).optional(),
+        triggerProductId: z.number().optional(),
+        showOnce: z.boolean().optional(),
+        position: z.enum(['center', 'bottom-left', 'bottom-right', 'top']).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }))
+      .mutation(({ input }) => {
+        const data: any = { ...input };
+        if (input.startDate) data.startDate = new Date(input.startDate);
+        else delete data.startDate;
+        if (input.endDate) data.endDate = new Date(input.endDate);
+        else delete data.endDate;
+        return createPopup(data);
+      }),
+
+    update: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().max(200).optional(),
+        active: z.boolean().optional(),
+        title: z.string().max(300).optional(),
+        subtitle: z.string().max(500).optional(),
+        bodyText: z.string().max(5000).optional(),
+        buttonText: z.string().max(200).optional(),
+        buttonUrl: z.string().max(500).optional(),
+        image: z.string().max(500).optional(),
+        showEmail: z.boolean().optional(),
+        couponCode: z.string().max(100).optional(),
+        triggerType: z.enum(['time', 'entry', 'page', 'product', 'exit']).optional(),
+        triggerDelay: z.number().optional(),
+        triggerPage: z.string().max(200).optional(),
+        triggerProductId: z.number().optional(),
+        showOnce: z.boolean().optional(),
+        position: z.enum(['center', 'bottom-left', 'bottom-right', 'top']).optional(),
+        startDate: z.string().optional().nullable(),
+        endDate: z.string().optional().nullable(),
+      }))
+      .mutation(({ input }) => {
+        const { id, ...rest } = input;
+        const data: any = { ...rest };
+        if (rest.startDate) data.startDate = new Date(rest.startDate);
+        else if (rest.startDate === null) data.startDate = null;
+        else delete data.startDate;
+        if (rest.endDate) data.endDate = new Date(rest.endDate);
+        else if (rest.endDate === null) data.endDate = null;
+        else delete data.endDate;
+        return updatePopup(id, data);
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deletePopup(input.id)),
+
+    toggleActive: adminProcedure
+      .input(z.object({ id: z.number(), active: z.boolean() }))
+      .mutation(({ input }) => updatePopup(input.id, { active: input.active })),
   }),
 
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────
