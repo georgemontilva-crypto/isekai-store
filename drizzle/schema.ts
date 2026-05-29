@@ -318,3 +318,92 @@ export const popups = mysqlTable('popups', {
 
 export type Popup = typeof popups.$inferSelect;
 export type InsertPopup = typeof popups.$inferInsert;
+
+// ─── Cosplay Guild ────────────────────────────────────────────────────────────
+export const cosplayApplications = mysqlTable('cosplayApplications', {
+  id: int('id').autoincrement().primaryKey(),
+  userId: int('userId'),
+  fullName: varchar('fullName', { length: 200 }).notNull(),
+  lastName: varchar('lastName', { length: 200 }).notNull(),
+  age: int('age').notNull(),
+  city: varchar('city', { length: 200 }).notNull(),
+  country: varchar('country', { length: 200 }).notNull(),
+  address: text('address').notNull(),
+  phone: varchar('phone', { length: 50 }).notNull(),
+  email: varchar('email', { length: 200 }).notNull(),
+  experience: int('experience').notNull(),
+  instagram: varchar('instagram', { length: 200 }),
+  tiktok: varchar('tiktok', { length: 200 }),
+  youtube: varchar('youtube', { length: 200 }),
+  facebook: varchar('facebook', { length: 200 }),
+  twitter: varchar('twitter', { length: 200 }),
+  whyIsekai: text('whyIsekai').notNull(),
+  status: varchar('status', { length: 20 }).default('pending'),
+  rejectionReason: text('rejectionReason'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+export const cosplayers = mysqlTable('cosplayers', {
+  id: int('id').autoincrement().primaryKey(),
+  userId: int('userId'),
+  applicationId: int('applicationId').notNull(),
+  artisticName: varchar('artisticName', { length: 200 }).notNull(),
+  bio: text('bio'),
+  photo: varchar('photo', { length: 500 }),
+  gallery: json('gallery').$type<string[]>(),
+  tier: varchar('tier', { length: 20 }).default('bronce'),
+  totalFollowers: int('totalFollowers').default(0),
+  ticketBalance: int('ticketBalance').default(0),
+  kitOrderId: int('kitOrderId'),
+  isActive: boolean('isActive').default(true),
+  instagram: varchar('instagram', { length: 200 }),
+  tiktok: varchar('tiktok', { length: 200 }),
+  youtube: varchar('youtube', { length: 200 }),
+  facebook: varchar('facebook', { length: 200 }),
+  twitter: varchar('twitter', { length: 200 }),
+  approvedAt: timestamp('approvedAt').defaultNow(),
+});
+
+export const cosplayActivities = mysqlTable('cosplayActivities', {
+  id: int('id').autoincrement().primaryKey(),
+  title: varchar('title', { length: 300 }).notNull(),
+  description: text('description'),
+  basePoints: int('basePoints').notNull(),
+  type: varchar('type', { length: 50 }).default('post'),
+  deadline: timestamp('deadline'),
+  active: boolean('active').default(true),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+export const cosplaySubmissions = mysqlTable('cosplaySubmissions', {
+  id: int('id').autoincrement().primaryKey(),
+  cosplayerId: int('cosplayerId').notNull(),
+  activityId: int('activityId').notNull(),
+  evidenceUrl: varchar('evidenceUrl', { length: 500 }).notNull(),
+  status: varchar('status', { length: 20 }).default('pending'),
+  pointsAwarded: int('pointsAwarded'),
+  evaluationDeadline: timestamp('evaluationDeadline'),
+  evaluatedAt: timestamp('evaluatedAt'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+export const cosplayTicketLedger = mysqlTable('cosplayTicketLedger', {
+  id: int('id').autoincrement().primaryKey(),
+  cosplayerId: int('cosplayerId').notNull(),
+  amount: int('amount').notNull(),
+  type: varchar('type', { length: 20 }).notNull(),
+  description: varchar('description', { length: 500 }),
+  submissionId: int('submissionId'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+export const cosplayDiscountCodes = mysqlTable('cosplayDiscountCodes', {
+  id: int('id').autoincrement().primaryKey(),
+  cosplayerId: int('cosplayerId').notNull(),
+  code: varchar('code', { length: 50 }).notNull(),
+  discountPercent: int('discountPercent').notNull(),
+  ticketCost: int('ticketCost').notNull(),
+  used: boolean('used').default(false),
+  usedAt: timestamp('usedAt'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});

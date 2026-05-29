@@ -1,4 +1,5 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
+import { nanoid } from "nanoid";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   CartItem,
@@ -27,6 +28,12 @@ import {
   InsertLinkBioItem,
   popups,
   Popup,
+  cosplayApplications,
+  cosplayers,
+  cosplayActivities,
+  cosplaySubmissions,
+  cosplayTicketLedger,
+  cosplayDiscountCodes,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -986,4 +993,283 @@ export async function deletePopup(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.delete(popups).where(eq(popups.id, id));
+}
+
+// ─── Cosplay Guild ────────────────────────────────────────────────────────────
+const TIER_MULTIPLIERS: Record<string, number> = {
+  bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5,
+};
+const DISCOUNT_COSTS: Record<number, number> = {
+  10: 500, 20: 1000, 30: 2000, 50: 5000,
+};
+
+export async function getApprovedCosplayers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cosplayers)
+    .where(eq(cosplayers.isActive, true))
+    .orderBy(desc(cosplayers.approvedAt));
+}
+
+export async function getCosplayerByUserId(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(cosplayers).where(eq(cosplayers.userId, userId)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function getCosplayerById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(cosplayers).where(eq(cosplayers.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function createCosplayApplication(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(cosplayApplications).values(data);
+  await insertAdminNotification({
+    type: 'new_order',
+    title: '🎭 Nueva solicitud de cosplayer',
+    body: `${data.fullName} ${data.lastName} quiere unirse al Cosplay Guild`,
+  });
+}
+
+export async function approveCosplayApplication(input: {
+  applicationId: number;
+  artisticName: string;
+  tier: string;
+  totalFollowers: number;
+  kitProductId: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const appRows = await db.select().from(cosplayApplications)
+    .where(eq(cosplayApplications.id, input.applicationId)).limit(1);
+  const app = appRows[0];
+  if (!app) throw new Error('Application not found');
+
+  await db.update(cosplayApplications)
+    .set({ status: 'approved' })
+    .where(eq(cosplayApplications.id, input.applicationId));
+
+  await db.insert(cosplayers).values({
+    userId: app.userId,
+    applicationId: input.applicationId,
+    artisticName: input.artisticName,
+    tier: input.tier,
+    totalFollowers: input.totalFollowers,
+    instagram: app.instagram,
+    tiktok: app.tiktok,
+    youtube: app.youtube,
+    facebook: app.facebook,
+    twitter: app.twitter,
+    ticketBalance: 0,
+  });
+
+  const orderNumber = `IW-KIT-${Date.now()}`;
+  await db.insert(orders).values({
+    orderNumber,
+    userId: app.userId ?? undefined,
+    customerName: `${app.fullName} ${app.lastName}`,
+    customerEmail: app.email,
+    customerPhone: app.phone,
+    shippingAddress: { street: app.address, city: app.city, state: '', country: app.country, zip: '' },
+    total: '0.00',
+    subtotal: '0.00',
+    status: 'pending',
+    notes: `Kit de bienvenida Isekai Cosplay Guild — ${input.artisticName}`,
+  });
+}
+
+export async function rejectCosplayApplication(input: { applicationId: number; reason: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayApplications)
+    .set({ status: 'rejected', rejectionReason: input.reason })
+    .where(eq(cosplayApplications.id, input.applicationId));
+}
+
+export async function updateCosplayerProfile(userId: number, data: {
+  bio?: string; photo?: string; gallery?: string[];
+  instagram?: string; tiktok?: string; youtube?: string; facebook?: string; twitter?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const cosplayer = await getCosplayerByUserId(userId);
+  if (!cosplayer) throw new Error('Not a cosplayer');
+  await db.update(cosplayers).set(data as any).where(eq(cosplayers.id, cosplayer.id));
+}
+
+export async function submitCosplayActivity(userId: number, input: { activityId: number; evidenceUrl: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const cosplayer = await getCosplayerByUserId(userId);
+  if (!cosplayer) throw new Error('Not a cosplayer');
+  const deadline = new Date();
+  deadline.setDate(deadline.getDate() + 30);
+  await db.insert(cosplaySubmissions).values({
+    cosplayerId: cosplayer.id,
+    activityId: input.activityId,
+    evidenceUrl: input.evidenceUrl,
+    status: 'pending',
+    evaluationDeadline: deadline,
+  });
+}
+
+export async function evaluateCosplaySubmission(input: { submissionId: number; pointsAwarded: number; status: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const subRows = await db.select().from(cosplaySubmissions)
+    .where(eq(cosplaySubmissions.id, input.submissionId)).limit(1);
+  const sub = subRows[0];
+  if (!sub) throw new Error('Submission not found');
+  const cosplayer = await getCosplayerById(sub.cosplayerId);
+  if (!cosplayer) throw new Error('Cosplayer not found');
+
+  const multiplier = TIER_MULTIPLIERS[cosplayer.tier ?? 'bronce'] ?? 1;
+  const finalPoints = Math.round(input.pointsAwarded * multiplier);
+
+  await db.update(cosplaySubmissions).set({
+    status: input.status,
+    pointsAwarded: finalPoints,
+    evaluatedAt: new Date(),
+  }).where(eq(cosplaySubmissions.id, input.submissionId));
+
+  if (input.status === 'approved' && finalPoints > 0) {
+    await db.update(cosplayers)
+      .set({ ticketBalance: sql`ticketBalance + ${finalPoints}` })
+      .where(eq(cosplayers.id, cosplayer.id));
+    await db.insert(cosplayTicketLedger).values({
+      cosplayerId: cosplayer.id,
+      amount: finalPoints,
+      type: 'earned',
+      description: `Actividad completada (x${multiplier} tier ${cosplayer.tier})`,
+      submissionId: input.submissionId,
+    });
+  }
+}
+
+export async function redeemCosplayDiscountCode(userId: number, discountPercent: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const cosplayer = await getCosplayerByUserId(userId);
+  if (!cosplayer) throw new Error('Not a cosplayer');
+  const cost = DISCOUNT_COSTS[discountPercent];
+  if (!cost) throw new Error('Invalid discount');
+  if ((cosplayer.ticketBalance ?? 0) < cost) {
+    throw new Error(`Tickets insuficientes. Necesitas ${cost}, tienes ${cosplayer.ticketBalance}`);
+  }
+  const code = `ISK-${discountPercent}OFF-${nanoid(8).toUpperCase()}`;
+  await db.update(cosplayers)
+    .set({ ticketBalance: sql`ticketBalance - ${cost}` })
+    .where(eq(cosplayers.id, cosplayer.id));
+  await db.insert(cosplayDiscountCodes).values({ cosplayerId: cosplayer.id, code, discountPercent, ticketCost: cost });
+  await db.insert(cosplayTicketLedger).values({
+    cosplayerId: cosplayer.id, amount: -cost, type: 'redeemed',
+    description: `Código de descuento ${discountPercent}% canjeado`,
+  });
+  return { code, discountPercent };
+}
+
+export async function getCosplayerTickets(userId: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const cosplayer = await getCosplayerByUserId(userId);
+  if (!cosplayer) return null;
+  const ledger = await db.select().from(cosplayTicketLedger)
+    .where(eq(cosplayTicketLedger.cosplayerId, cosplayer.id))
+    .orderBy(desc(cosplayTicketLedger.createdAt));
+  return { balance: cosplayer.ticketBalance ?? 0, ledger };
+}
+
+export async function getMyCosplayerDiscountCodes(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const cosplayer = await getCosplayerByUserId(userId);
+  if (!cosplayer) return [];
+  return db.select().from(cosplayDiscountCodes)
+    .where(eq(cosplayDiscountCodes.cosplayerId, cosplayer.id))
+    .orderBy(desc(cosplayDiscountCodes.createdAt));
+}
+
+export async function getCosplayApplications(status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (status && status !== 'all') {
+    return db.select().from(cosplayApplications)
+      .where(eq(cosplayApplications.status, status))
+      .orderBy(desc(cosplayApplications.createdAt));
+  }
+  return db.select().from(cosplayApplications).orderBy(desc(cosplayApplications.createdAt));
+}
+
+export async function getAllCosplayers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cosplayers).orderBy(desc(cosplayers.approvedAt));
+}
+
+export async function updateCosplayerTier(input: { cosplayerId: number; tier: string; totalFollowers: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayers).set({ tier: input.tier, totalFollowers: input.totalFollowers })
+    .where(eq(cosplayers.id, input.cosplayerId));
+}
+
+export async function suspendCosplayer(cosplayerId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayers).set({ isActive: false }).where(eq(cosplayers.id, cosplayerId));
+}
+
+export async function getActiveActivities() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cosplayActivities)
+    .where(eq(cosplayActivities.active, true))
+    .orderBy(desc(cosplayActivities.createdAt));
+}
+
+export async function createCosplayActivity(data: any) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.insert(cosplayActivities).values({
+    ...data,
+    deadline: data.deadline ? new Date(data.deadline) : null,
+  });
+}
+
+export async function getAllCosplayActivities() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(cosplayActivities).orderBy(desc(cosplayActivities.createdAt));
+}
+
+export async function toggleCosplayActivity(id: number, active: boolean) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayActivities).set({ active }).where(eq(cosplayActivities.id, id));
+}
+
+export async function getMyCosplayerSubmissions(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const cosplayer = await getCosplayerByUserId(userId);
+  if (!cosplayer) return [];
+  return db.select().from(cosplaySubmissions)
+    .where(eq(cosplaySubmissions.cosplayerId, cosplayer.id))
+    .orderBy(desc(cosplaySubmissions.createdAt));
+}
+
+export async function getAllCosplaySubmissions(status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (status && status !== 'all') {
+    return db.select().from(cosplaySubmissions)
+      .where(eq(cosplaySubmissions.status, status))
+      .orderBy(desc(cosplaySubmissions.createdAt));
+  }
+  return db.select().from(cosplaySubmissions).orderBy(desc(cosplaySubmissions.createdAt));
 }

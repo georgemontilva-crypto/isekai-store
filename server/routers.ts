@@ -28,7 +28,15 @@ import {
   deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount,
   getUsers, updateUserRole, deleteUser,
   getActivePopups, getAllPopups, createPopup, updatePopup, deletePopup,
+  getApprovedCosplayers, getCosplayerById, getCosplayerByUserId, getActiveActivities,
+  createCosplayApplication, updateCosplayerProfile, submitCosplayActivity,
+  getMyCosplayerSubmissions, getCosplayerTickets, redeemCosplayDiscountCode,
+  getMyCosplayerDiscountCodes, getCosplayApplications, approveCosplayApplication,
+  rejectCosplayApplication, getAllCosplayers, updateCosplayerTier, suspendCosplayer,
+  createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
+  evaluateCosplaySubmission, getAllCosplaySubmissions,
 } from "./db";
+import { notifyWelcome } from "./_core/notification";
 
 // ─── File upload validation ───────────────────────────────────────────────────
 const ALLOWED_MIME_TYPES = ['image/jpeg','image/png','image/webp','image/gif','image/svg+xml','application/pdf'];
@@ -698,6 +706,136 @@ export const appRouter = router({
     toggleActive: adminProcedure
       .input(z.object({ id: z.number(), active: z.boolean() }))
       .mutation(({ input }) => updatePopup(input.id, { active: input.active })),
+  }),
+
+  // ─── Cosplay Guild ───────────────────────────────────────────────────────────
+  cosplay: router({
+    getApprovedCosplayers: publicProcedure.query(() => getApprovedCosplayers()),
+
+    getCosplayerProfile: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(({ input }) => getCosplayerById(input.id)),
+
+    getActivities: publicProcedure.query(() => getActiveActivities()),
+
+    submitApplication: publicProcedure
+      .input(z.object({
+        userId: z.number().optional(),
+        fullName: z.string().min(1).max(200),
+        lastName: z.string().min(1).max(200),
+        age: z.number().min(16).max(99),
+        city: z.string().min(1).max(200),
+        country: z.string().min(1).max(200),
+        address: z.string().min(5),
+        phone: z.string().min(7).max(50),
+        email: z.string().email(),
+        experience: z.number().min(0).max(50),
+        instagram: z.string().optional(),
+        tiktok: z.string().optional(),
+        youtube: z.string().optional(),
+        facebook: z.string().optional(),
+        twitter: z.string().optional(),
+        whyIsekai: z.string().min(50).max(2000),
+      }))
+      .mutation(({ input }) => createCosplayApplication(input)),
+
+    getMyProfile: protectedProcedure.query(({ ctx }) => getCosplayerByUserId(ctx.user.id)),
+
+    updateMyProfile: protectedProcedure
+      .input(z.object({
+        bio: z.string().max(1000).optional(),
+        photo: z.string().optional(),
+        gallery: z.array(z.string()).optional(),
+        instagram: z.string().optional(),
+        tiktok: z.string().optional(),
+        youtube: z.string().optional(),
+        facebook: z.string().optional(),
+        twitter: z.string().optional(),
+      }))
+      .mutation(({ ctx, input }) => updateCosplayerProfile(ctx.user.id, input)),
+
+    submitActivity: protectedProcedure
+      .input(z.object({ activityId: z.number(), evidenceUrl: z.string().url() }))
+      .mutation(({ ctx, input }) => submitCosplayActivity(ctx.user.id, input)),
+
+    getMySubmissions: protectedProcedure.query(({ ctx }) => getMyCosplayerSubmissions(ctx.user.id)),
+
+    getMyTickets: protectedProcedure.query(({ ctx }) => getCosplayerTickets(ctx.user.id)),
+
+    redeemDiscount: protectedProcedure
+      .input(z.object({ discountPercent: z.union([z.literal(10), z.literal(20), z.literal(30), z.literal(50)]) }))
+      .mutation(({ ctx, input }) => redeemCosplayDiscountCode(ctx.user.id, input.discountPercent)),
+
+    getMyDiscountCodes: protectedProcedure.query(({ ctx }) => getMyCosplayerDiscountCodes(ctx.user.id)),
+
+    // Admin
+    getApplications: adminProcedure
+      .input(z.object({ status: z.string().optional() }))
+      .query(({ input }) => getCosplayApplications(input.status)),
+
+    approveApplication: adminProcedure
+      .input(z.object({
+        applicationId: z.number(),
+        artisticName: z.string().min(1).max(200),
+        tier: z.enum(['bronce', 'plata', 'oro', 'diamante', 'platino']),
+        totalFollowers: z.number(),
+        kitProductId: z.number(),
+      }))
+      .mutation(async ({ input }) => {
+        await approveCosplayApplication(input);
+        // Fetch app to get email for welcome notification
+        try {
+          const apps = await getCosplayApplications('approved');
+          const app = apps.find((a: any) => a.id === input.applicationId);
+          if (app?.email) await notifyWelcome(app.email, input.artisticName);
+        } catch { /* non-critical */ }
+      }),
+
+    rejectApplication: adminProcedure
+      .input(z.object({ applicationId: z.number(), reason: z.string().min(1) }))
+      .mutation(({ input }) => rejectCosplayApplication(input)),
+
+    getAllCosplayers: adminProcedure.query(() => getAllCosplayers()),
+
+    updateCosplayerTier: adminProcedure
+      .input(z.object({
+        cosplayerId: z.number(),
+        tier: z.enum(['bronce', 'plata', 'oro', 'diamante', 'platino']),
+        totalFollowers: z.number(),
+      }))
+      .mutation(({ input }) => updateCosplayerTier(input)),
+
+    suspendCosplayer: adminProcedure
+      .input(z.object({ cosplayerId: z.number() }))
+      .mutation(({ input }) => suspendCosplayer(input.cosplayerId)),
+
+    createActivity: adminProcedure
+      .input(z.object({
+        title: z.string().min(1).max(300),
+        description: z.string().max(5000).optional(),
+        basePoints: z.number().min(1),
+        type: z.enum(['post', 'reel', 'tiktok', 'story', 'event']),
+        deadline: z.string().optional(),
+      }))
+      .mutation(({ input }) => createCosplayActivity(input)),
+
+    getAllActivities: adminProcedure.query(() => getAllCosplayActivities()),
+
+    toggleActivity: adminProcedure
+      .input(z.object({ id: z.number(), active: z.boolean() }))
+      .mutation(({ input }) => toggleCosplayActivity(input.id, input.active)),
+
+    evaluateSubmission: adminProcedure
+      .input(z.object({
+        submissionId: z.number(),
+        pointsAwarded: z.number().min(0),
+        status: z.enum(['approved', 'rejected']),
+      }))
+      .mutation(({ input }) => evaluateCosplaySubmission(input)),
+
+    getAllSubmissions: adminProcedure
+      .input(z.object({ status: z.string().optional() }))
+      .query(({ input }) => getAllCosplaySubmissions(input.status)),
   }),
 
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────
