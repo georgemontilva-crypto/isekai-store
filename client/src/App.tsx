@@ -11,7 +11,6 @@ import { CartProvider } from "./contexts/CartContext";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
-import NewsletterPopup from "./components/NewsletterPopup";
 import AuthDialog from "./components/AuthDialog";
 import { WhatsAppChat } from "./components/WhatsAppChat";
 import { PopupManager } from "./components/PopupManager";
@@ -100,7 +99,6 @@ function Layout() {
         <Router />
       </main>
       {!isAdmin && <Footer />}
-      {!isAdmin && <NewsletterPopup />}
       {!isAdmin && location !== '/links' && <PopupManager />}
       {!isAdmin && <WhatsAppChat />}
       <AuthDialog />
