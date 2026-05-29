@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -609,6 +609,21 @@ export default function Admin() {
   const [editingLinkId, setEditingLinkId] = useState<number | null>(null);
   const [showLinkForm, setShowLinkForm] = useState(false);
 
+  // Cosplay state
+  const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'>('applications');
+  const [cosplayAppFilter, setCosplayAppFilter] = useState('pending');
+  const [cosplaySubFilter, setCosplaySubFilter] = useState('pending');
+  const [showApproveModal, setShowApproveModal] = useState<any>(null);
+  const [showRejectModal, setShowRejectModal] = useState<any>(null);
+  const [approveForm, setApproveForm] = useState({ artisticName: '', tier: 'bronce', totalFollowers: 0, kitProductId: 0 });
+  const [rejectReason, setRejectReason] = useState('');
+  const [showActivityModal, setShowActivityModal] = useState(false);
+  const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post' as const, deadline: '' });
+  const [showEvalModal, setShowEvalModal] = useState<any>(null);
+  const [evalForm, setEvalForm] = useState({ pointsAwarded: 0, status: 'approved' as 'approved' | 'rejected' });
+  const [showTierModal, setShowTierModal] = useState<any>(null);
+  const [tierForm, setTierForm] = useState({ tier: 'bronce', totalFollowers: 0 });
+
   // Popups state
   const emptyPopupForm = {
     name: "", active: false, title: "", subtitle: "", bodyText: "", buttonText: "", buttonUrl: "",
@@ -706,6 +721,25 @@ export default function Admin() {
   const deletePopupMutation = trpc.popups.delete.useMutation({ onSuccess: () => { refetchPopups(); toast.success("Popup eliminado"); } });
   const togglePopupActive = trpc.popups.toggleActive.useMutation({ onSuccess: () => refetchPopups() });
 
+  // Cosplay queries + mutations
+  const { data: cosplayApps = [], refetch: refetchApps } = trpc.cosplay.getApplications.useQuery(
+    { status: cosplayAppFilter === 'all' ? undefined : cosplayAppFilter },
+    { enabled: isAuthenticated && user?.role === "admin" }
+  );
+  const { data: cosplayersData = [], refetch: refetchCosplayers } = trpc.cosplay.getAllCosplayers.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const { data: cosplayActivities = [], refetch: refetchActivities } = trpc.cosplay.getAllActivities.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const { data: cosplaySubs = [], refetch: refetchSubs } = trpc.cosplay.getAllSubmissions.useQuery(
+    { status: cosplaySubFilter === 'all' ? undefined : cosplaySubFilter },
+    { enabled: isAuthenticated && user?.role === "admin" }
+  );
+  const approveApp = trpc.cosplay.approveApplication.useMutation({ onSuccess: () => { refetchApps(); setShowApproveModal(null); toast.success("Cosplayer aprobado"); } });
+  const rejectApp = trpc.cosplay.rejectApplication.useMutation({ onSuccess: () => { refetchApps(); setShowRejectModal(null); toast.success("Solicitud rechazada"); } });
+  const updateTier = trpc.cosplay.updateCosplayerTier.useMutation({ onSuccess: () => { refetchCosplayers(); setShowTierModal(null); toast.success("Tier actualizado"); } });
+  const suspendCp = trpc.cosplay.suspendCosplayer.useMutation({ onSuccess: () => { refetchCosplayers(); toast.success("Cosplayer suspendido"); } });
+  const createActivity = trpc.cosplay.createActivity.useMutation({ onSuccess: () => { refetchActivities(); setShowActivityModal(false); toast.success("Actividad creada"); } });
+  const toggleActivity = trpc.cosplay.toggleActivity.useMutation({ onSuccess: () => refetchActivities() });
+  const evaluateSub = trpc.cosplay.evaluateSubmission.useMutation({ onSuccess: () => { refetchSubs(); setShowEvalModal(null); toast.success("Evaluación guardada"); } });
+
   const moveLinkUp = (i: number) => {
     if (i === 0) return;
     const ids = linkBioItems.map(it => it.id);
@@ -791,6 +825,7 @@ export default function Admin() {
     { id: "linkbio" as AdminTab,  label: "LinkBio",       icon: Link2 },
     { id: "users" as AdminTab,    label: "Usuarios",      icon: Users },
     { id: "popups" as AdminTab,   label: "Popups",        icon: Megaphone },
+    { id: "cosplay" as AdminTab,  label: "Cosplay Guild", icon: Sparkles },
   ];
 
   return (
@@ -3123,6 +3158,324 @@ export default function Admin() {
                             <X className="w-4 h-4 mr-2" /> Cancelar
                           </Button>
                         </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* ─── Cosplay Guild ──────────────────────────────────────────────── */}
+            {tab === "cosplay" && (
+              <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
+
+                {/* Sub-tabs */}
+                <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-6 w-fit">
+                  {([
+                    { id: 'applications', label: `Solicitudes (${cosplayApps.length})` },
+                    { id: 'cosplayers', label: `Cosplayers (${cosplayersData.length})` },
+                    { id: 'activities', label: `Actividades (${cosplayActivities.length})` },
+                    { id: 'evaluations', label: `Evaluaciones (${cosplaySubs.filter((s: any) => s.status === 'pending').length})` },
+                  ] as const).map(st => (
+                    <button
+                      key={st.id}
+                      onClick={() => setCosplaySubTab(st.id as any)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${cosplaySubTab === st.id ? 'bg-white text-[#111] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                    >
+                      {st.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* SOLICITUDES */}
+                {cosplaySubTab === 'applications' && (
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      {['all','pending','approved','rejected'].map(f => (
+                        <button key={f} onClick={() => setCosplayAppFilter(f)} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${cosplayAppFilter === f ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                          {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : f === 'approved' ? 'Aprobadas' : 'Rechazadas'}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="space-y-4">
+                      {cosplayApps.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay solicitudes</p>}
+                      {cosplayApps.map((app: any) => (
+                        <div key={app.id} className="p-5 rounded-2xl bg-card border border-border/50">
+                          <div className="flex items-start justify-between gap-4 flex-wrap">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <p className="font-bold">{app.fullName} {app.lastName}</p>
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : app.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                  {app.status}
+                                </span>
+                              </div>
+                              <p className="text-xs text-muted-foreground mb-2">{app.email} · {app.phone} · {app.city}, {app.country}</p>
+                              <div className="grid sm:grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
+                                <span>Edad: {app.age}</span>
+                                <span>Experiencia: {app.experience} años</span>
+                                {app.instagram && <span>IG: {app.instagram}</span>}
+                                {app.tiktok && <span>TT: {app.tiktok}</span>}
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2">{app.whyIsekai}</p>
+                            </div>
+                            {app.status === 'pending' && (
+                              <div className="flex gap-2 shrink-0">
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ artisticName: app.fullName, tier: 'bronce', totalFollowers: 0, kitProductId: 0 }); }}>
+                                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Aprobar
+                                </Button>
+                                <Button size="sm" variant="outline" className="border-red-400 text-red-500 hover:bg-red-50 text-xs" onClick={() => { setShowRejectModal(app); setRejectReason(''); }}>
+                                  <X className="w-3.5 h-3.5 mr-1" /> Rechazar
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* COSPLAYERS */}
+                {cosplaySubTab === 'cosplayers' && (
+                  <div>
+                    <div className="rounded-2xl bg-card border border-border/50 overflow-hidden">
+                      <table className="w-full text-sm">
+                        <thead className="bg-muted/40 border-b border-border/50">
+                          <tr>
+                            <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre artístico</th>
+                            <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Tier</th>
+                            <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Tickets</th>
+                            <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Estado</th>
+                            <th className="px-4 py-3" />
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {cosplayersData.map((cp: any) => (
+                            <tr key={cp.id} className="border-b border-border/30 hover:bg-muted/20">
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  {cp.photo && <img src={cp.photo} className="w-8 h-8 rounded-full object-cover" />}
+                                  <span className="font-medium">{cp.artisticName}</span>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 capitalize text-sm">{cp.tier ?? 'bronce'}</td>
+                              <td className="px-4 py-3 text-primary font-semibold">{cp.ticketBalance ?? 0}</td>
+                              <td className="px-4 py-3">
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cp.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                                  {cp.isActive ? 'Activo' : 'Suspendido'}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                  <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setShowTierModal(cp); setTierForm({ tier: cp.tier ?? 'bronce', totalFollowers: cp.totalFollowers ?? 0 }); }}>
+                                    <Pencil className="w-3 h-3 mr-1" /> Tier
+                                  </Button>
+                                  {cp.isActive && (
+                                    <Button size="sm" variant="ghost" className="text-xs h-7 text-red-500 hover:text-red-600" onClick={() => { if (confirm(`¿Suspender a ${cp.artisticName}?`)) suspendCp.mutate({ cosplayerId: cp.id }); }}>
+                                      <Ban className="w-3 h-3 mr-1" /> Suspender
+                                    </Button>
+                                  )}
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                      {cosplayersData.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay cosplayers aún</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* ACTIVIDADES */}
+                {cosplaySubTab === 'activities' && (
+                  <div>
+                    <div className="flex justify-end mb-4">
+                      <Button className="bg-primary text-white text-xs" onClick={() => { setShowActivityModal(true); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '' }); }}>
+                        <Plus className="w-3.5 h-3.5 mr-1.5" /> Nueva actividad
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {cosplayActivities.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay actividades</p>}
+                      {cosplayActivities.map((act: any) => (
+                        <div key={act.id} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/50">
+                          <div>
+                            <div className="flex items-center gap-2 mb-0.5">
+                              <p className="font-medium text-sm">{act.title}</p>
+                              <span className="text-xs bg-muted px-2 py-0.5 rounded-full capitalize">{act.type}</span>
+                            </div>
+                            <p className="text-xs text-muted-foreground">{act.basePoints} pts base{act.deadline ? ` · Hasta ${new Date(act.deadline).toLocaleDateString('es-CO')}` : ''}</p>
+                          </div>
+                          <button
+                            onClick={() => toggleActivity.mutate({ id: act.id, active: !act.active })}
+                            className={`relative w-10 h-5 rounded-full transition-colors ${act.active ? "bg-primary" : "bg-muted-foreground/30"}`}
+                          >
+                            <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${act.active ? "translate-x-5" : "translate-x-0"}`} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* EVALUACIONES */}
+                {cosplaySubTab === 'evaluations' && (
+                  <div>
+                    <div className="flex items-center gap-3 mb-4">
+                      {['all','pending','approved','rejected'].map(f => (
+                        <button key={f} onClick={() => setCosplaySubFilter(f)} className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${cosplaySubFilter === f ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                          {f === 'all' ? 'Todas' : f === 'pending' ? 'Pendientes' : f === 'approved' ? 'Aprobadas' : 'Rechazadas'}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="space-y-3">
+                      {cosplaySubs.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay submissions</p>}
+                      {cosplaySubs.map((sub: any) => (
+                        <div key={sub.id} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/50">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${sub.status === 'approved' ? 'bg-green-100 text-green-700' : sub.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>
+                                {sub.status}
+                              </span>
+                              {sub.pointsAwarded && <span className="text-xs text-primary font-semibold">{sub.pointsAwarded} tickets</span>}
+                            </div>
+                            <a href={sub.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 truncate">
+                              <ExternalLink size={10} /> {sub.evidenceUrl}
+                            </a>
+                          </div>
+                          {sub.status === 'pending' && (
+                            <Button size="sm" className="bg-primary text-white text-xs ml-3 shrink-0" onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: 100, status: 'approved' }); }}>
+                              <Eye className="w-3.5 h-3.5 mr-1" /> Evaluar
+                            </Button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal aprobar */}
+                {showApproveModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                      <h3 className="font-bold mb-4">Aprobar cosplayer</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{showApproveModal.fullName} {showApproveModal.lastName}</p>
+                      <div className="space-y-3">
+                        <div><Label className="text-xs">Nombre artístico *</Label><Input value={approveForm.artisticName} onChange={e => setApproveForm(f => ({ ...f, artisticName: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
+                        <div>
+                          <Label className="text-xs">Tier inicial</Label>
+                          <select value={approveForm.tier} onChange={e => setApproveForm(f => ({ ...f, tier: e.target.value }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none">
+                            {['bronce','plata','oro','diamante','platino'].map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                          </select>
+                        </div>
+                        <div><Label className="text-xs">Seguidores totales</Label><Input type="number" value={approveForm.totalFollowers} onChange={e => setApproveForm(f => ({ ...f, totalFollowers: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
+                        <div><Label className="text-xs">ID del producto kit</Label><Input type="number" value={approveForm.kitProductId} onChange={e => setApproveForm(f => ({ ...f, kitProductId: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="ID del producto de bienvenida" /></div>
+                      </div>
+                      <div className="flex gap-3 mt-5">
+                        <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={!approveForm.artisticName || approveApp.isPending} onClick={() => approveApp.mutate({ applicationId: showApproveModal.id, artisticName: approveForm.artisticName, tier: approveForm.tier as any, totalFollowers: approveForm.totalFollowers, kitProductId: approveForm.kitProductId })}>
+                          {approveApp.isPending ? "Aprobando..." : "Confirmar aprobación"}
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowApproveModal(null)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal rechazar */}
+                {showRejectModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                      <h3 className="font-bold mb-4">Rechazar solicitud</h3>
+                      <p className="text-sm text-muted-foreground mb-4">{showRejectModal.fullName} {showRejectModal.lastName}</p>
+                      <Label className="text-xs">Razón del rechazo *</Label>
+                      <textarea rows={3} value={rejectReason} onChange={e => setRejectReason(e.target.value)} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none focus:border-primary resize-none" placeholder="Explica el motivo del rechazo..." />
+                      <div className="flex gap-3 mt-4">
+                        <Button className="flex-1 bg-red-500 hover:bg-red-600 text-white" disabled={!rejectReason || rejectApp.isPending} onClick={() => rejectApp.mutate({ applicationId: showRejectModal.id, reason: rejectReason })}>
+                          {rejectApp.isPending ? "Rechazando..." : "Confirmar rechazo"}
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowRejectModal(null)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal cambiar tier */}
+                {showTierModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-sm p-6 shadow-2xl">
+                      <h3 className="font-bold mb-4">Cambiar tier — {showTierModal.artisticName}</h3>
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs">Tier</Label>
+                          <select value={tierForm.tier} onChange={e => setTierForm(f => ({ ...f, tier: e.target.value }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none">
+                            {['bronce','plata','oro','diamante','platino'].map(t => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+                          </select>
+                        </div>
+                        <div><Label className="text-xs">Seguidores totales</Label><Input type="number" value={tierForm.totalFollowers} onChange={e => setTierForm(f => ({ ...f, totalFollowers: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
+                      </div>
+                      <div className="flex gap-3 mt-4">
+                        <Button className="flex-1 bg-primary text-white" onClick={() => updateTier.mutate({ cosplayerId: showTierModal.id, tier: tierForm.tier as any, totalFollowers: tierForm.totalFollowers })} disabled={updateTier.isPending}>
+                          Guardar
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowTierModal(null)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal nueva actividad */}
+                {showActivityModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                      <h3 className="font-bold mb-4">Nueva actividad</h3>
+                      <div className="space-y-3">
+                        <div><Label className="text-xs">Título *</Label><Input value={activityForm.title} onChange={e => setActivityForm(f => ({ ...f, title: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
+                        <div><Label className="text-xs">Descripción</Label><textarea rows={2} value={activityForm.description} onChange={e => setActivityForm(f => ({ ...f, description: e.target.value }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none resize-none" /></div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div><Label className="text-xs">Puntos base</Label><Input type="number" value={activityForm.basePoints} onChange={e => setActivityForm(f => ({ ...f, basePoints: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
+                          <div>
+                            <Label className="text-xs">Tipo</Label>
+                            <select value={activityForm.type} onChange={e => setActivityForm(f => ({ ...f, type: e.target.value as any }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none">
+                              {['post','reel','tiktok','story','event'].map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                          </div>
+                        </div>
+                        <div><Label className="text-xs">Fecha límite (opcional)</Label><Input type="datetime-local" value={activityForm.deadline} onChange={e => setActivityForm(f => ({ ...f, deadline: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
+                      </div>
+                      <div className="flex gap-3 mt-4">
+                        <Button className="flex-1 bg-primary text-white" disabled={!activityForm.title || createActivity.isPending} onClick={() => createActivity.mutate({ title: activityForm.title, description: activityForm.description || undefined, basePoints: activityForm.basePoints, type: activityForm.type, deadline: activityForm.deadline || undefined })}>
+                          {createActivity.isPending ? "Creando..." : "Crear actividad"}
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowActivityModal(false)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal evaluar submission */}
+                {showEvalModal && (
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                      <h3 className="font-bold mb-2">Evaluar submission</h3>
+                      <a href={showEvalModal.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mb-4 hover:underline">
+                        <ExternalLink size={12} /> {showEvalModal.evidenceUrl}
+                      </a>
+                      <div className="space-y-3">
+                        <div>
+                          <Label className="text-xs">Puntos a otorgar (base, antes del multiplicador)</Label>
+                          <Input type="number" min={0} value={evalForm.pointsAwarded} onChange={e => setEvalForm(f => ({ ...f, pointsAwarded: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" />
+                          <p className="text-xs text-muted-foreground mt-1">El sistema aplicará el multiplicador del tier del cosplayer automáticamente.</p>
+                        </div>
+                        <div className="flex gap-2">
+                          <button onClick={() => setEvalForm(f => ({ ...f, status: 'approved' }))} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-colors ${evalForm.status === 'approved' ? 'bg-green-600 text-white border-green-600' : 'border-border/50 text-muted-foreground'}`}>Aprobar</button>
+                          <button onClick={() => setEvalForm(f => ({ ...f, status: 'rejected' }))} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-colors ${evalForm.status === 'rejected' ? 'bg-red-500 text-white border-red-500' : 'border-border/50 text-muted-foreground'}`}>Rechazar</button>
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-4">
+                        <Button className="flex-1 bg-primary text-white" disabled={evaluateSub.isPending} onClick={() => evaluateSub.mutate({ submissionId: showEvalModal.id, pointsAwarded: evalForm.pointsAwarded, status: evalForm.status })}>
+                          {evaluateSub.isPending ? "Guardando..." : "Confirmar evaluación"}
+                        </Button>
+                        <Button variant="outline" onClick={() => setShowEvalModal(null)}>Cancelar</Button>
                       </div>
                     </div>
                   </div>

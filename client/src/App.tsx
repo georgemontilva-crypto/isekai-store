@@ -25,6 +25,11 @@ const Nosotros = lazy(() => import("./pages/Nosotros"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Politicas = lazy(() => import("./pages/Politicas"));
 const LinkBio = lazy(() => import("./pages/LinkBio"));
+const CosplayLanding = lazy(() => import("./pages/CosplayLanding"));
+const CosplayApply = lazy(() => import("./pages/CosplayApply"));
+const CosplayGuild = lazy(() => import("./pages/CosplayGuild"));
+const CosplayProfile = lazy(() => import("./pages/CosplayProfile"));
+const CosplayDashboard = lazy(() => import("./pages/CosplayDashboard"));
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "./hooks/useSocket";
 
@@ -78,6 +83,11 @@ function Router() {
         <Route path="/nosotros" component={Nosotros} />
         <Route path="/faq" component={FAQ} />
         <Route path="/politicas" component={Politicas} />
+        <Route path="/cosplay" component={CosplayLanding} />
+        <Route path="/cosplay/apply" component={CosplayApply} />
+        <Route path="/cosplay/guild" component={CosplayGuild} />
+        <Route path="/cosplay/guild/:id" component={CosplayProfile} />
+        <Route path="/cosplay/dashboard" component={CosplayDashboard} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

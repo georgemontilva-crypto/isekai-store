@@ -127,6 +127,7 @@ export default function Navbar() {
     { label: t.nav.exploreMenu.about, href: "/nosotros" },
     { label: t.nav.exploreMenu.faq,   href: "/faq" },
     { label: t.nav.exploreMenu.legal, href: "/politicas" },
+    { label: "Cosplay Guild",          href: "/cosplay" },
   ];
 
   const LangToggle = ({ mobile }: { mobile?: boolean }) => (
