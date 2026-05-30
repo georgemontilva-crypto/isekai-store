@@ -37,6 +37,7 @@ import {
   evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
+  deleteCosplayer,
 } from "./db";
 import { notifyWelcome } from "./_core/notification";
 
@@ -842,7 +843,11 @@ export const appRouter = router({
       .input(z.object({ applicationId: z.number(), reason: z.string().min(1) }))
       .mutation(({ input }) => rejectCosplayApplication(input)),
 
-    getAllCosplayers: adminProcedure.query(() => getAllCosplayers()),
+    getAllCosplayers: adminProcedure.query(async () => {
+      const result = await getAllCosplayers();
+      console.log('[getAllCosplayers]', result.length, 'cosplayers');
+      return result;
+    }),
 
     updateCosplayerTier: adminProcedure
       .input(z.object({
@@ -855,6 +860,13 @@ export const appRouter = router({
     suspendCosplayer: adminProcedure
       .input(z.object({ cosplayerId: z.number() }))
       .mutation(({ input }) => suspendCosplayer(input.cosplayerId)),
+
+    deleteCosplayer: adminProcedure
+      .input(z.object({ cosplayerId: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteCosplayer(input.cosplayerId);
+        return { success: true };
+      }),
 
     createActivity: adminProcedure
       .input(z.object({

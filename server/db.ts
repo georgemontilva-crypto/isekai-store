@@ -1452,3 +1452,9 @@ export async function deductCosplayerCash(cosplayerId: number, amount: number) {
     .set({ cashBalance: sql`cashBalance - ${amount}` })
     .where(eq(cosplayers.id, cosplayerId));
 }
+
+export async function deleteCosplayer(cosplayerId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(cosplayers).where(eq(cosplayers.id, cosplayerId));
+}

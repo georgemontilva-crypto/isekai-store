@@ -765,6 +765,7 @@ export default function Admin() {
   const rejectApp = trpc.cosplay.rejectApplication.useMutation({ onSuccess: () => { refetchApps(); setShowRejectModal(null); toast.success("Solicitud rechazada"); } });
   const updateTier = trpc.cosplay.updateCosplayerTier.useMutation({ onSuccess: () => { refetchCosplayers(); setShowTierModal(null); toast.success("Tier actualizado"); } });
   const suspendCp = trpc.cosplay.suspendCosplayer.useMutation({ onSuccess: () => { refetchCosplayers(); toast.success("Cosplayer suspendido"); } });
+  const deleteCosplayerMut = trpc.cosplay.deleteCosplayer.useMutation({ onSuccess: () => { refetchCosplayers(); toast.success("Cosplayer eliminado"); } });
   const createActivity = trpc.cosplay.createActivity.useMutation({ onSuccess: () => { refetchActivities(); setShowActivityModal(false); toast.success("Actividad creada"); } });
   const toggleActivity = trpc.cosplay.toggleActivity.useMutation({ onSuccess: () => refetchActivities() });
   const evaluateSub = trpc.cosplay.evaluateSubmission.useMutation({ onSuccess: () => { refetchSubs(); setShowEvalModal(null); toast.success("Evaluación guardada"); } });
@@ -3448,6 +3449,13 @@ export default function Admin() {
                                       <Ban className="w-3 h-3 mr-1" /> Suspender
                                     </Button>
                                   )}
+                                  <button
+                                    onClick={() => { if (confirm(`¿Eliminar permanentemente a ${cp.artisticName}? Esta acción no se puede deshacer.`)) deleteCosplayerMut.mutate({ cosplayerId: cp.id }); }}
+                                    className="text-red-400 hover:text-red-600 transition-colors p-1"
+                                    title="Eliminar cosplayer"
+                                  >
+                                    <Trash2 size={14} />
+                                  </button>
                                 </div>
                               </td>
                             </tr>
