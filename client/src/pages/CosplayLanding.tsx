@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown } from "lucide-react";
+import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift } from "lucide-react";
 
 const TIERS = [
   { name: "Bronce",   color: "#cd7f32", icon: Medal,  followers: "1K – 3K",    mult: "×1",   width: "30%"  },
@@ -191,7 +191,83 @@ export default function CosplayLanding() {
         </div>
       </section>
 
-      {/* ── 4. Cosplayers aliados ── */}
+      {/* ── 4. Recompensas ── */}
+      <section className="py-24 bg-[#111]">
+        <div className="container">
+          <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2 font-medium">Recompensas</p>
+          <h2 className="text-4xl lg:text-6xl font-black text-white mb-4">
+            Tus tickets,<br />
+            <span className="text-[#e5007d]">tu poder.</span>
+          </h2>
+          <p className="text-[#888] max-w-xl mb-16 leading-relaxed">
+            Cada actividad completada suma tickets a tu billetera.
+            Canjéalos en la tienda exclusiva para cosplayers aliados de Isekai World.
+          </p>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            {/* Códigos de descuento */}
+            <div className="bg-[#1a1a1a] rounded-2xl p-8 border border-[#333] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5" style={{ background: '#e5007d', transform: 'translate(30%, -30%)' }} />
+              <Tag size={32} className="text-[#e5007d] mb-4" strokeWidth={1.5} />
+              <h3 className="text-white font-black text-2xl mb-2">Códigos de descuento</h3>
+              <p className="text-[#888] text-sm leading-relaxed mb-6">
+                Canjea tus tickets por códigos de descuento de uso único para comprar en la tienda.
+                Úsalos en cualquier producto del catálogo.
+              </p>
+              <div className="flex flex-col gap-3">
+                {[
+                  { percent: '10%', tickets: 500 },
+                  { percent: '20%', tickets: 1000 },
+                  { percent: '30%', tickets: 2000 },
+                  { percent: '50%', tickets: 5000 },
+                ].map(item => (
+                  <div key={item.percent} className="flex items-center justify-between py-3 px-4 rounded-xl bg-[#222] border border-[#333]">
+                    <span className="text-white font-bold text-sm">{item.percent} de descuento</span>
+                    <span className="text-[#e5007d] font-black text-sm">{item.tickets.toLocaleString()} tickets</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tienda exclusiva */}
+            <div className="bg-[#1a1a1a] rounded-2xl p-8 border border-[#333] relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5" style={{ background: '#ffd700', transform: 'translate(30%, -30%)' }} />
+              <ShoppingBag size={32} className="text-[#ffd700] mb-4" strokeWidth={1.5} />
+              <h3 className="text-white font-black text-2xl mb-2">Tienda exclusiva</h3>
+              <p className="text-[#888] text-sm leading-relaxed mb-6">
+                Como cosplayer aliado tendrás acceso a una tienda privada con productos
+                y piezas exclusivas disponibles solo para miembros del Guild.
+              </p>
+              <div className="flex flex-col gap-3">
+                {[
+                  { icon: Lock,        text: 'Acceso solo para cosplayers aprobados' },
+                  { icon: Star,        text: 'Piezas y accesorios exclusivos para cosplay' },
+                  { icon: Zap,         text: 'Drops y ediciones limitadas avant-première' },
+                  { icon: Gift,        text: 'Descuentos permanentes en piezas de cosplay' },
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <item.icon size={16} className="text-[#ffd700] flex-shrink-0" strokeWidth={1.5} />
+                    <span className="text-[#ccc] text-sm">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Banner CTA */}
+          <div className="bg-[#0d0d0d] rounded-2xl p-8 border border-[#e5007d]/30 flex flex-col lg:flex-row items-center justify-between gap-6">
+            <div>
+              <h3 className="text-white font-black text-xl mb-1">¿Listo para empezar a ganar?</h3>
+              <p className="text-[#888] text-sm">Aplica ahora y empieza a acumular tickets desde tu primera actividad.</p>
+            </div>
+            <Link href="/cosplay/apply" className="flex-shrink-0 bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold hover:bg-[#c4006b] transition-colors whitespace-nowrap text-sm">
+              Quiero ser representante
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 5. Cosplayers aliados ── */}
       {cosplayers.length > 0 && (
         <section className="py-24 bg-[#0d0d0d]">
           <div className="px-6 lg:px-20 mb-12">
