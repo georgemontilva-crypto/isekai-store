@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { notifyOwner } from "./_core/notification";
+import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected } from "./_core/notification";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   CartItem,
@@ -1096,14 +1096,24 @@ export async function approveCosplayApplication(input: {
     status: 'pending',
     notes: `Kit de bienvenida Isekai Cosplay Guild — ${input.artisticName}`,
   });
+
+  try {
+    await notifyCosplayApproved(app.email, app.fullName, input.artisticName, input.tier);
+  } catch { /* non-critical */ }
 }
 
 export async function rejectCosplayApplication(input: { applicationId: number; reason: string }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
+  const appRows = await db.select().from(cosplayApplications)
+    .where(eq(cosplayApplications.id, input.applicationId)).limit(1);
+  const app = appRows[0];
   await db.update(cosplayApplications)
     .set({ status: 'rejected', rejectionReason: input.reason })
     .where(eq(cosplayApplications.id, input.applicationId));
+  try {
+    if (app?.email) await notifyCosplayRejected(app.email, app.fullName, input.reason);
+  } catch { /* non-critical */ }
 }
 
 export async function updateCosplayerProfile(userId: number, data: {

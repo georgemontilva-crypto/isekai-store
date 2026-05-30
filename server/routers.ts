@@ -736,7 +736,10 @@ export const appRouter = router({
         facebook: z.string().optional(),
         twitter: z.string().optional(),
         whyIsekai: z.string().min(50).max(2000),
-      }))
+      }).refine(
+        data => data.instagram || data.tiktok || data.youtube || data.facebook || data.twitter,
+        { message: 'Debes incluir al menos una red social' }
+      ))
       .mutation(async ({ input }) => {
         await createCosplayApplication(input);
         try {

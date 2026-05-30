@@ -206,3 +206,70 @@ export async function notifyOwner(payload: NotificationPayload): Promise<boolean
   `;
   return sendEmail(ENV.ownerEmail, payload.title, content);
 }
+
+// ─── notifyCosplayApproved ────────────────────────────────────────────────────
+
+const COSPLAY_TIER_MULTIPLIERS: Record<string, number> = {
+  bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5,
+};
+
+export async function notifyCosplayApproved(
+  userEmail: string,
+  fullName: string,
+  artisticName: string,
+  tier: string,
+): Promise<boolean> {
+  const multiplier = COSPLAY_TIER_MULTIPLIERS[tier] ?? 1;
+  const content = `
+    <h1>¡Bienvenido al <span class="highlight">Cosplay Guild</span>!</h1>
+    <p>Hola <strong>${fullName}</strong>, tu solicitud para unirte al programa de cosplayers aliados de Isekai World ha sido <strong style="color:#e5007d">aprobada</strong>.</p>
+    <div class="order-box">
+      <p><strong>Nombre artístico:</strong> ${artisticName}</p>
+      <p><strong>Tier asignado:</strong> ${tier.toUpperCase()}</p>
+      <p><strong>Multiplicador de tickets:</strong> ×${multiplier}</p>
+    </div>
+    <p>Tu kit de bienvenida está siendo preparado. Puedes ver el estado del envío desde tu dashboard.</p>
+    <p><strong>¿Qué sigue?</strong><br/>
+    Ingresa a tu cuenta y accede al dashboard para ver las actividades disponibles, acumular tickets y canjearlos por descuentos exclusivos.</p>
+    <div style="text-align:center">
+      <a href="${APP_URL}/cosplay/dashboard" class="btn">Ir a mi dashboard →</a>
+    </div>
+    <hr class="divider"/>
+    <p style="font-size:13px;color:#999">¿Tienes dudas? Escríbenos por WhatsApp y te ayudamos.</p>
+  `;
+  return sendEmail(
+    userEmail,
+    '¡Bienvenido al Cosplay Guild de Isekai World!',
+    content,
+    'Tu solicitud fue aprobada. ¡Empieza a ganar tickets!',
+  );
+}
+
+// ─── notifyCosplayRejected ────────────────────────────────────────────────────
+
+export async function notifyCosplayRejected(
+  userEmail: string,
+  fullName: string,
+  reason: string,
+): Promise<boolean> {
+  const content = `
+    <h1>Actualización sobre tu solicitud</h1>
+    <p>Hola <strong>${fullName}</strong>, hemos revisado tu solicitud para unirte al Cosplay Guild de Isekai World.</p>
+    <div class="order-box">
+      <p>En esta ocasión no podemos aprobar tu solicitud por el siguiente motivo:</p>
+      <p style="margin-top:8px;font-style:italic;color:#555">"${reason}"</p>
+    </div>
+    <p>Esto no significa que no puedas volver a intentarlo en el futuro. Te invitamos a seguir creciendo tu comunidad y volver a postularte cuando cumplas los requisitos.</p>
+    <div style="text-align:center">
+      <a href="${APP_URL}/cosplay" class="btn">Ver requisitos →</a>
+    </div>
+    <hr class="divider"/>
+    <p style="font-size:13px;color:#999">¿Tienes alguna pregunta? Escríbenos por WhatsApp.</p>
+  `;
+  return sendEmail(
+    userEmail,
+    'Actualización de tu solicitud — Cosplay Guild Isekai World',
+    content,
+    'Hemos revisado tu solicitud al Cosplay Guild.',
+  );
+}

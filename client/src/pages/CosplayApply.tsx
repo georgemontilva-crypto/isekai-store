@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 import { toast } from "sonner";
-import { CheckCircle2, ArrowLeft, ChevronDown, Sparkles } from "lucide-react";
+import { CheckCircle2, ArrowLeft, ChevronDown, Sparkles, Info } from "lucide-react";
 import { Link } from "wouter";
 
 const COUNTRIES = [
@@ -79,7 +79,7 @@ export default function CosplayApply() {
     fullName: "", lastName: "", age: "", city: "", country: "Colombia",
     address: "", phone: "", email: user?.email ?? "",
     experience: "", instagram: "", tiktok: "", youtube: "", facebook: "", twitter: "",
-    whyIsekai: "",
+    totalFollowers: "", whyIsekai: "",
   });
 
   const apply = trpc.cosplay.submitApplication.useMutation({
@@ -93,6 +93,9 @@ export default function CosplayApply() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (form.whyIsekai.length < 50) { toast.error("La motivación debe tener al menos 50 caracteres"); return; }
+    const totalFollowers = parseInt(form.totalFollowers) || 0;
+    if (totalFollowers < 1000) { toast.error("Necesitas al menos 1,000 seguidores en total para postularte al Cosplay Guild."); return; }
+    if (!form.instagram && !form.tiktok && !form.youtube && !form.facebook && !form.twitter) { toast.error("Debes incluir al menos una red social."); return; }
     apply.mutate({
       userId: user?.id,
       fullName: form.fullName,
@@ -179,6 +182,16 @@ export default function CosplayApply() {
           <p className="text-[#888] mb-12 leading-relaxed">
             Completa todos los campos. Revisaremos tu solicitud en 24–48 horas.
           </p>
+
+          {/* Banner requisito mínimo */}
+          <div className="flex items-start gap-3 bg-[#1a1a1a] border border-[#333] rounded-xl p-4 mb-8">
+            <Info size={16} className="text-[#e5007d] flex-shrink-0 mt-0.5" />
+            <p className="text-[#888] text-sm leading-relaxed">
+              <strong className="text-white">Requisito mínimo:</strong> necesitas al menos{" "}
+              <span className="text-[#e5007d] font-bold">1,000 seguidores</span>{" "}
+              en total entre todas tus redes sociales para postularte.
+            </p>
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-10">
 
@@ -271,6 +284,24 @@ export default function CosplayApply() {
                 <div className="sm:col-span-2">
                   <label className={labelCls}>X / Twitter</label>
                   <input value={form.twitter} onChange={set('twitter')} placeholder="@usuario" className={inputCls} />
+                </div>
+                <div className="sm:col-span-2">
+                  <label className={labelCls}>
+                    Seguidores totales (suma de todas tus redes) *{" "}
+                    <span className="text-[#555] font-normal">mínimo 1,000</span>
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min={1000}
+                    value={form.totalFollowers}
+                    onChange={set('totalFollowers')}
+                    placeholder="Ej: 15000"
+                    className={inputCls}
+                  />
+                  {form.totalFollowers && parseInt(form.totalFollowers) < 1000 && (
+                    <p className="text-red-400 text-xs mt-1.5">El mínimo es 1,000 seguidores.</p>
+                  )}
                 </div>
               </div>
             </div>
