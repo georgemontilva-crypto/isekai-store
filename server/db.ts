@@ -35,6 +35,7 @@ import {
   cosplaySubmissions,
   cosplayTicketLedger,
   cosplayDiscountCodes,
+  cosplayCashWithdrawals,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -1336,4 +1337,67 @@ export async function getAllCosplaySubmissions(status?: string) {
       .orderBy(desc(cosplaySubmissions.createdAt));
   }
   return db.select().from(cosplaySubmissions).orderBy(desc(cosplaySubmissions.createdAt));
+}
+
+export async function getCosplayerByReferralCode(code: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select({
+    id: cosplayers.id,
+    artisticName: cosplayers.artisticName,
+    tier: cosplayers.tier,
+  }).from(cosplayers)
+    .where(and(
+      eq(cosplayers.referralCode, code),
+      eq(cosplayers.isActive, true)
+    ));
+  return result[0] ?? null;
+}
+
+export async function creditCashToReferrer(cosplayerId: number, amount: number, orderNumber: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayers)
+    .set({ cashBalance: sql`cashBalance + ${amount}` })
+    .where(eq(cosplayers.id, cosplayerId));
+  await db.insert(cosplayTicketLedger).values({
+    cosplayerId,
+    amount: 0,
+    cashAmount: String(amount),
+    type: 'earned',
+    ledgerType: 'cash',
+    description: `2% referido — Orden ${orderNumber}`,
+  });
+}
+
+export async function getCashWithdrawals(status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  if (status && status !== 'all') {
+    return db.select().from(cosplayCashWithdrawals)
+      .where(eq(cosplayCashWithdrawals.status, status))
+      .orderBy(desc(cosplayCashWithdrawals.createdAt));
+  }
+  return db.select().from(cosplayCashWithdrawals)
+    .orderBy(desc(cosplayCashWithdrawals.createdAt));
+}
+
+export async function processWithdrawal(id: number, status: string, notes?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const withdrawal = (await db.select().from(cosplayCashWithdrawals)
+    .where(eq(cosplayCashWithdrawals.id, id)))[0];
+  if (!withdrawal) throw new Error('Not found');
+
+  await db.update(cosplayCashWithdrawals).set({
+    status,
+    processedAt: new Date(),
+    notes,
+  }).where(eq(cosplayCashWithdrawals.id, id));
+
+  if (status === 'rejected') {
+    await db.update(cosplayers)
+      .set({ cashBalance: sql`cashBalance + ${withdrawal.amount}` })
+      .where(eq(cosplayers.id, withdrawal.cosplayerId));
+  }
 }

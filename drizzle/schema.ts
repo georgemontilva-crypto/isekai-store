@@ -360,6 +360,8 @@ export const cosplayers = mysqlTable('cosplayers', {
   tier: varchar('tier', { length: 20 }).default('bronce'),
   totalFollowers: int('totalFollowers').default(0),
   ticketBalance: int('ticketBalance').default(0),
+  cashBalance: decimal('cashBalance', { precision: 10, scale: 2 }).default('0.00'),
+  referralCode: varchar('referralCode', { length: 50 }),
   kitOrderId: int('kitOrderId'),
   isActive: boolean('isActive').default(true),
   instagram: varchar('instagram', { length: 200 }),
@@ -397,7 +399,9 @@ export const cosplayTicketLedger = mysqlTable('cosplayTicketLedger', {
   id: int('id').autoincrement().primaryKey(),
   cosplayerId: int('cosplayerId').notNull(),
   amount: int('amount').notNull(),
+  cashAmount: decimal('cashAmount', { precision: 10, scale: 2 }),
   type: varchar('type', { length: 20 }).notNull(),
+  ledgerType: varchar('ledgerType', { length: 20 }).default('ticket'),
   description: varchar('description', { length: 500 }),
   submissionId: int('submissionId'),
   createdAt: timestamp('createdAt').defaultNow(),
@@ -411,5 +415,15 @@ export const cosplayDiscountCodes = mysqlTable('cosplayDiscountCodes', {
   ticketCost: int('ticketCost').notNull(),
   used: boolean('used').default(false),
   usedAt: timestamp('usedAt'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+export const cosplayCashWithdrawals = mysqlTable('cosplayCashWithdrawals', {
+  id: int('id').autoincrement().primaryKey(),
+  cosplayerId: int('cosplayerId').notNull(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  status: varchar('status', { length: 20 }).default('pending'),
+  notes: text('notes'),
+  processedAt: timestamp('processedAt'),
   createdAt: timestamp('createdAt').defaultNow(),
 });
