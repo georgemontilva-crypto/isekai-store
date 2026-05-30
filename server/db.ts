@@ -1054,10 +1054,11 @@ export async function approveCosplayApplication(input: {
   artisticName: string;
   tier: string;
   totalFollowers: number;
-  kitProductId: number;
+  kitProductId?: number | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
+
   const appRows = await db.select().from(cosplayApplications)
     .where(eq(cosplayApplications.id, input.applicationId)).limit(1);
   const app = appRows[0];
@@ -1067,23 +1068,12 @@ export async function approveCosplayApplication(input: {
     .set({ status: 'approved' })
     .where(eq(cosplayApplications.id, input.applicationId));
 
-  await db.insert(cosplayers).values({
-    userId: app.userId,
-    applicationId: input.applicationId,
-    artisticName: input.artisticName,
-    tier: input.tier,
-    totalFollowers: input.totalFollowers,
-    instagram: app.instagram,
-    tiktok: app.tiktok,
-    youtube: app.youtube,
-    facebook: app.facebook,
-    twitter: app.twitter,
-    ticketBalance: 0,
-  });
-
+  // Kit number secuencial — contar ANTES de insertar el nuevo cosplayer
   const [{ kitCount }] = await db.select({ kitCount: count() }).from(cosplayers);
   const kitNumber = String((kitCount ?? 0) + 1).padStart(4, '0');
   const orderNumber = `IW-KIT-${kitNumber}`;
+
+  // Crear orden del kit
   await db.insert(orders).values({
     orderNumber,
     userId: app.userId ?? undefined,
@@ -1097,9 +1087,53 @@ export async function approveCosplayApplication(input: {
     notes: `Kit de bienvenida Isekai Cosplay Guild — ${input.artisticName}`,
   });
 
+  // Obtener ID de la orden recién insertada
+  const [kitOrder] = await db.select().from(orders)
+    .where(eq(orders.orderNumber, orderNumber)).limit(1);
+
+  // Agregar item del producto kit si se configuró
+  if (kitOrder && input.kitProductId) {
+    const [kitProduct] = await db.select().from(products)
+      .where(eq(products.id, input.kitProductId)).limit(1);
+    await db.insert(orderItems).values({
+      orderId: kitOrder.id,
+      productId: input.kitProductId,
+      productName: kitProduct?.name ?? 'Kit de bienvenida',
+      price: kitProduct?.price ?? '0.00',
+      quantity: 1,
+    });
+  }
+
+  // Crear perfil de cosplayer con referencia al kit
+  await db.insert(cosplayers).values({
+    userId: app.userId,
+    applicationId: input.applicationId,
+    artisticName: input.artisticName,
+    tier: input.tier,
+    totalFollowers: input.totalFollowers,
+    instagram: app.instagram,
+    tiktok: app.tiktok,
+    youtube: app.youtube,
+    facebook: app.facebook,
+    twitter: app.twitter,
+    ticketBalance: 0,
+    kitOrderId: kitOrder?.id ?? null,
+    isActive: true,
+  });
+
   try {
     await notifyCosplayApproved(app.email, app.fullName, input.artisticName, input.tier);
   } catch { /* non-critical */ }
+
+  try {
+    await insertAdminNotification({
+      type: 'new_order',
+      title: `Kit ${orderNumber} generado`,
+      body: `Kit de bienvenida creado para ${input.artisticName} (${input.tier.toUpperCase()})`,
+    });
+  } catch { /* non-critical */ }
+
+  return { orderNumber, kitOrderId: kitOrder?.id ?? null };
 }
 
 export async function rejectCosplayApplication(input: { applicationId: number; reason: string }) {

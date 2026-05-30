@@ -34,7 +34,7 @@ import {
   getMyCosplayerDiscountCodes, getCosplayApplications, approveCosplayApplication,
   rejectCosplayApplication, getAllCosplayers, updateCosplayerTier, suspendCosplayer,
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
-  evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
+  evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers, getSetting,
 } from "./db";
 import { notifyWelcome } from "./_core/notification";
 
@@ -790,16 +790,11 @@ export const appRouter = router({
         artisticName: z.string().min(1).max(200),
         tier: z.enum(['bronce', 'plata', 'oro', 'diamante', 'platino']),
         totalFollowers: z.number(),
-        kitProductId: z.number(),
       }))
       .mutation(async ({ input }) => {
-        await approveCosplayApplication(input);
-        // Fetch app to get email for welcome notification
-        try {
-          const apps = await getCosplayApplications('approved');
-          const app = apps.find((a: any) => a.id === input.applicationId);
-          if (app?.email) await notifyWelcome(app.email, input.artisticName);
-        } catch { /* non-critical */ }
+        const kitSetting = await getSetting('cosplay_kit_product_id');
+        const kitProductId = kitSetting ? parseInt(kitSetting) : null;
+        return await approveCosplayApplication({ ...input, kitProductId });
       }),
 
     rejectApplication: adminProcedure

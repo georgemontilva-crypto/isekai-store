@@ -625,7 +625,7 @@ export default function Admin() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showApproveModal, setShowApproveModal] = useState<any>(null);
   const [showRejectModal, setShowRejectModal] = useState<any>(null);
-  const [approveForm, setApproveForm] = useState({ artisticName: '', tier: 'bronce', totalFollowers: 0, kitProductId: 0 });
+  const [approveForm, setApproveForm] = useState({ artisticName: '', tier: 'bronce', totalFollowers: 0 });
   const [rejectReason, setRejectReason] = useState('');
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post' as const, deadline: '' });
@@ -2492,6 +2492,35 @@ export default function Admin() {
                       </div>
                     ))}
                   </div>
+
+                  {/* Producto kit de bienvenida */}
+                  <div className="mt-5 pt-5 border-t border-border/30">
+                    <Label className="text-sm font-medium">Producto Kit de Bienvenida</Label>
+                    <p className="text-xs text-muted-foreground mb-2">ID del producto que se enviará automáticamente al aprobar un cosplayer</p>
+                    <div className="flex gap-2 items-center">
+                      <Input
+                        type="number"
+                        placeholder="Ej: 12"
+                        defaultValue={siteSettings?.["cosplay_kit_product_id"] ?? ""}
+                        onChange={e => setBannerDrafts(d => ({ ...d, cosplay_kit_product_id: e.target.value }))}
+                        className="bg-muted border-border/50 text-sm w-40"
+                      />
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["cosplay_kit_product_id"] ?? siteSettings?.["cosplay_kit_product_id"] ?? "";
+                          if (val) upsertSetting.mutate({ key: "cosplay_kit_product_id", value: val });
+                        }}
+                        disabled={!(bannerDrafts["cosplay_kit_product_id"] ?? siteSettings?.["cosplay_kit_product_id"])}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                      {siteSettings?.["cosplay_kit_product_id"] && (
+                        <span className="text-xs text-green-600 font-medium">Producto #{siteSettings["cosplay_kit_product_id"]} configurado</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
 
                 </div>{/* end grid */}
@@ -3323,7 +3352,7 @@ export default function Admin() {
                             </div>
                             {app.status === 'pending' && (
                               <div className="flex gap-2 shrink-0">
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ artisticName: app.fullName, tier: getTierByFollowers(0), totalFollowers: 0, kitProductId: 0 }); }}>
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ artisticName: app.fullName, tier: getTierByFollowers(0), totalFollowers: 0 }); }}>
                                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Aprobar
                                 </Button>
                                 <Button size="sm" variant="outline" className="border-red-400 text-red-500 hover:bg-red-50 text-xs" onClick={() => { setShowRejectModal(app); setRejectReason(''); }}>
@@ -3555,13 +3584,9 @@ export default function Admin() {
                               {approveForm.tier.toUpperCase()}
                             </div>
                           </div>
-                          <div>
-                            <Label className="text-xs">ID del producto kit</Label>
-                            <Input type="number" value={approveForm.kitProductId || ''} onChange={e => setApproveForm(f => ({ ...f, kitProductId: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="ID del producto de bienvenida" />
-                          </div>
                         </div>
                         <div className="flex gap-3 mt-5">
-                          <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={!approveForm.artisticName || approveApp.isPending} onClick={() => approveApp.mutate({ applicationId: showApproveModal.id, artisticName: approveForm.artisticName, tier: approveForm.tier as any, totalFollowers: approveForm.totalFollowers, kitProductId: approveForm.kitProductId })}>
+                          <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={!approveForm.artisticName || approveApp.isPending} onClick={() => approveApp.mutate({ applicationId: showApproveModal.id, artisticName: approveForm.artisticName, tier: approveForm.tier as any, totalFollowers: approveForm.totalFollowers })}>
                             {approveApp.isPending ? "Aprobando..." : "Confirmar aprobación"}
                           </Button>
                           <Button variant="outline" onClick={() => setShowApproveModal(null)}>Cancelar</Button>
