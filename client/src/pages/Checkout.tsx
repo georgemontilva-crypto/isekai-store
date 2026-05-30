@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, MessageCircle,
+  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, MessageCircle, Gift,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
@@ -75,10 +75,26 @@ export default function Checkout() {
     price: number;
   }>>([]);
 
+  const [referralCode, setReferralCode] = useState('');
+  const [referralCosplayer, setReferralCosplayer] = useState<any>(null);
+
   const sessionId = localStorage.getItem("isekai-session-id") ?? undefined;
 
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const createOrder = trpc.orders.create.useMutation();
+
+  const validateCode = trpc.cosplay.validateReferralCode.useQuery(
+    { code: referralCode.toUpperCase() },
+    { enabled: referralCode.length >= 8 }
+  );
+
+  useEffect(() => {
+    if (validateCode.data) {
+      setReferralCosplayer(validateCode.data);
+    } else {
+      setReferralCosplayer(null);
+    }
+  }, [validateCode.data]);
 
   const {
     register,
@@ -120,6 +136,9 @@ export default function Checkout() {
         notes: data.notes,
         paymentMethod: "whatsapp",
         country: selectedCountry,
+        referralCode: referralCosplayer ? referralCode : undefined,
+        referralCosplayerId: referralCosplayer?.id,
+        hasSecretGift: !!referralCosplayer,
         items: items.map((item) => ({
           productId: item.productId,
           variantId: item.variantId,
@@ -310,6 +329,44 @@ export default function Checkout() {
                   className="w-full bg-muted border border-border/50 rounded-xl px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 resize-none"
                   placeholder={t.checkout.notes}
                 />
+              </div>
+
+              {/* Referral code */}
+              <div className="p-6 rounded-2xl bg-card border border-border/50">
+                <h2 className="font-semibold text-lg mb-4">
+                  Código de referido <span className="text-muted-foreground font-normal text-sm">(opcional)</span>
+                </h2>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={referralCode}
+                    onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                    placeholder="ISK-NOMBRE-0000"
+                    className="w-full bg-muted border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 uppercase tracking-wider"
+                  />
+                  {referralCosplayer && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <CheckCircle size={16} className="text-green-500" />
+                    </div>
+                  )}
+                </div>
+                {referralCosplayer && (
+                  <div className="mt-2 flex items-center gap-2 text-sm text-green-600">
+                    <CheckCircle size={14} />
+                    <span>Código de <strong>{referralCosplayer.artisticName}</strong> aplicado</span>
+                  </div>
+                )}
+                {referralCode.length >= 8 && !referralCosplayer && !validateCode.isLoading && (
+                  <p className="mt-2 text-sm text-destructive">Código no válido</p>
+                )}
+                {referralCosplayer && (
+                  <div className="mt-3 flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
+                    <Gift size={16} className="text-orange-500 flex-shrink-0" />
+                    <p className="text-sm text-orange-700">
+                      <strong>¡Obsequio secreto incluido!</strong> Recibirás una sorpresa especial con tu pedido.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
 

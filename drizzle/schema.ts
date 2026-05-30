@@ -147,6 +147,9 @@ export const orders = mysqlTable("orders", {
   receiptUrl: text("receiptUrl"),
   receiptHolder: varchar("receiptHolder", { length: 256 }),
   country: varchar("country", { length: 64 }),
+  referralCode: varchar("referralCode", { length: 50 }),
+  referralCosplayerId: int("referralCosplayerId"),
+  hasSecretGift: boolean("hasSecretGift").default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -423,6 +426,8 @@ export const cosplayCashWithdrawals = mysqlTable('cosplayCashWithdrawals', {
   cosplayerId: int('cosplayerId').notNull(),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
   status: varchar('status', { length: 20 }).default('pending'),
+  paymentMethod: varchar('paymentMethod', { length: 100 }),
+  paymentDetails: text('paymentDetails'),
   notes: text('notes'),
   processedAt: timestamp('processedAt'),
   createdAt: timestamp('createdAt').defaultNow(),

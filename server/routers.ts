@@ -4,7 +4,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { notifyOwner, notifyCustomerOrderStatus } from "./_core/notification";
+import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned } from "./_core/notification";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
@@ -34,7 +34,9 @@ import {
   getMyCosplayerDiscountCodes, getCosplayApplications, approveCosplayApplication,
   rejectCosplayApplication, getAllCosplayers, updateCosplayerTier, suspendCosplayer,
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
-  evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers, getSetting,
+  evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
+  getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
+  processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
 } from "./db";
 import { notifyWelcome } from "./_core/notification";
 
@@ -274,6 +276,9 @@ export const appRouter = router({
         notes: z.string().max(1000).optional(),
         paymentMethod: z.string().max(50).optional(),
         country: z.string().max(100).optional(),
+        referralCode: z.string().max(50).optional(),
+        referralCosplayerId: z.number().optional(),
+        hasSecretGift: z.boolean().optional(),
         items: z.array(z.object({
           productId: z.number(),
           variantId: z.number().nullable().optional(),
@@ -422,6 +427,27 @@ export const appRouter = router({
         try {
           await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, title, body);
         } catch { /* non-critical */ }
+
+        // Acreditar 2% al cosplayer referidor si el pago fue aprobado
+        if (input.approved && (order as any).referralCosplayerId) {
+          try {
+            const orderTotal = parseFloat(order.total);
+            const cashReward = parseFloat((orderTotal * 0.02).toFixed(2));
+            await creditCashToReferrer((order as any).referralCosplayerId, cashReward, order.orderNumber);
+            const cosplayer = await getCosplayerById((order as any).referralCosplayerId);
+            if (cosplayer?.userId) {
+              if (io) {
+                io.to(`user:${cosplayer.userId}`).emit("notification:new");
+                io.to(`user:${cosplayer.userId}`).emit("order:updated", {});
+              }
+              const referrerUser = await getUserById(cosplayer.userId);
+              if (referrerUser?.email) {
+                await notifyCosplayReferralEarned(referrerUser.email, cosplayer.artisticName, cashReward, order.orderNumber);
+              }
+            }
+          } catch (e) { console.error("[Referral] Failed to credit referral cash:", e); }
+        }
+
         return { success: true };
       }),
 
@@ -857,6 +883,60 @@ export const appRouter = router({
     getAllSubmissions: adminProcedure
       .input(z.object({ status: z.string().optional() }))
       .query(({ input }) => getAllCosplaySubmissions(input.status)),
+
+    // ── Referral & Cash ──────────────────────────────────────────────────────
+    validateReferralCode: publicProcedure
+      .input(z.object({ code: z.string() }))
+      .query(({ input }) => getCosplayerByReferralCode(input.code.toUpperCase())),
+
+    requestWithdrawal: protectedProcedure
+      .input(z.object({
+        amount: z.number().min(20),
+        paymentMethod: z.string().min(1).max(100),
+        paymentDetails: z.string().min(1).max(500),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const cosplayer = await getCosplayerByUserId(ctx.user.id);
+        if (!cosplayer) throw new TRPCError({ code: 'FORBIDDEN' });
+        if (parseFloat(cosplayer.cashBalance ?? '0') < input.amount) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: `Saldo insuficiente. Tienes $${cosplayer.cashBalance} USD` });
+        }
+        await requestCashWithdrawal(cosplayer.id, input.amount, input.paymentMethod, input.paymentDetails);
+        try {
+          await notifyOwner({
+            title: `💵 Solicitud de retiro — ${cosplayer.artisticName}`,
+            content: `Monto: $${input.amount} USD\nMétodo: ${input.paymentMethod}\nDetalles: ${input.paymentDetails}`,
+          });
+        } catch { /* non-critical */ }
+        return { success: true };
+      }),
+
+    getWithdrawals: adminProcedure
+      .input(z.object({ status: z.string().optional() }))
+      .query(({ input }) => getCashWithdrawals(input.status)),
+
+    processWithdrawal: adminProcedure
+      .input(z.object({
+        withdrawalId: z.number(),
+        status: z.enum(['completed', 'rejected']),
+        notes: z.string().optional(),
+      }))
+      .mutation(async ({ input }) => {
+        await processWithdrawal(input.withdrawalId, input.status, input.notes);
+        return { success: true };
+      }),
+
+    applyCashToOrder: protectedProcedure
+      .input(z.object({ amount: z.number().min(0.01) }))
+      .mutation(async ({ ctx, input }) => {
+        const cosplayer = await getCosplayerByUserId(ctx.user.id);
+        if (!cosplayer) throw new TRPCError({ code: 'FORBIDDEN' });
+        if (parseFloat(cosplayer.cashBalance ?? '0') < input.amount) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Saldo insuficiente' });
+        }
+        await deductCosplayerCash(cosplayer.id, input.amount);
+        return { success: true, newBalance: parseFloat(cosplayer.cashBalance ?? '0') - input.amount };
+      }),
   }),
 
   // ─── Admin Dashboard ────────────────────────────────────────────────────────────────────────────────

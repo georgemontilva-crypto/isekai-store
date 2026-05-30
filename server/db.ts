@@ -390,6 +390,9 @@ export async function createOrder(data: {
   notes?: string;
   paymentMethod?: string;
   country?: string;
+  referralCode?: string;
+  referralCosplayerId?: number;
+  hasSecretGift?: boolean;
   items: Array<{
     productId: number;
     variantId?: number;
@@ -417,6 +420,9 @@ export async function createOrder(data: {
     notes: data.notes,
     paymentMethod: data.paymentMethod,
     country: data.country,
+    referralCode: data.referralCode,
+    referralCosplayerId: data.referralCosplayerId,
+    hasSecretGift: data.hasSecretGift ?? false,
     status: "pending",
     paymentStatus: "pending",
   });
@@ -1106,6 +1112,14 @@ export async function approveCosplayApplication(input: {
     });
   }
 
+  // Generar código de referido único
+  const nameSlug = artisticName
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .slice(0, 8);
+  const randomPart = Math.floor(1000 + Math.random() * 9000);
+  const referralCode = `ISK-${nameSlug}-${randomPart}`;
+
   // Crear perfil de cosplayer con referencia al kit
   await db.insert(cosplayers).values({
     userId: app.userId,
@@ -1123,6 +1137,8 @@ export async function approveCosplayApplication(input: {
     facebook: app.facebook,
     twitter: app.twitter,
     ticketBalance: 0,
+    cashBalance: '0.00',
+    referralCode,
     kitOrderId: kitOrder?.id ?? null,
     isActive: true,
   });
@@ -1400,4 +1416,34 @@ export async function processWithdrawal(id: number, status: string, notes?: stri
       .set({ cashBalance: sql`cashBalance + ${withdrawal.amount}` })
       .where(eq(cosplayers.id, withdrawal.cosplayerId));
   }
+}
+
+export async function getUserById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return result[0] ?? null;
+}
+
+export async function requestCashWithdrawal(cosplayerId: number, amount: number, paymentMethod: string, paymentDetails: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayers)
+    .set({ cashBalance: sql`cashBalance - ${amount}` })
+    .where(eq(cosplayers.id, cosplayerId));
+  await db.insert(cosplayCashWithdrawals).values({
+    cosplayerId,
+    amount: String(amount),
+    paymentMethod,
+    paymentDetails,
+    status: 'pending',
+  });
+}
+
+export async function deductCosplayerCash(cosplayerId: number, amount: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayers)
+    .set({ cashBalance: sql`cashBalance - ${amount}` })
+    .where(eq(cosplayers.id, cosplayerId));
 }

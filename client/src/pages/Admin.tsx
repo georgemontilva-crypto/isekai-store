@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -196,6 +196,23 @@ function AdminOrderDetail({
 
   return (
     <div className="border-t border-border/30 pt-4 mt-3 space-y-5">
+      {/* Referral / gift badges */}
+      {(order.hasSecretGift || order.referralCode) && (
+        <div className="flex flex-wrap gap-2">
+          {order.hasSecretGift && (
+            <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm text-orange-700">
+              <Gift className="w-4 h-4 flex-shrink-0" />
+              <span><strong>Obsequio secreto</strong> — incluir en el paquete</span>
+            </div>
+          )}
+          {order.referralCode && (
+            <p className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 border border-border/30">
+              Código de referido: <strong className="text-foreground">{order.referralCode}</strong>
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Items */}
       {detail?.items && detail.items.length > 0 && (
         <div>
@@ -619,7 +636,7 @@ export default function Admin() {
   const [showLinkForm, setShowLinkForm] = useState(false);
 
   // Cosplay state
-  const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'>('applications');
+  const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'|'withdrawals'>('applications');
   const [cosplayAppFilter, setCosplayAppFilter] = useState('pending');
   const [cosplaySubFilter, setCosplaySubFilter] = useState('pending');
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
@@ -751,6 +768,14 @@ export default function Admin() {
   const createActivity = trpc.cosplay.createActivity.useMutation({ onSuccess: () => { refetchActivities(); setShowActivityModal(false); toast.success("Actividad creada"); } });
   const toggleActivity = trpc.cosplay.toggleActivity.useMutation({ onSuccess: () => refetchActivities() });
   const evaluateSub = trpc.cosplay.evaluateSubmission.useMutation({ onSuccess: () => { refetchSubs(); setShowEvalModal(null); toast.success("Evaluación guardada"); } });
+  const { data: withdrawalsData = [], refetch: refetchWithdrawals } = trpc.cosplay.getWithdrawals.useQuery(
+    { status: undefined },
+    { enabled: isAuthenticated && user?.role === "admin" }
+  );
+  const processWithdrawalMut = trpc.cosplay.processWithdrawal.useMutation({
+    onSuccess: () => { refetchWithdrawals(); toast.success("Retiro procesado"); },
+    onError: (e) => toast.error(e.message),
+  });
 
   const moveLinkUp = (i: number) => {
     if (i === 0) return;
@@ -1402,6 +1427,21 @@ export default function Admin() {
 
                         {isExpanded && (
                           <div className="px-4 pb-4 space-y-4 border-t border-border/30 pt-4">
+                            {(order.hasSecretGift || order.referralCode) && (
+                              <div className="flex flex-wrap gap-2">
+                                {order.hasSecretGift && (
+                                  <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm text-orange-700">
+                                    <Gift className="w-4 h-4 flex-shrink-0" />
+                                    <span><strong>Obsequio secreto</strong> — incluir en el paquete</span>
+                                  </div>
+                                )}
+                                {order.referralCode && (
+                                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 border border-border/30">
+                                    Referido: <strong className="text-foreground">{order.referralCode}</strong>
+                                  </p>
+                                )}
+                              </div>
+                            )}
                             <div className="grid sm:grid-cols-2 gap-3 text-sm">
                               <div><span className="text-muted-foreground">Método:</span> <span className="font-medium">{order.paymentMethod ?? "—"}</span></div>
                               <div><span className="text-muted-foreground">País:</span> <span className="font-medium">{order.country ?? "—"}</span></div>
@@ -3293,6 +3333,7 @@ export default function Admin() {
                     { id: 'cosplayers', label: `Cosplayers (${cosplayersData.length})` },
                     { id: 'activities', label: `Actividades (${cosplayActivities.length})` },
                     { id: 'evaluations', label: `Evaluaciones (${cosplaySubs.filter((s: any) => s.status === 'pending').length})` },
+                    { id: 'withdrawals', label: `Retiros (${(withdrawalsData as any[]).filter((w: any) => w.status === 'pending').length})` },
                   ] as const).map(st => (
                     <button
                       key={st.id}
@@ -3482,6 +3523,51 @@ export default function Admin() {
                         </div>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* RETIROS */}
+                {cosplaySubTab === 'withdrawals' && (
+                  <div className="space-y-3">
+                    {(withdrawalsData as any[]).length === 0 && (
+                      <p className="text-muted-foreground text-sm py-8 text-center">No hay retiros</p>
+                    )}
+                    {(withdrawalsData as any[]).map((w: any) => (
+                      <div key={w.id} className="flex items-center justify-between p-4 border border-border/50 rounded-xl bg-card">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${w.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : w.status === 'completed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                              {w.status === 'pending' ? 'Pendiente' : w.status === 'completed' ? 'Completado' : 'Rechazado'}
+                            </span>
+                            <span className="font-bold text-primary">${parseFloat(w.amount).toFixed(2)} USD</span>
+                          </div>
+                          <p className="text-sm font-medium">{w.paymentMethod}</p>
+                          <p className="text-xs text-muted-foreground">{w.paymentDetails}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{new Date(w.createdAt).toLocaleString('es-CO')}</p>
+                        </div>
+                        {w.status === 'pending' && (
+                          <div className="flex gap-2 ml-4 shrink-0">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700 text-white text-xs"
+                              disabled={processWithdrawalMut.isPending}
+                              onClick={() => processWithdrawalMut.mutate({ withdrawalId: w.id, status: 'completed' })}
+                            >
+                              <CheckCheck className="w-3.5 h-3.5 mr-1" /> Pagado
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="border-red-400 text-red-500 hover:bg-red-50 text-xs"
+                              disabled={processWithdrawalMut.isPending}
+                              onClick={() => processWithdrawalMut.mutate({ withdrawalId: w.id, status: 'rejected' })}
+                            >
+                              <Ban className="w-3.5 h-3.5 mr-1" /> Rechazar
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
 

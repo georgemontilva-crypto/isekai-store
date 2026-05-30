@@ -273,3 +273,28 @@ export async function notifyCosplayRejected(
     'Hemos revisado tu solicitud al Cosplay Guild.',
   );
 }
+
+export async function notifyCosplayReferralEarned(
+  userEmail: string,
+  artisticName: string,
+  cashReward: number,
+  orderNumber: string,
+): Promise<boolean> {
+  const content = `
+    <h1>¡Nuevo ingreso en tu billetera!</h1>
+    <p>Hola <strong>${artisticName}</strong>, una persona usó tu código de referido y completó una compra.</p>
+    <div class="order-box">
+      <p><strong>Cash acreditado:</strong> <span class="highlight">$${cashReward.toFixed(2)} USD</span></p>
+      <p><strong>Orden:</strong> ${orderNumber}</p>
+    </div>
+    <div style="text-align:center">
+      <a href="${APP_URL}/cosplay/dashboard" class="btn">Ver mi billetera →</a>
+    </div>
+  `;
+  return sendEmail(
+    userEmail,
+    '💵 ¡Ganaste cash por referido!',
+    content,
+    `+$${cashReward.toFixed(2)} USD en tu billetera`,
+  );
+}

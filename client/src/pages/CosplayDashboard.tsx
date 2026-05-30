@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "wouter";
-import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload } from "lucide-react";
+import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift } from "lucide-react";
 import { getLoginUrl } from "@/const";
 
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
@@ -51,6 +51,8 @@ export default function CosplayDashboard() {
   const [offsetY, setOffsetY] = useState(0);
   const [submitModal, setSubmitModal] = useState<any>(null);
   const [evidenceUrl, setEvidenceUrl] = useState("");
+  const [showWithdraw, setShowWithdraw] = useState(false);
+  const [withdrawForm, setWithdrawForm] = useState({ amount: '', paymentMethod: '', paymentDetails: '' });
   const [profileForm, setProfileForm] = useState({
     artisticName: "", bio: "", photo: "", bannerImage: "",
     instagram: "", tiktok: "", youtube: "", facebook: "", twitter: "",
@@ -108,6 +110,24 @@ export default function CosplayDashboard() {
     onSuccess: (data: any) => { utils.cosplay.getMyTickets.invalidate(); utils.cosplay.getMyDiscountCodes.invalidate(); toast.success(`Código generado: ${data.code}`); },
     onError: (e) => toast.error(e.message),
   });
+
+  const requestWithdrawal = trpc.cosplay.requestWithdrawal.useMutation({
+    onSuccess: () => {
+      utils.cosplay.getMyProfile.invalidate();
+      setShowWithdraw(false);
+      setWithdrawForm({ amount: '', paymentMethod: '', paymentDetails: '' });
+      toast.success('Solicitud de retiro enviada');
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const handleWithdraw = () => {
+    const amount = parseFloat(withdrawForm.amount);
+    if (!amount || amount < 20) { toast.error('Monto mínimo: $20 USD'); return; }
+    if (!withdrawForm.paymentMethod) { toast.error('Selecciona un método de pago'); return; }
+    if (!withdrawForm.paymentDetails) { toast.error('Ingresa los datos de pago'); return; }
+    requestWithdrawal.mutate({ amount, paymentMethod: withdrawForm.paymentMethod, paymentDetails: withdrawForm.paymentDetails });
+  };
 
   const toBase64 = (file: File): Promise<string> =>
     new Promise((res, rej) => {
@@ -470,28 +490,153 @@ export default function CosplayDashboard() {
 
             {/* ── BILLETERA ── */}
             {activeTab === "wallet" && (
-              <div>
-                <div className="p-6 rounded-2xl bg-[#1a1a1a] border-t-4 mb-8" style={{ borderColor: tierColor }}>
-                  <p className="text-[#888] text-sm mb-1">Balance actual</p>
-                  <p className="text-5xl font-black" style={{ color: tierColor }}>{balance.toLocaleString()}</p>
-                  <p className="text-[#555] text-sm mt-1">tickets disponibles</p>
-                </div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#555] mb-3">Historial</p>
-                <div className="space-y-2">
-                  {(tickets?.ledger ?? []).length === 0 && (
-                    <div className="text-center py-12 border border-[#222] rounded-2xl">
-                      <p className="text-[#555] text-sm">Sin movimientos aún.</p>
+              <div className="max-w-2xl mx-auto">
+
+                {/* Balance cards */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
+                    <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Tickets</p>
+                    <p className="text-4xl font-black text-white">{balance.toLocaleString()}</p>
+                    <p className="text-[#555] text-xs mt-1">Para canjear por descuentos</p>
+                    <button
+                      onClick={() => setActiveTab('redeem')}
+                      className="mt-4 w-full bg-[#e5007d] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#c4006b] transition-colors"
+                    >
+                      Canjear →
+                    </button>
+                  </div>
+
+                  <div className="bg-[#1a1a1a] border border-[#ffd700]/30 rounded-2xl p-6">
+                    <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Cash USD</p>
+                    <p className="text-4xl font-black text-[#ffd700]">
+                      ${parseFloat((cosplayer as any).cashBalance ?? '0').toFixed(2)}
+                    </p>
+                    <p className="text-[#555] text-xs mt-1">Consumible o retirable</p>
+                    <div className="flex gap-2 mt-4">
+                      <button
+                        disabled={parseFloat((cosplayer as any).cashBalance ?? '0') < 20}
+                        onClick={() => setShowWithdraw(true)}
+                        className="flex-1 bg-[#1a1a1a] border border-[#ffd700]/50 text-[#ffd700] py-2 rounded-xl text-xs font-bold disabled:opacity-40 hover:bg-[#222] transition-colors"
+                      >
+                        Retirar
+                      </button>
                     </div>
-                  )}
+                    {parseFloat((cosplayer as any).cashBalance ?? '0') < 20 && (
+                      <p className="text-[#555] text-[10px] mt-2 text-center">Mínimo $20 USD para retirar</p>
+                    )}
+                  </div>
+                </div>
+
+                {/* Referral code */}
+                <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 mb-8">
+                  <p className="text-[#888] text-xs uppercase tracking-widest mb-3">Mi código de referido</p>
+                  <div className="flex items-center justify-between bg-[#0d0d0d] border border-dashed border-[#e5007d]/50 rounded-xl px-5 py-4">
+                    <span className="text-[#e5007d] font-black tracking-widest text-lg">
+                      {(cosplayer as any).referralCode ?? '—'}
+                    </span>
+                    {(cosplayer as any).referralCode && (
+                      <button
+                        onClick={() => { navigator.clipboard.writeText((cosplayer as any).referralCode); toast.success('Código copiado'); }}
+                        className="text-xs text-[#888] hover:text-white transition-colors flex items-center gap-1"
+                      >
+                        <Copy size={14} /> Copiar
+                      </button>
+                    )}
+                  </div>
+                  <p className="text-[#555] text-xs mt-3 leading-relaxed">
+                    Comparte este código con tus seguidores. Cada vez que alguien compre usándolo y su pago sea confirmado,
+                    recibirás el <strong className="text-[#ffd700]">2% del valor de la compra en USD</strong> en tu billetera.
+                    Además, quien lo use recibe un <strong className="text-white">obsequio secreto</strong> con su pedido.
+                  </p>
+                </div>
+
+                {/* Movement history */}
+                <p className="text-[#888] text-xs uppercase tracking-widest mb-4">Historial de movimientos</p>
+                <div className="flex flex-col gap-2">
                   {(tickets?.ledger ?? []).map((e: any) => (
-                    <div key={e.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-[#1a1a1a] border border-[#333] text-sm">
-                      <span className="text-[#ccc]">{e.description}</span>
-                      <span className={`font-bold ${e.amount > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                        {e.amount > 0 ? '+' : ''}{e.amount}
-                      </span>
+                    <div key={e.id} className="flex items-center justify-between bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3">
+                      <div>
+                        <p className="text-white text-sm font-medium">{e.description}</p>
+                        <p className="text-[#555] text-xs">{new Date(e.createdAt).toLocaleDateString('es-CO')}</p>
+                      </div>
+                      <div className="text-right">
+                        {e.amount > 0 && <p className="text-green-400 font-bold text-sm">+{e.amount} tickets</p>}
+                        {parseFloat(e.cashAmount ?? '0') > 0 && (
+                          <p className="text-[#ffd700] font-bold text-sm">+${parseFloat(e.cashAmount).toFixed(2)} USD</p>
+                        )}
+                        {e.amount < 0 && <p className="text-red-400 font-bold text-sm">{e.amount} tickets</p>}
+                      </div>
                     </div>
                   ))}
+                  {(!tickets?.ledger || tickets.ledger.length === 0) && (
+                    <p className="text-center text-[#555] text-sm py-8">Sin movimientos aún</p>
+                  )}
                 </div>
+
+                {/* Withdrawal modal */}
+                {showWithdraw && (
+                  <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
+                    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 w-full max-w-md">
+                      <h3 className="text-white font-black text-lg mb-4">Solicitar retiro</h3>
+                      <p className="text-[#888] text-sm mb-4">
+                        Balance disponible: <strong className="text-[#ffd700]">${parseFloat((cosplayer as any).cashBalance ?? '0').toFixed(2)} USD</strong>
+                      </p>
+                      <div className="flex flex-col gap-4">
+                        <div>
+                          <label className="text-[#ccc] text-sm mb-1 block">Monto a retirar (mín. $20 USD)</label>
+                          <input
+                            type="number"
+                            min={20}
+                            max={parseFloat((cosplayer as any).cashBalance ?? '0')}
+                            value={withdrawForm.amount}
+                            onChange={e => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
+                            className="w-full bg-[#222] border border-[#333] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d]"
+                            placeholder="20.00"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[#ccc] text-sm mb-1 block">Método de pago</label>
+                          <select
+                            value={withdrawForm.paymentMethod}
+                            onChange={e => setWithdrawForm({ ...withdrawForm, paymentMethod: e.target.value })}
+                            className="w-full bg-[#222] border border-[#333] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d]"
+                          >
+                            <option value="">Selecciona método</option>
+                            <option value="binance">Binance Pay</option>
+                            <option value="zelle">Zelle</option>
+                            <option value="pago_movil">Pago Móvil</option>
+                            <option value="paypal">PayPal</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[#ccc] text-sm mb-1 block">Datos de pago</label>
+                          <textarea
+                            value={withdrawForm.paymentDetails}
+                            onChange={e => setWithdrawForm({ ...withdrawForm, paymentDetails: e.target.value })}
+                            placeholder="Email de Binance, número de Zelle, etc."
+                            rows={3}
+                            className="w-full bg-[#222] border border-[#333] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d] resize-none"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-6">
+                        <button
+                          onClick={() => setShowWithdraw(false)}
+                          className="flex-1 border border-[#333] text-[#888] py-3 rounded-xl text-sm"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={handleWithdraw}
+                          disabled={requestWithdrawal.isPending}
+                          className="flex-1 bg-[#ffd700] text-black py-3 rounded-xl text-sm font-bold disabled:opacity-50"
+                        >
+                          {requestWithdrawal.isPending ? 'Enviando...' : 'Solicitar retiro'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
