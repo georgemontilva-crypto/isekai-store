@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { openLoginModal } from "@/const";
 import { toast } from "sonner";
-import { CheckCircle2, ArrowLeft, ChevronDown } from "lucide-react";
+import { CheckCircle2, ArrowLeft, ChevronDown, Sparkles } from "lucide-react";
 import { Link } from "wouter";
 
 const COUNTRIES = [
@@ -72,7 +73,7 @@ function DarkSelect({
 }
 
 export default function CosplayApply() {
-  const { user } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     fullName: "", lastName: "", age: "", city: "", country: "Colombia",
@@ -111,6 +112,36 @@ export default function CosplayApply() {
       whyIsekai: form.whyIsekai,
     });
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-[#333] border-t-[#e5007d] rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center px-4">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md text-center">
+          <Sparkles size={48} className="text-[#e5007d] mx-auto mb-6" strokeWidth={1.5} />
+          <h2 className="text-3xl font-black text-white mb-3">Primero crea tu cuenta</h2>
+          <p className="text-[#888] mb-8 leading-relaxed">
+            Para postularte al Cosplay Guild necesitas tener una cuenta en Isekai World.
+            Es rápido y gratuito.
+          </p>
+          <button
+            onClick={openLoginModal}
+            className="w-full bg-[#e5007d] text-white py-4 rounded-full font-bold text-lg hover:bg-[#c4006b] transition-colors"
+          >
+            Crear cuenta o iniciar sesión
+          </button>
+          <p className="text-[#555] text-sm mt-4">¿Ya tienes cuenta? El mismo botón te lleva al login.</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   if (submitted) {
     return (
