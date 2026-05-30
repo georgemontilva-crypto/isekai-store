@@ -1,6 +1,8 @@
 import "dotenv/config";
 import { validateEnv } from "./env";
 validateEnv();
+console.log('[DB] DATABASE_URL configured:', !!process.env.DATABASE_URL);
+console.log('[DB] DATABASE_URL prefix:', process.env.DATABASE_URL?.slice(0, 20));
 import crypto from "crypto";
 import express from "express";
 import compression from "compression";
