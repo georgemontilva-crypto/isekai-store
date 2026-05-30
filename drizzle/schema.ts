@@ -323,6 +323,7 @@ export type InsertPopup = typeof popups.$inferInsert;
 export const cosplayApplications = mysqlTable('cosplayApplications', {
   id: int('id').autoincrement().primaryKey(),
   userId: int('userId'),
+  artisticName: varchar('artisticName', { length: 200 }),
   fullName: varchar('fullName', { length: 200 }).notNull(),
   lastName: varchar('lastName', { length: 200 }).notNull(),
   age: int('age').notNull(),

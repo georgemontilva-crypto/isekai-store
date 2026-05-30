@@ -721,6 +721,7 @@ export const appRouter = router({
     submitApplication: publicProcedure
       .input(z.object({
         userId: z.number().optional(),
+        artisticName: z.string().min(1).max(200),
         fullName: z.string().min(1).max(200),
         lastName: z.string().min(1).max(200),
         age: z.number().min(16).max(99),
@@ -779,6 +780,16 @@ export const appRouter = router({
 
     getMyDiscountCodes: protectedProcedure.query(({ ctx }) => getMyCosplayerDiscountCodes(ctx.user.id)),
 
+    uploadImage: protectedProcedure
+      .input(z.object({ fileName: z.string().max(256), contentType: z.string().max(100), base64Data: z.string() }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.base64Data, 'base64');
+        validateUpload(input.contentType, buffer);
+        const key = `cosplay/${Date.now()}-${input.fileName.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+        const { url } = await storagePut(key, buffer, input.contentType);
+        return { url };
+      }),
+
     // Admin
     getApplications: adminProcedure
       .input(z.object({ status: z.string().optional() }))
@@ -787,7 +798,6 @@ export const appRouter = router({
     approveApplication: adminProcedure
       .input(z.object({
         applicationId: z.number(),
-        artisticName: z.string().min(1).max(200),
         tier: z.enum(['bronce', 'plata', 'oro', 'diamante', 'platino']),
         totalFollowers: z.number(),
       }))

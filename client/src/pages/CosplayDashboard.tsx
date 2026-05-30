@@ -4,13 +4,19 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "wouter";
-import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X } from "lucide-react";
+import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus } from "lucide-react";
 import { getLoginUrl } from "@/const";
 
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
 
 const TIER_MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
-const TIER_COLORS:     Record<string, string>  = { bronce: "#cd7f32", plata: "#c0c0c0", oro: "#ffd700", diamante: "#b9f2ff", platino: "#e8e8e8" };
+
+export function getTierColor(tier: string): string {
+  const colors: Record<string, string> = {
+    bronce: "#cd7f32", plata: "#c0c0c0", oro: "#ffd700", diamante: "#7dd3fc", platino: "#e8e8e8",
+  };
+  return colors[tier] ?? "#e5007d";
+}
 
 const DISCOUNT_OPTIONS = [
   { pct: 10, cost: 500,  label: "Descuento básico" },
@@ -45,7 +51,11 @@ export default function CosplayDashboard() {
   const [offsetY, setOffsetY] = useState(0);
   const [submitModal, setSubmitModal] = useState<any>(null);
   const [evidenceUrl, setEvidenceUrl] = useState("");
-  const [profileForm, setProfileForm] = useState({ bio: "", photo: "", instagram: "", tiktok: "", youtube: "", facebook: "", twitter: "" });
+  const [profileForm, setProfileForm] = useState({
+    artisticName: "", bio: "", photo: "",
+    instagram: "", tiktok: "", youtube: "", facebook: "", twitter: "",
+    gallery: [] as string[],
+  });
   const [profileInit, setProfileInit] = useState(false);
   const utils = trpc.useUtils();
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
@@ -61,7 +71,17 @@ export default function CosplayDashboard() {
     enabled: isAuthenticated,
     onSuccess: (cp: any) => {
       if (!profileInit && cp) {
-        setProfileForm({ bio: cp.bio ?? "", photo: cp.photo ?? "", instagram: cp.instagram ?? "", tiktok: cp.tiktok ?? "", youtube: cp.youtube ?? "", facebook: cp.facebook ?? "", twitter: cp.twitter ?? "" });
+        setProfileForm({
+          artisticName: cp.artisticName ?? "",
+          bio: cp.bio ?? "",
+          photo: cp.photo ?? "",
+          instagram: cp.instagram ?? "",
+          tiktok: cp.tiktok ?? "",
+          youtube: cp.youtube ?? "",
+          facebook: cp.facebook ?? "",
+          twitter: cp.twitter ?? "",
+          gallery: (cp.gallery as string[] | null) ?? [],
+        });
         setProfileInit(true);
       }
     },
@@ -69,12 +89,15 @@ export default function CosplayDashboard() {
 
   const { data: activities = [] } = trpc.cosplay.getActivities.useQuery();
   const { data: submissions = [] } = trpc.cosplay.getMySubmissions.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
-  const { data: tickets }         = trpc.cosplay.getMyTickets.useQuery(undefined,       { enabled: isAuthenticated && !!cosplayer });
+  const { data: tickets }           = trpc.cosplay.getMyTickets.useQuery(undefined,       { enabled: isAuthenticated && !!cosplayer });
   const { data: discountCodes = [] } = trpc.cosplay.getMyDiscountCodes.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
 
   const updateProfile = trpc.cosplay.updateMyProfile.useMutation({
     onSuccess: () => { utils.cosplay.getMyProfile.invalidate(); toast.success("Perfil actualizado"); },
     onError: (e) => toast.error(e.message),
+  });
+  const uploadImage = trpc.cosplay.uploadImage.useMutation({
+    onError: () => toast.error("Error al subir imagen"),
   });
   const submitActivity = trpc.cosplay.submitActivity.useMutation({
     onSuccess: () => { utils.cosplay.getMySubmissions.invalidate(); setSubmitModal(null); setEvidenceUrl(""); toast.success("Actividad enviada"); },
@@ -84,6 +107,47 @@ export default function CosplayDashboard() {
     onSuccess: (data: any) => { utils.cosplay.getMyTickets.invalidate(); utils.cosplay.getMyDiscountCodes.invalidate(); toast.success(`Código generado: ${data.code}`); },
     onError: (e) => toast.error(e.message),
   });
+
+  const toBase64 = (file: File): Promise<string> =>
+    new Promise((res, rej) => {
+      const reader = new FileReader();
+      reader.onload = ev => res((ev.target?.result as string).split(",")[1]);
+      reader.onerror = rej;
+      reader.readAsDataURL(file);
+    });
+
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64Data = await toBase64(file);
+    const { url } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data });
+    setProfileForm(f => ({ ...f, photo: url }));
+    toast.success("Foto actualizada");
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64Data = await toBase64(file);
+    const { url } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data });
+    setProfileForm(f => ({ ...f, gallery: [...f.gallery, url] }));
+    toast.success("Foto agregada");
+  };
+
+  const removeGalleryImage = (i: number) =>
+    setProfileForm(f => ({ ...f, gallery: f.gallery.filter((_, idx) => idx !== i) }));
+
+  const handleSaveProfile = () =>
+    updateProfile.mutate({
+      bio: profileForm.bio || undefined,
+      photo: profileForm.photo || undefined,
+      gallery: profileForm.gallery,
+      instagram: profileForm.instagram || undefined,
+      tiktok: profileForm.tiktok || undefined,
+      youtube: profileForm.youtube || undefined,
+      facebook: profileForm.facebook || undefined,
+      twitter: profileForm.twitter || undefined,
+    });
 
   if (loading || cpLoading) {
     return (
@@ -120,17 +184,17 @@ export default function CosplayDashboard() {
     );
   }
 
-  const tierColor  = TIER_COLORS[cosplayer.tier ?? 'bronce'] ?? '#cd7f32';
+  const tierColor  = getTierColor(cosplayer.tier ?? 'bronce');
   const multiplier = TIER_MULTIPLIERS[cosplayer.tier ?? 'bronce'] ?? 1;
   const balance    = tickets?.balance ?? 0;
 
-  const inputCls = "w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-[#333] text-white placeholder-[#555] outline-none focus:border-[#e5007d] text-sm transition-colors";
-  const labelCls = "block text-xs font-semibold uppercase tracking-wider text-[#888] mb-1.5";
+  const inputCls = "w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors";
+  const labelCls = "block text-[#ccc] text-sm font-medium mb-2";
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] pb-20">
 
-      {/* Header — same structure as Account */}
+      {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -144,20 +208,14 @@ export default function CosplayDashboard() {
       >
         <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(13,13,13,0.5) 0%, rgba(13,13,13,1) 100%)' }} />
         <div className="relative z-10 flex flex-col items-center gap-3 text-center px-4">
-          <div
-            className="w-20 h-20 rounded-full overflow-hidden border-[3px] bg-[#222]"
-            style={{ borderColor: tierColor }}
-          >
+          <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] bg-[#222]" style={{ borderColor: tierColor }}>
             {cosplayer.photo
               ? <img src={cosplayer.photo} className="w-full h-full object-cover" alt="" />
-              : <div className="w-full h-full flex items-center justify-center text-3xl font-black" style={{ color: tierColor }}>{cosplayer.artisticName[0]}</div>
+              : <div className="w-full h-full flex items-center justify-center"><User size={32} className="text-[#555]" /></div>
             }
           </div>
           <h1 className="text-xl font-black text-white">{cosplayer.artisticName}</h1>
-          <span
-            className="text-xs px-3 py-1 rounded-full font-bold capitalize"
-            style={{ backgroundColor: tierColor, color: '#000' }}
-          >
+          <span className="text-xs px-3 py-1 rounded-full font-bold capitalize" style={{ backgroundColor: tierColor, color: '#000' }}>
             {(cosplayer.tier ?? 'bronce').toUpperCase()} ✓
           </span>
           <p className="text-[#888] text-sm">🎫 {balance.toLocaleString()} tickets · ×{multiplier} multiplicador</p>
@@ -166,7 +224,7 @@ export default function CosplayDashboard() {
 
       <div className="container max-w-4xl py-8">
 
-        {/* Tabs pills — identical pattern to Account */}
+        {/* Tabs */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -181,9 +239,7 @@ export default function CosplayDashboard() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  isActive
-                    ? "bg-[#e5007d] text-white"
-                    : "bg-[#1a1a1a] border border-[#333] text-[#888] hover:text-white hover:border-[#444]"
+                  isActive ? "bg-[#e5007d] text-white" : "bg-[#1a1a1a] border border-[#333] text-[#888] hover:text-white hover:border-[#444]"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
@@ -193,7 +249,6 @@ export default function CosplayDashboard() {
           })}
         </motion.div>
 
-        {/* Tab content */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab}
@@ -205,35 +260,104 @@ export default function CosplayDashboard() {
 
             {/* ── MI PERFIL ── */}
             {activeTab === "profile" && (
-              <div className="space-y-5">
-                <div>
-                  <label className={labelCls}>Foto de perfil (URL)</label>
-                  <input value={profileForm.photo} onChange={e => setProfileForm(f => ({ ...f, photo: e.target.value }))} placeholder="https://..." className={inputCls} />
-                  {profileForm.photo && (
-                    <div className="mt-2">
-                      <img src={profileForm.photo} className="w-16 h-16 rounded-full object-cover border-2" style={{ borderColor: tierColor }} />
-                    </div>
-                  )}
+              <div className="max-w-2xl mx-auto">
+
+                {/* Foto de perfil */}
+                <div className="flex flex-col items-center mb-8">
+                  <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 mb-3" style={{ borderColor: tierColor }}>
+                    {profileForm.photo
+                      ? <img src={profileForm.photo} className="w-full h-full object-cover" alt="" />
+                      : <div className="w-full h-full bg-[#222] flex items-center justify-center"><User size={40} className="text-[#555]" /></div>
+                    }
+                    {uploadImage.isPending && (
+                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      </div>
+                    )}
+                  </div>
+                  <label className="cursor-pointer text-sm text-[#e5007d] font-semibold hover:underline">
+                    Cambiar foto
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                  </label>
                 </div>
-                <div>
-                  <label className={labelCls}>Bio</label>
-                  <textarea rows={4} value={profileForm.bio} onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))} placeholder="Cuéntanos sobre ti y tu experiencia en cosplay..." className={inputCls + " resize-none"} />
-                </div>
-                <div className="grid sm:grid-cols-2 gap-4">
-                  {(['instagram', 'tiktok', 'youtube', 'facebook', 'twitter'] as const).map(k => (
-                    <div key={k}>
-                      <label className={labelCls}>{k}</label>
-                      <input value={(profileForm as any)[k]} onChange={e => setProfileForm(f => ({ ...f, [k]: e.target.value }))} placeholder="@usuario" className={inputCls} />
+
+                <div className="flex flex-col gap-4">
+
+                  {/* Nombre artístico — solo lectura */}
+                  <div>
+                    <label className={labelCls}>Nombre artístico</label>
+                    <input value={profileForm.artisticName} disabled className="w-full px-4 py-3 bg-[#111] border border-[#333] rounded-xl text-[#555] text-sm cursor-not-allowed" />
+                    <p className="text-[#555] text-xs mt-1">El nombre artístico no se puede cambiar. Contacta al admin.</p>
+                  </div>
+
+                  {/* Bio */}
+                  <div>
+                    <label className={labelCls}>Biografía</label>
+                    <textarea
+                      rows={4}
+                      value={profileForm.bio}
+                      onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))}
+                      placeholder="Cuéntale al mundo quién eres como cosplayer..."
+                      className={inputCls + " resize-none"}
+                    />
+                  </div>
+
+                  {/* Redes sociales */}
+                  <p className="text-[#ccc] text-sm font-medium mt-2">Redes sociales</p>
+                  {[
+                    { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/tunombre' },
+                    { key: 'tiktok',    label: 'TikTok',    placeholder: 'https://tiktok.com/@tunombre' },
+                    { key: 'youtube',   label: 'YouTube',   placeholder: 'https://youtube.com/@tuchannel' },
+                    { key: 'facebook',  label: 'Facebook',  placeholder: 'https://facebook.com/tuperfil' },
+                    { key: 'twitter',   label: 'Twitter / X', placeholder: 'https://x.com/tunombre' },
+                  ].map(red => (
+                    <div key={red.key}>
+                      <label className="block text-[#888] text-xs mb-1">{red.label}</label>
+                      <input
+                        value={(profileForm as any)[red.key] ?? ''}
+                        onChange={e => setProfileForm(f => ({ ...f, [red.key]: e.target.value }))}
+                        placeholder={red.placeholder}
+                        className={inputCls}
+                      />
                     </div>
                   ))}
+
+                  {/* Galería */}
+                  <div>
+                    <label className={labelCls}>Galería de cosplays</label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {profileForm.gallery.map((img, i) => (
+                        <div key={i} className="relative aspect-square rounded-xl overflow-hidden group bg-[#1a1a1a]">
+                          <img src={img} className="w-full h-full object-cover" alt="" />
+                          <button
+                            onClick={() => removeGalleryImage(i)}
+                            className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X size={12} />
+                          </button>
+                        </div>
+                      ))}
+                      {profileForm.gallery.length < 9 && (
+                        <label className="aspect-square rounded-xl border-2 border-dashed border-[#333] flex items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors bg-[#1a1a1a]">
+                          {uploadImage.isPending ? (
+                            <div className="w-6 h-6 border-2 border-[#333] border-t-[#e5007d] rounded-full animate-spin" />
+                          ) : (
+                            <Plus size={24} className="text-[#555]" />
+                          )}
+                          <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} />
+                        </label>
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={handleSaveProfile}
+                    disabled={updateProfile.isPending}
+                    className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#c4006b] transition-colors disabled:opacity-50"
+                  >
+                    {updateProfile.isPending ? "Guardando..." : "Guardar cambios"}
+                  </button>
                 </div>
-                <button
-                  onClick={() => updateProfile.mutate(profileForm)}
-                  disabled={updateProfile.isPending}
-                  className="px-8 py-3 bg-[#e5007d] text-white rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors disabled:opacity-50"
-                >
-                  {updateProfile.isPending ? "Guardando..." : "Guardar cambios"}
-                </button>
               </div>
             )}
 
@@ -299,7 +423,6 @@ export default function CosplayDashboard() {
                     );
                   })}
                 </div>
-
                 {submissions.length > 0 && (
                   <>
                     <p className="text-xs font-bold uppercase tracking-wider text-[#555] mb-3">Mis envíos</p>
@@ -377,7 +500,6 @@ export default function CosplayDashboard() {
                     );
                   })}
                 </div>
-
                 {discountCodes.length > 0 && (
                   <>
                     <p className="text-xs font-bold uppercase tracking-wider text-[#555] mb-3">Mis códigos</p>

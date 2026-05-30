@@ -625,7 +625,7 @@ export default function Admin() {
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showApproveModal, setShowApproveModal] = useState<any>(null);
   const [showRejectModal, setShowRejectModal] = useState<any>(null);
-  const [approveForm, setApproveForm] = useState({ artisticName: '', tier: 'bronce', totalFollowers: 0 });
+  const [approveForm, setApproveForm] = useState({ tier: 'bronce', totalFollowers: 0 });
   const [rejectReason, setRejectReason] = useState('');
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post' as const, deadline: '' });
@@ -3352,7 +3352,7 @@ export default function Admin() {
                             </div>
                             {app.status === 'pending' && (
                               <div className="flex gap-2 shrink-0">
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ artisticName: app.fullName, tier: getTierByFollowers(0), totalFollowers: 0 }); }}>
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); }}>
                                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Aprobar
                                 </Button>
                                 <Button size="sm" variant="outline" className="border-red-400 text-red-500 hover:bg-red-50 text-xs" onClick={() => { setShowRejectModal(app); setRejectReason(''); }}>
@@ -3527,7 +3527,7 @@ export default function Admin() {
 
                           {selectedApplication.status === 'pending' && (
                             <div className="flex gap-3 pt-2">
-                              <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => { setShowApproveModal(selectedApplication); setApproveForm({ artisticName: selectedApplication.fullName, tier: getTierByFollowers(0), totalFollowers: 0, kitProductId: 0 }); setSelectedApplication(null); }}>
+                              <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => { setShowApproveModal(selectedApplication); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); setSelectedApplication(null); }}>
                                 <CheckCircle2 className="w-4 h-4 mr-2" /> Aprobar solicitud
                               </Button>
                               <Button variant="outline" className="flex-1 border-red-400 text-red-500 hover:bg-red-50" onClick={() => { setShowRejectModal(selectedApplication); setRejectReason(''); setSelectedApplication(null); }}>
@@ -3551,8 +3551,10 @@ export default function Admin() {
                         <p className="text-sm text-muted-foreground mb-5">{showApproveModal.fullName} {showApproveModal.lastName}</p>
                         <div className="space-y-3">
                           <div>
-                            <Label className="text-xs">Nombre artístico *</Label>
-                            <Input value={approveForm.artisticName} onChange={e => setApproveForm(f => ({ ...f, artisticName: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" />
+                            <Label className="text-xs">Nombre artístico (de la solicitud)</Label>
+                            <div className="mt-1 px-3 py-2.5 rounded-xl bg-muted/50 border border-border/30 text-sm font-semibold">
+                              {showApproveModal.artisticName ?? `${showApproveModal.fullName} ${showApproveModal.lastName}`}
+                            </div>
                           </div>
                           <div>
                             <Label className="text-xs">Seguidores totales (suma de todas las redes)</Label>
@@ -3586,7 +3588,7 @@ export default function Admin() {
                           </div>
                         </div>
                         <div className="flex gap-3 mt-5">
-                          <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={!approveForm.artisticName || approveApp.isPending} onClick={() => approveApp.mutate({ applicationId: showApproveModal.id, artisticName: approveForm.artisticName, tier: approveForm.tier as any, totalFollowers: approveForm.totalFollowers })}>
+                          <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={approveApp.isPending} onClick={() => approveApp.mutate({ applicationId: showApproveModal.id, tier: approveForm.tier as any, totalFollowers: approveForm.totalFollowers })}>
                             {approveApp.isPending ? "Aprobando..." : "Confirmar aprobación"}
                           </Button>
                           <Button variant="outline" onClick={() => setShowApproveModal(null)}>Cancelar</Button>

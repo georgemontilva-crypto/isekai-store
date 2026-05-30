@@ -76,7 +76,7 @@ export default function CosplayApply() {
   const { user, isAuthenticated, loading } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
-    fullName: "", lastName: "", age: "", city: "", country: "Colombia",
+    artisticName: "", fullName: "", lastName: "", age: "", city: "", country: "Colombia",
     address: "", phone: "", email: user?.email ?? "",
     experience: "", instagram: "", tiktok: "", youtube: "", facebook: "", twitter: "",
     totalFollowers: "", whyIsekai: "",
@@ -98,6 +98,7 @@ export default function CosplayApply() {
     if (!form.instagram && !form.tiktok && !form.youtube && !form.facebook && !form.twitter) { toast.error("Debes incluir al menos una red social."); return; }
     apply.mutate({
       userId: user?.id,
+      artisticName: form.artisticName,
       fullName: form.fullName,
       lastName: form.lastName,
       age: parseInt(form.age),
@@ -200,6 +201,18 @@ export default function CosplayApply() {
               <div className="flex items-center gap-3 mb-6">
                 <span className="w-7 h-7 rounded-full bg-[#e5007d] text-white text-xs flex items-center justify-center font-black shrink-0">1</span>
                 <h2 className="text-lg font-bold text-white">Datos personales</h2>
+              </div>
+              <div className="sm:col-span-2 mb-4">
+                <label className={labelCls}>
+                  Nombre artístico <span className="text-[#e5007d]">*</span>
+                </label>
+                <input
+                  required
+                  value={form.artisticName}
+                  onChange={set('artisticName')}
+                  placeholder="El nombre con el que te conocen en redes"
+                  className={inputCls}
+                />
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>

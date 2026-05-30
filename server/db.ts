@@ -1051,7 +1051,6 @@ export async function getAdminUsers() {
 
 export async function approveCosplayApplication(input: {
   applicationId: number;
-  artisticName: string;
   tier: string;
   totalFollowers: number;
   kitProductId?: number | null;
@@ -1063,6 +1062,8 @@ export async function approveCosplayApplication(input: {
     .where(eq(cosplayApplications.id, input.applicationId)).limit(1);
   const app = appRows[0];
   if (!app) throw new Error('Application not found');
+
+  const artisticName = app.artisticName ?? `${app.fullName} ${app.lastName}`;
 
   await db.update(cosplayApplications)
     .set({ status: 'approved' })
@@ -1084,7 +1085,7 @@ export async function approveCosplayApplication(input: {
     total: '0.00',
     subtotal: '0.00',
     status: 'pending',
-    notes: `Kit de bienvenida Isekai Cosplay Guild — ${input.artisticName}`,
+    notes: `Kit de bienvenida Isekai Cosplay Guild — ${artisticName}`,
   });
 
   // Obtener ID de la orden recién insertada
@@ -1108,7 +1109,7 @@ export async function approveCosplayApplication(input: {
   await db.insert(cosplayers).values({
     userId: app.userId,
     applicationId: input.applicationId,
-    artisticName: input.artisticName,
+    artisticName: artisticName,
     tier: input.tier,
     totalFollowers: input.totalFollowers,
     instagram: app.instagram,
@@ -1122,14 +1123,14 @@ export async function approveCosplayApplication(input: {
   });
 
   try {
-    await notifyCosplayApproved(app.email, app.fullName, input.artisticName, input.tier);
+    await notifyCosplayApproved(app.email, app.fullName, artisticName, input.tier);
   } catch { /* non-critical */ }
 
   try {
     await insertAdminNotification({
       type: 'new_order',
       title: `Kit ${orderNumber} generado`,
-      body: `Kit de bienvenida creado para ${input.artisticName} (${input.tier.toUpperCase()})`,
+      body: `Kit de bienvenida creado para ${artisticName} (${input.tier.toUpperCase()})`,
     });
   } catch { /* non-critical */ }
 
