@@ -1307,10 +1307,15 @@ export async function suspendCosplayer(cosplayerId: number) {
 
 export async function getActiveActivities() {
   const db = await getDb();
-  if (!db) return [];
-  return db.select().from(cosplayActivities)
+  if (!db) {
+    console.log('[getActiveActivities] DB is null');
+    return [];
+  }
+  const result = await db.select().from(cosplayActivities)
     .where(eq(cosplayActivities.active, true))
     .orderBy(desc(cosplayActivities.createdAt));
+  console.log('[getActiveActivities] result count:', result.length, 'items:', JSON.stringify(result));
+  return result;
 }
 
 export async function createCosplayActivity(data: any) {
