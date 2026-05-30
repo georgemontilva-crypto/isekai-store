@@ -132,16 +132,6 @@ export default function CosplayLanding() {
             </div>
           ))}
           <div className="border-t border-[#222]" />
-          {/* Requisito mínimo — ítem extra al final de la lista */}
-          <div className="flex items-start gap-3 py-6 px-6 lg:px-20 border-t border-[#222]">
-            <Users size={18} className="text-[#e5007d] flex-shrink-0 mt-0.5" />
-            <div>
-              <p className="text-white font-semibold text-sm">Mínimo 1,000 seguidores</p>
-              <p className="text-[#888] text-xs mt-0.5">
-                En al menos una de tus redes sociales activas (Instagram, TikTok, YouTube, etc.)
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
