@@ -722,6 +722,10 @@ export const appRouter = router({
       .input(z.object({
         userId: z.number().optional(),
         artisticName: z.string().min(1).max(200),
+        photo: z.string().optional(),
+        bannerImage: z.string().optional(),
+        gallery: z.array(z.string()).optional(),
+        bio: z.string().max(2000).optional(),
         fullName: z.string().min(1).max(200),
         lastName: z.string().min(1).max(200),
         age: z.number().min(16).max(99),

@@ -105,14 +105,17 @@ export default function CosplayProfile() {
           </div>
         )}
 
-        {/* Galería */}
+        {/* Galería — carrusel vertical */}
         {gallery.length > 0 && (
-          <div className="w-full mb-8">
-            <p className="text-xs tracking-widest uppercase text-[#555] text-center mb-4">Galería</p>
-            <div className="grid grid-cols-3 gap-2">
+          <div className="w-full mt-6">
+            <div className="flex flex-col gap-3">
               {gallery.map((img, i) => (
-                <div key={i} className="aspect-square rounded-xl overflow-hidden bg-[#1a1a1a]">
-                  <img src={img} className="w-full h-full object-cover hover:scale-105 transition-transform duration-300" alt="" />
+                <div key={i} className="w-full aspect-square rounded-2xl overflow-hidden bg-[#1a1a1a]">
+                  <img
+                    src={img}
+                    className="w-full h-full object-cover object-top"
+                    alt={`${cosplayer.artisticName} cosplay ${i + 1}`}
+                  />
                 </div>
               ))}
             </div>
