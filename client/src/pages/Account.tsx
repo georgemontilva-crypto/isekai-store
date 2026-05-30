@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin, Layers, Upload, Loader2 } from "lucide-react";
+import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin, Layers, Upload, Loader2, Sparkles } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -209,6 +209,9 @@ export default function Account() {
     undefined,
     { enabled: isAuthenticated }
   );
+
+  const cosplayerQuery = trpc.cosplay.getMyProfile.useQuery(undefined, { enabled: isAuthenticated });
+  const isCosplayer = !!cosplayerQuery.data?.isActive;
   const uploadReceipt = trpc.orders.uploadReceipt.useMutation();
   const submitInstallmentPayment = trpc.installments.submitPayment.useMutation({
     onSuccess: () => {
@@ -267,6 +270,27 @@ export default function Account() {
       </motion.div>
 
       <div className="container max-w-4xl py-8">
+        {/* ── Cosplay Guild button ── */}
+        {isCosplayer && (
+          <div className="w-full max-w-2xl mx-auto mb-6 px-4">
+            <Link
+              href="/cosplay/dashboard"
+              className="flex items-center justify-between w-full bg-[#0d0d0d] text-white px-5 py-4 rounded-2xl hover:bg-[#1a1a1a] transition-colors border border-[#333] group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-[#e5007d]/10 border border-[#e5007d]/30 flex items-center justify-center flex-shrink-0">
+                  <Sparkles size={16} className="text-[#e5007d]" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">Cosplay Guild</p>
+                  <p className="text-[#888] text-xs">Actividades · Billetera · Perfil público</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-[#555] group-hover:text-white transition-colors" />
+            </Link>
+          </div>
+        )}
+
         {/* ── Tabs pills ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
