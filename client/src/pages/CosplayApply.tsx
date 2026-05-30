@@ -1,15 +1,75 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
-import { CheckCircle2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, ArrowLeft, ChevronDown } from "lucide-react";
 import { Link } from "wouter";
 
-const COUNTRIES = ["Colombia", "Venezuela", "México", "Argentina", "Chile", "Perú", "Ecuador", "España", "Estados Unidos", "Otro"];
+const COUNTRIES = [
+  "Colombia", "Venezuela", "México", "Argentina", "Chile",
+  "Perú", "Ecuador", "España", "Estados Unidos", "Otro",
+];
 
-const inputCls = "w-full px-4 py-3 rounded-xl bg-[#1a1a1a] border border-[#333] text-white placeholder-[#555] outline-none focus:border-[#e5007d] text-sm transition-colors";
-const labelCls = "block text-sm font-medium text-[#ccc] mb-1.5";
+const inputCls = "w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors";
+const labelCls = "block text-[#ccc] text-sm font-medium mb-2";
+
+function DarkSelect({
+  value, onChange, options, placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  options: { value: string; label: string }[];
+  placeholder: string;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const selected = options.find(o => o.value === value);
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-sm outline-none focus:border-[#e5007d] transition-colors"
+      >
+        <span className={selected ? "text-white" : "text-[#555]"}>
+          {selected ? selected.label : placeholder}
+        </span>
+        <ChevronDown
+          size={16}
+          className={`text-[#555] transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden z-50 shadow-xl">
+          {options.map(opt => (
+            <button
+              key={opt.value}
+              type="button"
+              onClick={() => { onChange(opt.value); setOpen(false); }}
+              className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-[#222] ${
+                value === opt.value ? "text-[#e5007d] font-semibold" : "text-[#ccc]"
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function CosplayApply() {
   const { user } = useAuth();
@@ -26,7 +86,7 @@ export default function CosplayApply() {
     onError: (e) => toast.error(e.message),
   });
 
-  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
+  const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setForm(f => ({ ...f, [k]: e.target.value }));
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -64,7 +124,7 @@ export default function CosplayApply() {
           </p>
           <Link href="/cosplay">
             <button className="bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors">
-              Volver al Guild →
+              Volver al Guild
             </button>
           </Link>
         </motion.div>
@@ -98,17 +158,35 @@ export default function CosplayApply() {
                 <h2 className="text-lg font-bold text-white">Datos personales</h2>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div><label className={labelCls}>Nombre *</label><input required value={form.fullName} onChange={set('fullName')} placeholder="Tu nombre" className={inputCls} /></div>
-                <div><label className={labelCls}>Apellido *</label><input required value={form.lastName} onChange={set('lastName')} placeholder="Tu apellido" className={inputCls} /></div>
-                <div><label className={labelCls}>Edad *</label><input required type="number" min={16} max={99} value={form.age} onChange={set('age')} placeholder="18" className={inputCls} /></div>
+                <div>
+                  <label className={labelCls}>Nombre *</label>
+                  <input required value={form.fullName} onChange={set('fullName')} placeholder="Tu nombre" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Apellido *</label>
+                  <input required value={form.lastName} onChange={set('lastName')} placeholder="Tu apellido" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Edad *</label>
+                  <input required type="number" min={16} max={99} value={form.age} onChange={set('age')} placeholder="18" className={inputCls} />
+                </div>
                 <div>
                   <label className={labelCls}>País *</label>
-                  <select required value={form.country} onChange={set('country')} className={inputCls + " appearance-none"}>
-                    {COUNTRIES.map(c => <option key={c} value={c} className="bg-[#1a1a1a]">{c}</option>)}
-                  </select>
+                  <DarkSelect
+                    value={form.country}
+                    onChange={v => setForm(f => ({ ...f, country: v }))}
+                    options={COUNTRIES.map(c => ({ value: c, label: c }))}
+                    placeholder="Selecciona un país"
+                  />
                 </div>
-                <div><label className={labelCls}>Ciudad *</label><input required value={form.city} onChange={set('city')} placeholder="Bogotá" className={inputCls} /></div>
-                <div><label className={labelCls}>Teléfono *</label><input required value={form.phone} onChange={set('phone')} placeholder="+57 300 000 0000" className={inputCls} /></div>
+                <div>
+                  <label className={labelCls}>Ciudad *</label>
+                  <input required value={form.city} onChange={set('city')} placeholder="Bogotá" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Teléfono *</label>
+                  <input required value={form.phone} onChange={set('phone')} placeholder="+57 300 000 0000" className={inputCls} />
+                </div>
                 <div className="sm:col-span-2">
                   <label className={labelCls}>Dirección *</label>
                   <input required value={form.address} onChange={set('address')} placeholder="Calle, número, barrio..." className={inputCls} />
@@ -120,7 +198,6 @@ export default function CosplayApply() {
               </div>
             </div>
 
-            {/* Divider */}
             <div className="border-t border-[#222]" />
 
             {/* 2. Experiencia */}
@@ -144,10 +221,22 @@ export default function CosplayApply() {
                 <h2 className="text-lg font-bold text-white">Redes sociales</h2>
               </div>
               <div className="grid sm:grid-cols-2 gap-4">
-                <div><label className={labelCls}>Instagram</label><input value={form.instagram} onChange={set('instagram')} placeholder="@usuario" className={inputCls} /></div>
-                <div><label className={labelCls}>TikTok</label><input value={form.tiktok} onChange={set('tiktok')} placeholder="@usuario" className={inputCls} /></div>
-                <div><label className={labelCls}>YouTube</label><input value={form.youtube} onChange={set('youtube')} placeholder="URL del canal" className={inputCls} /></div>
-                <div><label className={labelCls}>Facebook</label><input value={form.facebook} onChange={set('facebook')} placeholder="URL o usuario" className={inputCls} /></div>
+                <div>
+                  <label className={labelCls}>Instagram</label>
+                  <input value={form.instagram} onChange={set('instagram')} placeholder="@usuario" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>TikTok</label>
+                  <input value={form.tiktok} onChange={set('tiktok')} placeholder="@usuario" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>YouTube</label>
+                  <input value={form.youtube} onChange={set('youtube')} placeholder="URL del canal" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Facebook</label>
+                  <input value={form.facebook} onChange={set('facebook')} placeholder="URL o usuario" className={inputCls} />
+                </div>
                 <div className="sm:col-span-2">
                   <label className={labelCls}>X / Twitter</label>
                   <input value={form.twitter} onChange={set('twitter')} placeholder="@usuario" className={inputCls} />
@@ -175,7 +264,7 @@ export default function CosplayApply() {
                 placeholder="Cuéntanos tu historia, tu pasión por el cosplay y por qué quieres representar a Isekai World..."
                 className={inputCls + " resize-none"}
               />
-              <p className={`text-xs mt-1.5 ${form.whyIsekai.length < 50 ? 'text-[#555]' : 'text-green-500'}`}>
+              <p className={`text-xs mt-1.5 ${form.whyIsekai.length < 50 ? "text-[#555]" : "text-green-500"}`}>
                 {form.whyIsekai.length}/2000 caracteres
               </p>
             </div>
@@ -187,7 +276,7 @@ export default function CosplayApply() {
               whileTap={{ scale: 0.99 }}
               className="w-full py-4 bg-[#e5007d] text-white rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors disabled:opacity-50"
             >
-              {apply.isPending ? "Enviando solicitud..." : "Enviar solicitud →"}
+              {apply.isPending ? "Enviando solicitud..." : "Enviar solicitud"}
             </motion.button>
 
           </form>
