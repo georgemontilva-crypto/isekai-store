@@ -757,6 +757,7 @@ export const appRouter = router({
       .input(z.object({
         bio: z.string().max(1000).optional(),
         photo: z.string().optional(),
+        bannerImage: z.string().optional(),
         gallery: z.array(z.string()).optional(),
         instagram: z.string().optional(),
         tiktok: z.string().optional(),

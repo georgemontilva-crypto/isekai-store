@@ -351,6 +351,7 @@ export const cosplayers = mysqlTable('cosplayers', {
   artisticName: varchar('artisticName', { length: 200 }).notNull(),
   bio: text('bio'),
   photo: varchar('photo', { length: 500 }),
+  bannerImage: varchar('bannerImage', { length: 500 }),
   gallery: json('gallery').$type<string[]>(),
   tier: varchar('tier', { length: 20 }).default('bronce'),
   totalFollowers: int('totalFollowers').default(0),

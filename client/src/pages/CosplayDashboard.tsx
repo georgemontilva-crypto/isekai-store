@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "wouter";
-import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus } from "lucide-react";
+import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload } from "lucide-react";
 import { getLoginUrl } from "@/const";
 
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
@@ -52,7 +52,7 @@ export default function CosplayDashboard() {
   const [submitModal, setSubmitModal] = useState<any>(null);
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [profileForm, setProfileForm] = useState({
-    artisticName: "", bio: "", photo: "",
+    artisticName: "", bio: "", photo: "", bannerImage: "",
     instagram: "", tiktok: "", youtube: "", facebook: "", twitter: "",
     gallery: [] as string[],
   });
@@ -75,6 +75,7 @@ export default function CosplayDashboard() {
           artisticName: cp.artisticName ?? "",
           bio: cp.bio ?? "",
           photo: cp.photo ?? "",
+          bannerImage: (cp as any).bannerImage ?? "",
           instagram: cp.instagram ?? "",
           tiktok: cp.tiktok ?? "",
           youtube: cp.youtube ?? "",
@@ -116,6 +117,15 @@ export default function CosplayDashboard() {
       reader.readAsDataURL(file);
     });
 
+  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64Data = await toBase64(file);
+    const { url } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data });
+    setProfileForm(f => ({ ...f, bannerImage: url }));
+    toast.success("Banner actualizado");
+  };
+
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -141,6 +151,7 @@ export default function CosplayDashboard() {
     updateProfile.mutate({
       bio: profileForm.bio || undefined,
       photo: profileForm.photo || undefined,
+      bannerImage: profileForm.bannerImage || undefined,
       gallery: profileForm.gallery,
       instagram: profileForm.instagram || undefined,
       tiktok: profileForm.tiktok || undefined,
@@ -262,20 +273,34 @@ export default function CosplayDashboard() {
             {activeTab === "profile" && (
               <div className="max-w-2xl mx-auto">
 
-                {/* Foto de perfil */}
-                <div className="flex flex-col items-center mb-8">
-                  <div className="relative w-28 h-28 rounded-full overflow-hidden border-4 mb-3" style={{ borderColor: tierColor }}>
+                {/* Banner */}
+                <div className="relative w-full h-32 rounded-2xl overflow-hidden mb-0 bg-[#1a1a1a] border border-[#333]">
+                  {profileForm.bannerImage && (
+                    <img src={profileForm.bannerImage} className="w-full h-full object-cover" alt="" />
+                  )}
+                  <label className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-black/30 transition-colors group">
+                    <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Upload size={20} className="text-white" />
+                      <span className="text-white text-xs font-semibold">Cambiar banner</span>
+                    </div>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
+                  </label>
+                </div>
+
+                {/* Foto de perfil superpuesta al banner */}
+                <div className="flex flex-col items-center -mt-10 mb-6 relative z-10">
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-[#0d0d0d] bg-[#222]" style={{ outline: `3px solid ${tierColor}`, outlineOffset: '0px' }}>
                     {profileForm.photo
                       ? <img src={profileForm.photo} className="w-full h-full object-cover" alt="" />
-                      : <div className="w-full h-full bg-[#222] flex items-center justify-center"><User size={40} className="text-[#555]" /></div>
+                      : <div className="w-full h-full flex items-center justify-center"><User size={28} className="text-[#555]" /></div>
                     }
                     {uploadImage.isPending && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       </div>
                     )}
                   </div>
-                  <label className="cursor-pointer text-sm text-[#e5007d] font-semibold hover:underline">
+                  <label className="mt-2 text-xs text-[#e5007d] font-semibold cursor-pointer hover:underline">
                     Cambiar foto
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                   </label>

@@ -1152,7 +1152,7 @@ export async function rejectCosplayApplication(input: { applicationId: number; r
 }
 
 export async function updateCosplayerProfile(userId: number, data: {
-  bio?: string; photo?: string; gallery?: string[];
+  bio?: string; photo?: string; bannerImage?: string; gallery?: string[];
   instagram?: string; tiktok?: string; youtube?: string; facebook?: string; twitter?: string;
 }) {
   const db = await getDb();
