@@ -1,6 +1,7 @@
+import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, User } from "lucide-react";
+import { CheckCircle2, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { getTierColor } from "./CosplayDashboard";
 
 export default function CosplayProfile() {
@@ -34,6 +35,8 @@ export default function CosplayProfile() {
       </div>
     );
   }
+
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   const tierColor = getTierColor(cosplayer.tier ?? 'bronce');
   const gallery   = (cosplayer.gallery as string[] | null) ?? [];
@@ -105,20 +108,45 @@ export default function CosplayProfile() {
           </div>
         )}
 
-        {/* Galería — carrusel vertical */}
+        {/* Galería — carrusel */}
         {gallery.length > 0 && (
           <div className="w-full mt-6">
-            <div className="flex flex-col gap-3">
-              {gallery.map((img, i) => (
-                <div key={i} className="w-full aspect-square rounded-2xl overflow-hidden bg-[#1a1a1a]">
-                  <img
-                    src={img}
-                    className="w-full h-full object-cover object-top"
-                    alt={`${cosplayer.artisticName} cosplay ${i + 1}`}
-                  />
-                </div>
-              ))}
+            <div className="relative w-full aspect-square rounded-2xl overflow-hidden">
+              <img
+                src={gallery[currentSlide]}
+                className="w-full h-full object-cover object-top transition-opacity duration-300"
+                alt={`${cosplayer.artisticName} cosplay ${currentSlide + 1}`}
+              />
+              {gallery.length > 1 && (
+                <>
+                  <button
+                    onClick={() => setCurrentSlide(i => i === 0 ? gallery.length - 1 : i - 1)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
+                  >
+                    <ChevronLeft size={16} className="text-white" />
+                  </button>
+                  <button
+                    onClick={() => setCurrentSlide(i => i === gallery.length - 1 ? 0 : i + 1)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/60 rounded-full flex items-center justify-center hover:bg-black/80 transition-colors"
+                  >
+                    <ChevronRight size={16} className="text-white" />
+                  </button>
+                </>
+              )}
             </div>
+            {gallery.length > 1 && (
+              <div className="flex justify-center gap-2 mt-3">
+                {gallery.map((_: string, i: number) => (
+                  <button
+                    key={i}
+                    onClick={() => setCurrentSlide(i)}
+                    className={`rounded-full transition-all duration-300 ${
+                      i === currentSlide ? 'w-5 h-2 bg-[#e5007d]' : 'w-2 h-2 bg-[#333]'
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
