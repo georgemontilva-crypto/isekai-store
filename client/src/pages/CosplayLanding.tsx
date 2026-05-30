@@ -17,6 +17,7 @@ const STEPS = [
   { n: "02", title: "Recibe tu kit",      desc: "Si eres aprobado, recibes gratis un kit de bienvenida con productos Isekai World." },
   { n: "03", title: "Completa retos",     desc: "Publica contenido, haz reels, participa en eventos. Cada actividad aprobada suma tickets." },
   { n: "04", title: "Canjea descuentos",  desc: "Usa tus tickets para obtener códigos de descuento del 10% al 50% en la tienda." },
+  { n: "05", title: "Gana por referidos", desc: "Comparte tu código único con tu comunidad. Cada vez que alguien compre usándolo ganarás el 2% del valor de esa compra en cash USD directo a tu billetera. Sin límite de usos." },
 ];
 
 function TikTokIcon() {
