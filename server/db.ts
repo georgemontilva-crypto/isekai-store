@@ -1,5 +1,6 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { notifyOwner } from "./_core/notification";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   CartItem,
@@ -1031,9 +1032,21 @@ export async function createCosplayApplication(data: any) {
   await db.insert(cosplayApplications).values(data);
   await insertAdminNotification({
     type: 'new_order',
-    title: '🎭 Nueva solicitud de cosplayer',
-    body: `${data.fullName} ${data.lastName} quiere unirse al Cosplay Guild`,
+    title: 'Nueva solicitud Cosplay Guild',
+    body: `${data.fullName} ${data.lastName} de ${data.country} quiere unirse al Guild.`,
   });
+  try {
+    await notifyOwner({
+      title: 'Nueva solicitud de cosplayer — Isekai World',
+      content: `Nombre: ${data.fullName} ${data.lastName}\nPaís: ${data.country}\nEmail: ${data.email}\nInstagram: ${data.instagram ?? 'No indicado'}\nTikTok: ${data.tiktok ?? 'No indicado'}\nExperiencia: ${data.experience} años\n\nRevisa la solicitud en el panel admin → Cosplay Guild → Solicitudes.`,
+    });
+  } catch { /* non-critical */ }
+}
+
+export async function getAdminUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({ id: users.id }).from(users).where(eq(users.role, 'admin'));
 }
 
 export async function approveCosplayApplication(input: {

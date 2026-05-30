@@ -691,6 +691,8 @@ export default function Admin() {
   const deleteFaq = trpc.faq.delete.useMutation({ onSuccess: () => { refetchFaq(); toast.success("Pregunta eliminada"); } });
 
   const { data: pendingCount = 0 } = trpc.orders.pendingCount.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin", refetchInterval: 30000 });
+  const { data: pendingCosplayApps } = trpc.cosplay.getApplications.useQuery({ status: 'pending' }, { enabled: isAuthenticated && user?.role === "admin", refetchInterval: 30000 });
+  const pendingCosplayCount = pendingCosplayApps?.length ?? 0;
 
   // LinkBio queries + mutations
   const { data: linkBioItems = [], refetch: refetchLinkBio } = trpc.linkBio.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -851,6 +853,11 @@ export default function Admin() {
                   {t.id === "orders" && pendingCount > 0 && (
                     <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
                       {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
+                  {t.id === "cosplay" && pendingCosplayCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {pendingCosplayCount > 99 ? "99+" : pendingCosplayCount}
                     </span>
                   )}
                 </button>

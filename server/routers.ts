@@ -34,7 +34,7 @@ import {
   getMyCosplayerDiscountCodes, getCosplayApplications, approveCosplayApplication,
   rejectCosplayApplication, getAllCosplayers, updateCosplayerTier, suspendCosplayer,
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
-  evaluateCosplaySubmission, getAllCosplaySubmissions,
+  evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
 } from "./db";
 import { notifyWelcome } from "./_core/notification";
 
@@ -737,7 +737,15 @@ export const appRouter = router({
         twitter: z.string().optional(),
         whyIsekai: z.string().min(50).max(2000),
       }))
-      .mutation(({ input }) => createCosplayApplication(input)),
+      .mutation(async ({ input }) => {
+        await createCosplayApplication(input);
+        try {
+          const admins = await getAdminUsers();
+          for (const admin of admins) {
+            io.to(`user:${admin.id}`).emit('notification:new');
+          }
+        } catch { /* non-critical */ }
+      }),
 
     getMyProfile: protectedProcedure.query(({ ctx }) => getCosplayerByUserId(ctx.user.id)),
 
