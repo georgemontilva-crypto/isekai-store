@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users } from "lucide-react";
+import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users, Link2, Repeat, DollarSign } from "lucide-react";
 
 const TIERS = [
   { name: "Bronce",   color: "#cd7f32", icon: Medal,  followers: "1K – 3K",    mult: "×1",   width: "30%"  },
@@ -269,6 +269,42 @@ export default function CosplayLanding() {
                     <span className="text-[#ccc] text-sm">{item.text}</span>
                   </div>
                 ))}
+              </div>
+            </div>
+
+            {/* Card — Código de referido */}
+            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8 relative overflow-hidden lg:col-span-2">
+              <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5"
+                style={{ background: '#ffd700', transform: 'translate(30%, -30%)' }} />
+              <div className="flex flex-col lg:flex-row lg:items-center gap-6">
+                <div className="flex-1">
+                  <Link2 size={32} className="text-[#ffd700] mb-4" />
+                  <h3 className="text-white font-black text-2xl mb-2">Tu código de referido</h3>
+                  <p className="text-[#888] text-sm leading-relaxed mb-4">
+                    Al unirte al Guild recibirás un código único y personal. Compártelo con tu comunidad —
+                    cada vez que alguien realice una compra usándolo, <strong className="text-[#ffd700]">ganarás el 2% del valor
+                    de esa compra en cash USD</strong>, directo a tu billetera. Sin límite de usos ni de compras.
+                  </p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {[
+                      { icon: Repeat,     text: 'Sin límite de usos — aplica en todas las compras del usuario' },
+                      { icon: DollarSign, text: '2% en cash USD real, retirable o consumible en la tienda' },
+                      { icon: Gift,       text: 'Quien use el código recibe un obsequio secreto con su pedido' },
+                    ].map((item, i) => (
+                      <div key={i} className="flex items-start gap-2">
+                        <item.icon size={14} className="text-[#ffd700] flex-shrink-0 mt-0.5" />
+                        <span className="text-[#888] text-xs leading-relaxed">{item.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="flex-shrink-0">
+                  <p className="text-[#555] text-xs uppercase tracking-widest mb-2 text-center">Ejemplo</p>
+                  <div className="bg-[#0d0d0d] border-2 border-dashed border-[#ffd700]/40 rounded-2xl px-8 py-5 text-center">
+                    <p className="text-[#ffd700] font-black tracking-widest text-2xl">ISK-NOMBRE-0000</p>
+                    <p className="text-[#555] text-xs mt-2">Tu código único e intransferible</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
