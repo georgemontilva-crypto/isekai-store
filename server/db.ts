@@ -1077,42 +1077,6 @@ export async function approveCosplayApplication(input: {
     .set({ status: 'approved' })
     .where(eq(cosplayApplications.id, input.applicationId));
 
-  // Kit number secuencial — contar ANTES de insertar el nuevo cosplayer
-  const [{ kitCount }] = await db.select({ kitCount: count() }).from(cosplayers);
-  const kitNumber = String((kitCount ?? 0) + 1).padStart(4, '0');
-  const orderNumber = `IW-KIT-${kitNumber}`;
-
-  // Crear orden del kit
-  await db.insert(orders).values({
-    orderNumber,
-    userId: app.userId ?? undefined,
-    customerName: `${app.fullName} ${app.lastName}`,
-    customerEmail: app.email,
-    customerPhone: app.phone,
-    shippingAddress: { street: app.address, city: app.city, state: '', country: app.country, zip: '' },
-    total: '0.00',
-    subtotal: '0.00',
-    status: 'pending',
-    notes: `Kit de bienvenida Isekai Cosplay Guild — ${artisticName}`,
-  });
-
-  // Obtener ID de la orden recién insertada
-  const [kitOrder] = await db.select().from(orders)
-    .where(eq(orders.orderNumber, orderNumber)).limit(1);
-
-  // Agregar item del producto kit si se configuró
-  if (kitOrder && input.kitProductId) {
-    const [kitProduct] = await db.select().from(products)
-      .where(eq(products.id, input.kitProductId)).limit(1);
-    await db.insert(orderItems).values({
-      orderId: kitOrder.id,
-      productId: input.kitProductId,
-      productName: kitProduct?.name ?? 'Kit de bienvenida',
-      price: kitProduct?.price ?? '0.00',
-      quantity: 1,
-    });
-  }
-
   // Generar código de referido único
   const nameSlug = artisticName
     .toUpperCase()
@@ -1121,7 +1085,50 @@ export async function approveCosplayApplication(input: {
   const randomPart = Math.floor(1000 + Math.random() * 9000);
   const referralCode = `ISK-${nameSlug}-${randomPart}`;
 
-  // Crear perfil de cosplayer con referencia al kit
+  // Crear orden del kit — si falla, continuar igual sin abortar la aprobación
+  let kitOrderId: number | null = null;
+  let orderNumber = '';
+  try {
+    const [{ kitCount }] = await db.select({ kitCount: count() }).from(cosplayers);
+    const kitNumber = String((kitCount ?? 0) + 1).padStart(4, '0');
+    orderNumber = `IW-KIT-${kitNumber}`;
+
+    await db.insert(orders).values({
+      orderNumber,
+      userId: app.userId ?? undefined,
+      customerName: `${app.fullName} ${app.lastName}`,
+      customerEmail: app.email,
+      customerPhone: app.phone,
+      shippingAddress: { street: app.address, city: app.city, state: '', country: app.country, zip: '' },
+      total: '0.00',
+      subtotal: '0.00',
+      status: 'pending',
+      notes: `Kit de bienvenida Isekai Cosplay Guild — ${artisticName}`,
+    });
+
+    const [kitOrder] = await db.select().from(orders)
+      .where(eq(orders.orderNumber, orderNumber)).limit(1);
+
+    if (kitOrder) {
+      kitOrderId = kitOrder.id;
+      if (input.kitProductId) {
+        const [kitProduct] = await db.select().from(products)
+          .where(eq(products.id, input.kitProductId)).limit(1);
+        await db.insert(orderItems).values({
+          orderId: kitOrder.id,
+          productId: input.kitProductId,
+          productName: kitProduct?.name ?? 'Kit de bienvenida',
+          price: kitProduct?.price ?? '0.00',
+          quantity: 1,
+        });
+      }
+    }
+    console.log('[Kit] Orden creada:', orderNumber);
+  } catch (kitErr) {
+    console.warn('[Kit] Error creando orden del kit — continuando sin kit:', kitErr);
+  }
+
+  // Crear perfil de cosplayer independientemente del resultado del kit
   await db.insert(cosplayers).values({
     userId: app.userId,
     applicationId: input.applicationId,
@@ -1140,7 +1147,7 @@ export async function approveCosplayApplication(input: {
     ticketBalance: 0,
     cashBalance: '0.00',
     referralCode,
-    kitOrderId: kitOrder?.id ?? null,
+    kitOrderId,
     isActive: true,
   });
 
@@ -1149,14 +1156,16 @@ export async function approveCosplayApplication(input: {
   } catch { /* non-critical */ }
 
   try {
-    await insertAdminNotification({
-      type: 'new_order',
-      title: `Kit ${orderNumber} generado`,
-      body: `Kit de bienvenida creado para ${artisticName} (${input.tier.toUpperCase()})`,
-    });
+    if (orderNumber) {
+      await insertAdminNotification({
+        type: 'new_order',
+        title: `Kit ${orderNumber} generado`,
+        body: `Kit de bienvenida creado para ${artisticName} (${input.tier.toUpperCase()})`,
+      });
+    }
   } catch { /* non-critical */ }
 
-  return { orderNumber, kitOrderId: kitOrder?.id ?? null };
+  return { orderNumber, kitOrderId };
 }
 
 export async function rejectCosplayApplication(input: { applicationId: number; reason: string }) {
