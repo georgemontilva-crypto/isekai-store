@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift } from "lucide-react";
+import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users } from "lucide-react";
 
 const TIERS = [
   { name: "Bronce",   color: "#cd7f32", icon: Medal,  followers: "1K – 3K",    mult: "×1",   width: "30%"  },
@@ -131,6 +131,16 @@ export default function CosplayLanding() {
             </div>
           ))}
           <div className="border-t border-[#222]" />
+          {/* Requisito mínimo — ítem extra al final de la lista */}
+          <div className="flex items-start gap-3 py-6 px-6 lg:px-20 border-t border-[#222]">
+            <Users size={18} className="text-[#e5007d] flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-white font-semibold text-sm">Mínimo 1,000 seguidores</p>
+              <p className="text-[#888] text-xs mt-0.5">
+                En al menos una de tus redes sociales activas (Instagram, TikTok, YouTube, etc.)
+              </p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -146,6 +156,15 @@ export default function CosplayLanding() {
             Tu tier se actualiza automáticamente según tu audiencia.
             Cada nivel multiplica los tickets que ganas por actividad.
           </p>
+
+          <div className="flex items-center gap-3 bg-[#1a1a1a] border border-[#e5007d]/30 rounded-xl px-5 py-4 mb-10 max-w-xl">
+            <Info size={16} className="text-[#e5007d] flex-shrink-0" />
+            <p className="text-[#888] text-sm">
+              <span className="text-white font-bold">Requisito mínimo:</span> necesitas al menos{" "}
+              <span className="text-[#e5007d] font-bold">1,000 seguidores</span>{" "}
+              en al menos una de tus redes sociales para postularte.
+            </p>
+          </div>
 
           <div className="flex flex-col gap-3">
             {TIERS.map((tier, i) => {
