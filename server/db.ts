@@ -1038,8 +1038,8 @@ export async function createCosplayApplication(data: any) {
   if (!db) throw new Error("DB not available");
   await db.insert(cosplayApplications).values(data);
   await insertAdminNotification({
-    type: 'new_order',
-    title: 'Nueva solicitud Cosplay Guild',
+    type: 'new_subscriber',
+    title: '🎭 Nueva solicitud Cosplay Guild',
     body: `${data.fullName} ${data.lastName} de ${data.country} quiere unirse al Guild.`,
   });
   try {
