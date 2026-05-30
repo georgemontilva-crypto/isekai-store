@@ -1,6 +1,7 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected } from "./_core/notification";
+import { storageDelete } from "./storage";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
   CartItem,
@@ -1167,6 +1168,28 @@ export async function rejectCosplayApplication(input: { applicationId: number; r
   await db.update(cosplayApplications)
     .set({ status: 'rejected', rejectionReason: input.reason })
     .where(eq(cosplayApplications.id, input.applicationId));
+
+  // Eliminar imágenes de R2
+  if (app) {
+    const base = ENV.r2PublicUrl.replace(/\/+$/, '');
+    const urlToKey = (url: string) => url.replace(`${base}/`, '');
+    const toDelete: string[] = [];
+    if (app.photo) toDelete.push(urlToKey(app.photo));
+    if ((app as any).bannerImage) toDelete.push(urlToKey((app as any).bannerImage));
+    if (app.gallery) {
+      const gallery = Array.isArray(app.gallery) ? app.gallery : JSON.parse(app.gallery as string);
+      gallery.forEach((url: string) => toDelete.push(urlToKey(url)));
+    }
+    for (const key of toDelete) {
+      try {
+        await storageDelete(key);
+        console.log('[R2] Deleted:', key);
+      } catch (err) {
+        console.warn('[R2] Failed to delete:', key, err);
+      }
+    }
+  }
+
   try {
     if (app?.email) await notifyCosplayRejected(app.email, app.fullName, input.reason);
   } catch { /* non-critical */ }
