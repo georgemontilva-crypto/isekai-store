@@ -567,6 +567,15 @@ function ProductForm({
   );
 }
 
+// ─── Cosplay helpers ──────────────────────────────────────────────────────────
+function getTierByFollowers(followers: number): string {
+  if (followers >= 300000) return 'platino';
+  if (followers >= 50000)  return 'diamante';
+  if (followers >= 6000)   return 'oro';
+  if (followers >= 3000)   return 'plata';
+  return 'bronce';
+}
+
 // ─── Main Admin Component ─────────────────────────────────────────────────────
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -613,6 +622,7 @@ export default function Admin() {
   const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'>('applications');
   const [cosplayAppFilter, setCosplayAppFilter] = useState('pending');
   const [cosplaySubFilter, setCosplaySubFilter] = useState('pending');
+  const [selectedApplication, setSelectedApplication] = useState<any>(null);
   const [showApproveModal, setShowApproveModal] = useState<any>(null);
   const [showRejectModal, setShowRejectModal] = useState<any>(null);
   const [approveForm, setApproveForm] = useState({ artisticName: '', tier: 'bronce', totalFollowers: 0, kitProductId: 0 });
@@ -3291,14 +3301,29 @@ export default function Admin() {
                               <div className="grid sm:grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
                                 <span>Edad: {app.age}</span>
                                 <span>Experiencia: {app.experience} años</span>
-                                {app.instagram && <span>IG: {app.instagram}</span>}
-                                {app.tiktok && <span>TT: {app.tiktok}</span>}
                               </div>
-                              <p className="text-xs text-muted-foreground line-clamp-2">{app.whyIsekai}</p>
+                              {/* Redes sociales */}
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
+                                {[
+                                  { key: 'instagram', label: 'Instagram' },
+                                  { key: 'tiktok',    label: 'TikTok'    },
+                                  { key: 'youtube',   label: 'YouTube'   },
+                                  { key: 'facebook',  label: 'Facebook'  },
+                                  { key: 'twitter',   label: 'Twitter/X' },
+                                ].filter(r => app[r.key]).map(r => (
+                                  <a key={r.key} href={app[r.key]} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline hover:opacity-70">
+                                    {r.label}: {app[r.key]}
+                                  </a>
+                                ))}
+                              </div>
+                              <p className="text-xs text-muted-foreground line-clamp-2 mt-2">{app.whyIsekai}</p>
+                              <button onClick={() => setSelectedApplication(app)} className="text-xs text-primary underline mt-2 hover:opacity-70">
+                                Ver detalle completo
+                              </button>
                             </div>
                             {app.status === 'pending' && (
                               <div className="flex gap-2 shrink-0">
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ artisticName: app.fullName, tier: 'bronce', totalFollowers: 0, kitProductId: 0 }); }}>
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ artisticName: app.fullName, tier: getTierByFollowers(0), totalFollowers: 0, kitProductId: 0 }); }}>
                                   <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Aprobar
                                 </Button>
                                 <Button size="sm" variant="outline" className="border-red-400 text-red-500 hover:bg-red-50 text-xs" onClick={() => { setShowRejectModal(app); setRejectReason(''); }}>
@@ -3431,32 +3456,120 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* Modal aprobar */}
-                {showApproveModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
-                      <h3 className="font-bold mb-4">Aprobar cosplayer</h3>
-                      <p className="text-sm text-muted-foreground mb-4">{showApproveModal.fullName} {showApproveModal.lastName}</p>
-                      <div className="space-y-3">
-                        <div><Label className="text-xs">Nombre artístico *</Label><Input value={approveForm.artisticName} onChange={e => setApproveForm(f => ({ ...f, artisticName: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
-                        <div>
-                          <Label className="text-xs">Tier inicial</Label>
-                          <select value={approveForm.tier} onChange={e => setApproveForm(f => ({ ...f, tier: e.target.value }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none">
-                            {['bronce','plata','oro','diamante','platino'].map(t => <option key={t} value={t} className="capitalize">{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-                          </select>
+                {/* Modal detalle solicitud */}
+                {selectedApplication && (() => {
+                  const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
+                  return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                      <div className="bg-card rounded-2xl border border-border/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                        <div className="flex items-center justify-between p-6 border-b border-border/30">
+                          <h3 className="text-lg font-black">Solicitud de {selectedApplication.fullName}</h3>
+                          <button onClick={() => setSelectedApplication(null)} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
                         </div>
-                        <div><Label className="text-xs">Seguidores totales</Label><Input type="number" value={approveForm.totalFollowers} onChange={e => setApproveForm(f => ({ ...f, totalFollowers: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
-                        <div><Label className="text-xs">ID del producto kit</Label><Input type="number" value={approveForm.kitProductId} onChange={e => setApproveForm(f => ({ ...f, kitProductId: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="ID del producto de bienvenida" /></div>
-                      </div>
-                      <div className="flex gap-3 mt-5">
-                        <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={!approveForm.artisticName || approveApp.isPending} onClick={() => approveApp.mutate({ applicationId: showApproveModal.id, artisticName: approveForm.artisticName, tier: approveForm.tier as any, totalFollowers: approveForm.totalFollowers, kitProductId: approveForm.kitProductId })}>
-                          {approveApp.isPending ? "Aprobando..." : "Confirmar aprobación"}
-                        </Button>
-                        <Button variant="outline" onClick={() => setShowApproveModal(null)}>Cancelar</Button>
+                        <div className="p-6 space-y-6">
+                          <div className="grid grid-cols-2 gap-4 text-sm">
+                            <div><p className="text-xs text-muted-foreground mb-0.5">Nombre completo</p><p className="font-semibold">{selectedApplication.fullName} {selectedApplication.lastName}</p></div>
+                            <div><p className="text-xs text-muted-foreground mb-0.5">Edad</p><p className="font-semibold">{selectedApplication.age} años</p></div>
+                            <div><p className="text-xs text-muted-foreground mb-0.5">País / Ciudad</p><p className="font-semibold">{selectedApplication.country}, {selectedApplication.city}</p></div>
+                            <div><p className="text-xs text-muted-foreground mb-0.5">Teléfono</p><p className="font-semibold">{selectedApplication.phone}</p></div>
+                            <div><p className="text-xs text-muted-foreground mb-0.5">Email</p><p className="font-semibold">{selectedApplication.email}</p></div>
+                            <div><p className="text-xs text-muted-foreground mb-0.5">Experiencia</p><p className="font-semibold">{selectedApplication.experience} años</p></div>
+                            <div className="col-span-2"><p className="text-xs text-muted-foreground mb-0.5">Dirección</p><p className="font-semibold">{selectedApplication.address}</p></div>
+                          </div>
+
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Redes sociales</p>
+                            <div className="flex flex-col gap-2">
+                              {['instagram','tiktok','youtube','facebook','twitter'].filter(r => selectedApplication[r]).map(r => (
+                                <a key={r} href={selectedApplication[r]} target="_blank" rel="noopener noreferrer" className="text-sm text-primary underline capitalize hover:opacity-70">
+                                  {r}: {selectedApplication[r]}
+                                </a>
+                              ))}
+                              {!['instagram','tiktok','youtube','facebook','twitter'].some(r => selectedApplication[r]) && (
+                                <p className="text-sm text-muted-foreground">No indicó redes sociales.</p>
+                              )}
+                            </div>
+                          </div>
+
+                          <div>
+                            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Por qué quiere ser representante</p>
+                            <p className="text-sm text-foreground leading-relaxed bg-muted/50 rounded-xl p-4">{selectedApplication.whyIsekai}</p>
+                          </div>
+
+                          {selectedApplication.status === 'pending' && (
+                            <div className="flex gap-3 pt-2">
+                              <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => { setShowApproveModal(selectedApplication); setApproveForm({ artisticName: selectedApplication.fullName, tier: getTierByFollowers(0), totalFollowers: 0, kitProductId: 0 }); setSelectedApplication(null); }}>
+                                <CheckCircle2 className="w-4 h-4 mr-2" /> Aprobar solicitud
+                              </Button>
+                              <Button variant="outline" className="flex-1 border-red-400 text-red-500 hover:bg-red-50" onClick={() => { setShowRejectModal(selectedApplication); setRejectReason(''); setSelectedApplication(null); }}>
+                                <X className="w-4 h-4 mr-2" /> Rechazar
+                              </Button>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  );
+                })()}
+
+                {/* Modal aprobar */}
+                {showApproveModal && (() => {
+                  const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
+                  return (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                      <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                        <h3 className="font-bold mb-1">Aprobar cosplayer</h3>
+                        <p className="text-sm text-muted-foreground mb-5">{showApproveModal.fullName} {showApproveModal.lastName}</p>
+                        <div className="space-y-3">
+                          <div>
+                            <Label className="text-xs">Nombre artístico *</Label>
+                            <Input value={approveForm.artisticName} onChange={e => setApproveForm(f => ({ ...f, artisticName: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Seguidores totales (suma de todas las redes)</Label>
+                            <Input
+                              type="number"
+                              placeholder="Ej: 15000"
+                              value={approveForm.totalFollowers || ''}
+                              onChange={e => {
+                                const followers = parseInt(e.target.value) || 0;
+                                setApproveForm(f => ({ ...f, totalFollowers: followers, tier: getTierByFollowers(followers) }));
+                              }}
+                              className="mt-1 bg-muted border-border/50 text-sm"
+                            />
+                            {approveForm.totalFollowers > 0 && (
+                              <p className="text-xs mt-1.5 text-muted-foreground">
+                                Tier asignado:{' '}
+                                <span className="font-black" style={{ color: TIER_COLORS_MAP[approveForm.tier] }}>
+                                  {approveForm.tier.toUpperCase()}
+                                </span>
+                              </p>
+                            )}
+                          </div>
+                          <div>
+                            <Label className="text-xs">Tier (calculado automáticamente)</Label>
+                            <div
+                              className="mt-1 px-3 py-2.5 rounded-xl bg-muted border border-border/50 text-sm font-black"
+                              style={{ color: TIER_COLORS_MAP[approveForm.tier] }}
+                            >
+                              {approveForm.tier.toUpperCase()}
+                            </div>
+                          </div>
+                          <div>
+                            <Label className="text-xs">ID del producto kit</Label>
+                            <Input type="number" value={approveForm.kitProductId || ''} onChange={e => setApproveForm(f => ({ ...f, kitProductId: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="ID del producto de bienvenida" />
+                          </div>
+                        </div>
+                        <div className="flex gap-3 mt-5">
+                          <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={!approveForm.artisticName || approveApp.isPending} onClick={() => approveApp.mutate({ applicationId: showApproveModal.id, artisticName: approveForm.artisticName, tier: approveForm.tier as any, totalFollowers: approveForm.totalFollowers, kitProductId: approveForm.kitProductId })}>
+                            {approveApp.isPending ? "Aprobando..." : "Confirmar aprobación"}
+                          </Button>
+                          <Button variant="outline" onClick={() => setShowApproveModal(null)}>Cancelar</Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Modal rechazar */}
                 {showRejectModal && (

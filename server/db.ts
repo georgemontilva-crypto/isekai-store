@@ -1081,7 +1081,9 @@ export async function approveCosplayApplication(input: {
     ticketBalance: 0,
   });
 
-  const orderNumber = `IW-KIT-${Date.now()}`;
+  const [{ kitCount }] = await db.select({ kitCount: count() }).from(cosplayers);
+  const kitNumber = String((kitCount ?? 0) + 1).padStart(4, '0');
+  const orderNumber = `IW-KIT-${kitNumber}`;
   await db.insert(orders).values({
     orderNumber,
     userId: app.userId ?? undefined,
