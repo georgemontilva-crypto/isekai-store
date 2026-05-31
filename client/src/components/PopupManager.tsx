@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
 import { useLocation } from 'wouter';
+import { useAuth } from '@/_core/hooks/useAuth';
 
 export function PopupManager({ productId }: { productId?: number }) {
   const [location] = useLocation();
@@ -11,9 +12,16 @@ export function PopupManager({ productId }: { productId?: number }) {
   const [email, setEmail] = useState('');
   const [submitted, setSubmitted] = useState(false);
 
+  const { isAuthenticated } = useAuth();
+  const { data: cosplayerProfile } = trpc.cosplay.getMyProfile.useQuery(undefined, {
+    enabled: isAuthenticated,
+  });
+  const isCosplayer = !!cosplayerProfile?.isActive;
+
   const { data: popupList } = trpc.popups.getActive.useQuery({
     page: location,
     productId,
+    isCosplayer,
   });
 
   const subscribeNewsletter = trpc.newsletter.subscribe.useMutation();

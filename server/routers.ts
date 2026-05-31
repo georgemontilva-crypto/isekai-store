@@ -658,8 +658,22 @@ export const appRouter = router({
   // ─── Popups ──────────────────────────────────────────────────────────────────
   popups: router({
     getActive: publicProcedure
-      .input(z.object({ page: z.string().optional(), productId: z.number().optional() }))
-      .query(({ input }) => getActivePopups(input)),
+      .input(z.object({
+        page: z.string().optional(),
+        productId: z.number().optional(),
+        isCosplayer: z.boolean().optional(),
+      }))
+      .query(async ({ input }) => {
+        const all = await getActivePopups(input);
+        return all.filter(p => {
+          const aud = (p as any).audience ?? 'all';
+          if (aud === 'all') return true;
+          if (aud === 'cosplayers') return input.isCosplayer === true;
+          if (aud === 'users') return input.isCosplayer !== undefined;
+          if (aud === 'guests') return !input.isCosplayer;
+          return true;
+        });
+      }),
 
     list: adminProcedure.query(() => getAllPopups()),
 
@@ -680,6 +694,7 @@ export const appRouter = router({
         triggerProductId: z.number().optional(),
         showOnce: z.boolean().optional(),
         position: z.enum(['center', 'bottom-left', 'bottom-right', 'top']).optional(),
+        audience: z.enum(['all', 'cosplayers', 'users', 'guests']).optional(),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
       }))
@@ -711,6 +726,7 @@ export const appRouter = router({
         triggerProductId: z.number().optional(),
         showOnce: z.boolean().optional(),
         position: z.enum(['center', 'bottom-left', 'bottom-right', 'top']).optional(),
+        audience: z.enum(['all', 'cosplayers', 'users', 'guests']).optional(),
         startDate: z.string().optional().nullable(),
         endDate: z.string().optional().nullable(),
       }))

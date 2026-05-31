@@ -656,7 +656,7 @@ export default function Admin() {
     name: "", active: false, title: "", subtitle: "", bodyText: "", buttonText: "", buttonUrl: "",
     image: "", showEmail: false, couponCode: "", triggerType: "time" as const,
     triggerDelay: 3, triggerPage: "", triggerProductId: "" as string | number,
-    showOnce: true, position: "center" as const, startDate: "", endDate: "",
+    showOnce: true, position: "center" as const, audience: "all" as const, startDate: "", endDate: "",
   };
   const [showPopupModal, setShowPopupModal] = useState(false);
   const [editingPopup, setEditingPopup] = useState<any | null>(null);
@@ -3065,6 +3065,7 @@ export default function Admin() {
                                       triggerProductId: p.triggerProductId ?? "",
                                       showOnce: p.showOnce ?? true,
                                       position: p.position ?? "center",
+                                      audience: p.audience ?? "all",
                                       startDate: p.startDate ? new Date(p.startDate).toISOString().slice(0,16) : "",
                                       endDate: p.endDate ? new Date(p.endDate).toISOString().slice(0,16) : "",
                                     });
@@ -3263,6 +3264,21 @@ export default function Admin() {
                           <Label className="text-xs">Mostrar solo una vez por visitante</Label>
                         </div>
 
+                        {/* Audiencia */}
+                        <div>
+                          <Label className="text-xs mb-1 block">Audiencia</Label>
+                          <select
+                            value={popupForm.audience}
+                            onChange={e => setPopupForm(f => ({ ...f, audience: e.target.value as any }))}
+                            className="w-full bg-muted border border-border/50 rounded-md px-3 py-2 text-sm text-foreground"
+                          >
+                            <option value="all">Todos</option>
+                            <option value="cosplayers">Solo cosplayers aprobados</option>
+                            <option value="users">Solo usuarios registrados</option>
+                            <option value="guests">Solo visitantes (no registrados)</option>
+                          </select>
+                        </div>
+
                         {/* Fechas */}
                         <div className="grid grid-cols-2 gap-4">
                           <div>
@@ -3298,6 +3314,7 @@ export default function Admin() {
                                 triggerProductId: popupForm.triggerProductId ? Number(popupForm.triggerProductId) : undefined,
                                 showOnce: popupForm.showOnce,
                                 position: popupForm.position,
+                                audience: popupForm.audience,
                                 startDate: popupForm.startDate || undefined,
                                 endDate: popupForm.endDate || undefined,
                               };

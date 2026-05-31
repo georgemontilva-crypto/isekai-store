@@ -316,6 +316,7 @@ export const popups = mysqlTable('popups', {
   startDate: timestamp('startDate'),
   endDate: timestamp('endDate'),
   position: varchar('position', { length: 50 }).default('center'),
+  audience: varchar('audience', { length: 20 }).default('all'),
   createdAt: timestamp('createdAt').defaultNow(),
 });
 
