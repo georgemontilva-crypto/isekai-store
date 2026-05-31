@@ -152,7 +152,7 @@ export default function CosplayLanding() {
             <Info size={16} className="text-[#e5007d] flex-shrink-0" />
             <p className="text-[#888] text-sm">
               <span className="text-white font-bold">Requisito mínimo:</span> necesitas al menos{" "}
-              <span className="text-[#e5007d] font-bold">1,000 seguidores</span>{" "}
+              <span className="text-[#e5007d] font-bold">500 seguidores</span>{" "}
               en al menos una de tus redes sociales para postularte.
             </p>
           </div>

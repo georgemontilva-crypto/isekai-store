@@ -136,7 +136,7 @@ export default function CosplayApply() {
     if (!form.instagram && !form.tiktok && !form.youtube && !form.facebook && !form.twitter)
       return toast.error("Debes incluir al menos una red social");
     const totalFollowers = parseInt(form.totalFollowers) || 0;
-    if (totalFollowers < 1000) return toast.error("Necesitas al menos 1,000 seguidores para postularte");
+    if (totalFollowers < 500) return toast.error("Necesitas al menos 500 seguidores para postularte");
 
     apply.mutate({
       userId: user?.id,
@@ -210,7 +210,7 @@ export default function CosplayApply() {
             <Info size={16} className="text-[#e5007d] flex-shrink-0 mt-0.5" />
             <p className="text-[#888] text-sm leading-relaxed">
               <strong className="text-white">Requisito mínimo:</strong> al menos{" "}
-              <span className="text-[#e5007d] font-bold">1,000 seguidores</span>{" "}
+              <span className="text-[#e5007d] font-bold">500 seguidores</span>{" "}
               en total entre todas tus redes sociales.
             </p>
           </div>
@@ -340,9 +340,9 @@ export default function CosplayApply() {
                 </div>
               ))}
               <div className="mt-4">
-                <label className={labelCls}>Seguidores totales (suma de todas tus redes) * <span className="text-[#555] font-normal">mínimo 1,000</span></label>
-                <input required type="number" min={1000} value={form.totalFollowers} onChange={e => setForm(f => ({ ...f, totalFollowers: e.target.value }))} placeholder="Ej: 15000" className={inputCls} />
-                {form.totalFollowers && parseInt(form.totalFollowers) < 1000 && <p className="text-red-400 text-xs mt-1.5">El mínimo es 1,000 seguidores.</p>}
+                <label className={labelCls}>Seguidores totales (suma de todas tus redes) * <span className="text-[#555] font-normal">mínimo 500</span></label>
+                <input required type="number" min={500} value={form.totalFollowers} onChange={e => setForm(f => ({ ...f, totalFollowers: e.target.value }))} placeholder="Ej: 15000" className={inputCls} />
+                {form.totalFollowers && parseInt(form.totalFollowers) < 500 && <p className="text-red-400 text-xs mt-1.5">El mínimo es 500 seguidores.</p>}
               </div>
             </div>
 
