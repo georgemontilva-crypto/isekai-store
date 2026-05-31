@@ -298,3 +298,41 @@ export async function notifyCosplayReferralEarned(
     `+$${cashReward.toFixed(2)} USD en tu billetera`,
   );
 }
+
+// ─── notifyCosplayActivity ────────────────────────────────────────────────────
+
+export async function notifyCosplayActivity(
+  userEmail: string,
+  artisticName: string,
+  tier: string,
+  activity: { title: string; description?: string | null; deadline?: string | null; type?: string; basePoints?: number },
+): Promise<boolean> {
+  const multiplier = COSPLAY_TIER_MULTIPLIERS[tier] ?? 1;
+  const pointsWouldEarn = Math.round((activity.basePoints ?? 0) * multiplier);
+  const content = `
+    <h1>Nueva actividad disponible</h1>
+    <p>Hola <strong>${artisticName}</strong>, hay una nueva actividad publicada en el Cosplay Guild.</p>
+    <div class="order-box">
+      <p><strong>Actividad:</strong> ${activity.title}</p>
+      ${activity.description ? `<p><strong>Descripción:</strong> ${activity.description}</p>` : ''}
+      ${activity.deadline ? `<p><strong>Fecha límite:</strong> ${new Date(activity.deadline).toLocaleDateString('es-CO')}</p>` : ''}
+      <p><strong>Tipo:</strong> ${activity.type ?? '—'}</p>
+      <p><strong>Puntos base:</strong> ${activity.basePoints ?? 0}</p>
+      <p><strong>Tus puntos (×${multiplier} tier ${tier}):</strong> <span class="highlight">${pointsWouldEarn} tickets</span></p>
+    </div>
+    <p>Entra a tu dashboard para ver los detalles y registrar tu evidencia una vez que la completes.</p>
+    <div style="text-align:center">
+      <a href="${APP_URL}/cosplay/dashboard" class="btn">Ver actividad →</a>
+    </div>
+    <hr class="divider"/>
+    <p style="font-size:13px;color:#999">
+      Recuerda: dejar 3 actividades consecutivas sin registrar resultará en tu baja del programa.
+    </p>
+  `;
+  return sendEmail(
+    userEmail,
+    `Nueva actividad — ${activity.title}`,
+    content,
+    `Nueva actividad disponible: ${activity.title} — ${pointsWouldEarn} tickets para ti`,
+  );
+}

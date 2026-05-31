@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected } from "./_core/notification";
+import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity } from "./_core/notification";
 import { storageDelete } from "./storage";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
@@ -1384,6 +1384,20 @@ export async function createCosplayActivity(data: any) {
     ...data,
     deadline: data.deadline ? new Date(data.deadline) : null,
   });
+
+  const activeCosplayers = await db
+    .select({ userId: cosplayers.userId, artisticName: cosplayers.artisticName, tier: cosplayers.tier })
+    .from(cosplayers)
+    .where(eq(cosplayers.isActive, true));
+
+  for (const cp of activeCosplayers) {
+    if (!cp.userId) continue;
+    try {
+      const user = await getUserById(cp.userId);
+      if (!user?.email) continue;
+      await notifyCosplayActivity(user.email, cp.artisticName, cp.tier ?? 'bronce', data);
+    } catch { /* non-critical */ }
+  }
 }
 
 export async function getAllCosplayActivities() {
