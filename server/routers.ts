@@ -8,6 +8,7 @@ import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned } f
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
+import { getUSDtoCOP } from "./exchangeRate";
 import {
   getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
@@ -530,6 +531,11 @@ export const appRouter = router({
       .input(z.object({ key: z.string().min(1), value: z.string().min(1) }))
       .mutation(({ input }) => upsertSetting(input.key, input.value)),
 
+    getExchangeRate: publicProcedure.query(async () => {
+      const rate = await getUSDtoCOP();
+      return { usdToCOP: rate };
+    }),
+
     // Proxy Instagram Basic Display API to avoid CORS (token stays server-side)
     instagramFeed: publicProcedure.query(async () => {
       const settings = await getAllSettings();
@@ -924,15 +930,20 @@ export const appRouter = router({
 
     requestWithdrawal: protectedProcedure
       .input(z.object({
-        amount: z.number().min(20),
+        amount: z.number().min(1),
         paymentMethod: z.string().min(1).max(100),
         paymentDetails: z.string().min(1).max(500),
       }))
       .mutation(async ({ ctx, input }) => {
         const cosplayer = await getCosplayerByUserId(ctx.user.id);
         if (!cosplayer) throw new TRPCError({ code: 'FORBIDDEN' });
+        const rate = await getUSDtoCOP();
+        const minCOP = Math.ceil(20 * rate);
+        if (input.amount < minCOP) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: `El mínimo de retiro es $${minCOP.toLocaleString('es-CO')} COP (~$20 USD)` });
+        }
         if (parseFloat(cosplayer.cashBalance ?? '0') < input.amount) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: `Saldo insuficiente. Tienes $${cosplayer.cashBalance} USD` });
+          throw new TRPCError({ code: 'BAD_REQUEST', message: `Saldo insuficiente. Tienes $${parseFloat(cosplayer.cashBalance ?? '0').toLocaleString('es-CO')} COP` });
         }
         await requestCashWithdrawal(cosplayer.id, input.amount, input.paymentMethod, input.paymentDetails);
         try {

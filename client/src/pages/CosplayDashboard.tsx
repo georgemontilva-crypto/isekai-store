@@ -62,6 +62,11 @@ export default function CosplayDashboard() {
   const utils = trpc.useUtils();
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const textureEnabled = siteSettings?.["texture_enabled"] === "true";
+  const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, {
+    refetchInterval: 1000 * 60 * 60,
+  });
+  const usdToCOP = rateData?.usdToCOP ?? 4200;
+  const minWithdrawalCOP = Math.ceil(20 * usdToCOP);
 
   useEffect(() => {
     const h = () => setOffsetY(window.scrollY);
@@ -507,22 +512,24 @@ export default function CosplayDashboard() {
                   </div>
 
                   <div className="bg-[#1a1a1a] border border-[#ffd700]/30 rounded-2xl p-6">
-                    <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Cash USD</p>
+                    <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Cash</p>
                     <p className="text-4xl font-black text-[#ffd700]">
-                      ${parseFloat((cosplayer as any).cashBalance ?? '0').toFixed(2)}
+                      ${parseFloat((cosplayer as any).cashBalance ?? '0').toLocaleString('es-CO')} COP
                     </p>
-                    <p className="text-[#555] text-xs mt-1">Consumible o retirable</p>
+                    <p className="text-[#555] text-xs mt-1">
+                      ≈ ${(parseFloat((cosplayer as any).cashBalance ?? '0') / usdToCOP).toFixed(2)} USD
+                    </p>
                     <div className="flex gap-2 mt-4">
                       <button
-                        disabled={parseFloat((cosplayer as any).cashBalance ?? '0') < 20}
+                        disabled={parseFloat((cosplayer as any).cashBalance ?? '0') < minWithdrawalCOP}
                         onClick={() => setShowWithdraw(true)}
                         className="flex-1 bg-[#1a1a1a] border border-[#ffd700]/50 text-[#ffd700] py-2 rounded-xl text-xs font-bold disabled:opacity-40 hover:bg-[#222] transition-colors"
                       >
                         Retirar
                       </button>
                     </div>
-                    {parseFloat((cosplayer as any).cashBalance ?? '0') < 20 && (
-                      <p className="text-[#555] text-[10px] mt-2 text-center">Mínimo $20 USD para retirar</p>
+                    {parseFloat((cosplayer as any).cashBalance ?? '0') < minWithdrawalCOP && (
+                      <p className="text-[#555] text-[10px] mt-2 text-center">Mínimo ${minWithdrawalCOP.toLocaleString('es-CO')} COP (~$20 USD) para retirar</p>
                     )}
                   </div>
                 </div>
@@ -579,14 +586,14 @@ export default function CosplayDashboard() {
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 w-full max-w-md">
                       <h3 className="text-white font-black text-lg mb-4">Solicitar retiro</h3>
                       <p className="text-[#888] text-sm mb-4">
-                        Balance disponible: <strong className="text-[#ffd700]">${parseFloat((cosplayer as any).cashBalance ?? '0').toFixed(2)} USD</strong>
+                        Balance disponible: <strong className="text-[#ffd700]">${parseFloat((cosplayer as any).cashBalance ?? '0').toLocaleString('es-CO')} COP</strong>
                       </p>
                       <div className="flex flex-col gap-4">
                         <div>
-                          <label className="text-[#ccc] text-sm mb-1 block">Monto a retirar (mín. $20 USD)</label>
+                          <label className="text-[#ccc] text-sm mb-1 block">Monto a retirar en COP (mín. ${minWithdrawalCOP.toLocaleString('es-CO')} COP ~$20 USD)</label>
                           <input
                             type="number"
-                            min={20}
+                            min={minWithdrawalCOP}
                             max={parseFloat((cosplayer as any).cashBalance ?? '0')}
                             value={withdrawForm.amount}
                             onChange={e => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
