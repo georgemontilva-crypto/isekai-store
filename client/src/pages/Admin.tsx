@@ -1471,7 +1471,7 @@ export default function Admin() {
                               </div>
                             )}
 
-                            {order.paymentStatus === "verifying" && (
+                            {(order.paymentStatus === "pending" || order.paymentStatus === "verifying") && (
                               <div className="flex gap-3">
                                 <Button
                                   size="sm"
