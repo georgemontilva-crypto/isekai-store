@@ -872,6 +872,15 @@ export async function getPendingOrdersCount(): Promise<number> {
   return result[0]?.count ?? 0;
 }
 
+export async function getPendingPaymentsCount(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const result = await db.select({ count: count() })
+    .from(orders)
+    .where(or(eq(orders.paymentStatus, 'pending'), eq(orders.paymentStatus, 'verifying')));
+  return result[0]?.count ?? 0;
+}
+
 // ─── Users (admin) ────────────────────────────────────────────────────────────
 export async function getUsers({ search, role }: { search?: string; role?: string }) {
   const db = await getDb();

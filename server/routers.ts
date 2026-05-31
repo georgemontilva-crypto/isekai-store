@@ -25,7 +25,7 @@ import {
   createInstallmentPlan, getMyInstallmentPlans, submitInstallmentPayment,
   verifyInstallmentPayment, getAllInstallmentPlans, updateProductPaymentSettings,
   getPublicLinkBioItems, getAllLinkBioItems, createLinkBioItem, updateLinkBioItem,
-  deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount,
+  deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount, getPendingPaymentsCount,
   getUsers, updateUserRole, deleteUser,
   getActivePopups, getAllPopups, createPopup, updatePopup, deletePopup,
   getApprovedCosplayers, getCosplayerById, getCosplayerByUserId, getActiveActivities,
@@ -453,6 +453,7 @@ export const appRouter = router({
       }),
 
     pendingCount: adminProcedure.query(() => getPendingOrdersCount()),
+    pendingPaymentsCount: adminProcedure.query(() => getPendingPaymentsCount()),
 
     adminPayments: adminProcedure
       .input(z.object({ paymentStatus: z.string().optional() }).optional())
