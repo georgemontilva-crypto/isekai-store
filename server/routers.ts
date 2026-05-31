@@ -809,7 +809,11 @@ export const appRouter = router({
         } catch { /* non-critical */ }
       }),
 
-    getMyProfile: protectedProcedure.query(({ ctx }) => getCosplayerByUserId(ctx.user.id)),
+    getMyProfile: protectedProcedure.query(async ({ ctx }) => {
+      const result = await getCosplayerByUserId(ctx.user.id);
+      console.log('[getMyProfile] userId:', ctx.user.id, 'cashBalance:', result?.cashBalance);
+      return result;
+    }),
 
     updateMyProfile: protectedProcedure
       .input(z.object({
