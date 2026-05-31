@@ -514,21 +514,21 @@ export default function CosplayDashboard() {
                   <div className="bg-[#1a1a1a] border border-[#ffd700]/30 rounded-2xl p-6">
                     <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Cash</p>
                     <p className="text-4xl font-black text-[#ffd700]">
-                      ${parseFloat((cosplayer as any).cashBalance ?? '0').toLocaleString('es-CO')} COP
+                      ${parseFloat(String(cosplayer?.cashBalance ?? '0')).toLocaleString('es-CO')} COP
                     </p>
                     <p className="text-[#555] text-xs mt-1">
-                      ≈ ${(parseFloat((cosplayer as any).cashBalance ?? '0') / usdToCOP).toFixed(2)} USD
+                      ≈ ${(parseFloat(String(cosplayer?.cashBalance ?? '0')) / usdToCOP).toFixed(2)} USD
                     </p>
                     <div className="flex gap-2 mt-4">
                       <button
-                        disabled={parseFloat((cosplayer as any).cashBalance ?? '0') < minWithdrawalCOP}
+                        disabled={parseFloat(String(cosplayer?.cashBalance ?? '0')) < minWithdrawalCOP}
                         onClick={() => setShowWithdraw(true)}
                         className="flex-1 bg-[#1a1a1a] border border-[#ffd700]/50 text-[#ffd700] py-2 rounded-xl text-xs font-bold disabled:opacity-40 hover:bg-[#222] transition-colors"
                       >
                         Retirar
                       </button>
                     </div>
-                    {parseFloat((cosplayer as any).cashBalance ?? '0') < minWithdrawalCOP && (
+                    {parseFloat(String(cosplayer?.cashBalance ?? '0')) < minWithdrawalCOP && (
                       <p className="text-[#555] text-[10px] mt-2 text-center">Mínimo ${minWithdrawalCOP.toLocaleString('es-CO')} COP (~$20 USD) para retirar</p>
                     )}
                   </div>
@@ -586,7 +586,7 @@ export default function CosplayDashboard() {
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 w-full max-w-md">
                       <h3 className="text-white font-black text-lg mb-4">Solicitar retiro</h3>
                       <p className="text-[#888] text-sm mb-4">
-                        Balance disponible: <strong className="text-[#ffd700]">${parseFloat((cosplayer as any).cashBalance ?? '0').toLocaleString('es-CO')} COP</strong>
+                        Balance disponible: <strong className="text-[#ffd700]">${parseFloat(String(cosplayer?.cashBalance ?? '0')).toLocaleString('es-CO')} COP</strong>
                       </p>
                       <div className="flex flex-col gap-4">
                         <div>
@@ -594,7 +594,7 @@ export default function CosplayDashboard() {
                           <input
                             type="number"
                             min={minWithdrawalCOP}
-                            max={parseFloat((cosplayer as any).cashBalance ?? '0')}
+                            max={parseFloat(String(cosplayer?.cashBalance ?? '0'))}
                             value={withdrawForm.amount}
                             onChange={e => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
                             className="w-full bg-[#222] border border-[#333] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d]"
