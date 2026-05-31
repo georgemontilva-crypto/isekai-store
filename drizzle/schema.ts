@@ -366,6 +366,7 @@ export const cosplayers = mysqlTable('cosplayers', {
   ticketBalance: int('ticketBalance').default(0),
   cashBalance: decimal('cashBalance', { precision: 10, scale: 2 }).default('0.00'),
   referralCode: varchar('referralCode', { length: 50 }),
+  username: varchar('username', { length: 100 }),
   kitOrderId: int('kitOrderId'),
   isActive: boolean('isActive').default(true),
   instagram: varchar('instagram', { length: 200 }),

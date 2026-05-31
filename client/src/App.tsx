@@ -86,7 +86,7 @@ function Router() {
         <Route path="/cosplay" component={CosplayLanding} />
         <Route path="/cosplay/apply" component={CosplayApply} />
         <Route path="/cosplay/guild" component={CosplayGuild} />
-        <Route path="/cosplay/guild/:id" component={CosplayProfile} />
+        <Route path="/cosplay/guild/:username" component={CosplayProfile} />
         <Route path="/cosplay/dashboard" component={CosplayDashboard} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />

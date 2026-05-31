@@ -5,12 +5,13 @@ import { CheckCircle2, User, ChevronLeft, ChevronRight } from "lucide-react";
 import { getTierColor } from "./CosplayDashboard";
 
 export default function CosplayProfile() {
-  const params = useParams<{ id: string }>();
-  const id = parseInt(params.id ?? '0');
+  const params = useParams<{ username: string }>();
+  const username = params.username ?? '';
+  const [currentSlide, setCurrentSlide] = useState(0);
 
-  const { data: cosplayer, isLoading } = trpc.cosplay.getCosplayerProfile.useQuery(
-    { id },
-    { enabled: !!id }
+  const { data: cosplayer, isLoading } = trpc.cosplay.getCosplayerByUsername.useQuery(
+    { username },
+    { enabled: !!username }
   );
 
   if (isLoading) {
@@ -35,8 +36,6 @@ export default function CosplayProfile() {
       </div>
     );
   }
-
-  const [currentSlide, setCurrentSlide] = useState(0);
 
   const tierColor = getTierColor(cosplayer.tier ?? 'bronce');
   const gallery   = (cosplayer.gallery as string[] | null) ?? [];

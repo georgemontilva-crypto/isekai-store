@@ -1066,6 +1066,14 @@ export async function getAdminUsers() {
   return db.select({ id: users.id }).from(users).where(eq(users.role, 'admin'));
 }
 
+export async function getCosplayerByUsername(username: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(cosplayers)
+    .where(and(eq(cosplayers.username, username), eq(cosplayers.isActive, true)));
+  return result[0] ?? null;
+}
+
 export async function approveCosplayApplication(input: {
   applicationId: number;
   tier: string;
@@ -1085,6 +1093,15 @@ export async function approveCosplayApplication(input: {
   await db.update(cosplayApplications)
     .set({ status: 'approved' })
     .where(eq(cosplayApplications.id, input.applicationId));
+
+  // Generar username desde el nombre artístico
+  const username = artisticName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 
   // Generar código de referido único
   const nameSlug = artisticName
@@ -1156,6 +1173,7 @@ export async function approveCosplayApplication(input: {
     ticketBalance: 0,
     cashBalance: '0.00',
     referralCode,
+    username,
     kitOrderId,
     isActive: true,
   });

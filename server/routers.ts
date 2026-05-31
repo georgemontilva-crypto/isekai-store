@@ -28,7 +28,7 @@ import {
   deleteLinkBioItem, reorderLinkBioItems, getPendingOrdersCount, getPendingPaymentsCount,
   getUsers, updateUserRole, deleteUser,
   getActivePopups, getAllPopups, createPopup, updatePopup, deletePopup,
-  getApprovedCosplayers, getCosplayerById, getCosplayerByUserId, getActiveActivities,
+  getApprovedCosplayers, getCosplayerById, getCosplayerByUserId, getCosplayerByUsername, getActiveActivities,
   createCosplayApplication, updateCosplayerProfile, submitCosplayActivity,
   getMyCosplayerSubmissions, getCosplayerTickets, redeemCosplayDiscountCode,
   getMyCosplayerDiscountCodes, getCosplayApplications, approveCosplayApplication,
@@ -759,6 +759,10 @@ export const appRouter = router({
     getCosplayerProfile: publicProcedure
       .input(z.object({ id: z.number() }))
       .query(({ input }) => getCosplayerById(input.id)),
+
+    getCosplayerByUsername: publicProcedure
+      .input(z.object({ username: z.string() }))
+      .query(({ input }) => getCosplayerByUsername(input.username)),
 
     getActivities: publicProcedure.query(() => getActiveActivities()),
 

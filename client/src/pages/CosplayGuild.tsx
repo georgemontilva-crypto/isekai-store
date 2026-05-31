@@ -75,7 +75,7 @@ export default function CosplayGuild() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.04 }}
                 >
-                  <Link href={`/cosplay/guild/${cp.id}`}>
+                  <Link href={`/cosplay/guild/${cp.username ?? cp.id}`}>
                     <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-[#333] hover:border-[#e5007d] transition-colors group cursor-pointer">
                       <div className="aspect-square overflow-hidden bg-[#222]">
                         {cp.photo
