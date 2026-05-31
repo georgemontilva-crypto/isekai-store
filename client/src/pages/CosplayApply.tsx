@@ -64,7 +64,16 @@ export default function CosplayApply() {
 
   const apply = trpc.cosplay.submitApplication.useMutation({
     onSuccess: () => setSubmitted(true),
-    onError: (e) => toast.error(e.message),
+    onError: (e) => {
+      let msg = e.message;
+      try {
+        const parsed = JSON.parse(e.message);
+        if (Array.isArray(parsed)) {
+          msg = parsed.map((i: any) => i.message).filter(Boolean).join(', ');
+        }
+      } catch {}
+      toast.error(msg || 'Error al enviar la postulación');
+    },
   });
   const uploadImageMutation = trpc.cosplay.uploadImage.useMutation();
 
