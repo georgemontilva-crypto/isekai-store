@@ -102,7 +102,7 @@ export default function CosplayDashboard() {
   const kitOrderQuery = trpc.orders.myOrders.useQuery(undefined, {
     enabled: isAuthenticated && !!(cosplayer as any)?.kitOrderId,
   });
-  const kitOrder = kitOrderQuery.data?.find((o: any) => o.id === (cosplayer as any)?.kitOrderId);
+  const kitOrder = (kitOrderQuery.data?.items ?? []).find((o: any) => o.id === (cosplayer as any)?.kitOrderId);
   const kitSteps = [
     { key: 'pending',       label: 'Orden creada',   icon: ClipboardList },
     { key: 'preparing',     label: 'Preparando',      icon: Settings     },
