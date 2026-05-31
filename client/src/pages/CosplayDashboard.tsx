@@ -4,7 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "wouter";
-import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift } from "lucide-react";
+import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle } from "lucide-react";
 import { getLoginUrl } from "@/const";
 
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
@@ -99,6 +99,21 @@ export default function CosplayDashboard() {
   const { data: submissions = [] } = trpc.cosplay.getMySubmissions.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
   const { data: tickets }           = trpc.cosplay.getMyTickets.useQuery(undefined,       { enabled: isAuthenticated && !!cosplayer });
   const { data: discountCodes = [] } = trpc.cosplay.getMyDiscountCodes.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
+  const kitOrderQuery = trpc.orders.myOrders.useQuery(undefined, {
+    enabled: isAuthenticated && !!(cosplayer as any)?.kitOrderId,
+  });
+  const kitOrder = kitOrderQuery.data?.find((o: any) => o.id === (cosplayer as any)?.kitOrderId);
+  const kitSteps = [
+    { key: 'pending',       label: 'Orden creada',   icon: ClipboardList },
+    { key: 'preparing',     label: 'Preparando',      icon: Settings     },
+    { key: 'printing',      label: 'Impresión 3D',    icon: Printer      },
+    { key: 'post_printing', label: 'Post impresión',  icon: Sparkles     },
+    { key: 'packed',        label: 'Empacado',        icon: Package      },
+    { key: 'shipped',       label: 'Enviado',         icon: Truck        },
+    { key: 'delivered',     label: 'Entregado',       icon: CheckCircle  },
+  ];
+  const statusOrder = ['pending', 'preparing', 'printing', 'post_printing', 'packed', 'shipped', 'delivered'];
+  const currentStepIndex = kitOrder ? statusOrder.indexOf(kitOrder.status) : 0;
 
   const updateProfile = trpc.cosplay.updateMyProfile.useMutation({
     onSuccess: () => { utils.cosplay.getMyProfile.invalidate(); toast.success("Perfil actualizado"); },
@@ -413,23 +428,74 @@ export default function CosplayDashboard() {
 
             {/* ── KIT ── */}
             {activeTab === "kit" && (
-              <div>
-                <div className="p-6 rounded-2xl bg-[#1a1a1a] border border-[#333]">
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className="w-12 h-12 rounded-2xl bg-[#222] border border-[#333] flex items-center justify-center">
-                      <Package size={24} style={{ color: tierColor }} strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <p className="font-bold text-white">Kit Isekai Cosplay Guild</p>
-                      <p className="text-[#888] text-sm">Tu kit de bienvenida con productos exclusivos para representantes.</p>
-                    </div>
+              <div className="max-w-xl mx-auto">
+                <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2">Kit de bienvenida</p>
+                <h2 className="text-2xl font-black text-white mb-6">Tu kit está en camino</h2>
+
+                {!(cosplayer as any)?.kitOrderId ? (
+                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8 text-center">
+                    <Package size={40} className="text-[#555] mx-auto mb-3" />
+                    <p className="text-[#888] text-sm">Tu kit de bienvenida será asignado pronto.</p>
                   </div>
-                  <Link href="/account">
-                    <button className="flex items-center gap-2 px-4 py-2 bg-[#222] border border-[#333] rounded-xl text-sm font-semibold text-[#ccc] hover:border-[#444] transition-colors">
-                      Ver estado del envío <ExternalLink size={12} />
-                    </button>
-                  </Link>
-                </div>
+                ) : !kitOrder ? (
+                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8 text-center">
+                    <div className="animate-spin w-6 h-6 border-2 border-[#e5007d] border-t-transparent rounded-full mx-auto" />
+                  </div>
+                ) : (
+                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#333]">
+                      <div>
+                        <p className="text-[#888] text-xs">Número de orden</p>
+                        <p className="text-white font-black">{kitOrder.orderNumber}</p>
+                      </div>
+                      <span className="text-xs px-3 py-1 rounded-full bg-[#e5007d]/10 text-[#e5007d] font-semibold">
+                        {kitOrder.status}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-0">
+                      {kitSteps.map((step, i) => {
+                        const isDone    = i < currentStepIndex;
+                        const isCurrent = i === currentStepIndex;
+                        return (
+                          <div key={step.key} className="flex items-start gap-4">
+                            <div className="flex flex-col items-center">
+                              <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
+                                isDone    ? 'bg-green-500 text-white' :
+                                isCurrent ? 'bg-[#e5007d] text-white' :
+                                            'bg-[#222] text-[#555]'
+                              }`}>
+                                <step.icon size={16} />
+                              </div>
+                              {i < kitSteps.length - 1 && (
+                                <div className={`w-0.5 h-8 ${isDone ? 'bg-green-500' : 'bg-[#333]'}`} />
+                              )}
+                            </div>
+                            <div className="pt-2 pb-6">
+                              <p className={`text-sm font-semibold ${
+                                isCurrent ? 'text-[#e5007d]' :
+                                isDone    ? 'text-green-400' :
+                                            'text-[#555]'
+                              }`}>
+                                {step.label}
+                              </p>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {kitOrder.status === 'shipped' && (kitOrder as any).trackingNumber && (
+                      <div className="mt-4 p-4 bg-[#222] rounded-xl border border-[#333]">
+                        <p className="text-[#888] text-xs mb-1">Número de guía</p>
+                        <p className="text-white font-bold">{(kitOrder as any).trackingNumber}</p>
+                        {(kitOrder as any).trackingCarrier && (
+                          <p className="text-[#555] text-xs mt-1">Transportadora: {(kitOrder as any).trackingCarrier}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
