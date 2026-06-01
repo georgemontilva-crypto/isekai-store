@@ -166,7 +166,10 @@ export default function Navbar() {
       </div>
 
       {/* MAIN NAVBAR */}
-      <header className={`sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"}`}>
+      <header
+        className={`sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"}`}
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
         <div className="container flex items-center h-[60px] gap-4">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[160px] md:max-w-none overflow-hidden">
