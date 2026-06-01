@@ -1115,9 +1115,14 @@ export async function approveCosplayApplication(input: {
   let kitOrderId: number | null = null;
   let orderNumber = '';
   try {
-    const [{ kitCount }] = await db.select({ kitCount: count() }).from(cosplayers);
-    const kitNumber = String((kitCount ?? 0) + 1).padStart(4, '0');
-    orderNumber = `IW-KIT-${kitNumber}`;
+    const existingKitOrders = await db.select({ orderNumber: orders.orderNumber })
+      .from(orders)
+      .where(like(orders.orderNumber, 'IW-KIT-%'));
+    const maxNumber = existingKitOrders.reduce((max, o) => {
+      const num = parseInt(o.orderNumber.replace('IW-KIT-', '')) || 0;
+      return Math.max(max, num);
+    }, 0);
+    orderNumber = `IW-KIT-${String(maxNumber + 1).padStart(4, '0')}`;
 
     await db.insert(orders).values({
       orderNumber,
