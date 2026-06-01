@@ -874,11 +874,12 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-16" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 64px)' }}>
       {/* Botón hamburguesa — solo móvil */}
       <button
         onClick={() => setMobileMenuOpen(true)}
-        className="fixed top-[68px] left-3 z-50 md:hidden bg-sidebar border border-white/10 rounded-lg p-2 shadow-sm"
+        className="fixed z-50 md:hidden bg-sidebar border border-white/10 rounded-lg p-2 shadow-sm"
+        style={{ top: 'calc(env(safe-area-inset-top) + 8px)', left: '16px' }}
       >
         <Menu size={18} className="text-white" />
       </button>
@@ -893,12 +894,15 @@ export default function Admin() {
         )}
 
         {/* Sidebar */}
-        <aside className={`
-          w-64 min-h-screen bg-sidebar border-r border-sidebar-border fixed top-0 bottom-0 overflow-y-auto z-50
-          transition-transform duration-300
-          md:top-16 md:w-56 md:translate-x-0
-          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
-        `}>
+        <aside
+          className={`
+            w-64 min-h-screen bg-sidebar border-r border-sidebar-border fixed top-0 bottom-0 overflow-y-auto z-50
+            transition-transform duration-300
+            md:top-16 md:w-56 md:translate-x-0
+            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+          `}
+          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        >
           {/* Header móvil del drawer */}
           <div className="flex items-center justify-between p-4 border-b border-white/10 md:hidden">
             <span className="font-bold text-sm !text-white">Panel Admin</span>
