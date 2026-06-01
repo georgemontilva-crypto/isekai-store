@@ -999,7 +999,7 @@ export default function Admin() {
                 <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 gap-3 w-full overflow-hidden mb-8 md:grid-cols-4">
+                <div className="grid grid-cols-2 gap-3 w-full mb-6 md:grid-cols-4">
                   {[
                     { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)}`, icon: DollarSign, color: "text-green-400" },
                     { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
@@ -1023,22 +1023,21 @@ export default function Admin() {
                 </div>
 
                 {/* Recent orders */}
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <div className="p-5 rounded-2xl bg-card border border-border/50">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
+                  <div className="p-4 rounded-2xl bg-card border border-border/50 w-full">
                     <h3 className="font-semibold mb-4 flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-primary" />
                       Pedidos recientes
                     </h3>
-                    <div className="overflow-x-auto w-full">
                     <div className="space-y-3">
                       {(metrics?.recentOrders ?? []).map((order: any) => (
-                        <div key={order.id} className="flex items-center justify-between text-sm">
-                          <div>
-                            <p className="font-medium">{order.orderNumber}</p>
-                            <p className="text-muted-foreground text-xs">{order.customerName}</p>
+                        <div key={order.id} className="flex items-start justify-between gap-2 text-sm w-full min-w-0">
+                          <div className="min-w-0 flex-1">
+                            <p className="font-medium truncate">{order.orderNumber}</p>
+                            <p className="text-muted-foreground text-xs truncate">{order.customerName}</p>
                           </div>
-                          <div className="text-right">
-                            <p className="text-primary font-semibold">${parseFloat(order.total).toFixed(2)}</p>
+                          <div className="text-right flex-shrink-0">
+                            <p className="text-primary font-semibold text-xs">${parseFloat(order.total).toFixed(2)}</p>
                             <span className={`text-xs px-2 py-0.5 rounded-full status-${order.status}`}>
                               {statusLabels[order.status]}
                             </span>
@@ -1049,10 +1048,9 @@ export default function Admin() {
                         <p className="text-muted-foreground text-sm">No hay pedidos aún</p>
                       )}
                     </div>
-                    </div>
                   </div>
 
-                  <div className="p-5 rounded-2xl bg-card border border-border/50">
+                  <div className="p-4 rounded-2xl bg-card border border-border/50 w-full">
                     <h3 className="font-semibold mb-4 flex items-center gap-2">
                       <ArrowUpRight className="w-4 h-4 text-accent" />
                       Productos más vendidos
