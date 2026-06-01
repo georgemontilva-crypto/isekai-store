@@ -874,7 +874,7 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
+    <div className="min-h-screen bg-[#f8f8f8]">
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-56 bg-[#0d0d0d] border-r border-[#1a1a1a] fixed inset-y-0 left-0 overflow-y-auto z-30">
@@ -915,7 +915,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="ml-56 flex-1 p-6 min-h-screen bg-[#0d0d0d]">
+        <main className="ml-56 flex-1 p-6 min-h-screen bg-[#f8f8f8] text-[#111]">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
@@ -935,7 +935,7 @@ export default function Admin() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="p-5 rounded-2xl bg-[#1a1a1a] border border-border/50 min-w-0 overflow-hidden"
+                      className="p-5 rounded-2xl bg-white border border-[#e5e5e5] min-w-0 overflow-hidden"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm text-muted-foreground">{m.label}</span>
@@ -1321,7 +1321,7 @@ export default function Admin() {
                             <div>
                               <div className="flex items-center gap-3 mb-1 flex-wrap">
                                 <span className="font-semibold">{order.orderNumber}</span>
-                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0f0f0] text-[#555]">
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0f0f0] text-[#999]">
                                   {statusLabels[order.status] ?? order.status}
                                 </span>
                                 {order.status === "cancelled" && (
@@ -2701,7 +2701,7 @@ export default function Admin() {
 
                 {/* Copy link banner */}
                 <div className="flex items-center gap-3 mb-6 p-4 bg-[#f8f8f8] rounded-xl border border-border/50">
-                  <p className="text-sm font-mono text-[#555] flex-1">https://isekaiworld.co/links</p>
+                  <p className="text-sm font-mono text-[#999] flex-1">https://isekaiworld.co/links</p>
                   <button
                     onClick={() => { navigator.clipboard.writeText("https://isekaiworld.co/links"); toast.success("Link copiado"); }}
                     className="text-sm font-semibold bg-[#111] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors"
@@ -2942,11 +2942,11 @@ export default function Admin() {
                   <table className="w-full text-sm min-w-[600px]">
                     <thead className="bg-[#f8f8f8] border-b border-[#e5e5e5]">
                       <tr>
-                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Usuario</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Método</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Rol</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Registro</th>
-                        <th className="text-right px-4 py-3 font-semibold text-[#555]">Acciones</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Usuario</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Método</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Rol</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Registro</th>
+                        <th className="text-right px-4 py-3 font-semibold text-[#999]">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
