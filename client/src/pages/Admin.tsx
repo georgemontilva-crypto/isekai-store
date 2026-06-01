@@ -900,8 +900,7 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f8f8]"
-      style={{ maxWidth: '100vw', overflowX: 'hidden', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
+    <div className="min-h-screen bg-[#f8f8f8] overflow-x-hidden">
       {/* Header móvil */}
       <div
         className="md:hidden fixed left-0 right-0 z-[60] bg-white border-b border-gray-200 flex items-center justify-between"
@@ -943,20 +942,8 @@ export default function Admin() {
       <div className="flex">
         {/* Sidebar — drawer en móvil, fijo en desktop */}
         <aside
-          className={`md:translate-x-0 md:w-56 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-          style={{
-            position: 'fixed',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            width: '280px',
-            maxWidth: '85vw',
-            zIndex: 50,
-            background: '#0d0d0d',
-            overflowY: 'auto',
-            transition: 'transform 0.3s ease',
-            paddingTop: 'env(safe-area-inset-top, 0px)',
-          }}
+          className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] md:w-56 md:max-w-none bg-[#0d0d0d] overflow-y-auto transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
         >
           {/* Botón cerrar — solo móvil */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 md:hidden">
@@ -1003,19 +990,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main
-          className="md:ml-56 bg-[#f8f8f8] text-[#111] md:px-6 md:pt-6 md:pb-6"
-          style={{
-            minHeight: '100vh',
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
-            paddingLeft: '12px',
-            paddingRight: '12px',
-            paddingBottom: '24px',
-            maxWidth: '100vw',
-            overflowX: 'hidden',
-            boxSizing: 'border-box',
-          }}
-        >
+        <main className="md:ml-56 min-h-screen bg-[#f8f8f8] text-[#111] px-3 md:px-6 pt-20 md:pt-6 pb-6 overflow-x-hidden">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
