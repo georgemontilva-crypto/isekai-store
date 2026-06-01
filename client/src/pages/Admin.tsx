@@ -878,7 +878,7 @@ export default function Admin() {
       {/* Botón hamburguesa — solo móvil */}
       <button
         onClick={() => setMobileMenuOpen(true)}
-        className="fixed z-50 md:hidden bg-white border border-[#e5e5e5] rounded-lg p-2 shadow-sm"
+        className="fixed z-50 md:hidden bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg p-2 shadow-sm"
         style={{ top: 'max(env(safe-area-inset-top), 44px)', left: '16px' }}
       >
         <Menu size={18} className="text-white" />
@@ -896,7 +896,7 @@ export default function Admin() {
         {/* Sidebar */}
         <aside
           className={`
-            w-64 bg-white border-r border-[#e5e5e5] fixed inset-y-0 left-0 overflow-y-auto z-50
+            w-64 bg-[#0d0d0d] border-r border-[#1a1a1a] fixed inset-y-0 left-0 overflow-y-auto z-50
             transition-transform duration-300
             md:top-16 md:translate-x-0 md:w-56
             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
@@ -904,15 +904,15 @@ export default function Admin() {
           style={{ paddingTop: 'max(env(safe-area-inset-top), 44px)' }}
         >
           {/* Header móvil del drawer */}
-          <div className="flex items-center justify-between p-4 border-b border-white/10 md:hidden">
-            <span className="font-bold text-sm !text-white">Panel Admin</span>
-            <button onClick={() => setMobileMenuOpen(false)} className="text-white/70 hover:text-white">
+          <div className="flex items-center justify-between p-4 border-b border-[#1a1a1a] md:hidden">
+            <span className="font-bold text-sm text-white">Panel Admin</span>
+            <button onClick={() => setMobileMenuOpen(false)} className="text-gray-400 hover:text-white">
               <X size={18} />
             </button>
           </div>
 
           <div className="p-4">
-            <p className="text-xs font-medium !text-white uppercase tracking-wider mb-3 px-2 hidden md:block">Panel Admin</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2 hidden md:block">Panel Admin</p>
             <nav className="space-y-1">
               {tabs.map((t) => (
                 <button
@@ -920,8 +920,8 @@ export default function Admin() {
                   onClick={() => handleTabChange(t.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     tab === t.id
-                      ? "bg-white/20 !text-white hover:bg-white/25"
-                      : "!text-white hover:bg-white/10"
+                      ? "bg-[#e5007d]/20 text-[#e5007d]"
+                      : "text-gray-400 hover:text-white hover:bg-white/10"
                   }`}
                 >
                   <t.icon className="w-4 h-4" />
@@ -948,7 +948,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="ml-0 md:ml-56 flex-1 p-4 md:p-6 min-h-screen" style={{ paddingTop: 'max(env(safe-area-inset-top), 64px)' }}>
+        <main className="ml-0 md:ml-56 flex-1 p-4 md:p-6 min-h-screen bg-[#0d0d0d] text-white" style={{ paddingTop: 'max(env(safe-area-inset-top), 64px)' }}>
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
