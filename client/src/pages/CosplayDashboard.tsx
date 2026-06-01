@@ -237,6 +237,16 @@ export default function CosplayDashboard() {
 
   const tierColor  = getTierColor(cosplayer.tier ?? 'bronce');
   const multiplier = TIER_MULTIPLIERS[cosplayer.tier ?? 'bronce'] ?? 1;
+
+  function renderDescription(text: string) {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, i) =>
+      urlRegex.test(part)
+        ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-[#e5007d] underline break-all hover:text-[#c4006b]">{part}</a>
+        : <span key={i}>{part}</span>
+    );
+  }
   const balance    = tickets?.balance ?? 0;
 
   const inputCls = "w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors";
@@ -522,11 +532,26 @@ export default function CosplayDashboard() {
                             <span className="text-xs font-bold uppercase tracking-wider text-[#888] bg-[#222] border border-[#333] px-2 py-0.5 rounded-full">{act.type}</span>
                           </div>
                           <p className="font-bold text-white mb-1">{act.title}</p>
-                          {act.description && <p className="text-[#888] text-sm mb-2">{act.description}</p>}
+                          {act.description && (
+                            <p className="text-[#888] text-sm mb-2 break-words whitespace-pre-wrap">
+                              {renderDescription(act.description)}
+                            </p>
+                          )}
                           <div className="flex items-center gap-3 text-xs text-[#888]">
                             <span>Base: {act.basePoints} pts</span>
                             <span className="text-[#e5007d] font-bold">→ Ganarías: {wouldEarn} tickets</span>
                           </div>
+                          {act.type === 'event' && !alreadyDone && (
+                            <div className="mt-3 pt-3 border-t border-[#333]">
+                              <p className="text-[#555] text-xs mb-2">Una vez que hayas completado la actividad, marca tu participación:</p>
+                              <button
+                                onClick={() => { setSubmitModal(act); setEvidenceUrl('Participación confirmada — me uní al grupo'); }}
+                                className="w-full bg-[#222] border border-[#e5007d]/40 text-[#e5007d] text-sm font-semibold py-2 rounded-xl hover:bg-[#e5007d]/10 transition-colors"
+                              >
+                                ✓ Ya me uní
+                              </button>
+                            </div>
+                          )}
                         </div>
                         <button
                           disabled={alreadyDone}
@@ -780,14 +805,23 @@ export default function CosplayDashboard() {
               <button onClick={() => setSubmitModal(null)} className="text-[#888] hover:text-white transition-colors"><X size={18} /></button>
             </div>
             <p className="text-[#888] text-sm mb-5">{submitModal.title}</p>
-            <label className="block text-xs font-bold uppercase tracking-wider text-[#888] mb-1.5">Link de evidencia (post, reel, etc.)</label>
-            <input
-              type="url"
-              value={evidenceUrl}
-              onChange={e => setEvidenceUrl(e.target.value)}
-              placeholder="https://instagram.com/p/..."
-              className="w-full px-4 py-3 rounded-xl bg-[#222] border border-[#333] text-white placeholder-[#555] outline-none focus:border-[#e5007d] text-sm mb-5"
-            />
+            {evidenceUrl !== 'Participación confirmada — me uní al grupo' ? (
+              <div className="mb-5">
+                <label className="block text-xs font-bold uppercase tracking-wider text-[#888] mb-1.5">Link de evidencia (post, reel, etc.)</label>
+                <input
+                  type="url"
+                  value={evidenceUrl}
+                  onChange={e => setEvidenceUrl(e.target.value)}
+                  placeholder="https://instagram.com/p/..."
+                  className="w-full px-4 py-3 rounded-xl bg-[#222] border border-[#333] text-white placeholder-[#555] outline-none focus:border-[#e5007d] text-sm"
+                />
+              </div>
+            ) : (
+              <div className="bg-[#1a1a1a] border border-[#e5007d]/30 rounded-xl px-4 py-3 mb-5">
+                <p className="text-[#e5007d] text-sm font-semibold">✓ Participación registrada</p>
+                <p className="text-[#888] text-xs mt-1">El admin verificará tu participación y asignará los tickets.</p>
+              </div>
+            )}
             <div className="flex gap-3">
               <button
                 disabled={!evidenceUrl || submitActivity.isPending}
