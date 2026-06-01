@@ -4136,10 +4136,10 @@ export default function Admin() {
                               </div>
                               <div>
                                 <Label className="text-xs">Categoría</Label>
-                                <Select value={blogPostForm.category} onValueChange={v => setBlogPostForm(f => ({ ...f, category: v }))}>
+                                <Select value={blogPostForm.category || 'none'} onValueChange={v => setBlogPostForm(f => ({ ...f, category: v === 'none' ? '' : v }))}>
                                   <SelectTrigger className="mt-1 bg-muted border-border/50 text-sm"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="">Sin categoría</SelectItem>
+                                    <SelectItem value="none">Sin categoría</SelectItem>
                                     {(blogCategoriesList as any[]).map((cat: any) => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
                                   </SelectContent>
                                 </Select>
@@ -4228,8 +4228,9 @@ export default function Admin() {
 
                         <div className="flex gap-2 pt-2 border-t border-border/30">
                           <Button className="bg-primary text-white flex-1" disabled={!blogPostForm.title || createBlogPostMut.isPending || updateBlogPostMut.isPending} onClick={() => {
-                            if (editingBlogPost) updateBlogPostMut.mutate({ id: editingBlogPost.id, ...blogPostForm });
-                            else createBlogPostMut.mutate(blogPostForm);
+                            const blogData = { ...blogPostForm, category: blogPostForm.category === 'none' ? '' : blogPostForm.category };
+                            if (editingBlogPost) updateBlogPostMut.mutate({ id: editingBlogPost.id, ...blogData });
+                            else createBlogPostMut.mutate(blogData);
                           }}>
                             {(createBlogPostMut.isPending || updateBlogPostMut.isPending) ? 'Guardando...' : editingBlogPost ? 'Actualizar' : 'Publicar'}
                           </Button>
