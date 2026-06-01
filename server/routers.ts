@@ -833,7 +833,7 @@ export const appRouter = router({
       .mutation(({ ctx, input }) => updateCosplayerProfile(ctx.user.id, input)),
 
     submitActivity: protectedProcedure
-      .input(z.object({ activityId: z.number(), evidenceUrl: z.string().url() }))
+      .input(z.object({ activityId: z.number(), evidenceUrl: z.string().min(1).max(500) }))
       .mutation(({ ctx, input }) => submitCosplayActivity(ctx.user.id, input)),
 
     getMySubmissions: protectedProcedure.query(({ ctx }) => getMyCosplayerSubmissions(ctx.user.id)),
