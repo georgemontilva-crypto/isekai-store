@@ -174,6 +174,8 @@ const statusLabels: Record<string, string> = {
   cancelled:     "Cancelada",
 };
 
+const ORDER_STEPS = ["pending", "preparing", "printing", "post_printing", "packed", "shipped", "delivered"] as const;
+
 // ─── Admin Order Detail ───────────────────────────────────────────────────────
 function AdminOrderDetail({
   order,
@@ -875,11 +877,47 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f8]">
+      {/* Header móvil */}
+      <div
+        className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#e5e5e5] flex items-center justify-between px-4 h-14 md:hidden"
+        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+      >
+        <span className="font-black text-[#111]">Admin</span>
+        <button onClick={() => setMobileMenuOpen(true)} aria-label="Abrir menú">
+          <Menu size={22} className="text-[#111]" />
+        </button>
+      </div>
+
+      {/* Overlay drawer */}
+      {mobileMenuOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          onClick={() => setMobileMenuOpen(false)}
+        />
+      )}
+
       <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-56 bg-[#0d0d0d] border-r border-[#1a1a1a] fixed inset-y-0 left-0 overflow-y-auto z-30">
+        {/* Sidebar — drawer en móvil, fijo en desktop */}
+        <aside
+          className={`
+            fixed top-0 bottom-0 left-0 z-50 w-72 md:w-56
+            bg-[#0d0d0d] overflow-y-auto
+            transition-transform duration-300 ease-in-out
+            md:translate-x-0
+            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
+          `}
+          style={{ paddingTop: mobileMenuOpen ? 'env(safe-area-inset-top)' : undefined }}
+        >
+          {/* Botón cerrar — solo móvil */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 md:hidden">
+            <span className="text-white font-bold text-sm">Menú</span>
+            <button onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar menú">
+              <X size={18} className="text-white" />
+            </button>
+          </div>
+
           <div className="p-4 pt-6">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">Panel Admin</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2 hidden md:block">Panel Admin</p>
             <nav className="space-y-1">
               {tabs.map((t) => (
                 <button
@@ -915,7 +953,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="ml-56 flex-1 p-6 min-h-screen bg-[#f8f8f8] text-[#111]">
+        <main className="w-full md:ml-56 p-4 md:p-6 pt-20 md:pt-6 min-h-screen bg-[#f8f8f8] text-[#111]">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
@@ -1058,24 +1096,33 @@ export default function Admin() {
                   {filteredProducts.map((product) => (
                     <div key={product.id}>
                       <div className="p-4 rounded-2xl bg-card border border-border/50 hover:border-border transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-3">
-                              <p className="font-medium truncate">{product.name}</p>
-                              <span className={`px-2 py-0.5 rounded-full text-xs ${product.status === "published" ? "bg-green-500/10 text-green-400" : "bg-muted text-muted-foreground"}`}>
-                                {product.status === "published" ? "Publicado" : "Borrador"}
-                              </span>
-                              {product.featured && <span className="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary">Destacado</span>}
+                        <div className="flex items-start sm:items-center justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1 min-w-0">
+                            {(product as any).images?.[0]?.url && (
+                              <img
+                                src={(product as any).images[0].url}
+                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-border/30"
+                                alt=""
+                              />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                                <p className="font-medium truncate">{product.name}</p>
+                                <span className={`px-2 py-0.5 rounded-full text-xs shrink-0 ${product.status === "published" ? "bg-green-500/10 text-green-400" : "bg-muted text-muted-foreground"}`}>
+                                  {product.status === "published" ? "Publicado" : "Borrador"}
+                                </span>
+                                {product.featured && <span className="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary shrink-0">Destacado</span>}
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                ${parseFloat(product.price).toFixed(2)} · Stock: {product.stock} · {product.category?.name ?? "Sin categoría"}
+                              </p>
                             </div>
-                            <p className="text-sm text-muted-foreground mt-0.5">
-                              ${parseFloat(product.price).toFixed(2)} · Stock: {product.stock} · {product.category?.name ?? "Sin categoría"}
-                            </p>
                           </div>
-                          <div className="flex items-center gap-2 ml-4">
+                          <div className="flex items-center gap-1 shrink-0">
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-muted-foreground hover:text-foreground"
+                              className="text-muted-foreground hover:text-foreground h-9 w-9 p-0"
                               onClick={() => { setEditingProduct(product); setShowProductForm(false); }}
                             >
                               <Pencil className="w-4 h-4" />
@@ -1083,7 +1130,7 @@ export default function Admin() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-muted-foreground hover:text-destructive"
+                              className="text-muted-foreground hover:text-destructive h-9 w-9 p-0"
                               onClick={() => { if (confirm("¿Eliminar producto?")) deleteProduct.mutate({ id: product.id }); }}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1318,7 +1365,7 @@ export default function Admin() {
                           onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                         >
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div>
+                            <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-3 mb-1 flex-wrap">
                                 <span className="font-semibold">{order.orderNumber}</span>
                                 <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0f0f0] text-[#999]">
@@ -1328,8 +1375,25 @@ export default function Admin() {
                                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Cancelada</span>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground">{order.customerName} · {order.customerEmail}</p>
+                              <p className="text-sm text-muted-foreground truncate">{order.customerName} · {order.customerEmail}</p>
                               <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
+                              {/* Mini progress timeline */}
+                              {order.status !== "cancelled" && (
+                                <div className="flex items-center gap-0.5 mt-2">
+                                  {ORDER_STEPS.map((step, i) => {
+                                    const currentIdx = ORDER_STEPS.indexOf(order.status as typeof ORDER_STEPS[number]);
+                                    const done = i <= currentIdx;
+                                    return (
+                                      <div key={step} className="flex items-center gap-0.5">
+                                        <div className={`w-2 h-2 rounded-full transition-colors ${done ? "bg-[#e5007d]" : "bg-[#e5e5e5]"}`} />
+                                        {i < ORDER_STEPS.length - 1 && (
+                                          <div className={`w-3 h-0.5 transition-colors ${done && i < currentIdx ? "bg-[#e5007d]" : "bg-[#e5e5e5]"}`} />
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <span className="font-bold text-base">${parseFloat(order.total).toFixed(2)}</span>
@@ -1381,9 +1445,9 @@ export default function Admin() {
             {/* ─── Payments Tab ───────────────────────────────────────────────── */}
             {tab === "payments" && (
               <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                   <h1 className="text-2xl font-bold">Pagos</h1>
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-2 flex-wrap w-full sm:w-auto">
                     {[
                       { id: "all", label: "Todos" },
                       { id: "pending", label: "Pendiente" },
@@ -3110,8 +3174,8 @@ export default function Admin() {
 
                 {/* Popup modal */}
                 {showPopupModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                       <div className="flex items-center justify-between p-6 border-b border-border/30">
                         <h2 className="text-lg font-bold">{editingPopup ? "Editar popup" : "Nuevo popup"}</h2>
                         <button onClick={() => { setShowPopupModal(false); setEditingPopup(null); }} className="text-muted-foreground hover:text-foreground">
@@ -3363,7 +3427,7 @@ export default function Admin() {
                 <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
 
                 {/* Sub-tabs */}
-                <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-6 w-fit">
+                <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-6 overflow-x-auto w-full sm:w-fit scrollbar-hide">
                   {([
                     { id: 'applications', label: `Solicitudes (${cosplayApps.length})` },
                     { id: 'cosplayers', label: `Cosplayers (${cosplayersData.length})` },
@@ -3618,8 +3682,8 @@ export default function Admin() {
                 {selectedApplication && (() => {
                   const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
                   return (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-                      <div className="bg-card rounded-2xl border border-border/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+                      <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between p-6 border-b border-border/30">
                           <h3 className="text-lg font-black">Solicitud de {selectedApplication.fullName}</h3>
                           <button onClick={() => setSelectedApplication(null)} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
@@ -3674,8 +3738,8 @@ export default function Admin() {
                 {showApproveModal && (() => {
                   const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
                   return (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                      <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+                      <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
                         <h3 className="font-bold mb-1">Aprobar cosplayer</h3>
                         <p className="text-sm text-muted-foreground mb-5">{showApproveModal.fullName} {showApproveModal.lastName}</p>
                         <div className="space-y-3">
@@ -3729,8 +3793,8 @@ export default function Admin() {
 
                 {/* Modal rechazar */}
                 {showRejectModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
                       <h3 className="font-bold mb-4">Rechazar solicitud</h3>
                       <p className="text-sm text-muted-foreground mb-4">{showRejectModal.fullName} {showRejectModal.lastName}</p>
                       <Label className="text-xs">Razón del rechazo *</Label>
@@ -3747,8 +3811,8 @@ export default function Admin() {
 
                 {/* Modal cambiar tier */}
                 {showTierModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-sm p-6 shadow-2xl">
+                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-sm p-6 shadow-2xl">
                       <h3 className="font-bold mb-4">Cambiar tier — {showTierModal.artisticName}</h3>
                       <div className="space-y-3">
                         <div>
@@ -3771,8 +3835,8 @@ export default function Admin() {
 
                 {/* Modal nueva actividad */}
                 {showActivityModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
                       <h3 className="font-bold mb-4">Nueva actividad</h3>
                       <div className="space-y-3">
                         <div><Label className="text-xs">Título *</Label><Input value={activityForm.title} onChange={e => setActivityForm(f => ({ ...f, title: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
@@ -3800,8 +3864,8 @@ export default function Admin() {
 
                 {/* Modal evaluar submission */}
                 {showEvalModal && (
-                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
+                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
                       <h3 className="font-bold mb-2">Evaluar submission</h3>
                       <a href={showEvalModal.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mb-4 hover:underline">
                         <ExternalLink size={12} /> {showEvalModal.evidenceUrl}
