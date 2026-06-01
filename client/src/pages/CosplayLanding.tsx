@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users, Link2, Repeat, DollarSign } from "lucide-react";
+import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users, Link2, Repeat, DollarSign, ChevronLeft, ChevronRight } from "lucide-react";
 
 const TIERS = [
   { name: "Bronce",   color: "#cd7f32", icon: Medal,  followers: "1K – 3K",    mult: "×1",   width: "30%"  },
@@ -25,6 +25,110 @@ function TikTokIcon() {
     <svg viewBox="0 0 24 24" width={14} height={14} className="fill-current">
       <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.18 8.18 0 0 0 4.78 1.52V6.76a4.85 4.85 0 0 1-1.01-.07z"/>
     </svg>
+  );
+}
+
+function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
+  const [current, setCurrent] = useState(0);
+  const itemsPerSlide = typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 4;
+  const totalSlides = Math.ceil(cosplayers.slice(0, 8).length / itemsPerSlide);
+
+  const goTo = (index: number) => setCurrent(index);
+  const prev = () => setCurrent(i => (i === 0 ? totalSlides - 1 : i - 1));
+  const next = () => setCurrent(i => (i === totalSlides - 1 ? 0 : i + 1));
+
+  const visibleCosplayers = cosplayers.slice(
+    current * itemsPerSlide,
+    current * itemsPerSlide + itemsPerSlide
+  );
+
+  return (
+    <div className="relative px-6 lg:px-20">
+      {/* Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+        {visibleCosplayers.map((cp: any) => {
+          const tier = TIERS.find(t => t.name.toLowerCase() === (cp.tier ?? 'bronce')) ?? TIERS[0];
+          return (
+            <Link key={cp.id} href={`/cosplay/guild/${cp.username ?? cp.id}`}>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="group bg-[#1a1a1a] border border-[#333] rounded-2xl overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer"
+              >
+                {/* Banner/foto superior */}
+                <div className="relative h-40 overflow-hidden bg-[#222]">
+                  {cp.bannerImage
+                    ? <img src={cp.bannerImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
+                    : cp.photo
+                      ? <img src={cp.photo} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" alt="" />
+                      : <div className="w-full h-full" style={{ background: tier.color + '22' }} />
+                  }
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,26,26,1) 0%, transparent 60%)' }} />
+                  <span className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full font-black"
+                    style={{ background: tier.color, color: '#000' }}>
+                    {(cp.tier ?? 'BRONCE').toUpperCase()}
+                  </span>
+                </div>
+
+                {/* Info */}
+                <div className="p-4 -mt-6 relative z-10">
+                  <div className="w-12 h-12 rounded-full overflow-hidden border-2 mb-3"
+                    style={{ borderColor: tier.color }}>
+                    {cp.photo
+                      ? <img src={cp.photo} className="w-full h-full object-cover" alt="" />
+                      : <div className="w-full h-full flex items-center justify-center font-black text-lg"
+                          style={{ background: tier.color + '33', color: tier.color }}>
+                          {cp.artisticName?.[0]}
+                        </div>
+                    }
+                  </div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <p className="text-white font-black text-sm">{cp.artisticName}</p>
+                    <CheckCircle2 size={13} className="text-[#e5007d] flex-shrink-0" />
+                  </div>
+                  {cp.bio && (
+                    <p className="text-[#888] text-xs leading-relaxed line-clamp-2">{cp.bio}</p>
+                  )}
+                </div>
+              </motion.div>
+            </Link>
+          );
+        })}
+      </div>
+
+      {/* Navegación */}
+      {totalSlides > 1 && (
+        <div className="flex items-center justify-between mt-6">
+          <button
+            onClick={prev}
+            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center hover:border-[#e5007d] transition-colors"
+          >
+            <ChevronLeft size={18} className="text-white" />
+          </button>
+          <div className="flex items-center gap-2">
+            {Array.from({ length: totalSlides }).map((_, i) => (
+              <button
+                key={i}
+                onClick={() => goTo(i)}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i === current ? '20px' : '8px',
+                  height: '8px',
+                  background: i === current ? '#e5007d' : '#333',
+                }}
+              />
+            ))}
+          </div>
+          <button
+            onClick={next}
+            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center hover:border-[#e5007d] transition-colors"
+          >
+            <ChevronRight size={18} className="text-white" />
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -315,55 +419,21 @@ export default function CosplayLanding() {
 
       {/* ── 5. Cosplayers aliados ── */}
       {cosplayers.length > 0 && (
-        <section className="py-24 bg-[#0d0d0d]">
+        <section className="py-24 bg-[#0d0d0d] overflow-hidden">
           <div className="px-6 lg:px-20 mb-12">
             <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">La comunidad</p>
             <h2 className="text-3xl lg:text-5xl font-black text-white">Cosplayers aliados</h2>
           </div>
-          <div className="px-6 lg:px-20">
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-              {cosplayers.slice(0, 10).map((cp: any, i: number) => {
-                const tier = TIERS.find(t => t.name.toLowerCase() === (cp.tier ?? 'bronce')) ?? TIERS[0];
-                return (
-                  <motion.div
-                    key={cp.id}
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ delay: i * 0.05 }}
-                  >
-                    <Link href={`/cosplay/guild/${cp.id}`}>
-                      <div className="group cursor-pointer text-center">
-                        <div className="relative w-20 h-20 mx-auto mb-3">
-                          <div
-                            className="w-20 h-20 rounded-full overflow-hidden border-2"
-                            style={{ borderColor: tier.color }}
-                          >
-                            {cp.photo
-                              ? <img src={cp.photo} alt={cp.artisticName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
-                              : <div className="w-full h-full bg-[#222] flex items-center justify-center text-2xl font-black" style={{ color: tier.color }}>{cp.artisticName[0]}</div>
-                            }
-                          </div>
-                          <CheckCircle2 size={16} className="absolute -bottom-0.5 -right-0.5 text-[#e5007d] bg-[#0d0d0d] rounded-full" />
-                        </div>
-                        <p className="text-white font-bold text-sm group-hover:text-[#e5007d] transition-colors">{cp.artisticName}</p>
-                        <span className="text-xs font-bold capitalize" style={{ color: tier.color }}>{cp.tier ?? 'Bronce'}</span>
-                      </div>
-                    </Link>
-                  </motion.div>
-                );
-              })}
+          <CosplayersCarousel cosplayers={cosplayers} />
+          {cosplayers.length > 4 && (
+            <div className="text-center mt-10 px-6">
+              <Link href="/cosplay/guild">
+                <button className="border border-[#444] text-[#ccc] px-8 py-3 rounded-full text-sm font-semibold hover:border-[#e5007d] hover:text-white transition-colors">
+                  Ver todos los cosplayers →
+                </button>
+              </Link>
             </div>
-            {cosplayers.length > 10 && (
-              <div className="text-center mt-12">
-                <Link href="/cosplay/guild">
-                  <button className="border border-[#444] text-[#ccc] px-8 py-3 rounded-full text-sm font-semibold hover:border-[#e5007d] hover:text-white transition-colors">
-                    Ver todos los cosplayers →
-                  </button>
-                </Link>
-              </div>
-            )}
-          </div>
+          )}
         </section>
       )}
 
