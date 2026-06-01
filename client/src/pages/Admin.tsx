@@ -874,54 +874,18 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[#0d0d0d]">
-      {/* TOP BAR — solo visible en móvil */}
-      <div
-        className="md:hidden fixed top-0 left-0 right-0 z-50 bg-[#0d0d0d] border-b border-[#1a1a1a] flex items-center justify-between px-4 h-14"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
-      >
-        <span className="text-white font-bold text-sm">Panel Admin</span>
-        <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-white p-2">
-          {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
-        </button>
-      </div>
-
-      {/* DROPDOWN MENU MÓVIL */}
-      {mobileMenuOpen && (
-        <div
-          className="md:hidden fixed top-14 left-0 right-0 z-40 bg-[#0d0d0d] border-b border-[#1a1a1a] overflow-y-auto max-h-[60vh]"
-          style={{ marginTop: 'env(safe-area-inset-top)' }}
-        >
-          <nav className="p-3 grid grid-cols-2 gap-2">
-            {tabs.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => { setTab(t.id); setMobileMenuOpen(false); }}
-                className={`flex items-center gap-2 px-3 py-3 rounded-xl text-sm font-medium transition-all ${
-                  tab === t.id
-                    ? "bg-[#e5007d]/20 text-[#e5007d]"
-                    : "text-gray-400 bg-[#1a1a1a]"
-                }`}
-              >
-                <t.icon className="w-4 h-4 shrink-0" />
-                <span className="truncate">{t.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      )}
-
+    <div className="min-h-screen bg-[#0d0d0d]">
       <div className="flex">
-        {/* SIDEBAR — solo desktop */}
-        <aside className="hidden md:block w-56 bg-[#0d0d0d] border-r border-[#1a1a1a] fixed inset-y-0 left-0 overflow-y-auto z-30">
+        {/* Sidebar */}
+        <aside className="w-56 bg-[#0d0d0d] border-r border-[#1a1a1a] fixed inset-y-0 left-0 overflow-y-auto z-30">
           <div className="p-4 pt-6">
             <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">Panel Admin</p>
             <nav className="space-y-1">
               {tabs.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                  onClick={() => handleTabChange(t.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     tab === t.id
                       ? "bg-[#e5007d]/20 text-[#e5007d]"
                       : "text-gray-400 hover:text-white hover:bg-white/10"
@@ -929,14 +893,29 @@ export default function Admin() {
                 >
                   <t.icon className="w-4 h-4" />
                   <span className="flex-1 text-left">{t.label}</span>
+                  {t.id === "orders" && pendingCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
+                  {t.id === "payments" && pendingPaymentsCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {pendingPaymentsCount > 99 ? "99+" : pendingPaymentsCount}
+                    </span>
+                  )}
+                  {t.id === "cosplay" && pendingCosplayCount > 0 && (
+                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                      {pendingCosplayCount > 99 ? "99+" : pendingCosplayCount}
+                    </span>
+                  )}
                 </button>
               ))}
             </nav>
           </div>
         </aside>
 
-        {/* MAIN CONTENT */}
-        <main className="w-full md:ml-56 p-4 pt-16 md:pt-6 min-h-screen bg-[#0d0d0d] overflow-x-hidden max-w-full">
+        {/* Main content */}
+        <main className="ml-56 flex-1 p-6 min-h-screen bg-[#0d0d0d]">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
