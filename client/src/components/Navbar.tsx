@@ -130,6 +130,8 @@ export default function Navbar() {
     { label: "Cosplay Guild",          href: "/cosplay" },
   ];
 
+  if (location.startsWith("/admin")) return null;
+
   const LangToggle = ({ mobile }: { mobile?: boolean }) => (
     <button
       onClick={toggleLang}
