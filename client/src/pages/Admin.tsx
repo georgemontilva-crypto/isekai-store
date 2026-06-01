@@ -874,12 +874,12 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen pt-16" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 64px)' }}>
+    <div className="min-h-screen pt-16">
       {/* Botón hamburguesa — solo móvil */}
       <button
         onClick={() => setMobileMenuOpen(true)}
-        className="fixed z-50 md:hidden bg-sidebar border border-white/10 rounded-lg p-2 shadow-sm"
-        style={{ top: 'calc(env(safe-area-inset-top) + 8px)', left: '16px' }}
+        className="fixed z-50 md:hidden bg-white border border-[#e5e5e5] rounded-lg p-2 shadow-sm"
+        style={{ top: 'max(env(safe-area-inset-top), 44px)', left: '16px' }}
       >
         <Menu size={18} className="text-white" />
       </button>
@@ -896,12 +896,12 @@ export default function Admin() {
         {/* Sidebar */}
         <aside
           className={`
-            w-64 min-h-screen bg-sidebar border-r border-sidebar-border fixed top-0 bottom-0 overflow-y-auto z-50
+            w-64 bg-white border-r border-[#e5e5e5] fixed inset-y-0 left-0 overflow-y-auto z-50
             transition-transform duration-300
-            md:top-16 md:w-56 md:translate-x-0
+            md:top-16 md:translate-x-0 md:w-56
             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
           `}
-          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          style={{ paddingTop: 'max(env(safe-area-inset-top), 44px)' }}
         >
           {/* Header móvil del drawer */}
           <div className="flex items-center justify-between p-4 border-b border-white/10 md:hidden">
@@ -948,7 +948,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="ml-0 md:ml-56 flex-1 p-4 md:p-6 min-h-screen pt-14 md:pt-0">
+        <main className="ml-0 md:ml-56 flex-1 p-4 md:p-6 min-h-screen" style={{ paddingTop: 'max(env(safe-area-inset-top), 64px)' }}>
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
