@@ -1579,19 +1579,17 @@ export default function Admin() {
                             )}
 
                             {(order.paymentStatus === "pending" || order.paymentStatus === "verifying") && (
-                              <div className="flex gap-3">
+                              <div className="flex flex-col sm:flex-row gap-2 mt-3">
                                 <Button
-                                  size="sm"
-                                  className="bg-green-600 hover:bg-green-700 text-white"
+                                  className="w-full py-3 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
                                   disabled={verifyPayment.isPending}
                                   onClick={() => verifyPayment.mutate({ orderId: order.id, approved: true })}
                                 >
-                                  <CheckCheck className="w-4 h-4 mr-1.5" /> Aprobar
+                                  <CheckCheck className="w-4 h-4 mr-1.5" /> Aprobar pago
                                 </Button>
                                 <Button
-                                  size="sm"
                                   variant="outline"
-                                  className="border-red-500/40 text-red-400 hover:bg-red-500/10"
+                                  className="w-full py-3 text-sm font-bold border-red-400 text-red-500 hover:bg-red-50"
                                   disabled={verifyPayment.isPending}
                                   onClick={() => verifyPayment.mutate({ orderId: order.id, approved: false })}
                                 >
@@ -3494,9 +3492,9 @@ export default function Admin() {
                       {cosplayApps.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay solicitudes</p>}
                       {cosplayApps.map((app: any) => (
                         <div key={app.id} className="p-5 rounded-2xl bg-card border border-border/50">
-                          <div className="flex items-start justify-between gap-4 flex-wrap">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2 mb-1">
+                          <div className="flex flex-col gap-4">
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2 mb-1 flex-wrap">
                                 <p className="font-bold">{app.fullName} {app.lastName}</p>
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : app.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                   {app.status}
@@ -3507,7 +3505,6 @@ export default function Admin() {
                                 <span>Edad: {app.age}</span>
                                 <span>Experiencia: {app.experience} años</span>
                               </div>
-                              {/* Redes sociales */}
                               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                                 {[
                                   { key: 'instagram', label: 'Instagram' },
@@ -3527,13 +3524,19 @@ export default function Admin() {
                               </button>
                             </div>
                             {app.status === 'pending' && (
-                              <div className="flex gap-2 shrink-0">
-                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); }}>
-                                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Aprobar
-                                </Button>
-                                <Button size="sm" variant="outline" className="border-red-400 text-red-500 hover:bg-red-50 text-xs" onClick={() => { setShowRejectModal(app); setRejectReason(''); }}>
-                                  <X className="w-3.5 h-3.5 mr-1" /> Rechazar
-                                </Button>
+                              <div className="flex flex-col sm:flex-row gap-2 w-full">
+                                <button
+                                  className="flex-1 w-full bg-[#111] text-white py-3 rounded-xl font-bold text-sm"
+                                  onClick={() => { setShowApproveModal(app); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); }}
+                                >
+                                  <CheckCircle2 className="w-4 h-4 inline mr-1.5" /> Aprobar
+                                </button>
+                                <button
+                                  className="flex-1 w-full border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm"
+                                  onClick={() => { setShowRejectModal(app); setRejectReason(''); }}
+                                >
+                                  <X className="w-4 h-4 inline mr-1.5" /> Rechazar
+                                </button>
                               </div>
                             )}
                           </div>
@@ -3546,7 +3549,10 @@ export default function Admin() {
                 {/* COSPLAYERS */}
                 {cosplaySubTab === 'cosplayers' && (
                   <div>
-                    <div className="rounded-2xl bg-card border border-border/50 overflow-x-auto">
+                    {cosplayersData.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay cosplayers aún</p>}
+
+                    {/* Desktop — tabla */}
+                    <div className="hidden sm:block rounded-2xl bg-card border border-border/50 overflow-x-auto">
                       <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
                         <thead className="bg-muted/40 border-b border-border/50">
                           <tr>
@@ -3596,7 +3602,55 @@ export default function Admin() {
                           ))}
                         </tbody>
                       </table>
-                      {cosplayersData.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay cosplayers aún</p>}
+                    </div>
+
+                    {/* Móvil — cards */}
+                    <div className="sm:hidden flex flex-col gap-3">
+                      {cosplayersData.map((cp: any) => (
+                        <div key={cp.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4">
+                          <div className="flex items-center gap-3 mb-3">
+                            {cp.photo && <img src={cp.photo} className="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="" />}
+                            <div className="min-w-0">
+                              <p className="font-bold text-[#111] truncate">{cp.artisticName}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-xs px-2 py-0.5 rounded-full font-semibold capitalize bg-muted text-muted-foreground">
+                                  {cp.tier ?? 'bronce'}
+                                </span>
+                                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cp.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                                  {cp.isActive ? 'Activo' : 'Suspendido'}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex gap-4 text-xs text-[#999] mb-3">
+                            <span>🎫 {cp.ticketBalance ?? 0} tickets</span>
+                            <span>💵 ${parseFloat(cp.cashBalance ?? '0').toFixed(0)}</span>
+                          </div>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => { setShowTierModal(cp); setTierForm({ tier: cp.tier ?? 'bronce', totalFollowers: cp.totalFollowers ?? 0 }); }}
+                              className="flex-1 bg-[#f8f8f8] border border-[#e5e5e5] text-[#111] py-2.5 rounded-xl text-xs font-semibold"
+                            >
+                              Cambiar tier
+                            </button>
+                            {cp.isActive && (
+                              <button
+                                onClick={() => { if (confirm(`¿Suspender a ${cp.artisticName}?`)) suspendCp.mutate({ cosplayerId: cp.id }); }}
+                                className="flex-1 border border-red-200 text-red-500 py-2.5 rounded-xl text-xs font-semibold"
+                              >
+                                Suspender
+                              </button>
+                            )}
+                            <button
+                              onClick={() => { if (confirm(`¿Eliminar a ${cp.artisticName}?`)) deleteCosplayerMut.mutate({ cosplayerId: cp.id }); }}
+                              className="p-2.5 border border-red-100 text-red-400 rounded-xl"
+                              title="Eliminar"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 )}
