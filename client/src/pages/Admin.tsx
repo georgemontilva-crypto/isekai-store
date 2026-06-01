@@ -876,14 +876,15 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f8f8]">
+    <div className="min-h-screen bg-[#f8f8f8]"
+      style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Header móvil */}
       <div
-        className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-[#e5e5e5] flex items-center justify-between px-4 h-14 md:hidden"
-        style={{ paddingTop: 'env(safe-area-inset-top)' }}
+        className="fixed left-0 right-0 z-50 bg-white border-b border-[#e5e5e5] flex items-center justify-between px-4 h-14 md:hidden"
+        style={{ top: 'env(safe-area-inset-top)' }}
       >
-        <span className="font-black text-[#111]">Admin</span>
-        <button onClick={() => setMobileMenuOpen(true)} aria-label="Abrir menú">
+        <span className="font-black text-[#111] text-sm">Panel Admin</span>
+        <button onClick={() => setMobileMenuOpen(true)} className="p-2" aria-label="Abrir menú">
           <Menu size={22} className="text-[#111]" />
         </button>
       </div>
@@ -900,13 +901,13 @@ export default function Admin() {
         {/* Sidebar — drawer en móvil, fijo en desktop */}
         <aside
           className={`
-            fixed top-0 bottom-0 left-0 z-50 w-72 md:w-56
+            fixed top-0 bottom-0 left-0 z-50 w-[280px] max-w-[85vw] md:w-56
             bg-[#0d0d0d] overflow-y-auto
             transition-transform duration-300 ease-in-out
             md:translate-x-0
             ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
           `}
-          style={{ paddingTop: mobileMenuOpen ? 'env(safe-area-inset-top)' : undefined }}
+          style={{ paddingTop: 'env(safe-area-inset-top)' }}
         >
           {/* Botón cerrar — solo móvil */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 md:hidden">
@@ -953,7 +954,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="w-full md:ml-56 p-4 md:p-6 pt-20 md:pt-6 min-h-screen bg-[#f8f8f8] text-[#111]">
+        <main className="md:ml-56 min-h-screen bg-[#f8f8f8] text-[#111] px-3 md:px-6 pt-20 md:pt-6 pb-6">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
@@ -2676,7 +2677,7 @@ export default function Admin() {
                           className="w-full mt-1 px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                         />
                       </div>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <div>
                           <Label className="text-xs font-medium">Categoría</Label>
                           <Input value={faqForm.category} onChange={e => setFaqForm(f => ({ ...f, category: e.target.value }))} placeholder="Ej: Pedidos, Envíos, Pagos" className="bg-muted border-border/50 mt-1" />
@@ -3175,7 +3176,7 @@ export default function Admin() {
                 {/* Popup modal */}
                 {showPopupModal && (
                   <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6">
                       <div className="flex items-center justify-between p-6 border-b border-border/30">
                         <h2 className="text-lg font-bold">{editingPopup ? "Editar popup" : "Nuevo popup"}</h2>
                         <button onClick={() => { setShowPopupModal(false); setEditingPopup(null); }} className="text-muted-foreground hover:text-foreground">
@@ -3185,7 +3186,7 @@ export default function Admin() {
 
                       <div className="p-6 space-y-5">
                         {/* Name + active */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Nombre (interno) *</Label>
                             <Input value={popupForm.name} onChange={e => setPopupForm(f => ({ ...f, name: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="Ej: Popup descuento verano" />
@@ -3254,7 +3255,7 @@ export default function Admin() {
                         </div>
 
                         {/* Botón CTA */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Texto del botón CTA</Label>
                             <Input value={popupForm.buttonText} onChange={e => setPopupForm(f => ({ ...f, buttonText: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="Ver oferta" />
@@ -3266,7 +3267,7 @@ export default function Admin() {
                         </div>
 
                         {/* Código cupón + email */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Código de cupón</Label>
                             <Input value={popupForm.couponCode} onChange={e => setPopupForm(f => ({ ...f, couponCode: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="VERANO20" />
@@ -3362,7 +3363,7 @@ export default function Admin() {
                         </div>
 
                         {/* Fechas */}
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Fecha de inicio (opcional)</Label>
                             <Input type="datetime-local" value={popupForm.startDate} onChange={e => setPopupForm(f => ({ ...f, startDate: e.target.value }))} className="bg-muted border-border/50 text-sm" />
@@ -3683,7 +3684,7 @@ export default function Admin() {
                   const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
                   return (
                     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
-                      <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6">
                         <div className="flex items-center justify-between p-6 border-b border-border/30">
                           <h3 className="text-lg font-black">Solicitud de {selectedApplication.fullName}</h3>
                           <button onClick={() => setSelectedApplication(null)} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
@@ -3739,7 +3740,7 @@ export default function Admin() {
                   const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
                   return (
                     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                      <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
+                      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
                         <h3 className="font-bold mb-1">Aprobar cosplayer</h3>
                         <p className="text-sm text-muted-foreground mb-5">{showApproveModal.fullName} {showApproveModal.lastName}</p>
                         <div className="space-y-3">
@@ -3794,7 +3795,7 @@ export default function Admin() {
                 {/* Modal rechazar */}
                 {showRejectModal && (
                   <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
+                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
                       <h3 className="font-bold mb-4">Rechazar solicitud</h3>
                       <p className="text-sm text-muted-foreground mb-4">{showRejectModal.fullName} {showRejectModal.lastName}</p>
                       <Label className="text-xs">Razón del rechazo *</Label>
@@ -3812,7 +3813,7 @@ export default function Admin() {
                 {/* Modal cambiar tier */}
                 {showTierModal && (
                   <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-sm p-6 shadow-2xl">
+                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-sm p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
                       <h3 className="font-bold mb-4">Cambiar tier — {showTierModal.artisticName}</h3>
                       <div className="space-y-3">
                         <div>
@@ -3836,12 +3837,12 @@ export default function Admin() {
                 {/* Modal nueva actividad */}
                 {showActivityModal && (
                   <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
+                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
                       <h3 className="font-bold mb-4">Nueva actividad</h3>
                       <div className="space-y-3">
                         <div><Label className="text-xs">Título *</Label><Input value={activityForm.title} onChange={e => setActivityForm(f => ({ ...f, title: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
                         <div><Label className="text-xs">Descripción</Label><textarea rows={2} value={activityForm.description} onChange={e => setActivityForm(f => ({ ...f, description: e.target.value }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none resize-none" /></div>
-                        <div className="grid grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           <div><Label className="text-xs">Puntos base</Label><Input type="number" value={activityForm.basePoints} onChange={e => setActivityForm(f => ({ ...f, basePoints: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
                           <div>
                             <Label className="text-xs">Tipo</Label>
@@ -3865,7 +3866,7 @@ export default function Admin() {
                 {/* Modal evaluar submission */}
                 {showEvalModal && (
                   <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-card rounded-t-3xl sm:rounded-2xl border border-border/50 w-full sm:max-w-md p-6 shadow-2xl">
+                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
                       <h3 className="font-bold mb-2">Evaluar submission</h3>
                       <a href={showEvalModal.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mb-4 hover:underline">
                         <ExternalLink size={12} /> {showEvalModal.evidenceUrl}
