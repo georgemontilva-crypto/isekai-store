@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -597,6 +597,12 @@ function getTierByFollowers(followers: number): string {
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<AdminTab>("dashboard");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleTabChange = (t: AdminTab) => {
+    setTab(t);
+    setMobileMenuOpen(false);
+  };
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [productSearch, setProductSearch] = useState('');
@@ -869,16 +875,45 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen pt-16">
+      {/* Botón hamburguesa — solo móvil */}
+      <button
+        onClick={() => setMobileMenuOpen(true)}
+        className="fixed top-[68px] left-3 z-50 md:hidden bg-sidebar border border-white/10 rounded-lg p-2 shadow-sm"
+      >
+        <Menu size={18} className="text-white" />
+      </button>
+
       <div className="flex">
+        {/* Overlay móvil */}
+        {mobileMenuOpen && (
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}
+
         {/* Sidebar */}
-        <aside className="w-56 min-h-screen bg-sidebar border-r border-sidebar-border fixed top-16 left-0 bottom-0 overflow-y-auto z-40">
+        <aside className={`
+          w-64 min-h-screen bg-sidebar border-r border-sidebar-border fixed top-0 bottom-0 overflow-y-auto z-50
+          transition-transform duration-300
+          md:top-16 md:w-56 md:translate-x-0
+          ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+        `}>
+          {/* Header móvil del drawer */}
+          <div className="flex items-center justify-between p-4 border-b border-white/10 md:hidden">
+            <span className="font-bold text-sm !text-white">Panel Admin</span>
+            <button onClick={() => setMobileMenuOpen(false)} className="text-white/70 hover:text-white">
+              <X size={18} />
+            </button>
+          </div>
+
           <div className="p-4">
-            <p className="text-xs font-medium !text-white uppercase tracking-wider mb-3 px-2">Panel Admin</p>
+            <p className="text-xs font-medium !text-white uppercase tracking-wider mb-3 px-2 hidden md:block">Panel Admin</p>
             <nav className="space-y-1">
               {tabs.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => setTab(t.id)}
+                  onClick={() => handleTabChange(t.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     tab === t.id
                       ? "bg-white/20 !text-white hover:bg-white/25"
@@ -909,7 +944,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="ml-56 flex-1 p-6 min-h-screen">
+        <main className="ml-0 md:ml-56 flex-1 p-4 md:p-6 min-h-screen pt-14 md:pt-0">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
@@ -917,7 +952,7 @@ export default function Admin() {
                 <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
                   {[
                     { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)}`, icon: DollarSign, color: "text-green-400" },
                     { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
@@ -2639,7 +2674,8 @@ export default function Admin() {
                   {faqItems.length === 0 ? (
                     <div className="p-12 text-center text-muted-foreground text-sm">No hay preguntas aún. Crea la primera.</div>
                   ) : (
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[600px]">
                       <thead className="border-b border-border/50 bg-muted/30">
                         <tr>
                           <th className="text-left p-4 font-medium text-muted-foreground">Pregunta</th>
@@ -2680,6 +2716,7 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   )}
                 </div>
               </motion.div>
@@ -2928,8 +2965,8 @@ export default function Admin() {
                 </div>
 
                 {/* Tabla de usuarios */}
-                <div className="border border-[#e5e5e5] rounded-xl overflow-hidden">
-                  <table className="w-full text-sm">
+                <div className="border border-[#e5e5e5] rounded-xl overflow-x-auto">
+                  <table className="w-full text-sm min-w-[600px]">
                     <thead className="bg-[#f8f8f8] border-b border-[#e5e5e5]">
                       <tr>
                         <th className="text-left px-4 py-3 font-semibold text-[#555]">Usuario</th>
@@ -3021,7 +3058,8 @@ export default function Admin() {
                   {popupItems.length === 0 ? (
                     <p className="text-center text-muted-foreground py-12 text-sm">No hay popups creados aún</p>
                   ) : (
-                    <table className="w-full text-sm">
+                    <div className="overflow-x-auto">
+                    <table className="w-full text-sm min-w-[600px]">
                       <thead className="bg-muted/40 border-b border-border/50">
                         <tr>
                           <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre</th>
@@ -3093,6 +3131,7 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
+                    </div>
                   )}
                 </div>
 
@@ -3435,8 +3474,8 @@ export default function Admin() {
                 {/* COSPLAYERS */}
                 {cosplaySubTab === 'cosplayers' && (
                   <div>
-                    <div className="rounded-2xl bg-card border border-border/50 overflow-hidden">
-                      <table className="w-full text-sm">
+                    <div className="rounded-2xl bg-card border border-border/50 overflow-x-auto">
+                      <table className="w-full text-sm min-w-[600px]">
                         <thead className="bg-muted/40 border-b border-border/50">
                           <tr>
                             <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre artístico</th>
