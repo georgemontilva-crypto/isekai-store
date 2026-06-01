@@ -128,6 +128,7 @@ export default function Navbar() {
     { label: t.nav.exploreMenu.faq,   href: "/faq" },
     { label: t.nav.exploreMenu.legal, href: "/politicas" },
     { label: "Cosplay Guild",          href: "/cosplay" },
+    { label: "Blog",                   href: "/blog" },
   ];
 
   if (location.startsWith("/admin")) return null;

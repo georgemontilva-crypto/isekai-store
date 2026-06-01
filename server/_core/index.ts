@@ -127,19 +127,22 @@ async function startServer() {
   // Dynamic sitemap
   app.get('/sitemap.xml', async (_req, res) => {
     try {
-      const [products, categories] = await Promise.all([
+      const [products, categories, blogPostsData] = await Promise.all([
         db.getProducts({ limit: 1000 }).catch(() => ({ items: [] })),
         db.getAllCategories().catch(() => []),
+        db.getBlogPosts({ status: 'published', limit: 500 }).catch(() => []),
       ]);
       const items = (products as any)?.items ?? products ?? [];
       const cats = Array.isArray(categories) ? categories : [];
       const urls = [
         { loc: 'https://isekaiworld.co/', priority: '1.0' },
         { loc: 'https://isekaiworld.co/catalog', priority: '0.9' },
+        { loc: 'https://isekaiworld.co/blog', priority: '0.8' },
         { loc: 'https://isekaiworld.co/nosotros', priority: '0.7' },
         { loc: 'https://isekaiworld.co/faq', priority: '0.6' },
         ...items.map((p: any) => ({ loc: `https://isekaiworld.co/product/${p.slug}`, priority: '0.8' })),
         ...cats.map((c: any) => ({ loc: `https://isekaiworld.co/catalog?category=${c.slug}`, priority: '0.7' })),
+        ...(blogPostsData as any[]).map((p: any) => ({ loc: `https://isekaiworld.co/blog/${p.slug}`, priority: '0.7' })),
       ];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <priority>${u.priority}</priority>\n    <changefreq>weekly</changefreq>\n  </url>`).join('\n')}\n</urlset>`;
       res.header('Content-Type', 'application/xml');

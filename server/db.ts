@@ -37,6 +37,9 @@ import {
   cosplayTicketLedger,
   cosplayDiscountCodes,
   cosplayCashWithdrawals,
+  blogPosts,
+  blogCategories,
+  blogComments,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -1535,4 +1538,114 @@ export async function deleteCosplayer(cosplayerId: number) {
   const db = await getDb();
   if (!db) return;
   await db.delete(cosplayers).where(eq(cosplayers.id, cosplayerId));
+}
+
+// ============ BLOG ============
+
+export async function getBlogPosts({ status, category, limit, offset }: { status?: string; category?: string; limit?: number; offset?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [];
+  if (status && status !== 'all') conditions.push(eq(blogPosts.status, status));
+  if (category) conditions.push(eq(blogPosts.category, category));
+  const query = conditions.length
+    ? db.select().from(blogPosts).where(and(...conditions))
+    : db.select().from(blogPosts);
+  return query.orderBy(desc(blogPosts.publishedAt)).limit(limit ?? 20).offset(offset ?? 0);
+}
+
+export async function getBlogPostBySlug(slug: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(blogPosts).where(eq(blogPosts.slug, slug));
+  return result[0] ?? null;
+}
+
+export async function getBlogPostById(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select().from(blogPosts).where(eq(blogPosts.id, id));
+  return result[0] ?? null;
+}
+
+function slugify(str: string) {
+  return str.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+}
+
+export async function createBlogPost(data: any) {
+  const db = await getDb();
+  if (!db) return;
+  const slug = data.slug || slugify(data.title);
+  await db.insert(blogPosts).values({ ...data, slug, publishedAt: data.status === 'published' ? new Date() : null });
+}
+
+export async function updateBlogPost(id: number, data: any) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(blogPosts).set({ ...data, publishedAt: data.status === 'published' ? (data.publishedAt ?? new Date()) : null, updatedAt: new Date() }).where(eq(blogPosts.id, id));
+}
+
+export async function deleteBlogPost(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(blogPosts).where(eq(blogPosts.id, id));
+}
+
+export async function incrementBlogViews(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(blogPosts).set({ views: sql`views + 1` }).where(eq(blogPosts.id, id));
+}
+
+export async function getBlogCategories() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(blogCategories).orderBy(blogCategories.name);
+}
+
+export async function createBlogCategory(data: any) {
+  const db = await getDb();
+  if (!db) return;
+  const slug = slugify(data.name);
+  await db.insert(blogCategories).values({ ...data, slug });
+}
+
+export async function deleteBlogCategory(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(blogCategories).where(eq(blogCategories.id, id));
+}
+
+export async function getBlogComments(postId: number, status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const conditions = [eq(blogComments.postId, postId)];
+  if (status) conditions.push(eq(blogComments.status, status));
+  return db.select().from(blogComments).where(and(...conditions)).orderBy(desc(blogComments.createdAt));
+}
+
+export async function getAllBlogComments(status?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const where = status ? eq(blogComments.status, status) : undefined;
+  const q = where ? db.select().from(blogComments).where(where) : db.select().from(blogComments);
+  return q.orderBy(desc(blogComments.createdAt));
+}
+
+export async function createBlogComment(data: any) {
+  const db = await getDb();
+  if (!db) return;
+  await db.insert(blogComments).values(data);
+}
+
+export async function updateBlogCommentStatus(id: number, status: string) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(blogComments).set({ status }).where(eq(blogComments.id, id));
+}
+
+export async function deleteBlogComment(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(blogComments).where(eq(blogComments.id, id));
 }

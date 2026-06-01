@@ -39,6 +39,9 @@ import {
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
   deleteCosplayer,
+  getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
+  incrementBlogViews, getBlogCategories, createBlogCategory, deleteBlogCategory,
+  getBlogComments, getAllBlogComments, createBlogComment, updateBlogCommentStatus, deleteBlogComment,
 } from "./db";
 import { notifyWelcome } from "./_core/notification";
 
@@ -1051,6 +1054,67 @@ export const appRouter = router({
       const count = await getSetting('linkbio_visit_count');
       return { count: parseInt(count ?? '0') };
     }),
+  }),
+
+  // ─── Blog ──────────────────────────────────────────────────────────────────
+  blog: router({
+    getPosts: publicProcedure
+      .input(z.object({ status: z.string().optional(), category: z.string().optional(), limit: z.number().optional(), offset: z.number().optional() }))
+      .query(({ input }) => getBlogPosts(input)),
+
+    getPostBySlug: publicProcedure
+      .input(z.object({ slug: z.string() }))
+      .query(async ({ input }) => {
+        const post = await getBlogPostBySlug(input.slug);
+        if (post) await incrementBlogViews(post.id);
+        return post;
+      }),
+
+    getCategories: publicProcedure.query(() => getBlogCategories()),
+
+    getComments: publicProcedure
+      .input(z.object({ postId: z.number() }))
+      .query(({ input }) => getBlogComments(input.postId, 'approved')),
+
+    addComment: publicProcedure
+      .input(z.object({ postId: z.number(), userId: z.number().optional(), guestName: z.string().max(200).optional(), guestEmail: z.string().email().optional(), content: z.string().min(1).max(2000) }))
+      .mutation(({ input }) => createBlogComment({ ...input, status: 'pending' })),
+
+    getAllPosts: adminProcedure
+      .input(z.object({ status: z.string().optional() }))
+      .query(({ input }) => getBlogPosts({ status: input.status })),
+
+    createPost: adminProcedure
+      .input(z.object({ title: z.string().min(1).max(500), slug: z.string().optional(), excerpt: z.string().max(500).optional(), content: z.string().optional(), coverImage: z.string().optional(), category: z.string().optional(), tags: z.array(z.string()).optional(), status: z.enum(['draft', 'published']), authorName: z.string().optional(), metaTitle: z.string().max(500).optional(), metaDescription: z.string().optional(), metaKeywords: z.string().optional() }))
+      .mutation(({ input }) => createBlogPost(input)),
+
+    updatePost: adminProcedure
+      .input(z.object({ id: z.number(), title: z.string().optional(), slug: z.string().optional(), excerpt: z.string().optional(), content: z.string().optional(), coverImage: z.string().optional(), category: z.string().optional(), tags: z.array(z.string()).optional(), status: z.enum(['draft', 'published']).optional(), authorName: z.string().optional(), metaTitle: z.string().optional(), metaDescription: z.string().optional(), metaKeywords: z.string().optional() }))
+      .mutation(({ input }) => updateBlogPost(input.id, input)),
+
+    deletePost: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteBlogPost(input.id)),
+
+    createCategory: adminProcedure
+      .input(z.object({ name: z.string().min(1).max(200), description: z.string().optional() }))
+      .mutation(({ input }) => createBlogCategory(input)),
+
+    deleteCategory: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteBlogCategory(input.id)),
+
+    getAllComments: adminProcedure
+      .input(z.object({ status: z.string().optional() }))
+      .query(({ input }) => getAllBlogComments(input.status)),
+
+    updateCommentStatus: adminProcedure
+      .input(z.object({ id: z.number(), status: z.enum(['approved', 'rejected']) }))
+      .mutation(({ input }) => updateBlogCommentStatus(input.id, input.status)),
+
+    deleteComment: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteBlogComment(input.id)),
   }),
 });
 

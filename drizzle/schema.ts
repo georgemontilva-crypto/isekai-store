@@ -3,6 +3,7 @@ import {
   mysqlEnum,
   mysqlTable,
   text,
+  longtext,
   timestamp,
   varchar,
   decimal,
@@ -432,5 +433,45 @@ export const cosplayCashWithdrawals = mysqlTable('cosplayCashWithdrawals', {
   paymentDetails: text('paymentDetails'),
   notes: text('notes'),
   processedAt: timestamp('processedAt'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+// ─── Blog ─────────────────────────────────────────────────────────────────────
+export const blogPosts = mysqlTable('blogPosts', {
+  id: int('id').autoincrement().primaryKey(),
+  title: varchar('title', { length: 500 }).notNull(),
+  slug: varchar('slug', { length: 500 }).notNull(),
+  excerpt: text('excerpt'),
+  content: longtext('content'),
+  coverImage: varchar('coverImage', { length: 500 }),
+  category: varchar('category', { length: 100 }),
+  tags: json('tags').$type<string[]>(),
+  status: varchar('status', { length: 20 }).default('draft'),
+  authorName: varchar('authorName', { length: 200 }).default('Isekai World'),
+  metaTitle: varchar('metaTitle', { length: 500 }),
+  metaDescription: text('metaDescription'),
+  metaKeywords: text('metaKeywords'),
+  views: int('views').default(0),
+  publishedAt: timestamp('publishedAt'),
+  createdAt: timestamp('createdAt').defaultNow(),
+  updatedAt: timestamp('updatedAt').defaultNow().onUpdateNow(),
+});
+
+export const blogCategories = mysqlTable('blogCategories', {
+  id: int('id').autoincrement().primaryKey(),
+  name: varchar('name', { length: 200 }).notNull(),
+  slug: varchar('slug', { length: 200 }).notNull(),
+  description: text('description'),
+  createdAt: timestamp('createdAt').defaultNow(),
+});
+
+export const blogComments = mysqlTable('blogComments', {
+  id: int('id').autoincrement().primaryKey(),
+  postId: int('postId').notNull(),
+  userId: int('userId'),
+  guestName: varchar('guestName', { length: 200 }),
+  guestEmail: varchar('guestEmail', { length: 200 }),
+  content: text('content').notNull(),
+  status: varchar('status', { length: 20 }).default('pending'),
   createdAt: timestamp('createdAt').defaultNow(),
 });

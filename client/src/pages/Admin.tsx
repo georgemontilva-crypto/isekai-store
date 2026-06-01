@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -671,6 +671,17 @@ export default function Admin() {
   const [popupForm, setPopupForm] = useState<typeof emptyPopupForm>(emptyPopupForm);
   const [popupImageUploading, setPopupImageUploading] = useState(false);
 
+  // Blog state
+  const [blogSubTab, setBlogSubTab] = useState<'posts' | 'categories' | 'comments'>('posts');
+  const [showBlogPostModal, setShowBlogPostModal] = useState(false);
+  const [editingBlogPost, setEditingBlogPost] = useState<any | null>(null);
+  const [blogModalTab, setBlogModalTab] = useState<'content' | 'seo'>('content');
+  const [blogTagInput, setBlogTagInput] = useState('');
+  const [blogImageUploading, setBlogImageUploading] = useState(false);
+  const emptyBlogForm = { title: '', slug: '', excerpt: '', content: '', coverImage: '', category: '', tags: [] as string[], status: 'draft' as 'draft' | 'published', authorName: 'Isekai World', metaTitle: '', metaDescription: '', metaKeywords: '' };
+  const [blogPostForm, setBlogPostForm] = useState(emptyBlogForm);
+  const [blogCategoryForm, setBlogCategoryForm] = useState({ name: '', description: '' });
+
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -787,6 +798,18 @@ export default function Admin() {
     onError: (e) => toast.error(e.message),
   });
 
+  // Blog queries & mutations
+  const { data: blogPostsList = [], refetch: refetchBlogPosts } = trpc.blog.getAllPosts.useQuery({ status: undefined }, { enabled: isAuthenticated && user?.role === 'admin' });
+  const { data: blogCategoriesList = [], refetch: refetchBlogCategories } = trpc.blog.getCategories.useQuery();
+  const { data: blogCommentsList = [], refetch: refetchBlogComments } = trpc.blog.getAllComments.useQuery({ status: undefined }, { enabled: isAuthenticated && user?.role === 'admin' });
+  const createBlogPostMut = trpc.blog.createPost.useMutation({ onSuccess: () => { refetchBlogPosts(); setShowBlogPostModal(false); setBlogPostForm(emptyBlogForm); toast.success('Artículo creado'); } });
+  const updateBlogPostMut = trpc.blog.updatePost.useMutation({ onSuccess: () => { refetchBlogPosts(); setShowBlogPostModal(false); setEditingBlogPost(null); toast.success('Artículo actualizado'); } });
+  const deleteBlogPostMut = trpc.blog.deletePost.useMutation({ onSuccess: () => { refetchBlogPosts(); toast.success('Artículo eliminado'); } });
+  const createBlogCategoryMut = trpc.blog.createCategory.useMutation({ onSuccess: () => { refetchBlogCategories(); setBlogCategoryForm({ name: '', description: '' }); toast.success('Categoría creada'); } });
+  const deleteBlogCategoryMut = trpc.blog.deleteCategory.useMutation({ onSuccess: () => { refetchBlogCategories(); toast.success('Categoría eliminada'); } });
+  const updateBlogCommentMut = trpc.blog.updateCommentStatus.useMutation({ onSuccess: () => refetchBlogComments() });
+  const deleteBlogCommentMut = trpc.blog.deleteComment.useMutation({ onSuccess: () => { refetchBlogComments(); toast.success('Comentario eliminado'); } });
+
   const moveLinkUp = (i: number) => {
     if (i === 0) return;
     const ids = linkBioItems.map(it => it.id);
@@ -873,6 +896,7 @@ export default function Admin() {
     { id: "users" as AdminTab,    label: "Usuarios",      icon: Users },
     { id: "popups" as AdminTab,   label: "Popups",        icon: Megaphone },
     { id: "cosplay" as AdminTab,  label: "Cosplay Guild", icon: Sparkles },
+    { id: "blog" as AdminTab,     label: "Blog",          icon: BookOpen },
   ];
 
   return (
@@ -3976,6 +4000,266 @@ export default function Admin() {
                           {evaluateSub.isPending ? "Guardando..." : "Confirmar evaluación"}
                         </Button>
                         <Button variant="outline" onClick={() => setShowEvalModal(null)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+
+
+            {/* ─── Blog Tab ───────────────────────────────────────────────────── */}
+            {tab === "blog" && (
+              <motion.div key="blog" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                  <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="w-6 h-6 text-[#e5007d]" /> Blog</h1>
+                  <div className="flex gap-2">
+                    {(['posts', 'categories', 'comments'] as const).map(st => (
+                      <button key={st} onClick={() => setBlogSubTab(st)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${blogSubTab === st ? 'bg-primary text-white' : 'bg-muted text-muted-foreground hover:bg-muted/80'}`}>
+                        {st === 'posts' ? 'Artículos' : st === 'categories' ? 'Categorías' : 'Comentarios'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* SUB-TAB: ARTÍCULOS */}
+                {blogSubTab === 'posts' && (
+                  <div>
+                    <div className="flex justify-end mb-4">
+                      <Button className="bg-primary text-white" onClick={() => { setBlogPostForm(emptyBlogForm); setEditingBlogPost(null); setBlogModalTab('content'); setShowBlogPostModal(true); }}>
+                        <Plus className="w-4 h-4 mr-2" /> Nuevo artículo
+                      </Button>
+                    </div>
+                    <div className="space-y-3">
+                      {(blogPostsList as any[]).length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay artículos aún</p>}
+                      {(blogPostsList as any[]).map((post: any) => (
+                        <div key={post.id} className="p-4 rounded-2xl bg-card border border-border/50 flex items-start justify-between gap-4">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 flex-wrap mb-1">
+                              <p className="font-semibold truncate">{post.title}</p>
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                                {post.status === 'published' ? 'Publicado' : 'Borrador'}
+                              </span>
+                              {post.category && <span className="text-xs text-[#e5007d]">{post.category}</span>}
+                            </div>
+                            <p className="text-xs text-muted-foreground">{post.views ?? 0} vistas · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('es-CO') : 'Sin publicar'}</p>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setEditingBlogPost(post); setBlogPostForm({ title: post.title, slug: post.slug, excerpt: post.excerpt ?? '', content: post.content ?? '', coverImage: post.coverImage ?? '', category: post.category ?? '', tags: (post.tags as string[]) ?? [], status: post.status as 'draft' | 'published', authorName: post.authorName ?? 'Isekai World', metaTitle: post.metaTitle ?? '', metaDescription: post.metaDescription ?? '', metaKeywords: post.metaKeywords ?? '' }); setBlogModalTab('content'); setShowBlogPostModal(true); }}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive" onClick={() => { if (confirm('¿Eliminar artículo?')) deleteBlogPostMut.mutate({ id: post.id }); }}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB: CATEGORÍAS */}
+                {blogSubTab === 'categories' && (
+                  <div>
+                    <div className="p-5 rounded-2xl bg-card border border-border/50 mb-6">
+                      <h3 className="font-semibold mb-4 text-sm">Nueva categoría</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                          <Label className="text-xs">Nombre *</Label>
+                          <Input value={blogCategoryForm.name} onChange={e => setBlogCategoryForm(f => ({ ...f, name: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="Ej: Cosplay" />
+                        </div>
+                        <div>
+                          <Label className="text-xs">Descripción</Label>
+                          <Input value={blogCategoryForm.description} onChange={e => setBlogCategoryForm(f => ({ ...f, description: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="Opcional" />
+                        </div>
+                      </div>
+                      <Button size="sm" className="mt-3 bg-primary text-white" disabled={!blogCategoryForm.name || createBlogCategoryMut.isPending} onClick={() => createBlogCategoryMut.mutate(blogCategoryForm)}>
+                        <Plus className="w-3 h-3 mr-1" /> Crear categoría
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {(blogCategoriesList as any[]).map((cat: any) => (
+                        <div key={cat.id} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/50">
+                          <div>
+                            <p className="font-medium text-sm">{cat.name}</p>
+                            <p className="text-xs text-muted-foreground">/{cat.slug}</p>
+                          </div>
+                          <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8 p-0" onClick={() => { if (confirm('¿Eliminar categoría?')) deleteBlogCategoryMut.mutate({ id: cat.id }); }}>
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      {(blogCategoriesList as any[]).length === 0 && <p className="text-muted-foreground text-sm py-4 text-center">No hay categorías</p>}
+                    </div>
+                  </div>
+                )}
+
+                {/* SUB-TAB: COMENTARIOS */}
+                {blogSubTab === 'comments' && (
+                  <div className="space-y-3">
+                    {(blogCommentsList as any[]).length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay comentarios</p>}
+                    {(blogCommentsList as any[]).map((c: any) => (
+                      <div key={c.id} className="p-4 rounded-2xl bg-card border border-border/50">
+                        <div className="flex items-start justify-between gap-3 flex-wrap">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <p className="font-semibold text-sm">{c.guestName ?? 'Usuario'}</p>
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${c.status === 'approved' ? 'bg-green-100 text-green-700' : c.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{c.status}</span>
+                              <span className="text-xs text-muted-foreground">Post #{c.postId}</span>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2">{c.content}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{new Date(c.createdAt).toLocaleString('es-CO')}</p>
+                          </div>
+                          <div className="flex gap-1 shrink-0">
+                            {c.status !== 'approved' && (
+                              <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs h-8" onClick={() => updateBlogCommentMut.mutate({ id: c.id, status: 'approved' })}>Aprobar</Button>
+                            )}
+                            {c.status !== 'rejected' && (
+                              <Button size="sm" variant="outline" className="border-red-400 text-red-500 text-xs h-8" onClick={() => updateBlogCommentMut.mutate({ id: c.id, status: 'rejected' })}>Rechazar</Button>
+                            )}
+                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8 p-0" onClick={() => { if (confirm('¿Eliminar?')) deleteBlogCommentMut.mutate({ id: c.id }); }}>
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Modal crear/editar artículo */}
+                {showBlogPostModal && (
+                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
+                      <div className="flex items-center justify-between p-5 border-b border-border/30">
+                        <h2 className="text-lg font-bold">{editingBlogPost ? 'Editar artículo' : 'Nuevo artículo'}</h2>
+                        <div className="flex gap-3 items-center">
+                          <div className="flex gap-1">
+                            {(['content', 'seo'] as const).map(t => (
+                              <button key={t} onClick={() => setBlogModalTab(t)} className={`px-3 py-1 rounded-lg text-xs font-semibold ${blogModalTab === t ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
+                                {t === 'content' ? 'Contenido' : 'SEO'}
+                              </button>
+                            ))}
+                          </div>
+                          <button onClick={() => { setShowBlogPostModal(false); setEditingBlogPost(null); }} className="text-muted-foreground hover:text-foreground"><X size={18} /></button>
+                        </div>
+                      </div>
+
+                      <div className="p-5 space-y-4">
+                        {blogModalTab === 'content' && (
+                          <>
+                            <div>
+                              <Label className="text-xs">Título *</Label>
+                              <Input value={blogPostForm.title} onChange={e => { const t = e.target.value; const slug = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''); setBlogPostForm(f => ({ ...f, title: t, slug: editingBlogPost ? f.slug : slug })); }} className="mt-1 bg-muted border-border/50 text-sm" placeholder="Título del artículo" />
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs">Slug</Label>
+                                <Input value={blogPostForm.slug} onChange={e => setBlogPostForm(f => ({ ...f, slug: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm font-mono" />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Categoría</Label>
+                                <Select value={blogPostForm.category} onValueChange={v => setBlogPostForm(f => ({ ...f, category: v }))}>
+                                  <SelectTrigger className="mt-1 bg-muted border-border/50 text-sm"><SelectValue placeholder="Seleccionar..." /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="">Sin categoría</SelectItem>
+                                    {(blogCategoriesList as any[]).map((cat: any) => <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>)}
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <Label className="text-xs">Autor</Label>
+                                <Input value={blogPostForm.authorName} onChange={e => setBlogPostForm(f => ({ ...f, authorName: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" />
+                              </div>
+                              <div>
+                                <Label className="text-xs">Estado</Label>
+                                <Select value={blogPostForm.status} onValueChange={v => setBlogPostForm(f => ({ ...f, status: v as 'draft' | 'published' }))}>
+                                  <SelectTrigger className="mt-1 bg-muted border-border/50 text-sm"><SelectValue /></SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="draft">Borrador</SelectItem>
+                                    <SelectItem value="published">Publicado</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Imagen de portada</Label>
+                              <div className="flex items-center gap-2 mt-1">
+                                {blogPostForm.coverImage && <img src={blogPostForm.coverImage} className="w-20 h-14 rounded-lg object-cover border border-border/40 shrink-0" alt="" />}
+                                <Input value={blogPostForm.coverImage} onChange={e => setBlogPostForm(f => ({ ...f, coverImage: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="URL de la imagen..." />
+                                <label className="cursor-pointer shrink-0">
+                                  <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 ${blogImageUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    {blogImageUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
+                                    {blogImageUploading ? 'Subiendo...' : 'Subir'}
+                                  </span>
+                                  <input type="file" accept="image/*" className="hidden" disabled={blogImageUploading} onChange={async e => {
+                                    const file = e.target.files?.[0]; if (!file) return;
+                                    setBlogImageUploading(true);
+                                    try {
+                                      const base64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = ev => res((ev.target?.result as string).split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+                                      const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                                      setBlogPostForm(f => ({ ...f, coverImage: url })); toast.success('Imagen subida');
+                                    } catch { toast.error('Error al subir imagen'); } finally { setBlogImageUploading(false); }
+                                  }} />
+                                </label>
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Extracto / Resumen</Label>
+                              <textarea value={blogPostForm.excerpt} onChange={e => setBlogPostForm(f => ({ ...f, excerpt: e.target.value }))} rows={2} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none focus:border-primary resize-none" placeholder="Breve descripción del artículo..." />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Tags</Label>
+                              <div className="mt-1 flex flex-wrap gap-1.5 mb-2">
+                                {blogPostForm.tags.map(tag => (
+                                  <span key={tag} className="flex items-center gap-1 bg-primary/10 text-primary text-xs px-2 py-0.5 rounded-full">
+                                    {tag}<button onClick={() => setBlogPostForm(f => ({ ...f, tags: f.tags.filter(t => t !== tag) }))}><X className="w-3 h-3" /></button>
+                                  </span>
+                                ))}
+                              </div>
+                              <div className="flex gap-2">
+                                <Input value={blogTagInput} onChange={e => setBlogTagInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && blogTagInput.trim()) { e.preventDefault(); setBlogPostForm(f => ({ ...f, tags: [...f.tags, blogTagInput.trim()] })); setBlogTagInput(''); } }} className="bg-muted border-border/50 text-sm" placeholder="Escribe un tag y pulsa Enter..." />
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Contenido (HTML)</Label>
+                              <textarea value={blogPostForm.content} onChange={e => setBlogPostForm(f => ({ ...f, content: e.target.value }))} rows={12} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm font-mono outline-none focus:border-primary resize-y" placeholder="<p>Contenido del artículo en HTML...</p>" />
+                            </div>
+                          </>
+                        )}
+
+                        {blogModalTab === 'seo' && (
+                          <>
+                            <div>
+                              <Label className="text-xs">Meta título</Label>
+                              <Input value={blogPostForm.metaTitle} onChange={e => setBlogPostForm(f => ({ ...f, metaTitle: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="Título para Google..." />
+                              <p className="text-xs text-muted-foreground mt-1">{blogPostForm.metaTitle.length}/60 caracteres</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Meta descripción</Label>
+                              <textarea value={blogPostForm.metaDescription} onChange={e => setBlogPostForm(f => ({ ...f, metaDescription: e.target.value }))} rows={3} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none focus:border-primary resize-none" placeholder="Descripción para Google (150-160 caracteres)..." />
+                              <p className="text-xs text-muted-foreground mt-1">{blogPostForm.metaDescription.length}/160 caracteres</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Keywords</Label>
+                              <Input value={blogPostForm.metaKeywords} onChange={e => setBlogPostForm(f => ({ ...f, metaKeywords: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="cosplay, anime, impresión 3D..." />
+                            </div>
+                          </>
+                        )}
+
+                        <div className="flex gap-2 pt-2 border-t border-border/30">
+                          <Button className="bg-primary text-white flex-1" disabled={!blogPostForm.title || createBlogPostMut.isPending || updateBlogPostMut.isPending} onClick={() => {
+                            if (editingBlogPost) updateBlogPostMut.mutate({ id: editingBlogPost.id, ...blogPostForm });
+                            else createBlogPostMut.mutate(blogPostForm);
+                          }}>
+                            {(createBlogPostMut.isPending || updateBlogPostMut.isPending) ? 'Guardando...' : editingBlogPost ? 'Actualizar' : 'Publicar'}
+                          </Button>
+                          <Button variant="outline" onClick={() => { setShowBlogPostModal(false); setEditingBlogPost(null); }}>Cancelar</Button>
+                        </div>
                       </div>
                     </div>
                   </div>
