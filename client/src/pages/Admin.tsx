@@ -880,12 +880,31 @@ export default function Admin() {
       style={{ paddingTop: 'env(safe-area-inset-top)' }}>
       {/* Header móvil */}
       <div
-        className="fixed left-0 right-0 z-50 bg-white border-b border-[#e5e5e5] flex items-center justify-between px-4 h-14 md:hidden"
-        style={{ top: 'env(safe-area-inset-top)' }}
+        className="md:hidden fixed left-0 right-0 z-[60] bg-white border-b border-gray-200 flex items-center justify-between"
+        style={{
+          top: 0,
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          height: 'calc(env(safe-area-inset-top, 0px) + 52px)',
+          paddingLeft: '16px',
+          paddingRight: '16px',
+        }}
       >
-        <span className="font-black text-[#111] text-sm">Panel Admin</span>
-        <button onClick={() => setMobileMenuOpen(true)} className="p-2" aria-label="Abrir menú">
-          <Menu size={22} className="text-[#111]" />
+        <span style={{ fontWeight: 900, fontSize: '16px', color: '#111' }}>Panel Admin</span>
+        <button
+          onClick={() => setMobileMenuOpen(true)}
+          style={{
+            padding: '8px',
+            borderRadius: '8px',
+            background: '#f8f8f8',
+            border: '1px solid #e5e5e5',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            minWidth: '40px',
+            minHeight: '40px',
+          }}
+        >
+          <Menu size={20} color="#111" />
         </button>
       </div>
 
@@ -900,14 +919,20 @@ export default function Admin() {
       <div className="flex">
         {/* Sidebar — drawer en móvil, fijo en desktop */}
         <aside
-          className={`
-            fixed top-0 bottom-0 left-0 z-50 w-[280px] max-w-[85vw] md:w-56
-            bg-[#0d0d0d] overflow-y-auto
-            transition-transform duration-300 ease-in-out
-            md:translate-x-0
-            ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-          `}
-          style={{ paddingTop: 'env(safe-area-inset-top)' }}
+          className={`md:translate-x-0 md:w-56 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
+          style={{
+            position: 'fixed',
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: '280px',
+            maxWidth: '85vw',
+            zIndex: 50,
+            background: '#0d0d0d',
+            overflowY: 'auto',
+            transition: 'transform 0.3s ease',
+            paddingTop: 'env(safe-area-inset-top, 0px)',
+          }}
         >
           {/* Botón cerrar — solo móvil */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 md:hidden">
@@ -954,7 +979,16 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="md:ml-56 min-h-screen bg-[#f8f8f8] text-[#111] px-3 md:px-6 pt-20 md:pt-6 pb-6">
+        <main
+          className="md:ml-56 bg-[#f8f8f8] text-[#111] md:px-6 md:pt-6 md:pb-6"
+          style={{
+            minHeight: '100vh',
+            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
+            paddingLeft: '12px',
+            paddingRight: '12px',
+            paddingBottom: '24px',
+          }}
+        >
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
@@ -2712,8 +2746,8 @@ export default function Admin() {
                   {faqItems.length === 0 ? (
                     <div className="p-12 text-center text-muted-foreground text-sm">No hay preguntas aún. Crea la primera.</div>
                   ) : (
-                    <div className="overflow-x-auto">
-                    <table className="w-full text-sm min-w-[600px]">
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -12px' }}>
+                    <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
                       <thead className="border-b border-border/50 bg-muted/30">
                         <tr>
                           <th className="text-left p-4 font-medium text-muted-foreground">Pregunta</th>
@@ -3004,7 +3038,7 @@ export default function Admin() {
 
                 {/* Tabla de usuarios */}
                 <div className="border border-[#e5e5e5] rounded-xl overflow-x-auto">
-                  <table className="w-full text-sm min-w-[600px]">
+                  <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
                     <thead className="bg-[#f8f8f8] border-b border-[#e5e5e5]">
                       <tr>
                         <th className="text-left px-4 py-3 font-semibold text-[#999]">Usuario</th>
@@ -3096,8 +3130,8 @@ export default function Admin() {
                   {popupItems.length === 0 ? (
                     <p className="text-center text-muted-foreground py-12 text-sm">No hay popups creados aún</p>
                   ) : (
-                    <div className="overflow-x-auto">
-                    <table className="w-full text-sm min-w-[600px]">
+                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -12px' }}>
+                    <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
                       <thead className="bg-muted/40 border-b border-border/50">
                         <tr>
                           <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre</th>
@@ -3513,7 +3547,7 @@ export default function Admin() {
                 {cosplaySubTab === 'cosplayers' && (
                   <div>
                     <div className="rounded-2xl bg-card border border-border/50 overflow-x-auto">
-                      <table className="w-full text-sm min-w-[600px]">
+                      <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
                         <thead className="bg-muted/40 border-b border-border/50">
                           <tr>
                             <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre artístico</th>
