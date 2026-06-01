@@ -874,12 +874,11 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen pt-16">
+    <div className="min-h-screen pt-16 overflow-x-hidden bg-[#0d0d0d]">
       {/* Botón hamburguesa — solo móvil */}
       <button
         onClick={() => setMobileMenuOpen(true)}
-        className="fixed z-50 md:hidden bg-[#0d0d0d] border border-[#1a1a1a] rounded-lg p-2 shadow-sm"
-        style={{ top: 'max(env(safe-area-inset-top), 44px)', left: '16px' }}
+        className="fixed top-[calc(env(safe-area-inset-top)+8px)] left-3 z-[60] md:hidden bg-[#e5007d] text-white rounded-lg p-2 shadow-lg"
       >
         <Menu size={18} className="text-white" />
       </button>
@@ -948,7 +947,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="ml-0 md:ml-56 flex-1 p-4 md:p-6 min-h-screen bg-[#0d0d0d] text-white" style={{ paddingTop: 'max(env(safe-area-inset-top), 64px)' }}>
+        <main className="ml-0 md:ml-56 flex-1 p-4 pt-20 md:pt-6 min-h-screen bg-[#0d0d0d]">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
@@ -956,7 +955,7 @@ export default function Admin() {
                 <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full overflow-hidden mb-8">
                   {[
                     { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)}`, icon: DollarSign, color: "text-green-400" },
                     { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
@@ -968,7 +967,7 @@ export default function Admin() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="p-5 rounded-2xl bg-card border border-border/50"
+                      className="p-5 rounded-2xl bg-[#1a1a1a] border border-border/50 min-w-0 overflow-hidden"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm text-muted-foreground">{m.label}</span>
@@ -986,6 +985,7 @@ export default function Admin() {
                       <TrendingUp className="w-4 h-4 text-primary" />
                       Pedidos recientes
                     </h3>
+                    <div className="overflow-x-auto w-full">
                     <div className="space-y-3">
                       {(metrics?.recentOrders ?? []).map((order: any) => (
                         <div key={order.id} className="flex items-center justify-between text-sm">
@@ -1004,6 +1004,7 @@ export default function Admin() {
                       {(metrics?.recentOrders ?? []).length === 0 && (
                         <p className="text-muted-foreground text-sm">No hay pedidos aún</p>
                       )}
+                    </div>
                     </div>
                   </div>
 
