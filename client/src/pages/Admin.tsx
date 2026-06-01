@@ -877,7 +877,7 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f8]"
-      style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+      style={{ maxWidth: '100vw', overflowX: 'hidden', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
       {/* Header móvil */}
       <div
         className="md:hidden fixed left-0 right-0 z-[60] bg-white border-b border-gray-200 flex items-center justify-between"
@@ -987,16 +987,19 @@ export default function Admin() {
             paddingLeft: '12px',
             paddingRight: '12px',
             paddingBottom: '24px',
+            maxWidth: '100vw',
+            overflowX: 'hidden',
+            boxSizing: 'border-box',
           }}
         >
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
-              <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 w-full overflow-hidden mb-8">
+                <div className="grid grid-cols-2 gap-3 w-full overflow-hidden mb-8 md:grid-cols-4">
                   {[
                     { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)}`, icon: DollarSign, color: "text-green-400" },
                     { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
@@ -1076,7 +1079,7 @@ export default function Admin() {
 
             {/* ─── Products ───────────────────────────────────────────────────── */}
             {tab === "products" && (
-              <motion.div key="products" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="products" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Productos</h1>
                   <Button
@@ -1216,7 +1219,7 @@ export default function Admin() {
 
             {/* ─── Categories ─────────────────────────────────────────────────── */}
             {tab === "categories" && (
-              <motion.div key="categories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="categories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Categorías</h1>
                   <Button
@@ -1366,7 +1369,7 @@ export default function Admin() {
 
             {/* ─── Orders ─────────────────────────────────────────────────────── */}
             {tab === "orders" && (
-              <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
                 <div className="relative mb-4">
                   <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
@@ -1410,7 +1413,7 @@ export default function Admin() {
                                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Cancelada</span>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground truncate">{order.customerName} · {order.customerEmail}</p>
+                              <p className="text-sm text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
                               <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
                               {/* Mini progress timeline */}
                               {order.status !== "cancelled" && (
@@ -1479,7 +1482,7 @@ export default function Admin() {
           </AnimatePresence>
             {/* ─── Payments Tab ───────────────────────────────────────────────── */}
             {tab === "payments" && (
-              <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
                   <h1 className="text-2xl font-bold">Pagos</h1>
                   <div className="flex gap-2 flex-wrap w-full sm:w-auto">
@@ -1527,7 +1530,7 @@ export default function Admin() {
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="min-w-0">
                               <p className="font-semibold text-sm">{order.orderNumber}</p>
-                              <p className="text-xs text-muted-foreground truncate">{order.customerName} · {order.customerEmail}</p>
+                              <p className="text-xs text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3 ml-4 shrink-0">
@@ -2681,7 +2684,7 @@ export default function Admin() {
 
             {/* ─── FAQ ───────────────────────────────────────────────────────── */}
             {tab === "faq" && (
-              <motion.div key="faq" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="faq" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">FAQ</h1>
                   <Button onClick={() => { setEditingFaqId(null); setFaqForm({ question: "", answer: "", category: "General", position: 0, active: true }); setShowFaqForm(true); }}
@@ -2793,7 +2796,7 @@ export default function Admin() {
             )}
             {/* ─── LINKBIO ───────────────────────────────────────────────────── */}
             {tab === "linkbio" && (
-              <motion.div key="linkbio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="linkbio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <h1 className="text-2xl font-bold mb-6">LinkBio</h1>
 
                 {/* Copy link banner */}
@@ -3003,7 +3006,7 @@ export default function Admin() {
 
             {/* ─── Users Tab ──────────────────────────────────────────────── */}
             {tab === "users" && (
-              <motion.div key="users" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="users" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-xl font-bold">Usuarios</h2>
@@ -3112,7 +3115,7 @@ export default function Admin() {
 
             {/* ─── Popups ─────────────────────────────────────────────────────── */}
             {tab === "popups" && (
-              <motion.div key="popups" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="popups" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Popups</h1>
                   <Button
@@ -3456,7 +3459,7 @@ export default function Admin() {
 
             {/* ─── Cosplay Guild ──────────────────────────────────────────────── */}
             {tab === "cosplay" && (
-              <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+              <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
 
                 {/* Sub-tabs */}
