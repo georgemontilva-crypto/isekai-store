@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, BookOpen,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -173,8 +173,6 @@ const statusLabels: Record<string, string> = {
   delivered:     "Entregada",
   cancelled:     "Cancelada",
 };
-
-const ORDER_STEPS = ["pending", "preparing", "printing", "post_printing", "packed", "shipped", "delivered"] as const;
 
 // ─── Admin Order Detail ───────────────────────────────────────────────────────
 function AdminOrderDetail({
@@ -599,12 +597,6 @@ function getTierByFollowers(followers: number): string {
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<AdminTab>("dashboard");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleTabChange = (t: AdminTab) => {
-    setTab(t);
-    setMobileMenuOpen(false);
-  };
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [productSearch, setProductSearch] = useState('');
@@ -900,83 +892,21 @@ export default function Admin() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f8f8]"
-      style={{ maxWidth: '100vw', overflowX: 'hidden', paddingTop: 'env(safe-area-inset-top, 0px)' }}>
-      {/* Header móvil */}
-      <div
-        className="md:hidden fixed left-0 right-0 z-[60] bg-white border-b border-gray-200 flex items-center justify-between"
-        style={{
-          top: 0,
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-          height: 'calc(env(safe-area-inset-top, 0px) + 52px)',
-          paddingLeft: '16px',
-          paddingRight: '16px',
-        }}
-      >
-        <span style={{ fontWeight: 900, fontSize: '16px', color: '#111' }}>Panel Admin</span>
-        <button
-          onClick={() => setMobileMenuOpen(true)}
-          style={{
-            padding: '8px',
-            borderRadius: '8px',
-            background: '#f8f8f8',
-            border: '1px solid #e5e5e5',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '40px',
-            minHeight: '40px',
-          }}
-        >
-          <Menu size={20} color="#111" />
-        </button>
-      </div>
-
-      {/* Overlay drawer */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
+    <div className="min-h-screen pt-16">
       <div className="flex">
-        {/* Sidebar — drawer en móvil, fijo en desktop */}
-        <aside
-          className={`md:translate-x-0 md:w-56 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-          style={{
-            position: 'fixed',
-            top: 0,
-            bottom: 0,
-            left: 0,
-            width: '280px',
-            maxWidth: '85vw',
-            zIndex: 50,
-            background: '#0d0d0d',
-            overflowY: 'auto',
-            transition: 'transform 0.3s ease',
-            paddingTop: 'env(safe-area-inset-top, 0px)',
-          }}
-        >
-          {/* Botón cerrar — solo móvil */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 md:hidden">
-            <span className="text-white font-bold text-sm">Menú</span>
-            <button onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar menú">
-              <X size={18} className="text-white" />
-            </button>
-          </div>
-
-          <div className="p-4 pt-6">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2 hidden md:block">Panel Admin</p>
+        {/* Sidebar */}
+        <aside className="w-56 min-h-screen bg-sidebar border-r border-sidebar-border fixed top-16 left-0 bottom-0 overflow-y-auto z-40">
+          <div className="p-4">
+            <p className="text-xs font-medium !text-white uppercase tracking-wider mb-3 px-2">Panel Admin</p>
             <nav className="space-y-1">
               {tabs.map((t) => (
                 <button
                   key={t.id}
-                  onClick={() => handleTabChange(t.id)}
+                  onClick={() => setTab(t.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                     tab === t.id
-                      ? "bg-[#e5007d]/20 text-[#e5007d]"
-                      : "text-gray-400 hover:text-white hover:bg-white/10"
+                      ? "bg-white/20 !text-white hover:bg-white/25"
+                      : "!text-white hover:bg-white/10"
                   }`}
                 >
                   <t.icon className="w-4 h-4" />
@@ -1003,27 +933,15 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main
-          className="md:ml-56 bg-[#f8f8f8] text-[#111] md:px-6 md:pt-6 md:pb-6"
-          style={{
-            minHeight: '100vh',
-            paddingTop: 'calc(env(safe-area-inset-top, 0px) + 68px)',
-            paddingLeft: '12px',
-            paddingRight: '12px',
-            paddingBottom: '24px',
-            maxWidth: '100vw',
-            overflowX: 'hidden',
-            boxSizing: 'border-box',
-          }}
-        >
+        <main className="ml-56 flex-1 p-6 min-h-screen">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
-              <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
 
                 {/* Metrics */}
-                <div className="grid grid-cols-2 gap-3 w-full mb-6 md:grid-cols-4">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                   {[
                     { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)}`, icon: DollarSign, color: "text-green-400" },
                     { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
@@ -1035,7 +953,7 @@ export default function Admin() {
                       initial={{ opacity: 0, y: 20 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: i * 0.05 }}
-                      className="p-5 rounded-2xl bg-white border border-[#e5e5e5] min-w-0 overflow-hidden"
+                      className="p-5 rounded-2xl bg-card border border-border/50"
                     >
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm text-muted-foreground">{m.label}</span>
@@ -1047,21 +965,21 @@ export default function Admin() {
                 </div>
 
                 {/* Recent orders */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                  <div className="p-4 rounded-2xl bg-card border border-border/50 w-full">
+                <div className="grid lg:grid-cols-2 gap-6">
+                  <div className="p-5 rounded-2xl bg-card border border-border/50">
                     <h3 className="font-semibold mb-4 flex items-center gap-2">
                       <TrendingUp className="w-4 h-4 text-primary" />
                       Pedidos recientes
                     </h3>
                     <div className="space-y-3">
                       {(metrics?.recentOrders ?? []).map((order: any) => (
-                        <div key={order.id} className="flex items-start justify-between gap-2 text-sm w-full min-w-0">
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium truncate">{order.orderNumber}</p>
-                            <p className="text-muted-foreground text-xs truncate">{order.customerName}</p>
+                        <div key={order.id} className="flex items-center justify-between text-sm">
+                          <div>
+                            <p className="font-medium">{order.orderNumber}</p>
+                            <p className="text-muted-foreground text-xs">{order.customerName}</p>
                           </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-primary font-semibold text-xs">${parseFloat(order.total).toFixed(2)}</p>
+                          <div className="text-right">
+                            <p className="text-primary font-semibold">${parseFloat(order.total).toFixed(2)}</p>
                             <span className={`text-xs px-2 py-0.5 rounded-full status-${order.status}`}>
                               {statusLabels[order.status]}
                             </span>
@@ -1074,7 +992,7 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  <div className="p-4 rounded-2xl bg-card border border-border/50 w-full">
+                  <div className="p-5 rounded-2xl bg-card border border-border/50">
                     <h3 className="font-semibold mb-4 flex items-center gap-2">
                       <ArrowUpRight className="w-4 h-4 text-accent" />
                       Productos más vendidos
@@ -1101,7 +1019,7 @@ export default function Admin() {
 
             {/* ─── Products ───────────────────────────────────────────────────── */}
             {tab === "products" && (
-              <motion.div key="products" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="products" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Productos</h1>
                   <Button
@@ -1156,33 +1074,24 @@ export default function Admin() {
                   {filteredProducts.map((product) => (
                     <div key={product.id}>
                       <div className="p-4 rounded-2xl bg-card border border-border/50 hover:border-border transition-colors">
-                        <div className="flex items-start sm:items-center justify-between gap-3">
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            {(product as any).images?.[0]?.url && (
-                              <img
-                                src={(product as any).images[0].url}
-                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-border/30"
-                                alt=""
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                                <p className="font-medium truncate">{product.name}</p>
-                                <span className={`px-2 py-0.5 rounded-full text-xs shrink-0 ${product.status === "published" ? "bg-green-500/10 text-green-400" : "bg-muted text-muted-foreground"}`}>
-                                  {product.status === "published" ? "Publicado" : "Borrador"}
-                                </span>
-                                {product.featured && <span className="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary shrink-0">Destacado</span>}
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                ${parseFloat(product.price).toFixed(2)} · Stock: {product.stock} · {product.category?.name ?? "Sin categoría"}
-                              </p>
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-3">
+                              <p className="font-medium truncate">{product.name}</p>
+                              <span className={`px-2 py-0.5 rounded-full text-xs ${product.status === "published" ? "bg-green-500/10 text-green-400" : "bg-muted text-muted-foreground"}`}>
+                                {product.status === "published" ? "Publicado" : "Borrador"}
+                              </span>
+                              {product.featured && <span className="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary">Destacado</span>}
                             </div>
+                            <p className="text-sm text-muted-foreground mt-0.5">
+                              ${parseFloat(product.price).toFixed(2)} · Stock: {product.stock} · {product.category?.name ?? "Sin categoría"}
+                            </p>
                           </div>
-                          <div className="flex items-center gap-1 shrink-0">
+                          <div className="flex items-center gap-2 ml-4">
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-muted-foreground hover:text-foreground h-9 w-9 p-0"
+                              className="text-muted-foreground hover:text-foreground"
                               onClick={() => { setEditingProduct(product); setShowProductForm(false); }}
                             >
                               <Pencil className="w-4 h-4" />
@@ -1190,7 +1099,7 @@ export default function Admin() {
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="text-muted-foreground hover:text-destructive h-9 w-9 p-0"
+                              className="text-muted-foreground hover:text-destructive"
                               onClick={() => { if (confirm("¿Eliminar producto?")) deleteProduct.mutate({ id: product.id }); }}
                             >
                               <Trash2 className="w-4 h-4" />
@@ -1241,7 +1150,7 @@ export default function Admin() {
 
             {/* ─── Categories ─────────────────────────────────────────────────── */}
             {tab === "categories" && (
-              <motion.div key="categories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="categories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Categorías</h1>
                   <Button
@@ -1391,7 +1300,7 @@ export default function Admin() {
 
             {/* ─── Orders ─────────────────────────────────────────────────────── */}
             {tab === "orders" && (
-              <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
                 <div className="relative mb-4">
                   <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
@@ -1425,35 +1334,18 @@ export default function Admin() {
                           onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
                         >
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div className="flex-1 min-w-0">
+                            <div>
                               <div className="flex items-center gap-3 mb-1 flex-wrap">
                                 <span className="font-semibold">{order.orderNumber}</span>
-                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0f0f0] text-[#999]">
+                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0f0f0] text-[#555]">
                                   {statusLabels[order.status] ?? order.status}
                                 </span>
                                 {order.status === "cancelled" && (
                                   <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Cancelada</span>
                                 )}
                               </div>
-                              <p className="text-sm text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
+                              <p className="text-sm text-muted-foreground">{order.customerName} · {order.customerEmail}</p>
                               <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
-                              {/* Mini progress timeline */}
-                              {order.status !== "cancelled" && (
-                                <div className="flex items-center gap-0.5 mt-2">
-                                  {ORDER_STEPS.map((step, i) => {
-                                    const currentIdx = ORDER_STEPS.indexOf(order.status as typeof ORDER_STEPS[number]);
-                                    const done = i <= currentIdx;
-                                    return (
-                                      <div key={step} className="flex items-center gap-0.5">
-                                        <div className={`w-2 h-2 rounded-full transition-colors ${done ? "bg-[#e5007d]" : "bg-[#e5e5e5]"}`} />
-                                        {i < ORDER_STEPS.length - 1 && (
-                                          <div className={`w-3 h-0.5 transition-colors ${done && i < currentIdx ? "bg-[#e5007d]" : "bg-[#e5e5e5]"}`} />
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <span className="font-bold text-base">${parseFloat(order.total).toFixed(2)}</span>
@@ -1504,10 +1396,10 @@ export default function Admin() {
           </AnimatePresence>
             {/* ─── Payments Tab ───────────────────────────────────────────────── */}
             {tab === "payments" && (
-              <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+              <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
                   <h1 className="text-2xl font-bold">Pagos</h1>
-                  <div className="flex gap-2 flex-wrap w-full sm:w-auto">
+                  <div className="flex gap-2 flex-wrap">
                     {[
                       { id: "all", label: "Todos" },
                       { id: "pending", label: "Pendiente" },
@@ -1552,7 +1444,7 @@ export default function Admin() {
                           <div className="flex items-center gap-4 min-w-0">
                             <div className="min-w-0">
                               <p className="font-semibold text-sm">{order.orderNumber}</p>
-                              <p className="text-xs text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
+                              <p className="text-xs text-muted-foreground truncate">{order.customerName} · {order.customerEmail}</p>
                             </div>
                           </div>
                           <div className="flex items-center gap-3 ml-4 shrink-0">
@@ -1604,17 +1496,19 @@ export default function Admin() {
                             )}
 
                             {(order.paymentStatus === "pending" || order.paymentStatus === "verifying") && (
-                              <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                              <div className="flex gap-3">
                                 <Button
-                                  className="w-full py-3 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
+                                  size="sm"
+                                  className="bg-green-600 hover:bg-green-700 text-white"
                                   disabled={verifyPayment.isPending}
                                   onClick={() => verifyPayment.mutate({ orderId: order.id, approved: true })}
                                 >
-                                  <CheckCheck className="w-4 h-4 mr-1.5" /> Aprobar pago
+                                  <CheckCheck className="w-4 h-4 mr-1.5" /> Aprobar
                                 </Button>
                                 <Button
+                                  size="sm"
                                   variant="outline"
-                                  className="w-full py-3 text-sm font-bold border-red-400 text-red-500 hover:bg-red-50"
+                                  className="border-red-500/40 text-red-400 hover:bg-red-500/10"
                                   disabled={verifyPayment.isPending}
                                   onClick={() => verifyPayment.mutate({ orderId: order.id, approved: false })}
                                 >
@@ -2706,7 +2600,7 @@ export default function Admin() {
 
             {/* ─── FAQ ───────────────────────────────────────────────────────── */}
             {tab === "faq" && (
-              <motion.div key="faq" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="faq" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">FAQ</h1>
                   <Button onClick={() => { setEditingFaqId(null); setFaqForm({ question: "", answer: "", category: "General", position: 0, active: true }); setShowFaqForm(true); }}
@@ -2734,7 +2628,7 @@ export default function Admin() {
                           className="w-full mt-1 px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
                         />
                       </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-3">
                         <div>
                           <Label className="text-xs font-medium">Categoría</Label>
                           <Input value={faqForm.category} onChange={e => setFaqForm(f => ({ ...f, category: e.target.value }))} placeholder="Ej: Pedidos, Envíos, Pagos" className="bg-muted border-border/50 mt-1" />
@@ -2769,8 +2663,7 @@ export default function Admin() {
                   {faqItems.length === 0 ? (
                     <div className="p-12 text-center text-muted-foreground text-sm">No hay preguntas aún. Crea la primera.</div>
                   ) : (
-                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -12px' }}>
-                    <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
+                    <table className="w-full text-sm">
                       <thead className="border-b border-border/50 bg-muted/30">
                         <tr>
                           <th className="text-left p-4 font-medium text-muted-foreground">Pregunta</th>
@@ -2811,19 +2704,18 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
-                    </div>
                   )}
                 </div>
               </motion.div>
             )}
             {/* ─── LINKBIO ───────────────────────────────────────────────────── */}
             {tab === "linkbio" && (
-              <motion.div key="linkbio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="linkbio" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <h1 className="text-2xl font-bold mb-6">LinkBio</h1>
 
                 {/* Copy link banner */}
                 <div className="flex items-center gap-3 mb-6 p-4 bg-[#f8f8f8] rounded-xl border border-border/50">
-                  <p className="text-sm font-mono text-[#999] flex-1">https://isekaiworld.co/links</p>
+                  <p className="text-sm font-mono text-[#555] flex-1">https://isekaiworld.co/links</p>
                   <button
                     onClick={() => { navigator.clipboard.writeText("https://isekaiworld.co/links"); toast.success("Link copiado"); }}
                     className="text-sm font-semibold bg-[#111] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors"
@@ -3028,7 +2920,7 @@ export default function Admin() {
 
             {/* ─── Users Tab ──────────────────────────────────────────────── */}
             {tab === "users" && (
-              <motion.div key="users" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="users" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="flex items-center justify-between mb-6">
                   <div>
                     <h2 className="text-xl font-bold">Usuarios</h2>
@@ -3060,15 +2952,15 @@ export default function Admin() {
                 </div>
 
                 {/* Tabla de usuarios */}
-                <div className="border border-[#e5e5e5] rounded-xl overflow-x-auto">
-                  <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
+                <div className="border border-[#e5e5e5] rounded-xl overflow-hidden">
+                  <table className="w-full text-sm">
                     <thead className="bg-[#f8f8f8] border-b border-[#e5e5e5]">
                       <tr>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Usuario</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Método</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Rol</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Registro</th>
-                        <th className="text-right px-4 py-3 font-semibold text-[#999]">Acciones</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Usuario</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Método</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Rol</th>
+                        <th className="text-left px-4 py-3 font-semibold text-[#555]">Registro</th>
+                        <th className="text-right px-4 py-3 font-semibold text-[#555]">Acciones</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -3137,7 +3029,7 @@ export default function Admin() {
 
             {/* ─── Popups ─────────────────────────────────────────────────────── */}
             {tab === "popups" && (
-              <motion.div key="popups" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="popups" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Popups</h1>
                   <Button
@@ -3153,8 +3045,7 @@ export default function Admin() {
                   {popupItems.length === 0 ? (
                     <p className="text-center text-muted-foreground py-12 text-sm">No hay popups creados aún</p>
                   ) : (
-                    <div style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch', margin: '0 -12px' }}>
-                    <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
+                    <table className="w-full text-sm">
                       <thead className="bg-muted/40 border-b border-border/50">
                         <tr>
                           <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre</th>
@@ -3226,14 +3117,13 @@ export default function Admin() {
                         ))}
                       </tbody>
                     </table>
-                    </div>
                   )}
                 </div>
 
                 {/* Popup modal */}
                 {showPopupModal && (
-                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                       <div className="flex items-center justify-between p-6 border-b border-border/30">
                         <h2 className="text-lg font-bold">{editingPopup ? "Editar popup" : "Nuevo popup"}</h2>
                         <button onClick={() => { setShowPopupModal(false); setEditingPopup(null); }} className="text-muted-foreground hover:text-foreground">
@@ -3243,7 +3133,7 @@ export default function Admin() {
 
                       <div className="p-6 space-y-5">
                         {/* Name + active */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Nombre (interno) *</Label>
                             <Input value={popupForm.name} onChange={e => setPopupForm(f => ({ ...f, name: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="Ej: Popup descuento verano" />
@@ -3312,7 +3202,7 @@ export default function Admin() {
                         </div>
 
                         {/* Botón CTA */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Texto del botón CTA</Label>
                             <Input value={popupForm.buttonText} onChange={e => setPopupForm(f => ({ ...f, buttonText: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="Ver oferta" />
@@ -3324,7 +3214,7 @@ export default function Admin() {
                         </div>
 
                         {/* Código cupón + email */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Código de cupón</Label>
                             <Input value={popupForm.couponCode} onChange={e => setPopupForm(f => ({ ...f, couponCode: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="VERANO20" />
@@ -3420,7 +3310,7 @@ export default function Admin() {
                         </div>
 
                         {/* Fechas */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-2 gap-4">
                           <div>
                             <Label className="text-xs mb-1 block">Fecha de inicio (opcional)</Label>
                             <Input type="datetime-local" value={popupForm.startDate} onChange={e => setPopupForm(f => ({ ...f, startDate: e.target.value }))} className="bg-muted border-border/50 text-sm" />
@@ -3481,11 +3371,11 @@ export default function Admin() {
 
             {/* ─── Cosplay Guild ──────────────────────────────────────────────── */}
             {tab === "cosplay" && (
-              <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
 
                 {/* Sub-tabs */}
-                <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-6 overflow-x-auto w-full sm:w-fit scrollbar-hide">
+                <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-6 w-fit">
                   {([
                     { id: 'applications', label: `Solicitudes (${cosplayApps.length})` },
                     { id: 'cosplayers', label: `Cosplayers (${cosplayersData.length})` },
@@ -3517,9 +3407,9 @@ export default function Admin() {
                       {cosplayApps.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay solicitudes</p>}
                       {cosplayApps.map((app: any) => (
                         <div key={app.id} className="p-5 rounded-2xl bg-card border border-border/50">
-                          <div className="flex flex-col gap-4">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <div className="flex items-start justify-between gap-4 flex-wrap">
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
                                 <p className="font-bold">{app.fullName} {app.lastName}</p>
                                 <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : app.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                                   {app.status}
@@ -3530,6 +3420,7 @@ export default function Admin() {
                                 <span>Edad: {app.age}</span>
                                 <span>Experiencia: {app.experience} años</span>
                               </div>
+                              {/* Redes sociales */}
                               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
                                 {[
                                   { key: 'instagram', label: 'Instagram' },
@@ -3549,19 +3440,13 @@ export default function Admin() {
                               </button>
                             </div>
                             {app.status === 'pending' && (
-                              <div className="flex flex-col sm:flex-row gap-2 w-full">
-                                <button
-                                  className="flex-1 w-full bg-[#111] text-white py-3 rounded-xl font-bold text-sm"
-                                  onClick={() => { setShowApproveModal(app); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); }}
-                                >
-                                  <CheckCircle2 className="w-4 h-4 inline mr-1.5" /> Aprobar
-                                </button>
-                                <button
-                                  className="flex-1 w-full border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm"
-                                  onClick={() => { setShowRejectModal(app); setRejectReason(''); }}
-                                >
-                                  <X className="w-4 h-4 inline mr-1.5" /> Rechazar
-                                </button>
+                              <div className="flex gap-2 shrink-0">
+                                <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs" onClick={() => { setShowApproveModal(app); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); }}>
+                                  <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Aprobar
+                                </Button>
+                                <Button size="sm" variant="outline" className="border-red-400 text-red-500 hover:bg-red-50 text-xs" onClick={() => { setShowRejectModal(app); setRejectReason(''); }}>
+                                  <X className="w-3.5 h-3.5 mr-1" /> Rechazar
+                                </Button>
                               </div>
                             )}
                           </div>
@@ -3574,11 +3459,8 @@ export default function Admin() {
                 {/* COSPLAYERS */}
                 {cosplaySubTab === 'cosplayers' && (
                   <div>
-                    {cosplayersData.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay cosplayers aún</p>}
-
-                    {/* Desktop — tabla */}
-                    <div className="hidden sm:block rounded-2xl bg-card border border-border/50 overflow-x-auto">
-                      <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
+                    <div className="rounded-2xl bg-card border border-border/50 overflow-hidden">
+                      <table className="w-full text-sm">
                         <thead className="bg-muted/40 border-b border-border/50">
                           <tr>
                             <th className="text-left px-4 py-3 text-xs text-muted-foreground font-medium">Nombre artístico</th>
@@ -3627,55 +3509,7 @@ export default function Admin() {
                           ))}
                         </tbody>
                       </table>
-                    </div>
-
-                    {/* Móvil — cards */}
-                    <div className="sm:hidden flex flex-col gap-3">
-                      {cosplayersData.map((cp: any) => (
-                        <div key={cp.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4">
-                          <div className="flex items-center gap-3 mb-3">
-                            {cp.photo && <img src={cp.photo} className="w-10 h-10 rounded-full object-cover flex-shrink-0" alt="" />}
-                            <div className="min-w-0">
-                              <p className="font-bold text-[#111] truncate">{cp.artisticName}</p>
-                              <div className="flex items-center gap-2 mt-0.5">
-                                <span className="text-xs px-2 py-0.5 rounded-full font-semibold capitalize bg-muted text-muted-foreground">
-                                  {cp.tier ?? 'bronce'}
-                                </span>
-                                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cp.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
-                                  {cp.isActive ? 'Activo' : 'Suspendido'}
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex gap-4 text-xs text-[#999] mb-3">
-                            <span>🎫 {cp.ticketBalance ?? 0} tickets</span>
-                            <span>💵 ${parseFloat(cp.cashBalance ?? '0').toFixed(0)}</span>
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => { setShowTierModal(cp); setTierForm({ tier: cp.tier ?? 'bronce', totalFollowers: cp.totalFollowers ?? 0 }); }}
-                              className="flex-1 bg-[#f8f8f8] border border-[#e5e5e5] text-[#111] py-2.5 rounded-xl text-xs font-semibold"
-                            >
-                              Cambiar tier
-                            </button>
-                            {cp.isActive && (
-                              <button
-                                onClick={() => { if (confirm(`¿Suspender a ${cp.artisticName}?`)) suspendCp.mutate({ cosplayerId: cp.id }); }}
-                                className="flex-1 border border-red-200 text-red-500 py-2.5 rounded-xl text-xs font-semibold"
-                              >
-                                Suspender
-                              </button>
-                            )}
-                            <button
-                              onClick={() => { if (confirm(`¿Eliminar a ${cp.artisticName}?`)) deleteCosplayerMut.mutate({ cosplayerId: cp.id }); }}
-                              className="p-2.5 border border-red-100 text-red-400 rounded-xl"
-                              title="Eliminar"
-                            >
-                              <Trash2 size={14} />
-                            </button>
-                          </div>
-                        </div>
-                      ))}
+                      {cosplayersData.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay cosplayers aún</p>}
                     </div>
                   </div>
                 )}
@@ -3796,8 +3630,8 @@ export default function Admin() {
                 {selectedApplication && (() => {
                   const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
                   return (
-                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
-                      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl p-5 sm:p-6">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                      <div className="bg-card rounded-2xl border border-border/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
                         <div className="flex items-center justify-between p-6 border-b border-border/30">
                           <h3 className="text-lg font-black">Solicitud de {selectedApplication.fullName}</h3>
                           <button onClick={() => setSelectedApplication(null)} className="text-muted-foreground hover:text-foreground"><X size={20} /></button>
@@ -3852,8 +3686,8 @@ export default function Admin() {
                 {showApproveModal && (() => {
                   const TIER_COLORS_MAP: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
                   return (
-                    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                      <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                      <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
                         <h3 className="font-bold mb-1">Aprobar cosplayer</h3>
                         <p className="text-sm text-muted-foreground mb-5">{showApproveModal.fullName} {showApproveModal.lastName}</p>
                         <div className="space-y-3">
@@ -3907,8 +3741,8 @@ export default function Admin() {
 
                 {/* Modal rechazar */}
                 {showRejectModal && (
-                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
                       <h3 className="font-bold mb-4">Rechazar solicitud</h3>
                       <p className="text-sm text-muted-foreground mb-4">{showRejectModal.fullName} {showRejectModal.lastName}</p>
                       <Label className="text-xs">Razón del rechazo *</Label>
@@ -3925,8 +3759,8 @@ export default function Admin() {
 
                 {/* Modal cambiar tier */}
                 {showTierModal && (
-                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-sm p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-sm p-6 shadow-2xl">
                       <h3 className="font-bold mb-4">Cambiar tier — {showTierModal.artisticName}</h3>
                       <div className="space-y-3">
                         <div>
@@ -3949,13 +3783,13 @@ export default function Admin() {
 
                 {/* Modal nueva actividad */}
                 {showActivityModal && (
-                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
                       <h3 className="font-bold mb-4">Nueva actividad</h3>
                       <div className="space-y-3">
                         <div><Label className="text-xs">Título *</Label><Input value={activityForm.title} onChange={e => setActivityForm(f => ({ ...f, title: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
                         <div><Label className="text-xs">Descripción</Label><textarea rows={2} value={activityForm.description} onChange={e => setActivityForm(f => ({ ...f, description: e.target.value }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none resize-none" /></div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-2 gap-3">
                           <div><Label className="text-xs">Puntos base</Label><Input type="number" value={activityForm.basePoints} onChange={e => setActivityForm(f => ({ ...f, basePoints: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
                           <div>
                             <Label className="text-xs">Tipo</Label>
@@ -3978,8 +3812,8 @@ export default function Admin() {
 
                 {/* Modal evaluar submission */}
                 {showEvalModal && (
-                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-md p-6 shadow-2xl">
                       <h3 className="font-bold mb-2">Evaluar submission</h3>
                       <a href={showEvalModal.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mb-4 hover:underline">
                         <ExternalLink size={12} /> {showEvalModal.evidenceUrl}
@@ -4008,10 +3842,9 @@ export default function Admin() {
             )}
 
 
-
             {/* ─── Blog Tab ───────────────────────────────────────────────────── */}
             {tab === "blog" && (
-              <motion.div key="blog" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+              <motion.div key="blog" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                   <h1 className="text-2xl font-bold flex items-center gap-2"><BookOpen className="w-6 h-6 text-[#e5007d]" /> Blog</h1>
                   <div className="flex gap-2">
@@ -4024,11 +3857,10 @@ export default function Admin() {
                   </div>
                 </div>
 
-                {/* SUB-TAB: ARTÍCULOS */}
                 {blogSubTab === 'posts' && (
                   <div>
                     <div className="flex justify-end mb-4">
-                      <Button className="bg-primary text-white" onClick={() => { setBlogPostForm(emptyBlogForm); setEditingBlogPost(null); setBlogModalTab('content'); setShowBlogPostModal(true); }}>
+                      <Button className="bg-primary text-primary-foreground hover:bg-primary/90" onClick={() => { setBlogPostForm(emptyBlogForm); setEditingBlogPost(null); setBlogModalTab('content'); setShowBlogPostModal(true); }}>
                         <Plus className="w-4 h-4 mr-2" /> Nuevo artículo
                       </Button>
                     </div>
@@ -4039,18 +3871,18 @@ export default function Admin() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 flex-wrap mb-1">
                               <p className="font-semibold truncate">{post.title}</p>
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${post.status === 'published' ? 'bg-green-100 text-green-700' : 'bg-muted text-muted-foreground'}`}>
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${post.status === 'published' ? 'bg-green-500/10 text-green-400' : 'bg-muted text-muted-foreground'}`}>
                                 {post.status === 'published' ? 'Publicado' : 'Borrador'}
                               </span>
-                              {post.category && <span className="text-xs text-[#e5007d]">{post.category}</span>}
+                              {post.category && <span className="text-xs text-primary">{post.category}</span>}
                             </div>
                             <p className="text-xs text-muted-foreground">{post.views ?? 0} vistas · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('es-CO') : 'Sin publicar'}</p>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setEditingBlogPost(post); setBlogPostForm({ title: post.title, slug: post.slug, excerpt: post.excerpt ?? '', content: post.content ?? '', coverImage: post.coverImage ?? '', category: post.category ?? '', tags: (post.tags as string[]) ?? [], status: post.status as 'draft' | 'published', authorName: post.authorName ?? 'Isekai World', metaTitle: post.metaTitle ?? '', metaDescription: post.metaDescription ?? '', metaKeywords: post.metaKeywords ?? '' }); setBlogModalTab('content'); setShowBlogPostModal(true); }}>
+                            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-foreground h-8 w-8 p-0" onClick={() => { setEditingBlogPost(post); setBlogPostForm({ title: post.title, slug: post.slug, excerpt: post.excerpt ?? '', content: post.content ?? '', coverImage: post.coverImage ?? '', category: post.category ?? '', tags: (post.tags as string[]) ?? [], status: post.status as 'draft' | 'published', authorName: post.authorName ?? 'Isekai World', metaTitle: post.metaTitle ?? '', metaDescription: post.metaDescription ?? '', metaKeywords: post.metaKeywords ?? '' }); setBlogModalTab('content'); setShowBlogPostModal(true); }}>
                               <Pencil className="w-4 h-4" />
                             </Button>
-                            <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive" onClick={() => { if (confirm('¿Eliminar artículo?')) deleteBlogPostMut.mutate({ id: post.id }); }}>
+                            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive h-8 w-8 p-0" onClick={() => { if (confirm('¿Eliminar artículo?')) deleteBlogPostMut.mutate({ id: post.id }); }}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </div>
@@ -4060,12 +3892,11 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* SUB-TAB: CATEGORÍAS */}
                 {blogSubTab === 'categories' && (
                   <div>
                     <div className="p-5 rounded-2xl bg-card border border-border/50 mb-6">
                       <h3 className="font-semibold mb-4 text-sm">Nueva categoría</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="grid sm:grid-cols-2 gap-3">
                         <div>
                           <Label className="text-xs">Nombre *</Label>
                           <Input value={blogCategoryForm.name} onChange={e => setBlogCategoryForm(f => ({ ...f, name: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="Ej: Cosplay" />
@@ -4075,7 +3906,7 @@ export default function Admin() {
                           <Input value={blogCategoryForm.description} onChange={e => setBlogCategoryForm(f => ({ ...f, description: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" placeholder="Opcional" />
                         </div>
                       </div>
-                      <Button size="sm" className="mt-3 bg-primary text-white" disabled={!blogCategoryForm.name || createBlogCategoryMut.isPending} onClick={() => createBlogCategoryMut.mutate(blogCategoryForm)}>
+                      <Button size="sm" className="mt-3 bg-primary text-primary-foreground" disabled={!blogCategoryForm.name || createBlogCategoryMut.isPending} onClick={() => createBlogCategoryMut.mutate(blogCategoryForm)}>
                         <Plus className="w-3 h-3 mr-1" /> Crear categoría
                       </Button>
                     </div>
@@ -4086,7 +3917,7 @@ export default function Admin() {
                             <p className="font-medium text-sm">{cat.name}</p>
                             <p className="text-xs text-muted-foreground">/{cat.slug}</p>
                           </div>
-                          <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8 p-0" onClick={() => { if (confirm('¿Eliminar categoría?')) deleteBlogCategoryMut.mutate({ id: cat.id }); }}>
+                          <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive h-8 w-8 p-0" onClick={() => { if (confirm('¿Eliminar categoría?')) deleteBlogCategoryMut.mutate({ id: cat.id }); }}>
                             <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
@@ -4096,7 +3927,6 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* SUB-TAB: COMENTARIOS */}
                 {blogSubTab === 'comments' && (
                   <div className="space-y-3">
                     {(blogCommentsList as any[]).length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay comentarios</p>}
@@ -4106,7 +3936,7 @@ export default function Admin() {
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2 mb-1 flex-wrap">
                               <p className="font-semibold text-sm">{c.guestName ?? 'Usuario'}</p>
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${c.status === 'approved' ? 'bg-green-100 text-green-700' : c.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>{c.status}</span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${c.status === 'approved' ? 'bg-green-500/10 text-green-400' : c.status === 'rejected' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400'}`}>{c.status}</span>
                               <span className="text-xs text-muted-foreground">Post #{c.postId}</span>
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-2">{c.content}</p>
@@ -4117,9 +3947,9 @@ export default function Admin() {
                               <Button size="sm" className="bg-green-600 hover:bg-green-700 text-white text-xs h-8" onClick={() => updateBlogCommentMut.mutate({ id: c.id, status: 'approved' })}>Aprobar</Button>
                             )}
                             {c.status !== 'rejected' && (
-                              <Button size="sm" variant="outline" className="border-red-400 text-red-500 text-xs h-8" onClick={() => updateBlogCommentMut.mutate({ id: c.id, status: 'rejected' })}>Rechazar</Button>
+                              <Button size="sm" variant="outline" className="border-red-500/40 text-red-400 hover:bg-red-500/10 text-xs h-8" onClick={() => updateBlogCommentMut.mutate({ id: c.id, status: 'rejected' })}>Rechazar</Button>
                             )}
-                            <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive h-8 w-8 p-0" onClick={() => { if (confirm('¿Eliminar?')) deleteBlogCommentMut.mutate({ id: c.id }); }}>
+                            <Button size="sm" variant="ghost" className="text-muted-foreground hover:text-destructive h-8 w-8 p-0" onClick={() => { if (confirm('¿Eliminar?')) deleteBlogCommentMut.mutate({ id: c.id }); }}>
                               <Trash2 className="w-3.5 h-3.5" />
                             </Button>
                           </div>
@@ -4129,16 +3959,15 @@ export default function Admin() {
                   </div>
                 )}
 
-                {/* Modal crear/editar artículo */}
                 {showBlogPostModal && (
-                  <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
-                    <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[92vh] overflow-y-auto shadow-2xl">
-                      <div className="flex items-center justify-between p-5 border-b border-border/30">
+                  <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+                    <div className="bg-card rounded-2xl border border-border/50 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl">
+                      <div className="flex items-center justify-between p-6 border-b border-border/30">
                         <h2 className="text-lg font-bold">{editingBlogPost ? 'Editar artículo' : 'Nuevo artículo'}</h2>
                         <div className="flex gap-3 items-center">
-                          <div className="flex gap-1">
+                          <div className="flex gap-1 bg-muted/40 rounded-lg p-0.5">
                             {(['content', 'seo'] as const).map(t => (
-                              <button key={t} onClick={() => setBlogModalTab(t)} className={`px-3 py-1 rounded-lg text-xs font-semibold ${blogModalTab === t ? 'bg-primary text-white' : 'bg-muted text-muted-foreground'}`}>
+                              <button key={t} onClick={() => setBlogModalTab(t)} className={`px-3 py-1.5 rounded-md text-xs font-semibold transition-colors ${blogModalTab === t ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}>
                                 {t === 'content' ? 'Contenido' : 'SEO'}
                               </button>
                             ))}
@@ -4147,14 +3976,14 @@ export default function Admin() {
                         </div>
                       </div>
 
-                      <div className="p-5 space-y-4">
+                      <div className="p-6 space-y-4">
                         {blogModalTab === 'content' && (
                           <>
                             <div>
                               <Label className="text-xs">Título *</Label>
                               <Input value={blogPostForm.title} onChange={e => { const t = e.target.value; const slug = t.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, ''); setBlogPostForm(f => ({ ...f, title: t, slug: editingBlogPost ? f.slug : slug })); }} className="mt-1 bg-muted border-border/50 text-sm" placeholder="Título del artículo" />
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid sm:grid-cols-2 gap-3">
                               <div>
                                 <Label className="text-xs">Slug</Label>
                                 <Input value={blogPostForm.slug} onChange={e => setBlogPostForm(f => ({ ...f, slug: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm font-mono" />
@@ -4170,7 +3999,7 @@ export default function Admin() {
                                 </Select>
                               </div>
                             </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="grid sm:grid-cols-2 gap-3">
                               <div>
                                 <Label className="text-xs">Autor</Label>
                                 <Input value={blogPostForm.authorName} onChange={e => setBlogPostForm(f => ({ ...f, authorName: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" />
@@ -4192,7 +4021,7 @@ export default function Admin() {
                                 {blogPostForm.coverImage && <img src={blogPostForm.coverImage} className="w-20 h-14 rounded-lg object-cover border border-border/40 shrink-0" alt="" />}
                                 <Input value={blogPostForm.coverImage} onChange={e => setBlogPostForm(f => ({ ...f, coverImage: e.target.value }))} className="bg-muted border-border/50 text-sm" placeholder="URL de la imagen..." />
                                 <label className="cursor-pointer shrink-0">
-                                  <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 ${blogImageUploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                                  <span className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors ${blogImageUploading ? 'opacity-50 pointer-events-none' : ''}`}>
                                     {blogImageUploading ? <Loader2 className="w-3 h-3 animate-spin" /> : <Upload className="w-3 h-3" />}
                                     {blogImageUploading ? 'Subiendo...' : 'Subir'}
                                   </span>
@@ -4221,9 +4050,7 @@ export default function Admin() {
                                   </span>
                                 ))}
                               </div>
-                              <div className="flex gap-2">
-                                <Input value={blogTagInput} onChange={e => setBlogTagInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && blogTagInput.trim()) { e.preventDefault(); setBlogPostForm(f => ({ ...f, tags: [...f.tags, blogTagInput.trim()] })); setBlogTagInput(''); } }} className="bg-muted border-border/50 text-sm" placeholder="Escribe un tag y pulsa Enter..." />
-                              </div>
+                              <Input value={blogTagInput} onChange={e => setBlogTagInput(e.target.value)} onKeyDown={e => { if (e.key === 'Enter' && blogTagInput.trim()) { e.preventDefault(); setBlogPostForm(f => ({ ...f, tags: [...f.tags, blogTagInput.trim()] })); setBlogTagInput(''); } }} className="bg-muted border-border/50 text-sm" placeholder="Escribe un tag y pulsa Enter..." />
                             </div>
                             <div>
                               <Label className="text-xs">Contenido (HTML)</Label>
@@ -4252,7 +4079,7 @@ export default function Admin() {
                         )}
 
                         <div className="flex gap-2 pt-2 border-t border-border/30">
-                          <Button className="bg-primary text-white flex-1" disabled={!blogPostForm.title || createBlogPostMut.isPending || updateBlogPostMut.isPending} onClick={() => {
+                          <Button className="bg-primary text-primary-foreground flex-1" disabled={!blogPostForm.title || createBlogPostMut.isPending || updateBlogPostMut.isPending} onClick={() => {
                             if (editingBlogPost) updateBlogPostMut.mutate({ id: editingBlogPost.id, ...blogPostForm });
                             else createBlogPostMut.mutate(blogPostForm);
                           }}>
