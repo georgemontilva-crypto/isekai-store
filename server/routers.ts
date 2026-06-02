@@ -4,7 +4,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned } from "./_core/notification";
+import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted } from "./_core/notification";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
@@ -932,7 +932,29 @@ export const appRouter = router({
         basePoints: z.number().min(1),
         reason: z.string().min(1).max(500),
       }))
-      .mutation(({ input }) => grantTicketsManually(input.cosplayerId, input.basePoints, input.reason)),
+      .mutation(async ({ input }) => {
+        const result = await grantTicketsManually(input.cosplayerId, input.basePoints, input.reason);
+        const cosplayer = await getCosplayerById(input.cosplayerId);
+        if (cosplayer) {
+          const user = await getUserById(cosplayer.userId);
+          if (user?.email) {
+            notifyCosplayTicketsGranted(
+              user.email,
+              cosplayer.artisticName,
+              result.finalPoints,
+              input.basePoints,
+              result.multiplier,
+              cosplayer.tier ?? 'bronce',
+              cosplayer.ticketBalance ?? 0,
+              input.reason,
+            ).catch(() => {});
+          }
+          if (cosplayer.userId) {
+            io.to(`user:${cosplayer.userId}`).emit('notification:new');
+          }
+        }
+        return result;
+      }),
 
     getAllSubmissions: adminProcedure
       .input(z.object({ status: z.string().optional() }))

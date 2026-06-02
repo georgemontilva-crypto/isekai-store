@@ -299,6 +299,40 @@ export async function notifyCosplayReferralEarned(
   );
 }
 
+// ─── notifyCosplayTicketsGranted ─────────────────────────────────────────────
+
+export async function notifyCosplayTicketsGranted(
+  userEmail: string,
+  artisticName: string,
+  finalPoints: number,
+  basePoints: number,
+  multiplier: number,
+  tier: string,
+  newBalance: number,
+  reason: string,
+): Promise<boolean> {
+  const content = `
+    <h1>¡Nuevos tickets en tu billetera!</h1>
+    <p>Hola <strong>${artisticName}</strong>, el equipo de Isekai World te ha otorgado tickets.</p>
+    <div class="order-box">
+      <p><strong>Tickets recibidos:</strong> <span class="highlight">${finalPoints} tickets</span></p>
+      <p><strong>Puntos base:</strong> ${basePoints} × ${multiplier} (tier ${tier})</p>
+      <p><strong>Motivo:</strong> ${reason}</p>
+      <p><strong>Balance actual:</strong> ${newBalance} tickets</p>
+    </div>
+    <p>Recuerda que puedes canjear tus tickets por códigos de descuento desde tu dashboard.</p>
+    <div style="text-align:center">
+      <a href="${APP_URL}/cosplay/dashboard" class="btn">Ver mi billetera →</a>
+    </div>
+  `;
+  return sendEmail(
+    userEmail,
+    '🎫 ¡Recibiste tickets en tu billetera!',
+    content,
+    `+${finalPoints} tickets en tu billetera Isekai`,
+  );
+}
+
 // ─── notifyCosplayActivity ────────────────────────────────────────────────────
 
 export async function notifyCosplayActivity(
