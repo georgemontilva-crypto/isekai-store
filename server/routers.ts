@@ -38,7 +38,7 @@ import {
   evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
-  deleteCosplayer,
+  deleteCosplayer, grantTicketsManually,
   getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
   incrementBlogViews, getBlogCategories, createBlogCategory, deleteBlogCategory,
   getBlogComments, getAllBlogComments, createBlogComment, updateBlogCommentStatus, deleteBlogComment,
@@ -925,6 +925,14 @@ export const appRouter = router({
         status: z.enum(['approved', 'rejected']),
       }))
       .mutation(({ input }) => evaluateCosplaySubmission(input)),
+
+    grantTickets: adminProcedure
+      .input(z.object({
+        cosplayerId: z.number(),
+        basePoints: z.number().min(1),
+        reason: z.string().min(1).max(500),
+      }))
+      .mutation(({ input }) => grantTicketsManually(input.cosplayerId, input.basePoints, input.reason)),
 
     getAllSubmissions: adminProcedure
       .input(z.object({ status: z.string().optional() }))

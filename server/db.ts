@@ -1540,6 +1540,25 @@ export async function deleteCosplayer(cosplayerId: number) {
   await db.delete(cosplayers).where(eq(cosplayers.id, cosplayerId));
 }
 
+export async function grantTicketsManually(cosplayerId: number, basePoints: number, reason: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const cosplayer = await getCosplayerById(cosplayerId);
+  if (!cosplayer) throw new Error('Cosplayer not found');
+  const multiplier = TIER_MULTIPLIERS[cosplayer.tier ?? 'bronce'] ?? 1;
+  const finalPoints = Math.round(basePoints * multiplier);
+  await db.update(cosplayers)
+    .set({ ticketBalance: sql`ticketBalance + ${finalPoints}` })
+    .where(eq(cosplayers.id, cosplayerId));
+  await db.insert(cosplayTicketLedger).values({
+    cosplayerId,
+    amount: finalPoints,
+    type: 'earned',
+    description: `Manual: ${reason} (base: ${basePoints} × ${multiplier})`,
+  });
+  return { finalPoints, multiplier };
+}
+
 // ============ BLOG ============
 
 export async function getBlogPosts({ status, category, limit, offset }: { status?: string; category?: string; limit?: number; offset?: number }) {

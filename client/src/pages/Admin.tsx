@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -656,6 +656,8 @@ export default function Admin() {
   const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post' as const, deadline: '' });
   const [showEvalModal, setShowEvalModal] = useState<any>(null);
   const [evalForm, setEvalForm] = useState({ pointsAwarded: 0, status: 'approved' as 'approved' | 'rejected' });
+  const [grantTicketsModal, setGrantTicketsModal] = useState<any>(null);
+  const [grantForm, setGrantForm] = useState({ basePoints: 100, reason: '' });
   const [showTierModal, setShowTierModal] = useState<any>(null);
   const [tierForm, setTierForm] = useState({ tier: 'bronce', totalFollowers: 0 });
 
@@ -789,6 +791,10 @@ export default function Admin() {
   const createActivity = trpc.cosplay.createActivity.useMutation({ onSuccess: () => { refetchActivities(); setShowActivityModal(false); toast.success("Actividad creada"); } });
   const toggleActivity = trpc.cosplay.toggleActivity.useMutation({ onSuccess: () => refetchActivities() });
   const evaluateSub = trpc.cosplay.evaluateSubmission.useMutation({ onSuccess: () => { refetchSubs(); setShowEvalModal(null); toast.success("Evaluación guardada"); } });
+  const GRANT_MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
+  const grantTicketsMut = trpc.cosplay.grantTickets.useMutation({
+    onSuccess: (data) => { toast.success(`${data.finalPoints} tickets otorgados`); setGrantTicketsModal(null); refetchCosplayers(); },
+  });
   const { data: withdrawalsData = [], refetch: refetchWithdrawals } = trpc.cosplay.getWithdrawals.useQuery(
     { status: undefined },
     { enabled: isAuthenticated && user?.role === "admin" }
@@ -3590,6 +3596,13 @@ export default function Admin() {
                                     </Button>
                                   )}
                                   <button
+                                    onClick={() => { setGrantTicketsModal(cp); setGrantForm({ basePoints: 100, reason: '' }); }}
+                                    className="text-[#e5007d] hover:text-[#c4006b] transition-colors p-1"
+                                    title="Dar tickets"
+                                  >
+                                    <Ticket size={14} />
+                                  </button>
+                                  <button
                                     onClick={() => { if (confirm(`¿Eliminar permanentemente a ${cp.artisticName}? Esta acción no se puede deshacer.`)) deleteCosplayerMut.mutate({ cosplayerId: cp.id }); }}
                                     className="text-red-400 hover:text-red-600 transition-colors p-1"
                                     title="Eliminar cosplayer"
@@ -3641,6 +3654,13 @@ export default function Admin() {
                                 Suspender
                               </button>
                             )}
+                            <button
+                              onClick={() => { setGrantTicketsModal(cp); setGrantForm({ basePoints: 100, reason: '' }); }}
+                              className="p-2.5 border border-pink-100 text-[#e5007d] rounded-xl"
+                              title="Dar tickets"
+                            >
+                              <Ticket size={14} />
+                            </button>
                             <button
                               onClick={() => { if (confirm(`¿Eliminar a ${cp.artisticName}?`)) deleteCosplayerMut.mutate({ cosplayerId: cp.id }); }}
                               className="p-2.5 border border-red-100 text-red-400 rounded-xl"
@@ -3946,6 +3966,67 @@ export default function Admin() {
                           {createActivity.isPending ? "Creando..." : "Crear actividad"}
                         </Button>
                         <Button variant="outline" onClick={() => setShowActivityModal(false)}>Cancelar</Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Modal dar tickets manualmente */}
+                {grantTicketsModal && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
+                      <h3 className="text-lg font-black mb-1">Dar tickets manualmente</h3>
+                      <p className="text-[#999] text-sm mb-5">
+                        Cosplayer: <strong>{grantTicketsModal.artisticName}</strong> —{' '}
+                        Tier: <strong className="capitalize">{grantTicketsModal.tier}</strong>
+                      </p>
+                      <div className="flex flex-col gap-4">
+                        <div>
+                          <label className="text-sm font-medium block mb-1">Puntos base</label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={grantForm.basePoints}
+                            onChange={e => setGrantForm({ ...grantForm, basePoints: parseInt(e.target.value) || 1 })}
+                            className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]"
+                          />
+                        </div>
+                        <div className="bg-[#f8f8f8] rounded-xl p-4 border border-[#e5e5e5]">
+                          <p className="text-xs text-[#999] mb-2">Tickets que recibirá según su tier:</p>
+                          <div className="flex items-center justify-between">
+                            <p className="text-xs text-[#999]">
+                              {grantForm.basePoints} base × {GRANT_MULTIPLIERS[grantTicketsModal.tier] ?? 1} ({grantTicketsModal.tier})
+                            </p>
+                            <p className="text-2xl font-black text-[#e5007d]">
+                              {Math.round(grantForm.basePoints * (GRANT_MULTIPLIERS[grantTicketsModal.tier] ?? 1))} tickets
+                            </p>
+                          </div>
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium block mb-1">Motivo</label>
+                          <input
+                            type="text"
+                            value={grantForm.reason}
+                            onChange={e => setGrantForm({ ...grantForm, reason: e.target.value })}
+                            placeholder="Ej: Participación en evento, bonus especial..."
+                            className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]"
+                          />
+                        </div>
+                      </div>
+                      <div className="flex gap-3 mt-6">
+                        <button
+                          onClick={() => setGrantTicketsModal(null)}
+                          className="flex-1 border border-[#e5e5e5] text-[#666] py-2.5 rounded-xl text-sm"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => grantTicketsMut.mutate({ cosplayerId: grantTicketsModal.id, basePoints: grantForm.basePoints, reason: grantForm.reason })}
+                          disabled={!grantForm.reason || grantTicketsMut.isPending}
+                          className="flex-1 bg-[#e5007d] text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-40"
+                        >
+                          {grantTicketsMut.isPending ? "Otorgando..." : "Otorgar tickets"}
+                        </button>
                       </div>
                     </div>
                   </div>
