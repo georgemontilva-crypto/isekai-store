@@ -3965,14 +3965,10 @@ export default function Admin() {
                           <Input type="number" min={0} value={evalForm.pointsAwarded} onChange={e => setEvalForm(f => ({ ...f, pointsAwarded: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" />
                           <p className="text-xs text-muted-foreground mt-1">El sistema aplicará el multiplicador del tier del cosplayer automáticamente.</p>
                         </div>
-                        <div className="flex gap-2">
-                          <button onClick={() => setEvalForm(f => ({ ...f, status: 'approved' }))} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-colors ${evalForm.status === 'approved' ? 'bg-green-600 text-white border-green-600' : 'border-border/50 text-muted-foreground'}`}>Aprobar</button>
-                          <button onClick={() => setEvalForm(f => ({ ...f, status: 'rejected' }))} className={`flex-1 py-2 rounded-xl text-sm font-bold border transition-colors ${evalForm.status === 'rejected' ? 'bg-red-500 text-white border-red-500' : 'border-border/50 text-muted-foreground'}`}>Rechazar</button>
-                        </div>
                       </div>
                       <div className="flex gap-3 mt-4">
-                        <Button className="flex-1 bg-primary text-white" disabled={evaluateSub.isPending} onClick={() => evaluateSub.mutate({ submissionId: showEvalModal.id, pointsAwarded: evalForm.pointsAwarded, status: evalForm.status })}>
-                          {evaluateSub.isPending ? "Guardando..." : "Confirmar evaluación"}
+                        <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={evaluateSub.isPending} onClick={() => evaluateSub.mutate({ submissionId: showEvalModal.id, pointsAwarded: evalForm.pointsAwarded, status: 'approved' })}>
+                          {evaluateSub.isPending ? "Guardando..." : "Aprobar"}
                         </Button>
                         <Button variant="outline" onClick={() => setShowEvalModal(null)}>Cancelar</Button>
                       </div>
