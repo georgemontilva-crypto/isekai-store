@@ -599,12 +599,7 @@ function getTierByFollowers(followers: number): string {
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
   const [tab, setTab] = useState<AdminTab>("dashboard");
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const handleTabChange = (t: AdminTab) => {
-    setTab(t);
-    setMobileMenuOpen(false);
-  };
+  const handleTabChange = (t: AdminTab) => setTab(t);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [productSearch, setProductSearch] = useState('');
@@ -907,60 +902,11 @@ export default function Admin() {
 
   return (
     <div className="min-h-screen bg-[#f8f8f8] overflow-x-hidden">
-      {/* Header móvil */}
-      <div
-        className="md:hidden fixed left-0 right-0 z-[60] bg-white border-b border-gray-200 flex items-center justify-between"
-        style={{
-          top: 0,
-          paddingTop: 'env(safe-area-inset-top, 0px)',
-          height: 'calc(env(safe-area-inset-top, 0px) + 52px)',
-          paddingLeft: '16px',
-          paddingRight: '16px',
-        }}
-      >
-        <span style={{ fontWeight: 900, fontSize: '16px', color: '#111' }}>Panel Admin</span>
-        <button
-          onClick={() => setMobileMenuOpen(true)}
-          style={{
-            padding: '8px',
-            borderRadius: '8px',
-            background: '#f8f8f8',
-            border: '1px solid #e5e5e5',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minWidth: '40px',
-            minHeight: '40px',
-          }}
-        >
-          <Menu size={20} color="#111" />
-        </button>
-      </div>
-
-      {/* Overlay drawer */}
-      {mobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
-          onClick={() => setMobileMenuOpen(false)}
-        />
-      )}
-
       <div className="flex">
-        {/* Sidebar — drawer en móvil, fijo en desktop */}
-        <aside
-          className={`fixed inset-y-0 left-0 z-50 w-[280px] max-w-[85vw] md:w-56 md:max-w-none bg-[#0d0d0d] overflow-y-auto transition-transform duration-300 md:translate-x-0 ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}
-          style={{ paddingTop: 'env(safe-area-inset-top, 0px)' }}
-        >
-          {/* Botón cerrar — solo móvil */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-white/10 md:hidden">
-            <span className="text-white font-bold text-sm">Menú</span>
-            <button onClick={() => setMobileMenuOpen(false)} aria-label="Cerrar menú">
-              <X size={18} className="text-white" />
-            </button>
-          </div>
-
+        {/* Sidebar */}
+        <aside className="fixed inset-y-0 left-0 w-56 z-50 bg-[#0d0d0d] overflow-y-auto">
           <div className="p-4 pt-6">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2 hidden md:block">Panel Admin</p>
+            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">Panel Admin</p>
             <nav className="space-y-1">
               {tabs.map((t) => (
                 <button
@@ -996,7 +942,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="md:ml-56 w-full min-h-screen bg-[#f8f8f8] text-[#111] px-3 md:px-6 pt-20 md:pt-6 pb-6 overflow-x-hidden">
+        <main className="ml-56 w-full min-h-screen bg-[#f8f8f8] text-[#111] px-6 pt-6 pb-6 overflow-x-hidden">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (

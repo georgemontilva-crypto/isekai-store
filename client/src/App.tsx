@@ -21,6 +21,7 @@ const Checkout = lazy(() => import("./pages/Checkout"));
 const Account = lazy(() => import("./pages/Account"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const Admin = lazy(() => import("./pages/Admin"));
+const AdminMobile = lazy(() => import("./pages/AdminMobile"));
 const Nosotros = lazy(() => import("./pages/Nosotros"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Politicas = lazy(() => import("./pages/Politicas"));
@@ -81,7 +82,7 @@ function Router() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/checkout/success" component={CheckoutSuccess} />
         <Route path="/account" component={Account} />
-        <Route path="/admin"><Admin /></Route>
+        <Route path="/admin">{window.innerWidth < 768 ? <AdminMobile /> : <Admin />}</Route>
         <Route path="/nosotros" component={Nosotros} />
         <Route path="/faq" component={FAQ} />
         <Route path="/politicas" component={Politicas} />
