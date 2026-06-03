@@ -996,7 +996,7 @@ export default function Admin() {
         </aside>
 
         {/* Main content */}
-        <main className="md:ml-56 min-h-screen bg-[#f8f8f8] text-[#111] px-3 md:px-6 pt-20 md:pt-6 pb-6 overflow-x-hidden">
+        <main className="md:ml-56 w-full min-h-screen bg-[#f8f8f8] text-[#111] px-3 md:px-6 pt-20 md:pt-6 pb-6 overflow-x-hidden">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
