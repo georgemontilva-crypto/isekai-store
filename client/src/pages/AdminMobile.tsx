@@ -317,10 +317,18 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
   const [approveForm, setApproveForm] = useState({ totalFollowers: 0, tier: 'bronce' });
   const [rejectModal, setRejectModal] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
+  const [grantTicketsModal, setGrantTicketsModal] = useState<any>(null);
+  const [grantForm, setGrantForm] = useState({ basePoints: 100, reason: '' });
+
+  const MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
+
+  const grantTickets = trpc.cosplay.grantTickets.useMutation({
+    onSuccess: () => { setGrantTicketsModal(null); refetchCosplayers(); },
+  });
 
   useEffect(() => {
-    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal));
-  }, [viewApplication, lightboxImg, approveModal, rejectModal]);
+    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal || grantTicketsModal));
+  }, [viewApplication, lightboxImg, approveModal, rejectModal, grantTicketsModal]);
 
   const TIER_BY_FOLLOWERS = (f: number) => {
     if (f >= 300000) return 'platino';
@@ -414,11 +422,11 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
 
         {/* Cosplayers activos */}
         {subTab === 'cosplayers' && (cosplayers as any[]).map((cp: any) => (
-          <div key={cp.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-4">
+          <div key={cp.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm p-4">
             <div className="flex items-center gap-3 mb-3">
               {cp.photo && <img src={cp.photo} className="w-12 h-12 rounded-full object-cover flex-shrink-0" alt="" />}
               <div className="min-w-0 flex-1">
-                <p className="font-black text-[#111]">{cp.artisticName}</p>
+                <p className="font-black text-[#111] truncate">{cp.artisticName}</p>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full"
                   style={{ background: (TIER_COLORS[cp.tier] ?? '#888') + '20', color: TIER_COLORS[cp.tier] ?? '#888' }}>
                   {(cp.tier ?? 'bronce').toUpperCase()}
@@ -429,14 +437,22 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
               <span>🎫 {cp.ticketBalance} tickets</span>
               <span>💵 ${parseFloat(cp.cashBalance ?? '0').toLocaleString('es-CO')} COP</span>
             </div>
-            {cp.isActive && (
+            <div className="flex gap-2">
               <button
-                onClick={() => { if (confirm(`¿Suspender a ${cp.artisticName}?`)) suspendCosplayer.mutate({ cosplayerId: cp.id }); }}
-                className="w-full border border-red-200 text-red-500 py-2.5 rounded-xl text-xs font-bold"
+                onClick={() => { setGrantTicketsModal(cp); setGrantForm({ basePoints: 100, reason: '' }); }}
+                className="flex-1 bg-[#e5007d] text-white py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform"
               >
-                Suspender
+                🎫 Dar tickets
               </button>
-            )}
+              {cp.isActive && (
+                <button
+                  onClick={() => { if (confirm(`¿Seguro que quieres suspender a ${cp.artisticName}? Perderá acceso al Guild.`)) suspendCosplayer.mutate({ cosplayerId: cp.id }); }}
+                  className="flex-1 border border-red-200 text-red-500 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform"
+                >
+                  Suspender
+                </button>
+              )}
+            </div>
           </div>
         ))}
 
@@ -553,6 +569,62 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal dar tickets */}
+      {grantTicketsModal && (
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
+          <div className="bg-white w-full rounded-t-3xl p-6"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+            <div className="w-10 h-1 bg-[#e5e5e5] rounded-full mx-auto mb-4" />
+            <h3 className="font-black text-lg mb-1">Dar tickets</h3>
+            <p className="text-[#999] text-sm mb-4">
+              {grantTicketsModal.artisticName} · <span className="capitalize">{grantTicketsModal.tier}</span>
+            </p>
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-1">Puntos base</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={grantForm.basePoints}
+                  onChange={e => setGrantForm({ ...grantForm, basePoints: parseInt(e.target.value) || 1 })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                />
+              </div>
+              <div className="bg-[#f8f8f8] rounded-xl p-4 border border-[#e5e5e5] flex items-center justify-between">
+                <p className="text-xs text-[#999]">
+                  {grantForm.basePoints} × {MULTIPLIERS[grantTicketsModal.tier] ?? 1} ({grantTicketsModal.tier})
+                </p>
+                <p className="text-2xl font-black text-[#e5007d]">
+                  {Math.round(grantForm.basePoints * (MULTIPLIERS[grantTicketsModal.tier] ?? 1))} tickets
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Motivo</label>
+                <input
+                  type="text"
+                  value={grantForm.reason}
+                  onChange={e => setGrantForm({ ...grantForm, reason: e.target.value })}
+                  placeholder="Ej: Participación en evento..."
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-6">
+              <button onClick={() => setGrantTicketsModal(null)}
+                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">
+                Cancelar
+              </button>
+              <button
+                onClick={() => grantTickets.mutate({ cosplayerId: grantTicketsModal.id, basePoints: grantForm.basePoints, reason: grantForm.reason })}
+                disabled={!grantForm.reason || grantTickets.isPending}
+                className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                {grantTickets.isPending ? 'Enviando...' : 'Dar tickets'}
+              </button>
             </div>
           </div>
         </div>
