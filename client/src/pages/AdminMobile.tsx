@@ -148,28 +148,36 @@ function OrdersSection() {
 
             <button
               onClick={() => setExpanded(expanded === order.id ? null : order.id)}
-              className="w-full px-4 py-4 text-left"
+              className="w-full text-left"
+              style={{ padding: '16px', minHeight: '80px' }}
             >
               <div className="flex items-start justify-between gap-3">
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                <div className="flex-1" style={{ minWidth: 0 }}>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
                     <p className="font-bold text-sm text-[#111]">{order.orderNumber}</p>
                     {order.hasSecretGift && <Gift size={12} className="text-orange-500" />}
                   </div>
-                  <p className="text-xs text-[#999]">{order.customerName}</p>
-                  <p className="text-xs text-[#999]">{order.customerEmail}</p>
+                  <p className="text-xs text-[#999] mb-0.5">{order.customerName}</p>
+                  <p className="text-xs text-[#999] mb-2">{order.customerEmail}</p>
                   {order.items?.length > 0 && (
-                    <div className="mt-1.5">
+                    <div className="mb-2">
                       {order.items.map((item: any, i: number) => (
-                        <p key={i} className="text-xs text-[#666] font-medium">• {item.productName} ×{item.quantity}</p>
+                        <p key={i} className="text-xs text-[#555] font-medium leading-relaxed">
+                          • {item.productName} ×{item.quantity}
+                        </p>
                       ))}
                     </div>
                   )}
-                  <div className="mt-2"><StatusBadge status={order.status} /></div>
+                  <StatusBadge status={order.status} />
                 </div>
                 <div className="flex-shrink-0 text-right">
-                  <p className="text-sm font-black text-[#111]">${parseFloat(order.total ?? 0).toLocaleString('es-CO')}</p>
-                  <ChevronDown size={16} className={`text-[#999] mt-2 ml-auto transition-transform ${expanded === order.id ? 'rotate-180' : ''}`} />
+                  <p className="text-sm font-black text-[#111] mb-2">
+                    ${parseFloat(order.total ?? 0).toLocaleString('es-CO')}
+                  </p>
+                  <ChevronDown
+                    size={16}
+                    className={`text-[#999] ml-auto transition-transform duration-200 ${expanded === order.id ? 'rotate-180' : ''}`}
+                  />
                 </div>
               </div>
             </button>
