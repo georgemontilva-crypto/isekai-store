@@ -1136,7 +1136,8 @@ export async function approveCosplayApplication(input: {
       shippingAddress: { street: app.address, city: app.city, state: '', country: app.country, zip: '' },
       total: '0.00',
       subtotal: '0.00',
-      status: 'pending',
+      status: 'preparing',
+      paymentStatus: 'approved',
       notes: `Kit de bienvenida Isekai Cosplay Guild — ${artisticName}`,
     });
 
