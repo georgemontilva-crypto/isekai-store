@@ -468,7 +468,8 @@ function CosplaySection() {
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
-            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between">
+            <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
               <h3 className="font-black text-[#111]">{viewApplication.artisticName ?? viewApplication.fullName}</h3>
               <button onClick={() => setViewApplication(null)}>
                 <X size={20} className="text-[#999]" />
