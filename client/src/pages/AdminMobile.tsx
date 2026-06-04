@@ -4,7 +4,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import {
   ShoppingBag, CreditCard, Sparkles, Package,
   BarChart3, Bell, ChevronRight, Check,
-  TrendingUp, Gift, ExternalLink,
+  TrendingUp, Gift, ExternalLink, Pencil,
   LogOut, Settings, Menu, ChevronDown,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
@@ -494,6 +494,11 @@ function ProductsSection() {
     <div className="p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-black text-[#111]">Productos ({products.length})</h2>
+        <a href="/admin?tab=products&action=new">
+          <button className="bg-[#e5007d] text-white px-4 py-2 rounded-xl text-xs font-bold">
+            + Nuevo
+          </button>
+        </a>
       </div>
       {(products as any[]).map((p: any) => (
         <div key={p.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
@@ -508,6 +513,10 @@ function ProductsSection() {
                 {p.status === 'published' ? 'Publicado' : 'Borrador'}
               </span>
             </div>
+            <a href={`/admin?tab=products&edit=${p.id}`}
+              className="w-9 h-9 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0">
+              <Pencil size={15} className="text-[#666]" />
+            </a>
           </div>
         </div>
       ))}
