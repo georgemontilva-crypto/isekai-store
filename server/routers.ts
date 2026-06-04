@@ -479,6 +479,8 @@ export const appRouter = router({
         })),
         total: z.string(),
         notes: z.string().optional(),
+        paymentStatus: z.enum(['pending', 'partial', 'approved']).default('approved'),
+        amountPaid: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
@@ -510,7 +512,8 @@ export const appRouter = router({
           total: input.total,
           subtotal: input.total,
           status: 'pending',
-          paymentStatus: 'approved',
+          paymentStatus: input.paymentStatus,
+          amountPaid: input.amountPaid ?? '0.00',
           notes: input.notes ?? '',
         });
 
@@ -564,6 +567,15 @@ export const appRouter = router({
         });
 
         return { success: true, orderNumber, id: newOrder.id };
+      }),
+
+    updatePaymentStatus: adminProcedure
+      .input(z.object({ orderId: z.number(), paymentStatus: z.enum(['pending', 'partial', 'approved']) }))
+      .mutation(async ({ input }) => {
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+        await db.update(orders).set({ paymentStatus: input.paymentStatus }).where(eq(orders.id, input.orderId));
+        return { success: true };
       }),
 
     uploadReceipt: protectedProcedure

@@ -113,14 +113,14 @@ function OrdersSection() {
   const orders = ordersData?.items ?? [];
   const updateStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => refetch() });
   const [showManualOrder, setShowManualOrder] = useState(false);
-  const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] });
+  const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending' as 'pending' | 'partial' | 'approved', amountPaid: '' });
   const [showConfirm, setShowConfirm] = useState(false);
   const findUserQuery = trpc.users.findByEmail.useQuery(
     { email: manualForm.customerEmail },
     { enabled: manualForm.customerEmail.includes('@') && manualForm.customerEmail.includes('.') },
   );
   const createManualOrder = trpc.orders.createManual.useMutation({
-    onSuccess: (data) => { toast.success(`Pedido ${data.orderNumber} creado`); setShowManualOrder(false); setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] }); refetch(); },
+    onSuccess: (data) => { toast.success(`Pedido ${data.orderNumber} creado`); setShowManualOrder(false); setShowConfirm(false); setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending', amountPaid: '' }); refetch(); },
   });
 
   const ORDER_STEPS = [
@@ -333,6 +333,46 @@ function OrdersSection() {
                     onChange={e => setManualForm({ ...manualForm, notes: e.target.value })}
                     placeholder="Notas internas..."
                     className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
+                  <div>
+                    <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Estado del pago</p>
+                    <div className="flex flex-col gap-3">
+                      <div className="grid grid-cols-3 gap-2">
+                        {([
+                          { value: 'pending', label: 'Pendiente', color: '#f59e0b' },
+                          { value: 'partial', label: 'Parcial', color: '#3b82f6' },
+                          { value: 'approved', label: 'Pagado', color: '#22c55e' },
+                        ] as const).map(opt => (
+                          <button key={opt.value}
+                            onClick={() => setManualForm({ ...manualForm, paymentStatus: opt.value })}
+                            className="py-2.5 rounded-xl text-xs font-bold border transition-colors"
+                            style={{
+                              background: manualForm.paymentStatus === opt.value ? opt.color + '20' : '#f8f8f8',
+                              borderColor: manualForm.paymentStatus === opt.value ? opt.color : '#e5e5e5',
+                              color: manualForm.paymentStatus === opt.value ? opt.color : '#666',
+                            }}>
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                      {manualForm.paymentStatus === 'partial' && (
+                        <div>
+                          <label className="text-sm font-medium block mb-1">Monto pagado (COP)</label>
+                          <input
+                            type="number"
+                            value={manualForm.amountPaid}
+                            onChange={e => setManualForm({ ...manualForm, amountPaid: e.target.value })}
+                            placeholder="Ej: 50000"
+                            className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                          />
+                          {manualForm.amountPaid && total && (
+                            <p className="text-xs text-[#999] mt-1">
+                              Restante: ${(parseInt(total) - parseInt(manualForm.amountPaid || '0')).toLocaleString('es-CO')} COP
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <button onClick={() => setShowManualOrder(false)}
                       className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
@@ -388,6 +428,8 @@ function OrdersSection() {
                           items: manualForm.items,
                           total,
                           notes: manualForm.notes,
+                          paymentStatus: manualForm.paymentStatus,
+                          amountPaid: manualForm.amountPaid || undefined,
                         });
                       }}
                       disabled={createManualOrder.isPending}
