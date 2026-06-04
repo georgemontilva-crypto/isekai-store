@@ -340,6 +340,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
   const [rejectReason, setRejectReason] = useState('');
   const [grantTicketsModal, setGrantTicketsModal] = useState<any>(null);
   const [grantForm, setGrantForm] = useState({ basePoints: 100, reason: '' });
+  const [viewCosplayer, setViewCosplayer] = useState<any>(null);
 
   const MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
 
@@ -348,8 +349,8 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
   });
 
   useEffect(() => {
-    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal || grantTicketsModal || showNewActivity));
-  }, [viewApplication, lightboxImg, approveModal, rejectModal, grantTicketsModal, showNewActivity]);
+    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal || grantTicketsModal || showNewActivity || viewCosplayer));
+  }, [viewApplication, lightboxImg, approveModal, rejectModal, grantTicketsModal, showNewActivity, viewCosplayer]);
 
   const TIER_BY_FOLLOWERS = (f: number) => {
     if (f >= 300000) return 'platino';
@@ -443,7 +444,11 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
 
         {/* Cosplayers activos */}
         {subTab === 'cosplayers' && (cosplayers as any[]).map((cp: any) => (
-          <div key={cp.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm p-4">
+          <button
+            key={cp.id}
+            onClick={() => setViewCosplayer(cp)}
+            className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-4 w-full text-left"
+          >
             <div className="flex items-center gap-3 mb-3">
               {cp.photo && <img src={cp.photo} className="w-12 h-12 rounded-full object-cover flex-shrink-0" alt="" />}
               <div className="min-w-0 flex-1">
@@ -453,28 +458,13 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   {(cp.tier ?? 'bronce').toUpperCase()}
                 </span>
               </div>
+              <ChevronRight size={16} className="text-[#ccc] flex-shrink-0" />
             </div>
-            <div className="flex gap-3 text-xs text-[#999] mb-3">
+            <div className="flex gap-3 text-xs text-[#999]">
               <span>🎫 {cp.ticketBalance} tickets</span>
               <span>💵 ${parseFloat(cp.cashBalance ?? '0').toLocaleString('es-CO')} COP</span>
             </div>
-            <div className="flex gap-2">
-              <button
-                onClick={() => { setGrantTicketsModal(cp); setGrantForm({ basePoints: 100, reason: '' }); }}
-                className="flex-1 bg-[#e5007d] text-white py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform"
-              >
-                🎫 Dar tickets
-              </button>
-              {cp.isActive && (
-                <button
-                  onClick={() => { if (confirm(`¿Seguro que quieres suspender a ${cp.artisticName}? Perderá acceso al Guild.`)) suspendCosplayer.mutate({ cosplayerId: cp.id }); }}
-                  className="flex-1 border border-red-200 text-red-500 py-2.5 rounded-xl text-xs font-bold active:scale-95 transition-transform"
-                >
-                  Suspender
-                </button>
-              )}
-            </div>
-          </div>
+          </button>
         ))}
 
         {/* Actividades */}
@@ -735,6 +725,113 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                 >
                   {createActivity.isPending ? 'Creando...' : 'Crear actividad'}
                 </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal cosplayer activo */}
+      {viewCosplayer && (
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
+          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              <h3 className="font-black text-[#111]">{viewCosplayer.artisticName}</h3>
+              <button onClick={() => setViewCosplayer(null)}><X size={20} className="text-[#999]" /></button>
+            </div>
+            <div className="p-4 flex flex-col gap-4">
+              {viewCosplayer.bannerImage && (
+                <img src={viewCosplayer.bannerImage} className="w-full h-32 object-cover rounded-2xl" alt="" />
+              )}
+              <div className="flex items-center gap-4">
+                {viewCosplayer.photo && (
+                  <img src={viewCosplayer.photo} className="w-16 h-16 rounded-full object-cover border-2 flex-shrink-0"
+                    style={{ borderColor: TIER_COLORS[viewCosplayer.tier] ?? '#888' }} alt="" />
+                )}
+                <div>
+                  <p className="font-black text-[#111] text-lg">{viewCosplayer.artisticName}</p>
+                  <span className="text-xs font-bold px-3 py-1 rounded-full"
+                    style={{ background: (TIER_COLORS[viewCosplayer.tier] ?? '#888') + '20', color: TIER_COLORS[viewCosplayer.tier] ?? '#888' }}>
+                    {(viewCosplayer.tier ?? 'bronce').toUpperCase()}
+                  </span>
+                </div>
+              </div>
+
+              {viewCosplayer.bio && (
+                <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                  <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Biografía</p>
+                  <p className="text-sm text-[#666] leading-relaxed">{viewCosplayer.bio}</p>
+                </div>
+              )}
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-[#f8f8f8] rounded-2xl p-4 text-center">
+                  <p className="text-2xl font-black text-[#e5007d]">{viewCosplayer.ticketBalance}</p>
+                  <p className="text-xs text-[#999]">Tickets</p>
+                </div>
+                <div className="bg-[#f8f8f8] rounded-2xl p-4 text-center">
+                  <p className="text-2xl font-black text-[#ffd700]">
+                    ${parseFloat(viewCosplayer.cashBalance ?? '0').toLocaleString('es-CO')}
+                  </p>
+                  <p className="text-xs text-[#999]">Cash COP</p>
+                </div>
+              </div>
+
+              {viewCosplayer.referralCode && (
+                <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                  <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Código de referido</p>
+                  <p className="font-black text-[#e5007d] tracking-widest">{viewCosplayer.referralCode}</p>
+                </div>
+              )}
+
+              <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Redes sociales</p>
+                <div className="flex flex-col gap-2">
+                  {['instagram', 'tiktok', 'youtube', 'facebook', 'twitter'].filter(r => viewCosplayer[r]).map(r => (
+                    <a key={r} href={viewCosplayer[r]} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-[#e5e5e5]">
+                      <span className="capitalize text-sm font-medium text-[#111]">{r}</span>
+                      <span className="text-[#e5007d] text-xs truncate ml-2 max-w-[180px]">{viewCosplayer[r]}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {viewCosplayer.gallery?.length > 0 && (
+                <div>
+                  <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Galería</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {viewCosplayer.gallery.map((img: string, i: number) => (
+                      <button key={i} onClick={() => setLightboxImg(img)} className="aspect-square overflow-hidden rounded-xl">
+                        <img src={img} className="w-full h-full object-cover" alt="" />
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex flex-col gap-2 mt-2">
+                <button
+                  onClick={() => { setViewCosplayer(null); setGrantTicketsModal(viewCosplayer); setGrantForm({ basePoints: 100, reason: '' }); }}
+                  className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold text-sm"
+                >
+                  🎫 Dar tickets
+                </button>
+                {viewCosplayer.isActive && (
+                  <button
+                    onClick={() => {
+                      if (confirm(`¿Suspender a ${viewCosplayer.artisticName}? Perderá acceso al Guild.`)) {
+                        suspendCosplayer.mutate({ cosplayerId: viewCosplayer.id });
+                        setViewCosplayer(null);
+                      }
+                    }}
+                    className="w-full border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm"
+                  >
+                    Suspender cosplayer
+                  </button>
+                )}
               </div>
             </div>
           </div>
