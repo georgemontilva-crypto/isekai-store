@@ -111,19 +111,27 @@ function OrdersSection() {
   const orders = ordersData?.items ?? [];
   const updateStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => refetch() });
 
-  const ORDER_STEPS = ['pending', 'preparing', 'printing', 'post_printing', 'packed', 'shipped', 'delivered'];
+  const ORDER_STEPS = [
+    { key: 'pending',       label: 'Pendiente'   },
+    { key: 'preparing',     label: 'Preparando'  },
+    { key: 'printing',      label: 'Imprimiendo' },
+    { key: 'post_printing', label: 'Post-imp.'   },
+    { key: 'packed',        label: 'Empacado'    },
+    { key: 'shipped',       label: 'Enviado'     },
+    { key: 'delivered',     label: 'Entregado'   },
+  ];
 
   return (
     <div className="flex flex-col h-full">
+      {/* Filtros scroll horizontal */}
       <div className="px-4 py-3 bg-white border-b border-[#e5e5e5] overflow-x-auto">
         <div className="flex gap-2 min-w-max">
-          {['all', 'pending', 'preparing', 'shipped', 'delivered'].map(s => (
-            <button key={s}
-              onClick={() => setStatusFilter(s)}
+          {['all', ...ORDER_STEPS.map(s => s.key)].map(s => (
+            <button key={s} onClick={() => setStatusFilter(s)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
                 statusFilter === s ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'
               }`}>
-              {s === 'all' ? 'Todos' : STATUS_LABELS[s]}
+              {s === 'all' ? 'Todos' : ORDER_STEPS.find(o => o.key === s)?.label}
             </button>
           ))}
         </div>
@@ -135,70 +143,79 @@ function OrdersSection() {
         )}
         {orders.map((order: any) => (
           <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+
+            {/* Header — sin truncar, altura automática */}
             <button
               onClick={() => setExpanded(expanded === order.id ? null : order.id)}
-              className="w-full px-4 py-4 flex items-center justify-between text-left"
+              className="w-full px-4 py-4 flex items-start justify-between text-left gap-3"
             >
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center gap-2 mb-1">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 flex-wrap mb-1">
                   <p className="font-bold text-sm text-[#111]">{order.orderNumber}</p>
-                  {order.hasSecretGift && <Gift size={12} className="text-orange-500 flex-shrink-0" />}
-                </div>
-                <p className="text-xs text-[#999] truncate">{order.customerName}</p>
-              </div>
-              <div className="flex items-center gap-2 ml-3 flex-shrink-0">
-                <div className="text-right">
-                  <p className="text-sm font-black text-[#111]">${parseFloat(order.total ?? 0).toLocaleString('es-CO')}</p>
+                  {order.hasSecretGift && <Gift size={12} className="text-orange-500" />}
                   <StatusBadge status={order.status} />
                 </div>
-                <ChevronDown size={16} className={`text-[#999] transition-transform ${expanded === order.id ? 'rotate-180' : ''}`} />
+                <p className="text-xs text-[#999]">{order.customerName}</p>
+                <p className="text-xs text-[#999]">{order.customerEmail}</p>
+                {order.items?.length > 0 && (
+                  <p className="text-xs text-[#666] mt-1">
+                    {order.items.map((i: any) => `${i.productName} ×${i.quantity}`).join(', ')}
+                  </p>
+                )}
+              </div>
+              <div className="flex-shrink-0 text-right">
+                <p className="text-sm font-black text-[#111]">${parseFloat(order.total ?? 0).toLocaleString('es-CO')}</p>
+                <ChevronDown size={16} className={`text-[#999] mt-1 ml-auto transition-transform ${expanded === order.id ? 'rotate-180' : ''}`} />
               </div>
             </button>
 
+            {/* Detalle expandido */}
             {expanded === order.id && (
               <div className="border-t border-[#f0f0f0] px-4 py-4">
-                <div className="flex items-center gap-1 mb-4 overflow-x-auto pb-1">
-                  {ORDER_STEPS.map((step, i) => {
-                    const currentIdx = ORDER_STEPS.indexOf(order.status);
-                    const isDone = i <= currentIdx;
-                    return (
-                      <div key={step} className="flex items-center gap-1 flex-shrink-0">
-                        <div className="w-2.5 h-2.5 rounded-full transition-colors"
-                          style={{ background: isDone ? '#e5007d' : '#e5e5e5' }} />
-                        {i < ORDER_STEPS.length - 1 && (
-                          <div className="w-5 h-0.5 transition-colors"
-                            style={{ background: isDone && i < currentIdx ? '#e5007d' : '#e5e5e5' }} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
 
+                {/* Datos del cliente */}
                 <div className="flex flex-col gap-1.5 text-sm mb-4">
-                  <p><span className="text-[#999]">Email:</span> <span className="text-[#111] break-all">{order.customerEmail}</span></p>
+                  <p className="text-[#999] text-xs font-semibold uppercase tracking-wider mb-1">Datos del cliente</p>
                   <p><span className="text-[#999]">Teléfono:</span> <span className="text-[#111]">{order.customerPhone}</span></p>
                   {order.notes && <p><span className="text-[#999]">Notas:</span> <span className="text-[#111]">{order.notes}</span></p>}
                   {order.hasSecretGift && (
-                    <p className="text-orange-500 font-semibold flex items-center gap-1">
+                    <p className="text-orange-500 font-semibold flex items-center gap-1 mt-1">
                       <Gift size={14} /> Incluir obsequio secreto
                     </p>
                   )}
                 </div>
 
-                <div>
-                  <p className="text-xs text-[#999] mb-2 font-medium">Cambiar estado:</p>
-                  <div className="grid grid-cols-2 gap-2">
-                    {ORDER_STEPS.map(step => (
-                      <button key={step}
-                        onClick={() => updateStatus.mutate({ id: order.id, status: step as any })}
-                        className={`py-2 rounded-xl text-xs font-semibold transition-colors ${
-                          order.status === step ? 'text-white' : 'bg-[#f8f8f8] text-[#666] border border-[#e5e5e5]'
-                        }`}
-                        style={order.status === step ? { background: STATUS_COLORS[step] } : {}}>
-                        {STATUS_LABELS[step]}
-                      </button>
-                    ))}
+                {/* Productos del pedido */}
+                {order.items?.length > 0 && (
+                  <div className="mb-4">
+                    <p className="text-[#999] text-xs font-semibold uppercase tracking-wider mb-2">Productos</p>
+                    <div className="flex flex-col gap-2">
+                      {order.items.map((item: any, i: number) => (
+                        <div key={i} className="flex items-center justify-between bg-[#f8f8f8] rounded-xl p-2">
+                          <p className="text-sm text-[#111]">{item.productName}</p>
+                          <div className="text-right">
+                            <p className="text-xs text-[#999]">×{item.quantity}</p>
+                            <p className="text-xs font-bold text-[#e5007d]">${parseFloat(item.price ?? 0).toLocaleString('es-CO')}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
+                )}
+
+                {/* Cambiar estado — todos los pasos disponibles para revertir */}
+                <p className="text-[#999] text-xs font-semibold uppercase tracking-wider mb-2">Estado del pedido</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {ORDER_STEPS.map(step => (
+                    <button key={step.key}
+                      onClick={() => updateStatus.mutate({ id: order.id, status: step.key as any })}
+                      className={`py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
+                        order.status === step.key ? 'text-white shadow-sm' : 'bg-[#f8f8f8] text-[#666] border border-[#e5e5e5]'
+                      }`}
+                      style={order.status === step.key ? { background: STATUS_COLORS[step.key] } : {}}>
+                      {order.status === step.key ? '✓ ' : ''}{step.label}
+                    </button>
+                  ))}
                 </div>
               </div>
             )}
