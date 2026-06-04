@@ -348,8 +348,9 @@ function OrdersSection() {
               </div>
             </div>
             {showConfirm && (
-              <div className="fixed inset-0 bg-black/70 z-[300] flex items-center justify-center p-4">
-                <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+              <div className="fixed inset-0 bg-black/70 z-[300] flex items-end md:items-center justify-center p-4">
+                <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
+                  style={{ marginBottom: 'calc(env(safe-area-inset-bottom) + 70px)' }}>
                   <h3 className="font-black text-lg text-[#111] mb-1">Confirmar pedido</h3>
                   <p className="text-[#999] text-sm mb-4">¿Estás seguro de crear este pedido?</p>
                   <div className="bg-[#f8f8f8] rounded-xl p-4 mb-4 flex flex-col gap-2 text-sm">
@@ -369,10 +370,10 @@ function OrdersSection() {
                   <p className="text-xs text-[#999] mb-4">
                     Se enviará un correo de confirmación a <strong>{manualForm.customerEmail}</strong>
                   </p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 mt-4">
                     <button
                       onClick={() => setShowConfirm(false)}
-                      className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm font-semibold"
+                      className="flex-1 border border-[#e5e5e5] text-[#666] py-4 rounded-xl text-sm font-semibold"
                     >
                       Revisar
                     </button>
@@ -390,7 +391,7 @@ function OrdersSection() {
                         });
                       }}
                       disabled={createManualOrder.isPending}
-                      className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
+                      className="flex-1 bg-[#e5007d] text-white py-4 rounded-xl text-sm font-bold disabled:opacity-40"
                     >
                       {createManualOrder.isPending ? 'Creando...' : '✓ Confirmar'}
                     </button>

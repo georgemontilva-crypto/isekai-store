@@ -725,7 +725,16 @@ export default function Admin() {
     { enabled: manualForm.customerEmail.includes('@') && manualForm.customerEmail.includes('.') },
   );
   const createManualOrder = trpc.orders.createManual.useMutation({
-    onSuccess: (data) => { toast.success(`Pedido ${data.orderNumber} creado`); setShowManualOrder(false); setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] }); refetchOrders(); },
+    onSuccess: (data) => {
+      setShowManualOrder(false);
+      setShowConfirm(false);
+      setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] });
+      toast.success(`✅ Pedido ${data.orderNumber} creado exitosamente`);
+      refetchOrders();
+    },
+    onError: (err) => {
+      toast.error(`Error al crear pedido: ${err.message}`);
+    },
   });
   const { data: siteSettings, refetch: refetchSettings } = trpc.settings.getAdmin.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const upsertSetting = trpc.settings.upsert.useMutation({ onSuccess: () => { refetchSettings(); toast.success("Configuración guardada"); } });
