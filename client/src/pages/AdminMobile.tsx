@@ -5,7 +5,8 @@ import {
   ShoppingBag, CreditCard, Sparkles, Package,
   BarChart3, Bell, ChevronRight, Check,
   TrendingUp, Gift, ExternalLink, Pencil, X,
-  LogOut, Settings, Menu, ChevronDown,
+  LogOut, Settings, Menu, ChevronDown, Eye,
+  Tag, MessageCircle, Megaphone, BookOpen, Link, Users,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
@@ -664,28 +665,50 @@ function ProductsSection() {
 
 // ============ SECCIÓN: MÁS ============
 function MoreSection({ onLogout }: { onLogout: () => void }) {
-  const moreItems = [
-    { label: 'Panel completo (desktop)', href: '/admin', icon: Settings },
-    { label: 'Ver tienda', href: '/', icon: Settings },
+  const sections = [
+    {
+      title: 'Gestión',
+      items: [
+        { label: 'Categorías',       href: '/admin#categories', icon: Tag },
+        { label: 'FAQ',              href: '/admin#faq',        icon: MessageCircle },
+        { label: 'Popups',           href: '/admin#popups',     icon: Megaphone },
+        { label: 'Blog',             href: '/admin#blog',       icon: BookOpen },
+        { label: 'LinkBio',          href: '/admin#linkbio',    icon: Link },
+        { label: 'Usuarios',         href: '/admin#users',      icon: Users },
+      ],
+    },
+    {
+      title: 'Configuración',
+      items: [
+        { label: 'Ajustes generales', href: '/admin#settings', icon: Settings },
+        { label: 'Ver tienda',        href: '/',               icon: Eye },
+      ],
+    },
   ];
 
   return (
-    <div className="p-4 flex flex-col gap-3">
-      <h2 className="font-black text-[#111] mb-2">Más opciones</h2>
+    <div className="p-4 flex flex-col gap-4 pb-8">
+      {sections.map((section, si) => (
+        <div key={si}>
+          <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">{section.title}</p>
+          <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+            {section.items.map((item, i) => (
+              <a key={i} href={item.href}
+                className="flex items-center justify-between px-4 py-3.5 border-b border-[#f0f0f0] last:border-0 active:bg-[#f8f8f8]">
+                <div className="flex items-center gap-3">
+                  <item.icon size={18} className="text-[#666]" />
+                  <span className="text-sm font-medium text-[#111]">{item.label}</span>
+                </div>
+                <ChevronRight size={16} className="text-[#ccc]" />
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+
       <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
-        {moreItems.map((item, i) => (
-          <Link key={i} href={item.href}>
-            <button className="w-full flex items-center justify-between px-4 py-4 border-b border-[#f0f0f0] last:border-0">
-              <div className="flex items-center gap-3">
-                <item.icon size={18} className="text-[#666]" />
-                <span className="text-sm font-medium text-[#111]">{item.label}</span>
-              </div>
-              <ChevronRight size={16} className="text-[#999]" />
-            </button>
-          </Link>
-        ))}
         <button onClick={onLogout}
-          className="w-full flex items-center gap-3 px-4 py-4 text-red-500">
+          className="w-full flex items-center gap-3 px-4 py-4 text-red-500 active:bg-red-50">
           <LogOut size={18} />
           <span className="text-sm font-medium">Cerrar sesión</span>
         </button>
