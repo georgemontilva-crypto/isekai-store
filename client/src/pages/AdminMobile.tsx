@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import {
@@ -297,7 +297,7 @@ function PaymentsSection() {
 // ============ SECCIÓN: COSPLAY ============
 type CosplaySubTab = 'applications' | 'cosplayers' | 'activities';
 
-function CosplaySection() {
+function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
   const { user, isAuthenticated } = useAuth();
   const [subTab, setSubTab] = useState<CosplaySubTab>('applications');
   const { data: applications = [], refetch: refetchApps } = trpc.cosplay.getApplications.useQuery(
@@ -317,6 +317,10 @@ function CosplaySection() {
   const [approveForm, setApproveForm] = useState({ totalFollowers: 0, tier: 'bronce' });
   const [rejectModal, setRejectModal] = useState<any>(null);
   const [rejectReason, setRejectReason] = useState('');
+
+  useEffect(() => {
+    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal));
+  }, [viewApplication, lightboxImg, approveModal, rejectModal]);
 
   const TIER_BY_FOLLOWERS = (f: number) => {
     if (f >= 300000) return 'platino';
@@ -766,6 +770,7 @@ export default function AdminMobile() {
     refetchInterval: 15000,
   });
   const [showNotifications, setShowNotifications] = useState(false);
+  const [cosplayHasModal, setCosplayHasModal] = useState(false);
   const markRead = trpc.notifications.markAllRead.useMutation({
     onSuccess: () => refetchNotifications(),
   });
@@ -778,6 +783,7 @@ export default function AdminMobile() {
 
   const pendingPaymentsCount = pendingPaymentsData?.items?.length ?? 0;
   const unreadCount = (notifications as any[]).filter((n: any) => !n.read).length;
+  const hasModalOpen = cosplayHasModal || showNotifications;
 
   const TABS = [
     { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
@@ -825,7 +831,7 @@ export default function AdminMobile() {
         {activeTab === 'stats'    && <StatsSection />}
         {activeTab === 'orders'   && <OrdersSection />}
         {activeTab === 'payments' && <PaymentsSection />}
-        {activeTab === 'cosplay'  && <CosplaySection />}
+        {activeTab === 'cosplay'  && <CosplaySection onModalChange={setCosplayHasModal} />}
         {activeTab === 'products' && <ProductsSection />}
         {activeTab === 'more'     && <MoreSection onLogout={logout} />}
       </div>
@@ -871,6 +877,7 @@ export default function AdminMobile() {
       )}
 
       {/* Bottom Tab Bar */}
+      {!hasModalOpen && (
       <div className="bg-white border-t border-[#e5e5e5] flex-shrink-0"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)', backgroundColor: 'rgba(255,255,255,1)' }}>
         <div className="flex">
@@ -897,6 +904,7 @@ export default function AdminMobile() {
           ))}
         </div>
       </div>
+      )}
     </div>
   );
 }
