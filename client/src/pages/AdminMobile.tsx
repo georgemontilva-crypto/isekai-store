@@ -265,21 +265,28 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
         {showManualOrder && (() => {
           const total = manualForm.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0).toFixed(0);
           return (<>
-            <div className="fixed inset-0 z-[200] bg-white flex flex-col"
-              style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+            <div
+              className="fixed bg-white flex flex-col"
+              style={{ top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
+            >
 
               {/* Header fijo */}
-              <div className="flex items-center justify-between px-4 py-4 border-b border-[#e5e5e5] bg-white flex-shrink-0">
-                <button onClick={() => setShowManualOrder(false)}>
-                  <ArrowLeft size={20} className="text-[#111]" />
+              <div
+                className="flex items-center justify-between px-4 bg-white border-b border-[#e5e5e5] flex-shrink-0"
+                style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)', paddingBottom: '12px' }}
+              >
+                <button onClick={() => setShowManualOrder(false)} className="p-1">
+                  <ArrowLeft size={22} className="text-[#111]" />
                 </button>
-                <h3 className="font-black text-[#111]">Crear pedido manual</h3>
+                <h3 className="font-black text-[#111]">Nuevo pedido</h3>
                 <div className="w-8" />
               </div>
 
               {/* Contenido scrolleable */}
-              <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4"
-                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 100px)' }}>
+              <div
+                className="flex-1 overflow-y-auto flex flex-col gap-4"
+                style={{ WebkitOverflowScrolling: 'touch' as any, padding: '16px', paddingBottom: '16px' }}
+              >
 
                 <div>
                   <label className="text-sm font-medium block mb-1">Email del cliente *</label>
@@ -397,12 +404,15 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
               </div>
 
               {/* Botón fijo abajo */}
-              <div className="flex-shrink-0 px-4 py-4 bg-white border-t border-[#e5e5e5]"
-                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
+              <div
+                className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4"
+                style={{ paddingTop: '12px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+              >
                 <button
                   onClick={() => setShowConfirm(true)}
                   disabled={!manualForm.customerName || !manualForm.customerEmail || !manualForm.items[0].productName}
-                  className="w-full bg-[#e5007d] text-white py-4 rounded-2xl font-black text-base disabled:opacity-40"
+                  className="w-full bg-[#e5007d] text-white rounded-2xl font-black text-base disabled:opacity-40"
+                  style={{ padding: '16px' }}
                 >
                   Revisar pedido →
                 </button>
@@ -410,9 +420,11 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
 
             </div>
             {showConfirm && (
-              <div className="fixed inset-0 bg-black/70 z-[300] flex items-end md:items-center justify-center p-4">
-                <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl"
-                  style={{ marginBottom: 'calc(env(safe-area-inset-bottom) + 70px)' }}>
+              <div
+                className="fixed inset-0 flex items-center justify-center p-6"
+                style={{ zIndex: 99999, background: 'rgba(0,0,0,0.7)' }}
+              >
+                <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
                   <h3 className="font-black text-lg text-[#111] mb-1">Confirmar pedido</h3>
                   <p className="text-[#999] text-sm mb-4">¿Estás seguro de crear este pedido?</p>
                   <div className="bg-[#f8f8f8] rounded-xl p-4 mb-4 flex flex-col gap-2 text-sm">
