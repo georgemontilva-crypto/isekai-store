@@ -38,7 +38,7 @@ import {
   rejectCosplayApplication, getAllCosplayers, updateCosplayerTier, suspendCosplayer,
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
   deleteCosplayActivity, updateCosplayActivity,
-  evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
+  evaluateCosplaySubmission, getAllCosplaySubmissions, addEvidenceToSubmission, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
   deleteCosplayer, grantTicketsManually, findUserByEmail, getDb,
@@ -1095,6 +1095,16 @@ export const appRouter = router({
     getAllSubmissions: adminProcedure
       .input(z.object({ status: z.string().optional() }))
       .query(({ input }) => getAllCosplaySubmissions(input.status)),
+
+    addEvidence: protectedProcedure
+      .input(z.object({ submissionId: z.number(), url: z.string().min(1).max(500) }))
+      .mutation(async ({ ctx, input }) => {
+        const cosplayer = await getCosplayerByUserId(ctx.user.id);
+        if (!cosplayer) throw new TRPCError({ code: 'FORBIDDEN' });
+        const result = await addEvidenceToSubmission(input.submissionId, input.url, cosplayer.id);
+        if (!result) throw new TRPCError({ code: 'FORBIDDEN' });
+        return result;
+      }),
 
     // ── Referral & Cash ──────────────────────────────────────────────────────
     validateReferralCode: publicProcedure

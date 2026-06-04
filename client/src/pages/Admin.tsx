@@ -3913,26 +3913,42 @@ export default function Admin() {
                     </div>
                     <div className="space-y-3">
                       {cosplaySubs.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay submissions</p>}
-                      {cosplaySubs.map((sub: any) => (
-                        <div key={sub.id} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/50">
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${sub.status === 'approved' ? 'bg-green-100 text-green-700' : sub.status === 'rejected' ? 'bg-red-100 text-red-600' : 'bg-yellow-100 text-yellow-700'}`}>
-                                {sub.status}
+                      {cosplaySubs.map((sub: any) => {
+                        const TIER_COLORS_SUB: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
+                        let evidenceUrls: string[] = [];
+                        try { evidenceUrls = JSON.parse(sub.evidenceUrl); } catch { evidenceUrls = [sub.evidenceUrl]; }
+                        return (
+                          <div key={sub.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+                            <div className="flex items-center gap-3 mb-3">
+                              {sub.photo && <img src={sub.photo} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />}
+                              <div className="min-w-0 flex-1">
+                                <p className="font-black text-[#111] text-sm">{sub.artisticName ?? '—'}</p>
+                                <span className="text-xs font-bold capitalize" style={{ color: TIER_COLORS_SUB[sub.tier] ?? '#888' }}>{sub.tier}</span>
+                              </div>
+                              <span className={`text-xs px-2 py-1 rounded-full font-bold flex-shrink-0 ${sub.status === 'pending' ? 'bg-yellow-50 text-yellow-600 border border-yellow-200' : sub.status === 'approved' ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-red-50 text-red-500 border border-red-200'}`}>
+                                {sub.status === 'pending' ? 'Pendiente' : sub.status === 'approved' ? 'Aprobada' : 'Rechazada'}
                               </span>
-                              {sub.pointsAwarded && <span className="text-xs text-primary font-semibold">{sub.pointsAwarded} tickets</span>}
                             </div>
-                            <a href={sub.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 truncate">
-                              <ExternalLink size={10} /> {sub.evidenceUrl}
-                            </a>
+                            <div className="bg-[#f8f8f8] rounded-xl p-3 mb-3">
+                              <p className="text-xs text-[#999] mb-0.5">Actividad</p>
+                              <p className="text-sm font-semibold text-[#111]">{sub.activityTitle ?? '—'}</p>
+                              <p className="text-xs text-[#999]">Puntos base: {sub.activityBasePoints}</p>
+                            </div>
+                            <div className="mb-3">
+                              <p className="text-xs text-[#999] mb-1">Evidencia enviada</p>
+                              {evidenceUrls.map((url: string, i: number) => (
+                                <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#e5007d] underline break-all block">{url}</a>
+                              ))}
+                            </div>
+                            <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-CO')}</p>
+                            {sub.status === 'pending' && (
+                              <Button size="sm" className="w-full bg-[#111] text-white text-sm font-bold" onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: 100, status: 'approved' }); }}>
+                                Evaluar y aprobar
+                              </Button>
+                            )}
                           </div>
-                          {sub.status === 'pending' && (
-                            <Button size="sm" className="bg-primary text-white text-xs ml-3 shrink-0" onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: 100, status: 'approved' }); }}>
-                              <Eye className="w-3.5 h-3.5 mr-1" /> Evaluar
-                            </Button>
-                          )}
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

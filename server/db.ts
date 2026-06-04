@@ -1495,12 +1495,43 @@ export async function getMyCosplayerSubmissions(userId: number) {
 export async function getAllCosplaySubmissions(status?: string) {
   const db = await getDb();
   if (!db) return [];
+  const query = db.select({
+    id: cosplaySubmissions.id,
+    cosplayerId: cosplaySubmissions.cosplayerId,
+    activityId: cosplaySubmissions.activityId,
+    evidenceUrl: cosplaySubmissions.evidenceUrl,
+    status: cosplaySubmissions.status,
+    pointsAwarded: cosplaySubmissions.pointsAwarded,
+    evaluationDeadline: cosplaySubmissions.evaluationDeadline,
+    evaluatedAt: cosplaySubmissions.evaluatedAt,
+    createdAt: cosplaySubmissions.createdAt,
+    artisticName: cosplayers.artisticName,
+    tier: cosplayers.tier,
+    photo: cosplayers.photo,
+    activityTitle: cosplayActivities.title,
+    activityBasePoints: cosplayActivities.basePoints,
+  })
+  .from(cosplaySubmissions)
+  .leftJoin(cosplayers, eq(cosplaySubmissions.cosplayerId, cosplayers.id))
+  .leftJoin(cosplayActivities, eq(cosplaySubmissions.activityId, cosplayActivities.id))
+  .orderBy(desc(cosplaySubmissions.createdAt));
   if (status && status !== 'all') {
-    return db.select().from(cosplaySubmissions)
-      .where(eq(cosplaySubmissions.status, status))
-      .orderBy(desc(cosplaySubmissions.createdAt));
+    return query.where(eq(cosplaySubmissions.status, status));
   }
-  return db.select().from(cosplaySubmissions).orderBy(desc(cosplaySubmissions.createdAt));
+  return query;
+}
+
+export async function addEvidenceToSubmission(submissionId: number, additionalUrl: string, cosplayerId?: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const [sub] = await db.select().from(cosplaySubmissions).where(eq(cosplaySubmissions.id, submissionId));
+  if (!sub) return null;
+  if (cosplayerId !== undefined && sub.cosplayerId !== cosplayerId) return null;
+  let urls: string[] = [];
+  try { urls = JSON.parse(sub.evidenceUrl); } catch { urls = [sub.evidenceUrl]; }
+  urls.push(additionalUrl);
+  await db.update(cosplaySubmissions).set({ evidenceUrl: JSON.stringify(urls) }).where(eq(cosplaySubmissions.id, submissionId));
+  return { success: true };
 }
 
 export async function getCosplayerByReferralCode(code: string) {

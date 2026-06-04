@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import {
@@ -550,7 +551,7 @@ function PaymentsSection() {
 }
 
 // ============ SECCIÓN: COSPLAY ============
-type CosplaySubTab = 'applications' | 'cosplayers' | 'activities';
+type CosplaySubTab = 'applications' | 'cosplayers' | 'activities' | 'evaluations';
 
 function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
   const { user, isAuthenticated } = useAuth();
@@ -565,6 +566,15 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
   );
   const { data: activitiesData = [], refetch: refetchActivities } = trpc.cosplay.getAllActivities.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'admin',
+  });
+  const { data: submissionsData = [], refetch: refetchSubmissions } = trpc.cosplay.getAllSubmissions.useQuery(
+    {},
+    { enabled: isAuthenticated && user?.role === 'admin' },
+  );
+  const [evalModal, setEvalModal] = useState<any>(null);
+  const [evalPoints, setEvalPoints] = useState(100);
+  const evaluateSub = trpc.cosplay.evaluateSubmission.useMutation({
+    onSuccess: () => { setEvalModal(null); refetchSubmissions(); toast.success('Evaluación guardada'); },
   });
   const [expandedActivity, setExpandedActivity] = useState<number | null>(null);
   const [showNewActivity, setShowNewActivity] = useState(false);
@@ -592,8 +602,8 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
   });
 
   useEffect(() => {
-    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal || grantTicketsModal || showNewActivity || viewCosplayer));
-  }, [viewApplication, lightboxImg, approveModal, rejectModal, grantTicketsModal, showNewActivity, viewCosplayer]);
+    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal || grantTicketsModal || showNewActivity || viewCosplayer || evalModal));
+  }, [viewApplication, lightboxImg, approveModal, rejectModal, grantTicketsModal, showNewActivity, viewCosplayer, evalModal]);
 
   const TIER_BY_FOLLOWERS = (f: number) => {
     if (f >= 300000) return 'platino';
@@ -628,6 +638,10 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
         <button onClick={() => setSubTab('activities')}
           className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'activities' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
           Actividades
+        </button>
+        <button onClick={() => setSubTab('evaluations')}
+          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'evaluations' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          Evaluaciones {(submissionsData as any[]).filter((s: any) => s.status === 'pending').length > 0 && `(${(submissionsData as any[]).filter((s: any) => s.status === 'pending').length})`}
         </button>
       </div>
 
@@ -785,7 +799,85 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
             ))}
           </>
         )}
+        {/* Evaluaciones */}
+        {subTab === 'evaluations' && (
+          <>
+            {(submissionsData as any[]).length === 0 && (
+              <div className="text-center py-12 text-[#999] text-sm">No hay evaluaciones</div>
+            )}
+            {(submissionsData as any[]).map((sub: any) => {
+              const TC: Record<string, string> = { bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#b9f2ff', platino: '#e8e8e8' };
+              let evidenceUrls: string[] = [];
+              try { evidenceUrls = JSON.parse(sub.evidenceUrl); } catch { evidenceUrls = [sub.evidenceUrl]; }
+              return (
+                <div key={sub.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+                  <div className="flex items-center gap-3 mb-3">
+                    {sub.photo && <img src={sub.photo} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />}
+                    <div className="min-w-0 flex-1">
+                      <p className="font-black text-[#111] text-sm">{sub.artisticName ?? '—'}</p>
+                      <span className="text-xs font-bold capitalize" style={{ color: TC[sub.tier] ?? '#888' }}>{sub.tier}</span>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full font-bold flex-shrink-0 ${sub.status === 'pending' ? 'bg-yellow-50 text-yellow-600 border border-yellow-200' : sub.status === 'approved' ? 'bg-green-50 text-green-600 border border-green-200' : 'bg-red-50 text-red-500 border border-red-200'}`}>
+                      {sub.status === 'pending' ? 'Pendiente' : sub.status === 'approved' ? 'Aprobada' : 'Rechazada'}
+                    </span>
+                  </div>
+                  <div className="bg-[#f8f8f8] rounded-xl p-3 mb-3">
+                    <p className="text-xs text-[#999] mb-0.5">Actividad</p>
+                    <p className="text-sm font-semibold text-[#111]">{sub.activityTitle ?? '—'}</p>
+                    <p className="text-xs text-[#999]">Puntos base: {sub.activityBasePoints}</p>
+                  </div>
+                  <div className="mb-3">
+                    <p className="text-xs text-[#999] mb-1">Evidencia</p>
+                    {evidenceUrls.map((url: string, i: number) => (
+                      <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#e5007d] underline break-all block">{url}</a>
+                    ))}
+                  </div>
+                  <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-CO')}</p>
+                  {sub.status === 'pending' && (
+                    <button onClick={() => { setEvalModal(sub); setEvalPoints(100); }}
+                      className="w-full bg-[#111] text-white py-3 rounded-xl font-bold text-sm">
+                      Evaluar y aprobar
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </>
+        )}
       </div>
+
+      {/* Modal evaluar submission */}
+      {evalModal && (
+        <div className="fixed inset-0 bg-black/70 z-[300] flex items-end justify-center p-4">
+          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl"
+            style={{ marginBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
+            <h3 className="font-black text-[#111] mb-1">Evaluar submission</h3>
+            <p className="text-xs text-[#999] mb-4">{evalModal.artisticName} — {evalModal.activityTitle}</p>
+            <label className="text-sm font-medium block mb-1">Tickets a otorgar</label>
+            <input type="number" value={evalPoints} min={0}
+              onChange={e => setEvalPoints(parseInt(e.target.value) || 0)}
+              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] mb-4" />
+            <div className="flex gap-2">
+              <button onClick={() => setEvalModal(null)}
+                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm font-semibold">
+                Cancelar
+              </button>
+              <button
+                onClick={() => evaluateSub.mutate({ submissionId: evalModal.id, pointsAwarded: evalPoints, status: 'approved' })}
+                disabled={evaluateSub.isPending}
+                className="flex-1 bg-green-500 text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                {evaluateSub.isPending ? 'Guardando...' : '✓ Aprobar'}
+              </button>
+              <button
+                onClick={() => evaluateSub.mutate({ submissionId: evalModal.id, pointsAwarded: 0, status: 'rejected' })}
+                disabled={evaluateSub.isPending}
+                className="flex-1 bg-red-50 text-red-500 border border-red-200 py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                Rechazar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal ver solicitud completa */}
       {viewApplication && (

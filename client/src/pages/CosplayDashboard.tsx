@@ -96,7 +96,16 @@ export default function CosplayDashboard() {
   } as any);
 
   const { data: activities = [] } = trpc.cosplay.getActivities.useQuery();
-  const { data: submissions = [] } = trpc.cosplay.getMySubmissions.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
+  const { data: submissions = [], refetch: refetchSubmissions } = trpc.cosplay.getMySubmissions.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
+  const [openLinks, setOpenLinks] = useState<Record<number, boolean>>({});
+  const [newLinks, setNewLinks] = useState<Record<number, string>>({});
+  const addEvidence = trpc.cosplay.addEvidence.useMutation({
+    onSuccess: (_, vars) => {
+      setOpenLinks(prev => ({ ...prev, [vars.submissionId]: false }));
+      setNewLinks(prev => ({ ...prev, [vars.submissionId]: '' }));
+      refetchSubmissions();
+    },
+  });
   const { data: tickets }           = trpc.cosplay.getMyTickets.useQuery(undefined,       { enabled: isAuthenticated && !!cosplayer });
   const { data: discountCodes = [] } = trpc.cosplay.getMyDiscountCodes.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
   const kitOrderQuery = trpc.orders.myOrders.useQuery(undefined, {
@@ -568,16 +577,54 @@ export default function CosplayDashboard() {
                   <>
                     <p className="text-xs font-bold uppercase tracking-wider text-[#555] mb-3">Mis envíos</p>
                     <div className="space-y-2">
-                      {submissions.map((s: any) => (
-                        <div key={s.id} className="flex items-center justify-between px-4 py-3 rounded-xl bg-[#1a1a1a] border border-[#333] text-sm">
-                          <a href={s.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-[#888] hover:text-[#ccc] flex items-center gap-1.5 truncate">
-                            <ExternalLink size={11} /> <span className="truncate">{s.evidenceUrl}</span>
-                          </a>
-                          <span className={`ml-3 shrink-0 text-xs font-bold px-2 py-0.5 rounded-full ${s.status === 'approved' ? 'bg-green-500/10 text-green-400' : s.status === 'rejected' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
-                            {s.status === 'approved' ? 'Aprobada' : s.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
-                          </span>
-                        </div>
-                      ))}
+                      {submissions.map((s: any) => {
+                        let evidenceUrls: string[] = [];
+                        try { evidenceUrls = JSON.parse(s.evidenceUrl); } catch { evidenceUrls = [s.evidenceUrl]; }
+                        return (
+                          <div key={s.id} className="flex flex-col gap-2 bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3">
+                            <div className="flex flex-col gap-1">
+                              {evidenceUrls.map((url: string, i: number) => (
+                                <a key={i} href={url} target="_blank" rel="noopener noreferrer"
+                                  className="text-[#888] hover:text-[#ccc] flex items-center gap-1.5 text-xs truncate">
+                                  <ExternalLink size={11} />
+                                  <span className="truncate">{url}</span>
+                                </a>
+                              ))}
+                            </div>
+                            <div className="flex items-center justify-between">
+                              <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${s.status === 'approved' ? 'bg-green-500/10 text-green-400' : s.status === 'rejected' ? 'bg-red-500/10 text-red-400' : 'bg-yellow-500/10 text-yellow-400'}`}>
+                                {s.status === 'approved' ? 'Aprobada' : s.status === 'rejected' ? 'Rechazada' : 'Pendiente'}
+                              </span>
+                              {s.status === 'pending' && (
+                                <button
+                                  onClick={() => setOpenLinks(prev => ({ ...prev, [s.id]: !prev[s.id] }))}
+                                  className="text-xs text-[#e5007d] font-semibold"
+                                >
+                                  + Agregar link
+                                </button>
+                              )}
+                            </div>
+                            {openLinks[s.id] && (
+                              <div className="flex gap-2 mt-1">
+                                <input
+                                  type="text"
+                                  value={newLinks[s.id] ?? ''}
+                                  onChange={e => setNewLinks(prev => ({ ...prev, [s.id]: e.target.value }))}
+                                  placeholder="https://..."
+                                  className="flex-1 bg-[#222] border border-[#333] rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-[#e5007d]"
+                                />
+                                <button
+                                  onClick={() => addEvidence.mutate({ submissionId: s.id, url: newLinks[s.id] ?? '' })}
+                                  disabled={!newLinks[s.id] || addEvidence.isPending}
+                                  className="bg-[#e5007d] text-white px-3 rounded-lg text-xs font-bold disabled:opacity-40"
+                                >
+                                  +
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   </>
                 )}
