@@ -39,15 +39,14 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
                   )}
                   <button
                     type="button"
-                    disabled={!interactive}
-                    onClick={() => interactive && onStepClick?.(step.key)}
+                    disabled={!interactive || isDone || isCurrent}
+                    onClick={() => interactive && !isDone && !isCurrent && onStepClick?.(step.key)}
                     className={cn(
                       "relative w-10 h-10 rounded-full flex items-center justify-center transition-colors",
-                      isDone    && "bg-green-500 text-white",
-                      isCurrent && "bg-[#1a1a1a] text-white",
+                      isDone    && "bg-green-500 text-white cursor-not-allowed",
+                      isCurrent && "bg-[#1a1a1a] text-white cursor-default",
                       !isDone && !isCurrent && "bg-[#f0f0f0] text-[#bbb]",
-                      interactive ? "cursor-pointer" : "cursor-default",
-                      interactive && !isDone && !isCurrent && "hover:bg-[#e0e0e0]",
+                      interactive && !isDone && !isCurrent && "cursor-pointer hover:bg-[#e0e0e0]",
                       interactive && isCurrent && "ring-2 ring-[#1a1a1a] ring-offset-2"
                     )}
                   >
@@ -91,15 +90,14 @@ export function OrderTimeline({ currentStatus, interactive = false, onStepClick 
                   )}
                   <button
                     type="button"
-                    disabled={!interactive}
-                    onClick={() => interactive && onStepClick?.(step.key)}
+                    disabled={!interactive || isDone || isCurrent}
+                    onClick={() => interactive && !isDone && !isCurrent && onStepClick?.(step.key)}
                     className={cn(
                       "relative w-9 h-9 rounded-full flex items-center justify-center transition-colors",
-                      isDone    && "bg-green-500 text-white",
-                      isCurrent && "bg-[#1a1a1a] text-white",
+                      isDone    && "bg-green-500 text-white cursor-not-allowed",
+                      isCurrent && "bg-[#1a1a1a] text-white cursor-default",
                       !isDone && !isCurrent && "bg-[#f0f0f0] text-[#bbb]",
-                      interactive ? "cursor-pointer" : "cursor-default",
-                      interactive && !isDone && !isCurrent && "hover:bg-[#e0e0e0]",
+                      interactive && !isDone && !isCurrent && "cursor-pointer hover:bg-[#e0e0e0]",
                       interactive && isCurrent && "ring-2 ring-[#1a1a1a] ring-offset-2"
                     )}
                   >

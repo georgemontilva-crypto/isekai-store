@@ -216,19 +216,31 @@ function OrdersSection() {
                   </div>
                 )}
 
-                {/* Cambiar estado — todos los pasos disponibles para revertir */}
+                {/* Cambiar estado */}
                 <p className="text-[#999] text-xs font-semibold uppercase tracking-wider mb-2">Estado del pedido</p>
                 <div className="grid grid-cols-2 gap-2">
-                  {ORDER_STEPS.map(step => (
-                    <button key={step.key}
-                      onClick={() => updateStatus.mutate({ id: order.id, status: step.key as any })}
-                      className={`py-2.5 rounded-xl text-xs font-bold transition-all active:scale-95 ${
-                        order.status === step.key ? 'text-white shadow-sm' : 'bg-[#f8f8f8] text-[#666] border border-[#e5e5e5]'
-                      }`}
-                      style={order.status === step.key ? { background: STATUS_COLORS[step.key] } : {}}>
-                      {order.status === step.key ? '✓ ' : ''}{step.label}
-                    </button>
-                  ))}
+                  {ORDER_STEPS.map((step, stepIndex) => {
+                    const currentIndex = ORDER_STEPS.findIndex(s => s.key === order.status);
+                    const isCurrentStatus = order.status === step.key;
+                    const isPast = stepIndex < currentIndex;
+                    return (
+                      <button
+                        key={step.key}
+                        onClick={() => !isPast && !isCurrentStatus && updateStatus.mutate({ id: order.id, status: step.key as any })}
+                        disabled={isPast || isCurrentStatus}
+                        className={`py-3 rounded-xl text-xs font-bold transition-all ${
+                          isCurrentStatus
+                            ? 'text-white shadow-sm'
+                            : isPast
+                              ? 'bg-[#f0f0f0] text-[#ccc] cursor-not-allowed'
+                              : 'bg-[#f8f8f8] text-[#666] border border-[#e5e5e5] active:scale-95'
+                        }`}
+                        style={isCurrentStatus ? { background: STATUS_COLORS[step.key] } : {}}
+                      >
+                        {isCurrentStatus ? '✓ ' : isPast ? '— ' : ''}{step.label}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
             )}
