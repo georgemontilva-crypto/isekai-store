@@ -1172,19 +1172,26 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
 // ============ SECCIÓN: BLOG ============
 function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
   const { user, isAuthenticated } = useAuth();
+  const [subTab, setSubTab] = useState<'posts' | 'categories'>('posts');
   const { data: posts = [], refetch } = trpc.blog.getAllPosts.useQuery(
     {},
     { enabled: isAuthenticated && user?.role === 'admin' },
   );
-  const { data: categories = [] } = trpc.blog.getCategories.useQuery();
+  const { data: categories = [], refetch: refetchCategories } = trpc.blog.getCategories.useQuery();
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState({ title: '', excerpt: '', content: '', category: '', status: 'draft' as 'draft' | 'published', metaTitle: '', metaDescription: '' });
   const [coverImage, setCoverImage] = useState('');
+  const [newCategory, setNewCategory] = useState('');
+  const [newCategoryDesc, setNewCategoryDesc] = useState('');
   const uploadImage = trpc.products.uploadImage.useMutation();
   const createPost = trpc.blog.createPost.useMutation({
     onSuccess: () => { setShowNew(false); setForm({ title: '', excerpt: '', content: '', category: '', status: 'draft', metaTitle: '', metaDescription: '' }); setCoverImage(''); refetch(); },
   });
   const deletePost = trpc.blog.deletePost.useMutation({ onSuccess: () => refetch() });
+  const createCategory = trpc.blog.createCategory.useMutation({
+    onSuccess: () => { setNewCategory(''); setNewCategoryDesc(''); refetchCategories(); },
+  });
+  const deleteCategory = trpc.blog.deleteCategory.useMutation({ onSuccess: () => refetchCategories() });
 
   useEffect(() => { onModalChange(showNew); }, [showNew]);
 
@@ -1201,33 +1208,103 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
   };
 
   return (
-    <div className="p-4 flex flex-col gap-3">
-      <button onClick={() => setShowNew(true)}
-        className="w-full bg-[#e5007d] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
-        <Plus size={18} /> Nuevo artículo
-      </button>
+    <div className="flex flex-col h-full">
 
-      {(posts as any[]).map((post: any) => (
-        <div key={post.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
-          {post.coverImage && (
-            <img src={post.coverImage} className="w-full h-32 object-cover rounded-xl mb-3" alt="" />
-          )}
-          <div className="flex items-start justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              <p className="font-bold text-sm text-[#111]">{post.title}</p>
-              <div className="flex items-center gap-2 mt-1">
-                <span className={`text-xs font-semibold ${post.status === 'published' ? 'text-green-500' : 'text-[#999]'}`}>
-                  {post.status === 'published' ? 'Publicado' : 'Borrador'}
-                </span>
-                {post.category && <span className="text-xs text-[#999]">· {post.category}</span>}
-                <span className="text-xs text-[#999]">· {post.views ?? 0} vistas</span>
+      {/* Sub-tabs */}
+      <div className="bg-white border-b border-[#e5e5e5] px-4 py-2 flex gap-2 flex-shrink-0">
+        <button onClick={() => setSubTab('posts')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'posts' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          Artículos ({(posts as any[]).length})
+        </button>
+        <button onClick={() => setSubTab('categories')}
+          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'categories' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          Categorías ({(categories as any[]).length})
+        </button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4">
+
+        {/* Posts */}
+        {subTab === 'posts' && (
+          <div className="flex flex-col gap-3">
+            <button onClick={() => setShowNew(true)}
+              className="w-full bg-[#e5007d] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              <Plus size={18} /> Nuevo artículo
+            </button>
+            {(posts as any[]).map((post: any) => (
+              <div key={post.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+                {post.coverImage && (
+                  <img src={post.coverImage} className="w-full h-32 object-cover rounded-xl mb-3" alt="" />
+                )}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold text-sm text-[#111]">{post.title}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className={`text-xs font-semibold ${post.status === 'published' ? 'text-green-500' : 'text-[#999]'}`}>
+                        {post.status === 'published' ? 'Publicado' : 'Borrador'}
+                      </span>
+                      {post.category && <span className="text-xs text-[#999]">· {post.category}</span>}
+                      <span className="text-xs text-[#999]">· {post.views ?? 0} vistas</span>
+                    </div>
+                  </div>
+                  <button onClick={() => { if (confirm(`¿Eliminar "${post.title}"?`)) deletePost.mutate({ id: post.id }); }}
+                    className="text-red-400 p-1 flex-shrink-0"><X size={16} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Categorías */}
+        {subTab === 'categories' && (
+          <div className="flex flex-col gap-3">
+            <div className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+              <p className="font-bold text-sm text-[#111] mb-3">Nueva categoría</p>
+              <div className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  value={newCategory}
+                  onChange={e => setNewCategory(e.target.value)}
+                  placeholder="Nombre de la categoría *"
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                />
+                <input
+                  type="text"
+                  value={newCategoryDesc}
+                  onChange={e => setNewCategoryDesc(e.target.value)}
+                  placeholder="Descripción (opcional)"
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                />
+                <button
+                  onClick={() => createCategory.mutate({ name: newCategory, description: newCategoryDesc || undefined })}
+                  disabled={!newCategory.trim() || createCategory.isPending}
+                  className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40"
+                >
+                  {createCategory.isPending ? 'Creando...' : '+ Crear categoría'}
+                </button>
               </div>
             </div>
-            <button onClick={() => { if (confirm(`¿Eliminar "${post.title}"?`)) deletePost.mutate({ id: post.id }); }}
-              className="text-red-400 p-1 flex-shrink-0"><X size={16} /></button>
+            {(categories as any[]).length === 0 && (
+              <p className="text-center text-[#999] text-sm py-8">No hay categorías aún</p>
+            )}
+            {(categories as any[]).map((cat: any) => (
+              <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm flex items-center justify-between">
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-sm text-[#111]">{cat.name}</p>
+                  {cat.description && <p className="text-xs text-[#999] mt-0.5">{cat.description}</p>}
+                  {cat.slug && <p className="text-xs text-[#ccc] mt-0.5">/{cat.slug}</p>}
+                </div>
+                <button
+                  onClick={() => { if (confirm(`¿Eliminar la categoría "${cat.name}"?`)) deleteCategory.mutate({ id: cat.id }); }}
+                  className="text-red-400 hover:text-red-600 p-2 flex-shrink-0"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            ))}
           </div>
-        </div>
-      ))}
+        )}
+      </div>
 
       {/* Modal nuevo artículo */}
       {showNew && (
