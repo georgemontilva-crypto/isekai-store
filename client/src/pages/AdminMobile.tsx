@@ -708,11 +708,14 @@ export default function AdminMobile() {
     { status: 'pending' },
     { enabled: isAuthenticated && user?.role === 'admin', refetchInterval: 30000 },
   );
-  const { data: notifications = [] } = trpc.notifications.getAll.useQuery(undefined, {
+  const { data: notifications = [], refetch: refetchNotifications } = trpc.notifications.getAll.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'admin',
     refetchInterval: 15000,
   });
-  const markAllRead = trpc.notifications.markAllRead.useMutation();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const markRead = trpc.notifications.markAllRead.useMutation({
+    onSuccess: () => refetchNotifications(),
+  });
 
   if (loading) return <div className="min-h-screen bg-[#f8f8f8]" />;
   if (!isAuthenticated || user?.role !== 'admin') {
@@ -752,7 +755,7 @@ export default function AdminMobile() {
         </div>
 
         <button
-          onClick={() => markAllRead.mutate()}
+          onClick={() => setShowNotifications(true)}
           className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-[#f8f8f8] border border-[#e5e5e5]"
         >
           <Bell size={18} className="text-[#111]" />
@@ -773,6 +776,46 @@ export default function AdminMobile() {
         {activeTab === 'products' && <ProductsSection />}
         {activeTab === 'more'     && <MoreSection onLogout={logout} />}
       </div>
+
+      {/* Modal notificaciones */}
+      {showNotifications && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-3xl max-h-[70vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
+            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between">
+              <h3 className="font-black text-[#111]">Notificaciones</h3>
+              <div className="flex items-center gap-2">
+                <button onClick={() => markRead.mutate()}
+                  className="text-xs text-[#e5007d] font-semibold">
+                  Marcar todas leídas
+                </button>
+                <button onClick={() => setShowNotifications(false)}>
+                  <X size={20} className="text-[#999]" />
+                </button>
+              </div>
+            </div>
+            <div className="flex flex-col divide-y divide-[#f0f0f0]">
+              {(notifications as any[]).length === 0 && (
+                <p className="text-center text-[#999] text-sm py-8">Sin notificaciones</p>
+              )}
+              {(notifications as any[]).map((n: any) => (
+                <div key={n.id} className={`px-4 py-3 ${!n.read ? 'bg-[#fff8fc]' : ''}`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!n.read ? 'bg-[#e5007d]' : 'bg-[#e5e5e5]'}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-[#111]">{n.title}</p>
+                      <p className="text-xs text-[#999] mt-0.5">{n.body}</p>
+                      <p className="text-[10px] text-[#ccc] mt-1">
+                        {new Date(n.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Bottom Tab Bar */}
       <div className="bg-white border-t border-[#e5e5e5] flex-shrink-0"
