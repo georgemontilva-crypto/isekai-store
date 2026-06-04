@@ -60,7 +60,7 @@ function MobileOrders() {
 function MobilePayments() {
   const { user, isAuthenticated } = useAuth();
   const { data: paymentsData, refetch } = trpc.orders.adminPayments.useQuery(
-    { status: 'pending_verification' },
+    { paymentStatus: 'pending_verification' },
     { enabled: isAuthenticated && user?.role === 'admin' },
   );
   const verifyPayment = trpc.orders.verifyPayment.useMutation({
