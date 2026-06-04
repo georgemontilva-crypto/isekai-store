@@ -608,6 +608,7 @@ export default function Admin() {
   const [orderSearch, setOrderSearch] = useState('');
   const [showManualOrder, setShowManualOrder] = useState(false);
   const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] });
+  const [showConfirm, setShowConfirm] = useState(false);
   const [igToken, setIgToken] = useState("");
   const [igUsername, setIgUsername] = useState("");
   const [igCtaText, setIgCtaText] = useState("");
@@ -1444,7 +1445,7 @@ export default function Admin() {
                 {/* Modal crear pedido manual */}
                 {showManualOrder && (() => {
                   const total = manualForm.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0).toFixed(0);
-                  return (
+                  return (<>
                     <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
                       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
                         <div className="flex items-center justify-between mb-6">
@@ -1521,16 +1522,68 @@ export default function Admin() {
                           <div className="flex gap-3 mt-2">
                             <button onClick={() => setShowManualOrder(false)} className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
                             <button
-                              onClick={() => createManualOrder.mutate({ customerName: manualForm.customerName, customerEmail: manualForm.customerEmail, customerPhone: manualForm.customerPhone, userId: findUserQuery.data?.id, items: manualForm.items, total, notes: manualForm.notes })}
-                              disabled={!manualForm.customerName || !manualForm.customerEmail || createManualOrder.isPending}
-                              className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
-                              {createManualOrder.isPending ? 'Creando...' : 'Crear pedido'}
+                              onClick={() => setShowConfirm(true)}
+                              disabled={!manualForm.customerName || !manualForm.customerEmail || !manualForm.items[0].productName}
+                              className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
+                            >
+                              Revisar pedido →
                             </button>
                           </div>
                         </div>
                       </div>
                     </div>
-                  );
+                    {showConfirm && (
+                      <div className="fixed inset-0 bg-black/70 z-[300] flex items-center justify-center p-4">
+                        <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-xl">
+                          <h3 className="font-black text-lg text-[#111] mb-1">Confirmar pedido</h3>
+                          <p className="text-[#999] text-sm mb-4">¿Estás seguro de crear este pedido?</p>
+                          <div className="bg-[#f8f8f8] rounded-xl p-4 mb-4 flex flex-col gap-2 text-sm">
+                            <p><span className="text-[#999]">Cliente:</span> <strong>{manualForm.customerName}</strong></p>
+                            <p><span className="text-[#999]">Email:</span> {manualForm.customerEmail}</p>
+                            <div>
+                              <p className="text-[#999] mb-1">Productos:</p>
+                              {manualForm.items.map((item, i) => (
+                                <p key={i} className="text-[#111]">• {item.productName} ×{item.quantity} — ${parseFloat(item.price || '0').toLocaleString('es-CO')}</p>
+                              ))}
+                            </div>
+                            <p className="border-t border-[#e5e5e5] pt-2 mt-1">
+                              <span className="text-[#999]">Total:</span>
+                              <strong className="text-[#e5007d] ml-1">${parseInt(total).toLocaleString('es-CO')} COP</strong>
+                            </p>
+                          </div>
+                          <p className="text-xs text-[#999] mb-4">
+                            Se enviará un correo de confirmación a <strong>{manualForm.customerEmail}</strong>
+                          </p>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => setShowConfirm(false)}
+                              className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm font-semibold"
+                            >
+                              Revisar
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowConfirm(false);
+                                createManualOrder.mutate({
+                                  customerName: manualForm.customerName,
+                                  customerEmail: manualForm.customerEmail,
+                                  customerPhone: manualForm.customerPhone,
+                                  userId: findUserQuery.data?.id,
+                                  items: manualForm.items,
+                                  total,
+                                  notes: manualForm.notes,
+                                });
+                              }}
+                              disabled={createManualOrder.isPending}
+                              className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
+                            >
+                              {createManualOrder.isPending ? 'Creando...' : '✓ Confirmar'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </>);
                 })()}
               </motion.div>
             )}
