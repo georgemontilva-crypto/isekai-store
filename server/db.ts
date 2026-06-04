@@ -530,10 +530,17 @@ export async function getDashboardMetrics() {
   const db = await getDb();
   if (!db) return { totalRevenue: 0, totalOrders: 0, recentOrders: [], topProducts: [] };
 
-  const [revenueResult] = await db
+  const [fullRevenue] = await db
     .select({ total: sql<string>`SUM(total)` })
     .from(orders)
-    .where(inArray(orders.status, ["preparing", "printing", "post_printing", "packed", "shipped", "delivered"]));
+    .where(eq(orders.paymentStatus, 'approved'));
+
+  const [partialRevenue] = await db
+    .select({ total: sql<string>`SUM(amountPaid)` })
+    .from(orders)
+    .where(eq(orders.paymentStatus, 'partial'));
+
+  const totalRevenue = parseFloat(fullRevenue?.total ?? '0') + parseFloat(partialRevenue?.total ?? '0');
 
   const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(orders);
 
@@ -552,7 +559,7 @@ export async function getDashboardMetrics() {
     .limit(5);
 
   return {
-    totalRevenue: parseFloat(revenueResult?.total ?? "0"),
+    totalRevenue,
     totalOrders: Number(orderCount?.count ?? 0),
     recentOrders,
     topProducts,
