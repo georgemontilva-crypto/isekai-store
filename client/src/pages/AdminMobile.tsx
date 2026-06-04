@@ -4,7 +4,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import {
   ShoppingBag, CreditCard, Sparkles, Package,
   BarChart3, Bell, ChevronRight, Check,
-  TrendingUp, Gift, ExternalLink, Pencil,
+  TrendingUp, Gift, ExternalLink, Pencil, X,
   LogOut, Settings, Menu, ChevronDown,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
@@ -294,9 +294,11 @@ function PaymentsSection() {
 }
 
 // ============ SECCIÓN: COSPLAY ============
+type CosplaySubTab = 'applications' | 'cosplayers' | 'activities';
+
 function CosplaySection() {
   const { user, isAuthenticated } = useAuth();
-  const [subTab, setSubTab] = useState<'applications' | 'cosplayers'>('applications');
+  const [subTab, setSubTab] = useState<CosplaySubTab>('applications');
   const { data: applications = [], refetch: refetchApps } = trpc.cosplay.getApplications.useQuery(
     { status: 'pending' },
     { enabled: isAuthenticated && user?.role === 'admin' },
@@ -305,6 +307,10 @@ function CosplaySection() {
     undefined,
     { enabled: isAuthenticated && user?.role === 'admin' },
   );
+  const { data: activities = [] } = trpc.cosplay.getAllActivities.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === 'admin',
+  });
+  const [viewApplication, setViewApplication] = useState<any>(null);
   const [approveModal, setApproveModal] = useState<any>(null);
   const [approveForm, setApproveForm] = useState({ totalFollowers: 0, tier: 'bronce' });
   const [rejectModal, setRejectModal] = useState<any>(null);
@@ -330,29 +336,32 @@ function CosplaySection() {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="bg-white border-b border-[#e5e5e5] px-4 py-2 flex gap-2">
+      {/* Sub-tabs */}
+      <div className="bg-white border-b border-[#e5e5e5] px-4 py-2 flex gap-2 overflow-x-auto">
         <button onClick={() => setSubTab('applications')}
-          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${
-            subTab === 'applications' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'
-          }`}>
-          Solicitudes {applications.length > 0 && `(${applications.length})`}
+          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'applications' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          Solicitudes {(applications as any[]).length > 0 && `(${(applications as any[]).length})`}
         </button>
         <button onClick={() => setSubTab('cosplayers')}
-          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${
-            subTab === 'cosplayers' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'
-          }`}>
-          Activos ({cosplayers.length})
+          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'cosplayers' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          Activos ({(cosplayers as any[]).length})
+        </button>
+        <button onClick={() => setSubTab('activities')}
+          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'activities' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          Actividades
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+
+        {/* Solicitudes */}
         {subTab === 'applications' && (
           <>
-            {applications.length === 0 && (
+            {(applications as any[]).length === 0 && (
               <div className="text-center py-16 text-[#999] text-sm">No hay solicitudes pendientes</div>
             )}
             {(applications as any[]).map((app: any) => (
-              <div key={app.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+              <div key={app.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm">
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     {app.photo && (
@@ -361,7 +370,7 @@ function CosplaySection() {
                     <div className="min-w-0 flex-1">
                       <p className="font-black text-[#111]">{app.artisticName ?? app.fullName}</p>
                       <p className="text-xs text-[#999]">{app.country} · {app.experience} años exp.</p>
-                      <p className="text-xs text-[#999] truncate">{app.email}</p>
+                      <p className="text-xs text-[#999]">{app.email}</p>
                     </div>
                   </div>
 
@@ -372,11 +381,10 @@ function CosplaySection() {
                     ))}
                   </div>
 
-                  {app.whyIsekai && (
-                    <p className="text-xs text-[#666] leading-relaxed mb-4 line-clamp-2 bg-[#f8f8f8] rounded-xl p-3">
-                      "{app.whyIsekai}"
-                    </p>
-                  )}
+                  <button onClick={() => setViewApplication(app)}
+                    className="w-full border border-[#e5e5e5] text-[#666] py-2.5 rounded-xl text-xs font-semibold mb-2">
+                    Ver solicitud completa
+                  </button>
 
                   <div className="flex gap-2">
                     <button
@@ -398,12 +406,13 @@ function CosplaySection() {
           </>
         )}
 
+        {/* Cosplayers activos */}
         {subTab === 'cosplayers' && (cosplayers as any[]).map((cp: any) => (
-          <div key={cp.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm p-4">
+          <div key={cp.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-4">
             <div className="flex items-center gap-3 mb-3">
               {cp.photo && <img src={cp.photo} className="w-12 h-12 rounded-full object-cover flex-shrink-0" alt="" />}
               <div className="min-w-0 flex-1">
-                <p className="font-black text-[#111] truncate">{cp.artisticName}</p>
+                <p className="font-black text-[#111]">{cp.artisticName}</p>
                 <span className="text-xs font-bold px-2 py-0.5 rounded-full"
                   style={{ background: (TIER_COLORS[cp.tier] ?? '#888') + '20', color: TIER_COLORS[cp.tier] ?? '#888' }}>
                   {(cp.tier ?? 'bronce').toUpperCase()}
@@ -424,8 +433,119 @@ function CosplaySection() {
             )}
           </div>
         ))}
+
+        {/* Actividades */}
+        {subTab === 'activities' && (
+          <>
+            {(activities as any[]).length === 0 && (
+              <div className="text-center py-16 text-[#999] text-sm">No hay actividades</div>
+            )}
+            {(activities as any[]).map((act: any) => (
+              <div key={act.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-4">
+                <div className="flex items-start justify-between gap-2 mb-2">
+                  <p className="font-black text-[#111] text-sm">{act.title}</p>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${act.active ? 'bg-green-100 text-green-700' : 'bg-[#f0f0f0] text-[#999]'}`}>
+                    {act.active ? 'Activa' : 'Inactiva'}
+                  </span>
+                </div>
+                {act.description && (
+                  <p className="text-xs text-[#666] leading-relaxed mb-2">{act.description}</p>
+                )}
+                <div className="flex gap-3 text-xs text-[#999]">
+                  <span>🎫 {act.basePoints} pts base</span>
+                  {act.deadline && <span>⏰ {new Date(act.deadline).toLocaleDateString('es-CO')}</span>}
+                  <span className="capitalize">{act.type}</span>
+                </div>
+              </div>
+            ))}
+          </>
+        )}
       </div>
 
+      {/* Modal ver solicitud completa */}
+      {viewApplication && (
+        <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
+          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between">
+              <h3 className="font-black text-[#111]">{viewApplication.artisticName ?? viewApplication.fullName}</h3>
+              <button onClick={() => setViewApplication(null)}>
+                <X size={20} className="text-[#999]" />
+              </button>
+            </div>
+            <div className="p-4 flex flex-col gap-4">
+              {viewApplication.bannerImage && (
+                <img src={viewApplication.bannerImage} className="w-full h-32 object-cover rounded-2xl" alt="" />
+              )}
+              {viewApplication.photo && (
+                <img src={viewApplication.photo} className="w-20 h-20 rounded-full object-cover border-2 border-[#e5e5e5] -mt-10 ml-4" alt="" />
+              )}
+
+              <div className="bg-[#f8f8f8] rounded-2xl p-4 flex flex-col gap-2 text-sm">
+                <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-1">Datos personales</p>
+                <p><span className="text-[#999]">Nombre:</span> {viewApplication.fullName} {viewApplication.lastName}</p>
+                <p><span className="text-[#999]">Edad:</span> {viewApplication.age} años</p>
+                <p><span className="text-[#999]">Ciudad:</span> {viewApplication.city}, {viewApplication.country}</p>
+                <p><span className="text-[#999]">Dirección:</span> {viewApplication.address}</p>
+                <p><span className="text-[#999]">Teléfono:</span> {viewApplication.phone}</p>
+                <p><span className="text-[#999]">Email:</span> {viewApplication.email}</p>
+                <p><span className="text-[#999]">Experiencia:</span> {viewApplication.experience} años</p>
+              </div>
+
+              <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-3">Redes sociales</p>
+                <div className="flex flex-col gap-2">
+                  {['instagram', 'tiktok', 'youtube', 'facebook', 'twitter'].filter(r => viewApplication[r]).map(r => (
+                    <a key={r} href={viewApplication[r]} target="_blank" rel="noopener noreferrer"
+                      className="flex items-center justify-between text-sm bg-white rounded-xl px-3 py-2 border border-[#e5e5e5]">
+                      <span className="capitalize font-medium text-[#111]">{r}</span>
+                      <span className="text-[#e5007d] text-xs ml-2 max-w-[200px] truncate">{viewApplication[r]}</span>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {viewApplication.bio && (
+                <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                  <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-2">Biografía</p>
+                  <p className="text-sm text-[#666] leading-relaxed">{viewApplication.bio}</p>
+                </div>
+              )}
+
+              <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-2">¿Por qué quiere ser representante?</p>
+                <p className="text-sm text-[#666] leading-relaxed">{viewApplication.whyIsekai}</p>
+              </div>
+
+              {viewApplication.gallery?.length > 0 && (
+                <div>
+                  <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-2">Galería</p>
+                  <div className="grid grid-cols-3 gap-2">
+                    {viewApplication.gallery.map((img: string, i: number) => (
+                      <img key={i} src={img} className="aspect-square object-cover rounded-xl" alt="" />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {viewApplication.status === 'pending' && (
+                <div className="flex gap-2 mt-2">
+                  <button onClick={() => { setApproveModal(viewApplication); setViewApplication(null); setApproveForm({ totalFollowers: 0, tier: 'bronce' }); }}
+                    className="flex-1 bg-[#111] text-white py-3 rounded-xl font-bold text-sm">
+                    ✓ Aprobar
+                  </button>
+                  <button onClick={() => { setRejectModal(viewApplication); setViewApplication(null); setRejectReason(''); }}
+                    className="flex-1 border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm">
+                    ✗ Rechazar
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal aprobar */}
       {approveModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto"
@@ -471,6 +591,7 @@ function CosplaySection() {
         </div>
       )}
 
+      {/* Modal rechazar */}
       {rejectModal && (
         <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
           <div className="bg-white w-full rounded-t-3xl p-6"
