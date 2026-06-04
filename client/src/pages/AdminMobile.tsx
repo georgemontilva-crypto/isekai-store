@@ -902,11 +902,30 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
   });
   const products = productsData?.items ?? [];
   const [editProduct, setEditProduct] = useState<any>(null);
+  const [uploading, setUploading] = useState(false);
   const updateProduct = trpc.products.update.useMutation({
     onSuccess: () => { setEditProduct(null); refetchProducts(); },
   });
+  const deleteImage = trpc.products.deleteImage.useMutation({ onSuccess: () => refetchProducts() });
+  const addImage = trpc.products.addImage.useMutation({ onSuccess: () => refetchProducts() });
+  const uploadImage = trpc.products.uploadImage.useMutation();
 
   useEffect(() => { onModalChange(!!editProduct); }, [editProduct]);
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !editProduct) return;
+    setUploading(true);
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = (reader.result as string).split(',')[1];
+      const result = await uploadImage.mutateAsync({ fileName: `products/${editProduct.id}-${Date.now()}-${file.name}`, contentType: file.type, base64Data: base64 });
+      await addImage.mutateAsync({ productId: editProduct.id, url: result.url });
+      setUploading(false);
+      refetchProducts();
+    };
+    reader.readAsDataURL(file);
+  };
 
   return (
     <div className="p-4 flex flex-col gap-3">
@@ -929,10 +948,8 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                 {p.status === 'published' ? 'Publicado' : 'Borrador'}
               </span>
             </div>
-            <button
-              onClick={e => { e.preventDefault(); setEditProduct({ ...p }); }}
-              className="w-9 h-9 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0"
-            >
+            <button onClick={() => setEditProduct({ ...p })}
+              className="w-9 h-9 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0">
               <Pencil size={15} className="text-[#666]" />
             </button>
           </div>
@@ -942,13 +959,39 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
       {/* Modal editar producto */}
       {editProduct && (
         <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
-          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+          <div className="bg-white w-full rounded-t-3xl max-h-[95vh] overflow-y-auto"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
-            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10">
-              <h3 className="font-black text-[#111]">Editar producto</h3>
+            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              <h3 className="font-black text-[#111] truncate flex-1 mr-2">{editProduct.name}</h3>
               <button onClick={() => setEditProduct(null)}><X size={20} className="text-[#999]" /></button>
             </div>
             <div className="p-4 flex flex-col gap-4">
+              {/* Galería */}
+              <div>
+                <label className="text-sm font-medium block mb-2">Imágenes del producto</label>
+                <div className="grid grid-cols-3 gap-2">
+                  {(editProduct.images ?? []).map((img: any) => (
+                    <div key={img.id} className="relative aspect-square">
+                      <img src={img.url} className="w-full h-full object-cover rounded-xl" alt="" />
+                      {(editProduct.images?.length ?? 0) > 1 && (
+                        <button onClick={() => deleteImage.mutate({ imageId: img.id })}
+                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
+                          <X size={10} />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <label className="aspect-square border-2 border-dashed border-[#e5e5e5] rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors">
+                    {uploading ? (
+                      <div className="w-5 h-5 border-2 border-[#e5007d] border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <><Plus size={20} className="text-[#ccc]" /><span className="text-[10px] text-[#ccc] mt-1">Agregar</span></>
+                    )}
+                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                  </label>
+                </div>
+              </div>
               <div>
                 <label className="text-sm font-medium block mb-1">Nombre</label>
                 <input type="text" value={editProduct.name}
@@ -956,23 +999,29 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                   className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Precio</label>
+                <label className="text-sm font-medium block mb-1">Precio (COP)</label>
                 <input type="text" value={editProduct.price}
                   onChange={e => setEditProduct({ ...editProduct, price: e.target.value })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Stock</label>
+                <input type="number" value={editProduct.stock ?? 0}
+                  onChange={e => setEditProduct({ ...editProduct, stock: parseInt(e.target.value) || 0 })}
                   className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">Estado</label>
                 <select value={editProduct.status}
                   onChange={e => setEditProduct({ ...editProduct, status: e.target.value })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] bg-white">
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none bg-white">
                   <option value="published">Publicado</option>
                   <option value="draft">Borrador</option>
                 </select>
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">Descripción</label>
-                <textarea value={editProduct.description ?? ''} rows={3}
+                <textarea value={editProduct.description ?? ''} rows={4}
                   onChange={e => setEditProduct({ ...editProduct, description: e.target.value })}
                   className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
               </div>
@@ -980,13 +1029,167 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                 <button onClick={() => setEditProduct(null)}
                   className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
                 <button
-                  onClick={() => updateProduct.mutate({ id: editProduct.id, name: editProduct.name, price: editProduct.price, status: editProduct.status, description: editProduct.description })}
+                  onClick={() => updateProduct.mutate({ id: editProduct.id, name: editProduct.name, price: editProduct.price, status: editProduct.status, description: editProduct.description, stock: editProduct.stock })}
                   disabled={updateProduct.isPending}
                   className="flex-1 bg-[#111] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
-                  {updateProduct.isPending ? 'Guardando...' : 'Guardar'}
+                  {updateProduct.isPending ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
               <a href="/admin" className="text-center text-xs text-[#e5007d] underline">Ir al editor completo →</a>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============ SECCIÓN: BLOG ============
+function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
+  const { user, isAuthenticated } = useAuth();
+  const { data: posts = [], refetch } = trpc.blog.getAllPosts.useQuery(
+    {},
+    { enabled: isAuthenticated && user?.role === 'admin' },
+  );
+  const { data: categories = [] } = trpc.blog.getCategories.useQuery();
+  const [showNew, setShowNew] = useState(false);
+  const [form, setForm] = useState({ title: '', excerpt: '', content: '', category: '', status: 'draft' as 'draft' | 'published', metaTitle: '', metaDescription: '' });
+  const [coverImage, setCoverImage] = useState('');
+  const uploadImage = trpc.products.uploadImage.useMutation();
+  const createPost = trpc.blog.createPost.useMutation({
+    onSuccess: () => { setShowNew(false); setForm({ title: '', excerpt: '', content: '', category: '', status: 'draft', metaTitle: '', metaDescription: '' }); setCoverImage(''); refetch(); },
+  });
+  const deletePost = trpc.blog.deletePost.useMutation({ onSuccess: () => refetch() });
+
+  useEffect(() => { onModalChange(showNew); }, [showNew]);
+
+  const handleCoverUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = (reader.result as string).split(',')[1];
+      const result = await uploadImage.mutateAsync({ fileName: `blog/${Date.now()}-${file.name}`, contentType: file.type, base64Data: base64 });
+      setCoverImage(result.url);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="p-4 flex flex-col gap-3">
+      <button onClick={() => setShowNew(true)}
+        className="w-full bg-[#e5007d] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+        <Plus size={18} /> Nuevo artículo
+      </button>
+
+      {(posts as any[]).map((post: any) => (
+        <div key={post.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+          {post.coverImage && (
+            <img src={post.coverImage} className="w-full h-32 object-cover rounded-xl mb-3" alt="" />
+          )}
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-sm text-[#111]">{post.title}</p>
+              <div className="flex items-center gap-2 mt-1">
+                <span className={`text-xs font-semibold ${post.status === 'published' ? 'text-green-500' : 'text-[#999]'}`}>
+                  {post.status === 'published' ? 'Publicado' : 'Borrador'}
+                </span>
+                {post.category && <span className="text-xs text-[#999]">· {post.category}</span>}
+                <span className="text-xs text-[#999]">· {post.views ?? 0} vistas</span>
+              </div>
+            </div>
+            <button onClick={() => { if (confirm(`¿Eliminar "${post.title}"?`)) deletePost.mutate({ id: post.id }); }}
+              className="text-red-400 p-1 flex-shrink-0"><X size={16} /></button>
+          </div>
+        </div>
+      ))}
+
+      {/* Modal nuevo artículo */}
+      {showNew && (
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
+          <div className="bg-white w-full rounded-t-3xl max-h-[95vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              <h3 className="font-black text-[#111]">Nuevo artículo</h3>
+              <button onClick={() => setShowNew(false)}><X size={20} className="text-[#999]" /></button>
+            </div>
+            <div className="p-4 flex flex-col gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-2">Imagen de portada</label>
+                {coverImage ? (
+                  <div className="relative">
+                    <img src={coverImage} className="w-full h-40 object-cover rounded-xl" alt="" />
+                    <button onClick={() => setCoverImage('')}
+                      className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center">
+                      <X size={14} />
+                    </button>
+                  </div>
+                ) : (
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e5e5e5] rounded-xl cursor-pointer hover:border-[#e5007d] transition-colors">
+                    <Package size={24} className="text-[#ccc] mb-2" />
+                    <span className="text-xs text-[#999]">Subir imagen de portada</span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
+                  </label>
+                )}
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Título *</label>
+                <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
+                  placeholder="Título del artículo"
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Extracto</label>
+                <textarea value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })}
+                  rows={2} placeholder="Resumen breve del artículo..."
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Contenido</label>
+                <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })}
+                  rows={8} placeholder="Contenido del artículo (HTML soportado)..."
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none font-mono" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium block mb-1">Categoría</label>
+                  <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
+                    className="w-full border border-[#e5e5e5] rounded-xl px-3 py-3 text-sm outline-none bg-white">
+                    <option value="">Sin categoría</option>
+                    {(categories as any[]).map((c: any) => (
+                      <option key={c.id} value={c.name}>{c.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-1">Estado</label>
+                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'draft' | 'published' })}
+                    className="w-full border border-[#e5e5e5] rounded-xl px-3 py-3 text-sm outline-none bg-white">
+                    <option value="draft">Borrador</option>
+                    <option value="published">Publicar</option>
+                  </select>
+                </div>
+              </div>
+              <div className="bg-[#f8f8f8] rounded-2xl p-4 flex flex-col gap-3">
+                <p className="text-xs font-bold text-[#999] uppercase tracking-wider">SEO</p>
+                <input type="text" value={form.metaTitle} onChange={e => setForm({ ...form, metaTitle: e.target.value })}
+                  placeholder="Meta título (opcional)"
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none bg-white" />
+                <textarea value={form.metaDescription} onChange={e => setForm({ ...form, metaDescription: e.target.value })}
+                  rows={2} placeholder="Meta descripción (opcional)"
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none bg-white resize-none" />
+              </div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowNew(false)}
+                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
+                <button
+                  onClick={() => createPost.mutate({ ...form, coverImage: coverImage || undefined })}
+                  disabled={!form.title || createPost.isPending}
+                  className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                  {createPost.isPending ? 'Creando...' : form.status === 'published' ? 'Publicar' : 'Guardar borrador'}
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1169,6 +1372,7 @@ export default function AdminMobile() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [cosplayHasModal, setCosplayHasModal] = useState(false);
   const [productsHasModal, setProductsHasModal] = useState(false);
+  const [blogHasModal, setBlogHasModal] = useState(false);
   const markRead = trpc.notifications.markAllRead.useMutation({
     onSuccess: () => refetchNotifications(),
   });
@@ -1181,7 +1385,7 @@ export default function AdminMobile() {
 
   const pendingPaymentsCount = pendingPaymentsData?.items?.length ?? 0;
   const unreadCount = (notifications as any[]).filter((n: any) => !n.read).length;
-  const hasModalOpen = cosplayHasModal || productsHasModal || showNotifications;
+  const hasModalOpen = cosplayHasModal || productsHasModal || blogHasModal || showNotifications;
 
   const TABS = [
     { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
@@ -1249,7 +1453,7 @@ export default function AdminMobile() {
         {activeTab === 'categories'  && <CategoriesSection />}
         {activeTab === 'faq'         && <FAQSection />}
         {activeTab === 'users'       && <UsersSection />}
-        {activeTab === 'blog'        && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar el blog.</div>}
+        {activeTab === 'blog'        && <BlogSection onModalChange={setBlogHasModal} />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
       </div>
 
