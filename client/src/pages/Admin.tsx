@@ -1331,7 +1331,7 @@ export default function Admin() {
               <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Pedidos</h1>
-                  <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 bg-[#111] text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                  <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 bg-[#111] text-white px-5 py-3.5 rounded-xl text-sm font-bold">
                     <Plus size={16} /> Crear pedido
                   </button>
                 </div>

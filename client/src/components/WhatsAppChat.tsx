@@ -85,17 +85,40 @@ export function WhatsAppChat() {
         </div>
       )}
 
-      {/* Botón flotante */}
-      <button
-        onClick={() => setOpen(!open)}
-        className="w-14 h-14 bg-[#25D366] rounded-full shadow-lg flex items-center justify-center hover:bg-[#20b858] transition-all hover:scale-110 active:scale-95"
-        aria-label="Chat por WhatsApp"
-      >
-        {open
-          ? <X size={22} className="text-white" />
-          : <MessageCircle size={24} className="text-white" />
-        }
-      </button>
+      {/* Contenedor del botón con texto en arco */}
+      <div className="relative flex items-center justify-center w-20 h-20">
+
+        {/* SVG con texto en semicírculo — solo cuando está cerrado */}
+        {!open && (
+          <svg
+            viewBox="0 0 80 80"
+            className="absolute inset-0 w-full h-full"
+            style={{ pointerEvents: 'none' }}
+          >
+            <defs>
+              <path id="topArc" d="M 10,40 A 30,30 0 0,1 70,40" />
+            </defs>
+            <text fontSize="7.5" fontWeight="800" fill="#25D366" fontFamily="system-ui, sans-serif">
+              <textPath href="#topArc" startOffset="50%" textAnchor="middle">
+                Cotiza tu pieza aquí
+              </textPath>
+            </text>
+          </svg>
+        )}
+
+        {/* Botón flotante */}
+        <button
+          onClick={() => setOpen(!open)}
+          className="w-14 h-14 bg-[#25D366] rounded-full shadow-lg flex items-center justify-center hover:bg-[#20b858] transition-all hover:scale-110 active:scale-95 relative z-10"
+          aria-label="Chat por WhatsApp"
+        >
+          {open
+            ? <X size={22} className="text-white" />
+            : <MessageCircle size={24} className="text-white" />
+          }
+        </button>
+
+      </div>
 
     </div>
   );
