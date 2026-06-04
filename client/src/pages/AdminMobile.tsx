@@ -5,13 +5,14 @@ import {
   ShoppingBag, CreditCard, Sparkles, Package,
   BarChart3, Bell, ChevronRight, Check,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
-  LogOut, Settings, Menu, ChevronDown, Eye,
+  LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
   Tag, MessageCircle, Megaphone, BookOpen, Link, Users,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
 // ============ TIPOS ============
-type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more';
+type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -145,28 +146,31 @@ function OrdersSection() {
         {orders.map((order: any) => (
           <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
 
-            {/* Header — sin truncar, altura automática */}
             <button
               onClick={() => setExpanded(expanded === order.id ? null : order.id)}
-              className="w-full px-4 py-4 flex items-start justify-between text-left gap-3"
+              className="w-full px-4 py-4 text-left"
             >
-              <div className="flex-1">
-                <div className="flex items-center gap-2 flex-wrap mb-1">
-                  <p className="font-bold text-sm text-[#111]">{order.orderNumber}</p>
-                  {order.hasSecretGift && <Gift size={12} className="text-orange-500" />}
-                  <StatusBadge status={order.status} />
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex flex-wrap items-center gap-2 mb-1">
+                    <p className="font-bold text-sm text-[#111]">{order.orderNumber}</p>
+                    {order.hasSecretGift && <Gift size={12} className="text-orange-500" />}
+                  </div>
+                  <p className="text-xs text-[#999]">{order.customerName}</p>
+                  <p className="text-xs text-[#999]">{order.customerEmail}</p>
+                  {order.items?.length > 0 && (
+                    <div className="mt-1.5">
+                      {order.items.map((item: any, i: number) => (
+                        <p key={i} className="text-xs text-[#666] font-medium">• {item.productName} ×{item.quantity}</p>
+                      ))}
+                    </div>
+                  )}
+                  <div className="mt-2"><StatusBadge status={order.status} /></div>
                 </div>
-                <p className="text-xs text-[#999]">{order.customerName}</p>
-                <p className="text-xs text-[#999]">{order.customerEmail}</p>
-                {order.items?.length > 0 && (
-                  <p className="text-xs text-[#666] mt-1">
-                    {order.items.map((i: any) => `${i.productName} ×${i.quantity}`).join(', ')}
-                  </p>
-                )}
-              </div>
-              <div className="flex-shrink-0 text-right">
-                <p className="text-sm font-black text-[#111]">${parseFloat(order.total ?? 0).toLocaleString('es-CO')}</p>
-                <ChevronDown size={16} className={`text-[#999] mt-1 ml-auto transition-transform ${expanded === order.id ? 'rotate-180' : ''}`} />
+                <div className="flex-shrink-0 text-right">
+                  <p className="text-sm font-black text-[#111]">${parseFloat(order.total ?? 0).toLocaleString('es-CO')}</p>
+                  <ChevronDown size={16} className={`text-[#999] mt-2 ml-auto transition-transform ${expanded === order.id ? 'rotate-180' : ''}`} />
+                </div>
               </div>
             </button>
 
@@ -883,21 +887,25 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
 }
 
 // ============ SECCIÓN: PRODUCTOS ============
-function ProductsSection() {
+function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
   const { user, isAuthenticated } = useAuth();
-  const { data: productsData } = trpc.products.adminList.useQuery(undefined, {
+  const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'admin',
   });
   const products = productsData?.items ?? [];
+  const [editProduct, setEditProduct] = useState<any>(null);
+  const updateProduct = trpc.products.update.useMutation({
+    onSuccess: () => { setEditProduct(null); refetchProducts(); },
+  });
+
+  useEffect(() => { onModalChange(!!editProduct); }, [editProduct]);
 
   return (
     <div className="p-4 flex flex-col gap-3">
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-black text-[#111]">Productos ({products.length})</h2>
         <a href="/admin?tab=products&action=new">
-          <button className="bg-[#e5007d] text-white px-4 py-2 rounded-xl text-xs font-bold">
-            + Nuevo
-          </button>
+          <button className="bg-[#e5007d] text-white px-4 py-2 rounded-xl text-xs font-bold">+ Nuevo</button>
         </a>
       </div>
       {(products as any[]).map((p: any) => (
@@ -913,10 +921,156 @@ function ProductsSection() {
                 {p.status === 'published' ? 'Publicado' : 'Borrador'}
               </span>
             </div>
-            <a href={`/admin?tab=products&edit=${p.id}`}
-              className="w-9 h-9 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0">
+            <button
+              onClick={e => { e.preventDefault(); setEditProduct({ ...p }); }}
+              className="w-9 h-9 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0"
+            >
               <Pencil size={15} className="text-[#666]" />
-            </a>
+            </button>
+          </div>
+        </div>
+      ))}
+
+      {/* Modal editar producto */}
+      {editProduct && (
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
+          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+            <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10">
+              <h3 className="font-black text-[#111]">Editar producto</h3>
+              <button onClick={() => setEditProduct(null)}><X size={20} className="text-[#999]" /></button>
+            </div>
+            <div className="p-4 flex flex-col gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-1">Nombre</label>
+                <input type="text" value={editProduct.name}
+                  onChange={e => setEditProduct({ ...editProduct, name: e.target.value })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Precio</label>
+                <input type="text" value={editProduct.price}
+                  onChange={e => setEditProduct({ ...editProduct, price: e.target.value })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Estado</label>
+                <select value={editProduct.status}
+                  onChange={e => setEditProduct({ ...editProduct, status: e.target.value })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] bg-white">
+                  <option value="published">Publicado</option>
+                  <option value="draft">Borrador</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Descripción</label>
+                <textarea value={editProduct.description ?? ''} rows={3}
+                  onChange={e => setEditProduct({ ...editProduct, description: e.target.value })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => setEditProduct(null)}
+                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
+                <button
+                  onClick={() => updateProduct.mutate({ id: editProduct.id, name: editProduct.name, price: editProduct.price, status: editProduct.status, description: editProduct.description })}
+                  disabled={updateProduct.isPending}
+                  className="flex-1 bg-[#111] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                  {updateProduct.isPending ? 'Guardando...' : 'Guardar'}
+                </button>
+              </div>
+              <a href="/admin" className="text-center text-xs text-[#e5007d] underline">Ir al editor completo →</a>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============ SECCIÓN: CATEGORÍAS ============
+function CategoriesSection() {
+  const { data: categories = [], refetch } = trpc.categories.list.useQuery();
+  const [newCat, setNewCat] = useState('');
+  const createCat = trpc.categories.create.useMutation({
+    onSuccess: () => { setNewCat(''); refetch(); },
+  });
+  const deleteCat = trpc.categories.delete.useMutation({ onSuccess: () => refetch() });
+
+  return (
+    <div className="p-4 flex flex-col gap-3">
+      <div className="flex gap-2">
+        <input value={newCat} onChange={e => setNewCat(e.target.value)}
+          placeholder="Nueva categoría..."
+          className="flex-1 border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+        <button
+          onClick={() => createCat.mutate({ name: newCat, slug: newCat.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })}
+          disabled={!newCat || createCat.isPending}
+          className="bg-[#e5007d] text-white px-4 rounded-xl font-bold disabled:opacity-40">
+          +
+        </button>
+      </div>
+      {(categories as any[]).map((cat: any) => (
+        <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 flex items-center justify-between shadow-sm">
+          <p className="font-medium text-[#111]">{cat.name}</p>
+          <button onClick={() => { if (confirm(`¿Eliminar "${cat.name}"?`)) deleteCat.mutate({ id: cat.id }); }}
+            className="text-red-400 hover:text-red-600 p-1">
+            <X size={16} />
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============ SECCIÓN: FAQ ============
+function FAQSection() {
+  const { data: faqs = [], refetch } = trpc.faq.adminList.useQuery();
+  const deleteFaq = trpc.faq.delete.useMutation({ onSuccess: () => refetch() });
+
+  return (
+    <div className="p-4 flex flex-col gap-3">
+      {(faqs as any[]).length === 0 && (
+        <p className="text-center text-[#999] text-sm py-8">Sin preguntas frecuentes</p>
+      )}
+      {(faqs as any[]).map((faq: any) => (
+        <div key={faq.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+          <div className="flex items-start justify-between gap-2">
+            <p className="font-medium text-sm text-[#111] flex-1">{faq.question}</p>
+            <button onClick={() => { if (confirm('¿Eliminar esta pregunta?')) deleteFaq.mutate({ id: faq.id }); }}
+              className="text-red-400 flex-shrink-0 p-1">
+              <X size={16} />
+            </button>
+          </div>
+          <p className="text-xs text-[#999] mt-1 line-clamp-2">{faq.answer}</p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ============ SECCIÓN: USUARIOS ============
+function UsersSection() {
+  const { data: users = [] } = trpc.users.list.useQuery({});
+  const updateRole = trpc.users.updateRole.useMutation();
+
+  return (
+    <div className="p-4 flex flex-col gap-3">
+      {(users as any[]).map((user: any) => (
+        <div key={user.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-[#111] text-white flex items-center justify-center font-bold flex-shrink-0">
+              {user.name?.charAt(0).toUpperCase() ?? '?'}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium text-sm text-[#111] truncate">{user.name}</p>
+              <p className="text-xs text-[#999] truncate">{user.email}</p>
+            </div>
+            <select value={user.role}
+              onChange={e => updateRole.mutate({ userId: user.id, role: e.target.value as 'user' | 'admin' })}
+              className="text-xs border border-[#e5e5e5] rounded-lg px-2 py-1 outline-none bg-white">
+              <option value="user">Cliente</option>
+              <option value="admin">Admin</option>
+            </select>
           </div>
         </div>
       ))}
@@ -925,24 +1079,22 @@ function ProductsSection() {
 }
 
 // ============ SECCIÓN: MÁS ============
-function MoreSection({ onLogout }: { onLogout: () => void }) {
+function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigate: (tab: MobileTab) => void }) {
   const sections = [
     {
       title: 'Gestión',
       items: [
-        { label: 'Categorías',       href: '/admin#categories', icon: Tag },
-        { label: 'FAQ',              href: '/admin#faq',        icon: MessageCircle },
-        { label: 'Popups',           href: '/admin#popups',     icon: Megaphone },
-        { label: 'Blog',             href: '/admin#blog',       icon: BookOpen },
-        { label: 'LinkBio',          href: '/admin#linkbio',    icon: Link },
-        { label: 'Usuarios',         href: '/admin#users',      icon: Users },
+        { label: 'Categorías', tab: 'categories' as MobileTab, icon: Tag },
+        { label: 'FAQ',        tab: 'faq'        as MobileTab, icon: MessageCircle },
+        { label: 'Usuarios',   tab: 'users'      as MobileTab, icon: Users },
+        { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
+        { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
       ],
     },
     {
-      title: 'Configuración',
+      title: 'Herramientas',
       items: [
-        { label: 'Ajustes generales', href: '/admin#settings', icon: Settings },
-        { label: 'Ver tienda',        href: '/',               icon: Eye },
+        { label: 'Ver tienda', tab: null, href: '/', icon: Eye },
       ],
     },
   ];
@@ -953,20 +1105,30 @@ function MoreSection({ onLogout }: { onLogout: () => void }) {
         <div key={si}>
           <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">{section.title}</p>
           <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
-            {section.items.map((item, i) => (
-              <a key={i} href={item.href}
-                className="flex items-center justify-between px-4 py-3.5 border-b border-[#f0f0f0] last:border-0 active:bg-[#f8f8f8]">
-                <div className="flex items-center gap-3">
-                  <item.icon size={18} className="text-[#666]" />
-                  <span className="text-sm font-medium text-[#111]">{item.label}</span>
-                </div>
-                <ChevronRight size={16} className="text-[#ccc]" />
-              </a>
+            {(section.items as any[]).map((item: any, i) => (
+              item.href ? (
+                <a key={i} href={item.href}
+                  className="flex items-center justify-between px-4 py-3.5 border-b border-[#f0f0f0] last:border-0 active:bg-[#f8f8f8]">
+                  <div className="flex items-center gap-3">
+                    <item.icon size={18} className="text-[#666]" />
+                    <span className="text-sm font-medium text-[#111]">{item.label}</span>
+                  </div>
+                  <ChevronRight size={16} className="text-[#ccc]" />
+                </a>
+              ) : (
+                <button key={i} onClick={() => onNavigate(item.tab)}
+                  className="w-full flex items-center justify-between px-4 py-3.5 border-b border-[#f0f0f0] last:border-0 active:bg-[#f8f8f8]">
+                  <div className="flex items-center gap-3">
+                    <item.icon size={18} className="text-[#666]" />
+                    <span className="text-sm font-medium text-[#111]">{item.label}</span>
+                  </div>
+                  <ChevronRight size={16} className="text-[#ccc]" />
+                </button>
+              )
             ))}
           </div>
         </div>
       ))}
-
       <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
         <button onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-4 text-red-500 active:bg-red-50">
@@ -998,6 +1160,7 @@ export default function AdminMobile() {
   });
   const [showNotifications, setShowNotifications] = useState(false);
   const [cosplayHasModal, setCosplayHasModal] = useState(false);
+  const [productsHasModal, setProductsHasModal] = useState(false);
   const markRead = trpc.notifications.markAllRead.useMutation({
     onSuccess: () => refetchNotifications(),
   });
@@ -1010,7 +1173,7 @@ export default function AdminMobile() {
 
   const pendingPaymentsCount = pendingPaymentsData?.items?.length ?? 0;
   const unreadCount = (notifications as any[]).filter((n: any) => !n.read).length;
-  const hasModalOpen = cosplayHasModal || showNotifications;
+  const hasModalOpen = cosplayHasModal || productsHasModal || showNotifications;
 
   const TABS = [
     { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
@@ -1021,9 +1184,15 @@ export default function AdminMobile() {
     { id: 'more' as MobileTab,     label: 'Más',       icon: Menu },
   ];
 
+  const EXTRA_TABS = ['categories', 'faq', 'users', 'blog', 'popups'];
+  const isExtraTab = EXTRA_TABS.includes(activeTab);
+  const EXTRA_TITLES: Record<string, string> = {
+    categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
+  };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
+    categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
   };
 
   return (
@@ -1034,10 +1203,18 @@ export default function AdminMobile() {
       <div className="bg-white border-b border-[#e5e5e5] px-4 flex items-center justify-between flex-shrink-0"
         style={{ height: '52px' }}>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 bg-[#0d0d0d] rounded-lg flex items-center justify-center">
-            <span className="text-white text-xs font-black">IW</span>
-          </div>
-          <span className="font-black text-[#111] text-sm">{SECTION_TITLES[activeTab]}</span>
+          {isExtraTab ? (
+            <button onClick={() => setActiveTab('more')} className="p-1 -ml-1">
+              <ArrowLeft size={20} className="text-[#111]" />
+            </button>
+          ) : (
+            <div className="w-7 h-7 bg-[#0d0d0d] rounded-lg flex items-center justify-center">
+              <span className="text-white text-xs font-black">IW</span>
+            </div>
+          )}
+          <span className="font-black text-[#111] text-sm">
+            {isExtraTab ? EXTRA_TITLES[activeTab] : SECTION_TITLES[activeTab]}
+          </span>
         </div>
 
         <button
@@ -1058,9 +1235,14 @@ export default function AdminMobile() {
         {activeTab === 'stats'    && <StatsSection />}
         {activeTab === 'orders'   && <OrdersSection />}
         {activeTab === 'payments' && <PaymentsSection />}
-        {activeTab === 'cosplay'  && <CosplaySection onModalChange={setCosplayHasModal} />}
-        {activeTab === 'products' && <ProductsSection />}
-        {activeTab === 'more'     && <MoreSection onLogout={logout} />}
+        {activeTab === 'cosplay'     && <CosplaySection onModalChange={setCosplayHasModal} />}
+        {activeTab === 'products'    && <ProductsSection onModalChange={setProductsHasModal} />}
+        {activeTab === 'more'        && <MoreSection onLogout={logout} onNavigate={setActiveTab} />}
+        {activeTab === 'categories'  && <CategoriesSection />}
+        {activeTab === 'faq'         && <FAQSection />}
+        {activeTab === 'users'       && <UsersSection />}
+        {activeTab === 'blog'        && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar el blog.</div>}
+        {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
       </div>
 
       {/* Modal notificaciones */}
