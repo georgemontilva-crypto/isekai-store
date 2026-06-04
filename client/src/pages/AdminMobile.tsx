@@ -144,7 +144,7 @@ function OrdersSection() {
           <div className="text-center py-16 text-[#999] text-sm">No hay pedidos</div>
         )}
         {orders.map((order: any) => (
-          <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+          <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm">
 
             <button
               onClick={() => setExpanded(expanded === order.id ? null : order.id)}
