@@ -4,7 +4,7 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import {
   ShoppingBag, CreditCard, Sparkles, Package,
   BarChart3, Bell, ChevronRight, Check,
-  TrendingUp, Gift, ExternalLink, Pencil, X,
+  TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
   LogOut, Settings, Menu, ChevronDown, Eye,
   Tag, MessageCircle, Megaphone, BookOpen, Link, Users,
 } from 'lucide-react';
@@ -308,9 +308,18 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
     undefined,
     { enabled: isAuthenticated && user?.role === 'admin' },
   );
-  const { data: activities = [] } = trpc.cosplay.getAllActivities.useQuery(undefined, {
+  const { data: activitiesData = [], refetch: refetchActivities } = trpc.cosplay.getAllActivities.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'admin',
   });
+  const [expandedActivity, setExpandedActivity] = useState<number | null>(null);
+  const [showNewActivity, setShowNewActivity] = useState(false);
+  const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post', deadline: '' });
+
+  const createActivity = trpc.cosplay.createActivity.useMutation({
+    onSuccess: () => { setShowNewActivity(false); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '' }); refetchActivities(); },
+  });
+  const deleteActivity = trpc.cosplay.deleteActivity.useMutation({ onSuccess: () => refetchActivities() });
+  const updateActivityMut = trpc.cosplay.updateActivity.useMutation({ onSuccess: () => refetchActivities() });
   const [viewApplication, setViewApplication] = useState<any>(null);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [approveModal, setApproveModal] = useState<any>(null);
@@ -327,8 +336,8 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
   });
 
   useEffect(() => {
-    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal || grantTicketsModal));
-  }, [viewApplication, lightboxImg, approveModal, rejectModal, grantTicketsModal]);
+    onModalChange(!!(viewApplication || lightboxImg || approveModal || rejectModal || grantTicketsModal || showNewActivity));
+  }, [viewApplication, lightboxImg, approveModal, rejectModal, grantTicketsModal, showNewActivity]);
 
   const TIER_BY_FOLLOWERS = (f: number) => {
     if (f >= 300000) return 'platino';
@@ -459,25 +468,74 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
         {/* Actividades */}
         {subTab === 'activities' && (
           <>
-            {(activities as any[]).length === 0 && (
-              <div className="text-center py-16 text-[#999] text-sm">No hay actividades</div>
+            <button
+              onClick={() => setShowNewActivity(true)}
+              className="w-full bg-[#e5007d] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2"
+            >
+              <Plus size={18} />
+              Nueva actividad
+            </button>
+
+            {(activitiesData as any[]).length === 0 && (
+              <div className="text-center py-12 text-[#999] text-sm">No hay actividades</div>
             )}
-            {(activities as any[]).map((act: any) => (
-              <div key={act.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-4">
-                <div className="flex items-start justify-between gap-2 mb-2">
-                  <p className="font-black text-[#111] text-sm">{act.title}</p>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold flex-shrink-0 ${act.active ? 'bg-green-100 text-green-700' : 'bg-[#f0f0f0] text-[#999]'}`}>
-                    {act.active ? 'Activa' : 'Inactiva'}
-                  </span>
-                </div>
-                {act.description && (
-                  <p className="text-xs text-[#666] leading-relaxed mb-2">{act.description}</p>
+
+            {(activitiesData as any[]).map((act: any) => (
+              <div key={act.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+                <button
+                  onClick={() => setExpandedActivity(expandedActivity === act.id ? null : act.id)}
+                  className="w-full px-4 py-4 flex items-center justify-between text-left"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${act.active ? 'bg-green-400' : 'bg-[#ccc]'}`} />
+                      <p className="font-bold text-sm text-[#111] truncate">{act.title}</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-[#999]">
+                      <span className="bg-[#f0f0f0] px-2 py-0.5 rounded-full capitalize">{act.type}</span>
+                      <span>{act.basePoints} pts base</span>
+                    </div>
+                  </div>
+                  <ChevronDown size={16} className={`text-[#999] ml-3 flex-shrink-0 transition-transform ${expandedActivity === act.id ? 'rotate-180' : ''}`} />
+                </button>
+
+                {expandedActivity === act.id && (
+                  <div className="border-t border-[#f0f0f0] px-4 py-4 flex flex-col gap-3">
+                    {act.description && (
+                      <p className="text-sm text-[#666] leading-relaxed">{act.description}</p>
+                    )}
+                    {act.deadline && (
+                      <p className="text-xs text-[#999]">Fecha límite: {new Date(act.deadline).toLocaleDateString('es-CO')}</p>
+                    )}
+                    <div className="bg-[#f8f8f8] rounded-xl p-3">
+                      <p className="text-xs text-[#999] mb-1">Tickets por tier:</p>
+                      <div className="grid grid-cols-5 gap-1 text-xs text-center">
+                        {[['bronce', 1], ['plata', 1.5], ['oro', 2], ['diamante', 3], ['platino', 5]].map(([tier, mult]) => (
+                          <div key={String(tier)}>
+                            <p className="text-[#999] capitalize text-[10px]">{tier}</p>
+                            <p className="font-bold text-[#111]">{Math.round(act.basePoints * Number(mult))}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => updateActivityMut.mutate({ id: act.id, active: !act.active })}
+                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-colors ${
+                          act.active ? 'border-orange-200 text-orange-500 bg-orange-50' : 'border-green-200 text-green-500 bg-green-50'
+                        }`}
+                      >
+                        {act.active ? '⏸ Desactivar' : '▶ Activar'}
+                      </button>
+                      <button
+                        onClick={() => { if (confirm(`¿Eliminar "${act.title}"? Esta acción no se puede deshacer.`)) deleteActivity.mutate({ id: act.id }); }}
+                        className="flex-1 border border-red-200 text-red-500 bg-red-50 py-2.5 rounded-xl text-xs font-bold"
+                      >
+                        🗑 Eliminar
+                      </button>
+                    </div>
+                  </div>
                 )}
-                <div className="flex gap-3 text-xs text-[#999]">
-                  <span>🎫 {act.basePoints} pts base</span>
-                  {act.deadline && <span>⏰ {new Date(act.deadline).toLocaleDateString('es-CO')}</span>}
-                  <span className="capitalize">{act.type}</span>
-                </div>
               </div>
             ))}
           </>
@@ -569,6 +627,103 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   </button>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal nueva actividad */}
+      {showNewActivity && (
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
+          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+            <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              <h3 className="font-black text-[#111]">Nueva actividad</h3>
+              <button onClick={() => setShowNewActivity(false)}>
+                <X size={20} className="text-[#999]" />
+              </button>
+            </div>
+            <div className="p-4 flex flex-col gap-4">
+              <div>
+                <label className="text-sm font-medium block mb-1">Título *</label>
+                <input
+                  type="text"
+                  value={activityForm.title}
+                  onChange={e => setActivityForm({ ...activityForm, title: e.target.value })}
+                  placeholder="Ej: Post en Instagram mencionando Isekai"
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Descripción</label>
+                <textarea
+                  value={activityForm.description}
+                  onChange={e => setActivityForm({ ...activityForm, description: e.target.value })}
+                  rows={3}
+                  placeholder="Instrucciones detalladas..."
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium block mb-1">Puntos base</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={activityForm.basePoints}
+                    onChange={e => setActivityForm({ ...activityForm, basePoints: Math.max(1, parseInt(e.target.value) || 1) })}
+                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium block mb-1">Tipo</label>
+                  <select
+                    value={activityForm.type}
+                    onChange={e => setActivityForm({ ...activityForm, type: e.target.value })}
+                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] bg-white"
+                  >
+                    <option value="post">Post</option>
+                    <option value="reel">Reel</option>
+                    <option value="tiktok">TikTok</option>
+                    <option value="story">Story</option>
+                    <option value="event">Evento</option>
+                  </select>
+                </div>
+              </div>
+              <div className="bg-[#f8f8f8] rounded-xl p-3 border border-[#e5e5e5]">
+                <p className="text-xs text-[#999] mb-2">Tickets que recibirá cada tier:</p>
+                <div className="grid grid-cols-5 gap-1 text-center text-xs">
+                  {[['Bronce', 1], ['Plata', 1.5], ['Oro', 2], ['Diamante', 3], ['Platino', 5]].map(([tier, mult]) => (
+                    <div key={String(tier)}>
+                      <p className="text-[#999] text-[10px]">{tier}</p>
+                      <p className="font-black text-[#111]">{Math.round(activityForm.basePoints * Number(mult))}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium block mb-1">Fecha límite (opcional)</label>
+                <input
+                  type="date"
+                  value={activityForm.deadline}
+                  onChange={e => setActivityForm({ ...activityForm, deadline: e.target.value })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                />
+              </div>
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => setShowNewActivity(false)}
+                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">
+                  Cancelar
+                </button>
+                <button
+                  onClick={() => createActivity.mutate(activityForm)}
+                  disabled={!activityForm.title || createActivity.isPending}
+                  className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
+                >
+                  {createActivity.isPending ? 'Creando...' : 'Crear actividad'}
+                </button>
+              </div>
             </div>
           </div>
         </div>

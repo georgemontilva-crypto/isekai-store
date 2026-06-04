@@ -35,6 +35,7 @@ import {
   getMyCosplayerDiscountCodes, getCosplayApplications, approveCosplayApplication,
   rejectCosplayApplication, getAllCosplayers, updateCosplayerTier, suspendCosplayer,
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
+  deleteCosplayActivity, updateCosplayActivity,
   evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
@@ -917,6 +918,23 @@ export const appRouter = router({
     toggleActivity: adminProcedure
       .input(z.object({ id: z.number(), active: z.boolean() }))
       .mutation(({ input }) => toggleCosplayActivity(input.id, input.active)),
+
+    deleteActivity: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteCosplayActivity(input.id)),
+
+    updateActivity: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        active: z.boolean().optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
+        basePoints: z.number().optional(),
+      }))
+      .mutation(({ input }) => {
+        const { id, ...data } = input;
+        return updateCosplayActivity(id, data);
+      }),
 
     evaluateSubmission: adminProcedure
       .input(z.object({

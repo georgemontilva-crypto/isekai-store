@@ -1421,6 +1421,18 @@ export async function toggleCosplayActivity(id: number, active: boolean) {
   await db.update(cosplayActivities).set({ active }).where(eq(cosplayActivities.id, id));
 }
 
+export async function deleteCosplayActivity(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(cosplayActivities).where(eq(cosplayActivities.id, id));
+}
+
+export async function updateCosplayActivity(id: number, data: { active?: boolean; title?: string; description?: string; basePoints?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayActivities).set(data).where(eq(cosplayActivities.id, id));
+}
+
 export async function getMyCosplayerSubmissions(userId: number) {
   const db = await getDb();
   if (!db) return [];
