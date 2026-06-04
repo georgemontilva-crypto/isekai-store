@@ -466,7 +466,7 @@ function CosplaySection() {
 
       {/* Modal ver solicitud completa */}
       {viewApplication && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
           <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
@@ -557,7 +557,7 @@ function CosplaySection() {
       {/* Lightbox */}
       {lightboxImg && (
         <div
-          className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4"
+          className="fixed inset-0 bg-black/95 z-[200] flex items-center justify-center p-4"
           onClick={() => setLightboxImg(null)}
         >
           <button
@@ -578,7 +578,7 @@ function CosplaySection() {
 
       {/* Modal aprobar */}
       {approveModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
           <div className="bg-white w-full rounded-t-3xl p-6 max-h-[85vh] overflow-y-auto"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="w-10 h-1 bg-[#e5e5e5] rounded-full mx-auto mb-4" />
@@ -624,7 +624,7 @@ function CosplaySection() {
 
       {/* Modal rechazar */}
       {rejectModal && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
           <div className="bg-white w-full rounded-t-3xl p-6"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="w-10 h-1 bg-[#e5e5e5] rounded-full mx-auto mb-4" />
@@ -832,7 +832,7 @@ export default function AdminMobile() {
 
       {/* Modal notificaciones */}
       {showNotifications && (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-end">
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
           <div className="bg-white w-full rounded-t-3xl max-h-[70vh] overflow-y-auto"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
             <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between">
@@ -872,7 +872,7 @@ export default function AdminMobile() {
 
       {/* Bottom Tab Bar */}
       <div className="bg-white border-t border-[#e5e5e5] flex-shrink-0"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)', backgroundColor: 'rgba(255,255,255,1)' }}>
         <div className="flex">
           {TABS.map(tab => (
             <button key={tab.id}
