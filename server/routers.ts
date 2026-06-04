@@ -1,10 +1,12 @@
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
+import { eq, desc, like } from "drizzle-orm";
 import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted } from "./_core/notification";
+import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
+import { orders, orderItems } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
@@ -39,7 +41,7 @@ import {
   evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
-  deleteCosplayer, grantTicketsManually, createManualOrder, findUserByEmail,
+  deleteCosplayer, grantTicketsManually, findUserByEmail, getDb,
   getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
   incrementBlogViews, getBlogCategories, createBlogCategory, deleteBlogCategory,
   getBlogComments, getAllBlogComments, createBlogComment, updateBlogCommentStatus, deleteBlogComment,
@@ -477,24 +479,91 @@ export const appRouter = router({
         })),
         total: z.string(),
         notes: z.string().optional(),
-        shippingAddress: z.object({
-          street: z.string().optional(),
-          city: z.string().optional(),
-          country: z.string().optional(),
-        }).optional(),
       }))
       .mutation(async ({ input }) => {
-        const result = await createManualOrder(input);
-        try {
-          await notifyCustomerOrderStatus(
-            input.customerEmail,
-            input.customerName,
-            result.orderNumber,
-            '¡Tu pedido ha sido creado!',
-            `Tu pedido ha sido registrado. Total: $${input.total} COP. Nos pondremos en contacto para coordinar la entrega.`,
-          );
-        } catch { /* non-critical */ }
-        return result;
+        const db = await getDb();
+        if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
+
+        // Generar número de orden consecutivo
+        const lastOrder = await db.select({ orderNumber: orders.orderNumber })
+          .from(orders)
+          .where(like(orders.orderNumber, 'IW-%'))
+          .orderBy(desc(orders.createdAt))
+          .limit(1);
+
+        let nextNum = 1;
+        if (lastOrder[0]) {
+          const parts = lastOrder[0].orderNumber.split('-');
+          const lastNum = parseInt(parts[1]);
+          if (!isNaN(lastNum)) nextNum = lastNum + 1;
+        }
+        const orderNumber = `IW-${String(nextNum).padStart(6, '0')}`;
+
+        // Insertar orden
+        await db.insert(orders).values({
+          orderNumber,
+          userId: input.userId ?? null,
+          customerName: input.customerName,
+          customerEmail: input.customerEmail,
+          customerPhone: input.customerPhone ?? '',
+          shippingAddress: JSON.stringify({ street: '', city: '', country: '' }),
+          total: input.total,
+          subtotal: input.total,
+          status: 'pending',
+          paymentStatus: 'approved',
+          notes: input.notes ?? '',
+        });
+
+        // Obtener la orden recién creada
+        const [newOrder] = await db.select().from(orders)
+          .where(eq(orders.orderNumber, orderNumber));
+
+        if (!newOrder) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al crear la orden' });
+
+        // Insertar items
+        for (const item of input.items) {
+          await db.insert(orderItems).values({
+            orderId: newOrder.id,
+            productName: item.productName,
+            quantity: item.quantity,
+            price: item.price,
+          });
+        }
+
+        // Email al cliente
+        const itemsList = input.items
+          .map(i => `<p>• ${i.productName} ×${i.quantity} — $${parseFloat(i.price).toLocaleString('es-CO')} COP</p>`)
+          .join('');
+
+        await sendEmail(
+          input.customerEmail,
+          `Tu pedido ${orderNumber} ha sido creado — Isekai World`,
+          `
+        <h1>¡Tu pedido está confirmado!</h1>
+        <p>Hola <strong>${input.customerName}</strong>, hemos creado tu pedido en Isekai World.</p>
+        <div class="order-box">
+          <p><strong>N° de orden:</strong> <span class="highlight">${orderNumber}</span></p>
+          <p><strong>Productos:</strong></p>
+          ${itemsList}
+          <p style="margin-top:8px"><strong>Total:</strong> $${parseFloat(input.total).toLocaleString('es-CO')} COP</p>
+          ${input.notes ? `<p><strong>Notas:</strong> ${input.notes}</p>` : ''}
+        </div>
+        <p>Puedes seguir el estado de tu pedido en tiempo real desde tu cuenta.</p>
+        <div style="text-align:center">
+          <a href="https://isekaiworld.co/account" class="btn">Ver mi pedido →</a>
+        </div>
+      `,
+          `Tu pedido ${orderNumber} fue confirmado`
+        );
+
+        // Notificación interna admin
+        await insertAdminNotification({
+          type: 'new_order',
+          title: `📦 Pedido manual creado`,
+          body: `${orderNumber} — ${input.customerName} · $${parseFloat(input.total).toLocaleString('es-CO')} COP`,
+        });
+
+        return { success: true, orderNumber, id: newOrder.id };
       }),
 
     uploadReceipt: protectedProcedure

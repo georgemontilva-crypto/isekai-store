@@ -162,7 +162,7 @@ export type InsertOrder = typeof orders.$inferInsert;
 export const orderItems = mysqlTable("orderItems", {
   id: int("id").autoincrement().primaryKey(),
   orderId: int("orderId").notNull().references(() => orders.id),
-  productId: int("productId").notNull().references(() => products.id),
+  productId: int("productId").references(() => products.id),
   variantId: int("variantId").references(() => productVariants.id),
   productName: varchar("productName", { length: 256 }).notNull(),
   variantName: varchar("variantName", { length: 128 }),

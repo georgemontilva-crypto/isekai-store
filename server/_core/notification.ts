@@ -94,7 +94,7 @@ function emailTemplate(content: string, previewText: string = ''): string {
 
 // ─── sendEmail helper ─────────────────────────────────────────────────────────
 
-async function sendEmail(to: string, subject: string, content: string, previewText?: string): Promise<boolean> {
+export async function sendEmail(to: string, subject: string, content: string, previewText?: string): Promise<boolean> {
   if (!ENV.resendApiKey) return false;
   try {
     const res = await fetch("https://api.resend.com/emails", {
