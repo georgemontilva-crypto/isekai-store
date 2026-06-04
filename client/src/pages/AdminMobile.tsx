@@ -285,7 +285,7 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
               {/* Contenido scrolleable */}
               <div
                 className="flex-1 overflow-y-auto flex flex-col gap-4"
-                style={{ WebkitOverflowScrolling: 'touch' as any, padding: '16px', paddingBottom: '16px' }}
+                style={{ WebkitOverflowScrolling: 'touch' as any, padding: '16px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 120px)' }}
               >
 
                 <div>
@@ -405,8 +405,8 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
 
               {/* Botón fijo abajo */}
               <div
-                className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4"
-                style={{ paddingTop: '12px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+                className="flex-shrink-0 border-t border-[#e5e5e5]"
+                style={{ paddingTop: '12px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)', paddingLeft: '16px', paddingRight: '16px', backgroundColor: 'white' }}
               >
                 <button
                   onClick={() => setShowConfirm(true)}
