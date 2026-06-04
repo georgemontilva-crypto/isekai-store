@@ -766,6 +766,48 @@ export async function updateOrderPaymentStatus(orderNumber: string, paymentStatu
     .where(eq(orders.orderNumber, orderNumber));
 }
 
+export async function createManualOrder(input: {
+  customerName: string;
+  customerEmail: string;
+  customerPhone?: string;
+  userId?: number | null;
+  items: Array<{ productName: string; quantity: number; price: string }>;
+  total: string;
+  notes?: string;
+  shippingAddress?: Record<string, any>;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error('DB not available');
+  const orderNumber = `IW-${Date.now()}-MAN`;
+  const itemsText = input.items.map(i => `• ${i.productName} ×${i.quantity} @ $${i.price}`).join('\n');
+  const fullNotes = [input.notes, itemsText].filter(Boolean).join('\n\n');
+  await db.insert(orders).values({
+    orderNumber,
+    userId: input.userId ?? null,
+    customerName: input.customerName,
+    customerEmail: input.customerEmail,
+    customerPhone: input.customerPhone ?? '',
+    shippingAddress: input.shippingAddress ?? {},
+    total: input.total,
+    subtotal: input.total,
+    status: 'pending',
+    paymentStatus: 'approved',
+    notes: fullNotes,
+  });
+  const [newOrder] = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber));
+  return { orderNumber, id: newOrder?.id };
+}
+
+export async function findUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const result = await db.select({ id: users.id, name: users.name, email: users.email })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+  return result[0] ?? null;
+}
+
 export async function getOrdersByPaymentStatus(paymentStatus?: string) {
   const db = await getDb();
   if (!db) return { items: [], total: 0 };

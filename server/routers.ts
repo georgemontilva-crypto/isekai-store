@@ -39,7 +39,7 @@ import {
   evaluateCosplaySubmission, getAllCosplaySubmissions, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
-  deleteCosplayer, grantTicketsManually,
+  deleteCosplayer, grantTicketsManually, createManualOrder, findUserByEmail,
   getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
   incrementBlogViews, getBlogCategories, createBlogCategory, deleteBlogCategory,
   getBlogComments, getAllBlogComments, createBlogComment, updateBlogCommentStatus, deleteBlogComment,
@@ -464,6 +464,39 @@ export const appRouter = router({
       .input(z.object({ paymentStatus: z.string().optional() }).optional())
       .query(({ input }) => getOrdersByPaymentStatus(input?.paymentStatus)),
 
+    createManual: adminProcedure
+      .input(z.object({
+        customerName: z.string().min(1).max(256),
+        customerEmail: z.string().email(),
+        customerPhone: z.string().optional(),
+        userId: z.number().optional(),
+        items: z.array(z.object({
+          productName: z.string().min(1),
+          quantity: z.number().min(1),
+          price: z.string(),
+        })),
+        total: z.string(),
+        notes: z.string().optional(),
+        shippingAddress: z.object({
+          street: z.string().optional(),
+          city: z.string().optional(),
+          country: z.string().optional(),
+        }).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const result = await createManualOrder(input);
+        try {
+          await notifyCustomerOrderStatus(
+            input.customerEmail,
+            input.customerName,
+            result.orderNumber,
+            '¡Tu pedido ha sido creado!',
+            `Tu pedido ha sido registrado. Total: $${input.total} COP. Nos pondremos en contacto para coordinar la entrega.`,
+          );
+        } catch { /* non-critical */ }
+        return result;
+      }),
+
     uploadReceipt: protectedProcedure
       .input(z.object({ fileName: z.string().max(256), fileType: z.string().max(100), fileBase64: z.string() }))
       .mutation(async ({ input }) => {
@@ -664,6 +697,10 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         return await deleteUser(input.userId);
       }),
+
+    findByEmail: adminProcedure
+      .input(z.object({ email: z.string().email() }))
+      .query(({ input }) => findUserByEmail(input.email)),
   }),
 
   // ─── Popups ──────────────────────────────────────────────────────────────────

@@ -606,6 +606,8 @@ export default function Admin() {
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
+  const [showManualOrder, setShowManualOrder] = useState(false);
+  const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] });
   const [igToken, setIgToken] = useState("");
   const [igUsername, setIgUsername] = useState("");
   const [igCtaText, setIgCtaText] = useState("");
@@ -717,6 +719,13 @@ export default function Admin() {
   const updateCategory = trpc.categories.update.useMutation({ onSuccess: () => { refetchCategories(); setEditingCategory(null); toast.success("Categoría actualizada"); } });
   const deleteCategory = trpc.categories.delete.useMutation({ onSuccess: () => { refetchCategories(); toast.success("Categoría eliminada"); } });
   const updateOrderStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => { refetchOrders(); toast.success("Estado actualizado"); } });
+  const findUserQuery = trpc.users.findByEmail.useQuery(
+    { email: manualForm.customerEmail },
+    { enabled: manualForm.customerEmail.includes('@') && manualForm.customerEmail.includes('.') },
+  );
+  const createManualOrder = trpc.orders.createManual.useMutation({
+    onSuccess: (data) => { toast.success(`Pedido ${data.orderNumber} creado`); setShowManualOrder(false); setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] }); refetchOrders(); },
+  });
   const { data: siteSettings, refetch: refetchSettings } = trpc.settings.getAdmin.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const upsertSetting = trpc.settings.upsert.useMutation({ onSuccess: () => { refetchSettings(); toast.success("Configuración guardada"); } });
 
@@ -1319,7 +1328,12 @@ export default function Admin() {
             {/* ─── Orders ─────────────────────────────────────────────────────── */}
             {tab === "orders" && (
               <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <h1 className="text-2xl font-bold mb-6">Pedidos</h1>
+                <div className="flex items-center justify-between mb-6">
+                  <h1 className="text-2xl font-bold">Pedidos</h1>
+                  <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 bg-[#111] text-white px-4 py-2 rounded-xl text-sm font-semibold">
+                    <Plus size={16} /> Crear pedido
+                  </button>
+                </div>
                 <div className="relative mb-4">
                   <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
                   <input
@@ -1424,6 +1438,98 @@ export default function Admin() {
                     </div>
                   )}
                 </div>
+                  );
+                })()}
+
+                {/* Modal crear pedido manual */}
+                {showManualOrder && (() => {
+                  const total = manualForm.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0).toFixed(0);
+                  return (
+                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                      <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
+                        <div className="flex items-center justify-between mb-6">
+                          <h3 className="text-lg font-black">Crear pedido manual</h3>
+                          <button onClick={() => setShowManualOrder(false)}><X size={20} /></button>
+                        </div>
+                        <div className="flex flex-col gap-4">
+                          <div>
+                            <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Datos del cliente</p>
+                            <div className="flex flex-col gap-3">
+                              <div>
+                                <label className="text-sm font-medium block mb-1">Email del cliente</label>
+                                <input type="email" value={manualForm.customerEmail}
+                                  onChange={e => setManualForm({ ...manualForm, customerEmail: e.target.value })}
+                                  placeholder="correo@ejemplo.com"
+                                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                                {findUserQuery.data && (
+                                  <p className="text-xs text-green-600 mt-1 font-semibold">✓ Cliente registrado: {findUserQuery.data.name}</p>
+                                )}
+                                {manualForm.customerEmail.includes('@') && !findUserQuery.data && !findUserQuery.isLoading && (
+                                  <p className="text-xs text-[#999] mt-1">Sin cuenta registrada — se enviará email igual</p>
+                                )}
+                              </div>
+                              <input type="text" value={manualForm.customerName}
+                                onChange={e => setManualForm({ ...manualForm, customerName: e.target.value })}
+                                placeholder="Nombre completo *"
+                                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                              <input type="text" value={manualForm.customerPhone}
+                                onChange={e => setManualForm({ ...manualForm, customerPhone: e.target.value })}
+                                placeholder="Teléfono"
+                                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                            </div>
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Productos / Servicios</p>
+                            <div className="flex flex-col gap-2">
+                              {manualForm.items.map((item, i) => (
+                                <div key={i} className="flex gap-2 items-center">
+                                  <input type="text" value={item.productName}
+                                    onChange={e => { const items = [...manualForm.items]; items[i].productName = e.target.value; setManualForm({ ...manualForm, items }); }}
+                                    placeholder="Nombre del producto/servicio"
+                                    className="flex-1 border border-[#e5e5e5] rounded-xl px-3 py-2 text-sm outline-none focus:border-[#111]" />
+                                  <input type="number" value={item.quantity} min={1}
+                                    onChange={e => { const items = [...manualForm.items]; items[i].quantity = parseInt(e.target.value) || 1; setManualForm({ ...manualForm, items }); }}
+                                    className="w-14 border border-[#e5e5e5] rounded-xl px-2 py-2 text-sm outline-none text-center" />
+                                  <input type="text" value={item.price}
+                                    onChange={e => { const items = [...manualForm.items]; items[i].price = e.target.value; setManualForm({ ...manualForm, items }); }}
+                                    placeholder="Precio"
+                                    className="w-24 border border-[#e5e5e5] rounded-xl px-2 py-2 text-sm outline-none" />
+                                  {manualForm.items.length > 1 && (
+                                    <button onClick={() => setManualForm({ ...manualForm, items: manualForm.items.filter((_, j) => j !== i) })} className="text-red-400 p-1">
+                                      <X size={16} />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              <button onClick={() => setManualForm({ ...manualForm, items: [...manualForm.items, { productName: '', quantity: 1, price: '' }] })}
+                                className="text-sm text-[#e5007d] font-semibold text-left">
+                                + Agregar otro producto
+                              </button>
+                            </div>
+                          </div>
+                          <div className="bg-[#f8f8f8] rounded-xl px-4 py-3 flex items-center justify-between">
+                            <span className="text-sm font-medium text-[#999]">Total</span>
+                            <span className="text-xl font-black text-[#111]">${parseInt(total).toLocaleString('es-CO')} COP</span>
+                          </div>
+                          <div>
+                            <label className="text-sm font-medium block mb-1">Notas internas</label>
+                            <textarea value={manualForm.notes} rows={2}
+                              onChange={e => setManualForm({ ...manualForm, notes: e.target.value })}
+                              placeholder="Instrucciones especiales, detalles del encargo..."
+                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111] resize-none" />
+                          </div>
+                          <div className="flex gap-3 mt-2">
+                            <button onClick={() => setShowManualOrder(false)} className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
+                            <button
+                              onClick={() => createManualOrder.mutate({ customerName: manualForm.customerName, customerEmail: manualForm.customerEmail, customerPhone: manualForm.customerPhone, userId: findUserQuery.data?.id, items: manualForm.items, total, notes: manualForm.notes })}
+                              disabled={!manualForm.customerName || !manualForm.customerEmail || createManualOrder.isPending}
+                              className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                              {createManualOrder.isPending ? 'Creando...' : 'Crear pedido'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   );
                 })()}
               </motion.div>

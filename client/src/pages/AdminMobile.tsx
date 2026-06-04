@@ -112,6 +112,15 @@ function OrdersSection() {
   );
   const orders = ordersData?.items ?? [];
   const updateStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => refetch() });
+  const [showManualOrder, setShowManualOrder] = useState(false);
+  const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] });
+  const findUserQuery = trpc.users.findByEmail.useQuery(
+    { email: manualForm.customerEmail },
+    { enabled: manualForm.customerEmail.includes('@') && manualForm.customerEmail.includes('.') },
+  );
+  const createManualOrder = trpc.orders.createManual.useMutation({
+    onSuccess: (data) => { toast.success(`Pedido ${data.orderNumber} creado`); setShowManualOrder(false); setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }] }); refetch(); },
+  });
 
   const ORDER_STEPS = [
     { key: 'pending',       label: 'Pendiente'   },
@@ -140,6 +149,10 @@ function OrdersSection() {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+        <button onClick={() => setShowManualOrder(true)}
+          className="w-full flex items-center justify-center gap-2 bg-[#111] text-white py-3 rounded-2xl font-bold text-sm">
+          <Plus size={16} /> Crear pedido manual
+        </button>
         {orders.length === 0 && (
           <div className="text-center py-16 text-[#999] text-sm">No hay pedidos</div>
         )}
@@ -246,6 +259,94 @@ function OrdersSection() {
             )}
           </div>
         ))}
+        {/* Modal crear pedido manual */}
+        {showManualOrder && (() => {
+          const total = manualForm.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0).toFixed(0);
+          return (
+            <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
+              <div className="bg-white w-full rounded-t-3xl max-h-[95vh] overflow-y-auto"
+                style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
+                <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
+                  style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+                  <h3 className="font-black text-[#111]">Crear pedido manual</h3>
+                  <button onClick={() => setShowManualOrder(false)}><X size={20} className="text-[#999]" /></button>
+                </div>
+                <div className="p-4 flex flex-col gap-4">
+                  <div>
+                    <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Datos del cliente</p>
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <input type="email" value={manualForm.customerEmail}
+                          onChange={e => setManualForm({ ...manualForm, customerEmail: e.target.value })}
+                          placeholder="Email del cliente *"
+                          className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+                        {findUserQuery.data && (
+                          <p className="text-xs text-green-600 mt-1 font-semibold">✓ Cliente registrado: {findUserQuery.data.name}</p>
+                        )}
+                      </div>
+                      <input type="text" value={manualForm.customerName}
+                        onChange={e => setManualForm({ ...manualForm, customerName: e.target.value })}
+                        placeholder="Nombre completo *"
+                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+                      <input type="text" value={manualForm.customerPhone}
+                        onChange={e => setManualForm({ ...manualForm, customerPhone: e.target.value })}
+                        placeholder="Teléfono"
+                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Productos / Servicios</p>
+                    <div className="flex flex-col gap-2">
+                      {manualForm.items.map((item, i) => (
+                        <div key={i} className="flex flex-col gap-2 bg-[#f8f8f8] rounded-xl p-3">
+                          <input type="text" value={item.productName}
+                            onChange={e => { const items = [...manualForm.items]; items[i].productName = e.target.value; setManualForm({ ...manualForm, items }); }}
+                            placeholder="Nombre del producto/servicio"
+                            className="w-full border border-[#e5e5e5] rounded-xl px-3 py-2.5 text-sm outline-none bg-white" />
+                          <div className="flex gap-2">
+                            <input type="number" value={item.quantity} min={1}
+                              onChange={e => { const items = [...manualForm.items]; items[i].quantity = parseInt(e.target.value) || 1; setManualForm({ ...manualForm, items }); }}
+                              className="w-16 border border-[#e5e5e5] rounded-xl px-2 py-2.5 text-sm outline-none text-center bg-white" />
+                            <input type="text" value={item.price}
+                              onChange={e => { const items = [...manualForm.items]; items[i].price = e.target.value; setManualForm({ ...manualForm, items }); }}
+                              placeholder="Precio COP"
+                              className="flex-1 border border-[#e5e5e5] rounded-xl px-3 py-2.5 text-sm outline-none bg-white" />
+                            {manualForm.items.length > 1 && (
+                              <button onClick={() => setManualForm({ ...manualForm, items: manualForm.items.filter((_, j) => j !== i) })}
+                                className="text-red-400 p-1"><X size={16} /></button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                      <button onClick={() => setManualForm({ ...manualForm, items: [...manualForm.items, { productName: '', quantity: 1, price: '' }] })}
+                        className="text-sm text-[#e5007d] font-semibold text-left">
+                        + Agregar otro producto
+                      </button>
+                    </div>
+                  </div>
+                  <div className="bg-[#f8f8f8] rounded-xl px-4 py-3 flex items-center justify-between">
+                    <span className="text-sm font-medium text-[#999]">Total</span>
+                    <span className="text-xl font-black text-[#111]">${parseInt(total).toLocaleString('es-CO')} COP</span>
+                  </div>
+                  <textarea value={manualForm.notes} rows={2}
+                    onChange={e => setManualForm({ ...manualForm, notes: e.target.value })}
+                    placeholder="Notas internas..."
+                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
+                  <div className="flex gap-2">
+                    <button onClick={() => setShowManualOrder(false)}
+                      className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
+                    <button
+                      onClick={() => createManualOrder.mutate({ customerName: manualForm.customerName, customerEmail: manualForm.customerEmail, customerPhone: manualForm.customerPhone, userId: findUserQuery.data?.id, items: manualForm.items, total, notes: manualForm.notes })}
+                      disabled={!manualForm.customerName || !manualForm.customerEmail || createManualOrder.isPending}
+                      className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                      {createManualOrder.isPending ? 'Creando...' : 'Crear pedido'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
