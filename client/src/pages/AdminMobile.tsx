@@ -312,6 +312,7 @@ function CosplaySection() {
     enabled: isAuthenticated && user?.role === 'admin',
   });
   const [viewApplication, setViewApplication] = useState<any>(null);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [approveModal, setApproveModal] = useState<any>(null);
   const [approveForm, setApproveForm] = useState({ totalFollowers: 0, tier: 'bronce' });
   const [rejectModal, setRejectModal] = useState<any>(null);
@@ -477,10 +478,14 @@ function CosplaySection() {
             </div>
             <div className="p-4 flex flex-col gap-4">
               {viewApplication.bannerImage && (
-                <img src={viewApplication.bannerImage} className="w-full h-32 object-cover rounded-2xl" alt="" />
+                <button onClick={() => setLightboxImg(viewApplication.bannerImage)} className="w-full">
+                  <img src={viewApplication.bannerImage} className="w-full h-32 object-cover rounded-2xl" alt="" />
+                </button>
               )}
               {viewApplication.photo && (
-                <img src={viewApplication.photo} className="w-20 h-20 rounded-full object-cover border-2 border-[#e5e5e5] -mt-10 ml-4" alt="" />
+                <button onClick={() => setLightboxImg(viewApplication.photo)}>
+                  <img src={viewApplication.photo} className="w-20 h-20 rounded-full object-cover border-2 border-[#e5e5e5] -mt-10 ml-4" alt="" />
+                </button>
               )}
 
               <div className="bg-[#f8f8f8] rounded-2xl p-4 flex flex-col gap-2 text-sm">
@@ -524,7 +529,9 @@ function CosplaySection() {
                   <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-2">Galería</p>
                   <div className="grid grid-cols-3 gap-2">
                     {viewApplication.gallery.map((img: string, i: number) => (
-                      <img key={i} src={img} className="aspect-square object-cover rounded-xl" alt="" />
+                      <button key={i} onClick={() => setLightboxImg(img)} className="aspect-square overflow-hidden rounded-xl">
+                        <img src={img} className="w-full h-full object-cover active:opacity-80 transition-opacity" alt="" />
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -544,6 +551,28 @@ function CosplaySection() {
               )}
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Lightbox */}
+      {lightboxImg && (
+        <div
+          className="fixed inset-0 bg-black/95 z-[100] flex items-center justify-center p-4"
+          onClick={() => setLightboxImg(null)}
+        >
+          <button
+            className="absolute right-4 w-10 h-10 bg-white/20 rounded-full flex items-center justify-center"
+            style={{ top: 'calc(env(safe-area-inset-top) + 16px)' }}
+            onClick={() => setLightboxImg(null)}
+          >
+            <X size={20} className="text-white" />
+          </button>
+          <img
+            src={lightboxImg}
+            className="max-w-full max-h-full object-contain rounded-xl"
+            onClick={e => e.stopPropagation()}
+            alt=""
+          />
         </div>
       )}
 
