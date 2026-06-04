@@ -3942,7 +3942,7 @@ export default function Admin() {
                             </div>
                             <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-CO')}</p>
                             {sub.status === 'pending' && (
-                              <Button size="sm" className="w-full bg-[#111] text-white text-sm font-bold" onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: 100, status: 'approved' }); }}>
+                              <Button size="sm" className="w-full bg-[#111] text-white text-sm font-bold" onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: sub.activityBasePoints ?? 100, status: 'approved' }); }}>
                                 Evaluar y aprobar
                               </Button>
                             )}
@@ -4251,19 +4251,32 @@ export default function Admin() {
                       <a href={showEvalModal.evidenceUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-primary flex items-center gap-1 mb-4 hover:underline">
                         <ExternalLink size={12} /> {showEvalModal.evidenceUrl}
                       </a>
-                      <div className="space-y-3">
-                        <div>
-                          <Label className="text-xs">Puntos a otorgar (base, antes del multiplicador)</Label>
-                          <Input type="number" min={0} value={evalForm.pointsAwarded} onChange={e => setEvalForm(f => ({ ...f, pointsAwarded: parseInt(e.target.value) || 0 }))} className="mt-1 bg-muted border-border/50 text-sm" />
-                          <p className="text-xs text-muted-foreground mt-1">El sistema aplicará el multiplicador del tier del cosplayer automáticamente.</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-3 mt-4">
-                        <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={evaluateSub.isPending} onClick={() => evaluateSub.mutate({ submissionId: showEvalModal.id, pointsAwarded: evalForm.pointsAwarded, status: 'approved' })}>
-                          {evaluateSub.isPending ? "Guardando..." : "Aprobar"}
-                        </Button>
-                        <Button variant="outline" onClick={() => setShowEvalModal(null)}>Cancelar</Button>
-                      </div>
+                      {(() => {
+                        const MULTS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
+                        const multiplier = MULTS[showEvalModal.tier ?? 'bronce'] ?? 1;
+                        const finalPoints = Math.round(evalForm.pointsAwarded * multiplier);
+                        return (
+                          <div className="space-y-3">
+                            <div className="bg-[#f8f8f8] rounded-xl p-4 border border-[#e5e5e5]">
+                              <p className="text-xs text-[#999] mb-3">Puntos base de la actividad</p>
+                              <Input type="number" min={0} value={evalForm.pointsAwarded} onChange={e => setEvalForm(f => ({ ...f, pointsAwarded: parseInt(e.target.value) || 0 }))} className="bg-white border-border/50 text-sm mb-3" />
+                              <div className="flex items-center justify-between">
+                                <p className="text-xs text-[#999]">{evalForm.pointsAwarded} base × {multiplier} ({showEvalModal.tier})</p>
+                                <div className="text-right">
+                                  <p className="text-2xl font-black text-[#e5007d]">{finalPoints}</p>
+                                  <p className="text-xs text-[#999]">tickets finales</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex gap-3">
+                              <Button className="flex-1 bg-green-600 hover:bg-green-700 text-white" disabled={evaluateSub.isPending} onClick={() => evaluateSub.mutate({ submissionId: showEvalModal.id, pointsAwarded: evalForm.pointsAwarded, status: 'approved' })}>
+                                {evaluateSub.isPending ? "Guardando..." : "Aprobar"}
+                              </Button>
+                              <Button variant="outline" onClick={() => setShowEvalModal(null)}>Cancelar</Button>
+                            </div>
+                          </div>
+                        );
+                      })()}
                     </div>
                   </div>
                 )}

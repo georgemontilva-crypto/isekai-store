@@ -834,7 +834,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   </div>
                   <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-CO')}</p>
                   {sub.status === 'pending' && (
-                    <button onClick={() => { setEvalModal(sub); setEvalPoints(100); }}
+                    <button onClick={() => { setEvalModal(sub); setEvalPoints(sub.activityBasePoints ?? 100); }}
                       className="w-full bg-[#111] text-white py-3 rounded-xl font-bold text-sm">
                       Evaluar y aprobar
                     </button>
@@ -853,10 +853,26 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
             style={{ marginBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
             <h3 className="font-black text-[#111] mb-1">Evaluar submission</h3>
             <p className="text-xs text-[#999] mb-4">{evalModal.artisticName} — {evalModal.activityTitle}</p>
-            <label className="text-sm font-medium block mb-1">Tickets a otorgar</label>
-            <input type="number" value={evalPoints} min={0}
-              onChange={e => setEvalPoints(parseInt(e.target.value) || 0)}
-              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] mb-4" />
+            {(() => {
+              const MULTS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
+              const multiplier = MULTS[evalModal.tier ?? 'bronce'] ?? 1;
+              const finalPoints = Math.round(evalPoints * multiplier);
+              return (
+                <div className="bg-[#f8f8f8] rounded-xl p-4 border border-[#e5e5e5] mb-4">
+                  <p className="text-xs text-[#999] mb-3">Puntos base de la actividad</p>
+                  <input type="number" value={evalPoints} min={0}
+                    onChange={e => setEvalPoints(parseInt(e.target.value) || 0)}
+                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111] mb-3 bg-white" />
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs text-[#999]">{evalPoints} base × {multiplier} ({evalModal.tier})</p>
+                    <div className="text-right">
+                      <p className="text-2xl font-black text-[#e5007d]">{finalPoints}</p>
+                      <p className="text-xs text-[#999]">tickets finales</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
             <div className="flex gap-2">
               <button onClick={() => setEvalModal(null)}
                 className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm font-semibold">
