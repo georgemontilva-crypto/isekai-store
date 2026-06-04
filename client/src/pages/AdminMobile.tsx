@@ -1015,8 +1015,12 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
   const updateProduct = trpc.products.update.useMutation({
     onSuccess: () => { setEditProduct(null); refetchProducts(); },
   });
-  const deleteImage = trpc.products.deleteImage.useMutation({ onSuccess: () => refetchProducts() });
-  const addImage = trpc.products.addImage.useMutation({ onSuccess: () => refetchProducts() });
+  const { data: productImages = [], refetch: refetchImages } = trpc.products.getImages.useQuery(
+    { productId: editProduct?.id ?? 0 },
+    { enabled: !!editProduct?.id },
+  );
+  const deleteImage = trpc.products.deleteImage.useMutation({ onSuccess: () => refetchImages() });
+  const addImage = trpc.products.addImage.useMutation({ onSuccess: () => refetchImages() });
   const uploadImage = trpc.products.uploadImage.useMutation();
 
   useEffect(() => { onModalChange(!!editProduct); }, [editProduct]);
@@ -1025,15 +1029,18 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
     const file = e.target.files?.[0];
     if (!file || !editProduct) return;
     setUploading(true);
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64 = (reader.result as string).split(',')[1];
-      const result = await uploadImage.mutateAsync({ fileName: `products/${editProduct.id}-${Date.now()}-${file.name}`, contentType: file.type, base64Data: base64 });
-      await addImage.mutateAsync({ productId: editProduct.id, url: result.url });
+    try {
+      const reader = new FileReader();
+      reader.onload = async () => {
+        const base64 = (reader.result as string).split(',')[1];
+        const result = await uploadImage.mutateAsync({ fileName: `products/${editProduct.id}-${Date.now()}-${file.name}`, contentType: file.type, base64Data: base64 });
+        await addImage.mutateAsync({ productId: editProduct.id, url: result.url, position: productImages.length });
+        setUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch {
       setUploading(false);
-      refetchProducts();
-    };
-    reader.readAsDataURL(file);
+    }
   };
 
   return (
@@ -1076,18 +1083,27 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
               <button onClick={() => setEditProduct(null)}><X size={20} className="text-[#999]" /></button>
             </div>
             <div className="p-4 flex flex-col gap-4">
-              {/* Galería */}
+              {/* Imágenes del producto */}
               <div>
-                <label className="text-sm font-medium block mb-2">Imágenes del producto</label>
+                <label className="text-sm font-medium block mb-2">
+                  Imágenes ({productImages.length})
+                </label>
                 <div className="grid grid-cols-3 gap-2">
-                  {(editProduct.images ?? []).map((img: any) => (
+                  {(productImages as any[]).map((img: any) => (
                     <div key={img.id} className="relative aspect-square">
-                      <img src={img.url} className="w-full h-full object-cover rounded-xl" alt="" />
-                      {(editProduct.images?.length ?? 0) > 1 && (
-                        <button onClick={() => deleteImage.mutate({ imageId: img.id })}
-                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center">
-                          <X size={10} />
+                      <img src={img.url} className="w-full h-full object-cover rounded-xl border border-[#e5e5e5]" alt="" />
+                      {productImages.length > 1 && (
+                        <button
+                          onClick={() => { if (confirm('¿Eliminar esta imagen?')) deleteImage.mutate({ imageId: img.id }); }}
+                          className="absolute -top-1.5 -right-1.5 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm"
+                        >
+                          <X size={11} />
                         </button>
+                      )}
+                      {img.position === 0 && (
+                        <span className="absolute bottom-1 left-1 right-1 bg-black/60 text-white text-[9px] text-center py-0.5 rounded-lg">
+                          Principal
+                        </span>
                       )}
                     </div>
                   ))}
@@ -1095,9 +1111,9 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                     {uploading ? (
                       <div className="w-5 h-5 border-2 border-[#e5007d] border-t-transparent rounded-full animate-spin" />
                     ) : (
-                      <><Plus size={20} className="text-[#ccc]" /><span className="text-[10px] text-[#ccc] mt-1">Agregar</span></>
+                      <><Plus size={22} className="text-[#ccc]" /><span className="text-[10px] text-[#ccc] mt-1">Agregar</span></>
                     )}
-                    <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} disabled={uploading} />
+                    <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={handleImageUpload} />
                   </label>
                 </div>
               </div>
