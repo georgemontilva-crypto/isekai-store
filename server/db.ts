@@ -1,6 +1,7 @@
 import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
-import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity } from "./_core/notification";
+import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail } from "./_core/notification";
+import { io } from "./_core/socket";
 import { storageDelete } from "./storage";
 import { drizzle } from "drizzle-orm/mysql2";
 import {
@@ -1346,6 +1347,35 @@ export async function evaluateCosplaySubmission(input: { submissionId: number; p
       description: `Actividad completada (x${multiplier} tier ${cosplayer.tier})`,
       submissionId: input.submissionId,
     });
+
+    if (cosplayer.userId) {
+      const user = await getUserById(cosplayer.userId);
+      if (user?.email) {
+        try {
+          await sendEmail(
+            user.email,
+            '🎫 ¡Actividad aprobada! Tickets acreditados',
+            `
+              <h1>¡Tu actividad fue aprobada!</h1>
+              <p>Hola <strong>${cosplayer.artisticName}</strong>, el equipo de Isekai World ha evaluado tu actividad.</p>
+              <div class="order-box">
+                <p><strong>Tickets acreditados:</strong> <span class="highlight">${finalPoints} tickets</span></p>
+                <p><strong>Puntos base:</strong> ${input.pointsAwarded} × ${multiplier} (tier ${cosplayer.tier})</p>
+                <p><strong>Balance actual:</strong> ${(cosplayer.ticketBalance ?? 0) + finalPoints} tickets</p>
+              </div>
+              <p>Canjea tus tickets por códigos de descuento desde tu dashboard.</p>
+              <div style="text-align:center">
+                <a href="https://isekaiworld.co/cosplay/dashboard" class="btn">Ver mi billetera →</a>
+              </div>
+            `,
+            `+${finalPoints} tickets acreditados en tu billetera`,
+          );
+        } catch { /* non-critical */ }
+      }
+      try {
+        io.to(`user:${cosplayer.userId}`).emit('notification:new');
+      } catch { /* non-critical */ }
+    }
   }
 }
 
