@@ -1699,7 +1699,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
   const isStep1Valid = form.customerName && form.customerEmail && form.items[0].productName && form.items[0].price;
 
   return (
-    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', background: '#f8f8f8', zIndex: 100 }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', background: '#f8f8f8', zIndex: 500 }}>
 
       {/* Header */}
       <div style={{ background: 'white', borderBottom: '1px solid #e5e5e5', flexShrink: 0, paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)', paddingBottom: '12px', paddingLeft: '16px', paddingRight: '16px' }}>
