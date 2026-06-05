@@ -1721,7 +1721,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
       </div>
 
       {/* Contenido scrolleable */}
-      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, padding: '16px', paddingBottom: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, padding: '16px', paddingBottom: '90px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
         {step === 1 && (
           <>
@@ -1866,7 +1866,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
       </div>
 
       {/* Botones fijos abajo */}
-      <div style={{ flexShrink: 0, background: 'white', borderTop: '1px solid #e5e5e5', padding: '8px 16px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)', display: 'flex', gap: '8px' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e5e5e5', padding: '12px 16px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)', display: 'flex', gap: '8px' }}>
         {step === 1 ? (
           <button onClick={() => setStep(2)} disabled={!isStep1Valid}
             style={{ flex: 1, background: isStep1Valid ? '#e5007d' : '#e5e5e5', color: 'white', border: 'none', borderRadius: '16px', padding: '16px', fontSize: '15px', fontWeight: 900, cursor: isStep1Valid ? 'pointer' : 'not-allowed' }}>
