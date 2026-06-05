@@ -1494,7 +1494,8 @@ export default function Admin() {
                 {showManualOrder && (() => {
                   const total = manualForm.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0).toFixed(0);
                   return (<>
-                    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="fixed inset-0 flex items-center justify-center p-4"
+                      style={{ zIndex: 99999, background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(4px)' }}>
                       <div className="bg-white rounded-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
                         <div className="flex items-center justify-between mb-6">
                           <h3 className="text-lg font-black">Crear pedido manual</h3>
