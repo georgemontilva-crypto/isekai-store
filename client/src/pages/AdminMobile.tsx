@@ -1699,15 +1699,23 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
   const isStep1Valid = form.customerName && form.customerEmail && form.items[0].productName && form.items[0].price;
 
   return (
-    <div className="flex flex-col h-full bg-[#f8f8f8]">
+    <div className="flex flex-col bg-[#f8f8f8]" style={{ height: '100%' }}>
 
       {/* Header con pasos */}
-      <div className="bg-white border-b border-[#e5e5e5] px-4 pt-3 pb-0 flex-shrink-0">
-        <div className="flex items-center gap-3 mb-3">
-          <button onClick={step === 1 ? onBack : () => setStep(1)} className="p-1">
+      <div
+        className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4"
+        style={{
+          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
+          paddingBottom: '12px',
+          minHeight: '56px',
+        }}
+      >
+        <div className="flex items-center justify-between mb-3">
+          <button onClick={step === 1 ? onBack : () => setStep(1)} className="p-2 -ml-2">
             <ArrowLeft size={20} className="text-[#111]" />
           </button>
-          <h2 className="font-black text-[#111]">Nuevo pedido</h2>
+          <h3 className="font-black text-[#111]">Nuevo pedido</h3>
+          <div className="w-10" />
         </div>
         <div className="flex gap-1">
           {([1, 2] as const).map(s => (
@@ -1994,10 +2002,10 @@ export default function AdminMobile() {
 
   return (
     <div className="flex flex-col bg-[#f8f8f8]"
-      style={{ height: '100dvh', paddingTop: 'env(safe-area-inset-top)' }}>
+      style={{ height: '100dvh', paddingTop: activeTab === 'newOrder' ? 0 : 'env(safe-area-inset-top)' }}>
 
       {/* Header */}
-      <div className="bg-white border-b border-[#e5e5e5] px-4 flex items-center justify-between flex-shrink-0"
+      {activeTab !== 'newOrder' && <div className="bg-white border-b border-[#e5e5e5] px-4 flex items-center justify-between flex-shrink-0"
         style={{ height: '52px' }}>
         <div className="flex items-center gap-2">
           {isExtraTab ? (
@@ -2025,7 +2033,7 @@ export default function AdminMobile() {
             </span>
           )}
         </button>
-      </div>
+      </div>}
 
       {/* Contenido */}
       <div className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
