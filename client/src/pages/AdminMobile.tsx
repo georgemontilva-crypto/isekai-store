@@ -1699,107 +1699,95 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
   const isStep1Valid = form.customerName && form.customerEmail && form.items[0].productName && form.items[0].price;
 
   return (
-    <div className="flex flex-col bg-[#f8f8f8]" style={{ height: '100%' }}>
+    <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', background: '#f8f8f8', zIndex: 100 }}>
 
-      {/* Header con pasos */}
-      <div
-        className="flex-shrink-0 bg-white border-b border-[#e5e5e5] px-4"
-        style={{
-          paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)',
-          paddingBottom: '12px',
-          minHeight: '56px',
-        }}
-      >
-        <div className="flex items-center justify-between mb-3">
-          <button onClick={step === 1 ? onBack : () => setStep(1)} className="p-2 -ml-2">
-            <ArrowLeft size={20} className="text-[#111]" />
+      {/* Header */}
+      <div style={{ background: 'white', borderBottom: '1px solid #e5e5e5', flexShrink: 0, paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)', paddingBottom: '12px', paddingLeft: '16px', paddingRight: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <button onClick={step === 1 ? onBack : () => setStep(1)} style={{ padding: '8px', margin: '-8px' }}>
+            <ArrowLeft size={20} color="#111" />
           </button>
-          <h3 className="font-black text-[#111]">Nuevo pedido</h3>
-          <div className="w-10" />
+          <span style={{ fontWeight: 900, fontSize: '16px', color: '#111' }}>Nuevo pedido</span>
+          <div style={{ width: '36px' }} />
         </div>
-        <div className="flex gap-1">
-          {([1, 2] as const).map(s => (
-            <div key={s} className={`flex-1 h-1 rounded-full transition-colors ${s <= step ? 'bg-[#e5007d]' : 'bg-[#e5e5e5]'}`} />
-          ))}
+        <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
+          <div style={{ flex: 1, height: '3px', borderRadius: '99px', background: '#e5007d' }} />
+          <div style={{ flex: 1, height: '3px', borderRadius: '99px', background: step === 2 ? '#e5007d' : '#e5e5e5' }} />
         </div>
-        <div className="flex justify-between py-2">
-          <span className={`text-xs font-semibold ${step === 1 ? 'text-[#e5007d]' : 'text-[#999]'}`}>Datos</span>
-          <span className={`text-xs font-semibold ${step === 2 ? 'text-[#e5007d]' : 'text-[#999]'}`}>Confirmar</span>
+        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+          <span style={{ fontSize: '11px', color: step === 1 ? '#e5007d' : '#999', fontWeight: 600 }}>Datos</span>
+          <span style={{ fontSize: '11px', color: step === 2 ? '#e5007d' : '#999', fontWeight: 600 }}>Confirmar</span>
         </div>
       </div>
 
-      {/* PASO 1 */}
-      {step === 1 && (
-        <>
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+      {/* Contenido scrolleable */}
+      <div style={{ flex: 1, overflowY: 'auto', WebkitOverflowScrolling: 'touch' as any, padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-            <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
-              <p className="text-xs font-bold text-[#999] uppercase tracking-wider">Cliente</p>
+        {step === 1 && (
+          <>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cliente</p>
               <input type="email" value={form.customerEmail}
                 onChange={e => setForm({ ...form, customerEmail: e.target.value })}
                 placeholder="Email *"
-                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               {findUser.data && (
-                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
-                  <Check size={14} className="text-green-500 flex-shrink-0" />
-                  <p className="text-xs text-green-700 font-semibold">{findUser.data.name} — cliente registrado</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '10px 14px' }}>
+                  <Check size={14} color="#22c55e" />
+                  <span style={{ fontSize: '12px', color: '#15803d', fontWeight: 600 }}>{findUser.data.name} — registrado</span>
                 </div>
               )}
               <input type="text" value={form.customerName}
                 onChange={e => setForm({ ...form, customerName: e.target.value })}
                 placeholder="Nombre completo *"
-                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
               <input type="tel" value={form.customerPhone}
                 onChange={e => setForm({ ...form, customerPhone: e.target.value })}
                 placeholder="Teléfono"
-                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
             </div>
 
-            <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
-              <p className="text-xs font-bold text-[#999] uppercase tracking-wider">Productos / Servicios</p>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Productos / Servicios</p>
               {form.items.map((item, i) => (
-                <div key={i} className="bg-[#f8f8f8] rounded-xl p-3 flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
+                <div key={i} style={{ background: '#f8f8f8', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input type="text" value={item.productName}
                       onChange={e => updateItem(i, 'productName', e.target.value)}
                       placeholder="Nombre del producto *"
-                      className="flex-1 border border-[#e5e5e5] rounded-xl px-3 py-2.5 text-sm outline-none bg-white focus:border-[#e5007d]" />
+                      style={{ flex: 1, border: '1px solid #e5e5e5', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', outline: 'none', background: 'white', boxSizing: 'border-box' }} />
                     {form.items.length > 1 && (
-                      <button onClick={() => removeItem(i)} className="text-red-400 flex-shrink-0">
-                        <X size={16} />
-                      </button>
+                      <button onClick={() => removeItem(i)} style={{ color: '#f87171', flexShrink: 0 }}><X size={16} /></button>
                     )}
                   </div>
-                  <div className="flex gap-2">
-                    <div className="w-20">
-                      <label className="text-[10px] text-[#999] block mb-1">Cantidad</label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+                    <div style={{ width: '70px' }}>
+                      <p style={{ fontSize: '10px', color: '#999', marginBottom: '4px' }}>Cant.</p>
                       <input type="number" value={item.quantity} min={1}
                         onChange={e => updateItem(i, 'quantity', parseInt(e.target.value) || 1)}
-                        className="w-full border border-[#e5e5e5] rounded-xl px-2 py-2 text-sm outline-none bg-white text-center" />
+                        style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '8px', fontSize: '13px', outline: 'none', background: 'white', textAlign: 'center', boxSizing: 'border-box' }} />
                     </div>
-                    <div className="flex-1">
-                      <label className="text-[10px] text-[#999] block mb-1">Precio COP</label>
+                    <div style={{ flex: 1 }}>
+                      <p style={{ fontSize: '10px', color: '#999', marginBottom: '4px' }}>Precio COP</p>
                       <input type="number" value={item.price}
                         onChange={e => updateItem(i, 'price', e.target.value)}
                         placeholder="0"
-                        className="w-full border border-[#e5e5e5] rounded-xl px-3 py-2 text-sm outline-none bg-white focus:border-[#e5007d]" />
+                        style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', outline: 'none', background: 'white', boxSizing: 'border-box' }} />
                     </div>
-                    <div className="flex-shrink-0 self-end pb-1.5">
-                      <p className="text-xs font-bold text-[#e5007d]">
-                        ${((parseFloat(item.price) || 0) * item.quantity).toLocaleString('es-CO')}
-                      </p>
-                    </div>
+                    <p style={{ fontSize: '12px', fontWeight: 700, color: '#e5007d', flexShrink: 0, paddingBottom: '6px' }}>
+                      ${((parseFloat(item.price) || 0) * item.quantity).toLocaleString('es-CO')}
+                    </p>
                   </div>
                 </div>
               ))}
-              <button onClick={addItem} className="flex items-center gap-1 text-sm text-[#e5007d] font-semibold">
+              <button onClick={addItem} style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#e5007d', fontSize: '13px', fontWeight: 600, background: 'none', border: 'none', padding: '4px 0', cursor: 'pointer' }}>
                 <Plus size={14} /> Agregar producto
               </button>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
-              <p className="text-xs font-bold text-[#999] uppercase tracking-wider">Estado del pago</p>
-              <div className="grid grid-cols-3 gap-2">
+            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado del pago</p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {([
                   { value: 'pending', label: 'Pendiente', color: '#f59e0b' },
                   { value: 'partial', label: 'Parcial', color: '#3b82f6' },
@@ -1807,25 +1795,20 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                 ] as const).map(opt => (
                   <button key={opt.value}
                     onClick={() => setForm({ ...form, paymentStatus: opt.value })}
-                    className="py-3 rounded-xl text-xs font-bold border-2 transition-all"
-                    style={{
-                      background: form.paymentStatus === opt.value ? opt.color + '15' : 'white',
-                      borderColor: form.paymentStatus === opt.value ? opt.color : '#e5e5e5',
-                      color: form.paymentStatus === opt.value ? opt.color : '#999',
-                    }}>
+                    style={{ padding: '12px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 700, border: `2px solid ${form.paymentStatus === opt.value ? opt.color : '#e5e5e5'}`, background: form.paymentStatus === opt.value ? opt.color + '15' : 'white', color: form.paymentStatus === opt.value ? opt.color : '#999', cursor: 'pointer' }}>
                     {opt.label}
                   </button>
                 ))}
               </div>
               {form.paymentStatus === 'partial' && (
                 <div>
-                  <label className="text-sm font-medium block mb-1">Monto pagado (COP)</label>
+                  <p style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>Monto pagado (COP)</p>
                   <input type="number" value={form.amountPaid}
                     onChange={e => setForm({ ...form, amountPaid: e.target.value })}
                     placeholder="0"
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+                    style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   {form.amountPaid && (
-                    <p className="text-xs text-[#999] mt-1">
+                    <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
                       Restante: ${(total - parseFloat(form.amountPaid || '0')).toLocaleString('es-CO')} COP
                     </p>
                   )}
@@ -1833,90 +1816,66 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
               )}
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <label className="text-xs font-bold text-[#999] uppercase tracking-wider block mb-2">Notas</label>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Notas</p>
               <textarea value={form.notes}
                 onChange={e => setForm({ ...form, notes: e.target.value })}
                 rows={3} placeholder="Instrucciones especiales..."
-                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d] resize-none" />
+                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+            </div>
+          </>
+        )}
+
+        {step === 2 && (
+          <>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', marginBottom: '12px' }}>Cliente</p>
+              <p style={{ fontWeight: 900, color: '#111', marginBottom: '2px' }}>{form.customerName}</p>
+              <p style={{ fontSize: '13px', color: '#999' }}>{form.customerEmail}</p>
+              {form.customerPhone && <p style={{ fontSize: '13px', color: '#999' }}>{form.customerPhone}</p>}
             </div>
 
-          </div>
-          <div className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4 py-3"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}>
-            <button onClick={() => setStep(2)} disabled={!isStep1Valid}
-              className="w-full bg-[#e5007d] text-white py-4 rounded-2xl font-black text-base disabled:opacity-40">
-              Revisar pedido →
-            </button>
-          </div>
-        </>
-      )}
-
-      {/* PASO 2 — Confirmación */}
-      {step === 2 && (
-        <>
-          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
-
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Cliente</p>
-              <p className="font-black text-[#111]">{form.customerName}</p>
-              <p className="text-sm text-[#999]">{form.customerEmail}</p>
-              {form.customerPhone && <p className="text-sm text-[#999]">{form.customerPhone}</p>}
-            </div>
-
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Productos</p>
+            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+              <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', marginBottom: '12px' }}>Productos</p>
               {form.items.map((item, i) => (
-                <div key={i} className="flex items-center justify-between py-2 border-b border-[#f0f0f0] last:border-0">
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: i < form.items.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
                   <div>
-                    <p className="text-sm font-semibold text-[#111]">{item.productName}</p>
-                    <p className="text-xs text-[#999]">×{item.quantity}</p>
+                    <p style={{ fontSize: '14px', fontWeight: 600, color: '#111' }}>{item.productName}</p>
+                    <p style={{ fontSize: '12px', color: '#999' }}>×{item.quantity}</p>
                   </div>
-                  <p className="text-sm font-black text-[#e5007d]">
+                  <p style={{ fontSize: '14px', fontWeight: 900, color: '#e5007d' }}>
                     ${((parseFloat(item.price) || 0) * item.quantity).toLocaleString('es-CO')}
                   </p>
                 </div>
               ))}
-              <div className="flex items-center justify-between pt-3 mt-1">
-                <p className="font-bold text-[#111]">Total</p>
-                <p className="text-xl font-black text-[#e5007d]">${total.toLocaleString('es-CO')} COP</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '2px solid #f0f0f0', marginTop: '4px' }}>
+                <p style={{ fontWeight: 700, color: '#111' }}>Total</p>
+                <p style={{ fontSize: '22px', fontWeight: 900, color: '#e5007d' }}>${total.toLocaleString('es-CO')} COP</p>
               </div>
             </div>
 
-            <div className="bg-white rounded-2xl p-4 shadow-sm">
-              <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Pago</p>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-[#111]">Estado</span>
-                <span className={`text-sm font-bold ${
-                  form.paymentStatus === 'approved' ? 'text-green-500' :
-                  form.paymentStatus === 'partial' ? 'text-blue-500' : 'text-orange-500'
-                }`}>
-                  {form.paymentStatus === 'approved' ? 'Pagado completo' :
-                   form.paymentStatus === 'partial' ? `Parcial — $${parseFloat(form.amountPaid || '0').toLocaleString('es-CO')} COP` :
-                   'Pendiente de pago'}
-                </span>
-              </div>
-            </div>
-
-            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
-              <Mail size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
-              <p className="text-xs text-blue-700 leading-relaxed">
-                Se enviará un correo de confirmación a <strong>{form.customerEmail}</strong> con los detalles del pedido.
+            <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: '16px', padding: '16px', display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+              <Mail size={16} color="#3b82f6" style={{ flexShrink: 0, marginTop: '2px' }} />
+              <p style={{ fontSize: '12px', color: '#1d4ed8', lineHeight: '1.5' }}>
+                Se enviará confirmación a <strong>{form.customerEmail}</strong>
               </p>
             </div>
+          </>
+        )}
 
-            {form.notes && (
-              <div className="bg-white rounded-2xl p-4 shadow-sm">
-                <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Notas</p>
-                <p className="text-sm text-[#666]">{form.notes}</p>
-              </div>
-            )}
+      </div>
 
-          </div>
-          <div className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4 py-3 flex gap-2"
-            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}>
+      {/* Botones fijos abajo */}
+      <div style={{ flexShrink: 0, background: 'white', borderTop: '1px solid #e5e5e5', padding: '12px 16px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)', display: 'flex', gap: '8px' }}>
+        {step === 1 ? (
+          <button onClick={() => setStep(2)} disabled={!isStep1Valid}
+            style={{ flex: 1, background: isStep1Valid ? '#e5007d' : '#e5e5e5', color: 'white', border: 'none', borderRadius: '16px', padding: '16px', fontSize: '15px', fontWeight: 900, cursor: isStep1Valid ? 'pointer' : 'not-allowed' }}>
+            Revisar pedido →
+          </button>
+        ) : (
+          <>
             <button onClick={() => setStep(1)}
-              className="flex-1 border-2 border-[#e5e5e5] text-[#666] py-4 rounded-2xl font-bold">
+              style={{ flex: 1, background: 'white', border: '2px solid #e5e5e5', borderRadius: '16px', padding: '16px', fontSize: '14px', fontWeight: 700, color: '#666', cursor: 'pointer' }}>
               Editar
             </button>
             <button
@@ -1932,12 +1891,12 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                 amountPaid: form.amountPaid || '0',
               })}
               disabled={createOrder.isPending}
-              className="flex-[2] bg-[#e5007d] text-white py-4 px-8 rounded-2xl font-black disabled:opacity-40">
+              style={{ flex: 2, background: '#e5007d', color: 'white', border: 'none', borderRadius: '16px', padding: '16px', fontSize: '15px', fontWeight: 900, cursor: createOrder.isPending ? 'not-allowed' : 'pointer', opacity: createOrder.isPending ? 0.6 : 1 }}>
               {createOrder.isPending ? 'Creando...' : '✓ Crear pedido'}
             </button>
-          </div>
-        </>
-      )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
