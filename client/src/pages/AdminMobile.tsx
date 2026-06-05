@@ -1866,10 +1866,10 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
       </div>
 
       {/* Botones fijos abajo */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e5e5e5', padding: '12px 16px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)', display: 'flex', gap: '8px' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e5e5e5', padding: '10px 16px', paddingBottom: 'env(safe-area-inset-bottom, 0px)', display: 'flex', gap: '8px' }}>
         {step === 1 ? (
           <button onClick={() => setStep(2)} disabled={!isStep1Valid}
-            style={{ flex: 1, background: isStep1Valid ? '#e5007d' : '#e5e5e5', color: 'white', border: 'none', borderRadius: '16px', padding: '16px', fontSize: '15px', fontWeight: 900, cursor: isStep1Valid ? 'pointer' : 'not-allowed' }}>
+            style={{ flex: 1, background: isStep1Valid ? '#e5007d' : '#e5e5e5', color: 'white', border: 'none', borderRadius: '14px', padding: '13px', fontSize: '15px', fontWeight: 900, cursor: isStep1Valid ? 'pointer' : 'not-allowed' }}>
             Revisar pedido →
           </button>
         ) : (
