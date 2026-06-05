@@ -7,13 +7,13 @@ import {
   BarChart3, Bell, ChevronRight, Check,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
   LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
-  Tag, MessageCircle, Megaphone, BookOpen, Link, Users,
+  Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -103,7 +103,7 @@ function StatsSection() {
 }
 
 // ============ SECCIÓN: PEDIDOS ============
-function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
+function OrdersSection({ onCreateOrder }: { onCreateOrder: () => void }) {
   const { user, isAuthenticated } = useAuth();
   const [expanded, setExpanded] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -113,17 +113,6 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
   );
   const orders = ordersData?.items ?? [];
   const updateStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => refetch() });
-  const [showManualOrder, setShowManualOrder] = useState(false);
-  const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending' as 'pending' | 'partial' | 'approved', amountPaid: '' });
-  const [showConfirm, setShowConfirm] = useState(false);
-  useEffect(() => { onModalChange(showManualOrder || showConfirm); }, [showManualOrder, showConfirm]);
-  const findUserQuery = trpc.users.findByEmail.useQuery(
-    { email: manualForm.customerEmail },
-    { enabled: manualForm.customerEmail.includes('@') && manualForm.customerEmail.includes('.') },
-  );
-  const createManualOrder = trpc.orders.createManual.useMutation({
-    onSuccess: (data) => { toast.success(`Pedido ${data.orderNumber} creado`); setShowManualOrder(false); setShowConfirm(false); setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending', amountPaid: '' }); refetch(); },
-  });
 
   const ORDER_STEPS = [
     { key: 'pending',       label: 'Pendiente'   },
@@ -152,8 +141,8 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
-        <button onClick={() => setShowManualOrder(true)}
-          className="w-full flex items-center justify-center gap-2 bg-[#111] text-white py-3 rounded-2xl font-bold text-sm">
+        <button onClick={onCreateOrder}
+          className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white py-3 rounded-2xl font-bold text-sm mb-1">
           <Plus size={16} /> Crear pedido manual
         </button>
         {orders.length === 0 && (
@@ -262,222 +251,6 @@ function OrdersSection({ onModalChange }: { onModalChange: (open: boolean) => vo
             )}
           </div>
         ))}
-        {/* Modal crear pedido manual */}
-        {showManualOrder && (() => {
-          const total = manualForm.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0).toFixed(0);
-          return (<>
-            <div
-              className="fixed bg-white flex flex-col"
-              style={{ top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }}
-            >
-
-              {/* Header fijo */}
-              <div
-                className="flex items-center justify-between px-4 bg-white border-b border-[#e5e5e5] flex-shrink-0"
-                style={{ paddingTop: 'calc(env(safe-area-inset-top) + 12px)', paddingBottom: '12px' }}
-              >
-                <button onClick={() => setShowManualOrder(false)} className="p-1">
-                  <ArrowLeft size={22} className="text-[#111]" />
-                </button>
-                <h3 className="font-black text-[#111]">Nuevo pedido</h3>
-                <div className="w-8" />
-              </div>
-
-              {/* Contenido scrolleable */}
-              <div
-                className="flex-1 overflow-y-auto flex flex-col gap-4"
-                style={{ WebkitOverflowScrolling: 'touch' as any, padding: '16px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 120px)' }}
-              >
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Email del cliente *</label>
-                  <input type="email" value={manualForm.customerEmail}
-                    onChange={e => setManualForm({...manualForm, customerEmail: e.target.value})}
-                    placeholder="correo@ejemplo.com"
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
-                  {findUserQuery.data && (
-                    <p className="text-xs text-green-600 mt-1 font-semibold">✓ Cliente registrado: {findUserQuery.data.name}</p>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Nombre completo *</label>
-                  <input type="text" value={manualForm.customerName}
-                    onChange={e => setManualForm({...manualForm, customerName: e.target.value})}
-                    placeholder="Nombre del cliente"
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Teléfono</label>
-                  <input type="tel" value={manualForm.customerPhone}
-                    onChange={e => setManualForm({...manualForm, customerPhone: e.target.value})}
-                    placeholder="+57..."
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
-                </div>
-
-                <div>
-                  <p className="text-sm font-bold text-[#111] mb-2">Productos / Servicios</p>
-                  <div className="flex flex-col gap-2">
-                    {manualForm.items.map((item, i) => (
-                      <div key={i} className="bg-[#f8f8f8] rounded-xl p-3 flex flex-col gap-2">
-                        <input type="text" value={item.productName}
-                          onChange={e => { const items = [...manualForm.items]; items[i].productName = e.target.value; setManualForm({...manualForm, items}); }}
-                          placeholder="Nombre del producto/servicio *"
-                          className="w-full border border-[#e5e5e5] rounded-xl px-3 py-2.5 text-sm outline-none bg-white focus:border-[#111]" />
-                        <div className="flex gap-2">
-                          <div className="flex-1">
-                            <label className="text-xs text-[#999] block mb-1">Cantidad</label>
-                            <input type="number" value={item.quantity} min={1}
-                              onChange={e => { const items = [...manualForm.items]; items[i].quantity = parseInt(e.target.value) || 1; setManualForm({...manualForm, items}); }}
-                              className="w-full border border-[#e5e5e5] rounded-xl px-3 py-2.5 text-sm outline-none bg-white text-center" />
-                          </div>
-                          <div className="flex-1">
-                            <label className="text-xs text-[#999] block mb-1">Precio (COP)</label>
-                            <input type="number" value={item.price}
-                              onChange={e => { const items = [...manualForm.items]; items[i].price = e.target.value; setManualForm({...manualForm, items}); }}
-                              placeholder="0"
-                              className="w-full border border-[#e5e5e5] rounded-xl px-3 py-2.5 text-sm outline-none bg-white" />
-                          </div>
-                          {manualForm.items.length > 1 && (
-                            <button onClick={() => setManualForm({...manualForm, items: manualForm.items.filter((_, j) => j !== i)})}
-                              className="self-end pb-2 text-red-400">
-                              <X size={16} />
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                    <button
-                      onClick={() => setManualForm({...manualForm, items: [...manualForm.items, { productName: '', quantity: 1, price: '' }]})}
-                      className="text-sm text-[#e5007d] font-semibold text-left py-1">
-                      + Agregar producto
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-[#0d0d0d] rounded-xl px-4 py-3 flex items-center justify-between">
-                  <span className="text-sm font-medium text-white">Total</span>
-                  <span className="text-xl font-black text-[#e5007d]">
-                    ${parseInt(total).toLocaleString('es-CO')} COP
-                  </span>
-                </div>
-
-                <div>
-                  <p className="text-sm font-bold text-[#111] mb-2">Estado del pago</p>
-                  <div className="grid grid-cols-3 gap-2">
-                    {([
-                      { value: 'pending', label: 'Pendiente', color: '#f59e0b' },
-                      { value: 'partial', label: 'Parcial', color: '#3b82f6' },
-                      { value: 'approved', label: 'Pagado', color: '#22c55e' },
-                    ] as const).map(opt => (
-                      <button key={opt.value}
-                        onClick={() => setManualForm({...manualForm, paymentStatus: opt.value})}
-                        className="py-3 rounded-xl text-xs font-bold border transition-colors"
-                        style={{
-                          background: manualForm.paymentStatus === opt.value ? opt.color + '15' : '#f8f8f8',
-                          borderColor: manualForm.paymentStatus === opt.value ? opt.color : '#e5e5e5',
-                          color: manualForm.paymentStatus === opt.value ? opt.color : '#999',
-                        }}>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                  {manualForm.paymentStatus === 'partial' && (
-                    <div className="mt-3">
-                      <label className="text-sm font-medium block mb-1">Monto pagado (COP)</label>
-                      <input type="number" value={manualForm.amountPaid}
-                        onChange={e => setManualForm({...manualForm, amountPaid: e.target.value})}
-                        placeholder="0"
-                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium block mb-1">Notas</label>
-                  <textarea value={manualForm.notes}
-                    onChange={e => setManualForm({...manualForm, notes: e.target.value})}
-                    rows={3} placeholder="Instrucciones especiales..."
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
-                </div>
-
-              </div>
-
-              {/* Botón fijo abajo */}
-              <div
-                className="flex-shrink-0 border-t border-[#e5e5e5]"
-                style={{ paddingTop: '12px', paddingBottom: 'calc(env(safe-area-inset-bottom) + 16px)', paddingLeft: '16px', paddingRight: '16px', backgroundColor: 'white' }}
-              >
-                <button
-                  onClick={() => setShowConfirm(true)}
-                  disabled={!manualForm.customerName || !manualForm.customerEmail || !manualForm.items[0].productName}
-                  className="w-full bg-[#e5007d] text-white rounded-2xl font-black text-base disabled:opacity-40"
-                  style={{ padding: '16px' }}
-                >
-                  Revisar pedido →
-                </button>
-              </div>
-
-            </div>
-            {showConfirm && (
-              <div
-                className="fixed inset-0 flex items-center justify-center p-6"
-                style={{ zIndex: 99999, background: 'rgba(0,0,0,0.7)' }}
-              >
-                <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-                  <h3 className="font-black text-lg text-[#111] mb-1">Confirmar pedido</h3>
-                  <p className="text-[#999] text-sm mb-4">¿Estás seguro de crear este pedido?</p>
-                  <div className="bg-[#f8f8f8] rounded-xl p-4 mb-4 flex flex-col gap-2 text-sm">
-                    <p><span className="text-[#999]">Cliente:</span> <strong>{manualForm.customerName}</strong></p>
-                    <p><span className="text-[#999]">Email:</span> {manualForm.customerEmail}</p>
-                    <div>
-                      <p className="text-[#999] mb-1">Productos:</p>
-                      {manualForm.items.map((item, i) => (
-                        <p key={i} className="text-[#111]">• {item.productName} ×{item.quantity} — ${parseFloat(item.price || '0').toLocaleString('es-CO')}</p>
-                      ))}
-                    </div>
-                    <p className="border-t border-[#e5e5e5] pt-2 mt-1">
-                      <span className="text-[#999]">Total:</span>
-                      <strong className="text-[#e5007d] ml-1">${parseInt(total).toLocaleString('es-CO')} COP</strong>
-                    </p>
-                  </div>
-                  <p className="text-xs text-[#999] mb-4">
-                    Se enviará un correo de confirmación a <strong>{manualForm.customerEmail}</strong>
-                  </p>
-                  <div className="flex gap-2 mt-4">
-                    <button
-                      onClick={() => setShowConfirm(false)}
-                      className="flex-1 border border-[#e5e5e5] text-[#666] py-4 rounded-xl text-sm font-semibold"
-                    >
-                      Revisar
-                    </button>
-                    <button
-                      onClick={() => {
-                        setShowConfirm(false);
-                        createManualOrder.mutate({
-                          customerName: manualForm.customerName,
-                          customerEmail: manualForm.customerEmail,
-                          customerPhone: manualForm.customerPhone,
-                          userId: findUserQuery.data?.id,
-                          items: manualForm.items,
-                          total,
-                          notes: manualForm.notes,
-                          paymentStatus: manualForm.paymentStatus,
-                          amountPaid: manualForm.amountPaid || undefined,
-                        });
-                      }}
-                      disabled={createManualOrder.isPending}
-                      className="flex-1 bg-[#e5007d] text-white py-4 rounded-xl text-sm font-bold disabled:opacity-40"
-                    >
-                      {createManualOrder.isPending ? 'Creando...' : '✓ Confirmar'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </>);
-        })()}
       </div>
     </div>
   );
@@ -1892,6 +1665,275 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
   );
 }
 
+// ============ NUEVO PEDIDO — PANTALLA DEDICADA ============
+function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess: () => void }) {
+  const [step, setStep] = useState<1 | 2>(1);
+  const [form, setForm] = useState({
+    customerEmail: '',
+    customerName: '',
+    customerPhone: '',
+    notes: '',
+    paymentStatus: 'pending' as 'pending' | 'partial' | 'approved',
+    amountPaid: '',
+    items: [{ productName: '', quantity: 1, price: '' }],
+  });
+
+  const findUser = trpc.users.findByEmail.useQuery(
+    { email: form.customerEmail },
+    { enabled: form.customerEmail.includes('@') && form.customerEmail.includes('.') },
+  );
+
+  const createOrder = trpc.orders.createManual.useMutation({
+    onSuccess: (data) => { toast.success(`✅ Pedido ${data.orderNumber} creado`); onSuccess(); },
+    onError: (err) => toast.error(`Error: ${err.message}`),
+  });
+
+  const total = form.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0);
+  const addItem = () => setForm({ ...form, items: [...form.items, { productName: '', quantity: 1, price: '' }] });
+  const removeItem = (i: number) => setForm({ ...form, items: form.items.filter((_, j) => j !== i) });
+  const updateItem = (i: number, field: string, value: any) => {
+    const items = [...form.items];
+    items[i] = { ...items[i], [field]: value };
+    setForm({ ...form, items });
+  };
+  const isStep1Valid = form.customerName && form.customerEmail && form.items[0].productName && form.items[0].price;
+
+  return (
+    <div className="flex flex-col h-full bg-[#f8f8f8]">
+
+      {/* Header con pasos */}
+      <div className="bg-white border-b border-[#e5e5e5] px-4 pt-3 pb-0 flex-shrink-0">
+        <div className="flex items-center gap-3 mb-3">
+          <button onClick={step === 1 ? onBack : () => setStep(1)} className="p-1">
+            <ArrowLeft size={20} className="text-[#111]" />
+          </button>
+          <h2 className="font-black text-[#111]">Nuevo pedido</h2>
+        </div>
+        <div className="flex gap-1">
+          {([1, 2] as const).map(s => (
+            <div key={s} className={`flex-1 h-1 rounded-full transition-colors ${s <= step ? 'bg-[#e5007d]' : 'bg-[#e5e5e5]'}`} />
+          ))}
+        </div>
+        <div className="flex justify-between py-2">
+          <span className={`text-xs font-semibold ${step === 1 ? 'text-[#e5007d]' : 'text-[#999]'}`}>Datos</span>
+          <span className={`text-xs font-semibold ${step === 2 ? 'text-[#e5007d]' : 'text-[#999]'}`}>Confirmar</span>
+        </div>
+      </div>
+
+      {/* PASO 1 */}
+      {step === 1 && (
+        <>
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+
+            <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+              <p className="text-xs font-bold text-[#999] uppercase tracking-wider">Cliente</p>
+              <input type="email" value={form.customerEmail}
+                onChange={e => setForm({ ...form, customerEmail: e.target.value })}
+                placeholder="Email *"
+                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+              {findUser.data && (
+                <div className="flex items-center gap-2 bg-green-50 border border-green-200 rounded-xl px-3 py-2">
+                  <Check size={14} className="text-green-500 flex-shrink-0" />
+                  <p className="text-xs text-green-700 font-semibold">{findUser.data.name} — cliente registrado</p>
+                </div>
+              )}
+              <input type="text" value={form.customerName}
+                onChange={e => setForm({ ...form, customerName: e.target.value })}
+                placeholder="Nombre completo *"
+                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+              <input type="tel" value={form.customerPhone}
+                onChange={e => setForm({ ...form, customerPhone: e.target.value })}
+                placeholder="Teléfono"
+                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+              <p className="text-xs font-bold text-[#999] uppercase tracking-wider">Productos / Servicios</p>
+              {form.items.map((item, i) => (
+                <div key={i} className="bg-[#f8f8f8] rounded-xl p-3 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <input type="text" value={item.productName}
+                      onChange={e => updateItem(i, 'productName', e.target.value)}
+                      placeholder="Nombre del producto *"
+                      className="flex-1 border border-[#e5e5e5] rounded-xl px-3 py-2.5 text-sm outline-none bg-white focus:border-[#e5007d]" />
+                    {form.items.length > 1 && (
+                      <button onClick={() => removeItem(i)} className="text-red-400 flex-shrink-0">
+                        <X size={16} />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex gap-2">
+                    <div className="w-20">
+                      <label className="text-[10px] text-[#999] block mb-1">Cantidad</label>
+                      <input type="number" value={item.quantity} min={1}
+                        onChange={e => updateItem(i, 'quantity', parseInt(e.target.value) || 1)}
+                        className="w-full border border-[#e5e5e5] rounded-xl px-2 py-2 text-sm outline-none bg-white text-center" />
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-[10px] text-[#999] block mb-1">Precio COP</label>
+                      <input type="number" value={item.price}
+                        onChange={e => updateItem(i, 'price', e.target.value)}
+                        placeholder="0"
+                        className="w-full border border-[#e5e5e5] rounded-xl px-3 py-2 text-sm outline-none bg-white focus:border-[#e5007d]" />
+                    </div>
+                    <div className="flex-shrink-0 self-end pb-1.5">
+                      <p className="text-xs font-bold text-[#e5007d]">
+                        ${((parseFloat(item.price) || 0) * item.quantity).toLocaleString('es-CO')}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              <button onClick={addItem} className="flex items-center gap-1 text-sm text-[#e5007d] font-semibold">
+                <Plus size={14} /> Agregar producto
+              </button>
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 flex flex-col gap-3 shadow-sm">
+              <p className="text-xs font-bold text-[#999] uppercase tracking-wider">Estado del pago</p>
+              <div className="grid grid-cols-3 gap-2">
+                {([
+                  { value: 'pending', label: 'Pendiente', color: '#f59e0b' },
+                  { value: 'partial', label: 'Parcial', color: '#3b82f6' },
+                  { value: 'approved', label: 'Pagado', color: '#22c55e' },
+                ] as const).map(opt => (
+                  <button key={opt.value}
+                    onClick={() => setForm({ ...form, paymentStatus: opt.value })}
+                    className="py-3 rounded-xl text-xs font-bold border-2 transition-all"
+                    style={{
+                      background: form.paymentStatus === opt.value ? opt.color + '15' : 'white',
+                      borderColor: form.paymentStatus === opt.value ? opt.color : '#e5e5e5',
+                      color: form.paymentStatus === opt.value ? opt.color : '#999',
+                    }}>
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+              {form.paymentStatus === 'partial' && (
+                <div>
+                  <label className="text-sm font-medium block mb-1">Monto pagado (COP)</label>
+                  <input type="number" value={form.amountPaid}
+                    onChange={e => setForm({ ...form, amountPaid: e.target.value })}
+                    placeholder="0"
+                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d]" />
+                  {form.amountPaid && (
+                    <p className="text-xs text-[#999] mt-1">
+                      Restante: ${(total - parseFloat(form.amountPaid || '0')).toLocaleString('es-CO')} COP
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <label className="text-xs font-bold text-[#999] uppercase tracking-wider block mb-2">Notas</label>
+              <textarea value={form.notes}
+                onChange={e => setForm({ ...form, notes: e.target.value })}
+                rows={3} placeholder="Instrucciones especiales..."
+                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d] resize-none" />
+            </div>
+
+          </div>
+          <div className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4 py-3"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}>
+            <button onClick={() => setStep(2)} disabled={!isStep1Valid}
+              className="w-full bg-[#e5007d] text-white py-4 rounded-2xl font-black text-base disabled:opacity-40">
+              Revisar pedido →
+            </button>
+          </div>
+        </>
+      )}
+
+      {/* PASO 2 — Confirmación */}
+      {step === 2 && (
+        <>
+          <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Cliente</p>
+              <p className="font-black text-[#111]">{form.customerName}</p>
+              <p className="text-sm text-[#999]">{form.customerEmail}</p>
+              {form.customerPhone && <p className="text-sm text-[#999]">{form.customerPhone}</p>}
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Productos</p>
+              {form.items.map((item, i) => (
+                <div key={i} className="flex items-center justify-between py-2 border-b border-[#f0f0f0] last:border-0">
+                  <div>
+                    <p className="text-sm font-semibold text-[#111]">{item.productName}</p>
+                    <p className="text-xs text-[#999]">×{item.quantity}</p>
+                  </div>
+                  <p className="text-sm font-black text-[#e5007d]">
+                    ${((parseFloat(item.price) || 0) * item.quantity).toLocaleString('es-CO')}
+                  </p>
+                </div>
+              ))}
+              <div className="flex items-center justify-between pt-3 mt-1">
+                <p className="font-bold text-[#111]">Total</p>
+                <p className="text-xl font-black text-[#e5007d]">${total.toLocaleString('es-CO')} COP</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-2xl p-4 shadow-sm">
+              <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Pago</p>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-[#111]">Estado</span>
+                <span className={`text-sm font-bold ${
+                  form.paymentStatus === 'approved' ? 'text-green-500' :
+                  form.paymentStatus === 'partial' ? 'text-blue-500' : 'text-orange-500'
+                }`}>
+                  {form.paymentStatus === 'approved' ? 'Pagado completo' :
+                   form.paymentStatus === 'partial' ? `Parcial — $${parseFloat(form.amountPaid || '0').toLocaleString('es-CO')} COP` :
+                   'Pendiente de pago'}
+                </span>
+              </div>
+            </div>
+
+            <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-start gap-3">
+              <Mail size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+              <p className="text-xs text-blue-700 leading-relaxed">
+                Se enviará un correo de confirmación a <strong>{form.customerEmail}</strong> con los detalles del pedido.
+              </p>
+            </div>
+
+            {form.notes && (
+              <div className="bg-white rounded-2xl p-4 shadow-sm">
+                <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Notas</p>
+                <p className="text-sm text-[#666]">{form.notes}</p>
+              </div>
+            )}
+
+          </div>
+          <div className="flex-shrink-0 bg-white border-t border-[#e5e5e5] px-4 py-3 flex gap-2"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}>
+            <button onClick={() => setStep(1)}
+              className="flex-1 border-2 border-[#e5e5e5] text-[#666] py-4 rounded-2xl font-bold">
+              Editar
+            </button>
+            <button
+              onClick={() => createOrder.mutate({
+                customerName: form.customerName,
+                customerEmail: form.customerEmail,
+                customerPhone: form.customerPhone,
+                userId: findUser.data?.id,
+                items: form.items,
+                total: String(total),
+                notes: form.notes,
+                paymentStatus: form.paymentStatus,
+                amountPaid: form.amountPaid || '0',
+              })}
+              disabled={createOrder.isPending}
+              className="flex-[2] bg-[#e5007d] text-white py-4 px-8 rounded-2xl font-black disabled:opacity-40">
+              {createOrder.isPending ? 'Creando...' : '✓ Crear pedido'}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 // ============ COMPONENTE PRINCIPAL ============
 export default function AdminMobile() {
   const [activeTab, setActiveTab] = useState<MobileTab>('stats');
@@ -1911,7 +1953,6 @@ export default function AdminMobile() {
     refetchInterval: 15000,
   });
   const [showNotifications, setShowNotifications] = useState(false);
-  const [ordersHasModal, setOrdersHasModal] = useState(false);
   const [cosplayHasModal, setCosplayHasModal] = useState(false);
   const [productsHasModal, setProductsHasModal] = useState(false);
   const [blogHasModal, setBlogHasModal] = useState(false);
@@ -1927,7 +1968,7 @@ export default function AdminMobile() {
 
   const pendingPaymentsCount = pendingPaymentsData?.items?.length ?? 0;
   const unreadCount = (notifications as any[]).filter((n: any) => !n.read).length;
-  const hasModalOpen = ordersHasModal || cosplayHasModal || productsHasModal || blogHasModal || showNotifications;
+  const hasModalOpen = cosplayHasModal || productsHasModal || blogHasModal || showNotifications;
 
   const TABS = [
     { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
@@ -1938,15 +1979,17 @@ export default function AdminMobile() {
     { id: 'more' as MobileTab,     label: 'Más',       icon: Menu },
   ];
 
-  const EXTRA_TABS = ['categories', 'faq', 'users', 'blog', 'popups'];
+  const EXTRA_TABS = ['categories', 'faq', 'users', 'blog', 'popups', 'newOrder'];
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
+    newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
+    newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -1958,7 +2001,7 @@ export default function AdminMobile() {
         style={{ height: '52px' }}>
         <div className="flex items-center gap-2">
           {isExtraTab ? (
-            <button onClick={() => setActiveTab('more')} className="p-1 -ml-1">
+            <button onClick={() => setActiveTab(activeTab === 'newOrder' ? 'orders' : 'more')} className="p-1 -ml-1">
               <ArrowLeft size={20} className="text-[#111]" />
             </button>
           ) : (
@@ -1985,9 +2028,9 @@ export default function AdminMobile() {
       </div>
 
       {/* Contenido */}
-      <div className="flex-1 overflow-y-auto">
+      <div className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
         {activeTab === 'stats'    && <StatsSection />}
-        {activeTab === 'orders'   && <OrdersSection onModalChange={setOrdersHasModal} />}
+        {activeTab === 'orders'   && <OrdersSection onCreateOrder={() => setActiveTab('newOrder')} />}
         {activeTab === 'payments' && <PaymentsSection />}
         {activeTab === 'cosplay'     && <CosplaySection onModalChange={setCosplayHasModal} />}
         {activeTab === 'products'    && <ProductsSection onModalChange={setProductsHasModal} />}
@@ -1997,6 +2040,7 @@ export default function AdminMobile() {
         {activeTab === 'users'       && <UsersSection />}
         {activeTab === 'blog'        && <BlogSection onModalChange={setBlogHasModal} />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
+        {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
       </div>
 
       {/* Modal notificaciones */}
@@ -2040,9 +2084,9 @@ export default function AdminMobile() {
       )}
 
       {/* Bottom Tab Bar */}
-      {!hasModalOpen && (
+      {!hasModalOpen && activeTab !== 'newOrder' && (
       <div className="bg-white border-t border-[#e5e5e5] flex-shrink-0"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)', backgroundColor: 'rgba(255,255,255,1)' }}>
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)', backgroundColor: 'rgba(255,255,255,1)', zIndex: hasModalOpen ? -1 : 'auto' as any }}>
         <div className="flex">
           {TABS.map(tab => (
             <button key={tab.id}
