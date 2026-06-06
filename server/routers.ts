@@ -501,20 +501,17 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
 
-        // Generar número de orden consecutivo
-        const lastOrder = await db.select({ orderNumber: orders.orderNumber })
-          .from(orders)
-          .where(like(orders.orderNumber, 'IW-%'))
-          .orderBy(desc(orders.createdAt))
-          .limit(1);
-
-        let nextNum = 1;
-        if (lastOrder[0]) {
-          const parts = lastOrder[0].orderNumber.split('-');
-          const lastNum = parseInt(parts[1]);
-          if (!isNaN(lastNum)) nextNum = lastNum + 1;
+        // Generar número de orden consecutivo (escanea todos para evitar duplicados)
+        const allOrders = await db.select({ orderNumber: orders.orderNumber }).from(orders);
+        let maxNum = 0;
+        for (const o of allOrders) {
+          const match = o.orderNumber.match(/^IW-(\d+)$/);
+          if (match) {
+            const num = parseInt(match[1]);
+            if (num > maxNum) maxNum = num;
+          }
         }
-        const orderNumber = `IW-${String(nextNum).padStart(6, '0')}`;
+        const orderNumber = `IW-${String(maxNum + 1).padStart(6, '0')}`;
 
         // Pre-resolver cosplayer referidor (evita doble lookup)
         const referralCosplayer = input.referralCode
