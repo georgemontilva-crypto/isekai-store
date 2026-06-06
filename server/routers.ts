@@ -522,6 +522,19 @@ export const appRouter = router({
           : null;
 
         // Insertar orden
+        console.log('[createManual] insertando orden con valores:', {
+          orderNumber,
+          userId: input.userId ?? null,
+          customerName: input.customerName,
+          customerEmail: input.customerEmail,
+          total: input.total,
+          status: 'pending',
+          paymentStatus: input.paymentStatus,
+          amountPaid: input.amountPaid ?? '0',
+          referralCode: input.referralCode ?? null,
+          referralCosplayerId: referralCosplayer?.id ?? null,
+          hasSecretGift: !!input.referralCode,
+        });
         await db.insert(orders).values({
           orderNumber,
           userId: input.userId ?? null,
