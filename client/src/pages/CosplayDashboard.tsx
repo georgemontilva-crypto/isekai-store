@@ -641,7 +641,7 @@ export default function CosplayDashboard() {
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
                     <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Tickets</p>
-                    <p className="text-4xl font-black text-white">{balance.toLocaleString()}</p>
+                    <p className="text-xl sm:text-2xl font-black text-white">{balance.toLocaleString()}</p>
                     <p className="text-[#555] text-xs mt-1">Para canjear por descuentos</p>
                     <button
                       onClick={() => setActiveTab('redeem')}
@@ -653,10 +653,10 @@ export default function CosplayDashboard() {
 
                   <div className="bg-[#1a1a1a] border border-[#ffd700]/30 rounded-2xl p-6">
                     <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Cash</p>
-                    <p className="text-4xl font-black text-[#ffd700]">
+                    <p className="text-lg sm:text-2xl font-black text-[#ffd700]">
                       ${parseFloat(String(cosplayer?.cashBalance ?? '0')).toLocaleString('es-CO')} COP
                     </p>
-                    <p className="text-[#555] text-xs mt-1">
+                    <p className="text-xs text-[#555] mt-0.5">
                       ≈ USD {toUSD(parseFloat(String(cosplayer?.cashBalance ?? '0')))}
                     </p>
                     <p className="text-[#555] text-xs">Consumible o retirable</p>
