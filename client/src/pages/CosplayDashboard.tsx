@@ -49,7 +49,6 @@ function CopyButton({ text }: { text: string }) {
 export default function CosplayDashboard() {
   const { user, isAuthenticated, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
-  const [offsetY, setOffsetY] = useState(0);
   const [submitModal, setSubmitModal] = useState<any>(null);
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [showWithdraw, setShowWithdraw] = useState(false);
@@ -61,20 +60,12 @@ export default function CosplayDashboard() {
   });
   const [profileInit, setProfileInit] = useState(false);
   const utils = trpc.useUtils();
-  const { data: siteSettings } = trpc.settings.getAll.useQuery();
-  const textureEnabled = siteSettings?.["texture_enabled"] === "true";
   const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, {
     refetchInterval: 1000 * 60 * 60,
   });
   const usdToCOP = rateData?.usdToCOP ?? 4200;
   const { toUSD } = useExchangeRate();
   const minWithdrawalCOP = Math.ceil(20 * usdToCOP);
-
-  useEffect(() => {
-    const h = () => setOffsetY(window.scrollY);
-    window.addEventListener("scroll", h, { passive: true });
-    return () => window.removeEventListener("scroll", h);
-  }, []);
 
   const cosplayerQuery = trpc.cosplay.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -268,34 +259,6 @@ export default function CosplayDashboard() {
 
   return (
     <div className="min-h-screen bg-[#0d0d0d] pb-20">
-
-      {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="relative overflow-hidden pb-10 pt-6 sm:py-16"
-        style={{
-          backgroundImage: textureEnabled ? 'url(/textura-isekai.svg)' : 'none',
-          backgroundSize: 'cover',
-          backgroundPosition: `center ${offsetY * 0.2}px`,
-          backgroundColor: '#111',
-        }}
-      >
-        <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(13,13,13,0.5) 0%, rgba(13,13,13,1) 100%)' }} />
-        <div className="relative z-10 flex flex-col items-center gap-3 text-center px-4">
-          <div className="w-20 h-20 rounded-full overflow-hidden border-[3px] bg-[#222]" style={{ borderColor: tierColor }}>
-            {cosplayer.photo
-              ? <img src={cosplayer.photo} className="w-full h-full object-cover" alt="" />
-              : <div className="w-full h-full flex items-center justify-center"><User size={32} className="text-[#555]" /></div>
-            }
-          </div>
-          <h1 className="text-xl font-black text-white">{cosplayer.artisticName}</h1>
-          <span className="text-xs px-3 py-1 rounded-full font-bold capitalize" style={{ backgroundColor: tierColor, color: '#000' }}>
-            {(cosplayer.tier ?? 'bronce').toUpperCase()} ✓
-          </span>
-          <p className="text-[#888] text-sm">🎫 {balance.toLocaleString()} tickets · ×{multiplier} multiplicador</p>
-        </div>
-      </motion.div>
 
       <div className="container max-w-4xl py-8">
 
