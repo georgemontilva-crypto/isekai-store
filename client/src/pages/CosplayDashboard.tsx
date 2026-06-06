@@ -304,9 +304,9 @@ export default function CosplayDashboard() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 mb-8"
+          className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8"
         >
-          {TABS.map(tab => {
+          {TABS.slice(0, 4).map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -322,6 +322,22 @@ export default function CosplayDashboard() {
               </button>
             );
           })}
+          {(() => {
+            const tab5 = TABS[4];
+            const Icon5 = tab5.icon;
+            return (
+              <button
+                key={tab5.id}
+                onClick={() => setActiveTab(tab5.id)}
+                className={`col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                  activeTab === tab5.id ? "bg-[#e5007d] text-white" : "bg-[#1a1a1a] border border-[#333] text-[#888] hover:text-white hover:border-[#444]"
+                }`}
+              >
+                <Icon5 className="w-3.5 h-3.5" />
+                {tab5.label}
+              </button>
+            );
+          })()}
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -337,26 +353,32 @@ export default function CosplayDashboard() {
             {activeTab === "profile" && (
               <div className="max-w-2xl mx-auto">
 
-                {/* Banner */}
-                <div className="relative w-full h-32 rounded-2xl overflow-hidden mb-0 bg-[#1a1a1a] border border-[#333]">
+                {/* Banner editable */}
+                <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-0 bg-[#1a1a1a] border-2 border-dashed border-[#333]">
                   {profileForm.bannerImage && (
-                    <img src={profileForm.bannerImage} className="w-full h-full object-cover" alt="" />
+                    <img src={profileForm.bannerImage} className="w-full h-full object-cover" />
                   )}
-                  <label className="absolute inset-0 flex items-center justify-center cursor-pointer hover:bg-black/30 transition-colors group">
-                    <div className="flex flex-col items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Upload size={20} className="text-white" />
-                      <span className="text-white text-xs font-semibold">Cambiar banner</span>
+                  {!profileForm.bannerImage && (
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <p className="text-[#555] text-sm">Sin banner — sube una imagen</p>
                     </div>
+                  )}
+                  <label className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full cursor-pointer flex items-center gap-1 hover:bg-black/90 transition-colors">
+                    <Upload size={12} />
+                    {profileForm.bannerImage ? 'Cambiar' : 'Subir banner'}
                     <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
                   </label>
                 </div>
 
-                {/* Foto de perfil superpuesta al banner */}
-                <div className="flex flex-col items-center -mt-10 mb-6 relative z-10">
-                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-[#0d0d0d] bg-[#222]" style={{ outline: `3px solid ${tierColor}`, outlineOffset: '0px' }}>
+                {/* Foto de perfil centrada sobre el banner */}
+                <div className="flex flex-col items-center -mt-10 mb-4 relative z-10">
+                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-[#0d0d0d] mb-2"
+                    style={{ outline: `3px solid ${tierColor}` }}>
                     {profileForm.photo
-                      ? <img src={profileForm.photo} className="w-full h-full object-cover" alt="" />
-                      : <div className="w-full h-full flex items-center justify-center"><User size={28} className="text-[#555]" /></div>
+                      ? <img src={profileForm.photo} className="w-full h-full object-cover" />
+                      : <div className="w-full h-full bg-[#222] flex items-center justify-center">
+                          <User size={28} className="text-[#555]" />
+                        </div>
                     }
                     {uploadImage.isPending && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
@@ -364,60 +386,83 @@ export default function CosplayDashboard() {
                       </div>
                     )}
                   </div>
-                  <label className="mt-2 text-xs text-[#e5007d] font-semibold cursor-pointer hover:underline">
-                    Cambiar foto
+                  <label className="bg-[#1a1a1a] border border-[#333] text-white text-xs px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 hover:border-[#e5007d] transition-colors">
+                    <Upload size={12} />
+                    {profileForm.photo ? 'Cambiar foto' : 'Subir foto de perfil'}
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
                   </label>
                 </div>
 
+                {/* Nombre artístico — no editable */}
+                <div className="text-center mb-3">
+                  <h2 className="text-white font-black text-xl">{cosplayer?.artisticName}</h2>
+                </div>
+
+                {/* Badge tier + tickets + multiplicador */}
+                <div className="flex items-center justify-center gap-3 mb-6 flex-wrap">
+                  <span className="text-xs px-3 py-1 rounded-full font-bold"
+                    style={{ background: tierColor + '20', color: tierColor, border: `1px solid ${tierColor}40` }}>
+                    {(cosplayer?.tier ?? 'bronce').toUpperCase()}
+                  </span>
+                  <span className="text-xs text-[#888]">
+                    🎫 {balance.toLocaleString()} tickets
+                  </span>
+                  <span className="text-xs text-[#888]">
+                    ×{multiplier} multiplicador
+                  </span>
+                </div>
+
+                <hr className="border-[#222] mb-6" />
+
+                {/* Campos de edición */}
                 <div className="flex flex-col gap-4">
 
-                  {/* Nombre artístico — solo lectura */}
+                  {/* Biografía */}
                   <div>
-                    <label className={labelCls}>Nombre artístico</label>
-                    <input value={profileForm.artisticName} disabled className="w-full px-4 py-3 bg-[#111] border border-[#333] rounded-xl text-[#555] text-sm cursor-not-allowed" />
-                    <p className="text-[#555] text-xs mt-1">El nombre artístico no se puede cambiar. Contacta al admin.</p>
-                  </div>
-
-                  {/* Bio */}
-                  <div>
-                    <label className={labelCls}>Biografía</label>
+                    <label className="block text-[#ccc] text-sm font-medium mb-2">Biografía</label>
                     <textarea
-                      rows={4}
                       value={profileForm.bio}
                       onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))}
+                      rows={4}
                       placeholder="Cuéntale al mundo quién eres como cosplayer..."
-                      className={inputCls + " resize-none"}
+                      className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors resize-none"
                     />
                   </div>
 
                   {/* Redes sociales */}
-                  <p className="text-[#ccc] text-sm font-medium mt-2">Redes sociales</p>
-                  {[
-                    { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/tunombre' },
-                    { key: 'tiktok',    label: 'TikTok',    placeholder: 'https://tiktok.com/@tunombre' },
-                    { key: 'youtube',   label: 'YouTube',   placeholder: 'https://youtube.com/@tuchannel' },
-                    { key: 'facebook',  label: 'Facebook',  placeholder: 'https://facebook.com/tuperfil' },
-                    { key: 'twitter',   label: 'Twitter / X', placeholder: 'https://x.com/tunombre' },
-                  ].map(red => (
-                    <div key={red.key}>
-                      <label className="block text-[#888] text-xs mb-1">{red.label}</label>
-                      <input
-                        value={(profileForm as any)[red.key] ?? ''}
-                        onChange={e => setProfileForm(f => ({ ...f, [red.key]: e.target.value }))}
-                        placeholder={red.placeholder}
-                        className={inputCls}
-                      />
+                  <div>
+                    <p className="text-[#ccc] text-sm font-medium mb-3">Redes sociales</p>
+                    <div className="flex flex-col gap-3">
+                      {[
+                        { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/tunombre' },
+                        { key: 'tiktok', label: 'TikTok', placeholder: 'https://tiktok.com/@tunombre' },
+                        { key: 'youtube', label: 'YouTube', placeholder: 'https://youtube.com/@tuchannel' },
+                        { key: 'facebook', label: 'Facebook', placeholder: 'https://facebook.com/tuperfil' },
+                        { key: 'twitter', label: 'Twitter / X', placeholder: 'https://x.com/tunombre' },
+                      ].map(red => (
+                        <div key={red.key}>
+                          <label className="block text-[#888] text-xs mb-1">{red.label}</label>
+                          <input
+                            type="url"
+                            value={(profileForm as any)[red.key] ?? ''}
+                            onChange={e => setProfileForm(f => ({ ...f, [red.key]: e.target.value }))}
+                            placeholder={red.placeholder}
+                            className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors"
+                          />
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
 
                   {/* Galería */}
                   <div>
-                    <label className={labelCls}>Galería de cosplays</label>
+                    <label className="block text-[#ccc] text-sm font-medium mb-2">
+                      Galería de cosplays
+                    </label>
                     <div className="grid grid-cols-3 gap-3">
                       {profileForm.gallery.map((img, i) => (
-                        <div key={i} className="relative aspect-square rounded-xl overflow-hidden group bg-[#1a1a1a]">
-                          <img src={img} className="w-full h-full object-cover" alt="" />
+                        <div key={i} className="relative aspect-square rounded-xl overflow-hidden group">
+                          <img src={img} className="w-full h-full object-cover" />
                           <button
                             onClick={() => removeGalleryImage(i)}
                             className="absolute top-1 right-1 bg-black/60 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
@@ -427,25 +472,24 @@ export default function CosplayDashboard() {
                         </div>
                       ))}
                       {profileForm.gallery.length < 9 && (
-                        <label className="aspect-square rounded-xl border-2 border-dashed border-[#333] flex items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors bg-[#1a1a1a]">
-                          {uploadImage.isPending ? (
-                            <div className="w-6 h-6 border-2 border-[#333] border-t-[#e5007d] rounded-full animate-spin" />
-                          ) : (
-                            <Plus size={24} className="text-[#555]" />
-                          )}
-                          <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} />
+                        <label className="aspect-square rounded-xl border-2 border-dashed border-[#333] flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors gap-1">
+                          <Plus size={20} className="text-[#555]" />
+                          <span className="text-[#555] text-xs">Agregar</span>
+                          <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
                         </label>
                       )}
                     </div>
                   </div>
 
+                  {/* Botón guardar */}
                   <button
                     onClick={handleSaveProfile}
                     disabled={updateProfile.isPending}
-                    className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold text-sm hover:bg-[#c4006b] transition-colors disabled:opacity-50"
+                    className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold hover:bg-[#c4006b] transition-colors mt-2 disabled:opacity-50"
                   >
                     {updateProfile.isPending ? "Guardando..." : "Guardar cambios"}
                   </button>
+
                 </div>
               </div>
             )}
