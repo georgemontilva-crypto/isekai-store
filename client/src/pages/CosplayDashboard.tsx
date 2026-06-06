@@ -76,26 +76,29 @@ export default function CosplayDashboard() {
     return () => window.removeEventListener("scroll", h);
   }, []);
 
-  const { data: cosplayer, isLoading: cpLoading } = trpc.cosplay.getMyProfile.useQuery(undefined, {
+  const cosplayerQuery = trpc.cosplay.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
-    onSuccess: (cp: any) => {
-      if (!profileInit && cp) {
-        setProfileForm({
-          artisticName: cp.artisticName ?? "",
-          bio: cp.bio ?? "",
-          photo: cp.photo ?? "",
-          bannerImage: (cp as any).bannerImage ?? "",
-          instagram: cp.instagram ?? "",
-          tiktok: cp.tiktok ?? "",
-          youtube: cp.youtube ?? "",
-          facebook: cp.facebook ?? "",
-          twitter: cp.twitter ?? "",
-          gallery: (cp.gallery as string[] | null) ?? [],
-        });
-        setProfileInit(true);
-      }
-    },
-  } as any);
+  });
+  const cosplayer = cosplayerQuery.data as any;
+  const cpLoading = cosplayerQuery.isLoading;
+
+  useEffect(() => {
+    if (cosplayer && !profileInit) {
+      setProfileForm({
+        artisticName: cosplayer.artisticName ?? '',
+        bio:          cosplayer.bio ?? '',
+        photo:        cosplayer.photo ?? '',
+        bannerImage:  cosplayer.bannerImage ?? '',
+        instagram:    cosplayer.instagram ?? '',
+        tiktok:       cosplayer.tiktok ?? '',
+        youtube:      cosplayer.youtube ?? '',
+        facebook:     cosplayer.facebook ?? '',
+        twitter:      cosplayer.twitter ?? '',
+        gallery:      (cosplayer.gallery as string[] | null) ?? [],
+      });
+      setProfileInit(true);
+    }
+  }, [cosplayer]);
 
   const { data: activities = [] } = trpc.cosplay.getActivities.useQuery();
   const { data: submissions = [], refetch: refetchSubmissions } = trpc.cosplay.getMySubmissions.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
