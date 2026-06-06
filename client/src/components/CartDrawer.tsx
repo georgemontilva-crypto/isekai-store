@@ -1,6 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ShoppingCart, Trash2, Plus, Minus, ArrowRight, Shield, Truck, Package, Gamepad2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
+import { PriceDisplay } from "@/components/PriceDisplay";
 import { useLang } from "@/i18n/LangContext";
 import { Link } from "wouter";
 
@@ -193,12 +194,10 @@ export default function CartDrawer() {
 
                           {/* Price + Remove */}
                           <div className="flex items-center gap-2">
-                            <span className="font-bold text-sm" style={{ color: TEXT }}>
-                              ${(
-                                parseFloat(item.variant?.price ?? item.product?.price ?? "0") *
-                                item.quantity
-                              ).toFixed(2)}
-                            </span>
+                            <PriceDisplay
+                              price={parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity}
+                              size="sm"
+                            />
                             <button
                               onClick={() => removeItem(item.id)}
                               className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"

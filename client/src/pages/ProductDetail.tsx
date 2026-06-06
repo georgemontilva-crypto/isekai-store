@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { Link, useParams } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { PriceDisplay } from "@/components/PriceDisplay";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
@@ -291,9 +292,7 @@ export default function ProductDetail() {
 
             {/* Price */}
             <div className="flex items-baseline gap-3 pb-4 border-b border-[#ebebeb]">
-              <span className="text-xl sm:text-2xl lg:text-3xl font-black text-[#1a1a1a]">
-                ${parseFloat(displayPrice).toFixed(2)}
-              </span>
+              <PriceDisplay price={displayPrice} size="lg" />
               {hasDiscount && (
                 <span className="text-lg text-[#aaa] line-through">
                   ${parseFloat(product.compareAtPrice!).toFixed(2)}

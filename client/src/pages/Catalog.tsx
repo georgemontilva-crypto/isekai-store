@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList, Gamepad2 } from "lucide-react";
 import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { PriceDisplay } from "@/components/PriceDisplay";
 import ProductCard from "@/components/ProductCard";
 import { Input } from "@/components/ui/input";
 import { useLang } from "@/i18n/LangContext";
@@ -341,7 +342,7 @@ export default function Catalog() {
                       )}
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-lg text-foreground">${parseFloat(product.price).toFixed(2)}</span>
+                      <PriceDisplay price={product.price} size="sm" />
                       <span className={`text-xs px-2 py-0.5 rounded-full ${product.stock > 0 ? "bg-green-500/10 text-green-400" : "bg-muted text-muted-foreground"}`}>
                         {product.stock > 0 ? `${product.stock} ${t.catalog.available}` : t.catalog.soldOut}
                       </span>

@@ -12,6 +12,7 @@ function useWindowWidth() {
 import { Link, useLocation } from "wouter";
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { PriceDisplay } from "@/components/PriceDisplay";
 import ProductCard from "@/components/ProductCard";
 import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
@@ -709,7 +710,7 @@ export default function Home() {
                         )}
                         <h3 className="text-[13px] font-semibold text-[#1a1a1a] leading-snug line-clamp-2 mb-1">{product.name}</h3>
                         <div className="flex items-baseline gap-1.5">
-                          <span className="text-[13px] font-bold text-[#1a1a1a]">${numPrice.toFixed(2)}</span>
+                          <PriceDisplay price={numPrice} size="sm" />
                           {hasDiscount && <span className="text-[11px] text-[#aaa] line-through">${numCompare!.toFixed(2)}</span>}
                         </div>
                       </div>
