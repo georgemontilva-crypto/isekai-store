@@ -4,6 +4,7 @@ import { useCart } from "@/contexts/CartContext";
 import { toast } from "sonner";
 import { useLang } from "@/i18n/LangContext";
 import { trpc } from "@/lib/trpc";
+import { PriceDisplay } from "@/components/PriceDisplay";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 
@@ -150,12 +151,10 @@ export default function ProductCard({
             {name}
           </h3>
 
-          <div className="flex items-baseline mt-2">
-            <span className="text-[15px] font-bold text-[#1a1a1a]">
-              ${numPrice.toFixed(2)}
-            </span>
+          <div className="mt-2">
+            <PriceDisplay price={numPrice} size="sm" />
             {hasDiscount && (
-              <span className="text-[12px] text-[#aaa] line-through ml-2">
+              <span className="text-[12px] text-[#aaa] line-through">
                 ${numCompare!.toFixed(2)}
               </span>
             )}
