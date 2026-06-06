@@ -1689,6 +1689,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
     onSuccess: (data) => { toast.success(`✅ Pedido ${data.orderNumber} creado`); onSuccess(); },
     onError: (err) => toast.error(`Error: ${err.message}`),
   });
+  const { data: activeCosplayers = [] } = trpc.cosplay.getAllCosplayers.useQuery();
   const userSuggestions = trpc.users.searchByEmail.useQuery(
     { query: form.customerEmail },
     { enabled: form.customerEmail.length >= 2 },
@@ -1847,13 +1848,18 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
 
             <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Código de referido (opcional)</p>
-              <input
-                type="text"
+              <select
                 value={form.referralCode ?? ''}
-                onChange={e => setForm({ ...form, referralCode: e.target.value.toUpperCase() })}
-                placeholder="ISK-NOMBRE-0000"
-                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box', textTransform: 'uppercase', letterSpacing: '0.1em', fontFamily: 'inherit' }}
-              />
+                onChange={e => setForm({ ...form, referralCode: e.target.value })}
+                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}
+              >
+                <option value="">Sin código de referido</option>
+                {(activeCosplayers as any[]).filter(c => c.referralCode).map(c => (
+                  <option key={c.id} value={c.referralCode}>
+                    {c.artisticName} — {c.referralCode}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>

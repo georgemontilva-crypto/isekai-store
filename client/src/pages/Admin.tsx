@@ -1648,13 +1648,18 @@ export default function Admin() {
                             <label className="text-sm font-medium block mb-1">
                               Código de referido <span className="text-[#999] font-normal text-xs">(opcional)</span>
                             </label>
-                            <input
-                              type="text"
+                            <select
                               value={manualForm.referralCode ?? ''}
-                              onChange={e => setManualForm({ ...manualForm, referralCode: e.target.value.toUpperCase() })}
-                              placeholder="ISK-NOMBRE-0000"
-                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111] uppercase tracking-wider"
-                            />
+                              onChange={e => setManualForm({ ...manualForm, referralCode: e.target.value })}
+                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111] bg-white"
+                            >
+                              <option value="">Sin código de referido</option>
+                              {cosplayersData.filter((c: any) => c.referralCode).map((c: any) => (
+                                <option key={c.id} value={c.referralCode}>
+                                  {c.artisticName} — {c.referralCode}
+                                </option>
+                              ))}
+                            </select>
                           </div>
                           <div className="flex gap-3 mt-2">
                             <button onClick={() => setShowManualOrder(false)} className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>

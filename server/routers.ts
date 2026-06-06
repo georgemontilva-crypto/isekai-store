@@ -516,6 +516,11 @@ export const appRouter = router({
         }
         const orderNumber = `IW-${String(nextNum).padStart(6, '0')}`;
 
+        // Pre-resolver cosplayer referidor (evita doble lookup)
+        const referralCosplayer = input.referralCode
+          ? await getCosplayerByReferralCode(input.referralCode)
+          : null;
+
         // Insertar orden
         await db.insert(orders).values({
           orderNumber,
@@ -524,16 +529,14 @@ export const appRouter = router({
           customerEmail: input.customerEmail,
           customerPhone: input.customerPhone ?? '',
           shippingAddress: JSON.stringify({ street: '', city: '', country: '' }),
-          total: input.total,
           subtotal: input.total,
+          total: input.total,
           status: 'pending',
           paymentStatus: input.paymentStatus,
-          amountPaid: input.amountPaid ?? '0.00',
+          amountPaid: input.amountPaid ?? '0',
           notes: input.notes ?? '',
           referralCode: input.referralCode ?? null,
-          referralCosplayerId: input.referralCode
-            ? (await getCosplayerByReferralCode(input.referralCode))?.id ?? null
-            : null,
+          referralCosplayerId: referralCosplayer?.id ?? null,
           hasSecretGift: !!input.referralCode,
         });
 
@@ -554,34 +557,31 @@ export const appRouter = router({
         }
 
         // Acreditar 2% al cosplayer referidor si el pedido ya está aprobado
-        if (input.paymentStatus === 'approved' && input.referralCode) {
+        if (input.paymentStatus === 'approved' && referralCosplayer) {
           try {
-            const cosplayer = await getCosplayerByReferralCode(input.referralCode);
-            if (cosplayer) {
-              const orderTotal = parseFloat(input.total);
-              const cashReward = parseFloat((orderTotal * 0.02).toFixed(2));
-              await creditCashToReferrer(cosplayer.id, cashReward, orderNumber);
-              const cosplayerFull = await getCosplayerById(cosplayer.id);
-              if (cosplayerFull?.userId) {
-                const user = await getUserById(cosplayerFull.userId);
-                if (user?.email) {
-                  await sendEmail(
-                    user.email,
-                    '💵 ¡Ganaste cash por referido!',
-                    `<h1>¡Nuevo ingreso en tu billetera!</h1>
-                     <p>Hola <strong>${cosplayerFull.artisticName}</strong>, alguien usó tu código de referido y realizó una compra.</p>
-                     <div class="order-box">
-                       <p><strong>Cash acreditado:</strong> <span class="highlight">$${cashReward.toLocaleString('es-CO')} COP</span></p>
-                       <p><strong>Orden:</strong> ${orderNumber}</p>
-                     </div>
-                     <div style="text-align:center">
-                       <a href="https://isekaiworld.co/cosplay/dashboard" class="btn">Ver mi billetera →</a>
-                     </div>`,
-                    `+$${cashReward.toLocaleString('es-CO')} COP en tu billetera`
-                  );
-                }
-                io.to(`user:${cosplayerFull.userId}`).emit('notification:new');
+            const orderTotal = parseFloat(input.total);
+            const cashReward = parseFloat((orderTotal * 0.02).toFixed(2));
+            await creditCashToReferrer(referralCosplayer.id, cashReward, orderNumber);
+            const cosplayerFull = await getCosplayerById(referralCosplayer.id);
+            if (cosplayerFull?.userId) {
+              const user = await getUserById(cosplayerFull.userId);
+              if (user?.email) {
+                await sendEmail(
+                  user.email,
+                  '💵 ¡Ganaste cash por referido!',
+                  `<h1>¡Nuevo ingreso en tu billetera!</h1>
+                   <p>Hola <strong>${cosplayerFull.artisticName}</strong>, alguien usó tu código de referido y realizó una compra.</p>
+                   <div class="order-box">
+                     <p><strong>Cash acreditado:</strong> <span class="highlight">$${cashReward.toLocaleString('es-CO')} COP</span></p>
+                     <p><strong>Orden:</strong> ${orderNumber}</p>
+                   </div>
+                   <div style="text-align:center">
+                     <a href="https://isekaiworld.co/cosplay/dashboard" class="btn">Ver mi billetera →</a>
+                   </div>`,
+                  `+$${cashReward.toLocaleString('es-CO')} COP en tu billetera`
+                );
               }
+              io.to(`user:${cosplayerFull.userId}`).emit('notification:new');
             }
           } catch (e) { console.error('[createManual] Failed to credit referral cash:', e); }
         }
