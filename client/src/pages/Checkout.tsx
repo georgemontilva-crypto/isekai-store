@@ -333,43 +333,6 @@ export default function Checkout() {
                 />
               </div>
 
-              {/* Referral code */}
-              <div className="p-6 rounded-2xl bg-card border border-border/50">
-                <h2 className="font-semibold text-lg mb-4">
-                  Código de referido <span className="text-muted-foreground font-normal text-sm">(opcional)</span>
-                </h2>
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={referralCode}
-                    onChange={e => setReferralCode(e.target.value.toUpperCase())}
-                    placeholder="ISK-NOMBRE-0000"
-                    className="w-full bg-muted border border-border/50 rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 uppercase tracking-wider"
-                  />
-                  {referralCosplayer && (
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                      <CheckCircle size={16} className="text-green-500" />
-                    </div>
-                  )}
-                </div>
-                {referralCosplayer && (
-                  <div className="mt-2 flex items-center gap-2 text-sm text-green-600">
-                    <CheckCircle size={14} />
-                    <span>Código de <strong>{referralCosplayer.artisticName}</strong> aplicado</span>
-                  </div>
-                )}
-                {referralCode.length >= 8 && !referralCosplayer && !validateCode.isLoading && (
-                  <p className="mt-2 text-sm text-destructive">Código no válido</p>
-                )}
-                {referralCosplayer && (
-                  <div className="mt-3 flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-xl px-4 py-3">
-                    <Gift size={16} className="text-orange-500 flex-shrink-0" />
-                    <p className="text-sm text-orange-700">
-                      <strong>¡Obsequio secreto incluido!</strong> Recibirás una sorpresa especial con tu pedido.
-                    </p>
-                  </div>
-                )}
-              </div>
             </motion.div>
 
             {/* ─── Order Summary ─────────────────────────────────────────────── */}
@@ -430,6 +393,44 @@ export default function Checkout() {
                         <span className="text-xs text-[#999] font-normal">USD {parseFloat(toUSD(subtotal)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Campo código de referido */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-[#111] mb-2">
+                      Código de referido <span className="text-[#999] font-normal text-xs">(opcional)</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={referralCode}
+                        onChange={e => setReferralCode(e.target.value.toUpperCase())}
+                        placeholder="ISK-NOMBRE-0000"
+                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] uppercase tracking-wider"
+                      />
+                      {referralCosplayer && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <CheckCircle size={16} className="text-green-500" />
+                        </div>
+                      )}
+                    </div>
+                    {referralCosplayer && (
+                      <p className="mt-1.5 text-xs text-green-600 flex items-center gap-1">
+                        <CheckCircle size={12} />
+                        Código de <strong>{referralCosplayer.artisticName}</strong> aplicado
+                      </p>
+                    )}
+                    {referralCode.length >= 8 && !referralCosplayer && !validateCode.isLoading && (
+                      <p className="mt-1.5 text-xs text-red-400">Código no válido</p>
+                    )}
+                    {referralCosplayer && (
+                      <div className="mt-2 flex items-center gap-2 bg-[#fff8f0] border border-orange-200 rounded-xl px-3 py-2">
+                        <Gift size={14} className="text-orange-500 flex-shrink-0" />
+                        <p className="text-xs text-orange-700">
+                          <strong>¡Obsequio secreto incluido!</strong>
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {referralCosplayer && (
