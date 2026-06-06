@@ -1668,6 +1668,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
 // ============ NUEVO PEDIDO — PANTALLA DEDICADA ============
 function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess: () => void }) {
   const [step, setStep] = useState<1 | 2>(1);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [form, setForm] = useState({
     customerEmail: '',
     customerName: '',
@@ -1688,6 +1689,10 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
     onSuccess: (data) => { toast.success(`✅ Pedido ${data.orderNumber} creado`); onSuccess(); },
     onError: (err) => toast.error(`Error: ${err.message}`),
   });
+  const userSuggestions = trpc.users.searchByEmail.useQuery(
+    { query: form.customerEmail },
+    { enabled: form.customerEmail.length >= 2 },
+  );
 
   const total = form.items.reduce((sum, item) => sum + (parseFloat(item.price) || 0) * item.quantity, 0);
   const addItem = () => setForm({ ...form, items: [...form.items, { productName: '', quantity: 1, price: '' }] });
@@ -1728,10 +1733,33 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
           <>
             <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cliente</p>
-              <input type="email" value={form.customerEmail}
-                onChange={e => setForm({ ...form, customerEmail: e.target.value })}
-                placeholder="Email *"
-                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+              <div style={{ position: 'relative' }}>
+                <input type="email" value={form.customerEmail}
+                  onChange={e => { setForm({ ...form, customerEmail: e.target.value }); setShowSuggestions(true); }}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                  placeholder="Email *"
+                  style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                {showSuggestions && userSuggestions.data && userSuggestions.data.length > 0 && (
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #e5e5e5', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 600, marginTop: '4px', overflow: 'hidden' }}>
+                    {userSuggestions.data.map((user: any) => (
+                      <button
+                        key={user.id}
+                        type="button"
+                        onClick={() => { setForm({ ...form, customerEmail: user.email, customerName: user.name ?? form.customerName }); setShowSuggestions(false); }}
+                        style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '12px 16px', background: 'none', border: 'none', borderBottom: '1px solid #f0f0f0', cursor: 'pointer', textAlign: 'left' }}
+                      >
+                        <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: '#111', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, flexShrink: 0 }}>
+                          {user.name?.charAt(0).toUpperCase() ?? '?'}
+                        </div>
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <p style={{ fontSize: '14px', fontWeight: 600, color: '#111', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.name}</p>
+                          <p style={{ fontSize: '12px', color: '#999', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user.email}</p>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {findUser.data && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '12px', padding: '10px 14px' }}>
                   <Check size={14} color="#22c55e" />

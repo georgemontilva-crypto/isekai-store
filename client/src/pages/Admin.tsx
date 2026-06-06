@@ -633,6 +633,8 @@ export default function Admin() {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
   const [showManualOrder, setShowManualOrder] = useState(false);
+  const [emailSearch, setEmailSearch] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending' as 'pending' | 'partial' | 'approved', amountPaid: '', referralCode: '' });
   const [showConfirm, setShowConfirm] = useState(false);
   const [igToken, setIgToken] = useState("");
@@ -749,6 +751,10 @@ export default function Admin() {
   const findUserQuery = trpc.users.findByEmail.useQuery(
     { email: manualForm.customerEmail },
     { enabled: manualForm.customerEmail.includes('@') && manualForm.customerEmail.includes('.') },
+  );
+  const userSuggestions = trpc.users.searchByEmail.useQuery(
+    { query: emailSearch },
+    { enabled: emailSearch.length >= 2 },
   );
   const createManualOrder = trpc.orders.createManual.useMutation({
     onSuccess: (data) => {
@@ -1507,10 +1513,40 @@ export default function Admin() {
                             <div className="flex flex-col gap-3">
                               <div>
                                 <label className="text-sm font-medium block mb-1">Email del cliente</label>
-                                <input type="email" value={manualForm.customerEmail}
-                                  onChange={e => setManualForm({ ...manualForm, customerEmail: e.target.value })}
-                                  placeholder="correo@ejemplo.com"
-                                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                                <div className="relative">
+                                  <input type="email" value={manualForm.customerEmail}
+                                    onChange={e => {
+                                      setManualForm({ ...manualForm, customerEmail: e.target.value });
+                                      setEmailSearch(e.target.value);
+                                      setShowSuggestions(true);
+                                    }}
+                                    onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
+                                    placeholder="correo@ejemplo.com"
+                                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                                  {showSuggestions && userSuggestions.data && userSuggestions.data.length > 0 && (
+                                    <div className="absolute top-full left-0 right-0 bg-white border border-[#e5e5e5] rounded-xl shadow-lg z-50 mt-1 overflow-hidden">
+                                      {userSuggestions.data.map((user: any) => (
+                                        <button
+                                          key={user.id}
+                                          type="button"
+                                          onClick={() => {
+                                            setManualForm({ ...manualForm, customerEmail: user.email, customerName: user.name ?? manualForm.customerName });
+                                            setShowSuggestions(false);
+                                          }}
+                                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#f8f8f8] transition-colors text-left border-b border-[#f0f0f0] last:border-0"
+                                        >
+                                          <div className="w-8 h-8 rounded-full bg-[#111] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            {user.name?.charAt(0).toUpperCase() ?? '?'}
+                                          </div>
+                                          <div className="min-w-0 flex-1">
+                                            <p className="text-sm font-semibold text-[#111] truncate">{user.name}</p>
+                                            <p className="text-xs text-[#999] truncate">{user.email}</p>
+                                          </div>
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
                                 {findUserQuery.data && (
                                   <p className="text-xs text-green-600 mt-1 font-semibold">✓ Cliente registrado: {findUserQuery.data.name}</p>
                                 )}

@@ -6,7 +6,7 @@ import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
 import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
-import { orders, orderItems } from "../drizzle/schema";
+import { orders, orderItems, users } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
@@ -835,6 +835,17 @@ export const appRouter = router({
     findByEmail: adminProcedure
       .input(z.object({ email: z.string().email() }))
       .query(({ input }) => findUserByEmail(input.email)),
+
+    searchByEmail: adminProcedure
+      .input(z.object({ query: z.string().min(2) }))
+      .query(async ({ input }) => {
+        const db = await getDb();
+        if (!db) return [];
+        return db.select({ id: users.id, name: users.name, email: users.email })
+          .from(users)
+          .where(like(users.email, `%${input.query}%`))
+          .limit(5);
+      }),
   }),
 
   // ─── Popups ──────────────────────────────────────────────────────────────────
