@@ -501,23 +501,9 @@ export const appRouter = router({
         const db = await getDb();
         if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
 
-        // Generar número de orden consecutivo (escanea todos para evitar duplicados)
-        const allOrders = await db.select({ orderNumber: orders.orderNumber }).from(orders);
-        let maxNum = 0;
-        for (const o of allOrders) {
-          const match = o.orderNumber.match(/^IW-(\d+)$/);
-          if (match) {
-            const num = parseInt(match[1]);
-            if (num > maxNum) maxNum = num;
-          }
-        }
-        let orderNumber = `IW-${String(maxNum + 1).padStart(6, '0')}`;
-
-        // Verificar que el orderNumber no exista ya (safety check)
-        const existing = await db.select({ id: orders.id }).from(orders).where(eq(orders.orderNumber, orderNumber));
-        if (existing.length > 0) {
-          orderNumber = `IW-${Date.now()}`;
-        }
+        // Número de orden único garantizado por timestamp
+        const timestamp = Date.now();
+        const orderNumber = `IW-${timestamp}`;
 
         // Pre-resolver cosplayer referidor (evita doble lookup)
         const referralCosplayer = input.referralCode
