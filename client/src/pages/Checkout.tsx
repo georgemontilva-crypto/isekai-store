@@ -257,7 +257,7 @@ export default function Checkout() {
               <div className="p-6 rounded-2xl bg-card border border-border/50">
                 <h2 className="font-semibold text-lg mb-4">País de envío</h2>
                 <div className="grid grid-cols-3 gap-3">
-                  {["Colombia", "Venezuela", "Otro"].map(c => (
+                  {["Colombia", "Venezuela"].map(c => (
                     <button
                       key={c}
                       type="button"
