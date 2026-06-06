@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { trpc } from "@/lib/trpc";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -56,6 +57,7 @@ export default function Checkout() {
   const { t } = useLang();
   const { items, subtotal, clearCart } = useCart();
   const { user } = useAuth();
+  const { toUSD } = useExchangeRate();
 
   const [selectedCountry, setSelectedCountry] = useState<string>("Colombia");
   const [createdOrder, setCreatedOrder] = useState<{
@@ -397,9 +399,14 @@ export default function Checkout() {
                           {item.variant && <p className="text-xs text-muted-foreground">{item.variant.name}</p>}
                           <p className="text-xs text-muted-foreground">x{item.quantity}</p>
                         </div>
-                        <span className="text-sm font-semibold text-primary flex-shrink-0">
-                          ${(parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity).toFixed(2)}
-                        </span>
+                        <div className="flex flex-col items-end flex-shrink-0">
+                          <span className="text-sm font-bold text-[#e5007d]">
+                            COP {(parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
+                          </span>
+                          <span className="text-xs text-[#999]">
+                            USD {parseFloat(toUSD(parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -407,7 +414,10 @@ export default function Checkout() {
                   <div className="border-t border-border/50 pt-4 space-y-2">
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>{t.checkout.subtotal}</span>
-                      <span>${subtotal.toFixed(2)}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-bold text-[#e5007d]">COP {subtotal.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</span>
+                        <span className="text-xs text-[#999]">USD {parseFloat(toUSD(subtotal)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                      </div>
                     </div>
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>{t.checkout.shipping}</span>
@@ -415,16 +425,19 @@ export default function Checkout() {
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t border-border/50 pt-2">
                       <span>{t.checkout.total}</span>
-                      <span className="text-primary">${subtotal.toFixed(2)}</span>
+                      <div className="flex flex-col items-end">
+                        <span className="font-black text-[#e5007d]">COP {subtotal.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</span>
+                        <span className="text-xs text-[#999] font-normal">USD {parseFloat(toUSD(subtotal)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                      </div>
                     </div>
                   </div>
 
                   {referralCosplayer && (
-                    <div className="flex items-center justify-between bg-[#f8f8f8] border border-dashed border-[#e5007d] rounded-xl px-4 py-3 mb-3">
+                    <div className="flex items-center justify-between bg-[#fff8f0] border border-dashed border-[#e5007d] rounded-xl px-4 py-3 mb-3">
                       <div>
-                        <p className="text-xs text-[#999] mb-0.5">Código de referido aplicado</p>
-                        <p className="font-black text-[#e5007d] tracking-widest">{referralCode}</p>
-                        <p className="text-xs text-[#666]">de {referralCosplayer.artisticName}</p>
+                        <p className="text-xs text-[#999] mb-0.5">Código de referido</p>
+                        <p className="font-black text-[#e5007d] tracking-widest text-lg">{referralCode.toUpperCase()}</p>
+                        <p className="text-xs text-[#666]">Referido por {referralCosplayer.artisticName}</p>
                       </div>
                       <Gift size={20} className="text-orange-500 flex-shrink-0" />
                     </div>
