@@ -633,7 +633,7 @@ export default function Admin() {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [orderSearch, setOrderSearch] = useState('');
   const [showManualOrder, setShowManualOrder] = useState(false);
-  const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending' as 'pending' | 'partial' | 'approved', amountPaid: '' });
+  const [manualForm, setManualForm] = useState({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending' as 'pending' | 'partial' | 'approved', amountPaid: '', referralCode: '' });
   const [showConfirm, setShowConfirm] = useState(false);
   const [igToken, setIgToken] = useState("");
   const [igUsername, setIgUsername] = useState("");
@@ -1608,6 +1608,18 @@ export default function Admin() {
                               )}
                             </div>
                           </div>
+                          <div>
+                            <label className="text-sm font-medium block mb-1">
+                              Código de referido <span className="text-[#999] font-normal text-xs">(opcional)</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={manualForm.referralCode ?? ''}
+                              onChange={e => setManualForm({ ...manualForm, referralCode: e.target.value.toUpperCase() })}
+                              placeholder="ISK-NOMBRE-0000"
+                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111] uppercase tracking-wider"
+                            />
+                          </div>
                           <div className="flex gap-3 mt-2">
                             <button onClick={() => setShowManualOrder(false)} className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
                             <button
@@ -1663,6 +1675,7 @@ export default function Admin() {
                                   notes: manualForm.notes,
                                   paymentStatus: manualForm.paymentStatus,
                                   amountPaid: manualForm.amountPaid || undefined,
+                                  referralCode: manualForm.referralCode || undefined,
                                 });
                               }}
                               disabled={createManualOrder.isPending}

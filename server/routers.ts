@@ -495,6 +495,7 @@ export const appRouter = router({
         notes: z.string().optional(),
         paymentStatus: z.enum(['pending', 'partial', 'approved']).default('approved'),
         amountPaid: z.string().optional(),
+        referralCode: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
         const db = await getDb();
@@ -529,6 +530,11 @@ export const appRouter = router({
           paymentStatus: input.paymentStatus,
           amountPaid: input.amountPaid ?? '0.00',
           notes: input.notes ?? '',
+          referralCode: input.referralCode ?? null,
+          referralCosplayerId: input.referralCode
+            ? (await getCosplayerByReferralCode(input.referralCode))?.id ?? null
+            : null,
+          hasSecretGift: !!input.referralCode,
         });
 
         // Obtener la orden recién creada
