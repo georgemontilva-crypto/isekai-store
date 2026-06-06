@@ -511,50 +511,46 @@ export const appRouter = router({
             if (num > maxNum) maxNum = num;
           }
         }
-        const orderNumber = `IW-${String(maxNum + 1).padStart(6, '0')}`;
+        let orderNumber = `IW-${String(maxNum + 1).padStart(6, '0')}`;
+
+        // Verificar que el orderNumber no exista ya (safety check)
+        const existing = await db.select({ id: orders.id }).from(orders).where(eq(orders.orderNumber, orderNumber));
+        if (existing.length > 0) {
+          orderNumber = `IW-${Date.now()}`;
+        }
 
         // Pre-resolver cosplayer referidor (evita doble lookup)
         const referralCosplayer = input.referralCode
           ? await getCosplayerByReferralCode(input.referralCode)
           : null;
 
-        // Insertar orden
-        console.log('[createManual] insertando orden con valores:', {
-          orderNumber,
-          userId: input.userId ?? null,
-          customerName: input.customerName,
-          customerEmail: input.customerEmail,
-          total: input.total,
-          status: 'pending',
-          paymentStatus: input.paymentStatus,
-          amountPaid: input.amountPaid ?? '0',
-          referralCode: input.referralCode ?? null,
-          referralCosplayerId: referralCosplayer?.id ?? null,
-          hasSecretGift: !!input.referralCode,
-        });
-        await db.insert(orders).values({
-          orderNumber,
-          userId: input.userId ?? null,
-          customerName: input.customerName,
-          customerEmail: input.customerEmail,
-          customerPhone: input.customerPhone ?? '',
-          shippingAddress: JSON.stringify({ street: '', city: '', country: '' }),
-          subtotal: input.total,
-          total: input.total,
-          status: 'pending',
-          paymentStatus: input.paymentStatus,
-          amountPaid: input.amountPaid ?? '0',
-          notes: input.notes ?? '',
-          referralCode: input.referralCode ?? null,
-          referralCosplayerId: referralCosplayer?.id ?? null,
-          hasSecretGift: !!input.referralCode,
-        });
+        // Insertar orden — si falla aquí, parar todo (no acreditar 2% ni enviar emails)
+        try {
+          await db.insert(orders).values({
+            orderNumber,
+            userId: input.userId ?? null,
+            customerName: input.customerName,
+            customerEmail: input.customerEmail,
+            customerPhone: input.customerPhone ?? '',
+            shippingAddress: JSON.stringify({ street: '', city: '', country: '' }),
+            subtotal: input.total,
+            total: input.total,
+            status: 'pending',
+            paymentStatus: input.paymentStatus,
+            amountPaid: input.amountPaid ?? '0',
+            notes: input.notes ?? '',
+            referralCode: input.referralCode ?? null,
+            referralCosplayerId: referralCosplayer?.id ?? null,
+            hasSecretGift: !!input.referralCode,
+          });
+        } catch (err) {
+          console.error('[createManual] Error insertando orden:', err);
+          throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al crear la orden' });
+        }
 
         // Obtener la orden recién creada
-        const [newOrder] = await db.select().from(orders)
-          .where(eq(orders.orderNumber, orderNumber));
-
-        if (!newOrder) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al crear la orden' });
+        const [newOrder] = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber));
+        if (!newOrder) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Error al obtener la orden creada' });
 
         // Insertar items
         for (const item of input.items) {
