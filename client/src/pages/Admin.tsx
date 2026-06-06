@@ -1419,6 +1419,9 @@ export default function Admin() {
                                 )}
                               </div>
                               <p className="text-sm text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
+                              {order.customerPhone && (
+                                <p className="text-xs text-muted-foreground truncate">📞 {order.customerPhone}</p>
+                              )}
                               <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
                               {/* Mini progress timeline */}
                               {order.status !== "cancelled" && (
@@ -1784,6 +1787,9 @@ export default function Admin() {
                             <div className="min-w-0">
                               <p className="font-semibold text-sm">{order.orderNumber}</p>
                               <p className="text-xs text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
+                              {order.customerPhone && (
+                                <p className="text-xs text-muted-foreground truncate">📞 {order.customerPhone}</p>
+                              )}
                             </div>
                           </div>
                           <div className="flex items-center gap-3 ml-4 shrink-0">
