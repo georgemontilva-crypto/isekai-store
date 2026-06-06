@@ -419,6 +419,17 @@ export default function Checkout() {
                     </div>
                   </div>
 
+                  {referralCosplayer && (
+                    <div className="flex items-center justify-between bg-[#f8f8f8] border border-dashed border-[#e5007d] rounded-xl px-4 py-3 mb-3">
+                      <div>
+                        <p className="text-xs text-[#999] mb-0.5">Código de referido aplicado</p>
+                        <p className="font-black text-[#e5007d] tracking-widest">{referralCode}</p>
+                        <p className="text-xs text-[#666]">de {referralCosplayer.artisticName}</p>
+                      </div>
+                      <Gift size={20} className="text-orange-500 flex-shrink-0" />
+                    </div>
+                  )}
+
                   <Button
                     type="submit"
                     size="lg"

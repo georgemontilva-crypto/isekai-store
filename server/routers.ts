@@ -304,8 +304,22 @@ export const appRouter = router({
         // Notify owner
         try {
           await notifyOwner({
-            title: `🛒 Nuevo pedido: ${order.orderNumber}`,
-            content: `Cliente: ${input.customerName} (${input.customerEmail})\nTotal: $${input.total}\nProductos: ${input.items.length} artículo(s)`,
+            title: `🛒 Nueva orden — ${order.orderNumber}`,
+            body: `
+    <h1>Nueva orden recibida</h1>
+    <p>Se ha recibido una nueva orden en Isekai World.</p>
+    <div class="order-box">
+      <p><strong>N° de orden:</strong> ${order.orderNumber}</p>
+      <p><strong>Cliente:</strong> ${input.customerName}</p>
+      <p><strong>Email:</strong> ${input.customerEmail}</p>
+      <p><strong>Teléfono:</strong> ${input.customerPhone}</p>
+      <p><strong>Total:</strong> $${input.total} COP</p>
+      ${input.referralCode ? `<p><strong>Código referido:</strong> ${input.referralCode}</p>` : ''}
+    </div>
+    <div style="text-align:center">
+      <a href="https://isekaiworld.co/admin" class="btn">Ver en el panel →</a>
+    </div>
+  `,
           });
         } catch (e) { console.error("Failed to notify owner:", e); }
         // Admin notification
