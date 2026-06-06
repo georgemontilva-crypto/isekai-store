@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle } from "lucide-react";
 import { getLoginUrl } from "@/const";
+import { useExchangeRate } from "@/hooks/useExchangeRate";
 
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
 
@@ -66,6 +67,7 @@ export default function CosplayDashboard() {
     refetchInterval: 1000 * 60 * 60,
   });
   const usdToCOP = rateData?.usdToCOP ?? 4200;
+  const { toUSD } = useExchangeRate();
   const minWithdrawalCOP = Math.ceil(20 * usdToCOP);
 
   useEffect(() => {
@@ -655,8 +657,9 @@ export default function CosplayDashboard() {
                       ${parseFloat(String(cosplayer?.cashBalance ?? '0')).toLocaleString('es-CO')} COP
                     </p>
                     <p className="text-[#555] text-xs mt-1">
-                      ≈ ${(parseFloat(String(cosplayer?.cashBalance ?? '0')) / usdToCOP).toFixed(2)} USD
+                      ≈ USD {toUSD(parseFloat(String(cosplayer?.cashBalance ?? '0')))}
                     </p>
+                    <p className="text-[#555] text-xs">Consumible o retirable</p>
                     <div className="flex gap-2 mt-4">
                       <button
                         disabled={parseFloat(String(cosplayer?.cashBalance ?? '0')) < minWithdrawalCOP}
