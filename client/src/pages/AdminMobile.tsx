@@ -30,6 +30,11 @@ const TIER_COLORS: Record<string, string> = {
   bronce: '#cd7f32', plata: '#c0c0c0', oro: '#ffd700', diamante: '#7dd3fc', platino: '#e8e8e8',
 };
 
+const isExpired = (deadline: string | null) => {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date();
+};
+
 function StatusBadge({ status }: { status: string }) {
   return (
     <span className="text-xs font-bold px-2 py-1 rounded-full"
@@ -520,12 +525,17 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${act.active ? 'bg-green-400' : 'bg-[#ccc]'}`} />
+                      <span className={`w-2 h-2 rounded-full flex-shrink-0 ${isExpired(act.deadline) ? 'bg-red-400' : act.active ? 'bg-green-400' : 'bg-[#ccc]'}`} />
                       <p className="font-bold text-sm text-[#111] truncate">{act.title}</p>
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-[#999]">
+                    <div className="flex items-center gap-2 text-xs text-[#999] flex-wrap">
                       <span className="bg-[#f0f0f0] px-2 py-0.5 rounded-full capitalize">{act.type}</span>
                       <span>{act.basePoints} pts base</span>
+                      {isExpired(act.deadline) && (
+                        <span className="text-xs bg-red-50 text-red-500 border border-red-200 px-2 py-0.5 rounded-full font-semibold">
+                          Vencida
+                        </span>
+                      )}
                     </div>
                   </div>
                   <ChevronDown size={16} className={`text-[#999] ml-3 flex-shrink-0 transition-transform ${expandedActivity === act.id ? 'rotate-180' : ''}`} />

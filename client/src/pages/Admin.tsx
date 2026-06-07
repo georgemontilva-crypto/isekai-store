@@ -621,6 +621,11 @@ function getTierByFollowers(followers: number): string {
   return 'bronce';
 }
 
+const isExpired = (deadline: string | null) => {
+  if (!deadline) return false;
+  return new Date(deadline) < new Date();
+};
+
 // ─── Main Admin Component ─────────────────────────────────────────────────────
 export default function Admin() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -3944,9 +3949,14 @@ export default function Admin() {
                       {cosplayActivities.map((act: any) => (
                         <div key={act.id} className="flex items-center justify-between p-4 rounded-xl bg-card border border-border/50">
                           <div>
-                            <div className="flex items-center gap-2 mb-0.5">
+                            <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                               <p className="font-medium text-sm">{act.title}</p>
                               <span className="text-xs bg-muted px-2 py-0.5 rounded-full capitalize">{act.type}</span>
+                              {isExpired(act.deadline) && (
+                                <span className="text-xs bg-red-50 text-red-500 border border-red-200 px-2 py-0.5 rounded-full font-semibold">
+                                  Vencida
+                                </span>
+                              )}
                             </div>
                             <p className="text-xs text-muted-foreground">{act.basePoints} pts base{act.deadline ? ` · Hasta ${new Date(act.deadline).toLocaleDateString('es-CO')}` : ''}</p>
                           </div>
