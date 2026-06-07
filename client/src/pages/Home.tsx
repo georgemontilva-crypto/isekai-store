@@ -482,7 +482,7 @@ export default function Home() {
 
         {/* ── VIDEO BANNER ── */}
         {videoUrl && (
-        <section className="bg-[#f5f5f5] py-0" style={{ padding: '0 8px 0 8px' }}>
+        <section className="hidden md:block bg-[#f5f5f5] py-0" style={{ padding: '0 8px 0 8px' }}>
           <div
             className="relative overflow-hidden"
             style={{ height: 480, borderRadius: 18 }}
