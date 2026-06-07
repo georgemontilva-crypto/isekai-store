@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail } from "./_core/notification";
 import { io } from "./_core/socket";
@@ -1458,10 +1458,22 @@ export async function getActiveActivities() {
     console.log('[getActiveActivities] DB is null');
     return [];
   }
+
+  const now = new Date();
+
   const result = await db.select().from(cosplayActivities)
-    .where(eq(cosplayActivities.active, true))
+    .where(
+      and(
+        eq(cosplayActivities.active, true),
+        or(
+          isNull(cosplayActivities.deadline),
+          gt(cosplayActivities.deadline, now)
+        )
+      )
+    )
     .orderBy(desc(cosplayActivities.createdAt));
-  console.log('[getActiveActivities] result count:', result.length, 'items:', JSON.stringify(result));
+
+  console.log('[getActiveActivities] result count:', result.length);
   return result;
 }
 
