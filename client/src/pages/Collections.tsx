@@ -1,7 +1,6 @@
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { useSEO } from "@/hooks/useSEO";
-import { ArrowRight } from "lucide-react";
 
 export default function Collections() {
   useSEO({
@@ -26,13 +25,13 @@ export default function Collections() {
 
       {/* Grid de categorías */}
       <div className="max-w-6xl mx-auto px-6 lg:px-16 py-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
           {categories.map((cat: any) => (
             <Link key={cat.id} href={`/catalog?category=${cat.slug}`}>
-              <div className="group cursor-pointer rounded-2xl overflow-hidden border border-[#f0f0f0] hover:border-[#111] transition-all hover:shadow-lg">
+              <div className="group cursor-pointer">
 
-                {/* Imagen */}
-                <div className="relative aspect-square overflow-hidden bg-[#f8f8f8]">
+                {/* Imagen cuadrada */}
+                <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#f0f0f0] mb-3">
                   {cat.imageUrl ? (
                     <img
                       src={cat.imageUrl}
@@ -44,16 +43,13 @@ export default function Collections() {
                       <span className="text-4xl">🎮</span>
                     </div>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl" />
                 </div>
 
-                {/* Nombre */}
-                <div className="p-4 flex items-center justify-between">
-                  <p className="font-bold text-[#111] group-hover:text-[#e5007d] transition-colors">
-                    {cat.name}
-                  </p>
-                  <ArrowRight size={16} className="text-[#ccc] group-hover:text-[#e5007d] transition-colors" />
-                </div>
+                {/* Nombre debajo */}
+                <p className="font-semibold text-sm text-[#111] text-center group-hover:text-[#e5007d] transition-colors">
+                  {cat.name}
+                </p>
               </div>
             </Link>
           ))}
