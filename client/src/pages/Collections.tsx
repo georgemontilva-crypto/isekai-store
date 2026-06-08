@@ -15,8 +15,8 @@ export default function Collections() {
     <div className="min-h-screen bg-white">
 
       {/* Header */}
-      <div className="border-b border-[#f0f0f0] py-12 px-6 lg:px-16">
-        <div className="max-w-6xl mx-auto">
+      <div className="border-b border-[#f0f0f0] py-12 px-4 lg:px-8">
+        <div className="max-w-7xl mx-auto">
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2">Isekai World</p>
           <h1 className="text-4xl lg:text-6xl font-black text-[#111]">Universos</h1>
           <p className="text-[#999] mt-2">Explora todos nuestros universos</p>
@@ -24,8 +24,8 @@ export default function Collections() {
       </div>
 
       {/* Grid de categorías */}
-      <div className="max-w-6xl mx-auto px-6 lg:px-16 py-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
           {categories.map((cat: any) => (
             <Link key={cat.id} href={`/catalog?category=${cat.slug}`}>
               <div className="group cursor-pointer">
