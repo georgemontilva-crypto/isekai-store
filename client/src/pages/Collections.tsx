@@ -26,12 +26,13 @@ export default function Collections() {
 
       {/* Grid — mismo estilo que mega menú */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+        <div className="flex flex-wrap gap-4">
           {categories.map((cat: any) => (
             <Link
               key={cat.id}
               href={`/catalog?category=${cat.slug}`}
               className="group relative flex flex-col overflow-hidden rounded-2xl shadow-sm bg-white"
+              style={{ width: 'calc(25% - 12px)', minWidth: '200px' }}
             >
               <div className="aspect-[4/3] overflow-hidden">
                 <img
