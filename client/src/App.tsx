@@ -33,6 +33,7 @@ const CosplayProfile = lazy(() => import("./pages/CosplayProfile"));
 const CosplayDashboard = lazy(() => import("./pages/CosplayDashboard"));
 const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
+const Collections = lazy(() => import("./pages/Collections"));
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "./hooks/useSocket";
 
@@ -93,6 +94,7 @@ function Router() {
         <Route path="/cosplay/dashboard" component={CosplayDashboard} />
         <Route path="/blog" component={Blog} />
         <Route path="/blog/:slug" component={BlogPost} />
+        <Route path="/collections" component={Collections} />
         <Route path="/404" component={NotFound} />
         <Route component={NotFound} />
       </Switch>

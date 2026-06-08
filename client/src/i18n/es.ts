@@ -7,7 +7,7 @@ export const es = {
       "20% off en tu primer pedido · Únete ahora",
     ],
     shop: "Tienda",
-    collections: "Colecciones",
+    collections: "Universos",
     explore: "Explorar",
     compare: "Comparar",
     account: "Mi Cuenta",
@@ -23,7 +23,7 @@ export const es = {
     mobileMenu: [
       { href: "/", label: "Inicio" },
       { href: "/catalog", label: "Tienda" },
-      { href: "/catalog", label: "Colecciones" },
+      { href: "/collections", label: "Universos" },
       { href: "/nosotros", label: "Nosotros" },
       { href: "/faq", label: "Preguntas Frecuentes" },
     ],

@@ -8,7 +8,7 @@ export const en: Translations = {
       "20% off your first order · Join now",
     ],
     shop: "Shop",
-    collections: "Collections",
+    collections: "Universos",
     explore: "Explore",
     compare: "Compare",
     account: "My Account",

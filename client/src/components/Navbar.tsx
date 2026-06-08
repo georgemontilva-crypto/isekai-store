@@ -176,9 +176,9 @@ export default function Navbar() {
             <Link href="/catalog" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">{t.nav.shop}</Link>
 
             <div className="relative" onMouseEnter={() => openMenu("collections")} onMouseLeave={scheduleClose}>
-              <button className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="collections"?"bg-[#1a1a1a] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
-                {t.nav.collections}<ChevronDown size={12} className={`transition-transform duration-200 ${activeMenu==="collections"?"rotate-180":""}`}/>
-              </button>
+              <Link href="/collections" className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="collections"?"bg-[#1a1a1a] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
+                {t.nav.collections}
+              </Link>
             </div>
 
             <div className="relative" onMouseEnter={() => openMenu("explore")} onMouseLeave={scheduleClose}>
