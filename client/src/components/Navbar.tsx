@@ -35,7 +35,7 @@ export default function Navbar() {
   const { user, isAuthenticated } = useAuth();
   console.log("[Navbar] user:", user?.email, "role:", user?.role);
   const { totalItems, openCart } = useCart();
-  const { lang, t, toggleLang } = useLang();
+  const { t } = useLang();
 
   const announcements = t.nav.announcements;
 
@@ -133,21 +133,6 @@ export default function Navbar() {
 
   if (location.startsWith("/admin")) return null;
 
-  const LangToggle = ({ mobile }: { mobile?: boolean }) => (
-    <button
-      onClick={toggleLang}
-      className={mobile
-        ? "flex items-center gap-1 px-3 py-1.5 rounded-full bg-[#f0f0f0] text-[11px] font-bold"
-        : "flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-white/20 hover:border-white/60 transition-all text-[11px] font-bold tracking-wide"
-      }
-      aria-label="Cambiar idioma"
-    >
-      <span className={lang === "es" ? (mobile ? "text-[#1a1a1a]" : "text-white") : "opacity-40"}>ES</span>
-      <span className={mobile ? "text-[#ccc]" : "text-white/30"}>|</span>
-      <span className={lang === "en" ? (mobile ? "text-[#1a1a1a]" : "text-white") : "opacity-40"}>EN</span>
-    </button>
-  );
-
   return (
     <>
       {/* TOP BAR */}
@@ -164,7 +149,7 @@ export default function Navbar() {
             <span className="font-medium tracking-wide text-center px-2">{announcements[announcementIdx]}</span>
             <button onClick={() => setAnnouncementIdx(i => (i + 1) % announcements.length)} aria-label="Siguiente anuncio" className="opacity-50 hover:opacity-100 transition-opacity"><ChevronRight size={12}/></button>
           </div>
-          <div className="hidden md:flex items-center"><LangToggle /></div>
+          <div className="hidden md:flex items-center"></div>
         </div>
       </div>
 
@@ -324,7 +309,6 @@ export default function Navbar() {
                 : <span className="font-bold text-[15px]">{storeName}</span>
               }
               <div className="flex items-center gap-3">
-                <LangToggle mobile />
                 <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" className="p-2"><X size={18}/></button>
               </div>
             </div>
