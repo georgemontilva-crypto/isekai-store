@@ -17,7 +17,7 @@ export default function Collections() {
 
       {/* Header */}
       <div className="border-b border-[#f0f0f0] py-12 px-4 lg:px-8">
-        <div className="max-w-7xl mx-auto">
+        <div className="mx-auto px-4 lg:px-8" style={{ maxWidth: '1400px' }}>
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2">Isekai World</p>
           <h1 className="text-4xl lg:text-6xl font-black text-[#111]">Universos</h1>
           <p className="text-[#999] mt-2">Explora todos nuestros universos</p>
@@ -25,14 +25,13 @@ export default function Collections() {
       </div>
 
       {/* Grid — mismo estilo que mega menú */}
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
-        <div className="flex flex-wrap gap-4">
+      <div className="mx-auto px-4 lg:px-8 py-12" style={{ maxWidth: '1400px' }}>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {categories.map((cat: any) => (
             <Link
               key={cat.id}
               href={`/catalog?category=${cat.slug}`}
               className="group relative flex flex-col overflow-hidden rounded-2xl shadow-sm bg-white"
-              style={{ width: 'calc(25% - 12px)', minWidth: '200px' }}
             >
               <div className="aspect-[4/3] overflow-hidden">
                 <img
