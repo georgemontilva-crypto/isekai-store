@@ -1,6 +1,7 @@
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { useSEO } from "@/hooks/useSEO";
+import { ArrowRight } from "lucide-react";
 
 export default function Collections() {
   useSEO({
@@ -23,33 +24,32 @@ export default function Collections() {
         </div>
       </div>
 
-      {/* Grid de categorías */}
+      {/* Grid — mismo estilo que mega menú */}
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-12">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
           {categories.map((cat: any) => (
-            <Link key={cat.id} href={`/catalog?category=${cat.slug}`}>
-              <div className="group cursor-pointer">
-
-                {/* Imagen cuadrada */}
-                <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-[#f0f0f0] mb-3">
-                  {cat.imageUrl ? (
-                    <img
-                      src={cat.imageUrl}
-                      alt={cat.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-[#f0f0f0]">
-                      <span className="text-4xl">🎮</span>
-                    </div>
+            <Link
+              key={cat.id}
+              href={`/catalog?category=${cat.slug}`}
+              className="group relative flex flex-col overflow-hidden rounded-2xl shadow-sm bg-white"
+            >
+              <div className="aspect-[4/3] overflow-hidden">
+                <img
+                  src={cat.imageUrl}
+                  alt={cat.name}
+                  width={400}
+                  height={300}
+                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+              </div>
+              <div className="px-4 py-3 flex items-start justify-between gap-2 text-[#1a1a1a]">
+                <div>
+                  <div className="font-bold text-[13px] leading-tight">{cat.name}</div>
+                  {cat.description && (
+                    <div className="text-[11px] mt-0.5 leading-snug text-[#888]">{cat.description}</div>
                   )}
-                  <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors rounded-2xl" />
                 </div>
-
-                {/* Nombre debajo */}
-                <p className="font-semibold text-sm text-[#111] text-center group-hover:text-[#e5007d] transition-colors">
-                  {cat.name}
-                </p>
+                <ArrowRight size={14} className="shrink-0 mt-0.5 transition-transform duration-200 group-hover:translate-x-1" />
               </div>
             </Link>
           ))}
