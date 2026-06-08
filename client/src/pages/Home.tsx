@@ -238,6 +238,15 @@ export default function Home() {
   const videoCtaUrl   = settings?.["video_banner_cta_url"]   ?? "/catalog";
 
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [categoryIndex, setCategoryIndex] = useState(0);
+  const categoryScrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollCategories = (direction: 'left' | 'right') => {
+    const container = categoryScrollRef.current;
+    if (!container) return;
+    const scrollAmount = 160 * 2;
+    container.scrollBy({ left: direction === 'right' ? scrollAmount : -scrollAmount, behavior: 'smooth' });
+  };
   useEffect(() => {
     const video = videoRef.current;
     if (!video || !videoUrl) return;
@@ -360,66 +369,113 @@ export default function Home() {
           2. COLLECTIONS CAROUSEL (Shopify Concept style)
       ══════════════════════════════════════════════ */}
       {categories && categories.length > 0 && (
-      <section className="bg-white border-b border-[#ebebeb] py-0">
-        <div
-          className="flex gap-[10px] overflow-x-auto scrollbar-hide"
-          style={{ padding: '24px 8px 28px 8px' }}
-        >
-          {categories.map((cat, idx) => {
-            const href = cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
-            return (
-            <Link key={cat.id} href={href}>
-              <div
-                className="shrink-0 relative overflow-hidden cursor-pointer group"
-                style={{
-                  width: collectionCardWidth,
-                  minWidth: isMobile ? 140 : 160,
-                  aspectRatio: '1/1',
-                  borderRadius: 18,
-                  background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
-                }}
-              >
-                {cat.imageUrl && (
-                  <img
-                    src={cat.imageUrl}
-                    alt={cat.name}
-                    width={300}
-                    height={300}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                    style={{ opacity: idx === 0 ? 0.65 : 1 }}
-                    loading="lazy"
-                    decoding="async"
-                  />
-                )}
+      <section className="bg-white border-b border-[#ebebeb] py-0" style={{ padding: '0 8px' }}>
+        <div className="relative">
+
+          {/* Flecha izquierda */}
+          <button
+            onClick={() => scrollCategories('left')}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white shadow-lg rounded-full flex items-center justify-center border border-[#e5e5e5] hover:border-[#111] transition-colors -ml-2"
+          >
+            <ChevronLeft size={18} className="text-[#111]" />
+          </button>
+
+          {/* Scroll container */}
+          <div
+            ref={categoryScrollRef}
+            className="flex gap-3 overflow-x-auto scrollbar-hide px-6 py-6"
+            style={{ scrollSnapType: 'x mandatory' }}
+          >
+            {categories.map((cat, idx) => {
+              const href = cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
+              return (
+              <Link key={cat.id} href={href}>
                 <div
-                  className="absolute inset-0"
+                  className="shrink-0 relative overflow-hidden cursor-pointer group"
                   style={{
-                    background: idx === 0
-                      ? 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)'
-                      : 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 50%, transparent 100%)',
+                    scrollSnapAlign: 'start',
+                    width: collectionCardWidth,
+                    minWidth: isMobile ? 140 : 160,
+                    aspectRatio: '1/1',
+                    borderRadius: 18,
+                    background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
                   }}
-                />
-                <div className="absolute bottom-0 left-0 right-0 p-4">
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p
-                        className="font-black text-white leading-tight"
-                        style={{ fontSize: idx === 0 ? 18 : 16, fontFamily: idx === 0 ? "'Orbitron', sans-serif" : 'inherit' }}
-                      >
-                        {cat.name}
-                      </p>
-                      {cat.description && (
-                        <p className="text-white/60 text-[11px] mt-0.5 leading-tight">{cat.description}</p>
-                      )}
-                    </div>
-                    <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0 ml-2">
-                      <ArrowRight size={12} className="text-white" />
+                >
+                  {cat.imageUrl && (
+                    <img
+                      src={cat.imageUrl}
+                      alt={cat.name}
+                      width={300}
+                      height={300}
+                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+                      style={{ opacity: idx === 0 ? 0.65 : 1 }}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  )}
+                  <div
+                    className="absolute inset-0"
+                    style={{
+                      background: idx === 0
+                        ? 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)'
+                        : 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 50%, transparent 100%)',
+                    }}
+                  />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <div className="flex items-end justify-between">
+                      <div>
+                        <p
+                          className="font-black text-white leading-tight"
+                          style={{ fontSize: idx === 0 ? 18 : 16, fontFamily: idx === 0 ? "'Orbitron', sans-serif" : 'inherit' }}
+                        >
+                          {cat.name}
+                        </p>
+                        {cat.description && (
+                          <p className="text-white/60 text-[11px] mt-0.5 leading-tight">{cat.description}</p>
+                        )}
+                      </div>
+                      <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0 ml-2">
+                        <ArrowRight size={12} className="text-white" />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          );})}
+              </Link>
+            );})}
+          </div>
+
+          {/* Flecha derecha */}
+          <button
+            onClick={() => scrollCategories('right')}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white shadow-lg rounded-full flex items-center justify-center border border-[#e5e5e5] hover:border-[#111] transition-colors -mr-2"
+          >
+            <ChevronRight size={18} className="text-[#111]" />
+          </button>
+
+          {/* Dots */}
+          {categories.length > 3 && (
+            <div className="flex justify-center gap-2 pb-4">
+              {Array.from({ length: Math.ceil(categories.length / 2) }).map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    const container = categoryScrollRef.current;
+                    if (container) {
+                      container.scrollTo({ left: i * 160 * 2, behavior: 'smooth' });
+                      setCategoryIndex(i);
+                    }
+                  }}
+                  className="rounded-full transition-all duration-300"
+                  style={{
+                    width: i === categoryIndex ? '20px' : '8px',
+                    height: '8px',
+                    background: i === categoryIndex ? '#111' : '#e5e5e5',
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
         </div>
       </section>
       )}
