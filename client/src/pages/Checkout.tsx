@@ -8,7 +8,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { trpc } from "@/lib/trpc";
-import { useExchangeRate } from "@/hooks/useExchangeRate";
 import { useCart } from "@/contexts/CartContext";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -31,25 +30,19 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const buildWhatsAppMessage = (order: any, items: any[]) => {
-  const itemsList = items.map(item =>
-    `• ${item.name}${item.variantName ? ` (${item.variantName})` : ""} x${item.quantity} — ${item.price.toLocaleString()}`
-  ).join("\n");
+  const itemsList = items.map(i =>
+    `• ${i.name}${i.variantName ? ` (${i.variantName})` : ""} ×${i.quantity} — $${parseFloat(i.price).toFixed(2)} USD`
+  ).join('\n');
+
   return encodeURIComponent(
-`🛍️ *NUEVA ORDEN - ISEKAI WORLD*
-
-📋 *Orden:* ${order.orderNumber}
-👤 *Cliente:* ${order.customerName}
-📧 *Email:* ${order.customerEmail}
-📱 *Teléfono:* ${order.customerPhone || "No indicado"}
-🌍 *País:* ${order.country || "No indicado"}
-📍 *Dirección:* ${order.shippingAddress?.street}, ${order.shippingAddress?.city}
-
-🛒 *Productos:*
-${itemsList}
-
-💰 *Total: ${parseFloat(order.total).toLocaleString()}*
-
-⏳ *Estado:* Pendiente de pago`
+    `🛍️ *NUEVO PEDIDO — ISEKAI WORLD*\n\n` +
+    `N° Orden: ${order.orderNumber}\n` +
+    `Cliente: ${order.customerName}\n` +
+    `Email: ${order.customerEmail}\n` +
+    `Teléfono: ${order.customerPhone || 'No indicado'}\n\n` +
+    `*PRODUCTOS:*\n${itemsList}\n\n` +
+    `*TOTAL: $${parseFloat(order.total).toFixed(2)} USD*\n\n` +
+    `Dirección: ${order.shippingAddress?.street}, ${order.shippingAddress?.city}`
   );
 };
 
@@ -57,8 +50,6 @@ export default function Checkout() {
   const { t } = useLang();
   const { items, subtotal, clearCart } = useCart();
   const { user } = useAuth();
-  const { toUSD } = useExchangeRate();
-
   const [selectedCountry, setSelectedCountry] = useState<string>("Colombia");
   const [createdOrder, setCreatedOrder] = useState<{
     id: number;
@@ -364,10 +355,7 @@ export default function Checkout() {
                         </div>
                         <div className="flex flex-col items-end flex-shrink-0">
                           <span className="text-sm font-bold text-[#e5007d]">
-                            COP {(parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity).toLocaleString('es-CO', { maximumFractionDigits: 0 })}
-                          </span>
-                          <span className="text-xs text-[#999]">
-                            USD {parseFloat(toUSD(parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            ${(parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity).toFixed(2)} USD
                           </span>
                         </div>
                       </div>
@@ -377,10 +365,7 @@ export default function Checkout() {
                   <div className="border-t border-border/50 pt-4 space-y-2">
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>{t.checkout.subtotal}</span>
-                      <div className="flex flex-col items-end">
-                        <span className="font-bold text-[#e5007d]">COP {subtotal.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</span>
-                        <span className="text-xs text-[#999]">USD {parseFloat(toUSD(subtotal)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                      </div>
+                      <span className="font-bold text-[#e5007d]">${subtotal.toFixed(2)} USD</span>
                     </div>
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>{t.checkout.shipping}</span>
@@ -388,10 +373,7 @@ export default function Checkout() {
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t border-border/50 pt-2">
                       <span>{t.checkout.total}</span>
-                      <div className="flex flex-col items-end">
-                        <span className="font-black text-[#e5007d]">COP {subtotal.toLocaleString('es-CO', { maximumFractionDigits: 0 })}</span>
-                        <span className="text-xs text-[#999] font-normal">USD {parseFloat(toUSD(subtotal)).toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
-                      </div>
+                      <span className="font-black text-[#e5007d]">${subtotal.toFixed(2)} USD</span>
                     </div>
                   </div>
 

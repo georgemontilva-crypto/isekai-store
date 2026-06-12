@@ -6,8 +6,6 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle } from "lucide-react";
 import { getLoginUrl } from "@/const";
-import { useExchangeRate } from "@/hooks/useExchangeRate";
-
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
 
 const TIER_MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
@@ -60,12 +58,7 @@ export default function CosplayDashboard() {
   });
   const [profileInit, setProfileInit] = useState(false);
   const utils = trpc.useUtils();
-  const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, {
-    refetchInterval: 1000 * 60 * 60,
-  });
-  const usdToCOP = rateData?.usdToCOP ?? 4200;
-  const { toUSD } = useExchangeRate();
-  const minWithdrawalCOP = Math.ceil(20 * usdToCOP);
+  const MIN_WITHDRAWAL_USD = 20;
 
   const cosplayerQuery = trpc.cosplay.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
@@ -663,24 +656,21 @@ export default function CosplayDashboard() {
 
                   <div className="bg-[#1a1a1a] border border-[#ffd700]/30 rounded-2xl p-6">
                     <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Cash</p>
-                    <p className="text-lg sm:text-2xl font-black text-[#ffd700]">
-                      ${parseFloat(String(cosplayer?.cashBalance ?? '0')).toLocaleString('es-CO')} COP
-                    </p>
-                    <p className="text-xs text-[#555] mt-0.5">
-                      ≈ USD {toUSD(parseFloat(String(cosplayer?.cashBalance ?? '0')))}
+                    <p className="text-2xl font-black text-[#ffd700]">
+                      ${parseFloat(String(cosplayer?.cashBalance ?? '0')).toFixed(2)} USD
                     </p>
                     <p className="text-[#555] text-xs">Consumible o retirable</p>
                     <div className="flex gap-2 mt-4">
                       <button
-                        disabled={parseFloat(String(cosplayer?.cashBalance ?? '0')) < minWithdrawalCOP}
+                        disabled={parseFloat(String(cosplayer?.cashBalance ?? '0')) < MIN_WITHDRAWAL_USD}
                         onClick={() => setShowWithdraw(true)}
                         className="flex-1 bg-[#1a1a1a] border border-[#ffd700]/50 text-[#ffd700] py-2 rounded-xl text-xs font-bold disabled:opacity-40 hover:bg-[#222] transition-colors"
                       >
                         Retirar
                       </button>
                     </div>
-                    {parseFloat(String(cosplayer?.cashBalance ?? '0')) < minWithdrawalCOP && (
-                      <p className="text-[#555] text-[10px] mt-2 text-center">Mínimo ${minWithdrawalCOP.toLocaleString('es-CO')} COP (~$20 USD) para retirar</p>
+                    {parseFloat(String(cosplayer?.cashBalance ?? '0')) < MIN_WITHDRAWAL_USD && (
+                      <p className="text-[#555] text-[10px] mt-2 text-center">Mínimo $20.00 USD para retirar</p>
                     )}
                   </div>
                 </div>
@@ -737,14 +727,14 @@ export default function CosplayDashboard() {
                     <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 w-full max-w-md">
                       <h3 className="text-white font-black text-lg mb-4">Solicitar retiro</h3>
                       <p className="text-[#888] text-sm mb-4">
-                        Balance disponible: <strong className="text-[#ffd700]">${parseFloat(String(cosplayer?.cashBalance ?? '0')).toLocaleString('es-CO')} COP</strong>
+                        Balance disponible: <strong className="text-[#ffd700]">${parseFloat(String(cosplayer?.cashBalance ?? '0')).toFixed(2)} USD</strong>
                       </p>
                       <div className="flex flex-col gap-4">
                         <div>
-                          <label className="text-[#ccc] text-sm mb-1 block">Monto a retirar en COP (mín. ${minWithdrawalCOP.toLocaleString('es-CO')} COP ~$20 USD)</label>
+                          <label className="text-[#ccc] text-sm mb-1 block">Monto a retirar en USD (mín. $20.00 USD)</label>
                           <input
                             type="number"
-                            min={minWithdrawalCOP}
+                            min={MIN_WITHDRAWAL_USD}
                             max={parseFloat(String(cosplayer?.cashBalance ?? '0'))}
                             value={withdrawForm.amount}
                             onChange={e => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}

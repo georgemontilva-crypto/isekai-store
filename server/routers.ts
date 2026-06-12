@@ -564,13 +564,13 @@ export const appRouter = router({
                   `<h1>¡Nuevo ingreso en tu billetera!</h1>
                    <p>Hola <strong>${cosplayerFull.artisticName}</strong>, alguien usó tu código de referido y realizó una compra.</p>
                    <div class="order-box">
-                     <p><strong>Cash acreditado:</strong> <span class="highlight">$${cashReward.toLocaleString('es-CO')} COP</span></p>
+                     <p><strong>Cash acreditado:</strong> <span class="highlight">$${cashReward.toFixed(2)} USD</span></p>
                      <p><strong>Orden:</strong> ${orderNumber}</p>
                    </div>
                    <div style="text-align:center">
                      <a href="https://isekaiworld.co/cosplay/dashboard" class="btn">Ver mi billetera →</a>
                    </div>`,
-                  `+$${cashReward.toLocaleString('es-CO')} COP en tu billetera`
+                  `+$${cashReward.toFixed(2)} USD en tu billetera`
                 );
               }
               io.to(`user:${cosplayerFull.userId}`).emit('notification:new');
@@ -1169,7 +1169,7 @@ export const appRouter = router({
 
     requestWithdrawal: protectedProcedure
       .input(z.object({
-        amount: z.number().min(1),
+        amount: z.number().min(20),
         paymentMethod: z.string().min(1).max(100),
         paymentDetails: z.string().min(1).max(500),
       }))

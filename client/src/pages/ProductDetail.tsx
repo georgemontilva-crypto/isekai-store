@@ -55,7 +55,7 @@ export default function ProductDetail() {
       offers: {
         '@type': 'Offer',
         price: parseFloat(product.price),
-        priceCurrency: 'COP',
+        priceCurrency: 'USD',
         availability: (product.stock ?? 0) > 0
           ? 'https://schema.org/InStock'
           : 'https://schema.org/OutOfStock',

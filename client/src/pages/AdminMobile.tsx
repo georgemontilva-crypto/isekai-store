@@ -64,7 +64,7 @@ function StatsSection() {
 
   const stats = [
     { label: 'Pedidos totales', value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: '#e5007d' },
-    { label: 'Ingresos', value: `$${(metrics?.totalRevenue ?? 0).toLocaleString('es-CO')}`, icon: TrendingUp, color: '#22c55e' },
+    { label: 'Ingresos', value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)} USD`, icon: TrendingUp, color: '#22c55e' },
     { label: 'Pagos pendientes', value: pendingPaymentsCount, icon: CreditCard, color: '#f59e0b' },
     { label: 'Solicitudes cosplay', value: pendingCosplay.length, icon: Sparkles, color: '#8b5cf6' },
   ];
@@ -97,7 +97,7 @@ function StatsSection() {
               <p className="text-xs text-[#999] truncate">{order.customerName}</p>
             </div>
             <div className="text-right ml-3 flex-shrink-0">
-              <p className="text-sm font-bold text-[#e5007d]">${parseFloat(order.total ?? 0).toLocaleString('es-CO')}</p>
+              <p className="text-sm font-bold text-[#e5007d]">${parseFloat(order.total ?? 0).toFixed(2)} USD</p>
               <StatusBadge status={order.status} />
             </div>
           </div>
@@ -182,7 +182,7 @@ function OrdersSection({ onCreateOrder }: { onCreateOrder: () => void }) {
                 </div>
                 <div className="flex-shrink-0 text-right">
                   <p className="text-sm font-black text-[#111] mb-2">
-                    ${parseFloat(order.total ?? 0).toLocaleString('es-CO')}
+                    ${parseFloat(order.total ?? 0).toFixed(2)} USD
                   </p>
                   <ChevronDown
                     size={16}
@@ -218,7 +218,7 @@ function OrdersSection({ onCreateOrder }: { onCreateOrder: () => void }) {
                           <p className="text-sm text-[#111]">{item.productName}</p>
                           <div className="text-right">
                             <p className="text-xs text-[#999]">×{item.quantity}</p>
-                            <p className="text-xs font-bold text-[#e5007d]">${parseFloat(item.price ?? 0).toLocaleString('es-CO')}</p>
+                            <p className="text-xs font-bold text-[#e5007d]">${parseFloat(item.price ?? 0).toFixed(2)} USD</p>
                           </div>
                         </div>
                       ))}
@@ -294,7 +294,7 @@ function PaymentsSection() {
             </div>
 
             <p className="text-3xl font-black text-[#111] mb-3">
-              ${parseFloat(order.total ?? 0).toLocaleString('es-CO')} COP
+              ${parseFloat(order.total ?? 0).toFixed(2)} USD
             </p>
 
             {order.receiptUrl && (
@@ -497,7 +497,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
             </div>
             <div className="flex gap-3 text-xs text-[#999]">
               <span>🎫 {cp.ticketBalance} tickets</span>
-              <span>💵 ${parseFloat(cp.cashBalance ?? '0').toLocaleString('es-CO')} COP</span>
+              <span>💵 ${parseFloat(cp.cashBalance ?? '0').toFixed(2)} USD</span>
             </div>
           </button>
         ))}
@@ -907,9 +907,9 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                 </div>
                 <div className="bg-[#f8f8f8] rounded-2xl p-4 text-center">
                   <p className="text-2xl font-black text-[#ffd700]">
-                    ${parseFloat(viewCosplayer.cashBalance ?? '0').toLocaleString('es-CO')}
+                    ${parseFloat(viewCosplayer.cashBalance ?? '0').toFixed(2)} USD
                   </p>
-                  <p className="text-xs text-[#999]">Cash COP</p>
+                  <p className="text-xs text-[#999]">Cash USD</p>
                 </div>
               </div>
 
@@ -1181,7 +1181,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
             )}
             <div className="min-w-0 flex-1">
               <p className="font-bold text-sm text-[#111] truncate">{p.name}</p>
-              <p className="text-[#e5007d] font-black text-sm">${parseFloat(p.price ?? 0).toLocaleString('es-CO')}</p>
+              <p className="text-[#e5007d] font-black text-sm">${parseFloat(p.price ?? 0).toFixed(2)} USD</p>
               <span className={`text-xs font-semibold ${p.status === 'published' ? 'text-green-500' : 'text-[#999]'}`}>
                 {p.status === 'published' ? 'Publicado' : 'Borrador'}
               </span>
@@ -1246,7 +1246,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                   className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
               <div>
-                <label className="text-sm font-medium block mb-1">Precio (COP)</label>
+                <label className="text-sm font-medium block mb-1">Precio (USD)</label>
                 <input type="text" value={editProduct.price}
                   onChange={e => setEditProduct({ ...editProduct, price: e.target.value })}
                   className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
@@ -1808,14 +1808,14 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                         style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '8px', fontSize: '13px', outline: 'none', background: 'white', textAlign: 'center', boxSizing: 'border-box' }} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <p style={{ fontSize: '10px', color: '#999', marginBottom: '4px' }}>Precio COP</p>
+                      <p style={{ fontSize: '10px', color: '#999', marginBottom: '4px' }}>Precio USD</p>
                       <input type="number" value={item.price}
                         onChange={e => updateItem(i, 'price', e.target.value)}
                         placeholder="0"
                         style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', outline: 'none', background: 'white', boxSizing: 'border-box' }} />
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: 700, color: '#e5007d', flexShrink: 0, paddingBottom: '6px' }}>
-                      ${((parseFloat(item.price) || 0) * item.quantity).toLocaleString('es-CO')}
+                      ${((parseFloat(item.price) || 0) * item.quantity).toFixed(2)} USD
                     </p>
                   </div>
                 </div>
@@ -1842,14 +1842,14 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
               </div>
               {form.paymentStatus === 'partial' && (
                 <div>
-                  <p style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>Monto pagado (COP)</p>
+                  <p style={{ fontSize: '13px', fontWeight: 500, marginBottom: '6px' }}>Monto pagado (USD)</p>
                   <input type="number" value={form.amountPaid}
                     onChange={e => setForm({ ...form, amountPaid: e.target.value })}
                     placeholder="0"
                     style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
                   {form.amountPaid && (
                     <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
-                      Restante: ${(total - parseFloat(form.amountPaid || '0')).toLocaleString('es-CO')} COP
+                      Restante: ${(total - parseFloat(form.amountPaid || '0')).toFixed(2)} USD
                     </p>
                   )}
                 </div>
@@ -1900,13 +1900,13 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                     <p style={{ fontSize: '12px', color: '#999' }}>×{item.quantity}</p>
                   </div>
                   <p style={{ fontSize: '14px', fontWeight: 900, color: '#e5007d' }}>
-                    ${((parseFloat(item.price) || 0) * item.quantity).toLocaleString('es-CO')}
+                    ${((parseFloat(item.price) || 0) * item.quantity).toFixed(2)} USD
                   </p>
                 </div>
               ))}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '2px solid #f0f0f0', marginTop: '4px' }}>
                 <p style={{ fontWeight: 700, color: '#111' }}>Total</p>
-                <p style={{ fontSize: '22px', fontWeight: 900, color: '#e5007d' }}>${total.toLocaleString('es-CO')} COP</p>
+                <p style={{ fontSize: '22px', fontWeight: 900, color: '#e5007d' }}>${total.toFixed(2)} USD</p>
               </div>
             </div>
 

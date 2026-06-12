@@ -1448,8 +1448,8 @@ export default function Admin() {
                               {order.paymentStatus === 'partial' && (
                                 <div className="mt-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-xs">
                                   <p className="text-blue-600 font-semibold">Pago parcial</p>
-                                  <p className="text-blue-500">Pagado: ${parseFloat(order.amountPaid ?? '0').toLocaleString('es-CO')} COP</p>
-                                  <p className="text-blue-500">Restante: ${(parseFloat(order.total) - parseFloat(order.amountPaid ?? '0')).toLocaleString('es-CO')} COP</p>
+                                  <p className="text-blue-500">Pagado: ${parseFloat(order.amountPaid ?? '0').toFixed(2)} USD</p>
+                                  <p className="text-blue-500">Restante: ${(parseFloat(order.total) - parseFloat(order.amountPaid ?? '0')).toFixed(2)} USD</p>
                                 </div>
                               )}
                               {order.paymentStatus === 'approved' && (
@@ -1603,7 +1603,7 @@ export default function Admin() {
                           </div>
                           <div className="bg-[#f8f8f8] rounded-xl px-4 py-3 flex items-center justify-between">
                             <span className="text-sm font-medium text-[#999]">Total</span>
-                            <span className="text-xl font-black text-[#111]">${parseInt(total).toLocaleString('es-CO')} COP</span>
+                            <span className="text-xl font-black text-[#111]">${parseFloat(total).toFixed(2)} USD</span>
                           </div>
                           <div>
                             <label className="text-sm font-medium block mb-1">Notas internas</label>
@@ -1635,17 +1635,17 @@ export default function Admin() {
                               </div>
                               {manualForm.paymentStatus === 'partial' && (
                                 <div>
-                                  <label className="text-sm font-medium block mb-1">Monto pagado (COP)</label>
+                                  <label className="text-sm font-medium block mb-1">Monto pagado (USD)</label>
                                   <input
                                     type="number"
                                     value={manualForm.amountPaid}
                                     onChange={e => setManualForm({ ...manualForm, amountPaid: e.target.value })}
-                                    placeholder="Ej: 50000"
+                                    placeholder="Ej: 25.00"
                                     className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]"
                                   />
                                   {manualForm.amountPaid && total && (
                                     <p className="text-xs text-[#999] mt-1">
-                                      Restante: ${(parseInt(total) - parseInt(manualForm.amountPaid || '0')).toLocaleString('es-CO')} COP
+                                      Restante: ${(parseFloat(total) - parseFloat(manualForm.amountPaid || '0')).toFixed(2)} USD
                                     </p>
                                   )}
                                 </div>
@@ -1693,12 +1693,12 @@ export default function Admin() {
                             <div>
                               <p className="text-[#999] mb-1">Productos:</p>
                               {manualForm.items.map((item, i) => (
-                                <p key={i} className="text-[#111]">• {item.productName} ×{item.quantity} — ${parseFloat(item.price || '0').toLocaleString('es-CO')}</p>
+                                <p key={i} className="text-[#111]">• {item.productName} ×{item.quantity} — ${parseFloat(item.price || '0').toFixed(2)} USD</p>
                               ))}
                             </div>
                             <p className="border-t border-[#e5e5e5] pt-2 mt-1">
                               <span className="text-[#999]">Total:</span>
-                              <strong className="text-[#e5007d] ml-1">${parseInt(total).toLocaleString('es-CO')} COP</strong>
+                              <strong className="text-[#e5007d] ml-1">${parseFloat(total).toFixed(2)} USD</strong>
                             </p>
                           </div>
                           <p className="text-xs text-[#999] mb-4">
