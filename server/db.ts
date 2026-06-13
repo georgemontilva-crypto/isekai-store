@@ -1842,7 +1842,7 @@ export async function validateGiftCard(code: string) {
   if (!db) return null;
   const rows = await db.select().from(giftCards).where(eq(giftCards.code, code.toUpperCase())).limit(1);
   const card = rows[0];
-  if (!card || card.used) return null;
+  if (!card || card.status !== 'active') return null;
   return card;
 }
 
@@ -1850,7 +1850,7 @@ export async function redeemGiftCard(code: string, orderId: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.update(giftCards)
-    .set({ used: true, usedAt: new Date(), usedByOrderId: orderId })
+    .set({ status: 'used', usedAt: new Date(), orderId })
     .where(eq(giftCards.code, code.toUpperCase()));
 }
 
@@ -1858,6 +1858,6 @@ export async function deleteGiftCard(id: number) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   const rows = await db.select().from(giftCards).where(eq(giftCards.id, id)).limit(1);
-  if (rows[0]?.used) throw new Error('No se puede eliminar una tarjeta ya usada');
+  if (rows[0]?.status === 'used') throw new Error('No se puede eliminar una tarjeta ya usada');
   await db.delete(giftCards).where(eq(giftCards.id, id));
 }

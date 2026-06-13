@@ -4668,13 +4668,13 @@ export default function Admin() {
                   {(giftCardsList as any[]).map((card: any) => (
                     <div key={card.id} className="p-4 rounded-2xl bg-card border border-border/50 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 flex-1 min-w-0">
-                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${card.used ? 'bg-red-400' : 'bg-green-400'}`} />
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${card.status === 'used' ? 'bg-red-400' : 'bg-green-400'}`} />
                         <div className="min-w-0">
                           <p className="font-mono font-bold tracking-widest text-[#e5007d]">{card.code}</p>
                           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
                             <span className="text-sm font-semibold">${parseFloat(card.amount).toFixed(2)} USD</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${card.used ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
-                              {card.used ? 'Usada' : 'Disponible'}
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${card.status === 'used' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                              {card.status === 'used' ? 'Usada' : 'Disponible'}
                             </span>
                             {card.usedAt && (
                               <span className="text-xs text-muted-foreground">
@@ -4687,7 +4687,7 @@ export default function Admin() {
                           </div>
                         </div>
                       </div>
-                      {!card.used && (
+                      {card.status !== 'used' && (
                         <Button
                           size="sm"
                           variant="ghost"

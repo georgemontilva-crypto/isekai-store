@@ -482,12 +482,15 @@ export const blogComments = mysqlTable('blogComments', {
 // ─── Gift Cards ───────────────────────────────────────────────────────────────
 export const giftCards = mysqlTable('giftCards', {
   id: int('id').autoincrement().primaryKey(),
-  code: varchar('code', { length: 50 }).notNull().unique(),
+  code: varchar('code', { length: 50 }).notNull(),
   amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
-  used: boolean('used').default(false).notNull(),
+  currency: varchar('currency', { length: 10 }).default('USD'),
+  status: varchar('status', { length: 20 }).default('active'),
+  usedBy: int('usedBy'),
   usedAt: timestamp('usedAt'),
-  usedByOrderId: int('usedByOrderId'),
-  createdAt: timestamp('createdAt').defaultNow().notNull(),
+  orderId: int('orderId'),
+  notes: text('notes'),
+  createdAt: timestamp('createdAt').defaultNow(),
 });
 
 export type GiftCard = typeof giftCards.$inferSelect;
