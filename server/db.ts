@@ -1817,7 +1817,16 @@ function generateGiftCardCode(): string {
   return `GR-${seg()}-${seg()}-${seg()}`;
 }
 
-export async function createGiftCard(amount: number) {
+export async function createGiftCard(data: {
+  amount: number;
+  discountType?: string;
+  discountPercent?: number;
+  maxUses?: number;
+  minOrderAmount?: number;
+  expiresAt?: Date | null;
+  onlyNewUsers?: boolean;
+  notes?: string;
+}) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   let code = generateGiftCardCode();
@@ -1827,7 +1836,19 @@ export async function createGiftCard(amount: number) {
     exists = rows.length > 0;
     if (exists) code = generateGiftCardCode();
   }
-  await db.insert(giftCards).values({ code, amount: String(amount) });
+  await db.insert(giftCards).values({
+    code,
+    amount: String(data.amount),
+    discountType: data.discountType ?? 'fixed',
+    discountPercent: String(data.discountPercent ?? 0),
+    maxUses: data.maxUses ?? 1,
+    currentUses: 0,
+    minOrderAmount: String(data.minOrderAmount ?? 0),
+    expiresAt: data.expiresAt ?? undefined,
+    onlyNewUsers: data.onlyNewUsers ?? false,
+    notes: data.notes,
+    status: 'active',
+  });
   return code;
 }
 
@@ -1837,21 +1858,73 @@ export async function getGiftCards() {
   return db.select().from(giftCards).orderBy(desc(giftCards.createdAt));
 }
 
-export async function validateGiftCard(code: string) {
+export async function validateGiftCard(code: string, userId?: number, orderTotal?: number) {
   const db = await getDb();
   if (!db) return null;
-  const rows = await db.select().from(giftCards).where(eq(giftCards.code, code.toUpperCase())).limit(1);
-  const card = rows[0];
-  if (!card || card.status !== 'active') return null;
-  return card;
+
+  const result = await db.select().from(giftCards)
+    .where(and(eq(giftCards.code, code.toUpperCase()), eq(giftCards.status, 'active')));
+  const card = result[0];
+  if (!card) return { valid: false, reason: 'Código no válido' };
+
+  if ((card.currentUses ?? 0) >= (card.maxUses ?? 1))
+    return { valid: false, reason: 'Código agotado' };
+
+  if (card.expiresAt && new Date(card.expiresAt) < new Date())
+    return { valid: false, reason: 'Código expirado' };
+
+  if (orderTotal && parseFloat(card.minOrderAmount ?? '0') > 0) {
+    if (orderTotal < parseFloat(card.minOrderAmount ?? '0'))
+      return { valid: false, reason: `Monto mínimo requerido: $${parseFloat(card.minOrderAmount ?? '0').toFixed(2)} USD` };
+  }
+
+  if (card.onlyNewUsers && userId) {
+    const prev = await db.select({ id: orders.id }).from(orders).where(eq(orders.userId, userId));
+    if (prev.length > 0)
+      return { valid: false, reason: 'Código solo válido para nuevos clientes' };
+  }
+
+  let discount = 0;
+  if (card.discountType === 'percent') {
+    discount = orderTotal ? (orderTotal * parseFloat(card.discountPercent ?? '0') / 100) : 0;
+  } else {
+    discount = parseFloat(card.amount);
+  }
+
+  return {
+    valid: true,
+    card: {
+      id: card.id,
+      code: card.code,
+      amount: card.amount,
+      discountType: card.discountType,
+      discountPercent: card.discountPercent,
+      discount: discount.toFixed(2),
+      maxUses: card.maxUses,
+      currentUses: card.currentUses,
+    },
+  };
 }
 
-export async function redeemGiftCard(code: string, orderId: number) {
+export async function redeemGiftCard(code: string, userId: number | null, orderId: number) {
   const db = await getDb();
-  if (!db) throw new Error("DB not available");
-  await db.update(giftCards)
-    .set({ status: 'used', usedAt: new Date(), orderId })
-    .where(eq(giftCards.code, code.toUpperCase()));
+  if (!db) return false;
+
+  const rows = await db.select().from(giftCards).where(eq(giftCards.code, code.toUpperCase()));
+  if (!rows[0]) return false;
+
+  const newUses = (rows[0].currentUses ?? 0) + 1;
+  const isExhausted = newUses >= (rows[0].maxUses ?? 1);
+
+  await db.update(giftCards).set({
+    currentUses: newUses,
+    status: isExhausted ? 'used' : 'active',
+    usedBy: userId,
+    usedAt: new Date(),
+    orderId,
+  }).where(eq(giftCards.code, code.toUpperCase()));
+
+  return true;
 }
 
 export async function deleteGiftCard(id: number) {

@@ -62,7 +62,6 @@ export default function Checkout() {
     customerPhone?: string;
     country: string;
     shippingAddress: { street: string; city: string };
-    giftCardDiscount?: string;
   } | null>(null);
   const [savedItems, setSavedItems] = useState<Array<{
     name: string;
@@ -74,7 +73,6 @@ export default function Checkout() {
   const [referralCode, setReferralCode] = useState('');
   const [referralCosplayer, setReferralCosplayer] = useState<any>(null);
   const [giftCardInput, setGiftCardInput] = useState('');
-  const [appliedGiftCard, setAppliedGiftCard] = useState<{ id: number; code: string; amount: string } | null>(null);
 
   const sessionId = localStorage.getItem("isekai-session-id") ?? undefined;
 
@@ -86,9 +84,9 @@ export default function Checkout() {
     { enabled: referralCode.length >= 8 }
   );
 
-  const validateGiftCard = trpc.giftCards.validate.useQuery(
-    { code: giftCardInput.toUpperCase() },
-    { enabled: giftCardInput.length >= 5 }
+  const giftCardQuery = trpc.giftCards.validate.useQuery(
+    { code: giftCardInput.toUpperCase(), orderTotal: subtotal },
+    { enabled: giftCardInput.length >= 14 }
   );
 
   useEffect(() => {
@@ -111,9 +109,8 @@ export default function Checkout() {
     },
   });
 
-  const giftDiscount = appliedGiftCard
-    ? Math.min(parseFloat(appliedGiftCard.amount), subtotal)
-    : 0;
+  const appliedGiftCard = giftCardQuery.data?.valid ? giftCardQuery.data.card : null;
+  const giftDiscount = appliedGiftCard ? parseFloat(appliedGiftCard.discount) : 0;
   const finalTotal = Math.max(0, subtotal - giftDiscount);
 
   const onSubmitOrder = async (data: FormData) => {
@@ -169,7 +166,6 @@ export default function Checkout() {
         customerPhone: data.customerPhone,
         country: selectedCountry,
         shippingAddress: { street: data.street, city: data.city },
-        giftCardDiscount: giftDiscount > 0 ? giftDiscount.toFixed(2) : undefined,
       };
 
       setSavedItems(orderItems);
@@ -186,8 +182,7 @@ export default function Checkout() {
   // ─── WhatsApp confirmation screen ────────────────────────────────────────────
   if (createdOrder) {
     const waNumber = siteSettings?.["whatsapp_number"] ?? "";
-    const savedGiftDiscount = parseFloat(createdOrder.giftCardDiscount ?? '0');
-    const msg = buildWhatsAppMessage(createdOrder, savedItems, savedGiftDiscount);
+    const msg = buildWhatsAppMessage(createdOrder, savedItems, giftDiscount);
 
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -386,12 +381,6 @@ export default function Checkout() {
                       <span>{t.checkout.subtotal}</span>
                       <span className="font-bold text-[#e5007d]">${subtotal.toFixed(2)} USD</span>
                     </div>
-                    {giftDiscount > 0 && (
-                      <div className="flex justify-between text-sm text-green-600">
-                        <span>Tarjeta de regalo</span>
-                        <span className="font-bold">-${giftDiscount.toFixed(2)} USD</span>
-                      </div>
-                    )}
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>{t.checkout.shipping}</span>
                       <span className="text-green-400">{t.checkout.free}</span>
@@ -402,48 +391,58 @@ export default function Checkout() {
                     </div>
                   </div>
 
-                  {/* Campo tarjeta de regalo */}
+                  {/* Campo tarjeta de regalo / cupón */}
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-[#111] mb-2">
-                      Tarjeta de regalo <span className="text-[#999] font-normal text-xs">(opcional)</span>
+                      Tarjeta de regalo / Cupón
                     </label>
-                    {appliedGiftCard ? (
-                      <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
-                        <div>
-                          <p className="text-xs text-green-600 mb-0.5">Tarjeta aplicada</p>
-                          <p className="font-black tracking-widest text-green-700">{appliedGiftCard.code}</p>
-                          <p className="text-xs text-green-600">-${giftDiscount.toFixed(2)} USD descontado</p>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        value={giftCardInput}
+                        onChange={e => setGiftCardInput(e.target.value.toUpperCase())}
+                        placeholder="GR-XXXX-XXXX-XXXX"
+                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] uppercase tracking-wider"
+                      />
+                      {appliedGiftCard && (
+                        <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                          <CheckCircle size={16} className="text-green-500" />
                         </div>
-                        <button type="button" onClick={() => setAppliedGiftCard(null)} className="text-green-600 hover:text-green-800">
-                          <X size={16} />
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={giftCardInput}
-                          onChange={e => setGiftCardInput(e.target.value.toUpperCase())}
-                          placeholder="GR-XXXX-XXXX-XXXX"
-                          className="flex-1 border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] uppercase tracking-wider"
-                        />
-                        <button
-                          type="button"
-                          disabled={validateGiftCard.isLoading || !validateGiftCard.data}
-                          onClick={() => { if (validateGiftCard.data) setAppliedGiftCard(validateGiftCard.data); }}
-                          className="px-4 py-3 rounded-xl bg-[#e5007d] text-white text-sm font-semibold disabled:opacity-40 hover:bg-[#c7006c] transition-colors"
-                        >
-                          Aplicar
-                        </button>
+                      )}
+                    </div>
+
+                    {appliedGiftCard && (
+                      <div className="mt-2 bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                        <p className="text-sm text-green-700 font-semibold">
+                          ✓ {appliedGiftCard.discountType === 'percent'
+                            ? `${appliedGiftCard.discountPercent}% de descuento aplicado`
+                            : `Descuento de $${giftDiscount.toFixed(2)} USD aplicado`}
+                        </p>
                       </div>
                     )}
-                    {giftCardInput.length >= 5 && !validateGiftCard.isLoading && !validateGiftCard.data && !appliedGiftCard && (
-                      <p className="mt-1.5 text-xs text-red-400">Tarjeta inválida o ya utilizada</p>
-                    )}
-                    {validateGiftCard.data && !appliedGiftCard && (
-                      <p className="mt-1.5 text-xs text-green-600">Tarjeta válida · ${parseFloat(validateGiftCard.data.amount).toFixed(2)} USD disponibles</p>
+                    {giftCardInput.length >= 14 && !appliedGiftCard && !giftCardQuery.isLoading && (
+                      <p className="text-xs text-red-400 mt-1">
+                        {giftCardQuery.data?.reason ?? 'Código no válido'}
+                      </p>
                     )}
                   </div>
+
+                  {appliedGiftCard && (
+                    <div className="flex flex-col gap-1 mb-3 text-sm border-t border-[#e5e5e5] pt-3">
+                      <div className="flex justify-between text-[#999]">
+                        <span>Subtotal</span>
+                        <span>${subtotal.toFixed(2)} USD</span>
+                      </div>
+                      <div className="flex justify-between text-green-600 font-semibold">
+                        <span>Descuento</span>
+                        <span>-${giftDiscount.toFixed(2)} USD</span>
+                      </div>
+                      <div className="flex justify-between font-black text-[#111] text-base pt-1 border-t border-[#e5e5e5]">
+                        <span>Total a pagar</span>
+                        <span className="text-[#e5007d]">${finalTotal.toFixed(2)} USD</span>
+                      </div>
+                    </div>
+                  )}
 
                   {/* Campo código de referido */}
                   <div className="mb-4">

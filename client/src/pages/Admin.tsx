@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -716,7 +716,10 @@ export default function Admin() {
   const [blogCategoryForm, setBlogCategoryForm] = useState({ name: '', description: '' });
 
   // Gift Cards state
-  const [giftCardAmount, setGiftCardAmount] = useState('');
+  const [showNewGiftCard, setShowNewGiftCard] = useState(false);
+  const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
+  const emptyGiftCardForm = { amount: '', discountType: 'fixed' as 'fixed' | 'percent', discountPercent: '', maxUses: 1, minOrderAmount: '', expiresAt: '', onlyNewUsers: false, notes: '', quantity: 1 };
+  const [giftCardForm, setGiftCardForm] = useState(emptyGiftCardForm);
 
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -875,7 +878,10 @@ export default function Admin() {
 
   // Gift Cards queries + mutations
   const { data: giftCardsList = [], refetch: refetchGiftCards } = trpc.giftCards.list.useQuery(undefined, { enabled: isAuthenticated && user?.role === 'admin' });
-  const createGiftCardMut = trpc.giftCards.create.useMutation({ onSuccess: () => { refetchGiftCards(); setGiftCardAmount(''); toast.success('Tarjeta creada'); } });
+  const createGiftCardMutation = trpc.giftCards.create.useMutation({
+    onSuccess: (data) => { refetchGiftCards(); setGeneratedCodes(data.codes); },
+    onError: (e) => toast.error(e.message),
+  });
   const deleteGiftCardMut = trpc.giftCards.delete.useMutation({ onSuccess: () => { refetchGiftCards(); toast.success('Tarjeta eliminada'); }, onError: (e) => toast.error(e.message) });
 
   const moveLinkUp = (i: number) => {
@@ -4632,32 +4638,9 @@ export default function Admin() {
               <motion.div key="giftcards" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
                   <h1 className="text-2xl font-bold flex items-center gap-2"><Gift className="w-6 h-6 text-[#e5007d]" /> Tarjetas de regalo</h1>
-                </div>
-
-                {/* Crear nueva tarjeta */}
-                <div className="p-5 rounded-2xl bg-card border border-border/50 mb-6">
-                  <h3 className="font-semibold mb-4 text-sm">Generar nueva tarjeta</h3>
-                  <div className="flex gap-3 items-end">
-                    <div className="flex-1">
-                      <Label className="text-xs">Valor en USD *</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        step="0.01"
-                        value={giftCardAmount}
-                        onChange={e => setGiftCardAmount(e.target.value)}
-                        className="mt-1 bg-muted border-border/50 text-sm"
-                        placeholder="Ej: 20.00"
-                      />
-                    </div>
-                    <Button
-                      className="bg-primary text-white"
-                      disabled={!giftCardAmount || parseFloat(giftCardAmount) <= 0 || createGiftCardMut.isPending}
-                      onClick={() => createGiftCardMut.mutate({ amount: parseFloat(giftCardAmount) })}
-                    >
-                      <Plus className="w-4 h-4 mr-2" /> Generar código
-                    </Button>
-                  </div>
+                  <Button className="bg-primary text-white" onClick={() => { setShowNewGiftCard(true); setGeneratedCodes([]); }}>
+                    <Plus className="w-4 h-4 mr-2" /> Nueva tarjeta
+                  </Button>
                 </div>
 
                 {/* Lista de tarjetas */}
@@ -4670,36 +4653,178 @@ export default function Admin() {
                       <div className="flex items-center gap-4 flex-1 min-w-0">
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${card.status === 'used' ? 'bg-red-400' : 'bg-green-400'}`} />
                         <div className="min-w-0">
-                          <p className="font-mono font-bold tracking-widest text-[#e5007d]">{card.code}</p>
+                          <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                            <p className="font-mono font-bold tracking-widest text-[#e5007d]">{card.code}</p>
+                            <button onClick={() => navigator.clipboard.writeText(card.code)} className="text-muted-foreground hover:text-foreground">
+                              <Copy className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
                           <div className="flex items-center gap-3 mt-0.5 flex-wrap">
-                            <span className="text-sm font-semibold">${parseFloat(card.amount).toFixed(2)} USD</span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${card.status === 'used' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
-                              {card.status === 'used' ? 'Usada' : 'Disponible'}
+                            <span className="text-sm font-semibold">
+                              {card.discountType === 'percent'
+                                ? `${parseFloat(card.discountPercent ?? '0').toFixed(0)}% dto.`
+                                : `$${parseFloat(card.amount).toFixed(2)} USD`}
                             </span>
-                            {card.usedAt && (
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${card.status === 'used' ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                              {card.status === 'used' ? 'Agotada' : 'Activa'}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              {card.currentUses ?? 0}/{card.maxUses ?? 1} usos
+                            </span>
+                            {card.expiresAt && (
                               <span className="text-xs text-muted-foreground">
-                                Usada el {new Date(card.usedAt).toLocaleDateString('es-CO')}
+                                Vence {new Date(card.expiresAt).toLocaleDateString('es-CO')}
                               </span>
                             )}
-                            <span className="text-xs text-muted-foreground">
-                              Creada {new Date(card.createdAt).toLocaleDateString('es-CO')}
-                            </span>
+                            {card.notes && <span className="text-xs text-muted-foreground italic">{card.notes}</span>}
                           </div>
                         </div>
                       </div>
                       {card.status !== 'used' && (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-8 w-8 p-0 text-destructive hover:text-destructive shrink-0"
-                          onClick={() => { if (confirm('¿Eliminar esta tarjeta?')) deleteGiftCardMut.mutate({ id: card.id }); }}
-                        >
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0 text-destructive hover:text-destructive shrink-0"
+                          onClick={() => { if (confirm('¿Eliminar esta tarjeta?')) deleteGiftCardMut.mutate({ id: card.id }); }}>
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       )}
                     </div>
                   ))}
                 </div>
+
+                {/* Modal nueva tarjeta */}
+                {showNewGiftCard && (
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+                      <div className="flex items-center justify-between mb-6">
+                        <h3 className="font-black text-lg">Nueva tarjeta de regalo</h3>
+                        <button onClick={() => { setShowNewGiftCard(false); setGeneratedCodes([]); }}>
+                          <X size={20} className="text-[#999]" />
+                        </button>
+                      </div>
+
+                      {generatedCodes.length > 0 ? (
+                        <div>
+                          <p className="text-sm font-semibold mb-3 text-green-600">✓ {generatedCodes.length} código(s) generado(s) — cópialos ahora:</p>
+                          <div className="flex flex-col gap-2 mb-4">
+                            {generatedCodes.map(code => (
+                              <div key={code} className="flex items-center justify-between bg-[#f8f8f8] rounded-xl px-4 py-3">
+                                <code className="text-[#e5007d] font-black tracking-widest">{code}</code>
+                                <button onClick={() => navigator.clipboard.writeText(code)} className="text-[#999] hover:text-[#111] flex items-center gap-1 text-xs">
+                                  <Copy size={14} /> Copiar
+                                </button>
+                              </div>
+                            ))}
+                            <button onClick={() => navigator.clipboard.writeText(generatedCodes.join('\n'))}
+                              className="w-full border border-[#e5e5e5] text-[#666] py-2 rounded-xl text-sm mt-2">
+                              Copiar todos
+                            </button>
+                          </div>
+                          <button onClick={() => { setShowNewGiftCard(false); setGeneratedCodes([]); setGiftCardForm(emptyGiftCardForm); }}
+                            className="w-full bg-[#111] text-white py-3 rounded-xl font-bold">Listo</button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col gap-4">
+                          <div>
+                            <label className="text-sm font-medium block mb-2">Tipo de descuento</label>
+                            <div className="grid grid-cols-2 gap-2">
+                              {(['fixed', 'percent'] as const).map(t => (
+                                <button key={t} onClick={() => setGiftCardForm(f => ({ ...f, discountType: t }))}
+                                  className={`py-3 rounded-xl text-sm font-bold border-2 transition-colors ${giftCardForm.discountType === t ? 'border-[#111] bg-[#111] text-white' : 'border-[#e5e5e5] text-[#666]'}`}>
+                                  {t === 'fixed' ? '💵 Monto fijo (USD)' : '% Porcentaje'}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium block mb-1">
+                              {giftCardForm.discountType === 'fixed' ? 'Monto (USD)' : 'Porcentaje de descuento'}
+                            </label>
+                            <input type="number"
+                              min={giftCardForm.discountType === 'percent' ? 1 : 0.01}
+                              max={giftCardForm.discountType === 'percent' ? 100 : undefined}
+                              step={giftCardForm.discountType === 'fixed' ? '0.01' : '1'}
+                              value={giftCardForm.discountType === 'fixed' ? giftCardForm.amount : giftCardForm.discountPercent}
+                              onChange={e => giftCardForm.discountType === 'fixed'
+                                ? setGiftCardForm(f => ({ ...f, amount: e.target.value }))
+                                : setGiftCardForm(f => ({ ...f, discountPercent: e.target.value, amount: e.target.value }))}
+                              placeholder={giftCardForm.discountType === 'fixed' ? 'Ej: 25.00' : 'Ej: 10'}
+                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div>
+                              <label className="text-sm font-medium block mb-1">Cantidad de códigos</label>
+                              <input type="number" min={1} max={50} value={giftCardForm.quantity}
+                                onChange={e => setGiftCardForm(f => ({ ...f, quantity: parseInt(e.target.value) || 1 }))}
+                                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                            </div>
+                            <div>
+                              <label className="text-sm font-medium block mb-1">Usos por código</label>
+                              <input type="number" min={1} value={giftCardForm.maxUses}
+                                onChange={e => setGiftCardForm(f => ({ ...f, maxUses: parseInt(e.target.value) || 1 }))}
+                                className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium block mb-1">Monto mínimo de compra (USD)</label>
+                            <input type="number" min={0} step="0.01" value={giftCardForm.minOrderAmount}
+                              onChange={e => setGiftCardForm(f => ({ ...f, minOrderAmount: e.target.value }))}
+                              placeholder="0 = sin mínimo"
+                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium block mb-1">Fecha de expiración (opcional)</label>
+                            <input type="datetime-local" value={giftCardForm.expiresAt}
+                              onChange={e => setGiftCardForm(f => ({ ...f, expiresAt: e.target.value }))}
+                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                          </div>
+
+                          <div className="flex items-center justify-between p-4 bg-[#f8f8f8] rounded-xl">
+                            <div>
+                              <p className="text-sm font-medium text-[#111]">Solo nuevos clientes</p>
+                              <p className="text-xs text-[#999]">El código solo funciona para quien nunca ha comprado</p>
+                            </div>
+                            <button onClick={() => setGiftCardForm(f => ({ ...f, onlyNewUsers: !f.onlyNewUsers }))}
+                              className={`w-12 h-6 rounded-full transition-colors relative ${giftCardForm.onlyNewUsers ? 'bg-[#e5007d]' : 'bg-[#e5e5e5]'}`}>
+                              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${giftCardForm.onlyNewUsers ? 'left-6' : 'left-0.5'}`} />
+                            </button>
+                          </div>
+
+                          <div>
+                            <label className="text-sm font-medium block mb-1">Notas (opcional)</label>
+                            <input type="text" value={giftCardForm.notes}
+                              onChange={e => setGiftCardForm(f => ({ ...f, notes: e.target.value }))}
+                              placeholder="Ej: Promoción navideña"
+                              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111]" />
+                          </div>
+
+                          <div className="flex gap-3 mt-2">
+                            <button onClick={() => setShowNewGiftCard(false)}
+                              className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
+                            <button
+                              onClick={() => createGiftCardMutation.mutate({
+                                amount: parseFloat(giftCardForm.amount) || 0,
+                                discountType: giftCardForm.discountType,
+                                discountPercent: parseFloat(giftCardForm.discountPercent) || 0,
+                                maxUses: giftCardForm.maxUses,
+                                minOrderAmount: parseFloat(giftCardForm.minOrderAmount) || 0,
+                                expiresAt: giftCardForm.expiresAt || undefined,
+                                onlyNewUsers: giftCardForm.onlyNewUsers,
+                                notes: giftCardForm.notes,
+                                quantity: giftCardForm.quantity,
+                              })}
+                              disabled={!giftCardForm.amount || createGiftCardMutation.isPending}
+                              className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                              {createGiftCardMutation.isPending ? 'Generando...' : 'Generar códigos'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 

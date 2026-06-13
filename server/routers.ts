@@ -304,7 +304,7 @@ export const appRouter = router({
         const order = await createOrder({ ...input, userId: ctx.user?.id });
         // Redeem gift card if provided
         if (input.giftCardCode) {
-          try { await redeemGiftCard(input.giftCardCode, order.id); } catch { /* non-critical */ }
+          try { await redeemGiftCard(input.giftCardCode, ctx.user?.id ?? null, order.id); } catch { /* non-critical */ }
         }
         // Clear cart after order
         await clearCart(ctx.user?.id, input.sessionId);
@@ -1359,18 +1359,39 @@ export const appRouter = router({
   // ─── Gift Cards ───────────────────────────────────────────────────────────────
   giftCards: router({
     validate: publicProcedure
-      .input(z.object({ code: z.string().min(1).max(50) }))
-      .query(async ({ input }) => {
-        const card = await validateGiftCard(input.code);
-        if (!card) return null;
-        return { id: card.id, code: card.code, amount: card.amount };
+      .input(z.object({ code: z.string().min(1).max(50), orderTotal: z.number().optional() }))
+      .query(async ({ ctx, input }) => {
+        return await validateGiftCard(input.code, ctx.user?.id, input.orderTotal);
       }),
 
     create: adminProcedure
-      .input(z.object({ amount: z.number().positive() }))
+      .input(z.object({
+        amount: z.number().min(0.01),
+        discountType: z.enum(['fixed', 'percent']).default('fixed'),
+        discountPercent: z.number().min(0).max(100).optional(),
+        maxUses: z.number().min(1).default(1),
+        minOrderAmount: z.number().min(0).default(0),
+        expiresAt: z.string().optional(),
+        onlyNewUsers: z.boolean().default(false),
+        notes: z.string().optional(),
+        quantity: z.number().min(1).max(50).default(1),
+      }))
       .mutation(async ({ input }) => {
-        const code = await createGiftCard(input.amount);
-        return { code };
+        const codes: string[] = [];
+        for (let i = 0; i < input.quantity; i++) {
+          const code = await createGiftCard({
+            amount: input.amount,
+            discountType: input.discountType,
+            discountPercent: input.discountPercent ?? 0,
+            maxUses: input.maxUses,
+            minOrderAmount: input.minOrderAmount,
+            expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
+            onlyNewUsers: input.onlyNewUsers,
+            notes: input.notes,
+          });
+          if (code) codes.push(code);
+        }
+        return { codes };
       }),
 
     list: adminProcedure
@@ -1378,9 +1399,7 @@ export const appRouter = router({
 
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
-      .mutation(async ({ input }) => {
-        await deleteGiftCard(input.id);
-      }),
+      .mutation(({ input }) => deleteGiftCard(input.id)),
   }),
 });
 
