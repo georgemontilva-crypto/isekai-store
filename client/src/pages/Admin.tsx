@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -715,6 +715,9 @@ export default function Admin() {
   const [blogPostForm, setBlogPostForm] = useState(emptyBlogForm);
   const [blogCategoryForm, setBlogCategoryForm] = useState({ name: '', description: '' });
 
+  // Gift Cards state
+  const [giftCardAmount, setGiftCardAmount] = useState('');
+
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, { staleTime: 1000 * 60 * 30 });
@@ -870,6 +873,11 @@ export default function Admin() {
   const updateBlogCommentMut = trpc.blog.updateCommentStatus.useMutation({ onSuccess: () => refetchBlogComments() });
   const deleteBlogCommentMut = trpc.blog.deleteComment.useMutation({ onSuccess: () => { refetchBlogComments(); toast.success('Comentario eliminado'); } });
 
+  // Gift Cards queries + mutations
+  const { data: giftCardsList = [], refetch: refetchGiftCards } = trpc.giftCards.list.useQuery(undefined, { enabled: isAuthenticated && user?.role === 'admin' });
+  const createGiftCardMut = trpc.giftCards.create.useMutation({ onSuccess: () => { refetchGiftCards(); setGiftCardAmount(''); toast.success('Tarjeta creada'); } });
+  const deleteGiftCardMut = trpc.giftCards.delete.useMutation({ onSuccess: () => { refetchGiftCards(); toast.success('Tarjeta eliminada'); }, onError: (e) => toast.error(e.message) });
+
   const moveLinkUp = (i: number) => {
     if (i === 0) return;
     const ids = linkBioItems.map(it => it.id);
@@ -956,7 +964,8 @@ export default function Admin() {
     { id: "users" as AdminTab,    label: "Usuarios",      icon: Users },
     { id: "popups" as AdminTab,   label: "Popups",        icon: Megaphone },
     { id: "cosplay" as AdminTab,  label: "Cosplay Guild", icon: Sparkles },
-    { id: "blog" as AdminTab,     label: "Blog",          icon: BookOpen },
+    { id: "blog" as AdminTab,      label: "Blog",               icon: BookOpen },
+    { id: "giftcards" as AdminTab, label: "Tarjetas de regalo", icon: Gift },
   ];
 
   return (
@@ -4615,6 +4624,82 @@ export default function Admin() {
                     </div>
                   </div>
                 )}
+              </motion.div>
+            )}
+
+            {/* ─── Gift Cards Tab ─────────────────────────────────────────────── */}
+            {tab === "giftcards" && (
+              <motion.div key="giftcards" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
+                  <h1 className="text-2xl font-bold flex items-center gap-2"><Gift className="w-6 h-6 text-[#e5007d]" /> Tarjetas de regalo</h1>
+                </div>
+
+                {/* Crear nueva tarjeta */}
+                <div className="p-5 rounded-2xl bg-card border border-border/50 mb-6">
+                  <h3 className="font-semibold mb-4 text-sm">Generar nueva tarjeta</h3>
+                  <div className="flex gap-3 items-end">
+                    <div className="flex-1">
+                      <Label className="text-xs">Valor en USD *</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        step="0.01"
+                        value={giftCardAmount}
+                        onChange={e => setGiftCardAmount(e.target.value)}
+                        className="mt-1 bg-muted border-border/50 text-sm"
+                        placeholder="Ej: 20.00"
+                      />
+                    </div>
+                    <Button
+                      className="bg-primary text-white"
+                      disabled={!giftCardAmount || parseFloat(giftCardAmount) <= 0 || createGiftCardMut.isPending}
+                      onClick={() => createGiftCardMut.mutate({ amount: parseFloat(giftCardAmount) })}
+                    >
+                      <Plus className="w-4 h-4 mr-2" /> Generar código
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Lista de tarjetas */}
+                <div className="space-y-3">
+                  {(giftCardsList as any[]).length === 0 && (
+                    <p className="text-muted-foreground text-sm py-8 text-center">No hay tarjetas de regalo</p>
+                  )}
+                  {(giftCardsList as any[]).map((card: any) => (
+                    <div key={card.id} className="p-4 rounded-2xl bg-card border border-border/50 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${card.used ? 'bg-red-400' : 'bg-green-400'}`} />
+                        <div className="min-w-0">
+                          <p className="font-mono font-bold tracking-widest text-[#e5007d]">{card.code}</p>
+                          <div className="flex items-center gap-3 mt-0.5 flex-wrap">
+                            <span className="text-sm font-semibold">${parseFloat(card.amount).toFixed(2)} USD</span>
+                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${card.used ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-700'}`}>
+                              {card.used ? 'Usada' : 'Disponible'}
+                            </span>
+                            {card.usedAt && (
+                              <span className="text-xs text-muted-foreground">
+                                Usada el {new Date(card.usedAt).toLocaleDateString('es-CO')}
+                              </span>
+                            )}
+                            <span className="text-xs text-muted-foreground">
+                              Creada {new Date(card.createdAt).toLocaleDateString('es-CO')}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      {!card.used && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive shrink-0"
+                          onClick={() => { if (confirm('¿Eliminar esta tarjeta?')) deleteGiftCardMut.mutate({ id: card.id }); }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </motion.div>
             )}
 

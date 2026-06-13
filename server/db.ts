@@ -41,6 +41,7 @@ import {
   blogPosts,
   blogCategories,
   blogComments,
+  giftCards,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -398,6 +399,8 @@ export async function createOrder(data: {
   referralCode?: string;
   referralCosplayerId?: number;
   hasSecretGift?: boolean;
+  giftCardCode?: string;
+  giftCardDiscount?: string;
   items: Array<{
     productId: number;
     variantId?: number;
@@ -428,6 +431,8 @@ export async function createOrder(data: {
     referralCode: data.referralCode,
     referralCosplayerId: data.referralCosplayerId,
     hasSecretGift: data.hasSecretGift ?? false,
+    giftCardCode: data.giftCardCode,
+    giftCardDiscount: data.giftCardDiscount ?? "0.00",
     status: "pending",
     paymentStatus: "pending",
   });
@@ -1802,4 +1807,57 @@ export async function deleteBlogComment(id: number) {
   const db = await getDb();
   if (!db) return;
   await db.delete(blogComments).where(eq(blogComments.id, id));
+}
+
+// ─── Gift Cards ───────────────────────────────────────────────────────────────
+
+function generateGiftCardCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const seg = () => Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+  return `GR-${seg()}-${seg()}-${seg()}`;
+}
+
+export async function createGiftCard(amount: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  let code = generateGiftCardCode();
+  let exists = true;
+  while (exists) {
+    const rows = await db.select({ id: giftCards.id }).from(giftCards).where(eq(giftCards.code, code)).limit(1);
+    exists = rows.length > 0;
+    if (exists) code = generateGiftCardCode();
+  }
+  await db.insert(giftCards).values({ code, amount: String(amount) });
+  return code;
+}
+
+export async function getGiftCards() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(giftCards).orderBy(desc(giftCards.createdAt));
+}
+
+export async function validateGiftCard(code: string) {
+  const db = await getDb();
+  if (!db) return null;
+  const rows = await db.select().from(giftCards).where(eq(giftCards.code, code.toUpperCase())).limit(1);
+  const card = rows[0];
+  if (!card || card.used) return null;
+  return card;
+}
+
+export async function redeemGiftCard(code: string, orderId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(giftCards)
+    .set({ used: true, usedAt: new Date(), usedByOrderId: orderId })
+    .where(eq(giftCards.code, code.toUpperCase()));
+}
+
+export async function deleteGiftCard(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  const rows = await db.select().from(giftCards).where(eq(giftCards.id, id)).limit(1);
+  if (rows[0]?.used) throw new Error('No se puede eliminar una tarjeta ya usada');
+  await db.delete(giftCards).where(eq(giftCards.id, id));
 }

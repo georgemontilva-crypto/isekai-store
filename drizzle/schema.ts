@@ -152,6 +152,8 @@ export const orders = mysqlTable("orders", {
   referralCode: varchar("referralCode", { length: 50 }),
   referralCosplayerId: int("referralCosplayerId"),
   hasSecretGift: boolean("hasSecretGift").default(false),
+  giftCardCode: varchar("giftCardCode", { length: 50 }),
+  giftCardDiscount: decimal("giftCardDiscount", { precision: 10, scale: 2 }).default("0.00"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
@@ -476,3 +478,17 @@ export const blogComments = mysqlTable('blogComments', {
   status: varchar('status', { length: 20 }).default('pending'),
   createdAt: timestamp('createdAt').defaultNow(),
 });
+
+// ─── Gift Cards ───────────────────────────────────────────────────────────────
+export const giftCards = mysqlTable('giftCards', {
+  id: int('id').autoincrement().primaryKey(),
+  code: varchar('code', { length: 50 }).notNull().unique(),
+  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  used: boolean('used').default(false).notNull(),
+  usedAt: timestamp('usedAt'),
+  usedByOrderId: int('usedByOrderId'),
+  createdAt: timestamp('createdAt').defaultNow().notNull(),
+});
+
+export type GiftCard = typeof giftCards.$inferSelect;
+export type InsertGiftCard = typeof giftCards.$inferInsert;

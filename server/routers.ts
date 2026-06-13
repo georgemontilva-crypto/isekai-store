@@ -45,6 +45,7 @@ import {
   getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
   incrementBlogViews, getBlogCategories, createBlogCategory, deleteBlogCategory,
   getBlogComments, getAllBlogComments, createBlogComment, updateBlogCommentStatus, deleteBlogComment,
+  createGiftCard, getGiftCards, validateGiftCard, redeemGiftCard, deleteGiftCard,
 } from "./db";
 import { notifyWelcome } from "./_core/notification";
 
@@ -287,6 +288,8 @@ export const appRouter = router({
         referralCode: z.string().max(50).optional(),
         referralCosplayerId: z.number().optional(),
         hasSecretGift: z.boolean().optional(),
+        giftCardCode: z.string().max(50).optional(),
+        giftCardDiscount: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
         items: z.array(z.object({
           productId: z.number(),
           variantId: z.number().nullable().optional(),
@@ -299,6 +302,10 @@ export const appRouter = router({
       }))
       .mutation(async ({ ctx, input }) => {
         const order = await createOrder({ ...input, userId: ctx.user?.id });
+        // Redeem gift card if provided
+        if (input.giftCardCode) {
+          try { await redeemGiftCard(input.giftCardCode, order.id); } catch { /* non-critical */ }
+        }
         // Clear cart after order
         await clearCart(ctx.user?.id, input.sessionId);
         // Notify owner
@@ -1347,6 +1354,33 @@ export const appRouter = router({
     deleteComment: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteBlogComment(input.id)),
+  }),
+
+  // ─── Gift Cards ───────────────────────────────────────────────────────────────
+  giftCards: router({
+    validate: publicProcedure
+      .input(z.object({ code: z.string().min(1).max(50) }))
+      .query(async ({ input }) => {
+        const card = await validateGiftCard(input.code);
+        if (!card) return null;
+        return { id: card.id, code: card.code, amount: card.amount };
+      }),
+
+    create: adminProcedure
+      .input(z.object({ amount: z.number().positive() }))
+      .mutation(async ({ input }) => {
+        const code = await createGiftCard(input.amount);
+        return { code };
+      }),
+
+    list: adminProcedure
+      .query(() => getGiftCards()),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        await deleteGiftCard(input.id);
+      }),
   }),
 });
 

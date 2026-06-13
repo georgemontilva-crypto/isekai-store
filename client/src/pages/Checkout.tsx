@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, MessageCircle, Gift,
+  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, MessageCircle, Gift, X,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
@@ -29,10 +29,12 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const buildWhatsAppMessage = (order: any, items: any[]) => {
+const buildWhatsAppMessage = (order: any, items: any[], giftDiscount = 0) => {
   const itemsList = items.map(i =>
     `• ${i.name}${i.variantName ? ` (${i.variantName})` : ""} ×${i.quantity} — $${parseFloat(i.price).toFixed(2)} USD`
   ).join('\n');
+
+  const giftLine = giftDiscount > 0 ? `\n🎁 Tarjeta de regalo: -$${giftDiscount.toFixed(2)} USD` : '';
 
   return encodeURIComponent(
     `🛍️ *NUEVO PEDIDO — ISEKAI WORLD*\n\n` +
@@ -40,7 +42,7 @@ const buildWhatsAppMessage = (order: any, items: any[]) => {
     `Cliente: ${order.customerName}\n` +
     `Email: ${order.customerEmail}\n` +
     `Teléfono: ${order.customerPhone || 'No indicado'}\n\n` +
-    `*PRODUCTOS:*\n${itemsList}\n\n` +
+    `*PRODUCTOS:*\n${itemsList}${giftLine}\n\n` +
     `*TOTAL: $${parseFloat(order.total).toFixed(2)} USD*\n\n` +
     `Dirección: ${order.shippingAddress?.street}, ${order.shippingAddress?.city}`
   );
@@ -60,6 +62,7 @@ export default function Checkout() {
     customerPhone?: string;
     country: string;
     shippingAddress: { street: string; city: string };
+    giftCardDiscount?: string;
   } | null>(null);
   const [savedItems, setSavedItems] = useState<Array<{
     name: string;
@@ -70,6 +73,8 @@ export default function Checkout() {
 
   const [referralCode, setReferralCode] = useState('');
   const [referralCosplayer, setReferralCosplayer] = useState<any>(null);
+  const [giftCardInput, setGiftCardInput] = useState('');
+  const [appliedGiftCard, setAppliedGiftCard] = useState<{ id: number; code: string; amount: string } | null>(null);
 
   const sessionId = localStorage.getItem("isekai-session-id") ?? undefined;
 
@@ -79,6 +84,11 @@ export default function Checkout() {
   const validateCode = trpc.cosplay.validateReferralCode.useQuery(
     { code: referralCode.toUpperCase() },
     { enabled: referralCode.length >= 8 }
+  );
+
+  const validateGiftCard = trpc.giftCards.validate.useQuery(
+    { code: giftCardInput.toUpperCase() },
+    { enabled: giftCardInput.length >= 5 }
   );
 
   useEffect(() => {
@@ -100,6 +110,11 @@ export default function Checkout() {
       customerEmail: user?.email ?? "",
     },
   });
+
+  const giftDiscount = appliedGiftCard
+    ? Math.min(parseFloat(appliedGiftCard.amount), subtotal)
+    : 0;
+  const finalTotal = Math.max(0, subtotal - giftDiscount);
 
   const onSubmitOrder = async (data: FormData) => {
     if (items.length === 0) { toast.error(t.checkout.empty); return; }
@@ -125,13 +140,15 @@ export default function Checkout() {
           zip: data.zip,
         },
         subtotal: subtotal.toFixed(2),
-        total: subtotal.toFixed(2),
+        total: finalTotal.toFixed(2),
         notes: data.notes,
         paymentMethod: "whatsapp",
         country: selectedCountry,
         referralCode: referralCosplayer ? referralCode : undefined,
         referralCosplayerId: referralCosplayer?.id,
         hasSecretGift: !!referralCosplayer,
+        giftCardCode: appliedGiftCard?.code,
+        giftCardDiscount: giftDiscount > 0 ? giftDiscount.toFixed(2) : undefined,
         items: items.map((item) => ({
           productId: item.productId,
           variantId: item.variantId,
@@ -152,12 +169,13 @@ export default function Checkout() {
         customerPhone: data.customerPhone,
         country: selectedCountry,
         shippingAddress: { street: data.street, city: data.city },
+        giftCardDiscount: giftDiscount > 0 ? giftDiscount.toFixed(2) : undefined,
       };
 
       setSavedItems(orderItems);
       setCreatedOrder(orderWithDetails);
 
-      const msg = buildWhatsAppMessage(orderWithDetails, orderItems);
+      const msg = buildWhatsAppMessage(orderWithDetails, orderItems, giftDiscount);
       const waNumber = siteSettings?.["whatsapp_number"] ?? "";
       window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank");
     } catch {
@@ -168,7 +186,8 @@ export default function Checkout() {
   // ─── WhatsApp confirmation screen ────────────────────────────────────────────
   if (createdOrder) {
     const waNumber = siteSettings?.["whatsapp_number"] ?? "";
-    const msg = buildWhatsAppMessage(createdOrder, savedItems);
+    const savedGiftDiscount = parseFloat(createdOrder.giftCardDiscount ?? '0');
+    const msg = buildWhatsAppMessage(createdOrder, savedItems, savedGiftDiscount);
 
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -367,14 +386,63 @@ export default function Checkout() {
                       <span>{t.checkout.subtotal}</span>
                       <span className="font-bold text-[#e5007d]">${subtotal.toFixed(2)} USD</span>
                     </div>
+                    {giftDiscount > 0 && (
+                      <div className="flex justify-between text-sm text-green-600">
+                        <span>Tarjeta de regalo</span>
+                        <span className="font-bold">-${giftDiscount.toFixed(2)} USD</span>
+                      </div>
+                    )}
                     <div className="flex justify-between text-sm text-muted-foreground">
                       <span>{t.checkout.shipping}</span>
                       <span className="text-green-400">{t.checkout.free}</span>
                     </div>
                     <div className="flex justify-between font-bold text-lg border-t border-border/50 pt-2">
                       <span>{t.checkout.total}</span>
-                      <span className="font-black text-[#e5007d]">${subtotal.toFixed(2)} USD</span>
+                      <span className="font-black text-[#e5007d]">${finalTotal.toFixed(2)} USD</span>
                     </div>
+                  </div>
+
+                  {/* Campo tarjeta de regalo */}
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-[#111] mb-2">
+                      Tarjeta de regalo <span className="text-[#999] font-normal text-xs">(opcional)</span>
+                    </label>
+                    {appliedGiftCard ? (
+                      <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl px-4 py-3">
+                        <div>
+                          <p className="text-xs text-green-600 mb-0.5">Tarjeta aplicada</p>
+                          <p className="font-black tracking-widest text-green-700">{appliedGiftCard.code}</p>
+                          <p className="text-xs text-green-600">-${giftDiscount.toFixed(2)} USD descontado</p>
+                        </div>
+                        <button type="button" onClick={() => setAppliedGiftCard(null)} className="text-green-600 hover:text-green-800">
+                          <X size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={giftCardInput}
+                          onChange={e => setGiftCardInput(e.target.value.toUpperCase())}
+                          placeholder="GR-XXXX-XXXX-XXXX"
+                          className="flex-1 border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] uppercase tracking-wider"
+                        />
+                        <button
+                          type="button"
+                          disabled={validateGiftCard.isLoading || !validateGiftCard.data}
+                          onClick={() => { if (validateGiftCard.data) setAppliedGiftCard(validateGiftCard.data); }}
+                          className="px-4 py-3 rounded-xl bg-[#e5007d] text-white text-sm font-semibold disabled:opacity-40 hover:bg-[#c7006c] transition-colors"
+                        >
+                          Aplicar
+                        </button>
+                      </div>
+                    )}
+                    {giftCardInput.length >= 5 && !validateGiftCard.isLoading && !validateGiftCard.data && !appliedGiftCard && (
+                      <p className="mt-1.5 text-xs text-red-400">Tarjeta inválida o ya utilizada</p>
+                    )}
+                    {validateGiftCard.data && !appliedGiftCard && (
+                      <p className="mt-1.5 text-xs text-green-600">Tarjeta válida · ${parseFloat(validateGiftCard.data.amount).toFixed(2)} USD disponibles</p>
+                    )}
                   </div>
 
                   {/* Campo código de referido */}
