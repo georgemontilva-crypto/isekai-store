@@ -147,7 +147,7 @@ function VariantManager({ productId }: { productId: number }) {
                 )}
                 <div>
                   <span className="font-medium">{v.name}</span>
-                  {v.price && <span className="ml-2 text-primary">${parseFloat(v.price).toFixed(2)}</span>}
+                  {v.price && <span className="ml-2 text-primary">${parseFloat(v.price).toFixed(2)} USD</span>}
                   <span className="ml-2 text-muted-foreground">Stock: {v.stock}</span>
                 </div>
               </div>
@@ -231,7 +231,7 @@ function AdminOrderDetail({
                   {item.variantName && <p className="text-xs text-muted-foreground">{item.variantName}</p>}
                 </div>
                 <span className="text-muted-foreground shrink-0">×{item.quantity}</span>
-                <span className="font-semibold shrink-0">${(parseFloat(item.price) * item.quantity).toFixed(2)}</span>
+                <span className="font-semibold shrink-0">${(parseFloat(item.price) * item.quantity).toFixed(2)} USD</span>
               </div>
             ))}
           </div>
@@ -1008,7 +1008,7 @@ export default function Admin() {
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-3 w-full mb-6 md:grid-cols-4">
                   {[
-                    { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)}`, icon: DollarSign, color: "text-green-400" },
+                    { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)} USD`, icon: DollarSign, color: "text-green-400" },
                     { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
                     { label: "Productos", value: products.length, icon: Package, color: "text-accent" },
                     { label: "Categorías", value: categories?.length ?? 0, icon: Tag, color: "text-yellow-400" },
@@ -1044,7 +1044,7 @@ export default function Admin() {
                             <p className="text-muted-foreground text-xs truncate">{order.customerName}</p>
                           </div>
                           <div className="text-right flex-shrink-0">
-                            <p className="text-primary font-semibold text-xs">${parseFloat(order.total).toFixed(2)}</p>
+                            <p className="text-primary font-semibold text-xs">${parseFloat(order.total).toFixed(2)} USD</p>
                             <span className={`text-xs px-2 py-0.5 rounded-full status-${order.status}`}>
                               {statusLabels[order.status]}
                             </span>
@@ -1070,7 +1070,7 @@ export default function Admin() {
                             <p className="font-medium truncate">{p.productName}</p>
                             <p className="text-muted-foreground text-xs">{p.totalSold} vendidos</p>
                           </div>
-                          <p className="text-primary font-semibold">${parseFloat(p.revenue).toFixed(2)}</p>
+                          <p className="text-primary font-semibold">${parseFloat(p.revenue).toFixed(2)} USD</p>
                         </div>
                       ))}
                       {(metrics?.topProducts ?? []).length === 0 && (
@@ -1157,7 +1157,7 @@ export default function Admin() {
                                 {product.featured && <span className="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary shrink-0">Destacado</span>}
                               </div>
                               <p className="text-sm text-muted-foreground">
-                                ${parseFloat(product.price).toFixed(2)} · Stock: {product.stock} · {product.category?.name ?? "Sin categoría"}
+                                ${parseFloat(product.price).toFixed(2)} USD · Stock: {product.stock} · {product.category?.name ?? "Sin categoría"}
                               </p>
                             </div>
                           </div>
@@ -1460,7 +1460,7 @@ export default function Admin() {
                               )}
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
-                              <span className="font-bold text-base">${parseFloat(order.total).toFixed(2)}</span>
+                              <span className="font-bold text-base">${parseFloat(order.total).toFixed(2)} USD</span>
                               <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                             </div>
                           </div>
@@ -1798,7 +1798,7 @@ export default function Admin() {
                             </div>
                           </div>
                           <div className="flex items-center gap-3 ml-4 shrink-0">
-                            <span className="font-bold text-primary text-sm">${parseFloat(order.total).toFixed(2)}</span>
+                            <span className="font-bold text-primary text-sm">${parseFloat(order.total).toFixed(2)} USD</span>
                             <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${statusColors[order.paymentStatus ?? "pending"]}`}>
                               {statusLabels[order.paymentStatus ?? "pending"]}
                             </span>
@@ -3898,7 +3898,7 @@ export default function Admin() {
                           </div>
                           <div className="flex gap-4 text-xs text-[#999] mb-3">
                             <span>🎫 {cp.ticketBalance ?? 0} tickets</span>
-                            <span>💵 ${parseFloat(cp.cashBalance ?? '0').toFixed(0)}</span>
+                            <span>💵 ${parseFloat(cp.cashBalance ?? '0').toFixed(2)} USD</span>
                           </div>
                           <div className="flex gap-2">
                             <button
