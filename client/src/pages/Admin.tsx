@@ -717,6 +717,9 @@ export default function Admin() {
 
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, { staleTime: 1000 * 60 * 30 });
+  const usdToCOP = rateData?.usdToCOP ?? 4200;
+  const revenueUSD = (metrics?.totalRevenue ?? 0) / usdToCOP;
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: categories, refetch: refetchCategories } = trpc.categories.list.useQuery();
   const { data: ordersData, refetch: refetchOrders } = trpc.orders.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -1008,7 +1011,7 @@ export default function Admin() {
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-3 w-full mb-6 md:grid-cols-4">
                   {[
-                    { label: "Ingresos totales", value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)} USD`, icon: DollarSign, color: "text-green-400" },
+                    { label: "Ingresos totales", value: `$${revenueUSD.toFixed(2)} USD`, icon: DollarSign, color: "text-green-400" },
                     { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
                     { label: "Productos", value: products.length, icon: Package, color: "text-accent" },
                     { label: "Categorías", value: categories?.length ?? 0, icon: Tag, color: "text-yellow-400" },

@@ -51,6 +51,7 @@ function StatusBadge({ status }: { status: string }) {
 function StatsSection() {
   const { user, isAuthenticated } = useAuth();
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === 'admin' });
+  const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, { staleTime: 1000 * 60 * 30 });
   const { data: pendingPaymentsData } = trpc.orders.adminPayments.useQuery(
     { paymentStatus: 'pending_verification' },
     { enabled: isAuthenticated && user?.role === 'admin' },
@@ -61,10 +62,12 @@ function StatsSection() {
   );
 
   const pendingPaymentsCount = pendingPaymentsData?.items?.length ?? 0;
+  const usdToCOP = rateData?.usdToCOP ?? 4200;
+  const revenueUSD = (metrics?.totalRevenue ?? 0) / usdToCOP;
 
   const stats = [
     { label: 'Pedidos totales', value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: '#e5007d' },
-    { label: 'Ingresos', value: `$${(metrics?.totalRevenue ?? 0).toFixed(2)} USD`, icon: TrendingUp, color: '#22c55e' },
+    { label: 'Ingresos', value: `$${revenueUSD.toFixed(2)} USD`, icon: TrendingUp, color: '#22c55e' },
     { label: 'Pagos pendientes', value: pendingPaymentsCount, icon: CreditCard, color: '#f59e0b' },
     { label: 'Solicitudes cosplay', value: pendingCosplay.length, icon: Sparkles, color: '#8b5cf6' },
   ];
