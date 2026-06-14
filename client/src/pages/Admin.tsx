@@ -718,7 +718,7 @@ export default function Admin() {
   // Gift Cards state
   const [showNewGiftCard, setShowNewGiftCard] = useState(false);
   const [generatedCodes, setGeneratedCodes] = useState<string[]>([]);
-  const emptyGiftCardForm = { amount: '', discountType: 'fixed' as 'fixed' | 'percent', discountPercent: '', maxUses: 1, minOrderAmount: '', expiresAt: '', onlyNewUsers: false, notes: '', quantity: 1 };
+  const emptyGiftCardForm = { amount: '', discountType: 'fixed' as 'fixed' | 'percent', discountPercent: '', maxUses: 1, minOrderAmount: '', expiresAt: '', onlyNewUsers: false, oncePerUser: false, notes: '', quantity: 1 };
   const [giftCardForm, setGiftCardForm] = useState(emptyGiftCardForm);
 
   // Queries
@@ -4792,6 +4792,17 @@ export default function Admin() {
                             </button>
                           </div>
 
+                          <div className="flex items-center justify-between p-4 bg-[#f8f8f8] rounded-xl">
+                            <div>
+                              <p className="text-sm font-medium text-[#111]">Un uso por usuario</p>
+                              <p className="text-xs text-[#999]">Cada usuario solo puede usar este código una vez, sin importar cuántas veces se use en total</p>
+                            </div>
+                            <button onClick={() => setGiftCardForm(f => ({ ...f, oncePerUser: !f.oncePerUser }))}
+                              className={`w-12 h-6 rounded-full transition-colors relative ${giftCardForm.oncePerUser ? 'bg-[#e5007d]' : 'bg-[#e5e5e5]'}`}>
+                              <span className={`absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${giftCardForm.oncePerUser ? 'left-6' : 'left-0.5'}`} />
+                            </button>
+                          </div>
+
                           <div>
                             <label className="text-sm font-medium block mb-1">Notas (opcional)</label>
                             <input type="text" value={giftCardForm.notes}
@@ -4812,6 +4823,7 @@ export default function Admin() {
                                 minOrderAmount: parseFloat(giftCardForm.minOrderAmount) || 0,
                                 expiresAt: giftCardForm.expiresAt || undefined,
                                 onlyNewUsers: giftCardForm.onlyNewUsers,
+                                oncePerUser: giftCardForm.oncePerUser,
                                 notes: giftCardForm.notes,
                                 quantity: giftCardForm.quantity,
                               })}

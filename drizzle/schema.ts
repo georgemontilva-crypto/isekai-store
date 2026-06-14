@@ -493,6 +493,7 @@ export const giftCards = mysqlTable('giftCards', {
   minOrderAmount: decimal('minOrderAmount', { precision: 10, scale: 2 }).default('0'),
   expiresAt: timestamp('expiresAt'),
   onlyNewUsers: boolean('onlyNewUsers').default(false),
+  oncePerUser: boolean('oncePerUser').default(false),
   usedBy: int('usedBy'),
   usedAt: timestamp('usedAt'),
   orderId: int('orderId'),
@@ -502,3 +503,12 @@ export const giftCards = mysqlTable('giftCards', {
 
 export type GiftCard = typeof giftCards.$inferSelect;
 export type InsertGiftCard = typeof giftCards.$inferInsert;
+
+// ─── Gift Card Usages ─────────────────────────────────────────────────────────
+export const giftCardUsages = mysqlTable('giftCardUsages', {
+  id: int('id').autoincrement().primaryKey(),
+  giftCardId: int('giftCardId').notNull(),
+  userId: int('userId').notNull(),
+  orderId: int('orderId'),
+  usedAt: timestamp('usedAt').defaultNow(),
+});

@@ -42,6 +42,7 @@ import {
   blogCategories,
   blogComments,
   giftCards,
+  giftCardUsages,
 } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
@@ -1825,6 +1826,7 @@ export async function createGiftCard(data: {
   minOrderAmount?: number;
   expiresAt?: Date | null;
   onlyNewUsers?: boolean;
+  oncePerUser?: boolean;
   notes?: string;
 }) {
   const db = await getDb();
@@ -1846,6 +1848,7 @@ export async function createGiftCard(data: {
     minOrderAmount: String(data.minOrderAmount ?? 0),
     expiresAt: data.expiresAt ?? undefined,
     onlyNewUsers: data.onlyNewUsers ?? false,
+    oncePerUser: data.oncePerUser ?? false,
     notes: data.notes,
     status: 'active',
   });
@@ -1884,6 +1887,16 @@ export async function validateGiftCard(code: string, userId?: number, orderTotal
       return { valid: false, reason: 'Código solo válido para nuevos clientes' };
   }
 
+  if (card.oncePerUser && userId) {
+    const userUsage = await db.select().from(giftCardUsages)
+      .where(and(
+        eq(giftCardUsages.giftCardId, card.id),
+        eq(giftCardUsages.userId, userId)
+      ));
+    if (userUsage.length > 0)
+      return { valid: false, reason: 'Ya usaste este código anteriormente' };
+  }
+
   let discount = 0;
   if (card.discountType === 'percent') {
     discount = orderTotal ? (orderTotal * parseFloat(card.discountPercent ?? '0') / 100) : 0;
@@ -1911,10 +1924,11 @@ export async function redeemGiftCard(code: string, userId: number | null, orderI
   if (!db) return false;
 
   const rows = await db.select().from(giftCards).where(eq(giftCards.code, code.toUpperCase()));
-  if (!rows[0]) return false;
+  const card = rows[0];
+  if (!card) return false;
 
-  const newUses = (rows[0].currentUses ?? 0) + 1;
-  const isExhausted = newUses >= (rows[0].maxUses ?? 1);
+  const newUses = (card.currentUses ?? 0) + 1;
+  const isExhausted = newUses >= (card.maxUses ?? 1);
 
   await db.update(giftCards).set({
     currentUses: newUses,
@@ -1923,6 +1937,14 @@ export async function redeemGiftCard(code: string, userId: number | null, orderI
     usedAt: new Date(),
     orderId,
   }).where(eq(giftCards.code, code.toUpperCase()));
+
+  if (userId) {
+    await db.insert(giftCardUsages).values({
+      giftCardId: card.id,
+      userId,
+      orderId,
+    });
+  }
 
   return true;
 }

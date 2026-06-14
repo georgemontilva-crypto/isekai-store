@@ -1373,8 +1373,9 @@ export const appRouter = router({
         minOrderAmount: z.number().min(0).default(0),
         expiresAt: z.string().optional(),
         onlyNewUsers: z.boolean().default(false),
+        oncePerUser: z.boolean().default(false),
         notes: z.string().optional(),
-        quantity: z.number().min(1).max(50).default(1),
+        quantity: z.number().min(1).max(500).default(1),
       }))
       .mutation(async ({ input }) => {
         const codes: string[] = [];
@@ -1387,6 +1388,7 @@ export const appRouter = router({
             minOrderAmount: input.minOrderAmount,
             expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
             onlyNewUsers: input.onlyNewUsers,
+            oncePerUser: input.oncePerUser,
             notes: input.notes,
           });
           if (code) codes.push(code);
