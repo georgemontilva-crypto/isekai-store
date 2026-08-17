@@ -51,7 +51,6 @@ function StatusBadge({ status }: { status: string }) {
 function StatsSection() {
   const { user, isAuthenticated } = useAuth();
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === 'admin' });
-  const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, { staleTime: 1000 * 60 * 30 });
   const { data: pendingPaymentsData } = trpc.orders.adminPayments.useQuery(
     { paymentStatus: 'pending_verification' },
     { enabled: isAuthenticated && user?.role === 'admin' },
@@ -62,8 +61,8 @@ function StatsSection() {
   );
 
   const pendingPaymentsCount = pendingPaymentsData?.items?.length ?? 0;
-  const usdToCOP = rateData?.usdToCOP ?? 4200;
-  const revenueUSD = (metrics?.totalRevenue ?? 0) / usdToCOP;
+  // La tienda opera en dólares: los totales ya vienen en USD, no se convierten.
+  const revenueUSD = metrics?.totalRevenue ?? 0;
 
   const stats = [
     { label: 'Pedidos totales', value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: '#e5007d' },
@@ -550,7 +549,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                       <p className="text-sm text-[#666] leading-relaxed">{act.description}</p>
                     )}
                     {act.deadline && (
-                      <p className="text-xs text-[#999]">Fecha límite: {new Date(act.deadline).toLocaleDateString('es-CO')}</p>
+                      <p className="text-xs text-[#999]">Fecha límite: {new Date(act.deadline).toLocaleDateString('es-VE')}</p>
                     )}
                     <div className="bg-[#f8f8f8] rounded-xl p-3">
                       <p className="text-xs text-[#999] mb-1">Tickets por tier:</p>
@@ -618,7 +617,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                       <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#e5007d] underline break-all block">{url}</a>
                     ))}
                   </div>
-                  <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-CO')}</p>
+                  <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-VE')}</p>
                   {sub.status === 'pending' && (
                     <button onClick={() => { setEvalModal(sub); setEvalPoints(sub.activityBasePoints ?? 100); }}
                       className="w-full bg-[#111] text-white py-3 rounded-xl font-bold text-sm">
@@ -2099,7 +2098,7 @@ export default function AdminMobile() {
                       <p className="text-sm font-semibold text-[#111]">{n.title}</p>
                       <p className="text-xs text-[#999] mt-0.5">{n.body}</p>
                       <p className="text-[10px] text-[#ccc] mt-1">
-                        {new Date(n.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        {new Date(n.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>

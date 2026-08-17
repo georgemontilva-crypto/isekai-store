@@ -32,11 +32,6 @@ export const ENV = {
   // Data center de tu cuenta (últimas letras del API key, ej: "us21")
   mailchimpDc:     process.env.MAILCHIMP_DC ?? "",
 
-  // ── Pagos: Bold (Colombia) ────────────────────────────────────────────────
-  boldApiKey:    process.env.BOLD_API_KEY ?? "",
-  boldSecretKey: process.env.BOLD_SECRET_KEY ?? "",
-  // "test" o "production"
-  boldEnv:       (process.env.BOLD_ENV ?? "test") as "test" | "production",
 };
 
 // ── Validación en startup ──────────────────────────────────────────────────
@@ -68,8 +63,6 @@ export function validateEnv() {
     { key: "mailchimpApiKey",    service: "Mailchimp" },
     { key: "mailchimpListId",    service: "Mailchimp" },
     { key: "mailchimpDc",        service: "Mailchimp" },
-    { key: "boldApiKey",         service: "Bold pagos" },
-    { key: "boldSecretKey",      service: "Bold pagos" },
   ];
 
   for (const { key, service } of optional) {

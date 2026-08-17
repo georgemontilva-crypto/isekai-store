@@ -10,7 +10,7 @@ import { orders, orderItems, users } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
-import { getUSDtoCOP } from "./exchangeRate";
+import { PAYMENT_METHOD_LABELS } from "@shared/payment";
 import {
   getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
@@ -284,6 +284,10 @@ export const appRouter = router({
         total: z.string().regex(/^\d+(\.\d{1,2})?$/),
         notes: z.string().max(1000).optional(),
         paymentMethod: z.string().max(50).optional(),
+        // Comprobante enviado desde el checkout (Pago Móvil / Cripto)
+        receiptUrl: z.string().url().max(2048).optional(),
+        paymentReference: z.string().max(256).optional(),
+        receiptHolder: z.string().max(256).optional(),
         country: z.string().max(100).optional(),
         referralCode: z.string().max(50).optional(),
         referralCosplayerId: z.number().optional(),
@@ -320,7 +324,11 @@ export const appRouter = router({
       <p><strong>Cliente:</strong> ${input.customerName}</p>
       <p><strong>Email:</strong> ${input.customerEmail}</p>
       <p><strong>Teléfono:</strong> ${input.customerPhone}</p>
-      <p><strong>Total:</strong> $${input.total} COP</p>
+      <p><strong>Total:</strong> $${input.total} USD</p>
+      <p><strong>Método de pago:</strong> ${PAYMENT_METHOD_LABELS[input.paymentMethod ?? ''] ?? input.paymentMethod ?? '—'}</p>
+      ${input.paymentReference ? `<p><strong>Referencia:</strong> ${input.paymentReference}</p>` : ''}
+      ${input.receiptHolder ? `<p><strong>Titular:</strong> ${input.receiptHolder}</p>` : ''}
+      ${input.receiptUrl ? `<p><strong>Comprobante:</strong> <a href="${input.receiptUrl}">Ver comprobante</a></p>` : ''}
       ${input.referralCode ? `<p><strong>Código referido:</strong> ${input.referralCode}</p>` : ''}
     </div>
     <div style="text-align:center">
@@ -331,11 +339,10 @@ export const appRouter = router({
         } catch (e) { console.error("Failed to notify owner:", e); }
         // Admin notification
         try {
-          await insertAdminNotification({ type: "new_order", title: "🛒 Nuevo pedido", body: `${input.customerName} · $${input.total}` });
+          await insertAdminNotification({ type: "new_order", title: "🛒 Nuevo pedido", body: `${input.customerName} · $${input.total} USD${input.receiptUrl ? ' · con comprobante' : ''}` });
         } catch (e) { console.error("Failed to insert order notification:", e); }
 
-        // Bold integration removed — WhatsApp payment flow is active.
-        // To re-enable Bold, restore the boldApiKey block here and update Checkout.tsx.
+        // Pagos: Pago Móvil y Cripto (USDT/TRC20) con carga de comprobante — ver shared/payment.ts
         return { ...order, paymentUrl: null as string | null };
       }),
 
@@ -587,7 +594,7 @@ export const appRouter = router({
 
         // Email al cliente
         const itemsList = input.items
-          .map(i => `<p>• ${i.productName} ×${i.quantity} — $${parseFloat(i.price).toLocaleString('es-CO')} COP</p>`)
+          .map(i => `<p>• ${i.productName} ×${i.quantity} — $${parseFloat(i.price).toFixed(2)} USD</p>`)
           .join('');
 
         await sendEmail(
@@ -600,7 +607,7 @@ export const appRouter = router({
           <p><strong>N° de orden:</strong> <span class="highlight">${orderNumber}</span></p>
           <p><strong>Productos:</strong></p>
           ${itemsList}
-          <p style="margin-top:8px"><strong>Total:</strong> $${parseFloat(input.total).toLocaleString('es-CO')} COP</p>
+          <p style="margin-top:8px"><strong>Total:</strong> $${parseFloat(input.total).toFixed(2)} USD</p>
           ${input.notes ? `<p><strong>Notas:</strong> ${input.notes}</p>` : ''}
         </div>
         <p>Puedes seguir el estado de tu pedido en tiempo real desde tu cuenta.</p>
@@ -615,7 +622,7 @@ export const appRouter = router({
         await insertAdminNotification({
           type: 'new_order',
           title: `📦 Pedido manual creado`,
-          body: `${orderNumber} — ${input.customerName} · $${parseFloat(input.total).toLocaleString('es-CO')} COP`,
+          body: `${orderNumber} — ${input.customerName} · $${parseFloat(input.total).toFixed(2)} USD`,
         });
 
         return { success: true, orderNumber, id: newOrder.id };
@@ -632,6 +639,22 @@ export const appRouter = router({
 
     uploadReceipt: protectedProcedure
       .input(z.object({ fileName: z.string().max(256), fileType: z.string().max(100), fileBase64: z.string() }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.fileBase64, "base64");
+        validateUpload(input.fileType, buffer);
+        const key = `receipts/${Date.now()}-${input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { url } = await storagePut(key, buffer, input.fileType);
+        return { url };
+      }),
+
+    /**
+     * Subida de comprobante desde el checkout, sin sesión iniciada.
+     * El checkout permite comprar como invitado, así que no puede exigir login.
+     * Protegido por validateUpload (tipo MIME + magic bytes + 10 MB) y por el
+     * rate limit de /api/trpc en server/_core/index.ts.
+     */
+    uploadReceiptPublic: publicProcedure
+      .input(z.object({ fileName: z.string().max(256), fileType: z.string().max(100), fileBase64: z.string().max(15_000_000) }))
       .mutation(async ({ input }) => {
         const buffer = Buffer.from(input.fileBase64, "base64");
         validateUpload(input.fileType, buffer);
@@ -700,11 +723,6 @@ export const appRouter = router({
     upsert: adminProcedure
       .input(z.object({ key: z.string().min(1), value: z.string().min(1) }))
       .mutation(({ input }) => upsertSetting(input.key, input.value)),
-
-    getExchangeRate: publicProcedure.query(async () => {
-      const rate = await getUSDtoCOP();
-      return { usdToCOP: rate };
-    }),
 
     // Proxy Instagram Basic Display API to avoid CORS (token stays server-side)
     instagramFeed: publicProcedure.query(async () => {
@@ -1183,13 +1201,13 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const cosplayer = await getCosplayerByUserId(ctx.user.id);
         if (!cosplayer) throw new TRPCError({ code: 'FORBIDDEN' });
-        const rate = await getUSDtoCOP();
-        const minCOP = Math.ceil(20 * rate);
-        if (input.amount < minCOP) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: `El mínimo de retiro es $${minCOP.toLocaleString('es-CO')} COP (~$20 USD)` });
+        // El saldo del cosplayer se acredita en dólares (2% del total de la orden)
+        const MIN_WITHDRAWAL_USD = 20;
+        if (input.amount < MIN_WITHDRAWAL_USD) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: `El mínimo de retiro es $${MIN_WITHDRAWAL_USD.toFixed(2)} USD` });
         }
         if (parseFloat(cosplayer.cashBalance ?? '0') < input.amount) {
-          throw new TRPCError({ code: 'BAD_REQUEST', message: `Saldo insuficiente. Tienes $${parseFloat(cosplayer.cashBalance ?? '0').toLocaleString('es-CO')} COP` });
+          throw new TRPCError({ code: 'BAD_REQUEST', message: `Saldo insuficiente. Tienes $${parseFloat(cosplayer.cashBalance ?? '0').toFixed(2)} USD` });
         }
         await requestCashWithdrawal(cosplayer.id, input.amount, input.paymentMethod, input.paymentDetails);
         try {

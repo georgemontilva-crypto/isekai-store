@@ -9,6 +9,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { PAYMENT_METHOD_LABELS } from "@shared/payment";
 
 function GoogleIcon() {
   return (
@@ -375,7 +376,7 @@ export default function Account() {
                                 </div>
                                 <div className="flex items-center gap-2 text-xs text-[#888]">
                                   <Clock className="w-3 h-3" />
-                                  <span>{new Date(order.createdAt).toLocaleDateString("es-CO")}</span>
+                                  <span>{new Date(order.createdAt).toLocaleDateString("es-VE")}</span>
                                   <span>·</span>
                                   <span className="font-semibold text-[#1a1a1a]">${parseFloat(order.total).toFixed(2)}</span>
                                 </div>
@@ -430,6 +431,43 @@ export default function Account() {
                                           <p className="text-[#555]">N° de guía: <span className="font-mono font-medium text-[#1a1a1a]">{(order as any).trackingNumber}</span></p>
                                         )}
                                       </div>
+                                    </div>
+                                  )}
+                                  {/* Comprobante de pago */}
+                                  {(order as any).receiptUrl && (
+                                    <div className="mt-4 p-3.5 rounded-xl border border-[#ebebeb] bg-[#fafafa]">
+                                      <div className="flex items-center justify-between gap-3 mb-2.5">
+                                        <p className="font-semibold text-sm text-[#1a1a1a]">Comprobante de pago</p>
+                                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
+                                          (order as any).paymentStatus === "approved" ? "bg-green-100 text-green-700"
+                                          : (order as any).paymentStatus === "rejected" ? "bg-red-100 text-red-700"
+                                          : "bg-amber-100 text-amber-700"
+                                        }`}>
+                                          {(order as any).paymentStatus === "approved" ? "Pago aprobado"
+                                            : (order as any).paymentStatus === "rejected" ? "Pago rechazado"
+                                            : "En verificación"}
+                                        </span>
+                                      </div>
+                                      <div className="text-xs text-[#555] space-y-0.5 mb-3">
+                                        {(order as any).paymentMethod && (
+                                          <p>Método: <span className="font-medium text-[#1a1a1a]">{PAYMENT_METHOD_LABELS[(order as any).paymentMethod] ?? (order as any).paymentMethod}</span></p>
+                                        )}
+                                        {(order as any).paymentReference && (
+                                          <p>Referencia: <span className="font-mono font-medium text-[#1a1a1a]">{(order as any).paymentReference}</span></p>
+                                        )}
+                                        {(order as any).receiptHolder && (
+                                          <p>Titular: <span className="font-medium text-[#1a1a1a]">{(order as any).receiptHolder}</span></p>
+                                        )}
+                                      </div>
+                                      {String((order as any).receiptUrl).toLowerCase().endsWith(".pdf") ? (
+                                        <a href={(order as any).receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#e5007d] underline">
+                                          Ver comprobante (PDF)
+                                        </a>
+                                      ) : (
+                                        <a href={(order as any).receiptUrl} target="_blank" rel="noreferrer">
+                                          <img src={(order as any).receiptUrl} alt="Comprobante de pago" className="max-h-56 rounded-xl border border-[#ebebeb] object-contain" />
+                                        </a>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -512,7 +550,7 @@ export default function Account() {
                 <div className="flex gap-2.5 items-start bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
                   <span className="text-amber-500 text-base shrink-0 mt-0.5">⚠️</span>
                   <p className="text-xs text-amber-800 leading-relaxed">
-                    <strong>Importante:</strong> El pedido solo será enviado una vez que se complete el pago total. Disponible únicamente para productos con valor superior a <strong>$150 USD</strong> (o su equivalente en Bs a tasa BCV / COP a tasa del día).
+                    <strong>Importante:</strong> El pedido solo será enviado una vez que se complete el pago total. Disponible únicamente para productos con valor superior a <strong>$150 USD</strong>.
                   </p>
                 </div>
 
@@ -579,7 +617,7 @@ export default function Account() {
                                   <div key={i} className="flex items-center justify-between text-xs">
                                     <span className={isPaid ? "text-green-600 font-medium" : "text-[#555]"}>
                                       {isPaid ? "✓ " : `Cuota ${i + 1}: `}
-                                      {date.toLocaleDateString("es-CO", { day: "numeric", month: "short", year: "numeric" })}
+                                      {date.toLocaleDateString("es-VE", { day: "numeric", month: "short", year: "numeric" })}
                                     </span>
                                     <span className={isPaid ? "text-green-600 font-semibold" : "text-[#888]"}>${cuotaAmount}</span>
                                   </div>
@@ -763,7 +801,7 @@ export default function Account() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs text-[#888] mb-0.5">Miembro desde</p>
                         <p className="text-sm font-medium text-[#1a1a1a]">
-                          {new Date(user.createdAt).toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" })}
+                          {new Date(user.createdAt).toLocaleDateString("es-VE", { year: "numeric", month: "long", day: "numeric" })}
                         </p>
                       </div>
                     </div>

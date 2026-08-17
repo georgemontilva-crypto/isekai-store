@@ -349,7 +349,7 @@ export async function notifyCosplayActivity(
     <div class="order-box">
       <p><strong>Actividad:</strong> ${activity.title}</p>
       ${activity.description ? `<p><strong>Descripción:</strong> ${activity.description}</p>` : ''}
-      ${activity.deadline ? `<p><strong>Fecha límite:</strong> ${new Date(activity.deadline).toLocaleDateString('es-CO')}</p>` : ''}
+      ${activity.deadline ? `<p><strong>Fecha límite:</strong> ${new Date(activity.deadline).toLocaleDateString('es-VE')}</p>` : ''}
       <p><strong>Tipo:</strong> ${activity.type ?? '—'}</p>
       <p><strong>Puntos base:</strong> ${activity.basePoints ?? 0}</p>
       <p><strong>Tus puntos (×${multiplier} tier ${tier}):</strong> <span class="highlight">${pointsWouldEarn} tickets</span></p>

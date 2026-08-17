@@ -75,7 +75,7 @@ export default function BlogPost() {
           {p.publishedAt && (
             <span className="flex items-center gap-1">
               <Calendar size={14} />
-              {new Date(p.publishedAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' })}
+              {new Date(p.publishedAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'long', year: 'numeric' })}
             </span>
           )}
           <span className="flex items-center gap-1"><Eye size={14} /> {p.views ?? 0} vistas</span>
@@ -109,7 +109,7 @@ export default function BlogPost() {
                 <div key={c.id} className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-bold text-white text-sm">{c.guestName ?? 'Usuario'}</p>
-                    <p className="text-[#555] text-xs">{new Date(c.createdAt).toLocaleDateString('es-CO')}</p>
+                    <p className="text-[#555] text-xs">{new Date(c.createdAt).toLocaleDateString('es-VE')}</p>
                   </div>
                   <p className="text-[#ccc] text-sm leading-relaxed">{c.content}</p>
                 </div>

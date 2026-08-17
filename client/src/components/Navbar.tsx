@@ -127,7 +127,6 @@ export default function Navbar() {
     { label: t.nav.exploreMenu.about, href: "/nosotros" },
     { label: t.nav.exploreMenu.faq,   href: "/faq" },
     { label: t.nav.exploreMenu.legal, href: "/politicas" },
-    { label: "Cosplay Guild",          href: "/cosplay" },
     { label: "Blog",                   href: "/blog" },
   ];
 
@@ -197,6 +196,14 @@ export default function Navbar() {
             </div>
 
             <Link href="/catalog" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">{t.nav.compare}</Link>
+
+            {/* Botón destacado: Cosplay Guild */}
+            <Link
+              href="/cosplay"
+              className="ml-2 inline-flex items-center rounded-full border-2 border-[#e5007d] bg-white px-4 py-1.5 text-[13px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+            >
+              Cosplay Guild
+            </Link>
           </nav>
 
           {/* Right icons */}
@@ -323,6 +330,14 @@ export default function Navbar() {
                   {label}<ArrowRight size={14} className="opacity-30"/>
                 </Link>
               ))}
+              {/* Botón destacado: Cosplay Guild */}
+              <Link
+                href="/cosplay"
+                onClick={() => setMobileOpen(false)}
+                className="my-4 inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+              >
+                Cosplay Guild
+              </Link>
               {exploreMenu.map(item => (
                 <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="py-3 text-[14px] text-[#555] border-b border-[#f0f0f0] hover:opacity-50 transition-opacity flex items-center justify-between">
                   {item.label}<ArrowRight size={12} className="opacity-20"/>

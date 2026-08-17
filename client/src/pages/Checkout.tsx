@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, MessageCircle, Gift, X,
+  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, MessageCircle, Gift, X, Clock,
+  Smartphone, Bitcoin,
 } from "lucide-react";
 import { Link } from "wouter";
 import { useForm } from "react-hook-form";
@@ -15,6 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import PaymentModal, { type ReceiptData } from "@/components/PaymentModal";
+import { STORE_COUNTRY, PAYMENT_METHOD_LABELS, type PaymentMethodId } from "@shared/payment";
 
 const schema = z.object({
   customerName: z.string().min(2, "Nombre requerido"),
@@ -22,7 +25,7 @@ const schema = z.object({
   customerPhone: z.string().optional(),
   street: z.string().min(5, "Dirección requerida"),
   city: z.string().min(2, "Ciudad requerida"),
-  state: z.string().min(2, "Departamento / Estado requerido"),
+  state: z.string().min(2, "Estado requerido"),
   zip: z.string().min(4, "Código postal requerido"),
   notes: z.string().optional(),
 });
@@ -52,7 +55,11 @@ export default function Checkout() {
   const { t } = useLang();
   const { items, subtotal, clearCart } = useCart();
   const { user } = useAuth();
-  const [selectedCountry, setSelectedCountry] = useState<string>("Colombia");
+  // La tienda opera únicamente en Venezuela
+  const selectedCountry = STORE_COUNTRY;
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId>("pago_movil");
+  const [paymentOpen, setPaymentOpen] = useState(false);
+  const [pendingForm, setPendingForm] = useState<FormData | null>(null);
   const [createdOrder, setCreatedOrder] = useState<{
     id: number;
     orderNumber: string;
@@ -113,8 +120,17 @@ export default function Checkout() {
   const giftDiscount = appliedGiftCard ? parseFloat(appliedGiftCard.discount) : 0;
   const finalTotal = Math.max(0, subtotal - giftDiscount);
 
-  const onSubmitOrder = async (data: FormData) => {
+  /** Paso 1: validar el formulario y abrir el modal con los datos de pago */
+  const onSubmitOrder = (data: FormData) => {
     if (items.length === 0) { toast.error(t.checkout.empty); return; }
+    setPendingForm(data);
+    setPaymentOpen(true);
+  };
+
+  /** Paso 2: el cliente ya pagó y subió su comprobante → se crea la orden */
+  const createOrderWithReceipt = async (receipt: ReceiptData) => {
+    const data = pendingForm;
+    if (!data) return;
 
     const orderItems = items.map(item => ({
       name: item.product?.name ?? "Producto",
@@ -139,7 +155,10 @@ export default function Checkout() {
         subtotal: subtotal.toFixed(2),
         total: finalTotal.toFixed(2),
         notes: data.notes,
-        paymentMethod: "whatsapp",
+        paymentMethod,
+        receiptUrl: receipt.receiptUrl,
+        paymentReference: receipt.paymentReference,
+        receiptHolder: receipt.receiptHolder,
         country: selectedCountry,
         referralCode: referralCosplayer ? referralCode : undefined,
         referralCosplayerId: referralCosplayer?.id,
@@ -169,17 +188,14 @@ export default function Checkout() {
       };
 
       setSavedItems(orderItems);
+      setPaymentOpen(false);
       setCreatedOrder(orderWithDetails);
-
-      const msg = buildWhatsAppMessage(orderWithDetails, orderItems, giftDiscount);
-      const waNumber = siteSettings?.["whatsapp_number"] ?? "";
-      window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank");
     } catch {
       toast.error(t.checkout.errors.error);
     }
   };
 
-  // ─── WhatsApp confirmation screen ────────────────────────────────────────────
+  // ─── Order confirmation screen ───────────────────────────────────────────────
   if (createdOrder) {
     const waNumber = siteSettings?.["whatsapp_number"] ?? "";
     const msg = buildWhatsAppMessage(createdOrder, savedItems, giftDiscount);
@@ -197,22 +213,26 @@ export default function Checkout() {
           </div>
           <h1 className="text-3xl font-black mb-3">¡Pedido creado!</h1>
           <p className="text-muted-foreground mb-6">
-            Tu pedido fue registrado. Abre WhatsApp para coordinarlo con nosotros.
+            Recibimos tu comprobante. Verificaremos tu pago y te avisaremos por correo cuando
+            esté aprobado. Puedes seguir el estado desde tu cuenta.
           </p>
           <div className="p-4 rounded-2xl bg-card border border-border/50 mb-6">
             <p className="text-sm text-muted-foreground mb-1">Número de pedido</p>
             <p className="text-xl font-bold text-[#e5007d]">{createdOrder.orderNumber}</p>
+            <p className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-600">
+              <Clock size={12} /> Pago en verificación
+            </p>
           </div>
           <div className="flex flex-col gap-3">
+            <Button size="lg" className="w-full bg-[#e5007d] hover:bg-[#c4006b] text-white font-semibold" asChild>
+              <Link href="/account">{t.checkout.success.viewAccount}</Link>
+            </Button>
             <Button
-              size="lg"
-              className="w-full bg-[#25D366] hover:bg-[#20b858] text-white font-semibold"
+              variant="outline"
+              className="border-border/50"
               onClick={() => window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank")}
             >
-              <MessageCircle size={20} className="mr-2" /> Abrir WhatsApp
-            </Button>
-            <Button variant="outline" className="border-border/50" asChild>
-              <Link href="/account">{t.checkout.success.viewAccount}</Link>
+              <MessageCircle size={18} className="mr-2" /> ¿Dudas? Escríbenos por WhatsApp
             </Button>
           </div>
         </motion.div>
@@ -258,22 +278,32 @@ export default function Checkout() {
               animate={{ opacity: 1, x: 0 }}
               className="order-2 md:order-1 md:col-span-3 space-y-6"
             >
-              {/* Country */}
+              {/* Método de pago */}
               <div className="p-6 rounded-2xl bg-card border border-border/50">
-                <h2 className="font-semibold text-lg mb-4">País de envío</h2>
-                <div className="grid grid-cols-2 gap-2">
-                  {["Colombia", "Venezuela"].map(c => (
+                <h2 className="font-semibold text-lg mb-1">Método de pago</h2>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Envíos únicamente dentro de {STORE_COUNTRY}. Todos los precios están en dólares (USD).
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {([
+                    { id: "pago_movil" as const, Icon: Smartphone, desc: "Banco de Venezuela" },
+                    { id: "crypto" as const, Icon: Bitcoin, desc: "USDT · Tron (TRC20)" },
+                  ]).map(({ id, Icon, desc }) => (
                     <button
-                      key={c}
+                      key={id}
                       type="button"
-                      onClick={() => setSelectedCountry(c)}
-                      className={`py-2 px-3 rounded-xl border text-sm font-medium transition-all ${
-                        selectedCountry === c
-                          ? "border-primary bg-primary/10 text-primary"
-                          : "border-border/50 text-muted-foreground hover:border-primary/40"
+                      onClick={() => setPaymentMethod(id)}
+                      className={`flex flex-col items-start gap-1 rounded-xl border-2 p-4 text-left transition-all ${
+                        paymentMethod === id
+                          ? "border-[#e5007d] bg-[#e5007d]/5"
+                          : "border-border/50 hover:border-[#e5007d]/40"
                       }`}
                     >
-                      {c}
+                      <Icon size={20} className={paymentMethod === id ? "text-[#e5007d]" : "text-muted-foreground"} />
+                      <span className={`text-sm font-bold ${paymentMethod === id ? "text-[#e5007d]" : ""}`}>
+                        {PAYMENT_METHOD_LABELS[id]}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground">{desc}</span>
                     </button>
                   ))}
                 </div>
@@ -295,7 +325,7 @@ export default function Checkout() {
                   </div>
                   <div className="sm:col-span-2">
                     <Label htmlFor="customerPhone">{t.checkout.phone}</Label>
-                    <Input id="customerPhone" {...register("customerPhone")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="+57 300 000 0000" />
+                    <Input id="customerPhone" {...register("customerPhone")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="+58 412 000 0000" />
                   </div>
                 </div>
               </div>
@@ -306,22 +336,22 @@ export default function Checkout() {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div className="sm:col-span-2">
                     <Label htmlFor="street">{t.checkout.address} *</Label>
-                    <Input id="street" {...register("street")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="Calle 123 #45-67" />
+                    <Input id="street" {...register("street")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="Av. Principal, Res. Los Robles, Apto 3-B" />
                     {errors.street && <p className="text-destructive text-xs mt-1">{errors.street.message}</p>}
                   </div>
                   <div>
                     <Label htmlFor="city">{t.checkout.city} *</Label>
-                    <Input id="city" {...register("city")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="Bogotá" />
+                    <Input id="city" {...register("city")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="Caracas" />
                     {errors.city && <p className="text-destructive text-xs mt-1">{errors.city.message}</p>}
                   </div>
                   <div>
                     <Label htmlFor="state">{t.checkout.state} *</Label>
-                    <Input id="state" {...register("state")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="Cundinamarca" />
+                    <Input id="state" {...register("state")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="Distrito Capital" />
                     {errors.state && <p className="text-destructive text-xs mt-1">{errors.state.message}</p>}
                   </div>
                   <div>
                     <Label htmlFor="zip">{t.checkout.zip} *</Label>
-                    <Input id="zip" {...register("zip")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="110111" />
+                    <Input id="zip" {...register("zip")} className="mt-1 bg-muted border-border/50 focus:border-primary/50" placeholder="1010" />
                     {errors.zip && <p className="text-destructive text-xs mt-1">{errors.zip.message}</p>}
                   </div>
                 </div>
@@ -496,7 +526,7 @@ export default function Checkout() {
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full bg-[#25D366] hover:bg-[#20b858] text-white font-semibold"
+                    className="w-full bg-[#e5007d] hover:bg-[#c4006b] text-white font-semibold"
                     disabled={createOrder.isPending}
                   >
                     {createOrder.isPending ? (
@@ -506,7 +536,8 @@ export default function Checkout() {
                       </span>
                     ) : (
                       <span className="flex items-center gap-2">
-                        <MessageCircle size={20} /> Comprar por WhatsApp
+                        {paymentMethod === "crypto" ? <Bitcoin size={18} /> : <Smartphone size={18} />}
+                        Pagar con {PAYMENT_METHOD_LABELS[paymentMethod]}
                       </span>
                     )}
                   </Button>
@@ -520,6 +551,15 @@ export default function Checkout() {
           </div>
         </form>
       </div>
+
+      <PaymentModal
+        open={paymentOpen}
+        method={paymentMethod}
+        amountUSD={finalTotal}
+        submitting={createOrder.isPending}
+        onClose={() => { if (!createOrder.isPending) setPaymentOpen(false); }}
+        onConfirm={createOrderWithReceipt}
+      />
     </div>
   );
 }

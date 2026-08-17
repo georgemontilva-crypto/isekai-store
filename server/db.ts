@@ -396,6 +396,9 @@ export async function createOrder(data: {
   total: string;
   notes?: string;
   paymentMethod?: string;
+  receiptUrl?: string;
+  paymentReference?: string;
+  receiptHolder?: string;
   country?: string;
   referralCode?: string;
   referralCosplayerId?: number;
@@ -434,8 +437,12 @@ export async function createOrder(data: {
     hasSecretGift: data.hasSecretGift ?? false,
     giftCardCode: data.giftCardCode,
     giftCardDiscount: data.giftCardDiscount ?? "0.00",
+    receiptUrl: data.receiptUrl,
+    paymentReference: data.paymentReference,
+    receiptHolder: data.receiptHolder,
     status: "pending",
-    paymentStatus: "pending",
+    // Si el cliente ya subió su comprobante, el pago queda en verificación
+    paymentStatus: data.receiptUrl ? "verifying" : "pending",
   });
 
   const [orderResult] = await db.select().from(orders).where(eq(orders.orderNumber, orderNumber)).limit(1);

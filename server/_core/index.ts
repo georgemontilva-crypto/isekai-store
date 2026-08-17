@@ -44,40 +44,6 @@ async function startServer() {
   const app = express();
   const server = createServer(app);
 
-  // Bold webhook — registered before global body parsers to preserve raw body for HMAC verification
-  app.post("/api/webhooks/bold", express.raw({ type: "application/json" }), async (req, res) => {
-    try {
-      const signature = req.headers["x-bold-signature"] as string;
-      const secret = ENV.boldSecretKey;
-      const hmac = crypto.createHmac("sha256", secret).update(req.body).digest("hex");
-      if (signature !== hmac) {
-        return res.status(401).json({ error: "Invalid signature" });
-      }
-      const payload = JSON.parse(req.body.toString());
-      if (payload.status === "APPROVED") {
-        const orderNumber = payload.order_id ?? payload.reference;
-        await db.updateOrderPaymentStatus(orderNumber, "paid");
-        const order = await db.getOrderByNumber(orderNumber);
-        if (order?.customerEmail) {
-          await notifyCustomerOrderStatus(
-            order.customerEmail,
-            order.customerName,
-            orderNumber,
-            "¡Pago confirmado!",
-            "Tu pago fue verificado. Tu orden pasa a producción."
-          );
-        }
-        if (order?.userId) {
-          io.to(`user:${order.userId}`).emit("order:updated", { orderId: order.id });
-          io.to(`user:${order.userId}`).emit("notification:new");
-        }
-      }
-      res.json({ received: true });
-    } catch (err) {
-      console.error("[Bold webhook]", err);
-      res.status(500).json({ error: "Webhook error" });
-    }
-  });
 
   // Security headers
   app.use(helmet({
@@ -109,6 +75,14 @@ async function startServer() {
   app.use('/api/auth', rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 30,
+    standardHeaders: true,
+    legacyHeaders: false,
+  }));
+  // Subida de comprobantes sin sesión (checkout de invitados)
+  app.use('/api/trpc/orders.uploadReceiptPublic', rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 20,
+    message: { error: 'Demasiadas subidas. Espera unos minutos.' },
     standardHeaders: true,
     legacyHeaders: false,
   }));

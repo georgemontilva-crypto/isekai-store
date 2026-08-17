@@ -5,6 +5,9 @@ import { toast } from "sonner";
 import { useLang } from "@/i18n/LangContext";
 import { trpc } from "@/lib/trpc";
 
+/** Cuántas colecciones se listan en el footer antes del enlace "Ver más" */
+const FOOTER_COLLECTIONS_LIMIT = 6;
+
 export default function Footer() {
   const { t } = useLang();
   const [email, setEmail] = useState("");
@@ -83,9 +86,16 @@ export default function Footer() {
             <div>
               <h4 className="font-semibold text-[13px] mb-5 text-white">{t.footer.collections}</h4>
               <ul className="space-y-3">
-                {categories.map(cat => (
+                {categories.slice(0, FOOTER_COLLECTIONS_LIMIT).map(cat => (
                   <li key={cat.id}><Link href={`/catalog?category=${cat.slug}`} className="text-[13px] text-white/55 hover:text-white transition-colors">{cat.name}</Link></li>
                 ))}
+                {categories.length > FOOTER_COLLECTIONS_LIMIT && (
+                  <li>
+                    <Link href="/collections" className="inline-flex items-center gap-1 text-[13px] font-semibold text-[#e5007d] hover:text-white transition-colors">
+                      Ver más<ArrowRight size={12} />
+                    </Link>
+                  </li>
+                )}
               </ul>
             </div>
 

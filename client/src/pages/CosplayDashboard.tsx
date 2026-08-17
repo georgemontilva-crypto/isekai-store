@@ -705,7 +705,7 @@ export default function CosplayDashboard() {
                     <div key={e.id} className="flex items-center justify-between bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3">
                       <div>
                         <p className="text-white text-sm font-medium">{e.description}</p>
-                        <p className="text-[#555] text-xs">{new Date(e.createdAt).toLocaleDateString('es-CO')}</p>
+                        <p className="text-[#555] text-xs">{new Date(e.createdAt).toLocaleDateString('es-VE')}</p>
                       </div>
                       <div className="text-right">
                         {e.amount > 0 && <p className="text-green-400 font-bold text-sm">+{e.amount} tickets</p>}

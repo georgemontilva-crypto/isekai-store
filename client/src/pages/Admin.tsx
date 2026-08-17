@@ -723,9 +723,8 @@ export default function Admin() {
 
   // Queries
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
-  const { data: rateData } = trpc.settings.getExchangeRate.useQuery(undefined, { staleTime: 1000 * 60 * 30 });
-  const usdToCOP = rateData?.usdToCOP ?? 4200;
-  const revenueUSD = (metrics?.totalRevenue ?? 0) / usdToCOP;
+  // La tienda opera en dólares: los totales ya vienen en USD, no se convierten.
+  const revenueUSD = metrics?.totalRevenue ?? 0;
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: categories, refetch: refetchCategories } = trpc.categories.list.useQuery();
   const { data: ordersData, refetch: refetchOrders } = trpc.orders.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
@@ -1445,7 +1444,7 @@ export default function Admin() {
                               {order.customerPhone && (
                                 <p className="text-xs text-muted-foreground truncate">📞 {order.customerPhone}</p>
                               )}
-                              <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-CO")}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-VE")}</p>
                               {/* Mini progress timeline */}
                               {order.status !== "cancelled" && (
                                 <div className="flex items-center gap-0.5 mt-2">
@@ -3365,7 +3364,7 @@ export default function Admin() {
                             </select>
                           </td>
                           <td className="px-4 py-3 text-xs text-[#999]">
-                            {new Date(u.createdAt).toLocaleDateString('es-CO', {
+                            {new Date(u.createdAt).toLocaleDateString('es-VE', {
                               day: '2-digit', month: 'short', year: 'numeric'
                             })}
                           </td>
@@ -3432,7 +3431,7 @@ export default function Admin() {
                             <td className="px-4 py-3 text-muted-foreground capitalize">{p.triggerType}</td>
                             <td className="px-4 py-3 text-muted-foreground capitalize">{p.position ?? 'center'}</td>
                             <td className="px-4 py-3 text-muted-foreground text-xs">
-                              {p.createdAt ? new Date(p.createdAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
+                              {p.createdAt ? new Date(p.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' }) : '—'}
                             </td>
                             <td className="px-4 py-3">
                               <button
@@ -3976,7 +3975,7 @@ export default function Admin() {
                                 </span>
                               )}
                             </div>
-                            <p className="text-xs text-muted-foreground">{act.basePoints} pts base{act.deadline ? ` · Hasta ${new Date(act.deadline).toLocaleDateString('es-CO')}` : ''}</p>
+                            <p className="text-xs text-muted-foreground">{act.basePoints} pts base{act.deadline ? ` · Hasta ${new Date(act.deadline).toLocaleDateString('es-VE')}` : ''}</p>
                           </div>
                           <button
                             onClick={() => toggleActivity.mutate({ id: act.id, active: !act.active })}
@@ -4029,7 +4028,7 @@ export default function Admin() {
                                 <a key={i} href={url} target="_blank" rel="noopener noreferrer" className="text-xs text-[#e5007d] underline break-all block">{url}</a>
                               ))}
                             </div>
-                            <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-CO')}</p>
+                            <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-VE')}</p>
                             {sub.status === 'pending' && (
                               <Button size="sm" className="w-full bg-[#111] text-white text-sm font-bold" onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: sub.activityBasePoints ?? 100, status: 'approved' }); }}>
                                 Evaluar y aprobar
@@ -4059,7 +4058,7 @@ export default function Admin() {
                           </div>
                           <p className="text-sm font-medium">{w.paymentMethod}</p>
                           <p className="text-xs text-muted-foreground">{w.paymentDetails}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{new Date(w.createdAt).toLocaleString('es-CO')}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{new Date(w.createdAt).toLocaleString('es-VE')}</p>
                         </div>
                         {w.status === 'pending' && (
                           <div className="flex gap-2 ml-4 shrink-0">
@@ -4409,7 +4408,7 @@ export default function Admin() {
                               </span>
                               {post.category && <span className="text-xs text-[#e5007d]">{post.category}</span>}
                             </div>
-                            <p className="text-xs text-muted-foreground">{post.views ?? 0} vistas · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('es-CO') : 'Sin publicar'}</p>
+                            <p className="text-xs text-muted-foreground">{post.views ?? 0} vistas · {post.publishedAt ? new Date(post.publishedAt).toLocaleDateString('es-VE') : 'Sin publicar'}</p>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
                             <Button size="sm" variant="ghost" className="h-8 w-8 p-0" onClick={() => { setEditingBlogPost(post); setBlogPostForm({ title: post.title, slug: post.slug, excerpt: post.excerpt ?? '', content: post.content ?? '', coverImage: post.coverImage ?? '', category: post.category ?? '', tags: (post.tags as string[]) ?? [], status: post.status as 'draft' | 'published', authorName: post.authorName ?? 'Isekai World', metaTitle: post.metaTitle ?? '', metaDescription: post.metaDescription ?? '', metaKeywords: post.metaKeywords ?? '' }); setBlogModalTab('content'); setShowBlogPostModal(true); }}>
@@ -4475,7 +4474,7 @@ export default function Admin() {
                               <span className="text-xs text-muted-foreground">Post #{c.postId}</span>
                             </div>
                             <p className="text-sm text-muted-foreground line-clamp-2">{c.content}</p>
-                            <p className="text-xs text-muted-foreground mt-1">{new Date(c.createdAt).toLocaleString('es-CO')}</p>
+                            <p className="text-xs text-muted-foreground mt-1">{new Date(c.createdAt).toLocaleString('es-VE')}</p>
                           </div>
                           <div className="flex gap-1 shrink-0">
                             {c.status !== 'approved' && (
@@ -4673,7 +4672,7 @@ export default function Admin() {
                             </span>
                             {card.expiresAt && (
                               <span className="text-xs text-muted-foreground">
-                                Vence {new Date(card.expiresAt).toLocaleDateString('es-CO')}
+                                Vence {new Date(card.expiresAt).toLocaleDateString('es-VE')}
                               </span>
                             )}
                             {card.notes && <span className="text-xs text-muted-foreground italic">{card.notes}</span>}

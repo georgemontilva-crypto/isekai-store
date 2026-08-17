@@ -97,7 +97,7 @@ export default function Blog() {
                       {post.publishedAt && (
                         <span className="flex items-center gap-1">
                           <Calendar size={12} />
-                          {new Date(post.publishedAt).toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          {new Date(post.publishedAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', year: 'numeric' })}
                         </span>
                       )}
                       <span className="flex items-center gap-1">
