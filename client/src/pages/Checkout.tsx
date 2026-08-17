@@ -441,9 +441,9 @@ export default function Checkout() {
                     </div>
                   )}
 
-                  {/* Campo código de referido */}
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-[#111] mb-2">
+                  {/* Campo código de referido — destacado con outline magenta */}
+                  <div className="mb-4 rounded-2xl border-2 border-[#e5007d] bg-[#e5007d]/[0.03] p-4">
+                    <label className="mb-2 block text-sm font-bold text-[#e5007d]">
                       Código de referido <span className="text-[#999] font-normal text-xs">(opcional)</span>
                     </label>
                     <div className="relative">
@@ -452,7 +452,7 @@ export default function Checkout() {
                         value={referralCode}
                         onChange={e => setReferralCode(e.target.value.toUpperCase())}
                         placeholder="ISK-NOMBRE-0000"
-                        className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] uppercase tracking-wider"
+                        className="w-full border-2 border-[#e5007d]/40 bg-white rounded-xl px-4 py-3 text-sm outline-none focus:border-[#e5007d] transition-colors uppercase tracking-wider placeholder:text-[#bbb] placeholder:normal-case placeholder:tracking-normal"
                       />
                       {referralCosplayer && (
                         <div className="absolute right-3 top-1/2 -translate-y-1/2">

@@ -3,9 +3,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ShoppingCart, Package,
   Minus, Plus, Shield, Truck, RotateCcw, Heart, Share2, Check, Frown, Gamepad2, Layers,
-  Printer, Globe, Star
+  Printer, Globe, Star, Zap
 } from "lucide-react";
-import { Link, useParams } from "wouter";
+import { Link, useParams, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import { useLang } from "@/i18n/LangContext";
@@ -26,6 +26,8 @@ export default function ProductDetail() {
   const [activeImage, setActiveImage] = useState(0);
   const [mainImageOverride, setMainImageOverride] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [buying, setBuying] = useState(false);
+  const [, navigate] = useLocation();
 
   const { t } = useLang();
   const { data: product, isLoading } = trpc.products.bySlug.useQuery(
@@ -106,6 +108,19 @@ export default function ProductDetail() {
       toast.error(t.product.addToCartError);
     } finally {
       setAdding(false);
+    }
+  };
+
+  /** Comprar ahora: agrega al carrito y salta directo al checkout */
+  const handleBuyNow = async () => {
+    if (!product) return;
+    setBuying(true);
+    try {
+      await addItem(product.id, selectedVariant, quantity);
+      navigate("/checkout");
+    } catch {
+      toast.error(t.product.addToCartError);
+      setBuying(false);
     }
   };
 
@@ -430,15 +445,34 @@ export default function ProductDetail() {
               </div>
             </div>
 
+            {/* Comprar ahora — agrega al carrito y va directo al checkout */}
+            <button
+              onClick={handleBuyNow}
+              disabled={isOutOfStock || adding || buying}
+              className="w-full bg-[#e5007d] text-white font-bold text-[15px] py-4 rounded-full hover:bg-[#c4006b] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            >
+              {buying ? (
+                <>
+                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Procesando...
+                </>
+              ) : (
+                <>
+                  <Zap className="w-4 h-4" />
+                  {isOutOfStock ? t.product.outOfStock : "Comprar ahora"}
+                </>
+              )}
+            </button>
+
             {/* Add to cart */}
             <button
               onClick={handleAddToCart}
-              disabled={isOutOfStock || adding}
-              className="w-full bg-[#1a1a1a] text-white font-semibold text-[15px] py-4 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={isOutOfStock || adding || buying}
+              className="w-full mt-3 bg-white text-[#1a1a1a] font-semibold text-[15px] py-4 rounded-full border-2 border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {adding ? (
                 <>
-                  <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
                   Agregando...
                 </>
               ) : (
