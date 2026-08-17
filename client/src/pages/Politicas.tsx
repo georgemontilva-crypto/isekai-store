@@ -97,7 +97,7 @@ function Privacidad() {
       <section>
         <h2 className="text-xl font-black text-[#1a1a1a] mb-3">Política de Privacidad / Privacy Policy</h2>
         <p className="text-xs text-[#888] mb-4">Última actualización / Last updated: Mayo 2025</p>
-        <p>En <strong>Isekai World</strong> respetamos y protegemos la privacidad de nuestros usuarios conforme a la Ley 1581 de 2012 (Habeas Data) de Colombia y el RGPD de la UE donde aplique. / We respect and protect the privacy of our users in accordance with Colombian Law 1581 of 2012 (Habeas Data) and the EU GDPR where applicable.</p>
+        <p>En <strong>Isekai World</strong> respetamos y protegemos la privacidad de nuestros usuarios conforme al artículo 28 de la Constitución de la República Bolivariana de Venezuela (habeas data), la normativa venezolana aplicable en materia de protección de datos y el RGPD de la UE donde aplique. / We respect and protect the privacy of our users in accordance with Article 28 of the Constitution of the Bolivarian Republic of Venezuela (habeas data), applicable Venezuelan data protection regulations, and the EU GDPR where applicable.</p>
       </section>
 
       <section>
@@ -155,7 +155,7 @@ function Privacidad() {
 
       <section>
         <h3 className="text-lg font-bold text-[#1a1a1a] mb-3">Tus derechos / Your rights</h3>
-        <p className="mb-3">Conforme a la Ley 1581 de 2012, tienes derecho a: / Under Law 1581 of 2012, you have the right to:</p>
+        <p className="mb-3">Conforme a la normativa venezolana aplicable en materia de protección de datos, tienes derecho a: / Under applicable Venezuelan data protection regulations, you have the right to:</p>
         <ul className="space-y-2">
           {[
             "Conocer, actualizar y rectificar tus datos personales. / Know, update and rectify your personal data.",

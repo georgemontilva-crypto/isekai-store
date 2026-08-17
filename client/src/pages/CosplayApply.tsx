@@ -8,7 +8,7 @@ import { CheckCircle2, ArrowLeft, ChevronDown, Sparkles, Upload, User, X, Plus, 
 import { Link } from "wouter";
 
 const COUNTRIES = [
-  "Colombia", "Venezuela", "México", "Argentina", "Chile",
+  "Venezuela", "Colombia", "México", "Argentina", "Chile",
   "Perú", "Ecuador", "España", "Estados Unidos", "Otro",
 ];
 
@@ -56,7 +56,7 @@ export default function CosplayApply() {
   const [uploading, setUploading] = useState(false);
   const [form, setForm] = useState({
     artisticName: "", photo: "", bannerImage: "", gallery: [] as string[], bio: "",
-    fullName: "", lastName: "", age: "", city: "", country: "Colombia",
+    fullName: "", lastName: "", age: "", city: "", country: "Venezuela",
     address: "", phone: "", email: user?.email ?? "",
     experience: "", instagram: "", tiktok: "", youtube: "", facebook: "", twitter: "",
     totalFollowers: "", whyIsekai: "",

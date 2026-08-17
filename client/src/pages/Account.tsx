@@ -654,13 +654,11 @@ export default function Account() {
                                       onChange={e => setReserveMethod(e.target.value)}
                                       className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] rounded-xl px-3 py-2 focus:outline-none"
                                     >
-                                      <option value="nequi">Nequi</option>
-                                      <option value="daviplata">Daviplata</option>
-                                      <option value="bancolombia">Bancolombia</option>
                                       <option value="pago_movil">Pago Móvil</option>
+                                      <option value="usdt">USDT (Tron / TRC20)</option>
                                       <option value="binance">Binance Pay</option>
                                       <option value="zelle">Zelle</option>
-                                      <option value="transferencia">Transferencia</option>
+                                      <option value="transferencia">Transferencia bancaria</option>
                                     </select>
                                   </div>
 

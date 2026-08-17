@@ -9,7 +9,8 @@ import { ENV } from "./env";
 
 const LOGO_URL = 'https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/Favicon-11%20grande-11.png';
 const APP_URL  = 'https://isekaiworld.co';
-const WHATSAPP = 'https://wa.me/584121133899';
+const INSTAGRAM = 'https://instagram.com/isekaistore';
+const INSTAGRAM_DM = 'https://ig.me/m/isekaistore';
 
 export type NotificationPayload = {
   title: string;
@@ -71,8 +72,8 @@ function emailTemplate(content: string, previewText: string = ''): string {
       <!-- FOOTER -->
       <div class="footer">
         <div class="social-links">
-          <a href="https://instagram.com/isekaistore">📸 Instagram</a>
-          <a href="${WHATSAPP}">💬 WhatsApp</a>
+          <a href="${INSTAGRAM}">📸 Instagram</a>
+          <a href="${INSTAGRAM_DM}">💬 Escríbenos</a>
           <a href="${APP_URL}">🌐 Tienda</a>
         </div>
         <hr style="border:none;border-top:1px solid #222;margin:16px 0"/>
@@ -132,7 +133,7 @@ export async function notifyWelcome(userEmail: string, userName: string): Promis
     <p>🛍️ Explorar productos exclusivos<br/>
     📦 Hacer seguimiento de tus pedidos<br/>
     ⭐ Guardar tus favoritos<br/>
-    💬 Contactarnos por WhatsApp</p>
+    💬 Contactarnos por Instagram</p>
     <div style="text-align:center">
       <a href="${APP_URL}/catalog" class="btn">Explorar la tienda →</a>
     </div>
@@ -163,7 +164,7 @@ export async function notifyCustomerOrderStatus(
       <a href="${APP_URL}/account" class="btn">Ver mi pedido →</a>
     </div>
     <hr class="divider"/>
-    <p style="font-size:13px;color:#999">¿Tienes alguna duda? Escríbenos por WhatsApp y te ayudamos enseguida.</p>
+    <p style="font-size:13px;color:#999">¿Tienes alguna duda? Escríbenos por Instagram y te ayudamos enseguida.</p>
   `;
   return sendEmail(userEmail, `${title} — Pedido ${orderNumber}`, content, body);
 }
@@ -235,7 +236,7 @@ export async function notifyCosplayApproved(
       <a href="${APP_URL}/cosplay/dashboard" class="btn">Ir a mi dashboard →</a>
     </div>
     <hr class="divider"/>
-    <p style="font-size:13px;color:#999">¿Tienes dudas? Escríbenos por WhatsApp y te ayudamos.</p>
+    <p style="font-size:13px;color:#999">¿Tienes dudas? Escríbenos por Instagram y te ayudamos.</p>
   `;
   return sendEmail(
     userEmail,
@@ -264,7 +265,7 @@ export async function notifyCosplayRejected(
       <a href="${APP_URL}/cosplay" class="btn">Ver requisitos →</a>
     </div>
     <hr class="divider"/>
-    <p style="font-size:13px;color:#999">¿Tienes alguna pregunta? Escríbenos por WhatsApp.</p>
+    <p style="font-size:13px;color:#999">¿Tienes alguna pregunta? Escríbenos por Instagram.</p>
   `;
   return sendEmail(
     userEmail,

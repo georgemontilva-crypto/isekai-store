@@ -12,7 +12,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import CartDrawer from "./components/CartDrawer";
 import AuthDialog from "./components/AuthDialog";
-import { WhatsAppChat } from "./components/WhatsAppChat";
+import { InstagramChat } from "./components/InstagramChat";
 import { PopupManager } from "./components/PopupManager";
 import Home from "./pages/Home";
 const Catalog = lazy(() => import("./pages/Catalog"));
@@ -117,7 +117,7 @@ function Layout() {
       </main>
       {!isAdmin && <Footer />}
       {!isAdmin && location !== '/links' && <PopupManager />}
-      {!isAdmin && <WhatsAppChat />}
+      {!isAdmin && <InstagramChat />}
       <AuthDialog />
     </>
   );

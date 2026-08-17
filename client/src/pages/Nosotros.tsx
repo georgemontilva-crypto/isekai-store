@@ -95,7 +95,7 @@ export default function Nosotros() {
         <div className="px-8 lg:px-16 xl:px-24 py-24 lg:py-32 flex flex-col justify-center gap-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#999] font-medium">Nuestra historia</p>
           <h2 className="text-2xl lg:text-3xl font-light leading-relaxed text-[#111]">
-            Isekai World es un estudio creativo especializado en impresión y diseño 3D inspirado en universos cinematográficos, anime y videojuegos donde cada pieza nace para traer un mundo ficticio a la realidad. Con cobertura en Venezuela y Colombia, creamos experiencias de fan para fan.
+            Isekai World es un estudio creativo especializado en impresión y diseño 3D inspirado en universos cinematográficos, anime y videojuegos donde cada pieza nace para traer un mundo ficticio a la realidad. Con cobertura en toda Venezuela, creamos experiencias de fan para fan.
           </h2>
           <p className="text-[#555] leading-relaxed text-[15px]">
             Nacimos de la pasión genuina por el anime y los videojuegos. Somos fans antes que vendedores, y eso se nota en cada decisión: desde la curaduría de productos hasta el packaging de cada pedido.
@@ -185,7 +185,7 @@ export default function Nosotros() {
             {[
               {
                 label: "Misión",
-                text: "Acercar la cultura del anime y los videojuegos a Colombia y Latinoamérica con productos premium, auténticos y accesibles. Creemos que cada fan merece tener en sus manos una pieza que represente lo que ama.",
+                text: "Acercar la cultura del anime y los videojuegos a Venezuela y Latinoamérica con productos premium, auténticos y accesibles. Creemos que cada fan merece tener en sus manos una pieza que represente lo que ama.",
               },
               {
                 label: "Visión",

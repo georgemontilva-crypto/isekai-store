@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, MessageCircle, Gift, X, Clock,
+  ArrowLeft, CheckCircle, ShoppingBag, Loader2, Gamepad2, Instagram, Gift, X, Clock,
   Smartphone, Bitcoin,
 } from "lucide-react";
 import { Link } from "wouter";
@@ -32,25 +32,6 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
-const buildWhatsAppMessage = (order: any, items: any[], giftDiscount = 0) => {
-  const itemsList = items.map(i =>
-    `• ${i.name}${i.variantName ? ` (${i.variantName})` : ""} ×${i.quantity} — $${parseFloat(i.price).toFixed(2)} USD`
-  ).join('\n');
-
-  const giftLine = giftDiscount > 0 ? `\n🎁 Tarjeta de regalo: -$${giftDiscount.toFixed(2)} USD` : '';
-
-  return encodeURIComponent(
-    `🛍️ *NUEVO PEDIDO — ISEKAI WORLD*\n\n` +
-    `N° Orden: ${order.orderNumber}\n` +
-    `Cliente: ${order.customerName}\n` +
-    `Email: ${order.customerEmail}\n` +
-    `Teléfono: ${order.customerPhone || 'No indicado'}\n\n` +
-    `*PRODUCTOS:*\n${itemsList}${giftLine}\n\n` +
-    `*TOTAL: $${parseFloat(order.total).toFixed(2)} USD*\n\n` +
-    `Dirección: ${order.shippingAddress?.street}, ${order.shippingAddress?.city}`
-  );
-};
-
 export default function Checkout() {
   const { t } = useLang();
   const { items, subtotal, clearCart } = useCart();
@@ -70,13 +51,6 @@ export default function Checkout() {
     country: string;
     shippingAddress: { street: string; city: string };
   } | null>(null);
-  const [savedItems, setSavedItems] = useState<Array<{
-    name: string;
-    variantName?: string;
-    quantity: number;
-    price: number;
-  }>>([]);
-
   const [referralCode, setReferralCode] = useState('');
   const [referralCosplayer, setReferralCosplayer] = useState<any>(null);
   const [giftCardInput, setGiftCardInput] = useState('');
@@ -132,13 +106,6 @@ export default function Checkout() {
     const data = pendingForm;
     if (!data) return;
 
-    const orderItems = items.map(item => ({
-      name: item.product?.name ?? "Producto",
-      variantName: item.variant?.name,
-      quantity: item.quantity,
-      price: parseFloat(item.variant?.price ?? item.product?.price ?? "0") * item.quantity,
-    }));
-
     try {
       const order = await createOrder.mutateAsync({
         sessionId: user ? undefined : sessionId,
@@ -187,7 +154,6 @@ export default function Checkout() {
         shippingAddress: { street: data.street, city: data.city },
       };
 
-      setSavedItems(orderItems);
       setPaymentOpen(false);
       setCreatedOrder(orderWithDetails);
     } catch {
@@ -197,8 +163,7 @@ export default function Checkout() {
 
   // ─── Order confirmation screen ───────────────────────────────────────────────
   if (createdOrder) {
-    const waNumber = siteSettings?.["whatsapp_number"] ?? "";
-    const msg = buildWhatsAppMessage(createdOrder, savedItems, giftDiscount);
+    const igUser = (siteSettings?.["instagram_username"] ?? "").trim().replace(/^@/, "");
 
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -227,13 +192,15 @@ export default function Checkout() {
             <Button size="lg" className="w-full bg-[#e5007d] hover:bg-[#c4006b] text-white font-semibold" asChild>
               <Link href="/account">{t.checkout.success.viewAccount}</Link>
             </Button>
-            <Button
-              variant="outline"
-              className="border-border/50"
-              onClick={() => window.open(`https://wa.me/${waNumber}?text=${msg}`, "_blank")}
-            >
-              <MessageCircle size={18} className="mr-2" /> ¿Dudas? Escríbenos por WhatsApp
-            </Button>
+            {igUser && (
+              <Button
+                variant="outline"
+                className="border-border/50"
+                onClick={() => window.open(`https://ig.me/m/${igUser}`, "_blank")}
+              >
+                <Instagram size={18} className="mr-2" /> ¿Dudas? Escríbenos por Instagram
+              </Button>
+            )}
           </div>
         </motion.div>
       </div>
