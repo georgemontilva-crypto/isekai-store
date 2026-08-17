@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Facebook, Twitter, Instagram, Youtube, ArrowRight, Headphones, Truck, Users, Lock } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -29,9 +29,15 @@ export default function Footer() {
 
   const trustIcons = [Headphones, Truck, Users, Lock];
 
+  // La barra de confianza solo se muestra en la tienda y en el detalle de producto.
+  // Fuera de ahí (cosplay guild, perfiles de cosplayer, blog, etc.) no aplica.
+  const [location] = useLocation();
+  const showTrustBar = location === "/catalog" || location.startsWith("/product/");
+
   return (
     <footer>
       {/* Trust Bar */}
+      {showTrustBar && (
       <div className="border-t border-[#ebebeb] bg-white">
         <div className="container py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
@@ -50,6 +56,7 @@ export default function Footer() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Main Footer */}
       <div className="bg-[#1a1a1a] text-white">
