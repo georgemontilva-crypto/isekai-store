@@ -4,6 +4,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useLang } from "@/i18n/LangContext";
 import { trpc } from "@/lib/trpc";
+import { useAntiSpam } from "@/hooks/useAntiSpam";
 
 /** Cuántas colecciones se listan en el footer antes del enlace "Ver más" */
 const FOOTER_COLLECTIONS_LIMIT = 6;
@@ -17,6 +18,7 @@ export default function Footer() {
   const logoUrl = siteSettings?.["store_logo_dark_url"] ?? siteSettings?.["store_logo_url"] ?? null;
   const logoHeightFooter = parseInt(siteSettings?.["store_logo_height_footer"] ?? "36");
 
+  const antiSpam = useAntiSpam();
   const subscribe = trpc.newsletter.subscribe.useMutation({
     onSuccess: () => { toast.success("¡Suscrito! Bienvenido a la comunidad 🎌"); setEmail(""); },
     onError:   () => toast.error("Error al suscribirse, intenta de nuevo"),
@@ -24,7 +26,7 @@ export default function Footer() {
 
   const handleNewsletter = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email.trim()) subscribe.mutate({ email: email.trim() });
+    if (email.trim()) subscribe.mutate({ email: email.trim(), ...antiSpam.fields() });
   };
 
   const trustIcons = [Headphones, Truck, Users, Lock];
@@ -126,6 +128,7 @@ export default function Footer() {
                 Drops exclusivos, preventa anticipada y descuentos solo para suscriptores.
               </p>
               <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2">
+                <antiSpam.HoneyPot />
                 <input
                   type="email"
                   value={email}

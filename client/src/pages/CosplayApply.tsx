@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
+import { useAntiSpam } from "@/hooks/useAntiSpam";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 import { toast } from "sonner";
@@ -62,6 +63,7 @@ export default function CosplayApply() {
     totalFollowers: "", whyIsekai: "",
   });
 
+  const antiSpam = useAntiSpam();
   const apply = trpc.cosplay.submitApplication.useMutation({
     onSuccess: () => setSubmitted(true),
     onError: (e) => {
@@ -139,6 +141,7 @@ export default function CosplayApply() {
     if (totalFollowers < 500) return toast.error("Necesitas al menos 500 seguidores para postularte");
 
     apply.mutate({
+      ...antiSpam.fields(),
       userId: user?.id,
       artisticName: form.artisticName,
       photo: form.photo,

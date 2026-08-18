@@ -11,6 +11,7 @@ import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
+import { antiSpamSchema, guardPublicForm, clientIp } from "./antiSpam";
 import {
   getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
@@ -843,8 +844,10 @@ export const appRouter = router({
         email: z.string().email(),
         /** De dónde vino el registro: cambia el aviso que recibe el dueño */
         source: z.enum(["newsletter", "worldfest"]).default("newsletter"),
+        ...antiSpamSchema,
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        await guardPublicForm(input, clientIp(ctx.req), { form: "newsletter", max: 5 });
         const esWorldFest = input.source === "worldfest";
         const etiqueta = esWorldFest ? "World Fest" : "Newsletter";
 
@@ -1137,12 +1140,15 @@ export const appRouter = router({
         facebook: z.string().optional(),
         twitter: z.string().optional(),
         whyIsekai: z.string().min(50).max(2000),
+        ...antiSpamSchema,
       }).refine(
         data => data.instagram || data.tiktok || data.youtube || data.facebook || data.twitter,
         { message: 'Debes incluir al menos una red social' }
       ))
-      .mutation(async ({ input }) => {
-        await createCosplayApplication(input);
+      .mutation(async ({ input, ctx }) => {
+        await guardPublicForm(input, clientIp(ctx.req), { form: 'cosplay-apply', max: 3 });
+        const { hp, elapsedMs, captchaToken, ...datos } = input;
+        await createCosplayApplication(datos);
         try {
           const admins = await getAdminUsers();
           for (const admin of admins) {

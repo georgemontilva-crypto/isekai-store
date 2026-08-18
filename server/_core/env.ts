@@ -13,6 +13,12 @@ export const ENV = {
   // Email del usuario que se convertirá en admin automáticamente al registrarse
   ownerEmail: process.env.OWNER_EMAIL ?? "",
 
+  // ── Antispam: Cloudflare Turnstile (OPCIONAL) ─────────────────────────────
+  // Si se dejan vacías, el antispam sigue funcionando con trampa, tiempo
+  // mínimo y límite por IP.
+  turnstileSecretKey: process.env.TURNSTILE_SECRET_KEY ?? "",
+  turnstileSiteKey:   process.env.TURNSTILE_SITE_KEY ?? "",
+
   // ── Email: Resend ─────────────────────────────────────────────────────────
   resendApiKey:  process.env.RESEND_API_KEY ?? "",
   resendFrom:    process.env.RESEND_FROM ?? "ISEKAI WORLD <noreply@isekaiworld.co>",

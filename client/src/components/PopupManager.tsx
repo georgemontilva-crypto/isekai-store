@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Mail } from 'lucide-react';
 import { trpc } from '@/lib/trpc';
+import { useAntiSpam } from '@/hooks/useAntiSpam';
 import { useLocation } from 'wouter';
 import { useAuth } from '@/_core/hooks/useAuth';
 
@@ -24,6 +25,7 @@ export function PopupManager({ productId }: { productId?: number }) {
     isCosplayer,
   });
 
+  const antiSpam = useAntiSpam();
   const subscribeNewsletter = trpc.newsletter.subscribe.useMutation();
 
   useEffect(() => {
@@ -68,7 +70,7 @@ export function PopupManager({ productId }: { productId?: number }) {
 
   const handleSubmitEmail = async () => {
     if (!email) return;
-    await subscribeNewsletter.mutateAsync({ email });
+    await subscribeNewsletter.mutateAsync({ email, ...antiSpam.fields() });
     setSubmitted(true);
   };
 
@@ -182,6 +184,7 @@ export function PopupManager({ productId }: { productId?: number }) {
               {activePopup.showEmail && !submitted && (
                 <div className="flex gap-2 mb-4">
                   <div className="relative flex-1">
+                    <antiSpam.HoneyPot />
                     <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
                     <input
                       type="email"

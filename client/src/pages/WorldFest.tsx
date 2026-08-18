@@ -4,6 +4,7 @@ import { Link } from "wouter";
 import { ArrowLeft, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { useAntiSpam } from "@/hooks/useAntiSpam";
 
 /**
  * WORLD FEST — página de expectativa del primer evento de Isekai World.
@@ -57,6 +58,7 @@ export default function WorldFest() {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
   const [typed, setTyped] = useState("");
+  const antiSpam = useAntiSpam();
 
   // En teléfono el contenedor de la página no siempre cubre hasta abajo: al
   // colapsar la barra del navegador o al rebotar el scroll asoma el fondo del
@@ -105,7 +107,7 @@ export default function WorldFest() {
       toast.error("Escribe un correo válido");
       return;
     }
-    subscribe.mutate({ email: value, source: "worldfest" });
+    subscribe.mutate({ email: value, source: "worldfest", ...antiSpam.fields() });
   };
 
   const corners = (
@@ -352,6 +354,7 @@ export default function WorldFest() {
             </div>
           ) : (
             <div className="mx-auto mt-7 flex max-w-md flex-col gap-3 sm:flex-row">
+              <antiSpam.HoneyPot />
               <input
                 type="email"
                 value={email}
