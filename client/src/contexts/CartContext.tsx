@@ -27,7 +27,8 @@ interface CartContextType {
   isOpen: boolean;
   openCart: () => void;
   closeCart: () => void;
-  addItem: (productId: number, variantId?: number, quantity?: number) => Promise<void>;
+  /** `openDrawer: false` agrega sin abrir el carrito (ej. "Comprar ahora") */
+  addItem: (productId: number, variantId?: number, quantity?: number, openDrawer?: boolean) => Promise<void>;
   updateQuantity: (id: number, quantity: number) => Promise<void>;
   removeItem: (id: number) => Promise<void>;
   clearCart: () => Promise<void>;
@@ -77,7 +78,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return sum + price * item.quantity;
   }, 0);
 
-  const addItem = useCallback(async (productId: number, variantId?: number, quantity = 1) => {
+  const addItem = useCallback(async (productId: number, variantId?: number, quantity = 1, openDrawer = true) => {
     const existing = items.find(
       (i) => i.productId === productId && i.variantId === variantId
     );
@@ -88,7 +89,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       variantId,
       quantity: newQty,
     });
-    setIsOpen(true);
+    if (openDrawer) setIsOpen(true);
   }, [items, upsertMutation, sessionId, user]);
 
   const updateQuantity = useCallback(async (id: number, quantity: number) => {

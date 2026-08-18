@@ -116,7 +116,8 @@ export default function ProductDetail() {
     if (!product) return;
     setBuying(true);
     try {
-      await addItem(product.id, selectedVariant, quantity);
+      // openDrawer=false: no queremos que se abra el carrito, vamos al checkout
+      await addItem(product.id, selectedVariant, quantity, false);
       navigate("/checkout");
     } catch {
       toast.error(t.product.addToCartError);
