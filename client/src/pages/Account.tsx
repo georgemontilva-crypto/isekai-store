@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin, Layers, Upload, Loader2, Sparkles } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -22,112 +22,6 @@ function GoogleIcon() {
   );
 }
 
-function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [magicSent, setMagicSent] = useState(false);
-  const [sending, setSending] = useState(false);
-
-  async function handleMagicLink(e: React.FormEvent) {
-    e.preventDefault();
-    if (!email.trim()) return;
-    setSending(true);
-    try {
-      const res = await fetch("/api/auth/magic-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim().toLowerCase() }),
-      });
-      if (!res.ok) throw new Error();
-      setMagicSent(true);
-    } catch {
-      toast.error("Error al enviar el enlace, intenta de nuevo");
-    } finally {
-      setSending(false);
-    }
-  }
-
-  return (
-    <div
-      className="fixed left-0 right-0 bottom-0 top-[96px] flex items-center justify-center p-4 overflow-hidden"
-      style={{ backgroundImage: "url('https://images.unsplash.com/photo-1608889825205-eebdb9fc5806?w=1600&q=80')", backgroundSize: "cover", backgroundPosition: "center" }}
-    >
-      <div className="absolute inset-0 bg-black/50" />
-      <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.97 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-        className="relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-10 shadow-2xl max-w-md w-full text-white text-center"
-      >
-        {/* Logo */}
-        <div className="flex items-center justify-center gap-2.5 mb-6">
-          <div className="flex items-end gap-[3px]">
-            {[6, 10, 14, 10, 6].map((h, i) => (
-              <div key={i} className="w-[3px] bg-white rounded-full" style={{ height: `${h}px` }} />
-            ))}
-          </div>
-          <span className="font-bold text-[17px] tracking-tight" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-            Isekai World
-          </span>
-        </div>
-
-        <div className="border-t border-white/20 mb-7" />
-
-        <h1 className="text-2xl font-bold mb-2 leading-snug">Bienvenido de vuelta</h1>
-        <p className="text-white/65 text-sm mb-8">Accede para ver tus pedidos, favoritos y más</p>
-
-        {/* Google */}
-        <button
-          onClick={() => { window.location.href = "/api/auth/google"; }}
-          className="w-full flex items-center justify-center gap-3 bg-white text-[#1a1a1a] font-semibold text-sm rounded-xl px-5 py-3.5 hover:bg-white/90 active:scale-[0.98] transition-all shadow-lg mb-5"
-        >
-          <GoogleIcon />
-          Continuar con Google
-        </button>
-
-        {/* Divider */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex-1 border-t border-white/20" />
-          <span className="text-white/40 text-xs">o</span>
-          <div className="flex-1 border-t border-white/20" />
-        </div>
-
-        {/* Magic link */}
-        {magicSent ? (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white/10 rounded-xl px-5 py-4 text-sm text-white/90"
-          >
-            ✉️ Revisa tu correo — te enviamos un enlace de acceso a <span className="font-semibold">{email}</span>
-          </motion.div>
-        ) : (
-          <form onSubmit={handleMagicLink} className="flex flex-col gap-3">
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="Tu email"
-              required
-              disabled={sending}
-              className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-sm text-white placeholder:text-white/40 outline-none focus:border-white/50 transition-colors disabled:opacity-50"
-            />
-            <button
-              type="submit"
-              disabled={sending || !email.trim()}
-              className="w-full bg-white/15 hover:bg-white/25 border border-white/25 text-white font-semibold text-sm rounded-xl px-5 py-3 active:scale-[0.98] transition-all disabled:opacity-40"
-            >
-              {sending ? "Enviando..." : "Enviar enlace mágico"}
-            </button>
-          </form>
-        )}
-
-        <p className="text-white/35 text-xs mt-7 leading-relaxed">
-          ¿No tienes cuenta? El registro es automático al iniciar sesión.
-        </p>
-      </motion.div>
-    </div>
-  );
-}
 
 const STATUS_COLORS: Record<string, string> = {
   pending:       "bg-[#f5f5f5] text-[#555]",
@@ -153,6 +47,7 @@ const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
 export default function Account() {
   const { t } = useLang();
   const { user, isAuthenticated, logout, loading } = useAuth();
+  const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("orders");
   const [offsetY, setOffsetY] = useState(0);
   useEffect(() => {
@@ -233,9 +128,13 @@ export default function Account() {
     );
   }
 
-  if (!isAuthenticated) {
-    return <LoginPage />;
-  }
+  // Sin sesión no tiene sentido quedarse en /account: se vuelve al inicio,
+  // donde el usuario puede abrir el diálogo de acceso con el ícono de cuenta.
+  useEffect(() => {
+    if (!loading && !isAuthenticated) navigate("/");
+  }, [loading, isAuthenticated, navigate]);
+
+  if (!isAuthenticated) return null;
 
   const initial = user?.name?.charAt(0).toUpperCase() ?? "?";
 
@@ -261,7 +160,7 @@ export default function Account() {
           <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
           <p className="text-sm text-[#888]">{user?.email}</p>
           <button
-            onClick={() => logout()}
+            onClick={async () => { await logout(); navigate("/"); }}
             className="mt-2 flex items-center gap-1.5 text-xs text-[#888] hover:text-[#1a1a1a] transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
