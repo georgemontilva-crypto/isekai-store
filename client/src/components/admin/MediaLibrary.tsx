@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Upload, Loader2, Copy, Trash2 } from "lucide-react";
+import { Upload, Loader2, Copy, Trash2, FolderInput } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import ImageSlots from "./ImageSlots";
@@ -17,6 +17,15 @@ export default function MediaLibrary({ onGoToTab }: Props) {
   const { data: items = [], isLoading } = trpc.media.list.useQuery();
   const upload = trpc.media.upload.useMutation();
   const deleteAsset = trpc.media.delete.useMutation();
+  const importExisting = trpc.media.importExisting.useMutation({
+    onSuccess: async (d) => {
+      await utils.media.list.invalidate();
+      toast.success(d.imported > 0
+        ? `${d.imported} imagen(es) añadida(s) a la biblioteca`
+        : "No había imágenes nuevas que importar");
+    },
+    onError: () => toast.error("No se pudo importar"),
+  });
 
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
@@ -83,6 +92,15 @@ export default function MediaLibrary({ onGoToTab }: Props) {
           <h1 className="text-2xl font-bold">Medios</h1>
           <p className="mt-1 text-sm text-[#666]">Sube tus archivos y asígnalos al espacio que les toca.</p>
         </div>
+        <div className="flex items-center gap-2">
+        <button
+          onClick={() => importExisting.mutate()}
+          disabled={importExisting.isPending}
+          className="flex items-center gap-2 rounded-xl border border-[#ddd] bg-white px-4 py-3 text-sm font-bold text-[#555] transition-colors hover:border-[#111] hover:text-[#111] disabled:opacity-50"
+        >
+          {importExisting.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <FolderInput className="h-4 w-4" />}
+          Importar las que ya usa el sitio
+        </button>
         <label className={`flex cursor-pointer items-center gap-2 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white ${uploading ? "opacity-60" : ""}`}>
           {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
           {uploading ? "Subiendo..." : "Subir archivos"}
@@ -95,6 +113,7 @@ export default function MediaLibrary({ onGoToTab }: Props) {
             onChange={e => { handleUpload(e.target.files); e.target.value = ""; }}
           />
         </label>
+        </div>
       </div>
 
       {error && (
@@ -115,8 +134,8 @@ export default function MediaLibrary({ onGoToTab }: Props) {
         <p className="p-10 text-center text-sm text-[#888]">Cargando biblioteca...</p>
       ) : items.length === 0 ? (
         <div className="rounded-xl border border-[#e8e8ea] bg-white p-10 text-center text-sm text-[#888]">
-          Tu biblioteca está vacía. Sube imágenes con el botón de arriba — se guardan en Cloudflare R2
-          y se sirven desde tu URL pública.
+          Tu biblioteca está vacía. Si ya tienes imágenes montadas en el sitio, usa
+          "Importar las que ya usa el sitio" para traerlas aquí sin volver a subirlas.
         </div>
       ) : (
         <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6 xl:grid-cols-8">

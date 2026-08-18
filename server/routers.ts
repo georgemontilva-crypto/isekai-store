@@ -17,7 +17,7 @@ import {
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders,
-  listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl,
+  listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
@@ -730,6 +730,9 @@ export const appRouter = router({
   // ─── Media Library ───────────────────────────────────────────────────────────
   media: router({
     list: adminProcedure.query(() => listMediaAssets({ limit: 200 })),
+
+    /** Puebla la biblioteca con las imágenes ya asignadas en el sitio */
+    importExisting: adminProcedure.mutation(() => importExistingMedia()),
 
     upload: adminProcedure
       .input(z.object({ fileName: z.string().max(256), contentType: z.string().max(100), base64Data: z.string() }))

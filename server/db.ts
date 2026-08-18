@@ -2041,3 +2041,45 @@ export async function findSettingsUsingUrl(url: string) {
   const rows = await db.select().from(siteSettings).where(eq(siteSettings.value, url));
   return rows.map(r => r.key);
 }
+
+/**
+ * Importa a la biblioteca las imágenes que ya están asignadas en siteSettings
+ * y que todavía no figuran en mediaAssets. Sirve para poblar la biblioteca la
+ * primera vez, sin volver a subir nada: los archivos ya viven en R2.
+ */
+export async function importExistingMedia() {
+  const db = await getDb();
+  if (!db) return { imported: 0 };
+
+  const settings = await db.select().from(siteSettings);
+  const existing = await db.select({ url: mediaAssets.url }).from(mediaAssets);
+  const known = new Set(existing.map(e => e.url));
+
+  const candidates = new Map<string, string>(); // url -> clave de origen
+  for (const row of settings) {
+    const value = (row.value ?? "").trim();
+    if (!/^https?:\/\//i.test(value)) continue;
+    if (!/\.(png|jpe?g|webp|gif|avif|svg)(\?|$)/i.test(value)) continue;
+    if (known.has(value) || candidates.has(value)) continue;
+    candidates.set(value, row.key);
+  }
+  if (candidates.size === 0) return { imported: 0 };
+
+  const rows = Array.from(candidates.entries()).map(([url]) => {
+    const path = url.split("?")[0];
+    const fileName = decodeURIComponent(path.substring(path.lastIndexOf("/") + 1)) || "archivo";
+    const ext = (fileName.split(".").pop() ?? "").toLowerCase();
+    const mimeType = ext === "png" ? "image/png"
+      : ext === "webp" ? "image/webp"
+      : ext === "gif" ? "image/gif"
+      : ext === "svg" ? "image/svg+xml"
+      : ext === "avif" ? "image/avif"
+      : "image/jpeg";
+    // La clave de R2 es lo que sigue al dominio público
+    const storageKey = path.replace(/^https?:\/\/[^/]+\//i, "");
+    return { url, storageKey, fileName, mimeType, sizeBytes: 0 };
+  });
+
+  await db.insert(mediaAssets).values(rows);
+  return { imported: rows.length };
+}
