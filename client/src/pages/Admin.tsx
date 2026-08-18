@@ -906,6 +906,11 @@ export default function Admin() {
     onError: (e) => toast.error(e.message),
   });
   const deleteGiftCardMut = trpc.giftCards.delete.useMutation({ onSuccess: () => { refetchGiftCards(); toast.success('Tarjeta eliminada'); }, onError: (e) => toast.error(e.message) });
+  const [selectedGiftCards, setSelectedGiftCards] = useState<number[]>([]);
+  const deleteGiftCardsMut = trpc.giftCards.deleteMany.useMutation({
+    onSuccess: (d) => { refetchGiftCards(); setSelectedGiftCards([]); toast.success(`${d.deleted} tarjeta(s) eliminada(s)`); },
+    onError: (e) => toast.error(e.message),
+  });
 
   const moveLinkUp = (i: number) => {
     if (i === 0) return;
@@ -4401,6 +4406,40 @@ export default function Admin() {
                   </Button>
                 </div>
 
+                {/* Selección múltiple */}
+                {(giftCardsList as any[]).length > 0 && (
+                  <div className="mb-4 flex flex-wrap items-center gap-3 rounded-xl border border-[#e5e5e5] bg-white px-4 py-3">
+                    <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 accent-[#e5007d]"
+                        checked={selectedGiftCards.length === (giftCardsList as any[]).length}
+                        onChange={(e) =>
+                          setSelectedGiftCards(e.target.checked ? (giftCardsList as any[]).map(c => c.id) : [])
+                        }
+                      />
+                      Seleccionar todas
+                    </label>
+                    <span className="text-xs text-[#888]">
+                      {selectedGiftCards.length} de {(giftCardsList as any[]).length} seleccionada(s)
+                    </span>
+                    {selectedGiftCards.length > 0 && (
+                      <button
+                        onClick={() => {
+                          if (confirm(`¿Eliminar ${selectedGiftCards.length} tarjeta(s)? Esta acción no se puede deshacer.`)) {
+                            deleteGiftCardsMut.mutate({ ids: selectedGiftCards });
+                          }
+                        }}
+                        disabled={deleteGiftCardsMut.isPending}
+                        className="ml-auto flex items-center gap-1.5 rounded-full bg-red-500 px-4 py-1.5 text-xs font-bold text-white transition-colors hover:bg-red-600 disabled:opacity-50"
+                      >
+                        {deleteGiftCardsMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Trash2 className="h-3.5 w-3.5" />}
+                        Eliminar seleccionadas
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 {/* Lista de tarjetas */}
                 <div className="space-y-3">
                   {(giftCardsList as any[]).length === 0 && (
@@ -4409,6 +4448,17 @@ export default function Admin() {
                   {(giftCardsList as any[]).map((card: any) => (
                     <div key={card.id} className="p-4 rounded-2xl bg-card border border-border/50 flex items-center justify-between gap-4">
                       <div className="flex items-center gap-4 flex-1 min-w-0">
+                        <input
+                          type="checkbox"
+                          className="h-4 w-4 shrink-0 accent-[#e5007d]"
+                          aria-label={`Seleccionar ${card.code}`}
+                          checked={selectedGiftCards.includes(card.id)}
+                          onChange={(e) =>
+                            setSelectedGiftCards(prev =>
+                              e.target.checked ? [...prev, card.id] : prev.filter(id => id !== card.id)
+                            )
+                          }
+                        />
                         <div className={`w-2 h-2 rounded-full flex-shrink-0 ${card.status === 'used' ? 'bg-red-400' : 'bg-green-400'}`} />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
@@ -4573,7 +4623,12 @@ export default function Admin() {
                             <button onClick={() => setShowNewGiftCard(false)}
                               className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
                             <button
-                              onClick={() => createGiftCardMutation.mutate({
+                              onClick={() => {
+                                // Guarda contra el doble clic: si ya está corriendo, no reenvía
+                                if (createGiftCardMutation.isPending) return;
+                                if (giftCardForm.quantity > 1 &&
+                                    !confirm(`Se van a generar ${giftCardForm.quantity} códigos distintos. ¿Continuar?`)) return;
+                                createGiftCardMutation.mutate({
                                 amount: parseFloat(giftCardForm.amount) || 0,
                                 discountType: giftCardForm.discountType,
                                 discountPercent: parseFloat(giftCardForm.discountPercent) || 0,
@@ -4584,10 +4639,15 @@ export default function Admin() {
                                 oncePerUser: giftCardForm.oncePerUser,
                                 notes: giftCardForm.notes,
                                 quantity: giftCardForm.quantity,
-                              })}
+                                });
+                              }}
                               disabled={!giftCardForm.amount || createGiftCardMutation.isPending}
                               className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
-                              {createGiftCardMutation.isPending ? 'Generando...' : 'Generar códigos'}
+                              {createGiftCardMutation.isPending
+                                ? 'Generando...'
+                                : giftCardForm.quantity > 1
+                                  ? `Generar ${giftCardForm.quantity} códigos`
+                                  : 'Generar 1 código'}
                             </button>
                           </div>
                         </div>

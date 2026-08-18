@@ -2083,3 +2083,11 @@ export async function importExistingMedia() {
   await db.insert(mediaAssets).values(rows);
   return { imported: rows.length };
 }
+
+/** Borra varias tarjetas de regalo de una vez */
+export async function deleteGiftCards(ids: number[]) {
+  const db = await getDb();
+  if (!db || ids.length === 0) return { deleted: 0 };
+  await db.delete(giftCards).where(inArray(giftCards.id, ids));
+  return { deleted: ids.length };
+}

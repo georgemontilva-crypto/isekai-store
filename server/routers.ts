@@ -18,6 +18,7 @@ import {
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders,
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
+  deleteGiftCards,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
@@ -1497,6 +1498,11 @@ export const appRouter = router({
     delete: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => deleteGiftCard(input.id)),
+
+    /** Borrado en lote desde la selección del panel */
+    deleteMany: adminProcedure
+      .input(z.object({ ids: z.array(z.number()).min(1).max(500) }))
+      .mutation(({ input }) => deleteGiftCards(input.ids)),
   }),
 });
 
