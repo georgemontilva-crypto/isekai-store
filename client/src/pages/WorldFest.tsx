@@ -64,15 +64,10 @@ export default function WorldFest() {
   // página esté montada y se restaura al salir.
   useEffect(() => {
     const html = document.documentElement;
-    const body = document.body;
     const prevHtml = html.style.backgroundColor;
-    const prevBody = body.style.backgroundColor;
     html.style.backgroundColor = "#04060f";
-    body.style.backgroundColor = "#04060f";
-    // (el video va en su propia capa fija por encima de estos fondos)
     return () => {
       html.style.backgroundColor = prevHtml;
-      body.style.backgroundColor = prevBody;
     };
   }, []);
 
@@ -127,7 +122,7 @@ export default function WorldFest() {
       {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
           de arriba son translúcidas para que se siga viendo el efecto. */}
       {bgVideo && (
-        <div className="fixed inset-0 z-0 bg-[#04060f]" style={{ height: "100dvh" }}>
+        <div className="pointer-events-none fixed inset-0 -z-10 bg-[#04060f]" style={{ height: "100dvh" }}>
           <video
             src={bgVideo}
             autoPlay
