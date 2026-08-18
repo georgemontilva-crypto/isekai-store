@@ -77,8 +77,16 @@ export default function PaymentModal({
   const [uploading, setUploading] = useState(false);
 
   const uploadReceipt = trpc.orders.uploadReceiptPublic.useMutation();
+  const { data: siteSettings } = trpc.settings.getAll.useQuery();
 
   const isCrypto = method === "crypto";
+
+  // Tasa del día en bolívares, cargada desde el panel admin (clave `bs_rate`).
+  // Si no está configurada, simplemente no se muestra el monto en Bs.
+  const bsRate = parseFloat(siteSettings?.["bs_rate"] ?? "");
+  const hasBsRate = Number.isFinite(bsRate) && bsRate > 0;
+  const amountBs = hasBsRate ? amountUSD * bsRate : 0;
+  const rateUpdated = siteSettings?.["bs_rate_updated"];
 
   const handleFile = async (selected: File | null) => {
     if (!selected) return;
@@ -172,10 +180,29 @@ export default function PaymentModal({
                   <CopyRow label="Cédula (CI)" value={PAGO_MOVIL.ci} />
                   <CopyRow label="Banco" value={PAGO_MOVIL.bank} />
                   <CopyRow label="Teléfono" value={PAGO_MOVIL.phone} />
-                  <CopyRow label="Monto en dólares" value={amountUSD.toFixed(2)} />
-                  <p className="pt-1 text-xs text-muted-foreground">
-                    El monto en bolívares se calcula a la tasa del día al momento del pago.
-                  </p>
+                  {hasBsRate ? (
+                    <>
+                      <CopyRow
+                        label="Monto a transferir (Bs)"
+                        value={amountBs.toFixed(2)}
+                      />
+                      <p className="pt-1 text-xs text-muted-foreground">
+                        Equivale a ${amountUSD.toFixed(2)} USD a la tasa de Bs{" "}
+                        {bsRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} por dólar
+                        {rateUpdated && (
+                          <> (actualizada el {new Date(rateUpdated).toLocaleDateString("es-VE", { day: "2-digit", month: "2-digit" })})</>
+                        )}
+                        .
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <CopyRow label="Monto en dólares" value={amountUSD.toFixed(2)} />
+                      <p className="pt-1 text-xs text-muted-foreground">
+                        El monto en bolívares se calcula a la tasa del día al momento del pago.
+                      </p>
+                    </>
+                  )}
                 </>
               )}
             </div>

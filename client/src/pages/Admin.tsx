@@ -644,6 +644,7 @@ export default function Admin() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [igToken, setIgToken] = useState("");
   const [igUsername, setIgUsername] = useState("");
+  const [bsRate, setBsRate] = useState("");
   const [igCtaText, setIgCtaText] = useState("");
   const [socialFb, setSocialFb] = useState("");
   const [socialTw, setSocialTw] = useState("");
@@ -2117,6 +2118,55 @@ export default function Admin() {
                     >
                       <span className={`absolute top-0.5 left-0.5 w-5 h-5 bg-white rounded-full shadow transition-transform ${siteSettings?.["texture_enabled"] === "true" ? "translate-x-5" : "translate-x-0"}`} />
                     </button>
+                  </div>
+                </div>
+
+                {/* Tasa del día en bolívares */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#e5007d]/10 flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-[#e5007d]" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">Tasa del día (Bs por USD)</h3>
+                      <p className="text-xs text-muted-foreground">Se muestra en el popup de Pago Móvil para que el cliente sepa cuánto transferir</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label className="text-sm font-medium">Bolívares por 1 USD</Label>
+                    <p className="text-xs text-muted-foreground mb-1.5">Ej: 36.50 — déjalo vacío para no mostrar el monto en Bs</p>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="36.50"
+                        defaultValue={siteSettings?.["bs_rate"] ?? ""}
+                        onChange={(e) => setBsRate(e.target.value)}
+                        className="bg-muted border-border/50"
+                      />
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bsRate.trim();
+                          upsertSetting.mutate({ key: "bs_rate", value: val });
+                          upsertSetting.mutate({ key: "bs_rate_updated", value: new Date().toISOString() });
+                          toast.success(val ? "Tasa actualizada" : "Tasa desactivada");
+                        }}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {siteSettings?.["bs_rate"] && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Tasa activa: <strong className="text-[#e5007d]">Bs {parseFloat(siteSettings["bs_rate"]).toLocaleString("es-VE", { minimumFractionDigits: 2 })}</strong> por USD
+                        {siteSettings["bs_rate_updated"] && (
+                          <> · actualizada el {new Date(siteSettings["bs_rate_updated"]).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}</>
+                        )}
+                      </p>
+                    )}
                   </div>
                 </div>
 
