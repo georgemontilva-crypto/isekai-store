@@ -2612,6 +2612,64 @@ export default function Admin() {
                       </div>
                     ))}
                   </div>
+                  {/* Video de fondo */}
+                  <div className="mt-5 pt-5 border-t border-border/30">
+                    <Label className="text-xs font-medium">Video de fondo (estática)</Label>
+                    <p className="text-xs text-muted-foreground mb-1.5">
+                      MP4 o WebM, máximo 60 MB. Se reproduce en bucle, sin sonido, detrás de toda la página.
+                      Déjalo vacío para usar solo el degradado azul.
+                    </p>
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="https://... o sube un video"
+                        value={bannerDrafts["worldfest_bg_video"] ?? siteSettings?.["worldfest_bg_video"] ?? ""}
+                        onChange={(e) => setBannerDrafts(d => ({ ...d, worldfest_bg_video: e.target.value }))}
+                        className="bg-muted border-border/50 text-sm"
+                      />
+                      <label className="cursor-pointer shrink-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
+                          <Upload className="w-3.5 h-3.5" /> Subir
+                        </span>
+                        <input type="file" accept="video/mp4,video/webm" className="hidden" onChange={async (e) => {
+                          const file = e.target.files?.[0];
+                          if (!file) return;
+                          if (file.size > 60 * 1024 * 1024) { toast.error("El video no puede superar 60 MB"); return; }
+                          const base64 = await new Promise<string>((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(file);
+                          });
+                          try {
+                            const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+                            setBannerDrafts(d => ({ ...d, worldfest_bg_video: url }));
+                            upsertSetting.mutate({ key: "worldfest_bg_video", value: url });
+                            toast.success("Video subido");
+                          } catch { toast.error("Error al subir el video"); }
+                        }} />
+                      </label>
+                      <Button
+                        size="sm"
+                        className="bg-primary text-primary-foreground shrink-0"
+                        onClick={() => {
+                          const val = bannerDrafts["worldfest_bg_video"] !== undefined
+                            ? bannerDrafts["worldfest_bg_video"]
+                            : siteSettings?.["worldfest_bg_video"] ?? "";
+                          upsertSetting.mutate({ key: "worldfest_bg_video", value: val });
+                        }}
+                      >
+                        <Save className="w-4 h-4" />
+                      </Button>
+                    </div>
+                    {(bannerDrafts["worldfest_bg_video"] ?? siteSettings?.["worldfest_bg_video"]) && (
+                      <video
+                        src={bannerDrafts["worldfest_bg_video"] ?? siteSettings?.["worldfest_bg_video"]}
+                        muted loop autoPlay playsInline
+                        className="mt-2 h-28 w-full rounded-lg border border-border/30 object-cover"
+                      />
+                    )}
+                  </div>
+
                   <p className="mt-4 text-xs text-muted-foreground">
                     Si dejas un campo vacío, la página usa su texto por defecto.
                   </p>

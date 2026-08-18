@@ -51,20 +51,24 @@ import {
 import { notifyWelcome } from "./_core/notification";
 
 // ─── File upload validation ───────────────────────────────────────────────────
-const ALLOWED_MIME_TYPES = ['image/jpeg','image/png','image/webp','image/gif','image/svg+xml','application/pdf'];
+const ALLOWED_MIME_TYPES = ['image/jpeg','image/png','image/webp','image/gif','image/svg+xml','application/pdf','video/mp4','video/webm'];
+const VIDEO_MIME_TYPES = ['video/mp4','video/webm'];
 const MAGIC_BYTES: Record<string, Buffer[]> = {
   'image/jpeg': [Buffer.from([0xFF, 0xD8, 0xFF])],
   'image/png':  [Buffer.from([0x89, 0x50, 0x4E, 0x47])],
   'image/webp': [Buffer.from('RIFF')],
   'application/pdf': [Buffer.from('%PDF')],
 };
-const MAX_UPLOAD_BYTES = 10 * 1024 * 1024; // 10 MB
+const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;       // 10 MB para imágenes
+const MAX_VIDEO_UPLOAD_BYTES = 60 * 1024 * 1024; // 60 MB para video de fondo
 
 function validateUpload(contentType: string, buffer: Buffer) {
   if (!ALLOWED_MIME_TYPES.includes(contentType))
     throw new TRPCError({ code: 'BAD_REQUEST', message: 'Tipo de archivo no permitido' });
-  if (buffer.length > MAX_UPLOAD_BYTES)
-    throw new TRPCError({ code: 'BAD_REQUEST', message: 'El archivo no puede superar 10 MB' });
+  const isVideo = VIDEO_MIME_TYPES.includes(contentType);
+  const limit = isVideo ? MAX_VIDEO_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
+  if (buffer.length > limit)
+    throw new TRPCError({ code: 'BAD_REQUEST', message: `El archivo no puede superar ${limit / 1024 / 1024} MB` });
   const magic = MAGIC_BYTES[contentType];
   if (magic) {
     const valid = magic.some(m => buffer.subarray(0, m.length).equals(m));

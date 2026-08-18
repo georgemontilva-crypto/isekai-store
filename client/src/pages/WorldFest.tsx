@@ -22,7 +22,7 @@ import { trpc } from "@/lib/trpc";
 const FALLBACK = {
   kicker: "Maracaibo · Venezuela",
   title: "WORLD FEST",
-  subtitle: "Una puerta se abrió sobre el lago. Del otro lado está el primer festival de Isekai World.",
+  subtitle: "Se abrió un portal en Maracaibo. Ubicación desconocida. Del otro lado está el primer festival de Isekai World.",
   dateLabel: "Fecha por revelar",
 };
 
@@ -30,23 +30,27 @@ const FALLBACK = {
 const MISIONES = [
   {
     rank: "B",
+    locked: false,
     title: "Pasarela de cazadores",
     body: "El Cosplay Guild sale del catálogo y pisa un escenario. Categorías, jurado y premios reales.",
   },
+  // Las dos siguientes se revelan más adelante: por ahora solo se sabe que existen
   {
-    rank: "A",
-    title: "Forja en vivo",
-    body: "Las impresoras trabajando frente a ti. Ves nacer la pieza que hasta hoy solo llegaba en una caja.",
+    rank: "?",
+    locked: true,
+    title: "Misión sin revelar",
+    body: "El Sistema todavía no libera esta información.",
   },
   {
-    rank: "S",
-    title: "Botín de una sola noche",
-    body: "Ediciones que existen para el festival y no se vuelven a imprimir. Se agotan donde se fabrican.",
+    rank: "?",
+    locked: true,
+    title: "Misión sin revelar",
+    body: "El Sistema todavía no libera esta información.",
   },
 ];
 
 /** Texto de la notificación del hero, escrito carácter a carácter. */
-const ALERTA = "Ha aparecido una puerta sobre Maracaibo.";
+const ALERTA = "Se abrió un portal en Maracaibo. Ubicación desconocida.";
 
 export default function WorldFest() {
   const { data: settings } = trpc.settings.getAll.useQuery();
@@ -76,6 +80,7 @@ export default function WorldFest() {
 
   const heroImage = settings?.["worldfest_hero_image"] ?? "";
   const teaserImage = settings?.["worldfest_teaser_image"] ?? "";
+  const bgVideo = settings?.["worldfest_bg_video"] ?? "";
   const kicker = settings?.["worldfest_kicker"] || FALLBACK.kicker;
   const title = settings?.["worldfest_title"] || FALLBACK.title;
   const subtitle = settings?.["worldfest_subtitle"] || FALLBACK.subtitle;
@@ -100,7 +105,25 @@ export default function WorldFest() {
   );
 
   return (
-    <div className="min-h-screen bg-[#04060f] text-[#dceaff]">
+    <div className={`relative min-h-screen text-[#dceaff] ${bgVideo ? "bg-[#04060f]/0" : "bg-[#04060f]"}`}>
+      {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
+          de arriba son translúcidas para que se siga viendo el efecto. */}
+      {bgVideo && (
+        <div className="fixed inset-0 -z-10 bg-[#04060f]">
+          <video
+            src={bgVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            className="h-full w-full object-cover opacity-70"
+          />
+          {/* Tinte azul del Sistema por encima del video */}
+          <div className="absolute inset-0 bg-[#04102a]/55 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_115%,rgba(18,58,107,0.55)_0%,rgba(10,24,54,0.45)_42%,rgba(4,6,15,0.75)_100%)]" />
+        </div>
+      )}
+
       <style>{`
         /* La puerta: un vórtice que respira sobre el horizonte */
         @keyframes wf-gate {
@@ -148,6 +171,7 @@ export default function WorldFest() {
           position: absolute; width: 14px; height: 14px;
           border-color: #7dd8ff; pointer-events: none;
         }
+        .wf-locked { opacity: 0.72; }
         @media (prefers-reduced-motion: reduce) {
           .wf-gate, .wf-scan::before, .wf-caret { animation: none; }
           .wf-boot { animation: none; opacity: 1; }
@@ -159,9 +183,9 @@ export default function WorldFest() {
         <div className="absolute inset-0">
           {heroImage ? (
             <img src={heroImage} alt="" className="h-full w-full object-cover opacity-45" />
-          ) : (
+          ) : !bgVideo ? (
             <div className="h-full w-full bg-[radial-gradient(120%_90%_at_50%_115%,#123a6b_0%,#0a1836_42%,#04060f_100%)]" />
-          )}
+          ) : null}
 
           {/* La puerta */}
           <div
@@ -172,7 +196,7 @@ export default function WorldFest() {
               filter: "blur(22px)",
             }}
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060f] via-transparent to-[#04060f]" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060f]/90 via-transparent to-[#04060f]/90" />
         </div>
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-24">
@@ -249,20 +273,33 @@ export default function WorldFest() {
         </p>
 
         <div className="mt-14 grid gap-4 sm:grid-cols-3">
-          {MISIONES.map((m) => (
-            <div key={m.title} className="wf-window wf-scan rounded-sm p-6 transition-transform hover:-translate-y-1">
+          {MISIONES.map((m, i) => (
+            <div
+              key={i}
+              className={`wf-window wf-scan rounded-sm p-6 transition-transform ${m.locked ? "wf-locked" : "hover:-translate-y-1"}`}
+            >
               {corners}
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-[#5db4ff]">Rango</span>
+                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-[#5db4ff]">
+                  {m.locked ? "Bloqueada" : "Rango"}
+                </span>
                 <span
-                  className="flex h-9 w-9 items-center justify-center rounded-sm border border-[#7dd8ff]/50 bg-[#7dd8ff]/10 font-black text-[#7dd8ff]"
-                  style={{ textShadow: "0 0 14px rgba(125,216,255,0.7)" }}
+                  className={`flex h-9 w-9 items-center justify-center rounded-sm border font-black ${
+                    m.locked
+                      ? "border-[#5db4ff]/25 bg-[#5db4ff]/5 text-[#5db4ff]/60"
+                      : "border-[#7dd8ff]/50 bg-[#7dd8ff]/10 text-[#7dd8ff]"
+                  }`}
+                  style={m.locked ? undefined : { textShadow: "0 0 14px rgba(125,216,255,0.7)" }}
                 >
                   {m.rank}
                 </span>
               </div>
-              <h3 className="mt-5 text-lg font-black uppercase leading-tight tracking-tight text-white">{m.title}</h3>
-              <p className="mt-3 text-sm leading-relaxed text-[#8fb0d6]">{m.body}</p>
+              <h3 className={`mt-5 text-lg font-black uppercase leading-tight tracking-tight ${m.locked ? "text-white/35" : "text-white"}`}>
+                {m.title}
+              </h3>
+              <p className={`mt-3 text-sm leading-relaxed ${m.locked ? "text-[#8fb0d6]/45" : "text-[#8fb0d6]"}`}>
+                {m.body}
+              </p>
             </div>
           ))}
         </div>
@@ -279,7 +316,7 @@ export default function WorldFest() {
       )}
 
       {/* ─── Registro ─────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c] py-24 sm:py-32">
+      <section className="relative overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/80 py-24 sm:py-32">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_100%_at_50%_0%,rgba(70,150,255,0.22)_0%,transparent_65%)]" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
