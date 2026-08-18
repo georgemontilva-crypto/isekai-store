@@ -7,7 +7,7 @@ import {
   BarChart3, Bell, ChevronRight, Check,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
   LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
-  Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail,
+  Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 
@@ -249,7 +249,7 @@ function OrdersSection({ onCreateOrder }: { onCreateOrder: () => void }) {
                         }`}
                         style={isCurrentStatus ? { background: STATUS_COLORS[step.key] } : {}}
                       >
-                        {isCurrentStatus ? '✓ ' : isPast ? '— ' : ''}{step.label}
+                        {step.label}
                       </button>
                     );
                   })}
@@ -313,14 +313,14 @@ function PaymentsSection() {
                 disabled={verifyPayment.isPending}
                 className="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform disabled:opacity-40"
               >
-                ✓ Aprobar
+                Aprobar
               </button>
               <button
                 onClick={() => verifyPayment.mutate({ orderId: order.id, approved: false })}
                 disabled={verifyPayment.isPending}
                 className="flex-1 bg-red-50 text-red-500 border border-red-200 py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform disabled:opacity-40"
               >
-                ✗ Rechazar
+                Rechazar
               </button>
             </div>
           </div>
@@ -464,13 +464,13 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                       onClick={() => { setApproveModal(app); setApproveForm({ totalFollowers: 0, tier: 'bronce' }); }}
                       className="flex-1 bg-[#111] text-white py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform"
                     >
-                      ✓ Aprobar
+                      Aprobar
                     </button>
                     <button
                       onClick={() => { setRejectModal(app); setRejectReason(''); }}
                       className="flex-1 border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform"
                     >
-                      ✗ Rechazar
+                      Rechazar
                     </button>
                   </div>
                 </div>
@@ -498,8 +498,8 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
               <ChevronRight size={16} className="text-[#ccc] flex-shrink-0" />
             </div>
             <div className="flex gap-3 text-xs text-[#999]">
-              <span>🎫 {cp.ticketBalance} tickets</span>
-              <span>💵 ${parseFloat(cp.cashBalance ?? '0').toFixed(2)} USD</span>
+              <span className="inline-flex items-center gap-1"><Ticket className="w-3 h-3" />{cp.ticketBalance} tickets</span>
+              <span className="inline-flex items-center gap-1"><DollarSign className="w-3 h-3" />${parseFloat(cp.cashBalance ?? '0').toFixed(2)} USD</span>
             </div>
           </button>
         ))}
@@ -569,13 +569,13 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                           act.active ? 'border-orange-200 text-orange-500 bg-orange-50' : 'border-green-200 text-green-500 bg-green-50'
                         }`}
                       >
-                        {act.active ? '⏸ Desactivar' : '▶ Activar'}
+                        {act.active ? 'Desactivar' : 'Activar'}
                       </button>
                       <button
                         onClick={() => { if (confirm(`¿Eliminar "${act.title}"? Esta acción no se puede deshacer.`)) deleteActivity.mutate({ id: act.id }); }}
                         className="flex-1 border border-red-200 text-red-500 bg-red-50 py-2.5 rounded-xl text-xs font-bold"
                       >
-                        🗑 Eliminar
+                        Eliminar
                       </button>
                     </div>
                   </div>
@@ -667,7 +667,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                 onClick={() => evaluateSub.mutate({ submissionId: evalModal.id, pointsAwarded: evalPoints, status: 'approved' })}
                 disabled={evaluateSub.isPending}
                 className="flex-1 bg-green-500 text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
-                {evaluateSub.isPending ? 'Guardando...' : '✓ Aprobar'}
+                {evaluateSub.isPending ? 'Guardando...' : 'Aprobar'}
               </button>
               <button
                 onClick={() => evaluateSub.mutate({ submissionId: evalModal.id, pointsAwarded: 0, status: 'rejected' })}
@@ -757,11 +757,11 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                 <div className="flex gap-2 mt-2">
                   <button onClick={() => { setApproveModal(viewApplication); setViewApplication(null); setApproveForm({ totalFollowers: 0, tier: 'bronce' }); }}
                     className="flex-1 bg-[#111] text-white py-3 rounded-xl font-bold text-sm">
-                    ✓ Aprobar
+                    Aprobar
                   </button>
                   <button onClick={() => { setRejectModal(viewApplication); setViewApplication(null); setRejectReason(''); }}
                     className="flex-1 border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm">
-                    ✗ Rechazar
+                    Rechazar
                   </button>
                 </div>
               )}
@@ -953,7 +953,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   onClick={() => { setViewCosplayer(null); setGrantTicketsModal(viewCosplayer); setGrantForm({ basePoints: 100, reason: '' }); }}
                   className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold text-sm"
                 >
-                  🎫 Dar tickets
+                  Dar tickets
                 </button>
                 {viewCosplayer.isActive && (
                   <button
@@ -1284,7 +1284,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                   {updateProduct.isPending ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
-              <a href="/admin" className="text-center text-xs text-[#e5007d] underline">Ir al editor completo →</a>
+              <a href="/admin" className="text-center text-xs text-[#e5007d] underline">Ir al editor completo</a>
             </div>
           </div>
         </div>
@@ -1698,7 +1698,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
   );
 
   const createOrder = trpc.orders.createManual.useMutation({
-    onSuccess: (data) => { toast.success(`✅ Pedido ${data.orderNumber} creado`); onSuccess(); },
+    onSuccess: (data) => { toast.success(`Pedido ${data.orderNumber} creado`); onSuccess(); },
     onError: (err) => toast.error(`Error: ${err.message}`),
   });
   const { data: activeCosplayers = [] } = trpc.cosplay.getAllCosplayers.useQuery();
@@ -1928,7 +1928,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
         {step === 1 ? (
           <button onClick={() => setStep(2)} disabled={!isStep1Valid}
             style={{ flex: 1, background: isStep1Valid ? '#e5007d' : '#e5e5e5', color: 'white', border: 'none', borderRadius: '14px', padding: '13px', fontSize: '15px', fontWeight: 900, cursor: isStep1Valid ? 'pointer' : 'not-allowed' }}>
-            Revisar pedido →
+            Revisar pedido
           </button>
         ) : (
           <>
@@ -1951,7 +1951,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
               })}
               disabled={createOrder.isPending}
               style={{ flex: 2, background: '#e5007d', color: 'white', border: 'none', borderRadius: '16px', padding: '16px', fontSize: '15px', fontWeight: 900, cursor: createOrder.isPending ? 'not-allowed' : 'pointer', opacity: createOrder.isPending ? 0.6 : 1 }}>
-              {createOrder.isPending ? 'Creando...' : '✓ Crear pedido'}
+              {createOrder.isPending ? 'Creando...' : 'Crear pedido'}
             </button>
           </>
         )}

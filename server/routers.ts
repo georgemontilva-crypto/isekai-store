@@ -315,7 +315,7 @@ export const appRouter = router({
         // Notify owner
         try {
           await notifyOwner({
-            title: `🛒 Nueva orden — ${order.orderNumber}`,
+            title: `Nueva orden — ${order.orderNumber}`,
             body: `
     <h1>Nueva orden recibida</h1>
     <p>Se ha recibido una nueva orden en Isekai World.</p>
@@ -339,7 +339,7 @@ export const appRouter = router({
         } catch (e) { console.error("Failed to notify owner:", e); }
         // Admin notification
         try {
-          await insertAdminNotification({ type: "new_order", title: "🛒 Nuevo pedido", body: `${input.customerName} · $${input.total} USD${input.receiptUrl ? ' · con comprobante' : ''}` });
+          await insertAdminNotification({ type: "new_order", title: "Nuevo pedido", body: `${input.customerName} · $${input.total} USD${input.receiptUrl ? ' · con comprobante' : ''}` });
         } catch (e) { console.error("Failed to insert order notification:", e); }
 
         // Pagos: Pago Móvil y Cripto (USDT/TRC20) con carga de comprobante — ver shared/payment.ts
@@ -433,10 +433,10 @@ export const appRouter = router({
         if (order.userId !== ctx.user.id) throw new TRPCError({ code: "FORBIDDEN" });
         await submitOrderReceipt(input.orderId, input);
         try {
-          await insertAdminNotification({ type: "new_order", title: "💳 Comprobante recibido", body: `Pedido ${order.orderNumber} · ${ctx.user.name ?? ctx.user.email}` });
+          await insertAdminNotification({ type: "new_order", title: "Comprobante recibido", body: `Pedido ${order.orderNumber} · ${ctx.user.name ?? ctx.user.email}` });
         } catch { /* non-critical */ }
         try {
-          await notifyOwner({ title: `💳 Comprobante: ${order.orderNumber}`, content: `${ctx.user.name ?? ctx.user.email} subió su comprobante de pago. Ref: ${input.paymentReference}` });
+          await notifyOwner({ title: `Comprobante: ${order.orderNumber}`, content: `${ctx.user.name ?? ctx.user.email} subió su comprobante de pago. Ref: ${input.paymentReference}` });
         } catch { /* non-critical */ }
         return { success: true };
       }),
@@ -574,7 +574,7 @@ export const appRouter = router({
               if (user?.email) {
                 await sendEmail(
                   user.email,
-                  '💵 ¡Ganaste cash por referido!',
+                  '¡Ganaste cash por referido!',
                   `<h1>¡Nuevo ingreso en tu billetera!</h1>
                    <p>Hola <strong>${cosplayerFull.artisticName}</strong>, alguien usó tu código de referido y realizó una compra.</p>
                    <div class="order-box">
@@ -621,7 +621,7 @@ export const appRouter = router({
         // Notificación interna admin
         await insertAdminNotification({
           type: 'new_order',
-          title: `📦 Pedido manual creado`,
+          title: `Pedido manual creado`,
           body: `${orderNumber} — ${input.customerName} · $${parseFloat(input.total).toFixed(2)} USD`,
         });
 
@@ -691,7 +691,7 @@ export const appRouter = router({
         if (!plan) throw new TRPCError({ code: "NOT_FOUND" });
         await submitInstallmentPayment(input);
         try {
-          await insertAdminNotification({ type: "new_order", title: "💳 Cuota recibida", body: `${ctx.user.name ?? ctx.user.email} · ${plan.productName}` });
+          await insertAdminNotification({ type: "new_order", title: "Cuota recibida", body: `${ctx.user.name ?? ctx.user.email} · ${plan.productName}` });
         } catch { /* non-critical */ }
         return { success: true };
       }),
@@ -769,7 +769,7 @@ export const appRouter = router({
           throw new Error(err.detail ?? "Error Mailchimp");
         }
         try {
-          await insertAdminNotification({ type: "new_subscriber", title: "📧 Nuevo suscriptor", body: input.email });
+          await insertAdminNotification({ type: "new_subscriber", title: "Nuevo suscriptor", body: input.email });
         } catch (e) { console.error("Failed to insert subscriber notification:", e); }
         return { success: true };
       }),
@@ -1212,7 +1212,7 @@ export const appRouter = router({
         await requestCashWithdrawal(cosplayer.id, input.amount, input.paymentMethod, input.paymentDetails);
         try {
           await notifyOwner({
-            title: `💵 Solicitud de retiro — ${cosplayer.artisticName}`,
+            title: `Solicitud de retiro — ${cosplayer.artisticName}`,
             content: `Monto: $${input.amount} USD\nMétodo: ${input.paymentMethod}\nDetalles: ${input.paymentDetails}`,
           });
         } catch { /* non-critical */ }

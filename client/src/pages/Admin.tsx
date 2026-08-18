@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -628,7 +628,8 @@ const isExpired = (deadline: string | null) => {
 
 // ─── Main Admin Component ─────────────────────────────────────────────────────
 export default function Admin() {
-  const { user, isAuthenticated, loading } = useAuth();
+  const { user, isAuthenticated, loading, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tab, setTab] = useState<AdminTab>("dashboard");
   const handleTabChange = (t: AdminTab) => setTab(t);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
@@ -775,7 +776,7 @@ export default function Admin() {
       setShowManualOrder(false);
       setShowConfirm(false);
       setManualForm({ customerName: '', customerEmail: '', customerPhone: '', notes: '', items: [{ productName: '', quantity: 1, price: '' }], paymentStatus: 'pending', amountPaid: '' });
-      toast.success(`✅ Pedido ${data.orderNumber} creado exitosamente`);
+      toast.success(`Pedido ${data.orderNumber} creado exitosamente`);
       refetchOrders();
     },
     onError: (err) => {
@@ -974,49 +975,101 @@ export default function Admin() {
     { id: "giftcards" as AdminTab, label: "Tarjetas de regalo", icon: Gift },
   ];
 
-  return (
-    <div className="min-h-screen bg-[#f8f8f8] overflow-x-hidden">
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="fixed inset-y-0 left-0 w-56 z-50 bg-[#0d0d0d] overflow-y-auto">
-          <div className="p-4 pt-6">
-            <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-3 px-2">Panel Admin</p>
-            <nav className="space-y-1">
-              {tabs.map((t) => (
-                <button
-                  key={t.id}
-                  onClick={() => handleTabChange(t.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                    tab === t.id
-                      ? "bg-[#e5007d]/20 text-[#e5007d]"
-                      : "text-gray-400 hover:text-white hover:bg-white/10"
-                  }`}
-                >
-                  <t.icon className="w-4 h-4" />
-                  <span className="flex-1 text-left">{t.label}</span>
-                  {t.id === "orders" && pendingCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                      {pendingCount > 99 ? "99+" : pendingCount}
-                    </span>
-                  )}
-                  {t.id === "payments" && pendingPaymentsCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                      {pendingPaymentsCount > 99 ? "99+" : pendingPaymentsCount}
-                    </span>
-                  )}
-                  {t.id === "cosplay" && pendingCosplayCount > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
-                      {pendingCosplayCount > 99 ? "99+" : pendingCosplayCount}
-                    </span>
-                  )}
-                </button>
-              ))}
-            </nav>
-          </div>
-        </aside>
+  const activeTab = tabs.find(t => t.id === tab);
+  const badgeFor = (id: AdminTab) =>
+    id === "orders" ? pendingCount
+    : id === "payments" ? pendingPaymentsCount
+    : id === "cosplay" ? pendingCosplayCount
+    : 0;
 
-        {/* Main content */}
-        <main className="ml-56 w-full min-h-screen bg-[#f8f8f8] text-[#111] px-6 pt-6 pb-6 overflow-x-hidden">
+  return (
+    /* App shell: alto fijo, solo scrollea el contenido de la derecha */
+    <div className="h-[100dvh] overflow-hidden bg-[#f6f6f7] flex">
+      {/* Sidebar */}
+      <aside
+        className={`fixed lg:static top-0 left-0 z-40 h-[100dvh] w-60 shrink-0 bg-white border-r border-[#e8e8ea] flex flex-col transition-transform lg:translate-x-0 ${
+          sidebarOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="shrink-0 h-16 px-5 border-b border-[#e8e8ea] flex items-center justify-between">
+          <div className="text-base font-black tracking-tight text-[#0f0f0f]">
+            ISEKAI <span className="text-[11px] font-bold uppercase tracking-widest text-[#e5007d]">Admin</span>
+          </div>
+          <button
+            className="lg:hidden w-8 h-8 rounded-full border border-[#e8e8ea] flex items-center justify-center"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
+          {tabs.map((t) => {
+            const badge = badgeFor(t.id);
+            const isActive = tab === t.id;
+            return (
+              <button
+                key={t.id}
+                onClick={() => { handleTabChange(t.id); setSidebarOpen(false); }}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                  isActive
+                    ? "bg-[#0f0f0f] text-white"
+                    : "text-[#4a4a4a] hover:bg-[#f6f6f7] hover:text-[#0f0f0f]"
+                }`}
+              >
+                <t.icon className="w-4 h-4 shrink-0" strokeWidth={1.75} />
+                <span className="flex-1 text-left truncate">{t.label}</span>
+                {badge > 0 && (
+                  <span className={`shrink-0 text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1 ${
+                    isActive ? "bg-white text-[#0f0f0f]" : "bg-[#e5007d] text-white"
+                  }`}>
+                    {badge > 99 ? "99+" : badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        <div className="shrink-0 p-4 border-t border-[#e8e8ea]">
+          <div className="text-xs font-bold text-[#4a4a4a] mb-3 truncate">{user?.email}</div>
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#4a4a4a] hover:text-[#0f0f0f] mb-2.5"
+          >
+            <ExternalLink className="w-3.5 h-3.5" strokeWidth={2} /> Ver sitio
+          </Link>
+          <button
+            onClick={() => logout()}
+            className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-widest text-[#e5007d] hover:text-[#c4006b]"
+          >
+            <LogOut className="w-3.5 h-3.5" strokeWidth={2} /> Cerrar sesión
+          </button>
+        </div>
+      </aside>
+
+      {/* Fondo oscuro del menú en móvil */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      <div className="flex-1 min-w-0 flex flex-col h-full">
+        {/* Barra superior con el nombre de la sección */}
+        <header className="shrink-0 z-20 bg-white border-b border-[#e8e8ea] px-5 lg:px-8 h-16 flex items-center gap-4">
+          <button
+            className="lg:hidden w-9 h-9 rounded-full border border-[#e8e8ea] flex items-center justify-center shrink-0"
+            onClick={() => setSidebarOpen(true)}
+            aria-label="Abrir menú"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+          <h1 className="text-lg font-extrabold uppercase tracking-tight text-[#0f0f0f] truncate">
+            {activeTab?.label ?? "Admin"}
+          </h1>
+        </header>
+
+        <main className="flex-1 overflow-y-auto overscroll-contain bg-[#f6f6f7] text-[#111] px-5 lg:px-8 py-6 min-w-0">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
@@ -1443,7 +1496,7 @@ export default function Admin() {
                               </div>
                               <p className="text-sm text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
                               {order.customerPhone && (
-                                <p className="text-xs text-muted-foreground truncate">📞 {order.customerPhone}</p>
+                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><Phone className="w-3 h-3 shrink-0" />{order.customerPhone}</p>
                               )}
                               <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-VE")}</p>
                               {/* Mini progress timeline */}
@@ -1471,10 +1524,10 @@ export default function Admin() {
                                 </div>
                               )}
                               {order.paymentStatus === 'approved' && (
-                                <p className="text-xs text-green-600 font-semibold mt-1">✓ Pagado completo</p>
+                                <p className="text-xs text-green-600 font-semibold mt-1 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />Pagado completo</p>
                               )}
                               {order.paymentStatus === 'pending' && (
-                                <p className="text-xs text-orange-500 font-semibold mt-1">⏳ Pago pendiente</p>
+                                <p className="text-xs text-orange-500 font-semibold mt-1 flex items-center gap-1"><Clock className="w-3 h-3" />Pago pendiente</p>
                               )}
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
@@ -1574,7 +1627,7 @@ export default function Admin() {
                                   )}
                                 </div>
                                 {findUserQuery.data && (
-                                  <p className="text-xs text-green-600 mt-1 font-semibold">✓ Cliente registrado: {findUserQuery.data.name}</p>
+                                  <p className="text-xs text-green-600 mt-1 font-semibold flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />Cliente registrado: {findUserQuery.data.name}</p>
                                 )}
                                 {manualForm.customerEmail.includes('@') && !findUserQuery.data && !findUserQuery.isLoading && (
                                   <p className="text-xs text-[#999] mt-1">Sin cuenta registrada — se enviará email igual</p>
@@ -1694,7 +1747,7 @@ export default function Admin() {
                               disabled={!manualForm.customerName || !manualForm.customerEmail || !manualForm.items[0].productName}
                               className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
                             >
-                              Revisar pedido →
+                              Revisar pedido
                             </button>
                           </div>
                         </div>
@@ -1748,7 +1801,7 @@ export default function Admin() {
                               disabled={createManualOrder.isPending}
                               className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
                             >
-                              {createManualOrder.isPending ? 'Creando...' : '✓ Confirmar'}
+                              {createManualOrder.isPending ? 'Creando...' : 'Confirmar'}
                             </button>
                           </div>
                         </div>
@@ -1811,7 +1864,7 @@ export default function Admin() {
                               <p className="font-semibold text-sm">{order.orderNumber}</p>
                               <p className="text-xs text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
                               {order.customerPhone && (
-                                <p className="text-xs text-muted-foreground truncate">📞 {order.customerPhone}</p>
+                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><Phone className="w-3 h-3 shrink-0" />{order.customerPhone}</p>
                               )}
                             </div>
                           </div>
@@ -3117,7 +3170,7 @@ export default function Admin() {
                     <Label className="text-xs font-medium">Texto descriptivo</Label>
                     <div className="flex gap-2 mt-1">
                       <Input
-                        placeholder="Figuras anime 3D hechas con amor ✨"
+                        placeholder="Figuras anime 3D hechas con amor"
                         defaultValue={siteSettings?.["linkbio_bio_text"] ?? ""}
                         onChange={e => setBannerDrafts(d => ({ ...d, linkbio_bio_text: e.target.value }))}
                         className="bg-muted border-border/50"
@@ -3360,7 +3413,7 @@ export default function Admin() {
                           </td>
                           <td className="px-4 py-3">
                             <span className="text-xs bg-[#f0f0f0] px-2 py-1 rounded-full">
-                              {u.loginMethod === 'google' ? '🔵 Google' : '📧 Magic Link'}
+                              {u.loginMethod === 'google' ? 'Google' : 'Magic Link'}
                             </span>
                           </td>
                           <td className="px-4 py-3">
@@ -3928,8 +3981,8 @@ export default function Admin() {
                             </div>
                           </div>
                           <div className="flex gap-4 text-xs text-[#999] mb-3">
-                            <span>🎫 {cp.ticketBalance ?? 0} tickets</span>
-                            <span>💵 ${parseFloat(cp.cashBalance ?? '0').toFixed(2)} USD</span>
+                            <span className="inline-flex items-center gap-1"><Ticket className="w-3 h-3" />{cp.ticketBalance ?? 0} tickets</span>
+                            <span className="inline-flex items-center gap-1"><DollarSign className="w-3 h-3" />${parseFloat(cp.cashBalance ?? '0').toFixed(2)} USD</span>
                           </div>
                           <div className="flex gap-2">
                             <button
@@ -4716,7 +4769,7 @@ export default function Admin() {
 
                       {generatedCodes.length > 0 ? (
                         <div>
-                          <p className="text-sm font-semibold mb-3 text-green-600">✓ {generatedCodes.length} código(s) generado(s) — cópialos ahora:</p>
+                          <p className="text-sm font-semibold mb-3 text-green-600">{generatedCodes.length} código(s) generado(s) — cópialos ahora:</p>
                           <div className="flex flex-col gap-2 mb-4">
                             {generatedCodes.map(code => (
                               <div key={code} className="flex items-center justify-between bg-[#f8f8f8] rounded-xl px-4 py-3">
@@ -4742,7 +4795,7 @@ export default function Admin() {
                               {(['fixed', 'percent'] as const).map(t => (
                                 <button key={t} onClick={() => setGiftCardForm(f => ({ ...f, discountType: t }))}
                                   className={`py-3 rounded-xl text-sm font-bold border-2 transition-colors ${giftCardForm.discountType === t ? 'border-[#111] bg-[#111] text-white' : 'border-[#e5e5e5] text-[#666]'}`}>
-                                  {t === 'fixed' ? '💵 Monto fijo (USD)' : '% Porcentaje'}
+                                  {t === 'fixed' ? 'Monto fijo (USD)' : 'Porcentaje (%)'}
                                 </button>
                               ))}
                             </div>
