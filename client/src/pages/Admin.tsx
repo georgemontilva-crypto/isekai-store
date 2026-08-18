@@ -19,7 +19,7 @@ import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -747,6 +747,16 @@ export default function Admin() {
     onError: () => toast.error("No se pudo cambiar el archivado"),
   });
 
+  const [subsFilter, setSubsFilter] = useState<"all" | "worldfest" | "newsletter">("all");
+  const { data: subscribers = [], refetch: refetchSubscribers } = trpc.subscribers.list.useQuery(
+    subsFilter === "all" ? {} : { source: subsFilter },
+    { enabled: isAuthenticated && user?.role === "admin" },
+  );
+  const deleteSubscriber = trpc.subscribers.delete.useMutation({
+    onSuccess: () => { refetchSubscribers(); toast.success("Correo eliminado"); },
+    onError: () => toast.error("No se pudo eliminar"),
+  });
+
   const resetRevenue = trpc.revenue.reset.useMutation({
     onSuccess: () => { utils.admin.metrics.invalidate(); toast.success("Contador reiniciado"); },
     onError: () => toast.error("No se pudo reiniciar"),
@@ -1003,6 +1013,7 @@ export default function Admin() {
     { id: "categories" as AdminTab, label: "Categorías", icon: Tag },
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
     { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
+    { id: "subscribers" as AdminTab, label: "Suscriptores", icon: Mail },
     { id: "media" as AdminTab,    label: "Medios",        icon: ImageIcon },
     { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
     { id: "faq" as AdminTab,      label: "FAQ",           icon: HelpCircle },
@@ -2100,6 +2111,81 @@ export default function Admin() {
                     );
                   })}
                 </div>
+              </motion.div>
+            )}
+
+          {/* ─── Suscriptores ─────────────────────────────────────────────────── */}
+            {tab === "subscribers" && (
+              <motion.div key="subscribers" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h1 className="text-2xl font-bold">Suscriptores</h1>
+                    <p className="mt-1 text-sm text-[#666]">Correos que dejó la gente en World Fest y en la newsletter.</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const csv = "correo,origen,fecha\n" + (subscribers as any[])
+                        .map(s => `${s.email},${s.source},${new Date(s.createdAt).toISOString()}`)
+                        .join("\n");
+                      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+                      const a = document.createElement("a");
+                      a.href = URL.createObjectURL(blob);
+                      a.download = `suscriptores-${new Date().toISOString().slice(0, 10)}.csv`;
+                      a.click();
+                    }}
+                    disabled={(subscribers as any[]).length === 0}
+                    className="flex items-center gap-2 rounded-xl border border-[#e5e5e5] bg-white px-4 py-2.5 text-sm font-bold text-[#555] transition-colors hover:border-[#111] hover:text-[#111] disabled:opacity-40"
+                  >
+                    <ArrowUpRight className="h-4 w-4" /> Descargar CSV
+                  </button>
+                </div>
+
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  {([["all", "Todos"], ["worldfest", "World Fest"], ["newsletter", "Newsletter"]] as const).map(([id, label]) => (
+                    <button
+                      key={id}
+                      onClick={() => setSubsFilter(id)}
+                      className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                        subsFilter === id ? "bg-[#111] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  <span className="ml-auto text-xs text-[#888]">{(subscribers as any[]).length} correo(s)</span>
+                </div>
+
+                {(subscribers as any[]).length === 0 ? (
+                  <div className="rounded-2xl border border-[#e5e5e5] bg-white p-12 text-center text-sm text-[#888]">
+                    Todavía no hay correos registrados.
+                  </div>
+                ) : (
+                  <div className="divide-y divide-[#f0f0f0] overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
+                    {(subscribers as any[]).map((sub: any) => (
+                      <div key={sub.id} className="flex items-center gap-3 px-4 py-3">
+                        <Mail className="h-4 w-4 shrink-0 text-[#ccc]" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-[#111]">{sub.email}</p>
+                          <p className="text-xs text-[#999]">
+                            {new Date(sub.createdAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}
+                          </p>
+                        </div>
+                        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
+                          sub.source === "worldfest" ? "bg-[#5db4ff]/15 text-[#1a6fbd]" : "bg-[#f0f0f0] text-[#666]"
+                        }`}>
+                          {sub.source === "worldfest" ? "World Fest" : "Newsletter"}
+                        </span>
+                        <button
+                          onClick={() => { if (confirm(`¿Eliminar ${sub.email}?`)) deleteSubscriber.mutate({ id: sub.id }); }}
+                          className="shrink-0 rounded-lg p-2 text-[#ccc] transition-colors hover:bg-[#f8f8f8] hover:text-red-500"
+                          aria-label="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             )}
 

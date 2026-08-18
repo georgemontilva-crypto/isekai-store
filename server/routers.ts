@@ -19,6 +19,7 @@ import {
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders,
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
+  insertSubscriber, getSubscribers, deleteSubscriber,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
@@ -847,6 +848,12 @@ export const appRouter = router({
         const esWorldFest = input.source === "worldfest";
         const etiqueta = esWorldFest ? "World Fest" : "Newsletter";
 
+        // Se guarda SIEMPRE en nuestra base: es la lista que se consulta
+        // desde el panel, independiente de Mailchimp.
+        try {
+          await insertSubscriber(input.email, input.source);
+        } catch (e) { console.error("Failed to store subscriber:", e); }
+
         // El aviso al dueño va PRIMERO y por separado: si Mailchimp falla o no
         // está configurado, el registro no se pierde silenciosamente.
         try {
@@ -894,6 +901,17 @@ export const appRouter = router({
         }
         return { success: true, mailchimp: true };
       }),
+  }),
+
+  // ─── Suscriptores (admin) ────────────────────────────────────────────────────
+  subscribers: router({
+    list: adminProcedure
+      .input(z.object({ source: z.enum(["newsletter", "worldfest"]).optional() }).optional())
+      .query(({ input }) => getSubscribers(input?.source)),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteSubscriber(input.id)),
   }),
 
   // ─── Wishlist ────────────────────────────────────────────────────────────────

@@ -164,6 +164,19 @@ export const orders = mysqlTable("orders", {
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 
+// ─── Suscriptores ─────────────────────────────────────────────────────────────
+// Registro propio de los correos que deja la gente. Antes solo iban a Mailchimp
+// y al correo del dueño, así que no había forma de consultarlos desde el panel.
+export const subscribers = mysqlTable("subscribers", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  // "worldfest" o "newsletter"
+  source: varchar("source", { length: 32 }).notNull().default("newsletter"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type Subscriber = typeof subscribers.$inferSelect;
+
 // ─── Media Library ────────────────────────────────────────────────────────────
 // Depósito central de archivos subidos a R2. Subir aquí NO publica nada:
 // después hay que asignar el archivo a su espacio desde el gestor de imágenes.

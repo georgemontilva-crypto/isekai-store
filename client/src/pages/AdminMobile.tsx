@@ -14,7 +14,7 @@ import PullToRefresh from '@/components/admin/PullToRefresh';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -1658,6 +1658,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Usuarios',   tab: 'users'      as MobileTab, icon: Users },
         { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
+        { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
       ],
     },
     {
@@ -1992,6 +1993,55 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
   );
 }
 
+
+// ============ SUSCRIPTORES ============
+function SubscribersSection() {
+  const [filtro, setFiltro] = useState<'all' | 'worldfest' | 'newsletter'>('all');
+  const { data: subs = [] } = trpc.subscribers.list.useQuery(filtro === 'all' ? {} : { source: filtro });
+
+  return (
+    <div className="p-4 flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {([['all', 'Todos'], ['worldfest', 'World Fest'], ['newsletter', 'Newsletter']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setFiltro(id)}
+            className={`px-3.5 py-2 rounded-full text-xs font-bold transition-colors ${
+              filtro === id ? 'bg-[#111] text-white' : 'bg-white border border-[#e5e5e5] text-[#666]'
+            }`}
+            style={{ minHeight: 40, WebkitTapHighlightColor: 'transparent' }}
+          >
+            {label}
+          </button>
+        ))}
+        <span className="ml-auto text-xs text-[#999]">{(subs as any[]).length}</span>
+      </div>
+
+      {(subs as any[]).length === 0 ? (
+        <p className="text-center text-[#999] text-sm py-12">Todavía no hay correos registrados.</p>
+      ) : (
+        <div className="bg-white rounded-2xl border border-[#e5e5e5] divide-y divide-[#f0f0f0] overflow-hidden">
+          {(subs as any[]).map((sub: any) => (
+            <div key={sub.id} className="flex items-center gap-3 px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-[#111] truncate">{sub.email}</p>
+                <p className="text-xs text-[#999]">
+                  {new Date(sub.createdAt).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' })}
+                </p>
+              </div>
+              <span className={`shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                sub.source === 'worldfest' ? 'bg-[#5db4ff]/15 text-[#1a6fbd]' : 'bg-[#f0f0f0] text-[#666]'
+              }`}>
+                {sub.source === 'worldfest' ? 'World Fest' : 'News'}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ============ COMPONENTE PRINCIPAL ============
 export default function AdminMobile() {
   const [activeTab, setActiveTab] = useState<MobileTab>('stats');
@@ -2042,13 +2092,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2101,6 +2151,7 @@ export default function AdminMobile() {
         {activeTab === 'faq'         && <FAQSection />}
         {activeTab === 'users'       && <UsersSection />}
         {activeTab === 'blog'        && <BlogSection onModalChange={setBlogHasModal} />}
+        {activeTab === 'subscribers' && <SubscribersSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
         {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
       </PullToRefresh>

@@ -18,6 +18,7 @@ import {
   users,
   siteSettings,
   mediaAssets,
+  subscribers,
   authTokens,
   adminNotifications,
   AdminNotification,
@@ -2097,4 +2098,30 @@ export async function deleteGiftCards(ids: number[]) {
   if (!db || ids.length === 0) return { deleted: 0 };
   await db.delete(giftCards).where(inArray(giftCards.id, ids));
   return { deleted: ids.length };
+}
+
+// ─── Suscriptores ─────────────────────────────────────────────────────────────
+
+/** Guarda el correo. Si ya existía, no duplica y conserva su origen original. */
+export async function insertSubscriber(email: string, source: string) {
+  const db = await getDb();
+  if (!db) return;
+  const [existing] = await db.select().from(subscribers).where(eq(subscribers.email, email)).limit(1);
+  if (existing) return existing;
+  await db.insert(subscribers).values({ email, source });
+  const [row] = await db.select().from(subscribers).where(eq(subscribers.email, email)).limit(1);
+  return row;
+}
+
+export async function getSubscribers(source?: string) {
+  const db = await getDb();
+  if (!db) return [];
+  const where = source ? eq(subscribers.source, source) : undefined;
+  return db.select().from(subscribers).where(where).orderBy(desc(subscribers.id)).limit(1000);
+}
+
+export async function deleteSubscriber(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(subscribers).where(eq(subscribers.id, id));
 }
