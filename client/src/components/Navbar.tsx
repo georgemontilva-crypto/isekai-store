@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell, Sun, Moon } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { openLoginModal } from "@/const";
@@ -50,6 +51,7 @@ const WORLD_FEST_GLOW = `
 `;
 
 export default function Navbar() {
+  const { theme, toggleTheme } = useTheme();
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -246,6 +248,14 @@ export default function Navbar() {
           {/* Right icons */}
           <div className="flex items-center gap-1 ml-auto">
             <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
+            <button
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
+              title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
+              className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"
+            >
+              {theme === "dark" ? <Sun size={17} strokeWidth={1.8}/> : <Moon size={17} strokeWidth={1.8}/>}
+            </button>
             {isAuthenticated && user?.role === "admin" && (
               <Link href="/admin" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
@@ -371,7 +381,7 @@ export default function Navbar() {
               <Link
                 href="/cosplay"
                 onClick={() => setMobileOpen(false)}
-                className="mt-4 inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+                className="mt-4 flex w-full items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
               >
                 Cosplay Guild
               </Link>
@@ -379,7 +389,7 @@ export default function Navbar() {
               <Link
                 href="/world-fest"
                 onClick={() => setMobileOpen(false)}
-                className="wf-pill relative mb-4 mt-2.5 inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-5 py-3 text-[14px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+                className="wf-pill relative mb-4 mt-2.5 flex w-full items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-5 py-3 text-[14px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
               >
                 World Fest
               </Link>

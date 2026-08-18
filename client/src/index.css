@@ -786,3 +786,71 @@ body {
     border-radius: 1.25rem !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODO OSCURO
+   El sitio se construyó con colores fijos (bg-white, text-[#111], etc.) en vez
+   de tokens, así que el tema oscuro se resuelve con una capa de traducción:
+   cada color claro de la paleta se reasigna a su equivalente oscuro cuando el
+   <html> tiene la clase .dark.
+
+   Quedan FUERA a propósito:
+   - el panel admin (.admin-shell), que ya tiene su propio esquema
+   - la página World Fest (.wf-page), que nace oscura
+   El magenta de marca (#e5007d) no se toca: es la identidad.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.dark body { background-color: #0b0b0f; }
+
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) {
+  /* — Fondos claros → superficies oscuras — */
+  &.bg-white            { background-color: #14141a; }
+  &.bg-\[\#fafafa\]     { background-color: #17171e; }
+  &.bg-\[\#f8f8f8\]     { background-color: #0f0f14; }
+  &.bg-\[\#f5f5f5\]     { background-color: #1a1a22; }
+  &.bg-\[\#f0f0f0\]     { background-color: #1e1e27; }
+  &.bg-\[\#ebebeb\]     { background-color: #23232d; }
+
+  /* — Fondos oscuros → se aclaran para no perder contraste — */
+  &.bg-\[\#111\]        { background-color: #e8e8ee; color: #14141a; }
+  &.bg-\[\#1a1a1a\]     { background-color: #e8e8ee; color: #14141a; }
+  &.bg-\[\#0d0d0d\]     { background-color: #14141a; }
+
+  /* — Texto — */
+  &.text-\[\#111\]      { color: #f0f0f5; }
+  &.text-\[\#1a1a1a\]   { color: #f0f0f5; }
+  &.text-\[\#222\]      { color: #e6e6ee; }
+  &.text-\[\#333\]      { color: #dcdce6; }
+  &.text-\[\#555\]      { color: #b9b9c6; }
+  &.text-\[\#666\]      { color: #aeaebc; }
+  &.text-\[\#888\]      { color: #9b9baa; }
+  &.text-\[\#999\]      { color: #8f8f9e; }
+  &.text-\[\#aaa\]      { color: #86869a; }
+  &.text-\[\#ccc\]      { color: #6f6f82; }
+  &.text-black          { color: #f0f0f5; }
+
+  /* — Bordes — */
+  &.border-\[\#e5e5e5\] { border-color: #2b2b36; }
+  &.border-\[\#ebebeb\] { border-color: #2b2b36; }
+  &.border-\[\#f0f0f0\] { border-color: #252530; }
+  &.border-\[\#111\]    { border-color: #e8e8ee; }
+  &.border-\[\#1a1a1a\] { border-color: #e8e8ee; }
+}
+
+/* Bordes divisores heredados de Tailwind */
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)).divide-\[\#e5e5e5\] > * + *,
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)).divide-\[\#ebebeb\] > * + * {
+  border-color: #2b2b36;
+}
+
+/* Campos de formulario */
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) input,
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) textarea,
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) select {
+  color: #f0f0f5;
+}
+.dark input::placeholder,
+.dark textarea::placeholder { color: #7a7a8c; }
+
+/* Las imágenes de producto se ven mejor sin el blanco puro detrás */
+.dark img { background-color: transparent; }

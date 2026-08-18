@@ -105,7 +105,7 @@ export default function WorldFest() {
   );
 
   return (
-    <div className={`relative min-h-screen text-[#dceaff] ${bgVideo ? "bg-[#04060f]/0" : "bg-[#04060f]"}`}>
+    <div className={`wf-page relative min-h-screen text-[#dceaff] ${bgVideo ? "bg-[#04060f]/0" : "bg-[#04060f]"}`}>
       {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
           de arriba son translúcidas para que se siga viendo el efecto. */}
       {bgVideo && (
@@ -179,7 +179,7 @@ export default function WorldFest() {
       `}</style>
 
       {/* ─── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[100svh] items-center overflow-hidden">
+      <section className="relative flex min-h-[78svh] items-center overflow-hidden">
         <div className="absolute inset-0">
           {heroImage ? (
             <img src={heroImage} alt="" className="h-full w-full object-cover opacity-45" />
@@ -199,13 +199,13 @@ export default function WorldFest() {
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060f]/90 via-transparent to-[#04060f]/90" />
         </div>
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-24">
-          <Link href="/" className="mb-9 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#7dd8ff]/60 transition-colors hover:text-[#7dd8ff]">
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-14 sm:py-16">
+          <Link href="/" className="mb-6 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#7dd8ff]/60 transition-colors hover:text-[#7dd8ff]">
             <ArrowLeft size={13} /> Volver
           </Link>
 
           {/* Notificación del Sistema */}
-          <div className="wf-window wf-boot wf-scan mb-9 max-w-lg rounded-sm px-5 py-4">
+          <div className="wf-window wf-boot wf-scan mb-7 max-w-lg rounded-sm px-5 py-4">
             {corners}
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#7dd8ff]">
               [ Notificación del Sistema ]
@@ -240,7 +240,7 @@ export default function WorldFest() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.8 }}
-            className="mt-7 max-w-xl text-[15px] leading-relaxed text-[#a8c6ea] sm:text-base"
+            className="mt-5 max-w-xl text-[15px] leading-relaxed text-[#a8c6ea] sm:text-base"
           >
             {subtitle}
           </motion.p>
@@ -249,7 +249,7 @@ export default function WorldFest() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.95 }}
-            className="mt-10 inline-flex items-center gap-3 rounded-sm border border-[#5db4ff]/50 bg-[#5db4ff]/10 px-5 py-2.5"
+            className="mt-7 inline-flex items-center gap-3 rounded-sm border border-[#5db4ff]/50 bg-[#5db4ff]/10 px-5 py-2.5"
           >
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#7dd8ff] opacity-70" />
@@ -261,7 +261,7 @@ export default function WorldFest() {
       </section>
 
       {/* ─── Misiones ─────────────────────────────────────────────────────── */}
-      <section className="relative mx-auto max-w-6xl px-6 py-24 sm:py-32">
+      <section className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
           [ Misiones detectadas ]
         </p>
@@ -272,7 +272,7 @@ export default function WorldFest() {
           Todavía no revelamos la fecha. Sí podemos decir a qué te vas a enfrentar cuando la puerta se abra del todo.
         </p>
 
-        <div className="mt-14 grid gap-4 sm:grid-cols-3">
+        <div className="mt-9 grid gap-4 sm:grid-cols-3">
           {MISIONES.map((m, i) => (
             <div
               key={i}
@@ -307,7 +307,7 @@ export default function WorldFest() {
 
       {/* ─── Imagen del festival ──────────────────────────────────────────── */}
       {teaserImage && (
-        <section className="mx-auto max-w-6xl px-6 pb-24 sm:pb-32">
+        <section className="mx-auto max-w-6xl px-6 pb-16 sm:pb-20">
           <div className="wf-window relative rounded-sm p-1.5">
             {corners}
             <img src={teaserImage} alt="" className="w-full object-cover" />
@@ -316,7 +316,7 @@ export default function WorldFest() {
       )}
 
       {/* ─── Registro ─────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/80 py-24 sm:py-32">
+      <section className="relative overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/80 py-16 sm:py-20">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_100%_at_50%_0%,rgba(70,150,255,0.22)_0%,transparent_65%)]" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
@@ -330,12 +330,12 @@ export default function WorldFest() {
           </p>
 
           {done ? (
-            <div className="mx-auto mt-9 inline-flex items-center gap-2.5 rounded-sm border border-[#7dd8ff]/45 bg-[#7dd8ff]/10 px-6 py-3.5">
+            <div className="mx-auto mt-7 inline-flex items-center gap-2.5 rounded-sm border border-[#7dd8ff]/45 bg-[#7dd8ff]/10 px-6 py-3.5">
               <Check size={16} className="text-[#7dd8ff]" />
               <span className="font-mono text-sm font-bold text-[#7dd8ff]">Registro aceptado</span>
             </div>
           ) : (
-            <div className="mx-auto mt-9 flex max-w-md flex-col gap-3 sm:flex-row">
+            <div className="mx-auto mt-7 flex max-w-md flex-col gap-3 sm:flex-row">
               <input
                 type="email"
                 value={email}
