@@ -545,21 +545,27 @@ export async function getAllSettings(): Promise<Record<string, string>> {
 // ─── Dashboard Metrics ───────────────────────────────────────────────────────────────────────────────
 export async function getDashboardMetrics() {
   const db = await getDb();
-  if (!db) return { totalRevenue: 0, totalOrders: 0, recentOrders: [], topProducts: [] };
+  if (!db) return { totalRevenue: 0, totalOrders: 0, recentOrders: [], topProducts: [], revenueResetAt: null as string | null };
+
+  // Fecha de corte del contador: si el admin lo reinició, solo se suman los
+  // pedidos posteriores. No se borra ni se modifica ningún pedido.
+  const [resetRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, 'revenue_reset_at')).limit(1);
+  const resetAt = resetRow?.value ? new Date(resetRow.value) : null;
+  const desdeCorte = resetAt && !isNaN(resetAt.getTime()) ? gte(orders.createdAt, resetAt) : undefined;
 
   const [fullRevenue] = await db
     .select({ total: sql<string>`SUM(total)` })
     .from(orders)
-    .where(eq(orders.paymentStatus, 'approved'));
+    .where(desdeCorte ? and(eq(orders.paymentStatus, 'approved'), desdeCorte) : eq(orders.paymentStatus, 'approved'));
 
   const [partialRevenue] = await db
     .select({ total: sql<string>`SUM(amountPaid)` })
     .from(orders)
-    .where(eq(orders.paymentStatus, 'partial'));
+    .where(desdeCorte ? and(eq(orders.paymentStatus, 'partial'), desdeCorte) : eq(orders.paymentStatus, 'partial'));
 
   const totalRevenue = parseFloat(fullRevenue?.total ?? '0') + parseFloat(partialRevenue?.total ?? '0');
 
-  const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(orders);
+  const [orderCount] = await db.select({ count: sql<number>`count(*)` }).from(orders).where(desdeCorte);
 
   const recentOrders = await db.select().from(orders).orderBy(desc(orders.createdAt)).limit(5);
 
@@ -580,6 +586,7 @@ export async function getDashboardMetrics() {
     totalOrders: Number(orderCount?.count ?? 0),
     recentOrders,
     topProducts,
+    revenueResetAt: resetAt ? resetAt.toISOString() : null,
   };
 }
 

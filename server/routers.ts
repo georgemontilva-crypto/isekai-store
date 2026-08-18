@@ -732,6 +732,20 @@ export const appRouter = router({
       .query(() => getAllInstallmentPlans()),
   }),
 
+  // ─── Contador de ganancias ───────────────────────────────────────────────────
+  revenue: router({
+    /** Marca desde cuándo cuenta el dashboard. No borra ni altera pedidos. */
+    reset: adminProcedure.mutation(async () => {
+      await upsertSetting('revenue_reset_at', new Date().toISOString());
+      return { resetAt: new Date().toISOString() };
+    }),
+    /** Vuelve a contar desde el principio */
+    undoReset: adminProcedure.mutation(async () => {
+      await upsertSetting('revenue_reset_at', '');
+      return { resetAt: null };
+    }),
+  }),
+
   // ─── Media Library ───────────────────────────────────────────────────────────
   media: router({
     list: adminProcedure.query(() => listMediaAssets({ limit: 200 })),

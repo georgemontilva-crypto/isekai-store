@@ -7,7 +7,7 @@ import {
   BarChart3, Bell, ChevronRight, Check,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
   LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
-  Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign,
+  Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import PullToRefresh from '@/components/admin/PullToRefresh';
@@ -1135,6 +1135,8 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
     enabled: isAuthenticated && user?.role === 'admin',
   });
   const products = productsData?.items ?? [];
+  // Guardamos las categorías ABIERTAS: arrancan todas cerradas
+  const [openCats, setOpenCats] = useState<string[]>([]);
   const [editProduct, setEditProduct] = useState<any>(null);
   const [uploading, setUploading] = useState(false);
   const updateProduct = trpc.products.update.useMutation({
@@ -1176,26 +1178,55 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
           <button className="bg-[#e5007d] text-white px-4 py-2 rounded-xl text-xs font-bold">+ Nuevo</button>
         </a>
       </div>
-      {(products as any[]).map((p: any) => (
-        <div key={p.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
-          <div className="flex items-center gap-3 p-3">
-            {p.images?.[0]?.url && (
-              <img src={p.images[0].url} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" alt="" />
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="font-bold text-sm text-[#111] truncate">{p.name}</p>
-              <p className="text-[#e5007d] font-black text-sm">${parseFloat(p.price ?? 0).toFixed(2)} USD</p>
-              <span className={`text-xs font-semibold ${p.status === 'published' ? 'text-green-500' : 'text-[#999]'}`}>
-                {p.status === 'published' ? 'Publicado' : 'Borrador'}
-              </span>
+      {/* Agrupado por categoría, cerrado por defecto (igual que en escritorio) */}
+      {(() => {
+        const grupos = new Map<string, any[]>();
+        for (const prod of (products as any[])) {
+          const key = prod.category?.name ?? 'Sin categoría';
+          if (!grupos.has(key)) grupos.set(key, []);
+          grupos.get(key)!.push(prod);
+        }
+        return Array.from(grupos.entries()).map(([nombre, lista]) => {
+          const abierto = openCats.includes(nombre);
+          return (
+            <div key={nombre} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden">
+              <button
+                onClick={() => setOpenCats(prev => prev.includes(nombre) ? prev.filter(g => g !== nombre) : [...prev, nombre])}
+                className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-[#fafafa]"
+                style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}
+              >
+                <FolderOpen size={16} className="text-[#999] flex-shrink-0" />
+                <span className="font-bold text-sm text-[#111] flex-1 truncate">{nombre}</span>
+                <span className="text-xs font-semibold text-[#999]">{lista.length}</span>
+                <ChevronDown size={16} className={`text-[#999] transition-transform ${abierto ? 'rotate-180' : ''}`} />
+              </button>
+
+              {abierto && (
+                <div className="border-t border-[#f0f0f0] divide-y divide-[#f0f0f0]">
+                  {lista.map((p: any) => (
+                    <div key={p.id} className="flex items-center gap-3 p-3">
+                      {p.images?.[0]?.url && (
+                        <img src={p.images[0].url} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" alt="" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-sm text-[#111] truncate">{p.name}</p>
+                        <p className="text-[#e5007d] font-black text-sm">${parseFloat(p.price ?? 0).toFixed(2)} USD</p>
+                        <span className={`text-xs font-semibold ${p.status === 'published' ? 'text-green-500' : 'text-[#999]'}`}>
+                          {p.status === 'published' ? 'Publicado' : 'Borrador'}
+                        </span>
+                      </div>
+                      <button onClick={() => setEditProduct({ ...p })}
+                        className="w-10 h-10 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform">
+                        <Pencil size={15} className="text-[#666]" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <button onClick={() => setEditProduct({ ...p })}
-              className="w-9 h-9 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0">
-              <Pencil size={15} className="text-[#666]" />
-            </button>
-          </div>
-        </div>
-      ))}
+          );
+        });
+      })()}
 
       {/* Modal editar producto */}
       {editProduct && (

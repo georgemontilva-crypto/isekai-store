@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -630,6 +630,7 @@ const isExpired = (deadline: string | null) => {
 // ─── Main Admin Component ─────────────────────────────────────────────────────
 export default function Admin() {
   const { user, isAuthenticated, loading, logout } = useAuth();
+  const utils = trpc.useUtils();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tab, setTab] = useState<AdminTab>("dashboard");
   const handleTabChange = (t: AdminTab) => setTab(t);
@@ -731,7 +732,8 @@ export default function Admin() {
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: categories, refetch: refetchCategories } = trpc.categories.list.useQuery();
   const [ordersView, setOrdersView] = useState<"active" | "archived">("active");
-  const [collapsedCategories, setCollapsedCategories] = useState<string[]>([]);
+  // Guardamos las categorías ABIERTAS: así arrancan todas cerradas
+  const [openCategories, setOpenCategories] = useState<string[]>([]);
   const { data: ordersData, refetch: refetchOrders } = trpc.orders.adminList.useQuery(
     { archived: ordersView === "archived" },
     { enabled: isAuthenticated && user?.role === "admin" },
@@ -743,6 +745,15 @@ export default function Admin() {
       toast.success(vars.archived ? "Pedido archivado" : "Pedido restaurado");
     },
     onError: () => toast.error("No se pudo cambiar el archivado"),
+  });
+
+  const resetRevenue = trpc.revenue.reset.useMutation({
+    onSuccess: () => { utils.admin.metrics.invalidate(); toast.success("Contador reiniciado"); },
+    onError: () => toast.error("No se pudo reiniciar"),
+  });
+  const undoResetRevenue = trpc.revenue.undoReset.useMutation({
+    onSuccess: () => { utils.admin.metrics.invalidate(); toast.success("Contador restaurado"); },
+    onError: () => toast.error("No se pudo restaurar"),
   });
 
   const archiveOldOrders = trpc.orders.archiveOld.useMutation({
@@ -1128,6 +1139,38 @@ export default function Admin() {
                   ))}
                 </div>
 
+                {/* Contador de ganancias: se puede reiniciar sin borrar pedidos */}
+                <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-[#e5e5e5] bg-white px-4 py-3">
+                  <span className="text-xs text-[#888]">
+                    {(metrics as any)?.revenueResetAt
+                      ? <>Contando desde el <strong className="text-[#111]">{new Date((metrics as any).revenueResetAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}</strong></>
+                      : "Contando desde el primer pedido"}
+                  </span>
+                  <div className="ml-auto flex items-center gap-2">
+                    {(metrics as any)?.revenueResetAt && (
+                      <button
+                        onClick={() => undoResetRevenue.mutate()}
+                        disabled={undoResetRevenue.isPending}
+                        className="rounded-full border border-[#e5e5e5] px-3.5 py-1.5 text-xs font-bold text-[#666] transition-colors hover:border-[#111] hover:text-[#111] disabled:opacity-50"
+                      >
+                        Contar todo de nuevo
+                      </button>
+                    )}
+                    <button
+                      onClick={() => {
+                        if (confirm("¿Reiniciar el contador de ganancias? Los pedidos NO se borran: el dashboard empieza a contar desde ahora.")) {
+                          resetRevenue.mutate();
+                        }
+                      }}
+                      disabled={resetRevenue.isPending}
+                      className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] px-3.5 py-1.5 text-xs font-bold text-[#666] transition-colors hover:border-[#e5007d] hover:text-[#e5007d] disabled:opacity-50"
+                    >
+                      {resetRevenue.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
+                      Reiniciar contador
+                    </button>
+                  </div>
+                </div>
+
                 {/* Recent orders */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
                   <div className="p-4 rounded-2xl bg-card border border-border/50 w-full">
@@ -1253,11 +1296,11 @@ export default function Admin() {
                     // Al buscar, todo abierto; si no, se respeta lo que el usuario haya plegado
                     const isOpen = productSearch
                       ? true
-                      : !collapsedCategories.includes(groupName);
+                      : openCategories.includes(groupName);
                     return (
                     <div key={groupName} className="rounded-2xl border border-[#e5e5e5] bg-white overflow-hidden">
                       <button
-                        onClick={() => setCollapsedCategories(prev =>
+                        onClick={() => setOpenCategories(prev =>
                           prev.includes(groupName) ? prev.filter(g => g !== groupName) : [...prev, groupName]
                         )}
                         className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#fafafa] transition-colors text-left"
