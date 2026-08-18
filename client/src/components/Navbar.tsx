@@ -22,6 +22,57 @@ const dropdownVariants = { hidden:{opacity:0,y:-8,scale:0.98}, visible:{opacity:
 type ActiveMenu = "collections"|"explore"|null;
 
 
+
+/* Panel del menú de teléfono: vive siempre en el DOM y se anima con CSS,
+   así el cierre es tan suave como la apertura (patrón de YEYPEE). */
+const MOBILE_MENU_CSS = `
+  .iw-menu {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    background: #ffffff;
+    overflow-y: auto;
+    padding-top: env(safe-area-inset-top);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-12px);
+    transition: opacity .28s ease,
+                transform .34s cubic-bezier(.34,1.56,.64,1),
+                visibility 0s linear .34s;
+  }
+  .iw-menu.is-open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    transition: opacity .24s ease,
+                transform .36s cubic-bezier(.34,1.56,.64,1),
+                visibility 0s linear 0s;
+  }
+  .iw-menu-item {
+    opacity: 0;
+    transform: translateY(14px);
+    transition: opacity .3s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
+  }
+  .iw-menu.is-open .iw-menu-item { opacity: 1; transform: translateY(0); }
+  .iw-menu-link {
+    display: inline-block;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    color: #1a1a1a;
+    transition: color .2s ease, transform .25s cubic-bezier(.34,1.56,.64,1);
+  }
+  .iw-menu-link:hover, .iw-menu-link:focus-visible {
+    color: #e5007d;
+    transform: translateY(-2px) scale(1.03);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .iw-menu, .iw-menu.is-open, .iw-menu-item, .iw-menu.is-open .iw-menu-item,
+    .iw-menu-link { transition: opacity .15s ease, visibility 0s; transform: none; }
+    .iw-menu-link:hover { transform: none; }
+  }
+`;
+
 /* Brillo del botón World Fest: destello que barre el pill + halo azul del Sistema */
 const WORLD_FEST_GLOW = `
   @keyframes wf-sheen {
@@ -157,6 +208,12 @@ export default function Navbar() {
     { label: t.nav.exploreMenu.legal, href: "/politicas" },
     { label: "Blog",                   href: "/blog" },
   ];
+
+  // Una sola lista para el menú de teléfono: se juntan la navegación principal
+  // y el submenú "Explorar", y se descartan los destinos repetidos.
+  const mobileLinks = [...t.nav.mobileMenu, ...exploreMenu].filter(
+    (item, i, arr) => arr.findIndex(x => x.href === item.href) === i
+  );
 
   if (location.startsWith("/admin")) return null;
 
@@ -343,73 +400,98 @@ export default function Navbar() {
         )}
       </AnimatePresence>
 
-      {/* Mobile menu */}
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div initial={{x:"100%"}} animate={{x:0}} exit={{x:"100%"}} transition={{duration:0.3,ease:"easeOut"}} className="fixed inset-0 z-[60] bg-white flex flex-col" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
-            <div className="flex items-center justify-between px-6 h-[60px] border-b border-[#ebebeb]">
-              {logoUrl
-                ? <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
-                : <span className="font-bold text-[15px]">{storeName}</span>
-              }
-              <div className="flex items-center gap-3">
-                <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" className="p-2"><X size={18}/></button>
-              </div>
-            </div>
-            <nav className="flex flex-col px-6 py-8 gap-0 overflow-y-auto">
-              {/* Search */}
-              <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-                <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Buscar productos..." className="flex-1 border border-[#e5e5e5] rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#1a1a1a] transition-colors bg-[#f8f8f8]"/>
-                <button type="submit" aria-label="Buscar" className="btn-pill text-sm px-4"><Search size={15}/></button>
-              </form>
-              {t.nav.mobileMenu.map(({href,label}) => (
-                <Link key={label} href={href} onClick={() => setMobileOpen(false)} className="py-4 text-base font-semibold border-b border-[#f0f0f0] hover:opacity-50 transition-opacity flex items-center justify-between">
-                  {label}<ArrowRight size={14} className="opacity-30"/>
-                </Link>
-              ))}
-              {/* Botón destacado: Cosplay Guild */}
+      {/* ── Menú de teléfono ────────────────────────────────────────────────
+          Al estilo YEYPEE: el panel vive siempre en el DOM y se anima con CSS,
+          así cierra tan suave como abre. Los enlaces entran en cascada.
+          Las opciones NO se repiten: cada destino aparece una sola vez. */}
+      <style>{MOBILE_MENU_CSS}</style>
+      <div
+        className={`iw-menu md:hidden ${mobileOpen ? "is-open" : ""}`}
+        aria-hidden={!mobileOpen}
+      >
+        <div className="flex items-center justify-between border-b border-[#ebebeb] px-6 h-[60px]">
+          {logoUrl
+            ? <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
+            : <span className="font-bold text-[15px]">{storeName}</span>}
+          <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" tabIndex={mobileOpen ? 0 : -1} className="p-2">
+            <X size={20} />
+          </button>
+        </div>
+
+        <nav className="flex flex-col px-6 py-8">
+          <form onSubmit={handleSearch} className="iw-menu-item mb-8 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              placeholder="Buscar productos..."
+              tabIndex={mobileOpen ? 0 : -1}
+              className="flex-1 rounded-full border border-[#e5e5e5] bg-[#f8f8f8] px-4 py-2.5 text-sm outline-none transition-colors focus:border-[#1a1a1a]"
+            />
+            <button type="submit" aria-label="Buscar" tabIndex={mobileOpen ? 0 : -1} className="btn-pill px-4 text-sm"><Search size={15} /></button>
+          </form>
+
+          {/* Navegación principal — lista única, sin repetir destinos */}
+          <div className="flex flex-col items-start gap-6">
+            {mobileLinks.map((l, i) => (
               <Link
-                href="/cosplay"
+                key={l.href}
+                href={l.href}
                 onClick={() => setMobileOpen(false)}
-                className="my-4 inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+                tabIndex={mobileOpen ? 0 : -1}
+                className="iw-menu-link iw-menu-item"
+                style={{ transitionDelay: mobileOpen ? `${100 + i * 55}ms` : "0ms" }}
               >
-                Cosplay Guild
+                {l.label}
               </Link>
-              <style>{WORLD_FEST_GLOW}</style>
+            ))}
+          </div>
+
+          {/* Destacados */}
+          <div className="iw-menu-item mt-9 flex flex-col gap-3" style={{ transitionDelay: mobileOpen ? `${100 + mobileLinks.length * 55}ms` : "0ms" }}>
+            <Link
+              href="/cosplay"
+              onClick={() => setMobileOpen(false)}
+              tabIndex={mobileOpen ? 0 : -1}
+              className="inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+            >
+              Cosplay Guild
+            </Link>
+            <style>{WORLD_FEST_GLOW}</style>
+            <Link
+              href="/world-fest"
+              onClick={() => setMobileOpen(false)}
+              tabIndex={mobileOpen ? 0 : -1}
+              className="wf-pill relative inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-5 py-3 text-[14px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+            >
+              World Fest
+            </Link>
+          </div>
+
+          {/* Cuenta */}
+          <div className="iw-menu-item mt-9 flex flex-col gap-3 border-t border-[#f0f0f0] pt-7" style={{ transitionDelay: mobileOpen ? `${160 + mobileLinks.length * 55}ms` : "0ms" }}>
+            {isRegularUser && (
               <Link
-                href="/world-fest"
+                href="/account"
                 onClick={() => setMobileOpen(false)}
-                className="wf-pill relative mb-4 inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-5 py-3 text-[14px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+                tabIndex={mobileOpen ? 0 : -1}
+                className="flex items-center gap-3 text-[15px] font-semibold transition-opacity hover:opacity-60"
               >
-                World Fest
+                <Bell size={18} strokeWidth={1.8} />
+                Notificaciones
+                {notifUnread != null && notifUnread > 0 && (
+                  <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+                    {notifUnread > 9 ? "9+" : notifUnread}
+                  </span>
+                )}
               </Link>
-              {exploreMenu.map(item => (
-                <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="py-3 text-[14px] text-[#555] border-b border-[#f0f0f0] hover:opacity-50 transition-opacity flex items-center justify-between">
-                  {item.label}<ArrowRight size={12} className="opacity-20"/>
-                </Link>
-              ))}
-              {isRegularUser && (
-                <Link href="/account" onClick={() => setMobileOpen(false)}
-                  className="flex items-center gap-3 py-4 border-b border-[#f0f0f0] font-semibold text-[15px] hover:opacity-50 transition-opacity">
-                  <Bell size={18} strokeWidth={1.8} />
-                  Notificaciones
-                  {notifUnread != null && notifUnread > 0 && (
-                    <span className="ml-auto bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                      {notifUnread > 9 ? "9+" : notifUnread}
-                    </span>
-                  )}
-                </Link>
-              )}
-              <div className="mt-8">
-                {isAuthenticated
-                  ? <Link href={user?.role==="admin"?"/admin":"/account"} onClick={() => setMobileOpen(false)} className="btn-pill w-full justify-center">{t.nav.account}</Link>
-                  : <button onClick={() => { setMobileOpen(false); openLoginModal(); }} className="btn-pill w-full justify-center">{t.nav.signIn}</button>
-                }
-              </div>
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+            {isAuthenticated
+              ? <Link href={user?.role === "admin" ? "/admin" : "/account"} onClick={() => setMobileOpen(false)} tabIndex={mobileOpen ? 0 : -1} className="btn-pill w-full justify-center">{t.nav.account}</Link>
+              : <button onClick={() => { setMobileOpen(false); openLoginModal(); }} tabIndex={mobileOpen ? 0 : -1} className="btn-pill w-full justify-center">{t.nav.signIn}</button>}
+          </div>
+        </nav>
+      </div>
 
       <CartDrawer />
     </>
