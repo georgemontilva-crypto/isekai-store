@@ -854,3 +854,69 @@ body {
 
 /* Las imágenes de producto se ven mejor sin el blanco puro detrás */
 .dark img { background-color: transparent; }
+
+/* ── Tokens en oscuro ──────────────────────────────────────────────────────
+   Los componentes de shadcn (menús desplegables, selects, popovers, diálogos)
+   pintan con estas variables. Sin una versión oscura se quedaban en blanco,
+   que era lo que hacía que "las opciones" siguieran claras.
+   El panel admin queda excluido: mantiene su propio esquema. */
+html.dark {
+  --color-background: oklch(0.16 0.008 285);
+  --color-foreground: oklch(0.96 0 0);
+  --color-card: oklch(0.20 0.008 285);
+  --color-card-foreground: oklch(0.96 0 0);
+  --color-popover: oklch(0.20 0.008 285);
+  --color-popover-foreground: oklch(0.96 0 0);
+  --color-primary: oklch(0.96 0 0);
+  --color-primary-foreground: oklch(0.16 0.008 285);
+  --color-secondary: oklch(0.26 0.008 285);
+  --color-secondary-foreground: oklch(0.96 0 0);
+  --color-muted: oklch(0.26 0.008 285);
+  --color-muted-foreground: oklch(0.70 0 0);
+  --color-accent: oklch(0.28 0.008 285);
+  --color-accent-foreground: oklch(0.96 0 0);
+  --color-border: oklch(0.32 0.008 285);
+  --color-input: oklch(0.32 0.008 285);
+  --color-ring: oklch(0.70 0 0);
+}
+
+/* Superficies de menús y diálogos que traen su color fijo */
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) {
+  &.shadow-sm, &.shadow-md, &.shadow-lg, &.shadow-xl, &.shadow-2xl {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.55);
+  }
+  &.bg-black\/40, &.bg-black\/50, &.bg-black\/60 { background-color: rgba(0, 0, 0, 0.72); }
+}
+
+/* ── Guardas de desbordamiento horizontal ─────────────────────────────────
+   El desfase lateral existía ya en claro, pero sobre fondo blanco no se veía:
+   el contenido que se sale del ancho quedaba camuflado. En oscuro salta a la
+   vista. Esto lo corta de raíz en todo el sitio. */
+html, body {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+*, *::before, *::after { min-width: 0; }
+img, video, svg, canvas, iframe { max-width: 100%; height: auto; }
+
+/* El panel admin conserva su esquema claro aunque el sitio esté en oscuro:
+   tiene su propio diseño y no se pidió cambiarlo. */
+html.dark .admin-shell {
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.08 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.08 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.08 0 0);
+  --color-primary: oklch(0.08 0 0);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-secondary: oklch(0.96 0 0);
+  --color-secondary-foreground: oklch(0.08 0 0);
+  --color-muted: oklch(0.96 0 0);
+  --color-muted-foreground: oklch(0.45 0 0);
+  --color-accent: oklch(0.96 0 0);
+  --color-accent-foreground: oklch(0.08 0 0);
+  --color-border: oklch(0.9 0 0);
+  --color-input: oklch(0.9 0 0);
+  --color-ring: oklch(0.08 0 0);
+}
