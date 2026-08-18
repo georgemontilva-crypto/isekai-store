@@ -16,7 +16,7 @@ import {
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
-  createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus,
+  createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
@@ -361,8 +361,27 @@ export const appRouter = router({
 
     // Admin routes
     adminList: adminProcedure
-      .input(z.object({ status: z.string().optional(), limit: z.number().optional(), offset: z.number().optional() }).optional())
-      .query(({ input }) => getOrders({ ...input })),
+      .input(z.object({
+        status: z.string().optional(),
+        limit: z.number().optional(),
+        offset: z.number().optional(),
+        archived: z.boolean().optional(),
+      }).optional())
+      .query(({ input }) => getOrders({ limit: 100, ...input })),
+
+    /** Archiva o desarchiva un pedido (sigue existiendo, sale de la bandeja activa) */
+    setArchived: adminProcedure
+      .input(z.object({ id: z.number(), archived: z.boolean() }))
+      .mutation(({ input }) => setOrderArchived(input.id, input.archived)),
+
+    /** Archiva en lote los pedidos entregados o cancelados con cierta antigüedad */
+    archiveOld: adminProcedure
+      .input(z.object({ days: z.number().min(1).max(3650) }))
+      .mutation(async ({ input }) => {
+        const before = new Date(Date.now() - input.days * 24 * 60 * 60 * 1000);
+        const count = await archiveOldOrders(before);
+        return { count };
+      }),
 
     adminById: adminProcedure
       .input(z.object({ id: z.number() }))

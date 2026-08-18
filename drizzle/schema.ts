@@ -154,6 +154,9 @@ export const orders = mysqlTable("orders", {
   hasSecretGift: boolean("hasSecretGift").default(false),
   giftCardCode: varchar("giftCardCode", { length: 50 }),
   giftCardDiscount: decimal("giftCardDiscount", { precision: 10, scale: 2 }).default("0.00"),
+  // Archivado: saca el pedido de la bandeja activa sin borrarlo
+  archived: boolean("archived").default(false).notNull(),
+  archivedAt: timestamp("archivedAt"),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

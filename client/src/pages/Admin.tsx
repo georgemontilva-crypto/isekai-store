@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -729,7 +729,28 @@ export default function Admin() {
   const revenueUSD = metrics?.totalRevenue ?? 0;
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: categories, refetch: refetchCategories } = trpc.categories.list.useQuery();
-  const { data: ordersData, refetch: refetchOrders } = trpc.orders.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
+  const [ordersView, setOrdersView] = useState<"active" | "archived">("active");
+  const [collapsedCategories, setCollapsedCategories] = useState<string[]>([]);
+  const { data: ordersData, refetch: refetchOrders } = trpc.orders.adminList.useQuery(
+    { archived: ordersView === "archived" },
+    { enabled: isAuthenticated && user?.role === "admin" },
+  );
+
+  const setOrderArchived = trpc.orders.setArchived.useMutation({
+    onSuccess: (_d, vars) => {
+      refetchOrders();
+      toast.success(vars.archived ? "Pedido archivado" : "Pedido restaurado");
+    },
+    onError: () => toast.error("No se pudo cambiar el archivado"),
+  });
+
+  const archiveOldOrders = trpc.orders.archiveOld.useMutation({
+    onSuccess: (d) => {
+      refetchOrders();
+      toast.success(d.count > 0 ? `${d.count} pedido(s) archivado(s)` : "No había pedidos para archivar");
+    },
+    onError: () => toast.error("No se pudieron archivar los pedidos"),
+  });
 
   const products = productsData?.items ?? [];
   const filteredProducts = products.filter(p => {
@@ -1201,13 +1222,48 @@ export default function Admin() {
                   />
                 </div>
 
+                {(() => {
+                  // Agrupar por categoría, respetando el orden de la lista de categorías
+                  const groups = new Map<string, typeof filteredProducts>();
+                  for (const cat of (categories ?? [])) groups.set(cat.name, []);
+                  for (const prod of filteredProducts) {
+                    const key = prod.category?.name ?? "Sin categoría";
+                    if (!groups.has(key)) groups.set(key, []);
+                    groups.get(key)!.push(prod);
+                  }
+                  // Solo mostramos categorías con productos
+                  const visible = Array.from(groups.entries()).filter(([, list]) => list.length > 0);
+
+                  return (
                 <div className="space-y-3">
                   {filteredProducts.length === 0 && productSearch && (
                     <p className="text-center text-[#999] text-sm py-8">
                       No se encontraron productos para "{productSearch}"
                     </p>
                   )}
-                  {filteredProducts.map((product) => (
+
+                  {visible.map(([groupName, groupProducts]) => {
+                    // Al buscar, todo abierto; si no, se respeta lo que el usuario haya plegado
+                    const isOpen = productSearch
+                      ? true
+                      : !collapsedCategories.includes(groupName);
+                    return (
+                    <div key={groupName} className="rounded-2xl border border-[#e5e5e5] bg-white overflow-hidden">
+                      <button
+                        onClick={() => setCollapsedCategories(prev =>
+                          prev.includes(groupName) ? prev.filter(g => g !== groupName) : [...prev, groupName]
+                        )}
+                        className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#fafafa] transition-colors text-left"
+                      >
+                        <FolderOpen className="w-4 h-4 text-[#999] shrink-0" />
+                        <span className="font-bold text-sm text-[#111] flex-1 truncate">{groupName}</span>
+                        <span className="text-xs font-semibold text-[#999] shrink-0">{groupProducts.length}</span>
+                        <ChevronDown className={`w-4 h-4 text-[#999] shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                      </button>
+
+                      {isOpen && (
+                        <div className="p-3 pt-0 space-y-3 border-t border-[#f0f0f0]">
+                  {groupProducts.map((product: typeof filteredProducts[number]) => (
                     <div key={product.id}>
                       <div className="p-4 rounded-2xl bg-card border border-border/50 hover:border-border transition-colors">
                         <div className="flex items-start sm:items-center justify-between gap-3">
@@ -1283,6 +1339,12 @@ export default function Admin() {
                       </AnimatePresence>
                     </div>
                   ))}
+                        </div>
+                      )}
+                    </div>
+                    );
+                  })}
+
                   {products.length === 0 && (
                     <div className="text-center py-16 text-muted-foreground">
                       <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
@@ -1290,6 +1352,8 @@ export default function Admin() {
                     </div>
                   )}
                 </div>
+                  );
+                })()}
               </motion.div>
             )}
 
@@ -1452,7 +1516,7 @@ export default function Admin() {
                     <Plus size={16} /> Crear pedido
                   </button>
                 </div>
-                <div className="relative mb-4">
+                <div className="relative mb-3">
                   <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
                   <input
                     type="text"
@@ -1461,6 +1525,35 @@ export default function Admin() {
                     onChange={e => setOrderSearch(e.target.value)}
                     className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#e5e5e5] rounded-lg outline-none focus:border-[#111] transition-colors"
                   />
+                </div>
+
+                {/* Activos vs archivados */}
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                  {([["active", "En producción"], ["archived", "Archivados"]] as const).map(([id, label]) => (
+                    <button
+                      key={id}
+                      onClick={() => { setOrdersView(id); setExpandedOrderId(null); }}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
+                        ordersView === id ? "bg-[#111] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                  {ordersView === "active" && (
+                    <button
+                      onClick={() => {
+                        if (confirm("¿Archivar los pedidos entregados o cancelados de hace más de 30 días?")) {
+                          archiveOldOrders.mutate({ days: 30 });
+                        }
+                      }}
+                      disabled={archiveOldOrders.isPending}
+                      className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#e5e5e5] text-[#666] hover:border-[#111] hover:text-[#111] transition-colors disabled:opacity-50"
+                    >
+                      {archiveOldOrders.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Archive className="w-3.5 h-3.5" />}
+                      Archivar completados de +30 días
+                    </button>
+                  )}
                 </div>
                 {(() => {
                   const filteredOrders = orders.filter(order => {
@@ -1532,6 +1625,22 @@ export default function Admin() {
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <span className="font-bold text-base">${parseFloat(order.total).toFixed(2)} USD</span>
+                              {/* Archivar / restaurar — va dentro de la fila, por eso corta el clic del acordeón */}
+                              <span
+                                role="button"
+                                tabIndex={0}
+                                title={(order as any).archived ? "Restaurar a producción" : "Archivar pedido"}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOrderArchived.mutate({ id: order.id, archived: !(order as any).archived });
+                                }}
+                                onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setOrderArchived.mutate({ id: order.id, archived: !(order as any).archived }); } }}
+                                className="p-1.5 rounded-lg text-[#999] hover:text-[#111] hover:bg-[#f0f0f0] transition-colors"
+                              >
+                                {(order as any).archived
+                                  ? <ArchiveRestore className="w-4 h-4" />
+                                  : <Archive className="w-4 h-4" />}
+                              </span>
                               <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
                             </div>
                           </div>
@@ -3808,26 +3917,75 @@ export default function Admin() {
             {/* ─── Cosplay Guild ──────────────────────────────────────────────── */}
             {tab === "cosplay" && (
               <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <h1 className="text-2xl font-bold mb-6 flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
+                <h1 className="text-2xl font-bold mb-5 flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
 
-                {/* Sub-tabs */}
-                <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-6 overflow-x-auto w-full sm:w-fit scrollbar-hide">
-                  {([
-                    { id: 'applications', label: `Solicitudes (${cosplayApps.length})` },
-                    { id: 'cosplayers', label: `Cosplayers (${cosplayersData.length})` },
-                    { id: 'activities', label: `Actividades (${cosplayActivities.length})` },
-                    { id: 'evaluations', label: `Evaluaciones (${cosplaySubs.filter((s: any) => s.status === 'pending').length})` },
-                    { id: 'withdrawals', label: `Retiros (${(withdrawalsData as any[]).filter((w: any) => w.status === 'pending').length})` },
-                  ] as const).map(st => (
-                    <button
-                      key={st.id}
-                      onClick={() => setCosplaySubTab(st.id as any)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${cosplaySubTab === st.id ? 'bg-white text-[#111] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
-                      {st.label}
-                    </button>
-                  ))}
-                </div>
+                {(() => {
+                  const pendingApps = cosplayApps.filter((a: any) => a.status === 'pending').length;
+                  const pendingSubs = cosplaySubs.filter((s: any) => s.status === 'pending').length;
+                  const pendingWd   = (withdrawalsData as any[]).filter((w: any) => w.status === 'pending').length;
+                  const needsAction = pendingApps + pendingSubs + pendingWd;
+
+                  return (
+                    <>
+                      {/* Qué necesita tu atención */}
+                      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-5">
+                        {[
+                          { label: 'Solicitudes por revisar', value: pendingApps, icon: Users,      go: 'applications' },
+                          { label: 'Evaluaciones pendientes', value: pendingSubs, icon: CheckCheck, go: 'evaluations'  },
+                          { label: 'Retiros por pagar',       value: pendingWd,   icon: DollarSign, go: 'withdrawals'  },
+                          { label: 'Cosplayers activos',      value: cosplayersData.length, icon: Sparkles, go: 'cosplayers' },
+                        ].map(c => (
+                          <button
+                            key={c.label}
+                            onClick={() => setCosplaySubTab(c.go as any)}
+                            className={`text-left p-4 rounded-2xl border bg-white transition-colors ${
+                              c.value > 0 && c.go !== 'cosplayers'
+                                ? 'border-[#e5007d]/40 hover:border-[#e5007d]'
+                                : 'border-[#e5e5e5] hover:border-[#ccc]'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className="text-xs text-[#888] leading-tight pr-2">{c.label}</span>
+                              <c.icon className={`w-4 h-4 shrink-0 ${c.value > 0 && c.go !== 'cosplayers' ? 'text-[#e5007d]' : 'text-[#ccc]'}`} />
+                            </div>
+                            <p className={`text-2xl font-black ${c.value > 0 && c.go !== 'cosplayers' ? 'text-[#e5007d]' : 'text-[#111]'}`}>{c.value}</p>
+                          </button>
+                        ))}
+                      </div>
+
+                      {needsAction === 0 && (
+                        <p className="mb-5 flex items-center gap-2 text-sm text-green-600 font-semibold">
+                          <CheckCircle2 className="w-4 h-4" /> Todo al día, no hay nada pendiente por revisar
+                        </p>
+                      )}
+
+                      {/* Sub-tabs */}
+                      <div className="flex gap-1 bg-muted/40 rounded-xl p-1 mb-6 overflow-x-auto w-full lg:w-fit scrollbar-hide">
+                        {([
+                          { id: 'applications', label: 'Solicitudes',  count: cosplayApps.length,       alert: pendingApps },
+                          { id: 'cosplayers',   label: 'Cosplayers',   count: cosplayersData.length,    alert: 0 },
+                          { id: 'activities',   label: 'Actividades',  count: cosplayActivities.length, alert: 0 },
+                          { id: 'evaluations',  label: 'Evaluaciones', count: cosplaySubs.length,       alert: pendingSubs },
+                          { id: 'withdrawals',  label: 'Retiros',      count: (withdrawalsData as any[]).length, alert: pendingWd },
+                        ] as const).map(st => (
+                          <button
+                            key={st.id}
+                            onClick={() => setCosplaySubTab(st.id as any)}
+                            className={`shrink-0 flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all ${cosplaySubTab === st.id ? 'bg-white text-[#111] shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+                          >
+                            {st.label}
+                            <span className="text-xs text-[#aaa]">{st.count}</span>
+                            {st.alert > 0 && (
+                              <span className="bg-[#e5007d] text-white text-[10px] font-bold rounded-full min-w-[17px] h-[17px] flex items-center justify-center px-1">
+                                {st.alert}
+                              </span>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </>
+                  );
+                })()}
 
                 {/* SOLICITUDES */}
                 {cosplaySubTab === 'applications' && (
@@ -3841,58 +3999,94 @@ export default function Admin() {
                     </div>
                     <div className="space-y-4">
                       {cosplayApps.length === 0 && <p className="text-muted-foreground text-sm py-8 text-center">No hay solicitudes</p>}
-                      {cosplayApps.map((app: any) => (
-                        <div key={app.id} className="p-5 rounded-2xl bg-card border border-border/50">
-                          <div className="flex flex-col gap-4">
-                            <div className="min-w-0">
-                              <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                <p className="font-bold">{app.fullName} {app.lastName}</p>
-                                <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${app.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : app.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
-                                  {app.status}
-                                </span>
+                      {cosplayApps.map((app: any) => {
+                        const statusLabel = app.status === 'pending' ? 'Pendiente'
+                          : app.status === 'approved' ? 'Aprobada' : 'Rechazada';
+                        const statusClass = app.status === 'pending' ? 'bg-yellow-100 text-yellow-700'
+                          : app.status === 'approved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
+                        const socials = [
+                          { key: 'instagram', label: 'Instagram' },
+                          { key: 'tiktok',    label: 'TikTok'    },
+                          { key: 'youtube',   label: 'YouTube'   },
+                          { key: 'facebook',  label: 'Facebook'  },
+                          { key: 'twitter',   label: 'Twitter/X' },
+                        ].filter(r => app[r.key]);
+
+                        return (
+                        <div key={app.id} className={`rounded-2xl bg-card border overflow-hidden ${app.status === 'pending' ? 'border-[#e5007d]/30' : 'border-border/50'}`}>
+                          <div className="p-5">
+                            <div className="flex items-start gap-3.5">
+                              {/* Inicial como avatar */}
+                              <div className="w-11 h-11 shrink-0 rounded-full bg-[#e5007d]/10 text-[#e5007d] flex items-center justify-center font-black text-base">
+                                {(app.fullName ?? '?').charAt(0).toUpperCase()}
                               </div>
-                              <p className="text-xs text-muted-foreground mb-2">{app.email} · {app.phone} · {app.city}, {app.country}</p>
-                              <div className="grid sm:grid-cols-3 gap-2 text-xs text-muted-foreground mb-2">
-                                <span>Edad: {app.age}</span>
-                                <span>Experiencia: {app.experience} años</span>
+
+                              <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                                  <p className="font-bold text-[15px]">{app.fullName} {app.lastName}</p>
+                                  <span className={`text-[11px] px-2 py-0.5 rounded-full font-bold ${statusClass}`}>
+                                    {statusLabel}
+                                  </span>
+                                </div>
+
+                                {/* Datos en filas legibles */}
+                                <div className="grid sm:grid-cols-2 gap-x-6 gap-y-1 text-xs text-muted-foreground">
+                                  <span className="flex items-center gap-1.5 truncate"><Mail className="w-3 h-3 shrink-0" />{app.email}</span>
+                                  <span className="flex items-center gap-1.5 truncate"><Phone className="w-3 h-3 shrink-0" />{app.phone}</span>
+                                  <span className="flex items-center gap-1.5 truncate"><MapPin className="w-3 h-3 shrink-0" />{app.city}, {app.country}</span>
+                                  <span className="flex items-center gap-1.5 truncate"><Sparkles className="w-3 h-3 shrink-0" />{app.age} años · {app.experience} años de experiencia</span>
+                                </div>
+
+                                {/* Redes como pastillas, sin volcar la URL entera */}
+                                {socials.length > 0 && (
+                                  <div className="flex flex-wrap gap-1.5 mt-3">
+                                    {socials.map(r => (
+                                      <a
+                                        key={r.key}
+                                        href={app[r.key]}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#e5e5e5] text-[11px] font-semibold text-[#555] hover:border-[#e5007d] hover:text-[#e5007d] transition-colors"
+                                      >
+                                        {r.label}
+                                        <ExternalLink className="w-2.5 h-2.5" />
+                                      </a>
+                                    ))}
+                                  </div>
+                                )}
+
+                                {app.whyIsekai && (
+                                  <p className="mt-3 text-xs text-muted-foreground line-clamp-2 border-l-2 border-[#e5e5e5] pl-3 italic">
+                                    {app.whyIsekai}
+                                  </p>
+                                )}
+
+                                <button onClick={() => setSelectedApplication(app)} className="mt-3 inline-flex items-center gap-1 text-xs font-semibold text-[#e5007d] hover:underline">
+                                  Ver detalle completo <ChevronRight className="w-3 h-3" />
+                                </button>
                               </div>
-                              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2">
-                                {[
-                                  { key: 'instagram', label: 'Instagram' },
-                                  { key: 'tiktok',    label: 'TikTok'    },
-                                  { key: 'youtube',   label: 'YouTube'   },
-                                  { key: 'facebook',  label: 'Facebook'  },
-                                  { key: 'twitter',   label: 'Twitter/X' },
-                                ].filter(r => app[r.key]).map(r => (
-                                  <a key={r.key} href={app[r.key]} target="_blank" rel="noopener noreferrer" className="text-xs text-primary underline hover:opacity-70">
-                                    {r.label}: {app[r.key]}
-                                  </a>
-                                ))}
-                              </div>
-                              <p className="text-xs text-muted-foreground line-clamp-2 mt-2">{app.whyIsekai}</p>
-                              <button onClick={() => setSelectedApplication(app)} className="text-xs text-primary underline mt-2 hover:opacity-70">
-                                Ver detalle completo
+                            </div>
+                          </div>
+
+                          {app.status === 'pending' && (
+                            <div className="flex flex-col sm:flex-row gap-2 px-5 py-3.5 bg-[#fafafa] border-t border-[#f0f0f0]">
+                              <button
+                                className="flex-1 flex items-center justify-center gap-1.5 bg-[#111] text-white py-2.5 rounded-xl font-bold text-sm hover:bg-[#333] transition-colors"
+                                onClick={() => { setShowApproveModal(app); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); }}
+                              >
+                                <CheckCircle2 className="w-4 h-4" /> Aprobar
+                              </button>
+                              <button
+                                className="flex-1 flex items-center justify-center gap-1.5 border border-red-200 text-red-500 py-2.5 rounded-xl font-bold text-sm hover:bg-red-50 transition-colors"
+                                onClick={() => { setShowRejectModal(app); setRejectReason(''); }}
+                              >
+                                <X className="w-4 h-4" /> Rechazar
                               </button>
                             </div>
-                            {app.status === 'pending' && (
-                              <div className="flex flex-col sm:flex-row gap-2 w-full">
-                                <button
-                                  className="flex-1 w-full bg-[#111] text-white py-3 rounded-xl font-bold text-sm"
-                                  onClick={() => { setShowApproveModal(app); setApproveForm({ tier: getTierByFollowers(0), totalFollowers: 0 }); }}
-                                >
-                                  <CheckCircle2 className="w-4 h-4 inline mr-1.5" /> Aprobar
-                                </button>
-                                <button
-                                  className="flex-1 w-full border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm"
-                                  onClick={() => { setShowRejectModal(app); setRejectReason(''); }}
-                                >
-                                  <X className="w-4 h-4 inline mr-1.5" /> Rechazar
-                                </button>
-                              </div>
-                            )}
-                          </div>
+                          )}
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   </div>
                 )}

@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gt, gte, ilike, inArray, isNull, like, lte, or, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, gte, ilike, inArray, isNull, like, lt, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail } from "./_core/notification";
 import { io } from "./_core/socket";
@@ -464,13 +464,15 @@ export async function createOrder(data: {
   return orderResult;
 }
 
-export async function getOrders(opts: { userId?: number; status?: string; limit?: number; offset?: number }) {
+export async function getOrders(opts: { userId?: number; status?: string; limit?: number; offset?: number; archived?: boolean }) {
   const db = await getDb();
   if (!db) return { items: [], total: 0 };
 
   const conditions = [];
   if (opts.userId) conditions.push(eq(orders.userId, opts.userId));
   if (opts.status) conditions.push(eq(orders.status, opts.status as Order["status"]));
+  // Por defecto la bandeja muestra solo los pedidos activos
+  if (opts.archived !== undefined) conditions.push(eq(orders.archived, opts.archived));
   const where = conditions.length > 0 ? and(...conditions) : undefined;
 
   const items = await db.select().from(orders).where(where).orderBy(desc(orders.createdAt)).limit(opts.limit ?? 20).offset(opts.offset ?? 0);
@@ -1962,4 +1964,32 @@ export async function deleteGiftCard(id: number) {
   const rows = await db.select().from(giftCards).where(eq(giftCards.id, id)).limit(1);
   if (rows[0]?.status === 'used') throw new Error('No se puede eliminar una tarjeta ya usada');
   await db.delete(giftCards).where(eq(giftCards.id, id));
+}
+
+/** Archiva o desarchiva un pedido (no lo borra) */
+export async function setOrderArchived(id: number, archived: boolean) {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(orders)
+    .set({ archived, archivedAt: archived ? new Date() : null })
+    .where(eq(orders.id, id));
+  return getOrderById(id);
+}
+
+/** Archiva en lote todos los pedidos entregados o cancelados anteriores a una fecha */
+export async function archiveOldOrders(before: Date) {
+  const db = await getDb();
+  if (!db) return 0;
+  const targets = await db.select({ id: orders.id }).from(orders).where(
+    and(
+      eq(orders.archived, false),
+      inArray(orders.status, ["delivered", "cancelled"]),
+      lt(orders.createdAt, before),
+    )
+  );
+  if (targets.length === 0) return 0;
+  await db.update(orders)
+    .set({ archived: true, archivedAt: new Date() })
+    .where(inArray(orders.id, targets.map(t => t.id)));
+  return targets.length;
 }
