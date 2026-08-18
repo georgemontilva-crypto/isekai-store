@@ -381,7 +381,7 @@ export default function Navbar() {
               <Link
                 href="/cosplay"
                 onClick={() => setMobileOpen(false)}
-                className="mx-auto mt-5 inline-flex min-w-[220px] items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-7 py-3.5 text-[15px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+                className="my-4 inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
               >
                 Cosplay Guild
               </Link>
@@ -389,7 +389,7 @@ export default function Navbar() {
               <Link
                 href="/world-fest"
                 onClick={() => setMobileOpen(false)}
-                className="wf-pill relative mx-auto mb-5 mt-3 inline-flex min-w-[220px] items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-7 py-3.5 text-[15px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+                className="wf-pill relative mb-4 inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-5 py-3 text-[14px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
               >
                 World Fest
               </Link>

@@ -896,8 +896,9 @@ html, body {
   overflow-x: hidden;
   max-width: 100%;
 }
-*, *::before, *::after { min-width: 0; }
-img, video, svg, canvas, iframe { max-width: 100%; height: auto; }
+/* Ojo: los <svg> quedan FUERA de esta regla a propósito. Los iconos traen su
+   propio width/height y forzarles height:auto los encoge en móvil. */
+img, video, iframe { max-width: 100%; }
 
 /* El panel admin conserva su esquema claro aunque el sitio esté en oscuro:
    tiene su propio diseño y no se pidió cambiarlo. */
