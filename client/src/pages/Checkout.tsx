@@ -94,6 +94,12 @@ export default function Checkout() {
   const giftDiscount = appliedGiftCard ? parseFloat(appliedGiftCard.discount) : 0;
   const finalTotal = Math.max(0, subtotal - giftDiscount);
 
+  // Tasa del día en bolívares (panel admin → clave `bs_rate`).
+  // Solo aplica a Pago Móvil; si no está configurada, no se muestra nada.
+  const bsRate = parseFloat(siteSettings?.["bs_rate"] ?? "");
+  const hasBsRate = Number.isFinite(bsRate) && bsRate > 0;
+  const totalBs = hasBsRate ? finalTotal * bsRate : 0;
+
   /** Paso 1: validar el formulario y abrir el modal con los datos de pago */
   const onSubmitOrder = (data: FormData) => {
     if (items.length === 0) { toast.error(t.checkout.empty); return; }
@@ -387,6 +393,21 @@ export default function Checkout() {
                       <span className="font-black text-[#e5007d]">${finalTotal.toFixed(2)} USD</span>
                     </div>
                   </div>
+
+                  {/* Total en bolívares a la tasa del día — solo para Pago Móvil */}
+                  {hasBsRate && paymentMethod === "pago_movil" && (
+                    <div className="mb-4 rounded-xl border border-[#e5007d] bg-[#e5007d]/[0.03] px-4 py-3">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <span className="text-sm font-semibold text-[#e5007d]">Total en bolívares</span>
+                        <span className="text-base font-black text-[#e5007d]">
+                          Bs {totalBs.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-[#888]">
+                        Tasa del día: Bs {bsRate.toLocaleString("es-VE", { minimumFractionDigits: 2 })} por USD
+                      </p>
+                    </div>
+                  )}
 
                   {/* Campo tarjeta de regalo / cupón */}
                   <div className="mb-4">
