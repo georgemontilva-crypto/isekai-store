@@ -91,7 +91,7 @@ export default function Footer() {
 
             {/* Collections */}
             <div>
-              <h4 className="font-semibold text-[13px] mb-5 text-white">{t.footer.collections}</h4>
+              <h4 className="footer-heading font-semibold text-[13px] mb-5 text-white">{t.footer.collections}</h4>
               <ul className="space-y-3">
                 {categories.slice(0, FOOTER_COLLECTIONS_LIMIT).map(cat => (
                   <li key={cat.id}><Link href={`/catalog?category=${cat.slug}`} className="text-[13px] text-white/55 hover:text-white transition-colors">{cat.name}</Link></li>
@@ -108,7 +108,7 @@ export default function Footer() {
 
             {/* Info */}
             <div>
-              <h4 className="font-semibold text-[13px] mb-5 text-white">{t.footer.info}</h4>
+              <h4 className="footer-heading font-semibold text-[13px] mb-5 text-white">{t.footer.info}</h4>
               <ul className="space-y-3">
                 {t.footer.infoLinks.map(({ label, href }) => (
                   <li key={label}><Link href={href} className="text-[13px] text-white/55 hover:text-white transition-colors">{label}</Link></li>

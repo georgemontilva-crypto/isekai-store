@@ -165,7 +165,7 @@ export default function Navbar() {
   return (
     <>
       {/* TOP BAR */}
-      <div className="bg-[#1a1a1a] text-white text-[11px]">
+      <div className="top-bar bg-[#1a1a1a] text-white text-[11px]">
         <div className="hidden md:flex container items-center justify-between h-9">
           <div className="hidden md:flex items-center gap-3">
             <a href="#" aria-label="Facebook" className="opacity-60 hover:opacity-100 transition-opacity"><Facebook size={12}/></a>
