@@ -1,4 +1,4 @@
-import { useEffect, useRef, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -23,6 +23,29 @@ const Account = lazy(() => import("./pages/Account"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminMobile = lazy(() => import("./pages/AdminMobile"));
+
+/** Decide entre el panel de escritorio y el de teléfono.
+    Antes se leía window.innerWidth una sola vez, así que al girar el
+    teléfono o cambiar el tamaño de la ventana se quedaba en la versión
+    equivocada hasta recargar. */
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== "undefined" && window.innerWidth < breakpoint
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint - 1}px)`);
+    const onChange = () => setIsMobile(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [breakpoint]);
+  return isMobile;
+}
+
+function AdminRoute() {
+  const isMobile = useIsMobile();
+  return isMobile ? <AdminMobile /> : <Admin />;
+}
 const Nosotros = lazy(() => import("./pages/Nosotros"));
 const FAQ = lazy(() => import("./pages/FAQ"));
 const Politicas = lazy(() => import("./pages/Politicas"));
@@ -84,7 +107,7 @@ function Router() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/checkout/success" component={CheckoutSuccess} />
         <Route path="/account" component={Account} />
-        <Route path="/admin">{window.innerWidth < 768 ? <AdminMobile /> : <Admin />}</Route>
+        <Route path="/admin" component={AdminRoute} />
         <Route path="/nosotros" component={Nosotros} />
         <Route path="/faq" component={FAQ} />
         <Route path="/politicas" component={Politicas} />
@@ -139,7 +162,7 @@ function App() {
   return (
     <ErrorBoundary>
       <LangProvider>
-      <ThemeProvider defaultTheme="light" switchable>
+      <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <CartProvider>
             <Toaster />

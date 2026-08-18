@@ -824,13 +824,43 @@ export const appRouter = router({
   // ─── Newsletter ─────────────────────────────────────────────────────────────
   newsletter: router({
     subscribe: publicProcedure
-      .input(z.object({ email: z.string().email() }))
+      .input(z.object({
+        email: z.string().email(),
+        /** De dónde vino el registro: cambia el aviso que recibe el dueño */
+        source: z.enum(["newsletter", "worldfest"]).default("newsletter"),
+      }))
       .mutation(async ({ input }) => {
+        const esWorldFest = input.source === "worldfest";
+        const etiqueta = esWorldFest ? "World Fest" : "Newsletter";
+
+        // El aviso al dueño va PRIMERO y por separado: si Mailchimp falla o no
+        // está configurado, el registro no se pierde silenciosamente.
+        try {
+          await insertAdminNotification({
+            type: "new_subscriber",
+            title: esWorldFest ? "Registro en World Fest" : "Nuevo suscriptor",
+            body: input.email,
+          });
+        } catch (e) { console.error("Failed to insert subscriber notification:", e); }
+
+        try {
+          await notifyOwner({
+            title: esWorldFest ? `Registro en World Fest — ${input.email}` : `Nuevo suscriptor — ${input.email}`,
+            content: `
+              <p><strong>Correo:</strong> ${input.email}</p>
+              <p><strong>Origen:</strong> ${etiqueta}</p>
+              <p><strong>Fecha:</strong> ${new Date().toLocaleString("es-VE")}</p>
+            `,
+          });
+        } catch (e) { console.error("Failed to email owner about subscriber:", e); }
+
         console.log("[Mailchimp] apiKey:", ENV.mailchimpApiKey ? "SET" : "EMPTY");
         console.log("[Mailchimp] listId:", ENV.mailchimpListId ? "SET" : "EMPTY");
         console.log("[Mailchimp] dc:", ENV.mailchimpDc ? "SET" : "EMPTY");
         if (!ENV.mailchimpApiKey || !ENV.mailchimpListId || !ENV.mailchimpDc) {
-          throw new Error("Mailchimp no configurado");
+          // Sin Mailchimp el registro igual vale: ya quedó el aviso al dueño
+          console.warn("[Mailchimp] No configurado — se omite el alta en la lista");
+          return { success: true, mailchimp: false };
         }
         const url = `https://${ENV.mailchimpDc}.api.mailchimp.com/3.0/lists/${ENV.mailchimpListId}/members`;
         const res = await fetch(url, {
@@ -843,13 +873,12 @@ export const appRouter = router({
         });
         if (!res.ok) {
           const err = await res.json() as { title?: string; detail?: string };
-          if (err.title === "Member Exists") return { success: true };
-          throw new Error(err.detail ?? "Error Mailchimp");
+          if (err.title === "Member Exists") return { success: true, mailchimp: true };
+          // El correo al dueño ya salió, así que no se pierde el registro
+          console.error("[Mailchimp] Error al dar de alta:", err.detail);
+          return { success: true, mailchimp: false };
         }
-        try {
-          await insertAdminNotification({ type: "new_subscriber", title: "Nuevo suscriptor", body: input.email });
-        } catch (e) { console.error("Failed to insert subscriber notification:", e); }
-        return { success: true };
+        return { success: true, mailchimp: true };
       }),
   }),
 

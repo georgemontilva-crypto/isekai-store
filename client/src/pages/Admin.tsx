@@ -1012,7 +1012,7 @@ export default function Admin() {
 
   return (
     /* App shell: alto fijo, solo scrollea el contenido de la derecha */
-    <div className="admin-shell h-[100dvh] overflow-hidden bg-[#f6f6f7] flex">
+    <div className="h-[100dvh] overflow-hidden bg-[#f6f6f7] flex">
       {/* Sidebar */}
       <aside
         className={`fixed lg:static top-0 left-0 z-40 h-[100dvh] w-60 shrink-0 bg-white border-r border-[#e8e8ea] flex flex-col transition-transform lg:translate-x-0 ${

@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { useTheme } from "@/contexts/ThemeContext";
-import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell, Sun, Moon } from "lucide-react";
+import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { openLoginModal } from "@/const";
@@ -51,7 +50,6 @@ const WORLD_FEST_GLOW = `
 `;
 
 export default function Navbar() {
-  const { theme, toggleTheme } = useTheme();
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -165,7 +163,7 @@ export default function Navbar() {
   return (
     <>
       {/* TOP BAR */}
-      <div className="top-bar bg-[#1a1a1a] text-white text-[11px]">
+      <div className="bg-[#1a1a1a] text-white text-[11px]">
         <div className="hidden md:flex container items-center justify-between h-9">
           <div className="hidden md:flex items-center gap-3">
             <a href="#" aria-label="Facebook" className="opacity-60 hover:opacity-100 transition-opacity"><Facebook size={12}/></a>
@@ -248,14 +246,6 @@ export default function Navbar() {
           {/* Right icons */}
           <div className="flex items-center gap-1 ml-auto">
             <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
-            <button
-              onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-              title={theme === "dark" ? "Modo claro" : "Modo oscuro"}
-              className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"
-            >
-              {theme === "dark" ? <Sun size={17} strokeWidth={1.8}/> : <Moon size={17} strokeWidth={1.8}/>}
-            </button>
             {isAuthenticated && user?.role === "admin" && (
               <Link href="/admin" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />

@@ -10,6 +10,7 @@ import {
   Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
+import PullToRefresh from '@/components/admin/PullToRefresh';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
@@ -1963,6 +1964,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
 // ============ COMPONENTE PRINCIPAL ============
 export default function AdminMobile() {
   const [activeTab, setActiveTab] = useState<MobileTab>('stats');
+  const utils = trpc.useUtils();
   const { user, isAuthenticated, loading, logout } = useAuth();
   const [, navigate] = useLocation();
 
@@ -2054,7 +2056,10 @@ export default function AdminMobile() {
       </div>}
 
       {/* Contenido */}
-      <div className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
+      <PullToRefresh
+        onRefresh={() => utils.invalidate()}
+        className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}
+      >
         {activeTab === 'stats'    && <StatsSection />}
         {activeTab === 'orders'   && <OrdersSection onCreateOrder={() => setActiveTab('newOrder')} />}
         {activeTab === 'payments' && <PaymentsSection />}
@@ -2067,7 +2072,7 @@ export default function AdminMobile() {
         {activeTab === 'blog'        && <BlogSection onModalChange={setBlogHasModal} />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
         {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
-      </div>
+      </PullToRefresh>
 
       {/* Modal notificaciones */}
       {showNotifications && (
@@ -2117,7 +2122,8 @@ export default function AdminMobile() {
           {TABS.map(tab => (
             <button key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className="flex-1 flex flex-col items-center justify-center py-2 relative transition-colors"
+              className="flex-1 flex flex-col items-center justify-center relative transition-transform active:scale-95 select-none"
+              style={{ minHeight: 56, WebkitTapHighlightColor: 'transparent' }}
             >
               <div className="relative">
                 <tab.icon size={22} className={activeTab === tab.id ? 'text-[#e5007d]' : 'text-[#999]'} />

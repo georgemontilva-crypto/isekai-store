@@ -21,7 +21,48 @@
       "purpose": "any maskable"
     }
   ],
-  "categories": ["shopping", "entertainment"],
+  "categories": [
+    "shopping",
+    "entertainment"
+  ],
   "lang": "es",
-  "dir": "ltr"
+  "dir": "ltr",
+  "shortcuts": [
+    {
+      "name": "Panel admin",
+      "short_name": "Panel",
+      "description": "Gestiona pedidos, pagos y productos",
+      "url": "/admin",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Mi cuenta",
+      "short_name": "Cuenta",
+      "description": "Tus pedidos y datos",
+      "url": "/account",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Catálogo",
+      "short_name": "Tienda",
+      "description": "Ver todos los productos",
+      "url": "/catalog",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ]
 }

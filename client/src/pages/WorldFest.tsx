@@ -92,7 +92,7 @@ export default function WorldFest() {
       toast.error("Escribe un correo válido");
       return;
     }
-    subscribe.mutate({ email: value });
+    subscribe.mutate({ email: value, source: "worldfest" });
   };
 
   const corners = (
@@ -105,7 +105,7 @@ export default function WorldFest() {
   );
 
   return (
-    <div className={`wf-page relative min-h-screen text-[#dceaff] ${bgVideo ? "bg-[#04060f]/0" : "bg-[#04060f]"}`}>
+    <div className={`relative min-h-screen text-[#dceaff] ${bgVideo ? "bg-[#04060f]/0" : "bg-[#04060f]"}`}>
       {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
           de arriba son translúcidas para que se siga viendo el efecto. */}
       {bgVideo && (
