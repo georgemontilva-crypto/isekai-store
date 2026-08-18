@@ -21,6 +21,34 @@ const DEFAULT_ALL_HREF = "/catalog";
 const dropdownVariants = { hidden:{opacity:0,y:-8,scale:0.98}, visible:{opacity:1,y:0,scale:1}, exit:{opacity:0,y:-6,scale:0.98} };
 type ActiveMenu = "collections"|"explore"|null;
 
+
+/* Brillo del botón World Fest: destello que barre el pill + halo azul del Sistema */
+const WORLD_FEST_GLOW = `
+  @keyframes wf-sheen {
+    0%   { transform: translateX(-130%) skewX(-20deg); }
+    55%  { transform: translateX(230%)  skewX(-20deg); }
+    100% { transform: translateX(230%)  skewX(-20deg); }
+  }
+  @keyframes wf-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(93,180,255,0.35), 0 0 14px 0 rgba(93,180,255,0.22); }
+    50%      { box-shadow: 0 0 0 4px rgba(93,180,255,0.00), 0 0 24px 4px rgba(125,216,255,0.55); }
+  }
+  .wf-pill { animation: wf-pulse 2.8s ease-in-out infinite; }
+  .wf-pill::after {
+    content: "";
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    width: 38%;
+    background: linear-gradient(90deg, transparent, rgba(190,240,255,0.9), transparent);
+    animation: wf-sheen 3.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wf-pill { animation: none; }
+    .wf-pill::after { animation: none; opacity: 0; }
+  }
+`;
+
 export default function Navbar() {
   const [location] = useLocation();
   const [scrolled, setScrolled] = useState(false);
@@ -204,6 +232,15 @@ export default function Navbar() {
             >
               Cosplay Guild
             </Link>
+
+            {/* Botón destacado: World Fest — mismo pill, con destello */}
+            <style>{WORLD_FEST_GLOW}</style>
+            <Link
+              href="/world-fest"
+              className="wf-pill relative ml-2 inline-flex items-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-4 py-1.5 text-[13px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+            >
+              World Fest
+            </Link>
           </nav>
 
           {/* Right icons */}
@@ -334,9 +371,17 @@ export default function Navbar() {
               <Link
                 href="/cosplay"
                 onClick={() => setMobileOpen(false)}
-                className="my-4 inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+                className="mt-4 inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
               >
                 Cosplay Guild
+              </Link>
+              <style>{WORLD_FEST_GLOW}</style>
+              <Link
+                href="/world-fest"
+                onClick={() => setMobileOpen(false)}
+                className="wf-pill relative mb-4 mt-2.5 inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-5 py-3 text-[14px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+              >
+                World Fest
               </Link>
               {exploreMenu.map(item => (
                 <Link key={item.href} href={item.href} onClick={() => setMobileOpen(false)} className="py-3 text-[14px] text-[#555] border-b border-[#f0f0f0] hover:opacity-50 transition-opacity flex items-center justify-between">

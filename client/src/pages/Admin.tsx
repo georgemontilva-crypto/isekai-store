@@ -2570,6 +2570,53 @@ export default function Admin() {
                   </div>
                 </div>
 
+                {/* 12. World Fest */}
+                <div className="p-6 rounded-2xl bg-card border border-border/50 lg:col-span-2">
+                  <div className="flex items-center gap-3 mb-5">
+                    <div className="w-9 h-9 rounded-xl bg-[#e5007d]/10 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-[#e5007d]" strokeWidth={1.5} />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold">World Fest</h3>
+                      <p className="text-xs text-muted-foreground">Textos de la página del festival — las imágenes se asignan en Medios</p>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    {[
+                      { k: "worldfest_kicker",     label: "Línea superior",  ph: "Maracaibo · Venezuela" },
+                      { k: "worldfest_title",      label: "Título",          ph: "WORLD FEST" },
+                      { k: "worldfest_date_label", label: "Estado / fecha",  ph: "Fecha por anunciar" },
+                      { k: "worldfest_subtitle",   label: "Descripción",     ph: "El primer festival de Isekai World..." },
+                    ].map(({ k, label, ph }) => (
+                      <div key={k}>
+                        <Label className="text-xs font-medium">{label}</Label>
+                        <div className="flex gap-2 mt-1">
+                          <Input
+                            placeholder={ph}
+                            defaultValue={siteSettings?.[k] ?? ""}
+                            onChange={(e) => setBannerDrafts(d => ({ ...d, [k]: e.target.value }))}
+                            className="bg-muted border-border/50 text-sm"
+                          />
+                          <Button
+                            size="sm"
+                            className="bg-primary text-primary-foreground shrink-0"
+                            onClick={() => {
+                              const val = bannerDrafts[k] !== undefined ? bannerDrafts[k] : siteSettings?.[k] ?? "";
+                              if (val) upsertSetting.mutate({ key: k, value: val });
+                            }}
+                          >
+                            <Save className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="mt-4 text-xs text-muted-foreground">
+                    Si dejas un campo vacío, la página usa su texto por defecto.
+                  </p>
+                </div>
+
                 {/* 11. Cosplay Guild */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">

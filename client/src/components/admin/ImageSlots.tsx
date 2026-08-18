@@ -141,6 +141,17 @@ const PAGES: PageGroup[] = [
     ],
   },
   {
+    page: "World Fest",
+    slots: [
+      { kind: "site", key: "worldfest_hero_image", label: "Fondo del hero",
+        where: "Imagen a pantalla completa detrás del título en /world-fest.",
+        spec: "Horizontal, ~2400 × 1400 px. Se oscurece y lleva texto encima, así que mejor con zonas despejadas." },
+      { kind: "site", key: "worldfest_teaser_image", label: "Imagen del festival",
+        where: "Bloque ancho a mitad de la página, debajo de las pistas.",
+        spec: "Horizontal, ~2000 × 1100 px." },
+    ],
+  },
+  {
     page: "Link in bio",
     slots: [
       { kind: "site", key: "linkbio_avatar_image", label: "Avatar",
