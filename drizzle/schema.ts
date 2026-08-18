@@ -164,6 +164,22 @@ export const orders = mysqlTable("orders", {
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 
+// ─── Media Library ────────────────────────────────────────────────────────────
+// Depósito central de archivos subidos a R2. Subir aquí NO publica nada:
+// después hay que asignar el archivo a su espacio desde el gestor de imágenes.
+export const mediaAssets = mysqlTable("mediaAssets", {
+  id: int("id").autoincrement().primaryKey(),
+  url: text("url").notNull(),
+  storageKey: varchar("storageKey", { length: 512 }).notNull(),
+  fileName: varchar("fileName", { length: 256 }).notNull(),
+  mimeType: varchar("mimeType", { length: 100 }).notNull(),
+  sizeBytes: int("sizeBytes").notNull().default(0),
+  altText: varchar("altText", { length: 512 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type MediaAsset = typeof mediaAssets.$inferSelect;
+
 // ─── Order Items ──────────────────────────────────────────────────────────────
 export const orderItems = mysqlTable("orderItems", {
   id: int("id").autoincrement().primaryKey(),

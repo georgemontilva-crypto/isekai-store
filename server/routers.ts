@@ -17,6 +17,7 @@ import {
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders,
+  listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
@@ -724,6 +725,56 @@ export const appRouter = router({
 
     adminList: adminProcedure
       .query(() => getAllInstallmentPlans()),
+  }),
+
+  // ─── Media Library ───────────────────────────────────────────────────────────
+  media: router({
+    list: adminProcedure.query(() => listMediaAssets({ limit: 200 })),
+
+    upload: adminProcedure
+      .input(z.object({ fileName: z.string().max(256), contentType: z.string().max(100), base64Data: z.string() }))
+      .mutation(async ({ input }) => {
+        const buffer = Buffer.from(input.base64Data, "base64");
+        validateUpload(input.contentType, buffer);
+        const storageKey = `media/${Date.now()}-${input.fileName.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+        const { url } = await storagePut(storageKey, buffer, input.contentType);
+        return insertMediaAsset({
+          url,
+          storageKey,
+          fileName: input.fileName,
+          mimeType: input.contentType,
+          sizeBytes: buffer.length,
+        });
+      }),
+
+    updateAlt: adminProcedure
+      .input(z.object({ id: z.number(), altText: z.string().max(512) }))
+      .mutation(({ input }) => updateMediaAlt(input.id, input.altText)),
+
+    /** Dónde se está usando este archivo (para avisar antes de borrarlo) */
+    usage: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const asset = await getMediaAsset(input.id);
+        if (!asset) return { keys: [] as string[] };
+        return { keys: await findSettingsUsingUrl(asset.url) };
+      }),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const asset = await getMediaAsset(input.id);
+        if (!asset) throw new TRPCError({ code: "NOT_FOUND", message: "Archivo no encontrado" });
+        let storageDeleted = true;
+        try {
+          await storageDelete(asset.storageKey);
+        } catch (e) {
+          console.error("[Media] No se pudo borrar de R2:", e);
+          storageDeleted = false;
+        }
+        await deleteMediaAsset(input.id);
+        return { storageDeleted };
+      }),
   }),
 
   // ─── Site Settings ────────────────────────────────────────────────────────────────────────────────────────

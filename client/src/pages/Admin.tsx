@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -16,9 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -986,6 +987,7 @@ export default function Admin() {
     { id: "categories" as AdminTab, label: "Categorías", icon: Tag },
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
     { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
+    { id: "media" as AdminTab,    label: "Medios",        icon: ImageIcon },
     { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
     { id: "faq" as AdminTab,      label: "FAQ",           icon: HelpCircle },
     { id: "linkbio" as AdminTab,  label: "LinkBio",       icon: Link2 },
@@ -2053,6 +2055,13 @@ export default function Admin() {
               </motion.div>
             )}
 
+          {/* ─── Media Tab ────────────────────────────────────────────────────── */}
+            {tab === "media" && (
+              <motion.div key="media" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <MediaLibrary onGoToTab={(t: string) => handleTabChange(t as AdminTab)} />
+              </motion.div>
+            )}
+
           {/* ─── Settings Tab ─────────────────────────────────────────────────── */}
           <AnimatePresence mode="wait">
             {tab === "settings" && (
@@ -2105,59 +2114,6 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* Logo light (navbar) */}
-                  <div className="mb-5">
-                    <Label className="text-sm font-medium">Logo principal (navbar, fondo claro)</Label>
-                    <p className="text-xs text-muted-foreground mb-1.5">Versión para fondo blanco — PNG con transparencia recomendado</p>
-                    <div className="flex items-start gap-3">
-                      {(bannerDrafts["store_logo_url"] || siteSettings?.["store_logo_url"]) && (
-                        <div className="w-20 h-20 rounded-xl border border-border/50 bg-[#f5f5f5] flex items-center justify-center overflow-hidden shrink-0">
-                          <img src={bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"]} className="w-full h-full object-contain p-1" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <Input
-                          placeholder="https://... o sube una imagen"
-                          value={bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"] ?? ""}
-                          onChange={(e) => setBannerDrafts(d => ({ ...d, store_logo_url: e.target.value }))}
-                          className="bg-muted border-border/50 text-sm"
-                        />
-                      </div>
-                      <label className="cursor-pointer shrink-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Subir
-                        </span>
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const base64 = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
-                            reader.onerror = reject;
-                            reader.readAsDataURL(file);
-                          });
-                          try {
-                            const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                            setBannerDrafts(d => ({ ...d, store_logo_url: url }));
-                            upsertSetting.mutate({ key: "store_logo_url", value: url });
-                            toast.success("Logo subido");
-                          } catch { toast.error("Error al subir logo"); }
-                        }} />
-                      </label>
-                      <Button
-                        size="sm"
-                        className="bg-primary text-primary-foreground shrink-0"
-                        onClick={() => {
-                          const val = bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"] ?? "";
-                          if (val) upsertSetting.mutate({ key: "store_logo_url", value: val });
-                        }}
-                        disabled={!(bannerDrafts["store_logo_url"] ?? siteSettings?.["store_logo_url"])}
-                      >
-                        <Save className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
                   {/* Navbar logo height */}
                   <div className="mt-4">
                     <Label className="text-sm font-medium">Tamaño del logo (navbar)</Label>
@@ -2179,59 +2135,6 @@ export default function Admin() {
                           const val = bannerDrafts["store_logo_height"] !== undefined ? bannerDrafts["store_logo_height"] : siteSettings?.["store_logo_height"] ?? "36";
                           upsertSetting.mutate({ key: "store_logo_height", value: val });
                         }}
-                      >
-                        <Save className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Logo dark (footer) */}
-                  <div className="mt-5">
-                    <Label className="text-sm font-medium">Logo oscuro (footer, fondo negro)</Label>
-                    <p className="text-xs text-muted-foreground mb-1.5">Versión blanca o clara del logo para el footer — si no hay, se usa el logo principal</p>
-                    <div className="flex items-start gap-3">
-                      {(bannerDrafts["store_logo_dark_url"] || siteSettings?.["store_logo_dark_url"]) && (
-                        <div className="w-20 h-20 rounded-xl border border-border/50 bg-[#1a1a1a] flex items-center justify-center overflow-hidden shrink-0">
-                          <img src={bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"]} className="w-full h-full object-contain p-1" />
-                        </div>
-                      )}
-                      <div className="flex-1">
-                        <Input
-                          placeholder="https://... o sube una imagen"
-                          value={bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"] ?? ""}
-                          onChange={(e) => setBannerDrafts(d => ({ ...d, store_logo_dark_url: e.target.value }))}
-                          className="bg-muted border-border/50 text-sm"
-                        />
-                      </div>
-                      <label className="cursor-pointer shrink-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Subir
-                        </span>
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-                          const base64 = await new Promise<string>((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
-                            reader.onerror = reject;
-                            reader.readAsDataURL(file);
-                          });
-                          try {
-                            const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                            setBannerDrafts(d => ({ ...d, store_logo_dark_url: url }));
-                            upsertSetting.mutate({ key: "store_logo_dark_url", value: url });
-                            toast.success("Logo oscuro subido");
-                          } catch { toast.error("Error al subir logo"); }
-                        }} />
-                      </label>
-                      <Button
-                        size="sm"
-                        className="bg-primary text-primary-foreground shrink-0"
-                        onClick={() => {
-                          const val = bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"] ?? "";
-                          if (val) upsertSetting.mutate({ key: "store_logo_dark_url", value: val });
-                        }}
-                        disabled={!(bannerDrafts["store_logo_dark_url"] ?? siteSettings?.["store_logo_dark_url"])}
                       >
                         <Save className="w-4 h-4" />
                       </Button>
@@ -2461,65 +2364,6 @@ export default function Admin() {
                       </div>
                     ))}
                   </div>
-
-                  {/* Image upload */}
-                  <div className="mt-4">
-                    <Label className="text-xs font-medium">Imagen</Label>
-                    <div className="flex gap-2 mt-1 items-start">
-                      <div className="flex-1">
-                        <Input
-                          placeholder="URL de imagen o sube un archivo"
-                          value={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? ""}
-                          onChange={(e) => setBannerDrafts(d => ({ ...d, brand_story_image: e.target.value }))}
-                          className="bg-muted border-border/50 text-sm"
-                        />
-                        {(bannerDrafts["brand_story_image"] || siteSettings?.["brand_story_image"]) && (
-                          <img
-                            src={bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"]}
-                            className="mt-2 h-24 w-40 object-cover rounded-lg border border-border/30"
-                          />
-                        )}
-                      </div>
-                      <label className="cursor-pointer shrink-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Subir
-                        </span>
-                        <input
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const base64 = await new Promise<string>((resolve, reject) => {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
-                              reader.onerror = reject;
-                              reader.readAsDataURL(file);
-                            });
-                            try {
-                              const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                              setBannerDrafts(d => ({ ...d, brand_story_image: url }));
-                              upsertSetting.mutate({ key: "brand_story_image", value: url });
-                              toast.success("Imagen subida");
-                            } catch {
-                              toast.error("Error al subir imagen");
-                            }
-                          }}
-                        />
-                      </label>
-                      <Button
-                        size="sm"
-                        className="bg-primary text-primary-foreground shrink-0"
-                        onClick={() => {
-                          const val = bannerDrafts["brand_story_image"] ?? siteSettings?.["brand_story_image"] ?? "";
-                          if (val) upsertSetting.mutate({ key: "brand_story_image", value: val });
-                        }}
-                      >
-                        <Save className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
                 </div>
 
                 {/* 4. Redes sociales / Promo bar — right col */}
@@ -2618,54 +2462,6 @@ export default function Admin() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div>
-                      <Label className="text-xs font-medium">Imagen del banner</Label>
-                      <div className="flex items-start gap-2 mt-1">
-                        <div className="flex-1">
-                          <Input
-                            placeholder="https://... o sube una imagen"
-                            value={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? ""}
-                            onChange={(e) => setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: e.target.value }))}
-                            className="bg-muted border-border/50 text-sm"
-                          />
-                          {(bannerDrafts["product_sidebar_banner_image"] || siteSettings?.["product_sidebar_banner_image"]) && (
-                            <img src={bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"]} className="mt-2 h-28 w-full object-cover rounded-lg border border-border/30" />
-                          )}
-                        </div>
-                        <label className="cursor-pointer shrink-0">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                            <Upload className="w-3.5 h-3.5" /> Subir
-                          </span>
-                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
-                            const base64 = await new Promise<string>((resolve, reject) => {
-                              const reader = new FileReader();
-                              reader.onload = (ev) => resolve((ev.target?.result as string).split(",")[1]);
-                              reader.onerror = reject;
-                              reader.readAsDataURL(file);
-                            });
-                            try {
-                              const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
-                              setBannerDrafts(d => ({ ...d, product_sidebar_banner_image: url }));
-                              upsertSetting.mutate({ key: "product_sidebar_banner_image", value: url });
-                              toast.success("Banner subido");
-                            } catch { toast.error("Error al subir imagen"); }
-                          }} />
-                        </label>
-                        <Button
-                          size="sm"
-                          className="bg-primary text-primary-foreground shrink-0"
-                          onClick={() => {
-                            const val = bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"] ?? "";
-                            if (val) upsertSetting.mutate({ key: "product_sidebar_banner_image", value: val });
-                          }}
-                          disabled={!(bannerDrafts["product_sidebar_banner_image"] ?? siteSettings?.["product_sidebar_banner_image"])}
-                        >
-                          <Save className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
                     <div>
                       <Label className="text-xs font-medium">URL destino (al hacer click)</Label>
                       <div className="flex gap-2 mt-1">
@@ -3292,101 +3088,19 @@ export default function Admin() {
                     </div>
                   </div>
 
-                  {/* Banner image */}
-                  <div>
-                    <Label className="text-xs font-medium">Imagen de banner</Label>
-                    <div className="flex gap-2 mt-1 items-start">
-                      <div className="flex-1">
-                        <Input
-                          placeholder="URL de imagen"
-                          value={bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"] ?? ""}
-                          onChange={e => setBannerDrafts(d => ({ ...d, linkbio_banner_image: e.target.value }))}
-                          className="bg-muted border-border/50 text-sm"
-                        />
-                        {(bannerDrafts["linkbio_banner_image"] || siteSettings?.["linkbio_banner_image"]) && (
-                          <img src={bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"]} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" alt="" />
-                        )}
-                      </div>
-                      <label className="cursor-pointer shrink-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Subir
-                        </span>
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0]; if (!file) return;
-                          const base64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = ev => res((ev.target?.result as string).split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
-                          try { const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 }); setBannerDrafts(d => ({ ...d, linkbio_banner_image: url })); upsertSetting.mutate({ key: "linkbio_banner_image", value: url }); toast.success("Imagen subida"); } catch { toast.error("Error al subir imagen"); }
-                        }} />
-                      </label>
-                      <Button size="sm" className="bg-primary text-primary-foreground shrink-0"
-                        onClick={() => { const val = bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"] ?? ""; if (val) upsertSetting.mutate({ key: "linkbio_banner_image", value: val }); }}
-                        disabled={!(bannerDrafts["linkbio_banner_image"] ?? siteSettings?.["linkbio_banner_image"])}
-                      ><Save className="w-4 h-4" /></Button>
-                    </div>
-                  </div>
-
-                  {/* Avatar image */}
-                  <div>
-                    <Label className="text-xs font-medium">Avatar / Logo del LinkBio</Label>
-                    <p className="text-xs text-muted-foreground mb-1">Imagen circular que aparece en la página de links (independiente del logo principal)</p>
-                    <div className="flex gap-2 mt-1 items-start">
-                      <div className="flex-1">
-                        <Input
-                          placeholder="URL de imagen"
-                          value={bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"] ?? ""}
-                          onChange={e => setBannerDrafts(d => ({ ...d, linkbio_avatar_image: e.target.value }))}
-                          className="bg-muted border-border/50 text-sm"
-                        />
-                        {(bannerDrafts["linkbio_avatar_image"] || siteSettings?.["linkbio_avatar_image"]) && (
-                          <img src={bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"]} className="mt-2 h-20 w-20 object-cover rounded-full border border-border/30" alt="" />
-                        )}
-                      </div>
-                      <label className="cursor-pointer shrink-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Subir
-                        </span>
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0]; if (!file) return;
-                          const base64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = ev => res((ev.target?.result as string).split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
-                          try { const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 }); setBannerDrafts(d => ({ ...d, linkbio_avatar_image: url })); upsertSetting.mutate({ key: "linkbio_avatar_image", value: url }); toast.success("Imagen subida"); } catch { toast.error("Error al subir imagen"); }
-                        }} />
-                      </label>
-                      <Button size="sm" className="bg-primary text-primary-foreground shrink-0"
-                        onClick={() => { const val = bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"] ?? ""; if (val) upsertSetting.mutate({ key: "linkbio_avatar_image", value: val }); }}
-                        disabled={!(bannerDrafts["linkbio_avatar_image"] ?? siteSettings?.["linkbio_avatar_image"])}
-                      ><Save className="w-4 h-4" /></Button>
-                    </div>
-                  </div>
-
-                  {/* Bottom image */}
-                  <div>
-                    <Label className="text-xs font-medium">Imagen decorativa inferior (opcional)</Label>
-                    <div className="flex gap-2 mt-1 items-start">
-                      <div className="flex-1">
-                        <Input
-                          placeholder="URL de imagen"
-                          value={bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"] ?? ""}
-                          onChange={e => setBannerDrafts(d => ({ ...d, linkbio_bottom_image: e.target.value }))}
-                          className="bg-muted border-border/50 text-sm"
-                        />
-                        {(bannerDrafts["linkbio_bottom_image"] || siteSettings?.["linkbio_bottom_image"]) && (
-                          <img src={bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"]} className="mt-2 h-20 w-full object-cover rounded-lg border border-border/30" alt="" />
-                        )}
-                      </div>
-                      <label className="cursor-pointer shrink-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-muted border border-border/50 text-xs font-medium hover:bg-muted/80 transition-colors">
-                          <Upload className="w-3.5 h-3.5" /> Subir
-                        </span>
-                        <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                          const file = e.target.files?.[0]; if (!file) return;
-                          const base64 = await new Promise<string>((res, rej) => { const r = new FileReader(); r.onload = ev => res((ev.target?.result as string).split(",")[1]); r.onerror = rej; r.readAsDataURL(file); });
-                          try { const { url } = await uploadProductImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 }); setBannerDrafts(d => ({ ...d, linkbio_bottom_image: url })); upsertSetting.mutate({ key: "linkbio_bottom_image", value: url }); toast.success("Imagen subida"); } catch { toast.error("Error al subir imagen"); }
-                        }} />
-                      </label>
-                      <Button size="sm" className="bg-primary text-primary-foreground shrink-0"
-                        onClick={() => { const val = bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"] ?? ""; if (val) upsertSetting.mutate({ key: "linkbio_bottom_image", value: val }); }}
-                        disabled={!(bannerDrafts["linkbio_bottom_image"] ?? siteSettings?.["linkbio_bottom_image"])}
-                      ><Save className="w-4 h-4" /></Button>
-                    </div>
+                  {/* Las imágenes del Link in bio se asignan desde Medios */}
+                  <div className="rounded-xl border border-dashed border-[#dcdcdc] bg-[#fafafa] p-4">
+                    <p className="text-sm font-bold text-[#111]">Imágenes del Link in bio</p>
+                    <p className="mt-1 text-xs text-[#666]">
+                      El avatar, el banner y la imagen inferior se asignan desde la sección Medios,
+                      junto al resto de las imágenes del sitio.
+                    </p>
+                    <button
+                      onClick={() => handleTabChange("media")}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-[#ddd] bg-white px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-[#555] transition-colors hover:border-[#111] hover:text-[#111]"
+                    >
+                      Ir a Medios <ChevronRight className="h-3 w-3" />
+                    </button>
                   </div>
                 </div>
 

@@ -17,6 +17,7 @@ import {
   products,
   users,
   siteSettings,
+  mediaAssets,
   authTokens,
   adminNotifications,
   AdminNotification,
@@ -1992,4 +1993,51 @@ export async function archiveOldOrders(before: Date) {
     .set({ archived: true, archivedAt: new Date() })
     .where(inArray(orders.id, targets.map(t => t.id)));
   return targets.length;
+}
+
+// ─── Media Library ────────────────────────────────────────────────────────────
+
+export async function listMediaAssets(opts?: { limit?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+  // Ordenado por id: refleja el orden real de subida, lo más nuevo primero
+  return db.select().from(mediaAssets).orderBy(desc(mediaAssets.id)).limit(opts?.limit ?? 200);
+}
+
+export async function insertMediaAsset(data: {
+  url: string; storageKey: string; fileName: string; mimeType: string; sizeBytes: number;
+}) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [res] = await db.insert(mediaAssets).values(data);
+  const [row] = await db.select().from(mediaAssets).where(eq(mediaAssets.id, res.insertId)).limit(1);
+  return row;
+}
+
+export async function getMediaAsset(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [row] = await db.select().from(mediaAssets).where(eq(mediaAssets.id, id)).limit(1);
+  return row;
+}
+
+export async function updateMediaAlt(id: number, altText: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.update(mediaAssets).set({ altText }).where(eq(mediaAssets.id, id));
+  return getMediaAsset(id);
+}
+
+export async function deleteMediaAsset(id: number) {
+  const db = await getDb();
+  if (!db) return undefined;
+  await db.delete(mediaAssets).where(eq(mediaAssets.id, id));
+}
+
+/** Devuelve las claves de siteSettings que apuntan a esta URL (dónde se está usando) */
+export async function findSettingsUsingUrl(url: string) {
+  const db = await getDb();
+  if (!db) return [] as string[];
+  const rows = await db.select().from(siteSettings).where(eq(siteSettings.value, url));
+  return rows.map(r => r.key);
 }
