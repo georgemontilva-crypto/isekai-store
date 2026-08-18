@@ -58,6 +58,23 @@ export default function WorldFest() {
   const [done, setDone] = useState(false);
   const [typed, setTyped] = useState("");
 
+  // En teléfono el contenedor de la página no siempre cubre hasta abajo: al
+  // colapsar la barra del navegador o al rebotar el scroll asoma el fondo del
+  // documento, que es blanco. Se pinta el <html> y el <body> mientras esta
+  // página esté montada y se restaura al salir.
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    const prevHtml = html.style.backgroundColor;
+    const prevBody = body.style.backgroundColor;
+    html.style.backgroundColor = "#04060f";
+    body.style.backgroundColor = "#04060f";
+    return () => {
+      html.style.backgroundColor = prevHtml;
+      body.style.backgroundColor = prevBody;
+    };
+  }, []);
+
   // Máquina de escribir de la alerta del Sistema
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -105,11 +122,11 @@ export default function WorldFest() {
   );
 
   return (
-    <div className={`relative min-h-screen text-[#dceaff] ${bgVideo ? "bg-[#04060f]/0" : "bg-[#04060f]"}`}>
+    <div className={`relative min-h-[100dvh] text-[#dceaff] ${bgVideo ? "bg-transparent" : "bg-[#04060f]"}`}>
       {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
           de arriba son translúcidas para que se siga viendo el efecto. */}
       {bgVideo && (
-        <div className="fixed inset-0 -z-10 bg-[#04060f]">
+        <div className="fixed inset-0 -z-10 bg-[#04060f]" style={{ height: "100dvh" }}>
           <video
             src={bgVideo}
             autoPlay
