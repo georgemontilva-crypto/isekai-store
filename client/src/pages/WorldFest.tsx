@@ -69,6 +69,7 @@ export default function WorldFest() {
     const prevBody = body.style.backgroundColor;
     html.style.backgroundColor = "#04060f";
     body.style.backgroundColor = "#04060f";
+    // (el video va en su propia capa fija por encima de estos fondos)
     return () => {
       html.style.backgroundColor = prevHtml;
       body.style.backgroundColor = prevBody;
@@ -126,7 +127,7 @@ export default function WorldFest() {
       {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
           de arriba son translúcidas para que se siga viendo el efecto. */}
       {bgVideo && (
-        <div className="fixed inset-0 -z-10 bg-[#04060f]" style={{ height: "100dvh" }}>
+        <div className="fixed inset-0 z-0 bg-[#04060f]" style={{ height: "100dvh" }}>
           <video
             src={bgVideo}
             autoPlay
@@ -196,7 +197,7 @@ export default function WorldFest() {
       `}</style>
 
       {/* ─── Hero ─────────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[78svh] items-center overflow-hidden">
+      <section className="relative z-10 flex min-h-[78svh] items-center overflow-hidden">
         <div className="absolute inset-0">
           {heroImage ? (
             <img src={heroImage} alt="" className="h-full w-full object-cover opacity-45" />
@@ -278,7 +279,7 @@ export default function WorldFest() {
       </section>
 
       {/* ─── Misiones ─────────────────────────────────────────────────────── */}
-      <section className="relative mx-auto max-w-6xl px-6 py-16 sm:py-20">
+      <section className="relative z-10 mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
           [ Misiones detectadas ]
         </p>
@@ -324,7 +325,7 @@ export default function WorldFest() {
 
       {/* ─── Imagen del festival ──────────────────────────────────────────── */}
       {teaserImage && (
-        <section className="mx-auto max-w-6xl px-6 pb-16 sm:pb-20">
+        <section className="relative z-10 mx-auto max-w-6xl px-6 pb-16 sm:pb-20">
           <div className="wf-window relative rounded-sm p-1.5">
             {corners}
             <img src={teaserImage} alt="" className="w-full object-cover" />
@@ -333,7 +334,7 @@ export default function WorldFest() {
       )}
 
       {/* ─── Registro ─────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/80 py-16 sm:py-20">
+      <section className="relative z-10 overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/80 py-16 sm:py-20">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_100%_at_50%_0%,rgba(70,150,255,0.22)_0%,transparent_65%)]" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
