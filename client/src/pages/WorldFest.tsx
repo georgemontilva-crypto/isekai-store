@@ -118,18 +118,21 @@ export default function WorldFest() {
   );
 
   return (
-    <div className={`relative min-h-[100dvh] text-[#dceaff] ${bgVideo ? "bg-transparent" : "bg-[#04060f]"}`}>
+    <div className="relative min-h-[100dvh] bg-[#04060f] text-[#dceaff]">
       {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
           de arriba son translúcidas para que se siga viendo el efecto. */}
       {bgVideo && (
-        <div className="pointer-events-none fixed inset-0 -z-10 bg-[#04060f]" style={{ height: "100dvh" }}>
+        /* El video vive DENTRO de la página, no como capa global: así no puede
+           taparse con el fondo de un contenedor padre ni cubrir el footer.
+           El `sticky` le da el efecto de fondo fijo sin salirse de la página. */
+        <div className="pointer-events-none absolute inset-0">
           <video
             src={bgVideo}
             autoPlay
             muted
             loop
             playsInline
-            className="h-full w-full object-cover opacity-70"
+            className="sticky top-0 h-[100dvh] w-full object-cover opacity-70"
           />
           {/* Tinte azul del Sistema por encima del video */}
           <div className="absolute inset-0 bg-[#04102a]/55 mix-blend-multiply" />
