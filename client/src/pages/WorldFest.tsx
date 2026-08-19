@@ -179,11 +179,15 @@ export default function WorldFest() {
             muted
             loop
             playsInline
-            className="sticky top-0 h-[100dvh] w-full object-cover opacity-70"
+            className="sticky top-0 h-[100dvh] w-full object-cover opacity-80"
           />
           {/* Tinte azul del Sistema por encima del video */}
-          <div className="absolute inset-0 bg-[#04102a]/30 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-[#04102a]/20 mix-blend-multiply" />
           <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_115%,rgba(18,58,107,0.30)_0%,rgba(10,24,54,0.25)_42%,rgba(4,6,15,0.55)_100%)]" />
+          {/* Vidrio negro (glassmorfismo): oscurece y desenfoca apenas el video
+              en toda la página. Si el navegador no soporta backdrop-filter,
+              queda solo la opacidad, que ya cumple. */}
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
         </div>
       )}
 
