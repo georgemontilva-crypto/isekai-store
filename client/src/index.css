@@ -329,7 +329,7 @@
   /* ── Hero Peek Carousel (Island style) ── */
   .hero-peek-section {
     position: relative;
-    background: #f5f5f5;
+    background: #0a0a0a;
     overflow: hidden;
     height: min(88vh, 680px);
     display: flex;
@@ -957,10 +957,11 @@ html.dark [data-sonner-toaster] {
   border-color: #2c2c38;
 }
 
-/* Franjas de acento: barra de anuncios y marquee amarillo → magenta con
-   letra negra, como acordamos */
-.dark .top-bar { background-color: #e5007d !important; }
-.dark .top-bar, .dark .top-bar * { color: #0b0b10 !important; }
+/* Franja superior: gris oscuro con texto blanco en ambos modos.
+   El !important la protege de la inversión de botones sólidos. */
+.dark .top-bar { background-color: #141418 !important; }
+.dark .top-bar, .dark .top-bar * { color: #ffffff !important; }
+.dark .top-bar .text-\[\#e5007d\] { color: #ff45a0 !important; }
 .dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#f5e642\],
 .dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#ffd700\] {
   background-color: #e5007d !important;
@@ -977,4 +978,20 @@ html.dark [data-sonner-toaster] {
 /* Sombras con profundidad real sobre fondo oscuro */
 .dark :where(:not(.admin-shell):not(.admin-shell *)):is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+}
+
+/* Barra de confianza (vive dentro del footer, que está excluido de la capa
+   general): en oscuro pasa a magenta con todo el contenido en blanco */
+.dark .trust-bar { background-color: #e5007d !important; border-color: #e5007d !important; }
+.dark .trust-bar p, .dark .trust-bar svg { color: #ffffff !important; }
+
+/* Header del catálogo: bg-card/30 compila con el blanco incrustado, se
+   corrige aquí por si quedara en alguna otra pantalla */
+.dark .bg-card\/30 { background-color: #0a0a0e; }
+
+/* Marquee de la franja superior */
+@keyframes iw-topbar { to { transform: translateX(-50%); } }
+.iw-topbar-track { animation: iw-topbar 26s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .iw-topbar-track { animation: none; }
 }

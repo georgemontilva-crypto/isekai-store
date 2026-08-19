@@ -2543,6 +2543,36 @@ export default function Admin() {
                       </div>
                     ))}
 
+                    {/* Marquee de la franja superior */}
+                    <div className="border-t border-border/30 pt-4">
+                      <Label className="text-sm font-medium">Textos de la franja superior (marquee)</Label>
+                      <p className="text-xs text-muted-foreground mb-1.5">
+                        Uno por línea. Corren en bucle en la barra de arriba de toda la tienda.
+                        Si lo dejas vacío, se usan los textos por defecto.
+                      </p>
+                      <div className="flex gap-2 items-start">
+                        <textarea
+                          rows={4}
+                          placeholder={"Envío gratis en pedidos +$150 USD\nNuevos drops cada semana\n..."}
+                          defaultValue={siteSettings?.["topbar_marquee_texts"] ?? ""}
+                          onChange={(e) => setBannerDrafts(d => ({ ...d, topbar_marquee_texts: e.target.value }))}
+                          className="flex-1 rounded-lg bg-muted border border-border/50 px-3 py-2 text-sm outline-none focus:border-[#111] resize-y"
+                        />
+                        <Button
+                          size="sm"
+                          className="bg-primary text-primary-foreground shrink-0"
+                          onClick={() => {
+                            const val = bannerDrafts["topbar_marquee_texts"] !== undefined
+                              ? bannerDrafts["topbar_marquee_texts"]
+                              : siteSettings?.["topbar_marquee_texts"] ?? "";
+                            upsertSetting.mutate({ key: "topbar_marquee_texts", value: val });
+                          }}
+                        >
+                          <Save className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+
                     {/* Divider */}
                     <div className="border-t border-border/30 pt-4">
                       <Label className="text-sm font-medium">Texto del botón de descuento</Label>

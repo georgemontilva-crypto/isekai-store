@@ -191,6 +191,13 @@ export default function Navbar() {
 
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
   const logoUrl = siteSettings?.["store_logo_url"] ?? null;
+  // Textos de la franja superior: se editan en Configuración, uno por línea
+  const topbarTexts = (siteSettings?.["topbar_marquee_texts"] ?? "")
+    .split(/\r?\n|\|/)
+    .map(x => x.trim())
+    .filter(Boolean)
+    .slice(0, 12) || [];
+  if (topbarTexts.length === 0) topbarTexts.push(...announcements);
   const storeName = siteSettings?.["store_name"] ?? "Isekai World";
   const logoHeight = parseInt(siteSettings?.["store_logo_height"] ?? "36");
 
@@ -222,22 +229,24 @@ export default function Navbar() {
   return (
     <>
       {/* TOP BAR */}
-      <div className="top-bar bg-[#1a1a1a] text-white text-[11px]">
-        <div className="hidden md:flex container items-center justify-between h-9">
-          <div className="hidden md:flex items-center gap-3">
-            <a href="#" aria-label="Facebook" className="opacity-60 hover:opacity-100 transition-opacity"><Facebook size={12}/></a>
-            <a href="#" aria-label="Twitter"  className="opacity-60 hover:opacity-100 transition-opacity"><Twitter size={12}/></a>
-            <a href="#" aria-label="Instagram" className="opacity-60 hover:opacity-100 transition-opacity"><Instagram size={12}/></a>
-            <a href="#" aria-label="YouTube"  className="opacity-60 hover:opacity-100 transition-opacity"><Youtube size={12}/></a>
-          </div>
-          <div className="flex items-center gap-2 flex-1 justify-center">
-            <button onClick={() => setAnnouncementIdx(i => (i - 1 + announcements.length) % announcements.length)} aria-label="Anuncio anterior" className="opacity-50 hover:opacity-100 transition-opacity"><ChevronLeft size={12}/></button>
-            <span className="font-medium tracking-wide text-center px-2">{announcements[announcementIdx]}</span>
-            <button onClick={() => setAnnouncementIdx(i => (i + 1) % announcements.length)} aria-label="Siguiente anuncio" className="opacity-50 hover:opacity-100 transition-opacity"><ChevronRight size={12}/></button>
-          </div>
-          <div className="hidden md:flex items-center"></div>
+      {siteSettings?.["promo_bar_enabled"] !== "false" && (
+      <div className="top-bar bg-[#1a1a1a] text-white overflow-hidden">
+        {/* Marquee infinito: la pista se duplica y se desplaza el 50 % de su
+            ancho, así el bucle no tiene costura */}
+        <div className="iw-topbar-track flex w-max whitespace-nowrap items-center">
+          {[0, 1].map(dup => (
+            <div key={dup} aria-hidden={dup === 1} className="flex shrink-0 items-center py-2">
+              {topbarTexts.map((txt, i) => (
+                <span key={i} className="flex items-center">
+                  <span className="px-7 text-[13px] font-extrabold uppercase tracking-[0.14em]">{txt}</span>
+                  <span className="text-[#e5007d] text-[9px]">★</span>
+                </span>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
+      )}
 
       {/* MAIN NAVBAR */}
       <header

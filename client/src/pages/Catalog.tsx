@@ -86,21 +86,21 @@ export default function Catalog() {
   return (
     <div className="min-h-screen pb-16">
       {/* ── Page Hero Banner ── */}
-      <div className="relative py-10 md:py-16 overflow-hidden border-b border-border/30 bg-card/30">
+      <div className="relative py-6 md:py-9 overflow-hidden border-b border-[#1f1f1f] bg-[#0a0a0e]">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-accent/5 blur-3xl" />
         </div>
         <div className="container relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <span className="text-xs font-semibold text-primary uppercase tracking-widest">Tienda</span>
-            <h1 className="text-3xl lg:text-5xl font-black mt-2 mb-3">
+            <span className="text-xs font-semibold text-[#e5007d] uppercase tracking-widest">Tienda</span>
+            <h1 className="text-3xl lg:text-5xl font-black mt-2 mb-3 text-white">
               {selectedCategory
                 ? categories?.find((c) => c.id === selectedCategory)?.name ?? "Catálogo"
                 : <><span className="gradient-text">Todo</span> el catálogo</>
               }
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-[#9a9aa9]">
               {isLoading ? t.catalog.loading : `${sortedProducts.length} ${sortedProducts.length !== 1 ? t.catalog.productsPlural : t.catalog.products}`}
             </p>
           </motion.div>

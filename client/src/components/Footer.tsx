@@ -40,7 +40,7 @@ export default function Footer() {
     <footer>
       {/* Trust Bar */}
       {showTrustBar && (
-      <div className="border-t border-[#ebebeb] bg-white">
+      <div className="trust-bar border-t border-[#ebebeb] bg-white">
         <div className="container py-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-10">
             {t.footer.trust.map(({ title, desc }, i) => {
