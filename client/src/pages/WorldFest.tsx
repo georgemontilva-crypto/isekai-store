@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { ArrowLeft, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -53,8 +53,44 @@ const MISIONES = [
 /** Texto de la notificación del hero, escrito carácter a carácter. */
 const ALERTA = "Se abrió un portal en Maracaibo. Ubicación desconocida.";
 
+type GateState = "ask" | "loading" | "denied" | "open";
+
 export default function WorldFest() {
   const { data: settings } = trpc.settings.getAll.useQuery();
+  const [, navigate] = useLocation();
+
+  // Puerta de entrada: la notificación del Sistema. Se pregunta una vez por
+  // sesión; si ya aceptó, no se le vuelve a preguntar al navegar de vuelta.
+  const [gate, setGate] = useState<GateState>(() => {
+    try { return sessionStorage.getItem("wf_gate") === "ok" ? "open" : "ask"; }
+    catch { return "ask"; }
+  });
+  const [progress, setProgress] = useState(0);
+
+  // Carga de 0 a 100 con avance irregular, como un sistema descifrando algo
+  useEffect(() => {
+    if (gate !== "loading") return;
+    let value = 0;
+    const id = setInterval(() => {
+      value = Math.min(100, value + (Math.random() < 0.18 ? 0 : Math.ceil(Math.random() * 4)));
+      setProgress(value);
+      if (value >= 100) {
+        clearInterval(id);
+        setTimeout(() => {
+          try { sessionStorage.setItem("wf_gate", "ok"); } catch { /* privado */ }
+          setGate("open");
+        }, 450);
+      }
+    }, 55);
+    return () => clearInterval(id);
+  }, [gate]);
+
+  // Rechazo: mensaje y de vuelta al inicio
+  useEffect(() => {
+    if (gate !== "denied") return;
+    const id = setTimeout(() => navigate("/"), 2800);
+    return () => clearTimeout(id);
+  }, [gate, navigate]);
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
   const [typed, setTyped] = useState("");
@@ -73,8 +109,10 @@ export default function WorldFest() {
     };
   }, []);
 
-  // Máquina de escribir de la alerta del Sistema
+  // Máquina de escribir de la alerta del Sistema.
+  // Arranca cuando la puerta ya se abrió, que es cuando el hero se ve.
   useEffect(() => {
+    if (gate !== "open") return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setTyped(ALERTA);
       return;
@@ -86,7 +124,7 @@ export default function WorldFest() {
       if (i >= ALERTA.length) clearInterval(id);
     }, 45);
     return () => clearInterval(id);
-  }, []);
+  }, [gate]);
 
   const subscribe = trpc.newsletter.subscribe.useMutation({
     onSuccess: () => { setDone(true); toast.success("Registro aceptado"); },
@@ -190,13 +228,133 @@ export default function WorldFest() {
           border-color: #7dd8ff; pointer-events: none;
         }
         .wf-locked { opacity: 0.72; }
+        /* Glitch: cortes horizontales + separación RGB, como señal dañada */
+        @keyframes wf-glitch-clip {
+          0%   { clip-path: inset(0 0 0 0); transform: translate(0); }
+          8%   { clip-path: inset(12% 0 78% 0); transform: translate(-3px, 1px); }
+          12%  { clip-path: inset(0 0 0 0); transform: translate(0); }
+          34%  { clip-path: inset(64% 0 8% 0);  transform: translate(3px, -1px); }
+          38%  { clip-path: inset(0 0 0 0); transform: translate(0); }
+          61%  { clip-path: inset(38% 0 42% 0); transform: translate(-2px, 0); }
+          65%  { clip-path: inset(0 0 0 0); transform: translate(0); }
+          100% { clip-path: inset(0 0 0 0); transform: translate(0); }
+        }
+        @keyframes wf-rgb {
+          0%, 100% { text-shadow: 0 0 14px rgba(125,216,255,0.6); }
+          10%      { text-shadow: -2px 0 #ff2d78, 2px 0 #35e0ff, 0 0 18px rgba(125,216,255,0.8); }
+          11%      { text-shadow: 0 0 14px rgba(125,216,255,0.6); }
+          52%      { text-shadow: 2px 0 #ff2d78, -2px 0 #35e0ff, 0 0 18px rgba(125,216,255,0.8); }
+          53%      { text-shadow: 0 0 14px rgba(125,216,255,0.6); }
+        }
+        @keyframes wf-flicker { 0%,100% { opacity: 1; } 92% { opacity: 1; } 93% { opacity: 0.55; } 94% { opacity: 1; } 97% { opacity: 0.8; } }
+        @keyframes wf-reveal {
+          0%   { opacity: 0; filter: blur(10px) saturate(2); transform: scale(1.02); }
+          40%  { opacity: 1; filter: blur(0) saturate(1.4); }
+          46%  { transform: scale(1) translateX(-2px); }
+          50%  { transform: translateX(2px); }
+          54%  { transform: translateX(0); }
+          100% { opacity: 1; filter: none; transform: none; }
+        }
+        .wf-glitch     { animation: wf-glitch-clip 2.6s steps(1) infinite, wf-rgb 2.6s linear infinite; }
+        .wf-flicker    { animation: wf-flicker 3.4s linear infinite; }
+        .wf-reveal     { animation: wf-reveal 0.9s cubic-bezier(.23,1,.32,1) both; }
+        .wf-gate-layer {
+          position: fixed; inset: 0; z-index: 80;
+          display: flex; align-items: center; justify-content: center;
+          background:
+            repeating-linear-gradient(0deg, rgba(125,216,255,0.03) 0 1px, transparent 1px 3px),
+            radial-gradient(120% 90% at 50% 115%, #0e2b52 0%, #081428 45%, #04060f 100%);
+          padding: 1.5rem;
+        }
         @media (prefers-reduced-motion: reduce) {
           .wf-gate, .wf-scan::before, .wf-caret { animation: none; }
           .wf-boot { animation: none; opacity: 1; }
+          .wf-glitch, .wf-flicker { animation: none; }
+          .wf-reveal { animation: none; opacity: 1; }
         }
       `}</style>
 
+      {/* ─── Puerta de entrada: notificación del Sistema ─────────────────── */}
+      {gate === "ask" && (
+        <div className="wf-gate-layer">
+          <div className="wf-window wf-boot wf-scan wf-flicker w-full max-w-md rounded-sm p-6 sm:p-8">
+            {corners}
+            <div className="mb-5 flex items-center gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#7dd8ff] font-black text-[#7dd8ff]">!</span>
+              <span className="wf-glitch border border-[#7dd8ff]/60 bg-[#7dd8ff]/10 px-4 py-1.5 font-mono text-sm font-black uppercase tracking-[0.3em] text-white">
+                Notificación
+              </span>
+            </div>
+            <p className="font-mono text-sm leading-relaxed text-[#e8f4ff] sm:text-[15px]">
+              Estás a punto de entrar en un <span className="font-bold text-[#ff2d78]">universo desconocido</span>.
+            </p>
+            <p className="mt-2 font-mono text-sm leading-relaxed text-[#e8f4ff] sm:text-[15px]">
+              ¿Seguro que quieres entrar?
+            </p>
+            <div className="mt-7 flex gap-3">
+              <button
+                onClick={() => { setProgress(0); setGate("loading"); }}
+                className="flex-1 border border-[#7dd8ff]/60 bg-[#7dd8ff]/10 py-3 font-mono text-sm font-black uppercase tracking-[0.2em] text-white transition-colors hover:bg-[#7dd8ff]/25"
+              >
+                Sí
+              </button>
+              <button
+                onClick={() => setGate("denied")}
+                className="flex-1 border border-[#5db4ff]/30 py-3 font-mono text-sm font-black uppercase tracking-[0.2em] text-[#8fb0d6] transition-colors hover:border-[#ff2d78]/60 hover:text-[#ff2d78]"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {gate === "loading" && (
+        <div className="wf-gate-layer">
+          <div className="flex flex-col items-center">
+            {/* Círculo de carga */}
+            <div className="relative h-44 w-44">
+              <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
+                <circle cx="60" cy="60" r="54" fill="none" stroke="rgba(93,180,255,0.15)" strokeWidth="3" />
+                <circle
+                  cx="60" cy="60" r="54" fill="none"
+                  stroke="#7dd8ff" strokeWidth="3" strokeLinecap="butt"
+                  strokeDasharray={2 * Math.PI * 54}
+                  strokeDashoffset={2 * Math.PI * 54 * (1 - progress / 100)}
+                  style={{ transition: "stroke-dashoffset 80ms linear", filter: "drop-shadow(0 0 8px rgba(125,216,255,0.8))" }}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="wf-glitch font-mono text-4xl font-black text-white">{progress}%</span>
+              </div>
+            </div>
+            <p className="wf-flicker mt-8 font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-[#7dd8ff]">
+              Abriendo la puerta…
+            </p>
+          </div>
+        </div>
+      )}
+
+      {gate === "denied" && (
+        <div className="wf-gate-layer">
+          <div className="wf-window wf-boot wf-scan w-full max-w-md rounded-sm p-6 sm:p-8 text-center">
+            {corners}
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#5db4ff]">
+              [ Acceso denegado ]
+            </p>
+            <p className="wf-glitch mt-4 font-mono text-base leading-relaxed text-[#e8f4ff]">
+              Haces bien en irte.
+            </p>
+            <p className="mt-1.5 font-mono text-sm text-[#8fb0d6]">
+              Significa que no estás preparado.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ─── Hero ─────────────────────────────────────────────────────────── */}
+      {gate === "open" && (
+      <div className="wf-reveal">
       <section className="relative z-10 flex min-h-[78svh] items-center overflow-hidden">
         <div className="absolute inset-0">
           {heroImage ? (
@@ -378,6 +536,8 @@ export default function WorldFest() {
           <p className="mt-6 font-mono text-xs text-[#5580b0]">Sin spam. Solo lo del festival.</p>
         </div>
       </section>
+      </div>
+      )}
     </div>
   );
 }
