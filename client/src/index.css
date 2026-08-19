@@ -791,7 +791,11 @@ body {
    Evita que un elemento que se sale del ancho genere scroll lateral.
    Los <svg> quedan FUERA a propósito: traen su propio width/height y
    forzarles height:auto encoge los iconos. */
-html, body { overflow-x: hidden; max-width: 100%; }
+/* `clip` corta el desbordamiento lateral igual que `hidden`, pero SIN
+   convertir el elemento en contenedor de scroll — que es lo que rompía los
+   position:sticky de la web (el video de fondo de World Fest, entre otros).
+   Se deja `hidden` primero como respaldo para navegadores viejos. */
+html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
 img, video, iframe { max-width: 100%; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
