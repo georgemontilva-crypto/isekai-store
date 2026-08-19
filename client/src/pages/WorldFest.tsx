@@ -53,7 +53,7 @@ const MISIONES = [
 /** Texto de la notificación del hero, escrito carácter a carácter. */
 const ALERTA = "Se abrió un portal en Maracaibo. Ubicación desconocida.";
 
-type GateState = "ask" | "loading" | "denied" | "open";
+type GateState = "boot" | "ask" | "loading" | "denied" | "open";
 
 export default function WorldFest() {
   const { data: settings } = trpc.settings.getAll.useQuery();
@@ -62,10 +62,17 @@ export default function WorldFest() {
   // Puerta de entrada: la notificación del Sistema. Se pregunta una vez por
   // sesión; si ya aceptó, no se le vuelve a preguntar al navegar de vuelta.
   const [gate, setGate] = useState<GateState>(() => {
-    try { return sessionStorage.getItem("wf_gate") === "ok" ? "open" : "ask"; }
-    catch { return "ask"; }
+    try { return sessionStorage.getItem("wf_gate") === "ok" ? "open" : "boot"; }
+    catch { return "boot"; }
   });
   const [progress, setProgress] = useState(0);
+
+  // Un segundo de oscuridad antes de que la notificación "encienda"
+  useEffect(() => {
+    if (gate !== "boot") return;
+    const id = setTimeout(() => setGate("ask"), 1000);
+    return () => clearTimeout(id);
+  }, [gate]);
 
   // Carga de 0 a 100 con avance irregular, como un sistema descifrando algo
   useEffect(() => {
@@ -261,23 +268,41 @@ export default function WorldFest() {
         .wf-gate-layer {
           position: fixed; inset: 0; z-index: 80;
           display: flex; align-items: center; justify-content: center;
+          /* Translúcido: el video de fondo se asoma detrás de la puerta */
           background:
             repeating-linear-gradient(0deg, rgba(125,216,255,0.03) 0 1px, transparent 1px 3px),
-            radial-gradient(120% 90% at 50% 115%, #0e2b52 0%, #081428 45%, #04060f 100%);
+            radial-gradient(120% 90% at 50% 115%, rgba(14,43,82,0.66) 0%, rgba(8,20,40,0.62) 45%, rgba(4,6,15,0.82) 100%);
           padding: 1.5rem;
         }
+        /* Encendido de TV vieja: punto → línea horizontal → pantalla completa,
+           con el fogonazo de brillo del tubo al arrancar */
+        @keyframes wf-crt-on {
+          0%   { opacity: 0; transform: scale(0.01, 0.004); filter: brightness(9) saturate(0); }
+          18%  { opacity: 1; transform: scale(0.55, 0.004); filter: brightness(10) saturate(0); }
+          42%  { transform: scale(1, 0.004);  filter: brightness(9) saturate(0.2); }
+          58%  { transform: scale(1, 0.035);  filter: brightness(6); }
+          78%  { transform: scale(1, 1.04);   filter: brightness(1.9); }
+          88%  { transform: scale(1, 0.99);   filter: brightness(1.15); }
+          100% { opacity: 1; transform: scale(1, 1); filter: brightness(1); }
+        }
+        .wf-crt-on { animation: wf-crt-on 0.85s cubic-bezier(.19,1,.22,1) both; }
         @media (prefers-reduced-motion: reduce) {
           .wf-gate, .wf-scan::before, .wf-caret { animation: none; }
           .wf-boot { animation: none; opacity: 1; }
           .wf-glitch, .wf-flicker { animation: none; }
+          .wf-crt-on { animation: none; opacity: 1; }
           .wf-reveal { animation: none; opacity: 1; }
         }
       `}</style>
 
       {/* ─── Puerta de entrada: notificación del Sistema ─────────────────── */}
+      {gate === "boot" && (
+        <div className="wf-gate-layer" style={{ background: "#04060f" }} />
+      )}
+
       {gate === "ask" && (
         <div className="wf-gate-layer">
-          <div className="wf-window wf-boot wf-scan wf-flicker w-full max-w-md rounded-sm p-6 sm:p-8">
+          <div className="wf-window wf-crt-on wf-scan wf-flicker w-full max-w-md rounded-sm p-6 sm:p-8">
             {corners}
             <div className="mb-5 flex items-center gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border-2 border-[#7dd8ff] font-black text-[#7dd8ff]">!</span>
