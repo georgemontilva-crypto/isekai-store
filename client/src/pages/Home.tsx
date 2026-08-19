@@ -481,56 +481,6 @@ export default function Home() {
       )}
 
       {/* ══════════════════════════════════════════════
-          3. BRAND STORY
-      ══════════════════════════════════════════════ */}
-      <section className="border-b border-[#ebebeb] bg-[#f5f5f5] py-6 px-[8px]">
-        {/* Same 8px side margin as hero carousel prev/next slides */}
-        <div className="grid grid-cols-1 md:grid-cols-2 items-center gap-0">
-          {/* LEFT: image island — only shown when configured from admin */}
-          {settings?.["brand_story_image"] && (
-          <div
-            className="overflow-hidden w-full"
-            style={{ aspectRatio: '16/9', borderRadius: '18px' }}
-          >
-            <img
-              src={settings["brand_story_image"]}
-              alt="Figuras coleccionables 3D anime"
-              width={800}
-              height={450}
-              className="w-full h-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-          </div>
-          )}
-          {/* RIGHT: brand statement */}
-          <div className="flex flex-col justify-center w-full px-0 pt-5 md:pt-0 md:px-10 lg:px-16">
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-[#888] mb-3">
-              {settings?.["brand_story_label"] ?? t.home.brandStory.label}
-            </p>
-            {(() => {
-              const raw = settings?.["brand_story_heading"] ?? `${t.home.brandStory.heading} | ${t.home.brandStory.highlight}`;
-              const parts = raw.split("|");
-              const blackPart = parts[0]?.trim();
-              const magentaPart = parts[1]?.trim();
-              return (
-                <h2
-                  style={{ fontFamily: "'Orbitron', sans-serif", lineHeight: 1.15 }}
-                  className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight break-words mb-0"
-                >
-                  {blackPart && <span className="text-[#111]">{blackPart} </span>}
-                  {magentaPart && <span className="text-[#e5007d]">{magentaPart}</span>}
-                </h2>
-              );
-            })()}
-            <p className="mt-4 text-[14px] text-[#666] leading-relaxed">
-              {settings?.["brand_story_body"] ?? t.home.brandStory.body}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════════════════════════════════
           4+5. VIDEO BANNER + FLOATING FEATURED PRODUCT
       ══════════════════════════════════════════════ */}
       {/* Outer wrapper: video + overlapping product card */}

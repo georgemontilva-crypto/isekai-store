@@ -1016,12 +1016,7 @@ html.dark [data-sonner-toaster] {
     rgba(255,255,255,0.92) 60%,
     rgba(255,255,255,1) 100%);
 }
-html.dark .spotlight-veil {
-  background: linear-gradient(to bottom,
-    rgba(5,5,7,0.35) 0%,
-    rgba(5,5,7,0.92) 60%,
-    rgba(5,5,7,1) 100%);
-}
+
 
 /* Mismo caso en la página de cuenta */
 .account-veil {
@@ -1057,9 +1052,4 @@ html.dark .breadcrumb-bar, html.dark .breadcrumb-bar span { color: #ffffff !impo
 html.dark .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
 
 /* Sección destacada de la home: negro total, sin el degradado gris */
-html.dark .spotlight-veil {
-  background: linear-gradient(to bottom,
-    rgba(0,0,0,0.72) 0%,
-    rgba(0,0,0,0.96) 45%,
-    #000000 100%);
-}
+html.dark .spotlight-veil { background: #000000; }

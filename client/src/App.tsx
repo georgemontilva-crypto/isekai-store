@@ -162,7 +162,7 @@ function App() {
   return (
     <ErrorBoundary>
       <LangProvider>
-      <ThemeProvider defaultTheme="light" switchable>
+      <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           <CartProvider>
             <Toaster />
