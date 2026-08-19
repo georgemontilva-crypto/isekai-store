@@ -995,3 +995,27 @@ html.dark [data-sonner-toaster] {
 @media (prefers-reduced-motion: reduce) {
   .iw-topbar-track { animation: none; }
 }
+
+/* Velo de la sección destacada de la home (spotlight).
+   En claro es blanco; en oscuro, negro. Vive en CSS y no en un style en
+   línea justamente para que el tema pueda cambiarlo. */
+.spotlight-veil {
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,0.15) 0%,
+    rgba(255,255,255,0.92) 60%,
+    rgba(255,255,255,1) 100%);
+}
+html.dark .spotlight-veil {
+  background: linear-gradient(to bottom,
+    rgba(5,5,7,0.35) 0%,
+    rgba(5,5,7,0.92) 60%,
+    rgba(5,5,7,1) 100%);
+}
+
+/* Mismo caso en la página de cuenta */
+.account-veil {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 100%);
+}
+html.dark .account-veil {
+  background: linear-gradient(to bottom, rgba(5,5,7,0.4) 0%, rgba(5,5,7,1) 100%);
+}
