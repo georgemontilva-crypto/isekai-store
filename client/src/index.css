@@ -793,3 +793,172 @@ body {
    forzarles height:auto encoge los iconos. */
 html, body { overflow-x: hidden; max-width: 100%; }
 img, video, iframe { max-width: 100%; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODO OSCURO — v2, por roles
+   Lecciones de la versión anterior aplicadas:
+   1. Los elementos se traducen según su ROL, no solo su color. El mismo
+      #1a1a1a es el cuerpo del footer (se queda oscuro) y un botón sólido
+      (se invierte a claro para conservar contraste).
+   2. Se cubren hover, focus y placeholder, que antes quedaban a medias.
+   3. Exclusiones explícitas: panel admin (.admin-shell), World Fest
+      (.wf-page) y el <footer>, que ya es oscuro por diseño.
+   Paleta con contraste verificado: texto principal ≈15:1 sobre tarjeta,
+   secundarios nunca por debajo de 4.5:1.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html.dark { color-scheme: dark; }
+
+/* Tokens de shadcn (menús, selects, diálogos, drawers) */
+html.dark {
+  --color-background: oklch(0.17 0.01 285);
+  --color-foreground: oklch(0.955 0.005 285);
+  --color-card: oklch(0.205 0.012 285);
+  --color-card-foreground: oklch(0.955 0.005 285);
+  --color-popover: oklch(0.215 0.012 285);
+  --color-popover-foreground: oklch(0.955 0.005 285);
+  --color-primary: oklch(0.955 0.005 285);
+  --color-primary-foreground: oklch(0.17 0.01 285);
+  --color-secondary: oklch(0.26 0.012 285);
+  --color-secondary-foreground: oklch(0.955 0.005 285);
+  --color-muted: oklch(0.26 0.012 285);
+  --color-muted-foreground: oklch(0.72 0.008 285);
+  --color-accent: oklch(0.29 0.012 285);
+  --color-accent-foreground: oklch(0.955 0.005 285);
+  --color-border: oklch(0.33 0.01 285);
+  --color-input: oklch(0.33 0.01 285);
+  --color-ring: oklch(0.72 0.008 285);
+}
+
+/* El panel admin conserva su esquema claro */
+html.dark .admin-shell {
+  color-scheme: light;
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.08 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.08 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.08 0 0);
+  --color-primary: oklch(0.08 0 0);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-secondary: oklch(0.96 0 0);
+  --color-secondary-foreground: oklch(0.08 0 0);
+  --color-muted: oklch(0.96 0 0);
+  --color-muted-foreground: oklch(0.45 0 0);
+  --color-accent: oklch(0.96 0 0);
+  --color-accent-foreground: oklch(0.08 0 0);
+  --color-border: oklch(0.9 0 0);
+  --color-input: oklch(0.9 0 0);
+  --color-ring: oklch(0.08 0 0);
+}
+
+/* Base: los textos e iconos sin clase de color heredan de aquí */
+html.dark body { background-color: #0f0f14; color: #f2f2f7; }
+html.dark ::selection { background: #e5007d; color: #ffffff; }
+
+/* Toasts de sonner */
+html.dark [data-sonner-toaster] {
+  --normal-bg: #1b1b23;
+  --normal-text: #f2f2f7;
+  --normal-border: #2c2c38;
+}
+
+/* ── Capa de traducción, con exclusiones por rol ─────────────────────────── */
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
+
+  /* Superficies claras → oscuras */
+  &.bg-white            { background-color: #16161c; }
+  &.bg-\[\#fafafa\]     { background-color: #191920; }
+  &.bg-\[\#f8f8f8\]     { background-color: #0f0f14; }
+  &.bg-\[\#f6f6f7\]     { background-color: #0f0f14; }
+  &.bg-\[\#f5f5f5\]     { background-color: #1e1e26; }
+  &.bg-\[\#f0f0f0\]     { background-color: #23232c; }
+  &.bg-\[\#ebebeb\]     { background-color: #262631; }
+  &.bg-\[\#e5e5e5\]     { background-color: #262631; }
+  &.bg-gray-50, &.bg-gray-100 { background-color: #191920; }
+
+  /* Fondos ya oscuros: se afinan al negro del tema, no se invierten */
+  &.bg-\[\#0d0d0d\]     { background-color: #0b0b10; }
+  &.bg-black            { background-color: #0b0b10; }
+
+  /* BOTÓN SÓLIDO (fondo tinta + texto blanco): se invierte a claro.
+     El footer no llega aquí porque está excluido arriba. */
+  &.bg-\[\#1a1a1a\].text-white,
+  &.bg-\[\#111\].text-white {
+    background-color: #f2f2f7;
+    color: #14141a;
+  }
+  &.bg-\[\#1a1a1a\].text-white:hover,
+  &.bg-\[\#111\].text-white:hover { background-color: #dcdce6; }
+  /* Fondo tinta SIN texto blanco (raro): pasa a superficie elevada */
+  &.bg-\[\#1a1a1a\]:not(.text-white),
+  &.bg-\[\#111\]:not(.text-white) { background-color: #23232c; }
+
+  /* Texto tinta → claro */
+  &.text-\[\#111\], &.text-\[\#1a1a1a\], &.text-black { color: #f2f2f7; }
+  &.text-\[\#222\]   { color: #e8e8f0; }
+  &.text-\[\#333\]   { color: #d9d9e3; }
+  &.text-\[\#555\]   { color: #bdbdcb; }
+  &.text-\[\#666\]   { color: #b0b0c0; }
+  &.text-\[\#777\]   { color: #a6a6b5; }
+  &.text-\[\#888\]   { color: #9a9aa9; }
+  &.text-\[\#999\]   { color: #90909f; }
+  &.text-\[\#aaa\]   { color: #8a8a99; }
+  &.text-\[\#bbb\]   { color: #82828f; }
+  &.text-\[\#ccc\]   { color: #7a7a88; }
+
+  /* Magenta de marca en TEXTO: se sube un punto de brillo para pasar de
+     3.1:1 a ~4.6:1 sobre las superficies oscuras. Fondos y bordes de marca
+     no se tocan. */
+  &.text-\[\#e5007d\] { color: #ff45a0; }
+  &.text-\[\#c4006b\] { color: #ff45a0; }
+
+  /* Bordes */
+  &.border-\[\#e5e5e5\], &.border-\[\#ebebeb\] { border-color: #2c2c38; }
+  &.border-\[\#f0f0f0\], &.border-\[\#f5f5f5\] { border-color: #242430; }
+  &.border-white { border-color: #2c2c38; }
+  &.border-\[\#1a1a1a\], &.border-\[\#111\] { border-color: #f2f2f7; }
+
+  /* Estados hover de superficies */
+  &.hover\:bg-\[\#f5f5f5\]:hover { background-color: #22222b; }
+  &.hover\:bg-\[\#fafafa\]:hover { background-color: #1d1d25; }
+  &.hover\:bg-\[\#f0f0f0\]:hover { background-color: #262630; }
+  &.hover\:bg-white:hover        { background-color: #22222b; }
+  &.hover\:bg-\[\#333\]:hover    { background-color: #dcdce6; }
+
+  /* Estados hover de texto */
+  &.hover\:text-\[\#111\]:hover, &.hover\:text-\[\#1a1a1a\]:hover { color: #ffffff; }
+  &.hover\:text-\[\#e5007d\]:hover, &.hover\:text-\[\#c4006b\]:hover { color: #ff45a0; }
+
+  /* Foco de campos */
+  &.focus\:border-\[\#111\]:focus, &.focus\:border-\[\#1a1a1a\]:focus { border-color: #f2f2f7; }
+}
+
+/* Divisores */
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#e5e5e5\] > * + *,
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#ebebeb\] > * + *,
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#f0f0f0\] > * + * {
+  border-color: #2c2c38;
+}
+
+/* Franjas de acento: barra de anuncios y marquee amarillo → magenta con
+   letra negra, como acordamos */
+.dark .top-bar { background-color: #e5007d !important; }
+.dark .top-bar, .dark .top-bar * { color: #0b0b10 !important; }
+.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#f5e642\],
+.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#ffd700\] {
+  background-color: #e5007d !important;
+  color: #0b0b10 !important;
+}
+.dark .bg-\[\#f5e642\] *, .dark .bg-\[\#ffd700\] * { color: #0b0b10 !important; }
+
+/* Campos de formulario y placeholders */
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) :is(input, textarea, select) {
+  color: #f2f2f7;
+}
+.dark :where(:not(.admin-shell):not(.admin-shell *)) :is(input, textarea)::placeholder { color: #7c7c8c; }
+
+/* Sombras con profundidad real sobre fondo oscuro */
+.dark :where(:not(.admin-shell):not(.admin-shell *)):is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+}

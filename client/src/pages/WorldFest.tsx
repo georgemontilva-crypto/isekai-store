@@ -165,7 +165,7 @@ export default function WorldFest() {
   );
 
   return (
-    <div className="relative min-h-[100dvh] bg-[#04060f] text-[#dceaff]">
+    <div className="wf-page relative min-h-[100dvh] bg-[#04060f] text-[#dceaff]">
       {/* Video de fondo (estática). Va fijo detrás de todo; las capas azules
           de arriba son translúcidas para que se siga viendo el efecto. */}
       {bgVideo && (

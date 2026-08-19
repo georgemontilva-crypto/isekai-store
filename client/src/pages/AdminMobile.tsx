@@ -2102,7 +2102,7 @@ export default function AdminMobile() {
   };
 
   return (
-    <div className="flex flex-col bg-[#f8f8f8]"
+    <div className="admin-shell flex flex-col bg-[#f8f8f8]"
       style={{ height: '100dvh', paddingTop: activeTab === 'newOrder' ? 0 : 'env(safe-area-inset-top)' }}>
 
       {/* Header */}
