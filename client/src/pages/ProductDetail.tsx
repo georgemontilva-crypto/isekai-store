@@ -181,7 +181,7 @@ export default function ProductDetail() {
     <>
     <div className="min-h-screen pb-20">
       {/* ── Breadcrumb ── */}
-      <div className="border-b border-border/30 bg-card/20">
+      <div className="breadcrumb-bar border-b border-border/30 bg-card/20">
         <div className="container py-4">
           <motion.div
             initial={{ opacity: 0, x: -10 }}
@@ -200,7 +200,7 @@ export default function ProductDetail() {
               </>
             )}
             <span className="opacity-40">/</span>
-            <span className="text-foreground truncate max-w-[180px]">{product.name}</span>
+            <span className="breadcrumb-current text-foreground truncate max-w-[180px]">{product.name}</span>
           </motion.div>
         </div>
       </div>

@@ -294,12 +294,23 @@
     color: #555;
     background: transparent;
   }
-  .tab-pill:hover { border-color: #1a1a1a; color: #1a1a1a; }
+  .tab-pill:hover { border-color: #e5007d; color: #e5007d; }
   .tab-pill.active {
-    background: #1a1a1a;
+    background: #e5007d;
     color: #fff;
-    border-color: #1a1a1a;
+    border-color: #e5007d;
   }
+  /* Flechas del carril de categorías */
+  .cat-arrow {
+    width: 30px; height: 30px;
+    align-items: center; justify-content: center;
+    border-radius: 9999px;
+    border: 1.5px solid #e5e5e5;
+    background: #ffffff;
+    color: #555;
+    transition: all 0.2s ease;
+  }
+  .cat-arrow:hover { border-color: #e5007d; color: #e5007d; }
 
   /* ── Status badges (admin) ── */
   .status-pending { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.75rem; font-weight: 600; }
@@ -1018,4 +1029,37 @@ html.dark .spotlight-veil {
 }
 html.dark .account-veil {
   background: linear-gradient(to bottom, rgba(5,5,7,0.4) 0%, rgba(5,5,7,1) 100%);
+}
+
+/* ── Chips de categoría y franja de filtros en oscuro ────────────────────── */
+html.dark .tab-pill {
+  border-color: #3d3d4a;
+  color: #d2d2dd;          /* antes quedaban muy apagados */
+  background: transparent;
+}
+html.dark .tab-pill:hover  { border-color: #ff45a0; color: #ff45a0; }
+html.dark .tab-pill.active {
+  background: #e5007d;
+  border-color: #e5007d;
+  color: #ffffff;
+}
+html.dark .cat-arrow {
+  background: #15151b;
+  border-color: #3d3d4a;
+  color: #d2d2dd;
+}
+html.dark .cat-arrow:hover { border-color: #ff45a0; color: #ff45a0; }
+
+/* Franja de migas de la ficha de producto: fondo oscuro real (bg-card/20
+   compila con blanco incrustado), texto blanco y el activo en magenta */
+html.dark .breadcrumb-bar { background-color: #0d0d12 !important; border-color: #23232c !important; }
+html.dark .breadcrumb-bar, html.dark .breadcrumb-bar span { color: #ffffff !important; }
+html.dark .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
+
+/* Sección destacada de la home: negro total, sin el degradado gris */
+html.dark .spotlight-veil {
+  background: linear-gradient(to bottom,
+    rgba(0,0,0,0.72) 0%,
+    rgba(0,0,0,0.96) 45%,
+    #000000 100%);
 }

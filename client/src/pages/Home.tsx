@@ -670,9 +670,26 @@ export default function Home() {
                 </button>
               </div>
             </div>
-            {/* Filtros — hermano directo, ancho completo, scroll sin clip */}
+            {/* Filtros — con sus propias flechas: las de arriba mueven los
+                productos, no los chips */}
+            <div className="relative -mx-4 px-4">
+              <button
+                onClick={() => { const el = document.getElementById('cat-chips-scroll'); if (el) el.scrollBy({ left: -260, behavior: 'smooth' }); }}
+                aria-label="Categorías anteriores"
+                className="cat-arrow absolute left-1 top-1/2 -translate-y-1/2 z-10 hidden md:flex"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <button
+                onClick={() => { const el = document.getElementById('cat-chips-scroll'); if (el) el.scrollBy({ left: 260, behavior: 'smooth' }); }}
+                aria-label="Más categorías"
+                className="cat-arrow absolute right-1 top-1/2 -translate-y-1/2 z-10 hidden md:flex"
+              >
+                <ChevronRight size={15} />
+              </button>
             <div
-              className="flex gap-2 pb-2 -mx-4 px-4"
+              id="cat-chips-scroll"
+              className="flex gap-2 pb-2 md:px-8"
               style={{
                 overflowX: 'auto',
                 WebkitOverflowScrolling: 'touch',
@@ -696,6 +713,7 @@ export default function Home() {
                 </button>
               ))}
               <div className="flex-shrink-0 w-6" />
+            </div>
             </div>
           </div>
 
