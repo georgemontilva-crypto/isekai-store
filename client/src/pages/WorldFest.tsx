@@ -182,8 +182,8 @@ export default function WorldFest() {
             className="sticky top-0 h-[100dvh] w-full object-cover opacity-70"
           />
           {/* Tinte azul del Sistema por encima del video */}
-          <div className="absolute inset-0 bg-[#04102a]/55 mix-blend-multiply" />
-          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_115%,rgba(18,58,107,0.55)_0%,rgba(10,24,54,0.45)_42%,rgba(4,6,15,0.75)_100%)]" />
+          <div className="absolute inset-0 bg-[#04102a]/30 mix-blend-multiply" />
+          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_115%,rgba(18,58,107,0.30)_0%,rgba(10,24,54,0.25)_42%,rgba(4,6,15,0.55)_100%)]" />
         </div>
       )}
 
@@ -286,6 +286,9 @@ export default function WorldFest() {
           100% { opacity: 1; transform: scale(1, 1); filter: brightness(1); }
         }
         .wf-crt-on { animation: wf-crt-on 0.85s cubic-bezier(.19,1,.22,1) both; }
+        /* Sin placa detrás, los textos se sostienen con sombra propia */
+        .wf-page h1, .wf-page h2 { text-shadow: 0 2px 18px rgba(2,4,10,0.85), 0 0 42px rgba(2,4,10,0.6); }
+        .wf-page p  { text-shadow: 0 1px 10px rgba(2,4,10,0.8); }
         @media (prefers-reduced-motion: reduce) {
           .wf-gate, .wf-scan::before, .wf-caret { animation: none; }
           .wf-boot { animation: none; opacity: 1; }
@@ -397,7 +400,7 @@ export default function WorldFest() {
               filter: "blur(22px)",
             }}
           />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060f]/90 via-transparent to-[#04060f]/90" />
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#04060f]/85 via-[#04060f]/15 to-transparent" />
         </div>
 
         <div className="relative z-10 mx-auto w-full max-w-6xl px-6 py-14 sm:py-16">
@@ -517,7 +520,7 @@ export default function WorldFest() {
       )}
 
       {/* ─── Registro ─────────────────────────────────────────────────────── */}
-      <section className="relative z-10 overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/80 py-16 sm:py-20">
+      <section className="relative z-10 overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/55 py-16 sm:py-20">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_100%_at_50%_0%,rgba(70,150,255,0.22)_0%,transparent_65%)]" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">

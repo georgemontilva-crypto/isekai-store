@@ -853,7 +853,7 @@ html.dark .admin-shell {
 }
 
 /* Base: los textos e iconos sin clase de color heredan de aquí */
-html.dark body { background-color: #0f0f14; color: #f2f2f7; }
+html.dark body { background-color: #050507; color: #f2f2f7; }
 html.dark ::selection { background: #e5007d; color: #ffffff; }
 
 /* Toasts de sonner */
@@ -867,15 +867,21 @@ html.dark [data-sonner-toaster] {
 .dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
 
   /* Superficies claras → oscuras */
-  &.bg-white            { background-color: #16161c; }
-  &.bg-\[\#fafafa\]     { background-color: #191920; }
-  &.bg-\[\#f8f8f8\]     { background-color: #0f0f14; }
-  &.bg-\[\#f6f6f7\]     { background-color: #0f0f14; }
-  &.bg-\[\#f5f5f5\]     { background-color: #1e1e26; }
-  &.bg-\[\#f0f0f0\]     { background-color: #23232c; }
-  &.bg-\[\#ebebeb\]     { background-color: #262631; }
-  &.bg-\[\#e5e5e5\]     { background-color: #262631; }
-  &.bg-gray-50, &.bg-gray-100 { background-color: #191920; }
+  &.bg-white            { background-color: #15151b; }
+  &.bg-\[\#fafafa\]     { background-color: #050507; }
+  &.bg-\[\#f8f8f8\]     { background-color: #050507; }
+  &.bg-\[\#f6f6f7\]     { background-color: #050507; }
+  &.bg-\[\#f5f5f5\]     { background-color: #0a0a0e; }
+  &.bg-\[\#f0f0f0\]     { background-color: #101016; }
+  &.bg-\[\#ebebeb\]     { background-color: #14141a; }
+  &.bg-\[\#e5e5e5\]     { background-color: #17171e; }
+  &.bg-gray-50, &.bg-gray-100 { background-color: #0a0a0e; }
+  /* Clases que faltaban en el mapa */
+  &.bg-\[\#f2f2f2\]     { background-color: #0d0d12; }
+  &.bg-\[\#f9f9f9\]     { background-color: #101016; }
+  &.bg-\[\#fff8f0\]     { background-color: #221a12; }
+  &.bg-white\/90, &.bg-white\/80 { background-color: rgba(16,16,22,0.92); }
+  &.border-\[\#e0e0e0\] { border-color: #2e2e3a; }
 
   /* Fondos ya oscuros: se afinan al negro del tema, no se invierten */
   &.bg-\[\#0d0d0d\]     { background-color: #0b0b10; }
@@ -898,14 +904,14 @@ html.dark [data-sonner-toaster] {
   &.text-\[\#111\], &.text-\[\#1a1a1a\], &.text-black { color: #f2f2f7; }
   &.text-\[\#222\]   { color: #e8e8f0; }
   &.text-\[\#333\]   { color: #d9d9e3; }
-  &.text-\[\#555\]   { color: #bdbdcb; }
-  &.text-\[\#666\]   { color: #b0b0c0; }
-  &.text-\[\#777\]   { color: #a6a6b5; }
-  &.text-\[\#888\]   { color: #9a9aa9; }
-  &.text-\[\#999\]   { color: #90909f; }
-  &.text-\[\#aaa\]   { color: #8a8a99; }
-  &.text-\[\#bbb\]   { color: #82828f; }
-  &.text-\[\#ccc\]   { color: #7a7a88; }
+  &.text-\[\#555\]   { color: #c8c8d4; }
+  &.text-\[\#666\]   { color: #c0c0cc; }
+  &.text-\[\#777\]   { color: #b8b8c4; }
+  &.text-\[\#888\]   { color: #b0b0bd; }
+  &.text-\[\#999\]   { color: #a8a8b5; }
+  &.text-\[\#aaa\]   { color: #a0a0ad; }
+  &.text-\[\#bbb\]   { color: #9898a5; }
+  &.text-\[\#ccc\]   { color: #90909d; }
 
   /* Magenta de marca en TEXTO: se sube un punto de brillo para pasar de
      3.1:1 a ~4.6:1 sobre las superficies oscuras. Fondos y bordes de marca
@@ -914,7 +920,7 @@ html.dark [data-sonner-toaster] {
   &.text-\[\#c4006b\] { color: #ff45a0; }
 
   /* Bordes */
-  &.border-\[\#e5e5e5\], &.border-\[\#ebebeb\] { border-color: #2c2c38; }
+  &.border-\[\#e5e5e5\], &.border-\[\#ebebeb\] { border-color: #3d3d4a; }
   &.border-\[\#f0f0f0\], &.border-\[\#f5f5f5\] { border-color: #242430; }
   &.border-white { border-color: #2c2c38; }
   &.border-\[\#1a1a1a\], &.border-\[\#111\] { border-color: #f2f2f7; }
@@ -932,6 +938,12 @@ html.dark [data-sonner-toaster] {
 
   /* Foco de campos */
   &.focus\:border-\[\#111\]:focus, &.focus\:border-\[\#1a1a1a\]:focus { border-color: #f2f2f7; }
+}
+
+/* Títulos principales en magenta. Los que ya son blancos sobre imagen
+   (text-white) o ya son magenta se respetan. */
+.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) :is(h1, h2):not(.text-white):not(.text-\[\#e5007d\]) {
+  color: #ff3d9e !important;
 }
 
 /* Divisores */
