@@ -60,6 +60,11 @@ export default function CosplayDashboard() {
   const utils = trpc.useUtils();
   const MIN_WITHDRAWAL_USD = 20;
 
+  const enableProfile = trpc.cosplay.enableMyCosplayerProfile.useMutation({
+    onSuccess: () => { utils.cosplay.getMyProfile.invalidate(); toast.success('Perfil de cosplayer activado'); },
+    onError: () => toast.error('No se pudo activar el perfil'),
+  });
+
   const cosplayerQuery = trpc.cosplay.getMyProfile.useQuery(undefined, {
     enabled: isAuthenticated,
   });
@@ -220,6 +225,29 @@ export default function CosplayDashboard() {
   }
 
   if (!cosplayer) {
+    // Al admin no se le pide postularse: se activa su propio perfil para que
+    // pueda ver el panel tal como lo ven los cosplayers y probar cambios.
+    if (user?.role === 'admin') {
+      return (
+        <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-6">
+          <div className="text-center max-w-md">
+            <h2 className="text-2xl font-bold text-white mb-3">Activa tu perfil de cosplayer</h2>
+            <p className="text-[#888] mb-6">
+              Como administrador puedes crear tu propio perfil para ver este panel
+              exactamente como lo ven los cosplayers y probar cambios.
+            </p>
+            <button
+              onClick={() => enableProfile.mutate()}
+              disabled={enableProfile.isPending}
+              className="bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors disabled:opacity-60"
+            >
+              {enableProfile.isPending ? 'Activando...' : 'Activar mi perfil'}
+            </button>
+          </div>
+        </div>
+      );
+    }
+
     return (
       <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-6">
         <div className="text-center max-w-md">

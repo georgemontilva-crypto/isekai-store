@@ -3592,7 +3592,18 @@ export default function Admin() {
             {/* ─── Cosplay Guild ──────────────────────────────────────────────── */}
             {tab === "cosplay" && (
               <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <h1 className="text-2xl font-bold mb-5 flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <h1 className="text-2xl font-bold flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
+                  {/* Ver el panel tal como lo ven los cosplayers */}
+                  <a
+                    href="/cosplay/dashboard"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] bg-white px-4 py-2 text-xs font-bold text-[#555] transition-colors hover:border-[#e5007d] hover:text-[#e5007d]"
+                  >
+                    Ver panel de cosplayer <ExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
 
                 {(() => {
                   const pendingApps = cosplayApps.filter((a: any) => a.status === 'pending').length;

@@ -2125,3 +2125,64 @@ export async function deleteSubscriber(id: number) {
   if (!db) return;
   await db.delete(subscribers).where(eq(subscribers.id, id));
 }
+
+/**
+ * Crea (o devuelve) el perfil de cosplayer del propio admin.
+ *
+ * Sirve para que el dueño vea el panel de cosplayers con datos reales y pueda
+ * probar cambios sin tener que postularse ni aprobarse a sí mismo. No pasa por
+ * el flujo de solicitud ni genera orden de kit de bienvenida.
+ */
+export async function ensureOwnCosplayerProfile(userId: number, nombre: string, correo: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const [existente] = await db.select().from(cosplayers).where(eq(cosplayers.userId, userId)).limit(1);
+  if (existente) return existente;
+
+  const artisticName = (nombre || 'Admin').trim();
+  const username = artisticName
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '') || 'admin';
+
+  const nameSlug = artisticName.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8) || 'ADMIN';
+  const referralCode = `ISK-${nameSlug}-${Math.floor(1000 + Math.random() * 9000)}`;
+
+  // El esquema exige una solicitud asociada, así que se crea una interna ya
+  // aprobada. No aparece como pendiente en el panel del Guild.
+  const [appRes] = await db.insert(cosplayApplications).values({
+    userId,
+    artisticName,
+    fullName: artisticName,
+    lastName: '(admin)',
+    age: 18,
+    city: 'Maracaibo',
+    country: 'Venezuela',
+    address: '-',
+    phone: '-',
+    email: correo,
+    experience: 0,
+    whyIsekai: 'Perfil interno del administrador para previsualizar el panel de cosplayers.',
+    status: 'approved',
+  });
+
+  await db.insert(cosplayers).values({
+    userId,
+    applicationId: appRes.insertId,
+    artisticName,
+    tier: 'bronce',
+    totalFollowers: 0,
+    ticketBalance: 0,
+    cashBalance: '0.00',
+    referralCode,
+    username,
+    isActive: true,
+  });
+
+  const [creado] = await db.select().from(cosplayers).where(eq(cosplayers.userId, userId)).limit(1);
+  return creado;
+}

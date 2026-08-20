@@ -21,6 +21,7 @@ import {
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
+  ensureOwnCosplayerProfile,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
@@ -1156,6 +1157,12 @@ export const appRouter = router({
           }
         } catch { /* non-critical */ }
       }),
+
+    /** El admin se activa a sí mismo como cosplayer para poder ver el panel */
+    enableMyCosplayerProfile: adminProcedure.mutation(async ({ ctx }) => {
+      const perfil = await ensureOwnCosplayerProfile(ctx.user.id, ctx.user.name ?? 'Admin', ctx.user.email ?? '-');
+      return { ok: Boolean(perfil) };
+    }),
 
     getMyProfile: protectedProcedure.query(async ({ ctx }) => {
       const result = await getCosplayerByUserId(ctx.user.id);
