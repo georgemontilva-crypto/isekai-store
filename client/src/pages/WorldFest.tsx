@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
-import { ArrowLeft, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
@@ -28,27 +28,14 @@ const FALLBACK = {
 };
 
 /** Las misiones del festival. El rango sube porque sí es una escalada real. */
-const MISIONES = [
-  {
-    rank: "B",
-    locked: false,
-    title: "Pasarela de cazadores",
-    body: "El Cosplay Guild sale del catálogo y pisa un escenario. Categorías, jurado y premios reales.",
-  },
-  // Las dos siguientes se revelan más adelante: por ahora solo se sabe que existen
-  {
-    rank: "?",
-    locked: true,
-    title: "Misión sin revelar",
-    body: "El Sistema todavía no libera esta información.",
-  },
-  {
-    rank: "?",
-    locked: true,
-    title: "Misión sin revelar",
-    body: "El Sistema todavía no libera esta información.",
-  },
-];
+/** Seis misiones, todas sin revelar. Las tres últimas son de rango superior
+    (moradas), para sugerir que lo que falta escala en dificultad. */
+const MISIONES = Array.from({ length: 6 }, (_, i) => ({
+  rank: "?",
+  tier: i < 3 ? "azul" : "morado",
+  title: "Misión sin revelar",
+  body: "El Sistema todavía no libera esta información.",
+}));
 
 /** Texto de la notificación del hero, escrito carácter a carácter. */
 const ALERTA = "Se abrió un portal en Maracaibo. Ubicación desconocida.";
@@ -239,6 +226,34 @@ export default function WorldFest() {
           border-color: #7dd8ff; pointer-events: none;
         }
         .wf-locked { opacity: 0.72; }
+
+        /* Variante morada: las tres últimas misiones, de rango superior */
+        .wf-window-morado {
+          border-color: rgba(160,120,255,0.45);
+          background: linear-gradient(180deg, rgba(38,18,70,0.72), rgba(18,8,38,0.72));
+          box-shadow: inset 0 0 0 1px rgba(160,120,255,0.10), 0 0 42px rgba(120,60,255,0.20);
+        }
+        .wf-window-morado::after { border-color: rgba(160,120,255,0.16); }
+        .wf-corner-morado { border-color: #b98cff !important; }
+        .wf-window-morado .wf-scan::before,
+        .wf-window-morado::before {
+          background: linear-gradient(180deg, transparent, rgba(185,140,255,0.10), transparent);
+        }
+
+        /* Flechas del carril de misiones */
+        .wf-rail-arrow {
+          width: 34px; height: 34px;
+          align-items: center; justify-content: center;
+          border-radius: 9999px;
+          border: 1px solid rgba(93,180,255,0.45);
+          background: rgba(8,18,38,0.85);
+          color: #7dd8ff;
+          backdrop-filter: blur(4px);
+          transition: all 0.2s ease;
+        }
+        .wf-rail-arrow:hover { border-color: #7dd8ff; background: rgba(14,40,80,0.9); }
+        /* Oculta la barra de scroll del carril sin perder el gesto */
+        #wf-misiones::-webkit-scrollbar { display: none; }
         /* Glitch: cortes horizontales + separación RGB, como señal dañada */
         @keyframes wf-glitch-clip {
           0%   { clip-path: inset(0 0 0 0); transform: translate(0); }
@@ -480,36 +495,66 @@ export default function WorldFest() {
           Todavía no revelamos la fecha. Sí podemos decir a qué te vas a enfrentar cuando la puerta se abra del todo.
         </p>
 
-        <div className="mt-9 grid gap-4 sm:grid-cols-3">
-          {MISIONES.map((m, i) => (
-            <div
-              key={i}
-              className={`wf-window wf-scan rounded-sm p-6 transition-transform ${m.locked ? "wf-locked" : "hover:-translate-y-1"}`}
-            >
-              {corners}
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-[0.28em] text-[#5db4ff]">
-                  {m.locked ? "Bloqueada" : "Rango"}
-                </span>
-                <span
-                  className={`flex h-9 w-9 items-center justify-center rounded-sm border font-black ${
-                    m.locked
-                      ? "border-[#5db4ff]/25 bg-[#5db4ff]/5 text-[#5db4ff]/60"
-                      : "border-[#7dd8ff]/50 bg-[#7dd8ff]/10 text-[#7dd8ff]"
-                  }`}
-                  style={m.locked ? undefined : { textShadow: "0 0 14px rgba(125,216,255,0.7)" }}
+        {/* Carril horizontal: seis misiones, se arrastra o se empuja con las
+            flechas. En teléfono se desliza con el dedo. */}
+        <div className="relative mt-9">
+          <button
+            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: -300, behavior: "smooth" })}
+            aria-label="Misiones anteriores"
+            className="wf-rail-arrow absolute -left-2 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: 300, behavior: "smooth" })}
+            aria-label="Más misiones"
+            className="wf-rail-arrow absolute -right-2 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
+          >
+            <ChevronRight size={16} />
+          </button>
+
+          <div
+            id="wf-misiones"
+            className="flex gap-4 overflow-x-auto pb-2"
+            style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+          >
+            {MISIONES.map((m, i) => {
+              const morada = m.tier === "morado";
+              return (
+                <div
+                  key={i}
+                  className={`wf-window wf-scan wf-locked w-[248px] shrink-0 rounded-sm p-6 sm:w-[272px] ${morada ? "wf-window-morado" : ""}`}
                 >
-                  {m.rank}
-                </span>
-              </div>
-              <h3 className={`mt-5 text-lg font-black uppercase leading-tight tracking-tight ${m.locked ? "text-white/35" : "text-white"}`}>
-                {m.title}
-              </h3>
-              <p className={`mt-3 text-sm leading-relaxed ${m.locked ? "text-[#8fb0d6]/45" : "text-[#8fb0d6]"}`}>
-                {m.body}
-              </p>
-            </div>
-          ))}
+                  <span className={`wf-corner -left-px -top-px border-l-2 border-t-2 ${morada ? "wf-corner-morado" : ""}`} />
+                  <span className={`wf-corner -right-px -top-px border-r-2 border-t-2 ${morada ? "wf-corner-morado" : ""}`} />
+                  <span className={`wf-corner -bottom-px -left-px border-b-2 border-l-2 ${morada ? "wf-corner-morado" : ""}`} />
+                  <span className={`wf-corner -bottom-px -right-px border-b-2 border-r-2 ${morada ? "wf-corner-morado" : ""}`} />
+
+                  <div className="flex items-center justify-between">
+                    <span className={`font-mono text-[10px] font-bold uppercase tracking-[0.28em] ${morada ? "text-[#b98cff]" : "text-[#5db4ff]"}`}>
+                      Bloqueada
+                    </span>
+                    <span
+                      className={`flex h-9 w-9 items-center justify-center rounded-sm border font-black ${
+                        morada
+                          ? "border-[#b98cff]/30 bg-[#b98cff]/10 text-[#b98cff]/70"
+                          : "border-[#5db4ff]/25 bg-[#5db4ff]/5 text-[#5db4ff]/60"
+                      }`}
+                    >
+                      {m.rank}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-lg font-black uppercase leading-tight tracking-tight text-white/35">
+                    {m.title}
+                  </h3>
+                  <p className={`mt-3 text-sm leading-relaxed ${morada ? "text-[#b0a0d6]/45" : "text-[#8fb0d6]/45"}`}>
+                    {m.body}
+                  </p>
+                </div>
+              );
+            })}
+            <div className="w-2 shrink-0" />
+          </div>
         </div>
       </section>
 
