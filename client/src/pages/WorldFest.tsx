@@ -495,20 +495,23 @@ export default function WorldFest() {
           Todavía no revelamos la fecha. Sí podemos decir a qué te vas a enfrentar cuando la puerta se abra del todo.
         </p>
 
-        {/* Carril horizontal: seis misiones, se arrastra o se empuja con las
-            flechas. En teléfono se desliza con el dedo. */}
-        <div className="relative mt-9">
+        {/* Carril a ancho completo de pantalla: se sale del contenedor para que
+            las tarjetas lleguen hasta el borde y no parezca que se cortan.
+            El relleno izquierdo replica el margen del contenedor, así la
+            primera tarjeta queda alineada con el título de arriba. */}
+        <div className="relative left-1/2 mt-9 w-screen -translate-x-1/2">
           <button
             onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: -300, behavior: "smooth" })}
             aria-label="Misiones anteriores"
-            className="wf-rail-arrow absolute -left-2 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
+            className="wf-rail-arrow absolute top-1/2 z-20 hidden -translate-y-1/2 md:flex"
+            style={{ left: "calc(max(1.5rem, (100vw - 72rem) / 2 + 1.5rem) - 0.5rem)" }}
           >
             <ChevronLeft size={16} />
           </button>
           <button
             onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: 300, behavior: "smooth" })}
             aria-label="Más misiones"
-            className="wf-rail-arrow absolute -right-2 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
+            className="wf-rail-arrow absolute right-4 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
           >
             <ChevronRight size={16} />
           </button>
@@ -516,7 +519,15 @@ export default function WorldFest() {
           <div
             id="wf-misiones"
             className="flex gap-4 overflow-x-auto pb-2"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none", WebkitOverflowScrolling: "touch" }}
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+              // Mismo margen que el contenedor (max-w-6xl = 72rem, px-6 = 1.5rem)
+              paddingLeft: "max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem))",
+              paddingRight: "1.5rem",
+              scrollPaddingLeft: "max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem))",
+            }}
           >
             {MISIONES.map((m, i) => {
               const morada = m.tier === "morado";
@@ -553,7 +564,6 @@ export default function WorldFest() {
                 </div>
               );
             })}
-            <div className="w-2 shrink-0" />
           </div>
         </div>
       </section>
