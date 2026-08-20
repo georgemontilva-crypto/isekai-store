@@ -822,10 +822,10 @@ img, video, iframe { max-width: 100%; }
    secundarios nunca por debajo de 4.5:1.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-html.dark { color-scheme: dark; }
+html.dark:not(.admin-light) { color-scheme: dark; }
 
 /* Tokens de shadcn (menús, selects, diálogos, drawers) */
-html.dark {
+html.dark:not(.admin-light) {
   --color-background: oklch(0.17 0.01 285);
   --color-foreground: oklch(0.955 0.005 285);
   --color-card: oklch(0.205 0.012 285);
@@ -846,7 +846,7 @@ html.dark {
 }
 
 /* El panel admin conserva su esquema claro */
-html.dark .admin-shell {
+html.dark:not(.admin-light) .admin-shell {
   color-scheme: light;
   --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.08 0 0);
@@ -868,18 +868,18 @@ html.dark .admin-shell {
 }
 
 /* Base: los textos e iconos sin clase de color heredan de aquí */
-html.dark body { background-color: #050507; color: #f2f2f7; }
+html.dark:not(.admin-light) body { background-color: #050507; color: #f2f2f7; }
 html.dark ::selection { background: #e5007d; color: #ffffff; }
 
 /* Toasts de sonner */
-html.dark [data-sonner-toaster] {
+html.dark:not(.admin-light) [data-sonner-toaster] {
   --normal-bg: #1b1b23;
   --normal-text: #f2f2f7;
   --normal-border: #2c2c38;
 }
 
 /* ── Capa de traducción, con exclusiones por rol ─────────────────────────── */
-.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
 
   /* Superficies claras → oscuras */
   &.bg-white            { background-color: #15151b; }
@@ -957,48 +957,48 @@ html.dark [data-sonner-toaster] {
 
 /* Títulos principales en magenta. Los que ya son blancos sobre imagen
    (text-white) o ya son magenta se respetan. */
-.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) :is(h1, h2):not(.text-white):not(.text-\[\#e5007d\]) {
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) :is(h1, h2):not(.text-white):not(.text-\[\#e5007d\]) {
   color: #ff3d9e !important;
 }
 
 /* Divisores */
-.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#e5e5e5\] > * + *,
-.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#ebebeb\] > * + *,
-.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#f0f0f0\] > * + * {
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#e5e5e5\] > * + *,
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#ebebeb\] > * + *,
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#f0f0f0\] > * + * {
   border-color: #2c2c38;
 }
 
 /* Franja superior: gris oscuro con texto blanco en ambos modos.
    El !important la protege de la inversión de botones sólidos. */
-.dark .top-bar { background-color: #141418 !important; }
-.dark .top-bar, .dark .top-bar * { color: #ffffff !important; }
-.dark .top-bar .text-\[\#e5007d\] { color: #ff45a0 !important; }
-.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#f5e642\],
-.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#ffd700\] {
+html.dark:not(.admin-light) .top-bar { background-color: #141418 !important; }
+html.dark:not(.admin-light) .top-bar, html.dark:not(.admin-light) .top-bar * { color: #ffffff !important; }
+html.dark:not(.admin-light) .top-bar .text-\[\#e5007d\] { color: #ff45a0 !important; }
+html.dark:not(.admin-light) :where(:not(.wf-page):not(.wf-page *)).bg-\[\#f5e642\],
+html.dark:not(.admin-light) :where(:not(.wf-page):not(.wf-page *)).bg-\[\#ffd700\] {
   background-color: #e5007d !important;
   color: #0b0b10 !important;
 }
-.dark .bg-\[\#f5e642\] *, .dark .bg-\[\#ffd700\] * { color: #0b0b10 !important; }
+html.dark:not(.admin-light) .bg-\[\#f5e642\] *, html.dark:not(.admin-light) .bg-\[\#ffd700\] * { color: #0b0b10 !important; }
 
 /* Campos de formulario y placeholders */
-.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) :is(input, textarea, select) {
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) :is(input, textarea, select) {
   color: #f2f2f7;
 }
-.dark :where(:not(.admin-shell):not(.admin-shell *)) :is(input, textarea)::placeholder { color: #7c7c8c; }
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *)) :is(input, textarea)::placeholder { color: #7c7c8c; }
 
 /* Sombras con profundidad real sobre fondo oscuro */
-.dark :where(:not(.admin-shell):not(.admin-shell *)):is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *)):is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
 }
 
 /* Barra de confianza (vive dentro del footer, que está excluido de la capa
    general): en oscuro pasa a magenta con todo el contenido en blanco */
-.dark .trust-bar { background-color: #e5007d !important; border-color: #e5007d !important; }
-.dark .trust-bar p, .dark .trust-bar svg { color: #ffffff !important; }
+html.dark:not(.admin-light) .trust-bar { background-color: #e5007d !important; border-color: #e5007d !important; }
+html.dark:not(.admin-light) .trust-bar p, html.dark:not(.admin-light) .trust-bar svg { color: #ffffff !important; }
 
 /* Header del catálogo: bg-card/30 compila con el blanco incrustado, se
    corrige aquí por si quedara en alguna otra pantalla */
-.dark .bg-card\/30 { background-color: #0a0a0e; }
+html.dark:not(.admin-light) .bg-card\/30 { background-color: #0a0a0e; }
 
 /* Marquee de la franja superior */
 @keyframes iw-topbar { to { transform: translateX(-50%); } }
@@ -1022,34 +1022,78 @@ html.dark [data-sonner-toaster] {
 .account-veil {
   background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 100%);
 }
-html.dark .account-veil {
+html.dark:not(.admin-light) .account-veil {
   background: linear-gradient(to bottom, rgba(5,5,7,0.4) 0%, rgba(5,5,7,1) 100%);
 }
 
 /* ── Chips de categoría y franja de filtros en oscuro ────────────────────── */
-html.dark .tab-pill {
+html.dark:not(.admin-light) .tab-pill {
   border-color: #3d3d4a;
   color: #d2d2dd;          /* antes quedaban muy apagados */
   background: transparent;
 }
-html.dark .tab-pill:hover  { border-color: #ff45a0; color: #ff45a0; }
-html.dark .tab-pill.active {
+html.dark:not(.admin-light) .tab-pill:hover  { border-color: #ff45a0; color: #ff45a0; }
+html.dark:not(.admin-light) .tab-pill.active {
   background: #e5007d;
   border-color: #e5007d;
   color: #ffffff;
 }
-html.dark .cat-arrow {
+html.dark:not(.admin-light) .cat-arrow {
   background: #15151b;
   border-color: #3d3d4a;
   color: #d2d2dd;
 }
-html.dark .cat-arrow:hover { border-color: #ff45a0; color: #ff45a0; }
+html.dark:not(.admin-light) .cat-arrow:hover { border-color: #ff45a0; color: #ff45a0; }
 
 /* Franja de migas de la ficha de producto: fondo oscuro real (bg-card/20
    compila con blanco incrustado), texto blanco y el activo en magenta */
-html.dark .breadcrumb-bar { background-color: #0d0d12 !important; border-color: #23232c !important; }
-html.dark .breadcrumb-bar, html.dark .breadcrumb-bar span { color: #ffffff !important; }
-html.dark .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
+html.dark:not(.admin-light) .breadcrumb-bar { background-color: #0d0d12 !important; border-color: #23232c !important; }
+html.dark:not(.admin-light) .breadcrumb-bar, html.dark .breadcrumb-bar span { color: #ffffff !important; }
+html.dark:not(.admin-light) .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
 
 /* Sección destacada de la home: negro total, sin el degradado gris */
-html.dark .spotlight-veil { background: #000000; }
+html.dark:not(.admin-light) .spotlight-veil { background: #000000; }
+
+/* ── Panel admin: siempre en claro ─────────────────────────────────────────
+   El admin monta la clase .admin-light en el <html>, y con ella se desactiva
+   toda la capa oscura. Hace falta a nivel de <html> (y no solo del contenedor)
+   porque los diálogos de Radix se dibujan en un portal FUERA del árbol del
+   admin: modales de crear/editar producto, ficha de cosplayer, etc.
+   Sin esto quedaban con texto blanco sobre fondo blanco. */
+html.admin-light {
+  color-scheme: light;
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.08 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.08 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.08 0 0);
+  --color-primary: oklch(0.08 0 0);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-secondary: oklch(0.96 0 0);
+  --color-secondary-foreground: oklch(0.08 0 0);
+  --color-muted: oklch(0.96 0 0);
+  --color-muted-foreground: oklch(0.45 0 0);
+  --color-accent: oklch(0.96 0 0);
+  --color-accent-foreground: oklch(0.08 0 0);
+  --color-border: oklch(0.9 0 0);
+  --color-input: oklch(0.9 0 0);
+  --color-ring: oklch(0.08 0 0);
+}
+html.admin-light body { background-color: #f6f6f7; color: #111111; }
+
+/* Red de seguridad para los diálogos del admin: aunque algún componente
+   traiga su propio color, el texto nunca queda blanco sobre blanco. */
+html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) {
+  color: #111111;
+}
+html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(h1,h2,h3,h4,p,span,label,li,td,th,div) {
+  color: inherit;
+}
+html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(input, textarea, select) {
+  color: #111111;
+  background-color: #ffffff;
+}
+html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(input, textarea)::placeholder {
+  color: #8a8a8a;
+}

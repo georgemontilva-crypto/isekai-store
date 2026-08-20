@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
@@ -628,7 +628,20 @@ const isExpired = (deadline: string | null) => {
 };
 
 // ─── Main Admin Component ─────────────────────────────────────────────────────
+
+/** El panel admin se ve siempre en claro, aunque la tienda sea oscura.
+    La clase va en <html> porque los diálogos se dibujan en un portal fuera
+    del árbol del componente. */
+function useAdminLightTheme() {
+  useEffect(() => {
+    const html = document.documentElement;
+    html.classList.add("admin-light");
+    return () => html.classList.remove("admin-light");
+  }, []);
+}
+
 export default function Admin() {
+  useAdminLightTheme();
   const { user, isAuthenticated, loading, logout } = useAuth();
   const utils = trpc.useUtils();
   const [sidebarOpen, setSidebarOpen] = useState(false);
