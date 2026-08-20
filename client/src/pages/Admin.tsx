@@ -770,6 +770,18 @@ export default function Admin() {
     onError: () => toast.error("No se pudo eliminar"),
   });
 
+  const { data: myCosplayer, refetch: refetchMyCosplayer } = trpc.cosplay.myCosplayerVisibility.useQuery(
+    undefined, { enabled: isAuthenticated && user?.role === "admin" },
+  );
+  const setMyVisibility = trpc.cosplay.setMyCosplayerVisibility.useMutation({
+    onSuccess: (d) => {
+      refetchMyCosplayer();
+      utils.cosplay.getApprovedCosplayers?.invalidate?.();
+      toast.success(d.visible ? "Tu perfil ya se ve en el directorio" : "Tu perfil quedó oculto del directorio");
+    },
+    onError: () => toast.error("No se pudo cambiar la visibilidad"),
+  });
+
   const resetRevenue = trpc.revenue.reset.useMutation({
     onSuccess: () => { utils.admin.metrics.invalidate(); toast.success("Contador reiniciado"); },
     onError: () => toast.error("No se pudo reiniciar"),
@@ -3594,15 +3606,38 @@ export default function Admin() {
               <motion.div key="cosplay" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
                   <h1 className="text-2xl font-bold flex items-center gap-2"><Sparkles className="w-6 h-6 text-[#e5007d]" /> Cosplay Guild</h1>
-                  {/* Ver el panel tal como lo ven los cosplayers */}
-                  <a
-                    href="/cosplay/dashboard"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] bg-white px-4 py-2 text-xs font-bold text-[#555] transition-colors hover:border-[#e5007d] hover:text-[#e5007d]"
-                  >
-                    Ver panel de cosplayer <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {/* Mostrar u ocultar mi propia tarjeta en el directorio */}
+                    {myCosplayer?.exists && (
+                      <button
+                        onClick={() => setMyVisibility.mutate({ visible: !myCosplayer.visible })}
+                        disabled={setMyVisibility.isPending}
+                        title={myCosplayer.visible
+                          ? "Tu perfil de admin se está mostrando en el directorio público"
+                          : "Tu perfil de admin está oculto del directorio público"}
+                        className={`flex items-center gap-2 rounded-full border px-4 py-2 text-xs font-bold transition-colors disabled:opacity-50 ${
+                          myCosplayer.visible
+                            ? "border-[#e5007d] bg-[#e5007d]/10 text-[#e5007d]"
+                            : "border-[#e5e5e5] bg-white text-[#555] hover:border-[#111] hover:text-[#111]"
+                        }`}
+                      >
+                        <span className={`relative h-4 w-7 rounded-full transition-colors ${myCosplayer.visible ? "bg-[#e5007d]" : "bg-[#ccc]"}`}>
+                          <span className={`absolute top-0.5 h-3 w-3 rounded-full bg-white transition-all ${myCosplayer.visible ? "left-3.5" : "left-0.5"}`} />
+                        </span>
+                        Mi perfil en el directorio
+                      </button>
+                    )}
+
+                    {/* Ver el panel tal como lo ven los cosplayers */}
+                    <a
+                      href="/cosplay/dashboard"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] bg-white px-4 py-2 text-xs font-bold text-[#555] transition-colors hover:border-[#e5007d] hover:text-[#e5007d]"
+                    >
+                      Ver panel de cosplayer <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  </div>
                 </div>
 
                 {(() => {

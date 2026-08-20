@@ -2180,9 +2180,33 @@ export async function ensureOwnCosplayerProfile(userId: number, nombre: string, 
     cashBalance: '0.00',
     referralCode,
     username,
-    isActive: true,
+    // Nace oculto del directorio público: es un perfil interno de pruebas.
+    // Se muestra con el interruptor del panel admin cuando haga falta.
+    isActive: false,
   });
 
   const [creado] = await db.select().from(cosplayers).where(eq(cosplayers.userId, userId)).limit(1);
   return creado;
+}
+
+/**
+ * Muestra u oculta el perfil de cosplayer del propio admin en el directorio
+ * público. Se separa de isActive (que es para dar de baja a un cosplayer)
+ * para no mezclar dos cosas distintas: aquí solo se cambia la visibilidad
+ * del perfil interno del dueño.
+ */
+export async function setOwnCosplayerVisibility(userId: number, visible: boolean) {
+  const db = await getDb();
+  if (!db) return { visible };
+  await db.update(cosplayers).set({ isActive: visible }).where(eq(cosplayers.userId, userId));
+  return { visible };
+}
+
+/** Dice si el perfil del admin está visible en el directorio */
+export async function getOwnCosplayerVisibility(userId: number) {
+  const db = await getDb();
+  if (!db) return { exists: false, visible: false };
+  const [row] = await db.select().from(cosplayers).where(eq(cosplayers.userId, userId)).limit(1);
+  if (!row) return { exists: false, visible: false };
+  return { exists: true, visible: Boolean(row.isActive) };
 }

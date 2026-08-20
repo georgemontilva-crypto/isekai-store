@@ -21,7 +21,7 @@ import {
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
-  ensureOwnCosplayerProfile,
+  ensureOwnCosplayerProfile, setOwnCosplayerVisibility, getOwnCosplayerVisibility,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
@@ -1163,6 +1163,14 @@ export const appRouter = router({
       const perfil = await ensureOwnCosplayerProfile(ctx.user.id, ctx.user.name ?? 'Admin', ctx.user.email ?? '-');
       return { ok: Boolean(perfil) };
     }),
+
+    /** Estado de visibilidad del perfil interno del admin */
+    myCosplayerVisibility: adminProcedure.query(({ ctx }) => getOwnCosplayerVisibility(ctx.user.id)),
+
+    /** Mostrar u ocultar mi tarjeta en el directorio público */
+    setMyCosplayerVisibility: adminProcedure
+      .input(z.object({ visible: z.boolean() }))
+      .mutation(({ ctx, input }) => setOwnCosplayerVisibility(ctx.user.id, input.visible)),
 
     getMyProfile: protectedProcedure.query(async ({ ctx }) => {
       const result = await getCosplayerByUserId(ctx.user.id);
