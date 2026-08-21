@@ -2237,3 +2237,46 @@ export async function getOwnCosplayerVisibility(userId: number) {
   if (!row) return { exists: false, visible: false };
   return { exists: true, visible: Boolean(row.isActive) };
 }
+
+/**
+ * Comprueba si un usuario puede usar un código de referido.
+ *
+ * Regla: los cosplayers del Guild no pueden usar códigos de referido — ni el
+ * propio ni el de un compañero. Sin esto, un grupo puede rotarse los códigos
+ * entre ellos y generar comisiones sin traer un solo cliente nuevo.
+ *
+ * Devuelve el motivo del rechazo, o null si el código es válido para ese usuario.
+ */
+export async function checkReferralEligibility(userId: number | null | undefined, referralCode: string) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const codigo = referralCode.trim().toUpperCase();
+  if (!codigo) return null;
+
+  const duenio = await getCosplayerByReferralCode(codigo);
+  if (!duenio) return 'CODIGO_INVALIDO';
+
+  // Sin sesión no se puede saber quién compra: el bloqueo se apoya en el
+  // correo, que se revisa aparte en el checkout.
+  if (!userId) return null;
+
+  const [comprador] = await db.select().from(cosplayers).where(eq(cosplayers.userId, userId)).limit(1);
+  if (!comprador) return null; // No es cosplayer: puede usar cualquier código
+
+  if (comprador.id === duenio.id) return 'CODIGO_PROPIO';
+  return 'CODIGO_ENTRE_COSPLAYERS';
+}
+
+/** ¿El correo pertenece a un cosplayer del Guild? Se usa en compras de invitado. */
+export async function isCosplayerEmail(email: string) {
+  const db = await getDb();
+  if (!db || !email) return false;
+  const correo = email.trim().toLowerCase();
+
+  const [usuario] = await db.select().from(users).where(eq(users.email, correo)).limit(1);
+  if (!usuario) return false;
+
+  const [perfil] = await db.select().from(cosplayers).where(eq(cosplayers.userId, usuario.id)).limit(1);
+  return Boolean(perfil);
+}

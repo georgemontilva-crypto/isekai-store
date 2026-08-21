@@ -13,6 +13,14 @@ import { storagePut, storageDelete } from "./storage";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
 import { antiSpamSchema, guardPublicForm, clientIp } from "./antiSpam";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
+
+/** Mensajes de rechazo del código de referido, en el idioma del cliente */
+const MOTIVO_REFERIDO: Record<string, string> = {
+  CODIGO_INVALIDO: 'Ese código de referido no existe',
+  CODIGO_PROPIO: 'No puedes usar tu propio código de referido',
+  CODIGO_ENTRE_COSPLAYERS: 'Los cosplayers del Guild no pueden usar códigos de referido',
+};
+
 import {
   getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
@@ -46,6 +54,7 @@ import {
   deleteCosplayActivity, updateCosplayActivity,
   evaluateCosplaySubmission, getAllCosplaySubmissions, addEvidenceToSubmission, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
+  checkReferralEligibility, isCosplayerEmail,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
   deleteCosplayer, grantTicketsManually, findUserByEmail, getDb,
   getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
@@ -315,7 +324,22 @@ export const appRouter = router({
         })).min(1).max(100),
       }))
       .mutation(async ({ ctx, input }) => {
-        const order = await createOrder({ ...input, userId: ctx.user?.id });
+        // Un cosplayer no puede usar códigos de referido: ni el suyo ni el de
+        // un compañero. Si el código no es elegible se descarta y la compra
+        // sigue normalmente, sin comisión para nadie.
+        let referralCode = input.referralCode;
+        if (referralCode) {
+          const motivo = await checkReferralEligibility(ctx.user?.id ?? null, referralCode);
+          const compradorEsCosplayer = !ctx.user?.id && input.customerEmail
+            ? await isCosplayerEmail(input.customerEmail)
+            : false;
+          if (motivo || compradorEsCosplayer) {
+            console.warn(`[Referido] Código descartado (${motivo ?? 'CORREO_DE_COSPLAYER'}) en compra de ${input.customerEmail}`);
+            referralCode = undefined;
+          }
+        }
+
+        const order = await createOrder({ ...input, referralCode, userId: ctx.user?.id });
         // Redeem gift card if provided
         if (input.giftCardCode) {
           try { await redeemGiftCard(input.giftCardCode, ctx.user?.id ?? null, order.id); } catch { /* non-critical */ }
@@ -339,7 +363,7 @@ export const appRouter = router({
       ${input.paymentReference ? `<p><strong>Referencia:</strong> ${input.paymentReference}</p>` : ''}
       ${input.receiptHolder ? `<p><strong>Titular:</strong> ${input.receiptHolder}</p>` : ''}
       ${input.receiptUrl ? `<p><strong>Comprobante:</strong> <a href="${input.receiptUrl}">Ver comprobante</a></p>` : ''}
-      ${input.referralCode ? `<p><strong>Código referido:</strong> ${input.referralCode}</p>` : ''}
+      ${referralCode ? `<p><strong>Código referido:</strong> ${referralCode}</p>` : ''}
     </div>
     <div style="text-align:center">
       <a href="https://isekaiworld.co/admin" class="btn">Ver en el panel →</a>
@@ -550,9 +574,14 @@ export const appRouter = router({
         const orderNumber = `IW-${timestamp}`;
 
         // Pre-resolver cosplayer referidor (evita doble lookup)
-        const referralCosplayer = input.referralCode
+        // Misma regla en las órdenes creadas a mano desde el panel
+        let referralCosplayer = input.referralCode
           ? await getCosplayerByReferralCode(input.referralCode)
           : null;
+        if (referralCosplayer && input.customerEmail && await isCosplayerEmail(input.customerEmail)) {
+          console.warn(`[Referido] Código descartado: ${input.customerEmail} es cosplayer del Guild`);
+          referralCosplayer = null;
+        }
 
         // Insertar orden — si falla aquí, parar todo (no acreditar 2% ni enviar emails)
         try {
@@ -1353,7 +1382,15 @@ export const appRouter = router({
     // ── Referral & Cash ──────────────────────────────────────────────────────
     validateReferralCode: publicProcedure
       .input(z.object({ code: z.string() }))
-      .query(({ input }) => getCosplayerByReferralCode(input.code.toUpperCase())),
+      .query(async ({ ctx, input }) => {
+        const codigo = input.code.toUpperCase();
+        // Se avisa en el momento, no al confirmar la compra
+        const motivo = await checkReferralEligibility(ctx.user?.id ?? null, codigo);
+        if (motivo && motivo !== 'CODIGO_INVALIDO') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: MOTIVO_REFERIDO[motivo] });
+        }
+        return getCosplayerByReferralCode(codigo);
+      }),
 
     requestWithdrawal: protectedProcedure
       .input(z.object({
