@@ -12,6 +12,7 @@ import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
 import { antiSpamSchema, guardPublicForm, clientIp } from "./antiSpam";
+import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import {
   getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
@@ -492,12 +493,13 @@ export const appRouter = router({
           await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, title, body);
         } catch { /* non-critical */ }
 
-        // Acreditar 2% al cosplayer referidor si el pago fue aprobado
+        // Acreditar la comisión por tramo al cosplayer referidor
         if (input.approved && (order as any).referralCosplayerId) {
           try {
             const orderTotal = parseFloat(order.total);
-            const cashReward = parseFloat((orderTotal * 0.02).toFixed(2));
-            await creditCashToReferrer((order as any).referralCosplayerId, cashReward, order.orderNumber);
+            const cashReward = getReferralCash(orderTotal);
+            const ticketReward = getReferralTickets(orderTotal);
+            await creditCashToReferrer((order as any).referralCosplayerId, cashReward, order.orderNumber, ticketReward);
             const cosplayer = await getCosplayerById((order as any).referralCosplayerId);
             if (cosplayer?.userId) {
               if (io) {
@@ -590,12 +592,13 @@ export const appRouter = router({
           });
         }
 
-        // Acreditar 2% al cosplayer referidor si el pedido ya está aprobado
+        // Acreditar la comisión por tramo al cosplayer referidor
         if (input.paymentStatus === 'approved' && referralCosplayer) {
           try {
             const orderTotal = parseFloat(input.total);
-            const cashReward = parseFloat((orderTotal * 0.02).toFixed(2));
-            await creditCashToReferrer(referralCosplayer.id, cashReward, orderNumber);
+            const cashReward = getReferralCash(orderTotal);
+            const ticketReward = getReferralTickets(orderTotal);
+            await creditCashToReferrer(referralCosplayer.id, cashReward, orderNumber, ticketReward);
             const cosplayerFull = await getCosplayerById(referralCosplayer.id);
             if (cosplayerFull?.userId) {
               const user = await getUserById(cosplayerFull.userId);
@@ -1361,7 +1364,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const cosplayer = await getCosplayerByUserId(ctx.user.id);
         if (!cosplayer) throw new TRPCError({ code: 'FORBIDDEN' });
-        // El saldo del cosplayer se acredita en dólares (2% del total de la orden)
+        // El saldo del cosplayer se acredita en dólares por tramo de venta
         const MIN_WITHDRAWAL_USD = 20;
         if (input.amount < MIN_WITHDRAWAL_USD) {
           throw new TRPCError({ code: 'BAD_REQUEST', message: `El mínimo de retiro es $${MIN_WITHDRAWAL_USD.toFixed(2)} USD` });

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { REFERRAL_TIERS } from "@shared/referral";
 import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users, Link2, Repeat, DollarSign, ChevronLeft, ChevronRight } from "lucide-react";
 
 const TIERS = [
@@ -17,7 +18,7 @@ const STEPS = [
   { n: "02", title: "Recibe tu kit",      desc: "Si eres aprobado, recibes gratis un kit de bienvenida con productos Isekai World." },
   { n: "03", title: "Completa retos",     desc: "Publica contenido, haz reels, participa en eventos. Cada actividad aprobada suma tickets." },
   { n: "04", title: "Canjea descuentos",  desc: "Usa tus tickets para obtener códigos de descuento del 10% al 50% en la tienda." },
-  { n: "05", title: "Gana por referidos", desc: "Comparte tu código único con tu comunidad. Cada vez que alguien compre usándolo ganarás el 2% del valor de esa compra en cash USD directo a tu billetera. Sin límite de usos." },
+  { n: "05", title: "Gana por referidos", desc: "Comparte tu código único con tu comunidad. Cada vez que alguien compre usándolo ganas una comisión fija en cash USD según el monto de la venta, más tickets para canjear. Sin límite de usos." },
 ];
 
 function TikTokIcon() {
@@ -377,13 +378,29 @@ export default function CosplayLanding() {
                   <h3 className="text-white font-black text-2xl mb-2">Tu código de referido</h3>
                   <p className="text-[#888] text-sm leading-relaxed mb-4">
                     Al unirte al Guild recibirás un código único y personal. Compártelo con tu comunidad —
-                    cada vez que alguien realice una compra usándolo, <strong className="text-[#ffd700]">ganarás el 2% del valor
-                    de esa compra en cash USD</strong>, directo a tu billetera. Sin límite de usos ni de compras.
+                    cada vez que alguien realice una compra usándolo, <strong className="text-[#ffd700]">ganas una comisión
+                    fija en cash USD</strong> según el monto de la venta, más tickets para canjear. Sin límite de usos ni de compras.
                   </p>
+
+                  {/* Tabla de comisiones por tramo */}
+                  <div className="mb-4 overflow-hidden rounded-xl border border-white/10">
+                    {REFERRAL_TIERS.map((t, i) => (
+                      <div
+                        key={t.label}
+                        className={`flex items-center justify-between gap-3 px-4 py-2.5 text-sm ${i % 2 ? "bg-white/[0.03]" : ""}`}
+                      >
+                        <span className="text-[#bbb]">Venta de {t.label}</span>
+                        <span className="flex items-center gap-3 shrink-0">
+                          <strong className="text-[#ffd700]">${t.cash.toFixed(2)}</strong>
+                          <span className="text-[#e5007d] font-bold">+{t.tickets.toLocaleString()} tickets</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                   <div className="flex flex-col sm:flex-row gap-3">
                     {[
                       { icon: Repeat,     text: 'Sin límite de usos — aplica en todas las compras del usuario' },
-                      { icon: DollarSign, text: '2% en cash USD real, retirable o consumible en la tienda' },
+                      { icon: DollarSign, text: 'Cash USD real, retirable o consumible en la tienda' },
                       { icon: Gift,       text: 'Quien use el código recibe un obsequio secreto con su pedido' },
                     ].map((item, i) => (
                       <div key={i} className="flex items-start gap-2">

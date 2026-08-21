@@ -1615,20 +1615,47 @@ export async function getCosplayerByReferralCode(code: string) {
   return result[0] ?? null;
 }
 
-export async function creditCashToReferrer(cosplayerId: number, amount: number, orderNumber: string) {
+/**
+ * Acredita la recompensa de una venta referida: dólares Y tickets, según el
+ * tramo del total de la orden. Ambos quedan registrados en el libro mayor
+ * como dos apuntes separados, para que el cosplayer vea de dónde sale cada uno.
+ */
+export async function creditCashToReferrer(
+  cosplayerId: number,
+  amount: number,
+  orderNumber: string,
+  tickets: number = 0,
+) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
+
   await db.update(cosplayers)
     .set({ cashBalance: sql`cashBalance + ${amount}` })
     .where(eq(cosplayers.id, cosplayerId));
+
   await db.insert(cosplayTicketLedger).values({
     cosplayerId,
     amount: 0,
     cashAmount: String(amount),
     type: 'earned',
     ledgerType: 'cash',
-    description: `2% referido — Orden ${orderNumber}`,
+    description: `Comisión por venta — Orden ${orderNumber}`,
   });
+
+  if (tickets > 0) {
+    await db.update(cosplayers)
+      .set({ ticketBalance: sql`ticketBalance + ${tickets}` })
+      .where(eq(cosplayers.id, cosplayerId));
+
+    await db.insert(cosplayTicketLedger).values({
+      cosplayerId,
+      amount: tickets,
+      cashAmount: '0.00',
+      type: 'earned',
+      ledgerType: 'tickets',
+      description: `Tickets por venta — Orden ${orderNumber}`,
+    });
+  }
 }
 
 export async function getCashWithdrawals(status?: string) {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/lib/trpc";
+import { REFERRAL_TIERS } from "@shared/referral";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "wouter";
@@ -721,9 +722,26 @@ export default function CosplayDashboard() {
                   </div>
                   <p className="text-[#555] text-xs mt-3 leading-relaxed">
                     Comparte este código con tus seguidores. Cada vez que alguien compre usándolo y su pago sea confirmado,
-                    recibirás el <strong className="text-[#ffd700]">2% del valor de la compra en USD</strong> en tu billetera.
+                    recibes una <strong className="text-[#ffd700]">comisión fija en USD</strong> más
+                    <strong className="text-[#e5007d]"> tickets</strong>, según el monto de la venta.
                     Además, quien lo use recibe un <strong className="text-white">obsequio secreto</strong> con su pedido.
                   </p>
+
+                  {/* Cuánto se gana por cada tramo de venta */}
+                  <div className="mt-3 overflow-hidden rounded-xl border border-white/10">
+                    {REFERRAL_TIERS.map((t, i) => (
+                      <div
+                        key={t.label}
+                        className={`flex items-center justify-between gap-3 px-3 py-2 text-xs ${i % 2 ? 'bg-white/[0.03]' : ''}`}
+                      >
+                        <span className="text-[#888]">Venta de {t.label}</span>
+                        <span className="flex items-center gap-2.5 shrink-0">
+                          <strong className="text-[#ffd700]">${t.cash.toFixed(2)}</strong>
+                          <span className="font-bold text-[#e5007d]">+{t.tickets.toLocaleString()}</span>
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Movement history */}
