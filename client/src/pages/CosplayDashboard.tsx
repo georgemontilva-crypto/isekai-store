@@ -49,6 +49,10 @@ export default function CosplayDashboard() {
   const { user, isAuthenticated, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>("profile");
   const [submitModal, setSubmitModal] = useState<any>(null);
+  // Enlace que el cosplayer escribe para cada misión, sin abrir modal
+  const [linkPorActividad, setLinkPorActividad] = useState<Record<number, string>>({});
+  // Qué descripción larga está desplegada ("Ver más")
+  const [expandedAct, setExpandedAct] = useState<number | null>(null);
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [showWithdraw, setShowWithdraw] = useState(false);
   const [withdrawForm, setWithdrawForm] = useState({ amount: '', paymentMethod: '', paymentDetails: '' });
@@ -92,6 +96,14 @@ export default function CosplayDashboard() {
 
   const { data: activities = [] } = trpc.cosplay.getActivities.useQuery();
   const { data: submissions = [], refetch: refetchSubmissions } = trpc.cosplay.getMySubmissions.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
+
+  /** Misiones que todavía puede completar: alimentan el contador de la pestaña */
+  const actividadesPendientes = (activities as any[]).filter((act: any) => {
+    const totalFases = act.phases ?? 1;
+    const hechas = (submissions as any[]).filter((sub: any) => sub.activityId === act.id && sub.status !== 'rejected').length;
+    const vencida = act.deadline ? new Date(act.deadline).getTime() < Date.now() : false;
+    return hechas < totalFases && !vencida;
+  }).length;
   const [openLinks, setOpenLinks] = useState<Record<number, boolean>>({});
   const [newLinks, setNewLinks] = useState<Record<number, string>>({});
   const addEvidence = trpc.cosplay.addEvidence.useMutation({
@@ -127,7 +139,7 @@ export default function CosplayDashboard() {
     onError: () => toast.error("Error al subir imagen"),
   });
   const submitActivity = trpc.cosplay.submitActivity.useMutation({
-    onSuccess: () => { utils.cosplay.getMySubmissions.invalidate(); setSubmitModal(null); setEvidenceUrl(""); toast.success("Actividad enviada"); },
+    onSuccess: (_d, vars: any) => { utils.cosplay.getMySubmissions.invalidate(); setSubmitModal(null); setEvidenceUrl(""); setLinkPorActividad(prev => ({ ...prev, [vars.activityId]: "" })); toast.success("Fase cargada"); },
     onError: (e) => toast.error(e.message),
   });
   const redeemDiscount = trpc.cosplay.redeemDiscount.useMutation({
@@ -294,16 +306,25 @@ export default function CosplayDashboard() {
           {TABS.slice(0, 4).map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
+            // Misiones que aún puede completar: se avisan con un contador
+            const pendientes = tab.id === "activities" ? actividadesPendientes : 0;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
+                className={`relative flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                   isActive ? "bg-[#e5007d] text-white" : "bg-[#1a1a1a] border border-[#333] text-[#888] hover:text-white hover:border-[#444]"
                 }`}
               >
                 <Icon className="w-3.5 h-3.5" />
                 {tab.label}
+                {pendientes > 0 && (
+                  <span className={`ml-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-black ${
+                    isActive ? "bg-white text-[#e5007d]" : "bg-[#e5007d] text-white"
+                  }`}>
+                    {pendientes > 9 ? "9+" : pendientes}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -567,100 +588,144 @@ export default function CosplayDashboard() {
                   )}
                   {activities.map((act: any) => {
                     const wouldEarn = Math.round(act.basePoints * multiplier);
-                    // Fases entregadas de esta misión (las rechazadas no cuentan)
                     const totalFases = act.phases ?? 1;
                     const entregadas = submissions.filter((s: any) => s.activityId === act.id && s.status !== 'rejected').length;
                     const siguienteFase = entregadas + 1;
-                    const alreadyDone = entregadas >= totalFases;
+                    const completada = entregadas >= totalFases;
                     const venceEl = act.deadline ? new Date(act.deadline) : null;
                     const vencida = venceEl ? venceEl.getTime() < Date.now() : false;
+                    const bloqueada = completada || vencida;
+                    const pct = Math.round((entregadas / totalFases) * 100);
+                    const faltan = totalFases - entregadas;
+                    const abierta = expandedAct === act.id;
+                    const desc = act.description ?? '';
+                    const descLarga = desc.length > 160;
+
+                    const aliento = entregadas === 0
+                      ? `Esta misión tiene ${totalFases} fases. Sube una publicación distinta en cada una y pega su enlace.`
+                      : faltan === 1
+                        ? '¡Última fase! Con esta entrega reclamas la recompensa completa.'
+                        : `Vas ${pct}% del camino. Te faltan ${faltan} fases para la recompensa.`;
+
                     return (
-                      <div key={act.id} className="flex items-start justify-between gap-4 p-5 rounded-2xl bg-[#1a1a1a] border border-[#333]">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1.5">
-                            <span className="text-xs font-bold uppercase tracking-wider text-[#888] bg-[#222] border border-[#333] px-2 py-0.5 rounded-full">{act.type}</span>
-                          </div>
-                          <p className="font-bold text-white mb-1">{act.title}</p>
-                          {act.description && (
-                            <p className="text-[#888] text-sm mb-2 break-words whitespace-pre-wrap">
-                              {renderDescription(act.description)}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-[#888]">
-                            <span>Base: {act.basePoints} pts</span>
-                            <span className="text-[#e5007d] font-bold">→ Ganarías: {wouldEarn} tickets</span>
-                            {venceEl ? (
-                              <span className={vencida ? 'text-red-400 font-semibold' : 'text-[#aaa]'}>
-                                {vencida ? 'Fecha límite vencida' : `Hasta el ${venceEl.toLocaleDateString('es-VE', { day: '2-digit', month: 'short' })}`}
+                      <div key={act.id} className="overflow-hidden rounded-2xl border border-[#333] bg-[#1a1a1a]">
+                        {/* Cabecera compacta */}
+                        <div className="p-4">
+                          <div className="mb-2 flex flex-wrap items-center gap-2">
+                            <span className="rounded-full border border-[#333] bg-[#222] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#888]">
+                              {act.type}
+                            </span>
+                            {totalFases > 1 && (
+                              <span className="rounded-full bg-[#e5007d]/15 px-2 py-0.5 text-[10px] font-bold text-[#e5007d]">
+                                {totalFases} fases
                               </span>
-                            ) : (
-                              <span className="text-[#666]">Sin fecha límite</span>
+                            )}
+                            {completada && (
+                              <span className="rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-400">
+                                Completada
+                              </span>
+                            )}
+                            {vencida && !completada && (
+                              <span className="rounded-full bg-red-500/15 px-2 py-0.5 text-[10px] font-bold text-red-400">
+                                Vencida
+                              </span>
                             )}
                           </div>
 
-                          {/* Misión por fases: explicación, progreso y aliento */}
-                          {totalFases > 1 && (() => {
-                            const faltan = totalFases - entregadas;
-                            const pct = Math.round((entregadas / totalFases) * 100);
-                            const aliento =
-                              entregadas === 0
-                                ? `Esta misión tiene ${totalFases} fases. Sube una publicación distinta en cada una y pega su enlace aquí.`
-                                : faltan === 1
-                                  ? '¡Última fase! Con esta entrega reclamas la recompensa completa.'
-                                  : `Vas ${pct}% del camino. Te faltan ${faltan} fases para la recompensa.`;
+                          <p className="text-[15px] font-bold leading-snug text-white">{act.title}</p>
 
-                            return (
-                              <div className="mt-3 rounded-xl border border-[#333] bg-[#111] p-3">
-                                <div className="mb-2 flex items-center justify-between text-xs">
-                                  <span className="font-bold text-white">
-                                    Fase {Math.min(siguienteFase, totalFases)} de {totalFases}
-                                  </span>
-                                  <span className="font-semibold text-[#e5007d]">{pct}%</span>
-                                </div>
-
-                                <div className="flex gap-1.5">
-                                  {Array.from({ length: totalFases }, (_, i) => (
-                                    <div
-                                      key={i}
-                                      className={`h-2 flex-1 rounded-full transition-colors ${
-                                        i < entregadas ? 'bg-[#e5007d]' : 'bg-[#333]'
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-
-                                <p className="mt-2.5 text-xs leading-relaxed text-[#aaa]">{aliento}</p>
-
-                                {/* Con fecha límite la recompensa es todo o nada */}
-                                {venceEl && !alreadyDone && (
-                                  <p className={`mt-2 text-xs font-semibold leading-relaxed ${vencida ? 'text-red-400' : 'text-[#ffd700]'}`}>
-                                    {vencida
-                                      ? 'La fecha límite pasó y no completaste todas las fases: esta misión ya no otorga tickets.'
-                                      : `Debes completar las ${totalFases} fases antes del ${venceEl.toLocaleDateString('es-VE', { day: '2-digit', month: 'long' })}. Si falta alguna, la misión no paga.`}
-                                  </p>
-                                )}
-                              </div>
-                            );
-                          })()}
-                          {act.type === 'event' && !alreadyDone && (
-                            <div className="mt-3 pt-3 border-t border-[#333]">
-                              <p className="text-[#555] text-xs mb-2">Una vez que hayas completado la actividad, marca tu participación:</p>
-                              <button
-                                onClick={() => { setSubmitModal(act); setEvidenceUrl('Participación confirmada — me uní al grupo'); }}
-                                className="w-full bg-[#222] border border-[#e5007d]/40 text-[#e5007d] text-sm font-semibold py-2 rounded-xl hover:bg-[#e5007d]/10 transition-colors"
-                              >
-                                ✓ Ya me uní
-                              </button>
+                          {/* Descripción recortada, con "Ver más" */}
+                          {desc && (
+                            <div className="mt-1.5">
+                              <p className={`text-sm leading-relaxed text-[#999] ${!abierta && descLarga ? 'line-clamp-3' : ''}`}
+                                 style={{ overflowWrap: 'anywhere' }}>
+                                {renderDescription(desc)}
+                              </p>
+                              {descLarga && (
+                                <button
+                                  onClick={() => setExpandedAct(abierta ? null : act.id)}
+                                  className="mt-1 text-xs font-bold text-[#e5007d]"
+                                >
+                                  {abierta ? 'Ver menos' : 'Ver más'}
+                                </button>
+                              )}
                             </div>
                           )}
+
+                          {/* Recompensa y plazo */}
+                          <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                            <span className="font-bold text-[#e5007d]">{wouldEarn.toLocaleString()} tickets</span>
+                            <span className="text-[#666]">·</span>
+                            <span className={venceEl ? (vencida ? 'text-red-400' : 'text-[#aaa]') : 'text-[#666]'}>
+                              {venceEl
+                                ? (vencida ? 'Plazo vencido' : `Hasta el ${venceEl.toLocaleDateString('es-VE', { day: '2-digit', month: 'short' })}`)
+                                : 'Sin fecha límite'}
+                            </span>
+                          </div>
                         </div>
-                        <button
-                          disabled={alreadyDone || vencida}
-                          onClick={() => { setSubmitModal({ ...act, _fase: siguienteFase, _totalFases: totalFases }); setEvidenceUrl(""); }}
-                          className={`shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${alreadyDone || vencida ? 'bg-[#222] text-[#555] border border-[#333] cursor-not-allowed' : 'bg-[#e5007d] hover:bg-[#c4006b] text-white'}`}
-                        >
-                          {alreadyDone ? 'Completada' : vencida ? 'Vencida' : totalFases > 1 ? `Fase ${siguienteFase}` : 'Completar'}
-                        </button>
+
+                        {/* Progreso + carga del enlace */}
+                        <div className="border-t border-[#2a2a2a] bg-[#141414] p-4">
+                          {totalFases > 1 && (
+                            <>
+                              <div className="mb-2 flex items-center justify-between text-xs">
+                                <span className="font-bold text-white">
+                                  {completada ? `${totalFases} de ${totalFases} fases` : `Fase ${Math.min(siguienteFase, totalFases)} de ${totalFases}`}
+                                </span>
+                                <span className="font-bold text-[#e5007d]">{pct}%</span>
+                              </div>
+                              <div className="flex gap-1.5">
+                                {Array.from({ length: totalFases }, (_, i) => (
+                                  <div key={i} className={`h-2 flex-1 rounded-full ${i < entregadas ? 'bg-[#e5007d]' : 'bg-[#2e2e2e]'}`} />
+                                ))}
+                              </div>
+                              <p className="mt-2 text-xs leading-relaxed text-[#888]">{aliento}</p>
+                              {venceEl && !completada && (
+                                <p className={`mt-1.5 text-xs font-semibold leading-relaxed ${vencida ? 'text-red-400' : 'text-[#ffd700]'}`}>
+                                  {vencida
+                                    ? 'El plazo pasó sin completar todas las fases: esta misión ya no otorga tickets.'
+                                    : `Completa las ${totalFases} fases antes del plazo o la misión no paga.`}
+                                </p>
+                              )}
+                            </>
+                          )}
+
+                          {/* Campo de enlace + botón, directo aquí */}
+                          {!bloqueada ? (
+                            <div className={totalFases > 1 ? 'mt-3' : ''}>
+                              <label className="mb-1.5 block text-xs font-semibold text-[#aaa]">
+                                {totalFases > 1 ? `Enlace de la fase ${siguienteFase}` : 'Enlace de tu publicación'}
+                              </label>
+                              <input
+                                type="url"
+                                inputMode="url"
+                                value={linkPorActividad[act.id] ?? ''}
+                                onChange={(e) => setLinkPorActividad(prev => ({ ...prev, [act.id]: e.target.value }))}
+                                placeholder="https://instagram.com/p/..."
+                                className="w-full rounded-xl border border-[#333] bg-[#0d0d0d] px-4 text-sm text-white outline-none transition-colors placeholder:text-[#555] focus:border-[#e5007d]"
+                                style={{ minHeight: 46 }}
+                              />
+                              <button
+                                onClick={() => submitActivity.mutate({
+                                  activityId: act.id,
+                                  evidenceUrl: (linkPorActividad[act.id] ?? '').trim(),
+                                  phase: siguienteFase,
+                                })}
+                                disabled={!(linkPorActividad[act.id] ?? '').trim() || submitActivity.isPending}
+                                className="mt-2 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white transition-colors hover:bg-[#c4006b] disabled:cursor-not-allowed disabled:bg-[#2a2a2a] disabled:text-[#555]"
+                                style={{ minHeight: 46, WebkitTapHighlightColor: 'transparent' }}
+                              >
+                                {submitActivity.isPending
+                                  ? 'Cargando...'
+                                  : totalFases > 1 ? `Cargar fase ${siguienteFase}` : 'Cargar enlace'}
+                              </button>
+                            </div>
+                          ) : (
+                            <p className={`text-center text-xs font-semibold ${completada ? 'text-green-400' : 'text-red-400'} ${totalFases > 1 ? 'mt-3' : ''}`}>
+                              {completada ? '✓ Misión completada — en evaluación' : 'Esta misión ya no admite entregas'}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

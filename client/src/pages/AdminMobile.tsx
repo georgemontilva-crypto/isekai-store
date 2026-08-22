@@ -358,6 +358,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
     onSuccess: () => { setEvalModal(null); refetchSubmissions(); toast.success('Evaluación guardada'); },
   });
   const [expandedActivity, setExpandedActivity] = useState<number | null>(null);
+  const [descAbierta, setDescAbierta] = useState<number | null>(null);
   const [showNewActivity, setShowNewActivity] = useState(false);
   const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 });
 
@@ -547,11 +548,35 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                 {expandedActivity === act.id && (
                   <div className="border-t border-[#f0f0f0] px-4 py-4 flex flex-col gap-3">
                     {act.description && (
-                      <p className="text-sm text-[#666] leading-relaxed">{act.description}</p>
+                      <div>
+                        <p
+                          className={`text-sm text-[#666] leading-relaxed ${descAbierta === act.id ? '' : 'line-clamp-4'}`}
+                          style={{ overflowWrap: 'anywhere' }}
+                        >
+                          {act.description}
+                        </p>
+                        {act.description.length > 200 && (
+                          <button
+                            onClick={() => setDescAbierta(descAbierta === act.id ? null : act.id)}
+                            className="mt-1 text-xs font-bold text-[#e5007d]"
+                          >
+                            {descAbierta === act.id ? 'Ver menos' : 'Ver más'}
+                          </button>
+                        )}
+                      </div>
                     )}
-                    {act.deadline && (
-                      <p className="text-xs text-[#999]">Fecha límite: {new Date(act.deadline).toLocaleDateString('es-VE')}</p>
-                    )}
+                    <div className="flex flex-wrap items-center gap-2 text-xs">
+                      {(act.phases ?? 1) > 1 && (
+                        <span className="rounded-full bg-[#e5007d]/10 px-2 py-0.5 font-bold text-[#e5007d]">
+                          {act.phases} fases
+                        </span>
+                      )}
+                      <span className="text-[#999]">
+                        {act.deadline
+                          ? `Fecha límite: ${new Date(act.deadline).toLocaleDateString('es-VE')}`
+                          : 'Sin fecha límite'}
+                      </span>
+                    </div>
                     <div className="bg-[#f8f8f8] rounded-xl p-3">
                       <p className="text-xs text-[#999] mb-1">Tickets por tier:</p>
                       <div className="grid grid-cols-5 gap-1 text-xs text-center">
