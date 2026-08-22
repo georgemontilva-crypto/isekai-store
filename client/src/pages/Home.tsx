@@ -383,8 +383,15 @@ export default function Home() {
           {/* Scroll container */}
           <div
             ref={categoryScrollRef}
-            className="flex gap-3 overflow-x-auto scrollbar-hide px-6 py-6"
-            style={{ scrollSnapType: 'x mandatory' }}
+            className="flex gap-3 overflow-x-auto scrollbar-hide py-6"
+            style={{
+              scrollSnapType: 'x mandatory',
+              // El relleno deja que la primera y la última tarjeta también
+              // lleguen al centro de la pantalla.
+              paddingLeft: isMobile ? 'calc((100vw - (100vw - 48px)) / 2)' : '1.5rem',
+              paddingRight: isMobile ? 'calc((100vw - (100vw - 48px)) / 2)' : '1.5rem',
+              scrollPaddingInline: isMobile ? 'calc((100vw - (100vw - 48px)) / 2)' : '1.5rem',
+            }}
           >
             {categories.map((cat, idx) => {
               const href = cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
@@ -393,7 +400,7 @@ export default function Home() {
                 <div
                   className="shrink-0 relative overflow-hidden cursor-pointer group"
                   style={{
-                    scrollSnapAlign: 'start',
+                    scrollSnapAlign: 'center',
                     width: collectionCardWidth,
                     minWidth: isMobile ? 140 : 160,
                     aspectRatio: '1/1',

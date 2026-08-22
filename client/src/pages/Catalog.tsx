@@ -113,10 +113,10 @@ export default function Catalog() {
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex flex-wrap gap-3 mb-6 items-center"
+          className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center"
         >
           {/* Search */}
-          <div className="relative flex-1 min-w-[200px]">
+          <div className="relative w-full sm:flex-1 sm:min-w-[220px]">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               value={search}
@@ -126,10 +126,12 @@ export default function Catalog() {
             />
           </div>
 
+          {/* Controles: en teléfono van en su propia fila, repartidos */}
+          <div className="flex items-center gap-3 sm:contents">
           {/* Filter toggle */}
           <Button
             variant="outline"
-            className={`gap-2 h-11 rounded-xl border-border/50 ${showFilters ? "border-primary/50 text-primary bg-primary/5" : ""}`}
+            className={`gap-2 h-11 shrink-0 rounded-xl border-border/50 ${showFilters ? "border-primary/50 text-primary bg-primary/5" : ""}`}
             onClick={() => setShowFilters(!showFilters)}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -196,11 +198,12 @@ export default function Catalog() {
 
           {/* Clear filters */}
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground gap-1.5 h-11 rounded-xl">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground gap-1.5 h-11 shrink-0 rounded-xl">
               <X className="w-4 h-4" />
               Limpiar
             </Button>
           )}
+          </div>
         </motion.div>
 
         {/* ── Category Pills ── */}
