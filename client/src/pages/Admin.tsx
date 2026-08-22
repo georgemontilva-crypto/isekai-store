@@ -652,23 +652,39 @@ export default function Admin() {
   const [productSearch, setProductSearch] = useState('');
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+  const [ordersView, setOrdersView] = useState<"active" | "archived">("active");
 
   const [orderSearch, setOrderSearch] = useState('');
 
   /**
-   * Abre el panel donde pide la URL. Lo usan las notificaciones de la
-   * campanita: ?tab=orders&orden=ISK-1234 abre Pedidos y despliega ese pedido.
+   * Abre el panel en la sección que pide la URL. Lo usan las notificaciones
+   * de la campanita: ?tab=orders&orden=ISK-1234 abre Pedidos con ese pedido
+   * buscado.
+   *
+   * Se atiende por dos vías porque el panel puede estar cerrado o ya abierto:
+   * al montar se lee la URL, y mientras está abierto se escucha el aviso
+   * "admin:ir-a" — cambiar solo los parámetros no vuelve a montar el panel.
    */
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const destino = params.get("tab");
-    if (destino) setTab(destino as AdminTab);
-    const orden = params.get("orden");
-    if (orden) setOrderSearch(orden);
-    if (destino || orden) {
-      // Se limpia la URL para que al recargar no vuelva a saltar ahí
-      window.history.replaceState({}, "", "/admin");
-    }
+    const aplicar = (url?: string) => {
+      const query = url ? url.split("?")[1] ?? "" : window.location.search;
+      const params = new URLSearchParams(query);
+      const destino = params.get("tab");
+      const orden = params.get("orden");
+      if (destino) setTab(destino as AdminTab);
+      if (orden) {
+        setOrderSearch(orden);
+        setOrdersView("active");
+        setExpandedOrderId(null);
+      }
+      if (destino || orden) window.history.replaceState({}, "", "/admin");
+    };
+
+    aplicar();
+
+    const alRecibirAviso = (e: Event) => aplicar((e as CustomEvent<string>).detail);
+    window.addEventListener("admin:ir-a", alRecibirAviso);
+    return () => window.removeEventListener("admin:ir-a", alRecibirAviso);
   }, []);
   const [showManualOrder, setShowManualOrder] = useState(false);
   const [emailSearch, setEmailSearch] = useState('');
@@ -761,7 +777,6 @@ export default function Admin() {
   const revenueUSD = metrics?.totalRevenue ?? 0;
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, { enabled: isAuthenticated && user?.role === "admin" });
   const { data: categories, refetch: refetchCategories } = trpc.categories.list.useQuery();
-  const [ordersView, setOrdersView] = useState<"active" | "archived">("active");
   // Guardamos las categorías ABIERTAS: así arrancan todas cerradas
   const [openCategories, setOpenCategories] = useState<string[]>([]);
   const { data: ordersData, refetch: refetchOrders } = trpc.orders.adminList.useQuery(

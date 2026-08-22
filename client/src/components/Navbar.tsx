@@ -23,6 +23,34 @@ type ActiveMenu = "collections"|"explore"|null;
 
 
 
+
+/**
+ * A dónde lleva cada notificación al tocarla.
+ *
+ * Para el admin apunta a la sección del panel donde ocurrió; para un cliente,
+ * a su cuenta. Antes TODAS iban a /account, así que al admin le parecía que el
+ * clic no hacía nada (ya estaba en esa página o no era su destino).
+ */
+function destinoNotificacion(n: { type: string; body: string }, esAdmin: boolean) {
+  if (!esAdmin) return { href: "/account", label: "Ver en mi cuenta" };
+
+  switch (n.type) {
+    case "new_order": {
+      const orden = n.body.match(/[A-Z]{2,4}-[A-Z0-9-]+/i)?.[0];
+      return {
+        href: orden ? `/admin?tab=orders&orden=${encodeURIComponent(orden)}` : "/admin?tab=orders",
+        label: "Ver el pedido",
+      };
+    }
+    case "new_subscriber":
+      return { href: "/admin?tab=subscribers", label: "Ver suscriptores" };
+    case "new_user":
+      return { href: "/admin?tab=users", label: "Ver usuarios" };
+    default:
+      return { href: "/admin", label: "Ver en el panel" };
+  }
+}
+
 /* Panel del menú de teléfono: vive siempre en el DOM y se anima con CSS,
    así el cierre es tan suave como la apertura (patrón de YEYPEE). */
 const MOBILE_MENU_CSS = `
@@ -101,7 +129,7 @@ const WORLD_FEST_GLOW = `
 `;
 
 export default function Navbar() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [announcementIdx, setAnnouncementIdx] = useState(0);
@@ -341,14 +369,29 @@ export default function Navbar() {
                         {!notifList || notifList.length === 0 ? (
                           <div className="px-4 py-6 text-center text-sm text-[#888]">No tienes notificaciones aún</div>
                         ) : (
-                          notifList.map(n => (
-                            <Link key={n.id} href="/account" onClick={() => setNotifOpen(false)}
-                              className="block px-4 py-3 hover:bg-[#fafafa] border-b border-[#f5f5f5] last:border-0 transition-colors">
+                          notifList.map(n => {
+                            const destino = destinoNotificacion(n as any, user?.role === "admin");
+                            return (
+                            <button
+                              key={n.id}
+                              onClick={() => {
+                                setNotifOpen(false);
+                                navigate(destino.href);
+                                // Si el panel YA está montado, cambiar solo los
+                                // parámetros no lo vuelve a montar y el efecto de
+                                // apertura no correría. El aviso lo cubre.
+                                window.dispatchEvent(new CustomEvent("admin:ir-a", { detail: destino.href }));
+                              }}
+                              className="block w-full text-left px-4 py-3 hover:bg-[#fafafa] border-b border-[#f5f5f5] last:border-0 transition-colors">
                               <p className="font-semibold text-sm text-[#1a1a1a]">{n.title}</p>
                               <p className="text-xs text-[#888] mt-0.5 leading-snug">{n.body}</p>
-                              <p className="text-[10px] text-[#bbb] mt-1">{formatRelative(n.createdAt as Date)}</p>
-                            </Link>
-                          ))
+                              <div className="mt-1 flex items-center gap-2">
+                                <p className="text-[10px] text-[#bbb]">{formatRelative(n.createdAt as Date)}</p>
+                                <span className="text-[10px] font-bold text-[#e5007d]">· {destino.label}</span>
+                              </div>
+                            </button>
+                            );
+                          })
                         )}
                       </div>
                     </motion.div>
