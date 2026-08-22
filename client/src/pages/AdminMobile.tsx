@@ -111,7 +111,11 @@ function StatsSection() {
 }
 
 // ============ SECCIÓN: PEDIDOS ============
-function OrdersSection({ onCreateOrder }: { onCreateOrder: () => void }) {
+function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
+  onCreateOrder: () => void;
+  jumpTo?: string | null;
+  onJumpDone?: () => void;
+}) {
   const { user, isAuthenticated } = useAuth();
   const [expanded, setExpanded] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState('all');
@@ -120,6 +124,15 @@ function OrdersSection({ onCreateOrder }: { onCreateOrder: () => void }) {
     { enabled: isAuthenticated && user?.role === 'admin' },
   );
   const orders = ordersData?.items ?? [];
+
+  // Llega desde una notificación: despliega ese pedido concreto
+  useEffect(() => {
+    if (!jumpTo || orders.length === 0) return;
+    const encontrado = (orders as any[]).find((o: any) => o.orderNumber === jumpTo);
+    if (encontrado) setExpanded(encontrado.id);
+    setStatusFilter('all');
+    onJumpDone?.();
+  }, [jumpTo, orders.length]);
   const updateStatus = trpc.orders.updateStatus.useMutation({ onSuccess: () => refetch() });
 
   const ORDER_STEPS = [
@@ -334,9 +347,20 @@ function PaymentsSection() {
 // ============ SECCIÓN: COSPLAY ============
 type CosplaySubTab = 'applications' | 'cosplayers' | 'activities' | 'evaluations';
 
-function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
+function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
+  onModalChange: (open: boolean) => void;
+  jumpTo?: string | null;
+  onJumpDone?: () => void;
+}) {
   const { user, isAuthenticated } = useAuth();
   const [subTab, setSubTab] = useState<CosplaySubTab>('applications');
+
+  // Llega desde una notificación: abre la sub-pestaña que corresponde
+  useEffect(() => {
+    if (!jumpTo) return;
+    setSubTab(jumpTo as CosplaySubTab);
+    onJumpDone?.();
+  }, [jumpTo]);
   const { data: applications = [], refetch: refetchApps } = trpc.cosplay.getApplications.useQuery(
     { status: 'pending' },
     { enabled: isAuthenticated && user?.role === 'admin' },
@@ -2117,6 +2141,33 @@ function SubscribersSection() {
   );
 }
 
+
+/**
+ * A qué sección del panel móvil lleva cada notificación al tocarla.
+ * Las entregas de misiones llegan como "new_user" pero traen el enlace de la
+ * publicación en el cuerpo: por ahí se distinguen.
+ */
+function destinoNotificacion(n: { type: string; body: string }): {
+  tab: string | null; sub?: string; buscar?: string; label: string;
+} {
+  switch (n.type) {
+    case 'new_order': {
+      const orden = n.body.match(/[A-Z]{2,4}-[A-Z0-9-]+/i)?.[0];
+      return { tab: 'orders', buscar: orden, label: 'Ver el pedido' };
+    }
+    case 'new_subscriber':
+      return { tab: 'subscribers', label: 'Ver suscriptores' };
+    case 'new_user': {
+      if (/https?:\/\//.test(n.body)) {
+        return { tab: 'cosplay', sub: 'evaluations', label: 'Revisar entrega' };
+      }
+      return { tab: 'users', label: 'Ver usuarios' };
+    }
+    default:
+      return { tab: null, label: 'Abrir' };
+  }
+}
+
 // ============ COMPONENTE PRINCIPAL ============
 
 /** El panel admin se ve siempre en claro, aunque la tienda sea oscura.
@@ -2150,6 +2201,9 @@ export default function AdminMobile() {
     refetchInterval: 15000,
   });
   const [showNotifications, setShowNotifications] = useState(false);
+  // Adónde saltar tras tocar una notificación (lo consumen las secciones)
+  const [cosplayJumpTo, setCosplayJumpTo] = useState<string | null>(null);
+  const [orderJumpTo, setOrderJumpTo] = useState<string | null>(null);
   const [cosplayHasModal, setCosplayHasModal] = useState(false);
   const [productsHasModal, setProductsHasModal] = useState(false);
   const [blogHasModal, setBlogHasModal] = useState(false);
@@ -2230,9 +2284,9 @@ export default function AdminMobile() {
         className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}
       >
         {activeTab === 'stats'    && <StatsSection />}
-        {activeTab === 'orders'   && <OrdersSection onCreateOrder={() => setActiveTab('newOrder')} />}
+        {activeTab === 'orders'   && <OrdersSection jumpTo={orderJumpTo} onJumpDone={() => setOrderJumpTo(null)} onCreateOrder={() => setActiveTab('newOrder')} />}
         {activeTab === 'payments' && <PaymentsSection />}
-        {activeTab === 'cosplay'     && <CosplaySection onModalChange={setCosplayHasModal} />}
+        {activeTab === 'cosplay'     && <CosplaySection jumpTo={cosplayJumpTo} onJumpDone={() => setCosplayJumpTo(null)} onModalChange={setCosplayHasModal} />}
         {activeTab === 'products'    && <ProductsSection onModalChange={setProductsHasModal} />}
         {activeTab === 'more'        && <MoreSection onLogout={logout} onNavigate={setActiveTab} />}
         {activeTab === 'categories'  && <CategoriesSection />}
@@ -2265,20 +2319,37 @@ export default function AdminMobile() {
               {(notifications as any[]).length === 0 && (
                 <p className="text-center text-[#999] text-sm py-8">Sin notificaciones</p>
               )}
-              {(notifications as any[]).map((n: any) => (
-                <div key={n.id} className={`px-4 py-3 ${!n.read ? 'bg-[#fff8fc]' : ''}`}>
+              {(notifications as any[]).map((n: any) => {
+                const destino = destinoNotificacion(n);
+                return (
+                <button
+                  key={n.id}
+                  onClick={() => {
+                    setShowNotifications(false);
+                    if (destino.tab) setActiveTab(destino.tab as MobileTab);
+                    if (destino.sub) setCosplayJumpTo(destino.sub);
+                    if (destino.buscar) setOrderJumpTo(destino.buscar);
+                  }}
+                  className={`w-full text-left px-4 py-3 transition-colors active:bg-[#f5f5f5] ${!n.read ? 'bg-[#fff8fc]' : ''}`}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
                   <div className="flex items-start gap-3">
                     <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${!n.read ? 'bg-[#e5007d]' : 'bg-[#e5e5e5]'}`} />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-[#111]">{n.title}</p>
-                      <p className="text-xs text-[#999] mt-0.5">{n.body}</p>
-                      <p className="text-[10px] text-[#ccc] mt-1">
-                        {new Date(n.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                      </p>
+                      <p className="text-xs text-[#999] mt-0.5" style={{ overflowWrap: 'anywhere' }}>{n.body}</p>
+                      <div className="mt-1 flex items-center gap-2 flex-wrap">
+                        <p className="text-[10px] text-[#ccc]">
+                          {new Date(n.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                        <span className="text-[10px] font-bold text-[#e5007d]">· {destino.label}</span>
+                      </div>
                     </div>
+                    <ChevronRight size={16} className="text-[#ccc] mt-1 flex-shrink-0" />
                   </div>
-                </div>
-              ))}
+                </button>
+                );
+              })}
             </div>
           </div>
         </div>
