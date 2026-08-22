@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, ShoppingBag, Mail, User, BellOff } from "lucide-react";
+import { X, ShoppingBag, Mail, User, BellOff, ChevronRight } from "lucide-react";
+import { useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 
 type Props = {
@@ -26,6 +27,13 @@ const typeIcon: Record<string, React.ReactNode> = {
   new_user: <User className="w-4 h-4 text-green-500" />,
 };
 
+/** A qué sección del panel lleva cada tipo de notificación */
+const typeDestino: Record<string, { tab: string; label: string }> = {
+  new_order:      { tab: "orders",      label: "Ver el pedido" },
+  new_subscriber: { tab: "subscribers", label: "Ver suscriptores" },
+  new_user:       { tab: "users",       label: "Ver usuarios" },
+};
+
 export default function NotificationsDrawer({ open, onClose }: Props) {
   const utils = trpc.useUtils();
   const { data: notifications } = trpc.notifications.getAll.useQuery(undefined, { enabled: open });
@@ -33,7 +41,27 @@ export default function NotificationsDrawer({ open, onClose }: Props) {
     onSuccess: () => { utils.notifications.getAll.invalidate(); utils.notifications.unreadCount.invalidate(); },
   });
 
+  const [, navigate] = useLocation();
   const drawerRef = useRef<HTMLDivElement>(null);
+
+  /**
+   * Lleva al lugar donde ocurrió la notificación. La pestaña del panel se pasa
+   * por la URL, y en el caso de un pedido se incluye su número para que el
+   * panel lo abra directamente en vez de dejar al usuario buscándolo.
+   */
+  const irA = (n: { type: string; body: string }) => {
+    const destino = typeDestino[n.type];
+    if (!destino) { onClose(); return; }
+
+    const params = new URLSearchParams({ tab: destino.tab });
+    if (n.type === "new_order") {
+      // El cuerpo del aviso trae el número de orden (ej. "ISK-1234-ABCD")
+      const orden = n.body.match(/[A-Z]{2,4}-[A-Z0-9-]+/i)?.[0];
+      if (orden) params.set("orden", orden);
+    }
+    onClose();
+    navigate(`/admin?${params.toString()}`);
+  };
 
   // Mark all read when drawer opens
   useEffect(() => {
@@ -95,21 +123,32 @@ export default function NotificationsDrawer({ open, onClose }: Props) {
                 </div>
               ) : (
                 <ul className="divide-y divide-border">
-                  {notifications.map((n) => (
-                    <li
-                      key={n.id}
-                      className={`px-4 py-3 flex items-start gap-3 ${n.read ? "bg-background" : "bg-muted/40"}`}
-                    >
-                      <div className="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center">
-                        {typeIcon[n.type] ?? <ShoppingBag className="w-4 h-4" />}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium leading-snug">{n.title}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5 truncate">{n.body}</p>
-                        <p className="text-[11px] text-muted-foreground/60 mt-1">{relativeTime(n.createdAt)}</p>
-                      </div>
+                  {notifications.map((n) => {
+                    const destino = typeDestino[n.type];
+                    return (
+                    <li key={n.id} className={n.read ? "bg-background" : "bg-muted/40"}>
+                      <button
+                        onClick={() => irA(n)}
+                        className="w-full px-4 py-3 flex items-start gap-3 text-left transition-colors hover:bg-muted/70"
+                      >
+                        <div className="mt-0.5 shrink-0 w-7 h-7 rounded-full bg-background border border-border flex items-center justify-center">
+                          {typeIcon[n.type] ?? <ShoppingBag className="w-4 h-4" />}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium leading-snug">{n.title}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5 truncate">{n.body}</p>
+                          <div className="mt-1 flex items-center gap-2">
+                            <p className="text-[11px] text-muted-foreground/60">{relativeTime(n.createdAt)}</p>
+                            {destino && (
+                              <span className="text-[11px] font-semibold text-primary">· {destino.label}</span>
+                            )}
+                          </div>
+                        </div>
+                        <ChevronRight className="mt-2 h-4 w-4 shrink-0 text-muted-foreground/50" />
+                      </button>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               )}
             </div>

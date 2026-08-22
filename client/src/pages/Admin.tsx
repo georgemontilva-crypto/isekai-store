@@ -652,7 +652,24 @@ export default function Admin() {
   const [productSearch, setProductSearch] = useState('');
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
+
   const [orderSearch, setOrderSearch] = useState('');
+
+  /**
+   * Abre el panel donde pide la URL. Lo usan las notificaciones de la
+   * campanita: ?tab=orders&orden=ISK-1234 abre Pedidos y despliega ese pedido.
+   */
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const destino = params.get("tab");
+    if (destino) setTab(destino as AdminTab);
+    const orden = params.get("orden");
+    if (orden) setOrderSearch(orden);
+    if (destino || orden) {
+      // Se limpia la URL para que al recargar no vuelva a saltar ahí
+      window.history.replaceState({}, "", "/admin");
+    }
+  }, []);
   const [showManualOrder, setShowManualOrder] = useState(false);
   const [emailSearch, setEmailSearch] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);

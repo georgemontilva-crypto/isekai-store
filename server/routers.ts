@@ -373,7 +373,7 @@ export const appRouter = router({
         } catch (e) { console.error("Failed to notify owner:", e); }
         // Admin notification
         try {
-          await insertAdminNotification({ type: "new_order", title: "Nuevo pedido", body: `${input.customerName} · $${input.total} USD${input.receiptUrl ? ' · con comprobante' : ''}` });
+          await insertAdminNotification({ type: "new_order", title: "Nuevo pedido", body: `${order.orderNumber} · ${input.customerName} · $${input.total} USD${input.receiptUrl ? ' · con comprobante' : ''}` });
         } catch (e) { console.error("Failed to insert order notification:", e); }
 
         // Pagos: Pago Móvil y Cripto (USDT/TRC20) con carga de comprobante — ver shared/payment.ts
