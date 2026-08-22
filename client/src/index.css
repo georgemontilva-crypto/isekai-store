@@ -1123,3 +1123,19 @@ html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(i
 html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(input, textarea)::placeholder {
   color: #8a8a8a;
 }
+
+/* ── iOS: evitar el zoom al enfocar un campo ──────────────────────────────
+   Safari en iPhone hace zoom automático cuando el campo tiene menos de 16px
+   de tipografía. Forzarlo a 16px lo desactiva sin cambiar el diseño visible
+   (el texto de los campos ya se veía a ese tamaño en pantalla). */
+@media (max-width: 767px) {
+  input[type="text"], input[type="email"], input[type="url"], input[type="tel"],
+  input[type="number"], input[type="search"], input[type="password"],
+  input[type="date"], input[type="datetime-local"], textarea, select {
+    font-size: 16px;
+  }
+}
+
+/* Área con scroll pero sin barra visible (historial de códigos, carriles) */
+.iw-scroll-oculto { scrollbar-width: none; -ms-overflow-style: none; }
+.iw-scroll-oculto::-webkit-scrollbar { display: none; }

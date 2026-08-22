@@ -292,34 +292,33 @@ export default function CosplayDashboard() {
   const labelCls = "block text-[#ccc] text-sm font-medium mb-2";
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] pb-20">
+    <div className="min-h-screen bg-[#0d0d0d] pb-24 md:pb-20">
 
       <div className="container max-w-4xl py-8">
 
-        {/* Tabs */}
+        {/* Pestañas: en escritorio como pastillas; en teléfono se mueven a la
+            barra inferior fija (ver al final del componente) para ganar espacio */}
         <motion.div
-          initial={{ opacity: 0, y: 12 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-8"
+          className="mb-8 hidden gap-2 md:grid md:grid-cols-5"
         >
-          {TABS.slice(0, 4).map(tab => {
+          {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
-            // Misiones que aún puede completar: se avisan con un contador
             const pendientes = tab.id === "activities" ? actividadesPendientes : 0;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`relative flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  isActive ? "bg-[#e5007d] text-white" : "bg-[#1a1a1a] border border-[#333] text-[#888] hover:text-white hover:border-[#444]"
+                className={`relative flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
+                  isActive ? "bg-[#e5007d] text-white" : "border border-[#333] bg-[#1a1a1a] text-[#888] hover:border-[#444] hover:text-white"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" />
+                <Icon className="h-3.5 w-3.5" />
                 {tab.label}
                 {pendientes > 0 && (
-                  <span className={`ml-0.5 flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-black ${
+                  <span className={`flex h-5 min-w-[20px] items-center justify-center rounded-full px-1 text-[11px] font-black ${
                     isActive ? "bg-white text-[#e5007d]" : "bg-[#e5007d] text-white"
                   }`}>
                     {pendientes > 9 ? "9+" : pendientes}
@@ -328,22 +327,6 @@ export default function CosplayDashboard() {
               </button>
             );
           })}
-          {(() => {
-            const tab5 = TABS[4];
-            const Icon5 = tab5.icon;
-            return (
-              <button
-                key={tab5.id}
-                onClick={() => setActiveTab(tab5.id)}
-                className={`col-span-2 sm:col-span-1 flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
-                  activeTab === tab5.id ? "bg-[#e5007d] text-white" : "bg-[#1a1a1a] border border-[#333] text-[#888] hover:text-white hover:border-[#444]"
-                }`}
-              >
-                <Icon5 className="w-3.5 h-3.5" />
-                {tab5.label}
-              </button>
-            );
-          })()}
         </motion.div>
 
         <AnimatePresence mode="wait">
@@ -966,11 +949,18 @@ export default function CosplayDashboard() {
                     <p className="text-[#888] text-sm">Balance: <strong style={{ color: tierColor }}>{balance.toLocaleString()} tickets</strong></p>
                   </div>
                 </div>
-                <div className="grid sm:grid-cols-2 gap-4 mb-10">
+                {/* Carril horizontal: se deslizan en vez de apilarse */}
+                <div
+                  className="mb-8 flex gap-3 overflow-x-auto pb-2"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none', scrollSnapType: 'x mandatory' }}
+                >
                   {DISCOUNT_OPTIONS.map(opt => {
                     const canAfford = balance >= opt.cost;
                     return (
-                      <div key={opt.pct} className={`p-5 rounded-2xl bg-[#1a1a1a] border transition-all ${canAfford ? 'border-[#333] hover:border-[#e5007d]/60' : 'border-[#222] opacity-50'}`}>
+                      <div
+                        key={opt.pct}
+                        style={{ scrollSnapAlign: 'start' }}
+                        className={`w-[200px] shrink-0 rounded-2xl border bg-[#1a1a1a] p-5 transition-all sm:w-[220px] ${canAfford ? 'border-[#333] hover:border-[#e5007d]/60' : 'border-[#222] opacity-50'}`}>
                         <div className="flex items-baseline justify-between mb-2">
                           <span className="text-3xl font-black text-[#e5007d]">{opt.pct}%</span>
                           <span className="text-xs text-[#888] font-semibold">{opt.cost.toLocaleString()} tickets</span>
@@ -989,15 +979,19 @@ export default function CosplayDashboard() {
                 </div>
                 {discountCodes.length > 0 && (
                   <>
-                    <p className="text-xs font-bold uppercase tracking-wider text-[#555] mb-3">Mis códigos</p>
-                    <div className="space-y-2">
+                    <div className="mb-3 flex items-center justify-between">
+                      <p className="text-xs font-bold uppercase tracking-wider text-[#555]">Mis códigos</p>
+                      <span className="text-xs text-[#555]">{discountCodes.length}</span>
+                    </div>
+                    {/* Scroll propio: el historial no alarga la página */}
+                    <div className="iw-scroll-oculto max-h-[260px] space-y-2 overflow-y-auto pr-1">
                       {discountCodes.map((c: any) => (
-                        <div key={c.id} className={`flex items-center justify-between px-4 py-3 rounded-xl bg-[#1a1a1a] border text-sm ${c.used ? 'border-[#222] opacity-50' : 'border-[#333]'}`}>
-                          <div className="flex items-center gap-3">
-                            <span className="font-black text-[#e5007d] tracking-widest text-base">{c.code}</span>
+                        <div key={c.id} className={`flex flex-col gap-2 rounded-xl border bg-[#1a1a1a] px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between ${c.used ? 'border-[#222] opacity-50' : 'border-[#333]'}`}>
+                          <div className="flex min-w-0 items-center gap-2">
+                            <span className="truncate text-[15px] font-black tracking-wider text-[#e5007d]">{c.code}</span>
                             <CopyButton text={c.code} />
                           </div>
-                          <div className="flex items-center gap-2">
+                          <div className="flex shrink-0 items-center gap-2">
                             <span className="text-[#888] text-xs">{c.discountPercent}% OFF</span>
                             <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.used ? 'bg-[#222] text-[#555]' : 'bg-green-500/10 text-green-400'}`}>
                               {c.used ? 'Usado' : 'Disponible'}
@@ -1056,6 +1050,41 @@ export default function CosplayDashboard() {
           </motion.div>
         </div>
       )}
+
+      {/* Barra inferior tipo app — solo en teléfono */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-[#222] bg-[#111]/95 backdrop-blur md:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="flex">
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            const pendientes = tab.id === "activities" ? actividadesPendientes : 0;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-transform active:scale-95"
+                style={{ minHeight: 58, WebkitTapHighlightColor: 'transparent' }}
+              >
+                {isActive && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#e5007d]" />}
+                <div className="relative">
+                  <Icon className={`h-5 w-5 ${isActive ? 'text-[#e5007d]' : 'text-[#777]'}`} />
+                  {pendientes > 0 && (
+                    <span className="absolute -right-2 -top-1.5 flex h-4 min-w-[16px] items-center justify-center rounded-full bg-[#e5007d] px-1 text-[10px] font-black text-white">
+                      {pendientes > 9 ? '9+' : pendientes}
+                    </span>
+                  )}
+                </div>
+                <span className={`text-[10px] font-bold ${isActive ? 'text-[#e5007d]' : 'text-[#777]'}`}>
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

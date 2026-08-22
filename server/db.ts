@@ -1454,21 +1454,52 @@ export async function evaluateCosplaySubmission(input: { submissionId: number; p
   const [actividad] = await db.select().from(cosplayActivities)
     .where(eq(cosplayActivities.id, sub.activityId)).limit(1);
 
-  if (actividad?.deadline && (actividad.phases ?? 1) > 1) {
+  const totalFases = actividad?.phases ?? 1;
+
+  if (totalFases > 1) {
+    // Estado del resto de fases (esta aún no está guardada con su nuevo estado)
     const entregas = await db.select().from(cosplaySubmissions)
       .where(and(
         eq(cosplaySubmissions.cosplayerId, sub.cosplayerId),
         eq(cosplaySubmissions.activityId, sub.activityId),
       ));
-    const completas = entregas.filter(e => e.status !== 'rejected').length;
-    const vencida = new Date(actividad.deadline).getTime() < Date.now();
 
-    if (vencida && completas < (actividad.phases ?? 1)) {
+    const otras = entregas.filter(e => e.id !== sub.id);
+    const aprobadasOtras = otras.filter(e => e.status === 'approved').length;
+    // Contando ESTA evaluación
+    const aprobadasTotal = aprobadasOtras + (input.status === 'approved' ? 1 : 0);
+    const todasAprobadas = aprobadasTotal >= totalFases;
+
+    // REGLA: la recompensa se libera SOLO cuando están las N fases y TODAS
+    // aprobadas. Aprobar una fase suelta no paga nada; el pago completo se
+    // hace al aprobar la última que faltaba.
+    if (!todasAprobadas) {
       finalPoints = 0;
-      console.warn(
-        `[Misión] ${cosplayer.artisticName} no completó "${actividad.title}" antes de la fecha ` +
-        `(${completas}/${actividad.phases}): sin recompensa.`
+      console.log(
+        `[Misión] ${cosplayer.artisticName} · "${actividad?.title}": ` +
+        `${aprobadasTotal}/${totalFases} fases aprobadas — aún sin recompensa.`
       );
+    } else {
+      // Se paga la misión completa una sola vez
+      finalPoints = Math.round((actividad?.basePoints ?? input.pointsAwarded) * multiplier);
+      console.log(
+        `[Misión] ${cosplayer.artisticName} completó "${actividad?.title}": ` +
+        `se liberan ${finalPoints} tickets.`
+      );
+    }
+
+    // Con fecha límite, además, todas debieron entregarse a tiempo
+    if (actividad?.deadline && new Date(actividad.deadline).getTime() < Date.now()) {
+      const entregadasATiempo = entregas.filter(
+        e => e.status !== 'rejected' && new Date(e.createdAt as any).getTime() <= new Date(actividad.deadline as any).getTime()
+      ).length;
+      if (entregadasATiempo < totalFases) {
+        finalPoints = 0;
+        console.warn(
+          `[Misión] ${cosplayer.artisticName} no completó "${actividad?.title}" dentro del plazo ` +
+          `(${entregadasATiempo}/${totalFases} a tiempo): sin recompensa.`
+        );
+      }
     }
   }
 
