@@ -813,16 +813,25 @@ html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
    de las entregas de misiones, los códigos de referido y los correos.
    Al no poder partirse, estiran su contenedor y mueven la página de lado. */
 @media (max-width: 767px) {
-  /* Los hijos de flex y grid no se encogen por debajo de su contenido
-     salvo que se les permita: sin esto, un enlace largo empuja todo. */
-  main :is(div, section, article, li, p, span, a) { min-width: 0; }
+  /* Los hijos de flex y grid no se encogen por debajo de su contenido salvo
+     que se les permita: sin esto, un enlace largo empuja todo de lado.
+     Se aplica desde body y NO solo desde main, porque los modales y menús
+     se dibujan fuera de main (era el caso del modal de nueva actividad). */
+  body :is(div, section, article, li, p, span, a, label) { min-width: 0; }
 
   /* Enlaces, correos y códigos: que partan en vez de desbordar */
-  main a[href^="http"], main a[href^="mailto"],
-  main code, main pre { overflow-wrap: anywhere; word-break: break-word; }
+  body a[href^="http"], body a[href^="mailto"],
+  body code, body pre { overflow-wrap: anywhere; word-break: break-word; }
 
-  /* Nada dentro del contenido puede superar el ancho de la pantalla */
-  main table, main pre { max-width: 100%; display: block; overflow-x: auto; }
+  /* Nada puede superar el ancho de la pantalla */
+  body table, body pre { max-width: 100%; display: block; overflow-x: auto; }
+
+  /* Capas fijas (modales, hojas inferiores): nunca más anchas que la pantalla */
+  body .fixed { max-width: 100vw; }
+
+  /* Rejillas de muchas columnas: en pantallas estrechas se compactan
+     en vez de estirar el contenedor (ej. la tabla de tickets por tier) */
+  body .grid-cols-5 { gap: 0.125rem; font-size: 0.6875rem; }
 }
 img, video, iframe { max-width: 100%; }
 

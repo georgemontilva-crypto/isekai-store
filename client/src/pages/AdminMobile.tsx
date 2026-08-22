@@ -690,8 +690,8 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
 
       {/* Modal ver solicitud completa */}
       {viewApplication && (
-        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
-          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end overflow-x-hidden">
+          <div className="bg-white w-full max-w-full rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
               style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
@@ -780,8 +780,8 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
 
       {/* Modal nueva actividad */}
       {showNewActivity && (
-        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
-          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end overflow-x-hidden">
+          <div className="bg-white w-full max-w-full rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
               style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
@@ -878,12 +878,12 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   Cuántas publicaciones debe subir. Con más de una verá barra de progreso
                   y deberá pegar un enlace distinto en cada fase.
                 </p>
-                <div className="flex gap-2">
+                <div className="grid grid-cols-6 gap-2">
                   {[1, 2, 3, 4, 5, 6].map(n => (
                     <button
                       key={n}
                       onClick={() => setActivityForm({ ...activityForm, phases: n })}
-                      className={`h-10 w-10 rounded-xl text-sm font-bold transition-colors ${
+                      className={`h-10 w-full rounded-xl text-sm font-bold transition-colors ${
                         activityForm.phases === n ? 'bg-[#e5007d] text-white' : 'bg-[#f0f0f0] text-[#666]'
                       }`}
                       style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -920,8 +920,8 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
 
       {/* Modal cosplayer activo */}
       {viewCosplayer && (
-        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end">
-          <div className="bg-white w-full rounded-t-3xl max-h-[90vh] overflow-y-auto"
+        <div className="fixed inset-0 bg-black/60 z-[200] flex items-end overflow-x-hidden">
+          <div className="bg-white w-full max-w-full rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
               style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
