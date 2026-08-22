@@ -848,10 +848,10 @@ img, video, iframe { max-width: 100%; }
    secundarios nunca por debajo de 4.5:1.
    ═══════════════════════════════════════════════════════════════════════════ */
 
-html.dark:not(.admin-light) { color-scheme: dark; }
+html.dark { color-scheme: dark; }
 
 /* Tokens de shadcn (menús, selects, diálogos, drawers) */
-html.dark:not(.admin-light) {
+html.dark {
   --color-background: oklch(0.17 0.01 285);
   --color-foreground: oklch(0.955 0.005 285);
   --color-card: oklch(0.205 0.012 285);
@@ -871,41 +871,21 @@ html.dark:not(.admin-light) {
   --color-ring: oklch(0.72 0.008 285);
 }
 
-/* El panel admin conserva su esquema claro */
-html.dark:not(.admin-light) .admin-shell {
-  color-scheme: light;
-  --color-background: oklch(1 0 0);
-  --color-foreground: oklch(0.08 0 0);
-  --color-card: oklch(1 0 0);
-  --color-card-foreground: oklch(0.08 0 0);
-  --color-popover: oklch(1 0 0);
-  --color-popover-foreground: oklch(0.08 0 0);
-  --color-primary: oklch(0.08 0 0);
-  --color-primary-foreground: oklch(1 0 0);
-  --color-secondary: oklch(0.96 0 0);
-  --color-secondary-foreground: oklch(0.08 0 0);
-  --color-muted: oklch(0.96 0 0);
-  --color-muted-foreground: oklch(0.45 0 0);
-  --color-accent: oklch(0.96 0 0);
-  --color-accent-foreground: oklch(0.08 0 0);
-  --color-border: oklch(0.9 0 0);
-  --color-input: oklch(0.9 0 0);
-  --color-ring: oklch(0.08 0 0);
-}
+
 
 /* Base: los textos e iconos sin clase de color heredan de aquí */
-html.dark:not(.admin-light) body { background-color: #050507; color: #f2f2f7; }
+html.dark body { background-color: #050507; color: #f2f2f7; }
 html.dark ::selection { background: #e5007d; color: #ffffff; }
 
 /* Toasts de sonner */
-html.dark:not(.admin-light) [data-sonner-toaster] {
+html.dark [data-sonner-toaster] {
   --normal-bg: #1b1b23;
   --normal-text: #f2f2f7;
   --normal-border: #2c2c38;
 }
 
 /* ── Capa de traducción, con exclusiones por rol ─────────────────────────── */
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
 
   /* Superficies claras → oscuras */
   &.bg-white            { background-color: #15151b; }
@@ -983,48 +963,48 @@ html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(.w
 
 /* Títulos principales en magenta. Los que ya son blancos sobre imagen
    (text-white) o ya son magenta se respetan. */
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) :is(h1, h2):not(.text-white):not(.text-\[\#e5007d\]) {
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) :is(h1, h2):not(.text-white):not(.text-\[\#e5007d\]) {
   color: #ff3d9e !important;
 }
 
 /* Divisores */
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#e5e5e5\] > * + *,
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#ebebeb\] > * + *,
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#f0f0f0\] > * + * {
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#e5e5e5\] > * + *,
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#ebebeb\] > * + *,
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#f0f0f0\] > * + * {
   border-color: #2c2c38;
 }
 
 /* Franja superior: gris oscuro con texto blanco en ambos modos.
    El !important la protege de la inversión de botones sólidos. */
-html.dark:not(.admin-light) .top-bar { background-color: #141418 !important; }
-html.dark:not(.admin-light) .top-bar, html.dark:not(.admin-light) .top-bar * { color: #ffffff !important; }
-html.dark:not(.admin-light) .top-bar .text-\[\#e5007d\] { color: #ff45a0 !important; }
-html.dark:not(.admin-light) :where(:not(.wf-page):not(.wf-page *)).bg-\[\#f5e642\],
-html.dark:not(.admin-light) :where(:not(.wf-page):not(.wf-page *)).bg-\[\#ffd700\] {
+html.dark .top-bar { background-color: #141418 !important; }
+html.dark .top-bar, html.dark .top-bar * { color: #ffffff !important; }
+html.dark .top-bar .text-\[\#e5007d\] { color: #ff45a0 !important; }
+html.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#f5e642\],
+html.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#ffd700\] {
   background-color: #e5007d !important;
   color: #0b0b10 !important;
 }
-html.dark:not(.admin-light) .bg-\[\#f5e642\] *, html.dark:not(.admin-light) .bg-\[\#ffd700\] * { color: #0b0b10 !important; }
+html.dark .bg-\[\#f5e642\] *, html.dark .bg-\[\#ffd700\] * { color: #0b0b10 !important; }
 
 /* Campos de formulario y placeholders */
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) :is(input, textarea, select) {
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) :is(input, textarea, select) {
   color: #f2f2f7;
 }
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *)) :is(input, textarea)::placeholder { color: #7c7c8c; }
+html.dark :where(:not(.admin-shell):not(.admin-shell *)) :is(input, textarea)::placeholder { color: #7c7c8c; }
 
 /* Sombras con profundidad real sobre fondo oscuro */
-html.dark:not(.admin-light) :where(:not(.admin-shell):not(.admin-shell *)):is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+html.dark :where(:not(.admin-shell):not(.admin-shell *)):is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
   box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
 }
 
 /* Barra de confianza (vive dentro del footer, que está excluido de la capa
    general): en oscuro pasa a magenta con todo el contenido en blanco */
-html.dark:not(.admin-light) .trust-bar { background-color: #e5007d !important; border-color: #e5007d !important; }
-html.dark:not(.admin-light) .trust-bar p, html.dark:not(.admin-light) .trust-bar svg { color: #ffffff !important; }
+html.dark .trust-bar { background-color: #e5007d !important; border-color: #e5007d !important; }
+html.dark .trust-bar p, html.dark .trust-bar svg { color: #ffffff !important; }
 
 /* Header del catálogo: bg-card/30 compila con el blanco incrustado, se
    corrige aquí por si quedara en alguna otra pantalla */
-html.dark:not(.admin-light) .bg-card\/30 { background-color: #0a0a0e; }
+html.dark .bg-card\/30 { background-color: #0a0a0e; }
 
 /* Marquee de la franja superior */
 @keyframes iw-topbar { to { transform: translateX(-50%); } }
@@ -1048,45 +1028,913 @@ html.dark:not(.admin-light) .bg-card\/30 { background-color: #0a0a0e; }
 .account-veil {
   background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 100%);
 }
-html.dark:not(.admin-light) .account-veil {
+html.dark .account-veil {
   background: linear-gradient(to bottom, rgba(5,5,7,0.4) 0%, rgba(5,5,7,1) 100%);
 }
 
 /* ── Chips de categoría y franja de filtros en oscuro ────────────────────── */
-html.dark:not(.admin-light) .tab-pill {
+html.dark .tab-pill {
   border-color: #3d3d4a;
   color: #d2d2dd;          /* antes quedaban muy apagados */
   background: transparent;
 }
-html.dark:not(.admin-light) .tab-pill:hover  { border-color: #ff45a0; color: #ff45a0; }
-html.dark:not(.admin-light) .tab-pill.active {
+html.dark .tab-pill:hover  { border-color: #ff45a0; color: #ff45a0; }
+html.dark .tab-pill.active {
   background: #e5007d;
   border-color: #e5007d;
   color: #ffffff;
 }
-html.dark:not(.admin-light) .cat-arrow {
+html.dark .cat-arrow {
   background: #15151b;
   border-color: #3d3d4a;
   color: #d2d2dd;
 }
-html.dark:not(.admin-light) .cat-arrow:hover { border-color: #ff45a0; color: #ff45a0; }
+html.dark .cat-arrow:hover { border-color: #ff45a0; color: #ff45a0; }
 
 /* Franja de migas de la ficha de producto: fondo oscuro real (bg-card/20
    compila con blanco incrustado), texto blanco y el activo en magenta */
-html.dark:not(.admin-light) .breadcrumb-bar { background-color: #0d0d12 !important; border-color: #23232c !important; }
-html.dark:not(.admin-light) .breadcrumb-bar, html.dark .breadcrumb-bar span { color: #ffffff !important; }
-html.dark:not(.admin-light) .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
+html.dark .breadcrumb-bar { background-color: #0d0d12 !important; border-color: #23232c !important; }
+html.dark .breadcrumb-bar, html.dark .breadcrumb-bar span { color: #ffffff !important; }
+html.dark .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
 
 /* Sección destacada de la home: negro total, sin el degradado gris */
-html.dark:not(.admin-light) .spotlight-veil { background: #000000; }
+html.dark .spotlight-veil { background: #000000; }
 
-/* ── Panel admin: siempre en claro ─────────────────────────────────────────
-   El admin monta la clase .admin-light en el <html>, y con ella se desactiva
-   toda la capa oscura. Hace falta a nivel de <html> (y no solo del contenedor)
-   porque los diálogos de Radix se dibujan en un portal FUERA del árbol del
-   admin: modales de crear/editar producto, ficha de cosplayer, etc.
-   Sin esto quedaban con texto blanco sobre fondo blanco. */
-html.admin-light {
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&display=swap");
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-primary-foreground: 0 0% 100%;
+  --sidebar-border: 0 0% 30%;
+  --sidebar-ring: 0 0% 100%;
+}
+
+@theme inline {
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.5rem;
+
+  /* Concept Theme - Clean White/Light */
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.08 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.08 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.08 0 0);
+  --color-primary: oklch(0.08 0 0);
+  --color-primary-foreground: oklch(1 0 0);
+  --color-secondary: oklch(0.96 0 0);
+  --color-secondary-foreground: oklch(0.08 0 0);
+  --color-muted: oklch(0.96 0 0);
+  --color-muted-foreground: oklch(0.45 0 0);
+  --color-accent: oklch(0.96 0 0);
+  --color-accent-foreground: oklch(0.08 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-border: oklch(0.9 0 0);
+  --color-input: oklch(0.9 0 0);
+  --color-ring: oklch(0.08 0 0);
+  --color-chart-1: oklch(0.08 0 0);
+  --color-chart-2: oklch(0.45 0 0);
+  --color-chart-3: oklch(0.65 0 0);
+  --color-chart-4: oklch(0.80 0 0);
+  --color-chart-5: oklch(0.92 0 0);
+  --color-sidebar: oklch(0.08 0 0);
+  --color-sidebar-foreground: oklch(1 0 0);
+  --color-sidebar-primary: oklch(1 0 0);
+  --color-sidebar-primary-foreground: oklch(0.08 0 0);
+  --color-sidebar-accent: oklch(0.15 0 0);
+  --color-sidebar-accent-foreground: oklch(1 0 0);
+  --color-sidebar-border: oklch(0.2 0 0);
+  --color-sidebar-ring: oklch(0.5 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background-color: #ffffff;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: #1a1a1a;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not([aria-disabled="true"]),
+  a[href],
+  select:not(:disabled),
+  input[type="checkbox"]:not(:disabled),
+  input[type="radio"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  .flex {
+    min-height: 0;
+    min-width: 0;
+  }
+}
+
+@layer components {
+  .container {
+    width: 100%;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    .container {
+      padding-left: 2.5rem;
+      padding-right: 2.5rem;
+    }
+  }
+
+  /* ── Scrollbar ── */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* ── Buttons ── */
+  .btn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    background: #1a1a1a;
+    color: #fff;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+    border: 1.5px solid #1a1a1a;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-pill:hover {
+    background: transparent;
+    color: #1a1a1a;
+  }
+  .btn-pill:active { transform: scale(0.97); }
+
+  .btn-pill-outline {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    background: transparent;
+    color: #1a1a1a;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+    border: 1.5px solid #1a1a1a;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-pill-outline:hover {
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .btn-pill-outline:active { transform: scale(0.97); }
+
+  .btn-pill-white {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.7rem 1.75rem;
+    background: #fff;
+    color: #1a1a1a;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.23, 1, 0.32, 1);
+    border: 1.5px solid #fff;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .btn-pill-white:hover {
+    background: transparent;
+    color: #fff;
+  }
+  .btn-pill-white:active { transform: scale(0.97); }
+
+  /* ── Typography ── */
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #888;
+  }
+
+  .italic-serif {
+    font-family: "Playfair Display", Georgia, serif;
+    font-style: italic;
+    font-weight: 700;
+  }
+
+  /* ── Product Card ── */
+  .product-card {
+    background: #fff;
+    transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.25s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .product-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  }
+
+  /* ── Image Zoom ── */
+  .img-zoom { overflow: hidden; }
+  .img-zoom img {
+    transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .img-zoom:hover img { transform: scale(1.06); }
+
+  /* ── Hero Overlay ── */
+  .hero-overlay {
+    background: linear-gradient(
+      to right,
+      rgba(0,0,0,0.52) 0%,
+      rgba(0,0,0,0.18) 55%,
+      rgba(0,0,0,0) 100%
+    );
+  }
+
+  /* ── Marquee ── */
+  @keyframes marquee-left {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .marquee-track {
+    animation: marquee-left 22s linear infinite;
+    display: flex;
+    width: max-content;
+  }
+  .marquee-track:hover { animation-play-state: paused; }
+  .marquee-track-slow {
+    animation: marquee-left 30s linear infinite;
+    display: flex;
+    width: max-content;
+  }
+  .marquee-track-slow:hover { animation-play-state: paused; }
+
+  /* ── Rotating Badge ── */
+  @keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .spin-slow { animation: spin-slow 14s linear infinite; }
+
+  /* ── Countdown ── */
+  .countdown-digit {
+    font-size: 3.5rem;
+    font-weight: 800;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Color Swatch ── */
+  .color-swatch {
+    width: 1.4rem;
+    height: 1.4rem;
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    outline: 1.5px solid rgba(0,0,0,0.15);
+    outline-offset: 1px;
+  }
+  .color-swatch.active,
+  .color-swatch:hover {
+    outline-color: #1a1a1a;
+    outline-width: 2px;
+  }
+
+  /* ── Tab ── */
+  .tab-pill {
+    padding: 0.5rem 1.25rem;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1.5px solid #e5e5e5;
+    color: #555;
+    background: transparent;
+  }
+  .tab-pill:hover { border-color: #e5007d; color: #e5007d; }
+  .tab-pill.active {
+    background: #e5007d;
+    color: #fff;
+    border-color: #e5007d;
+  }
+  /* Flechas del carril de categorías */
+  .cat-arrow {
+    width: 30px; height: 30px;
+    align-items: center; justify-content: center;
+    border-radius: 9999px;
+    border: 1.5px solid #e5e5e5;
+    background: #ffffff;
+    color: #555;
+    transition: all 0.2s ease;
+  }
+  .cat-arrow:hover { border-color: #e5007d; color: #e5007d; }
+
+  /* ── Status badges (admin) ── */
+  .status-pending { background: #fef9c3; color: #854d0e; border: 1px solid #fde047; border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.75rem; font-weight: 600; }
+  .status-processing { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.75rem; font-weight: 600; }
+  .status-shipped { background: #f3e8ff; color: #7e22ce; border: 1px solid #d8b4fe; border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.75rem; font-weight: 600; }
+  .status-delivered { background: #dcfce7; color: #166534; border: 1px solid #86efac; border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.75rem; font-weight: 600; }
+  .status-cancelled { background: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; border-radius: 9999px; padding: 0.2rem 0.75rem; font-size: 0.75rem; font-weight: 600; }
+
+  /* ── Shimmer ── */
+  @keyframes shimmer {
+    0% { background-position: -200% center; }
+    100% { background-position: 200% center; }
+  }
+  .shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e8e8e8 50%, #f0f0f0 75%);
+    background-size: 200% auto;
+    animation: shimmer 1.5s linear infinite;
+  }
+
+  /* ── Slide-in cart ── */
+  @keyframes slide-in-right {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+  }
+  .cart-drawer { animation: slide-in-right 0.3s cubic-bezier(0.23, 1, 0.32, 1); }
+
+  /* ── Hero Peek Carousel (Island style) ── */
+  .hero-peek-section {
+    position: relative;
+    background: #0a0a0a;
+    overflow: hidden;
+    height: min(88vh, 680px);
+    display: flex;
+    flex-direction: column;
+    padding: 12px 0 12px 0;
+  }
+
+  /* Social sidebar — floats over the left gap */
+  .hero-social-bar {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    background: rgba(255,255,255,0.12);
+    backdrop-filter: blur(10px);
+    border-radius: 10px;
+    padding: 10px 7px;
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .hero-social-icon {
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: rgba(255,255,255,0.8);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+    transition: color 0.15s;
+    border-radius: 4px;
+  }
+  .hero-social-icon:hover { color: #fff; }
+  .hero-social-promo {
+    margin-top: 14px;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.13em;
+    color: rgba(255,255,255,0.5);
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    transform: rotate(180deg);
+    text-transform: uppercase;
+  }
+
+  /* Track */
+  .hero-peek-track {
+    position: relative;
+    flex: 1;
+  }
+
+  /* Each slide — island with rounded corners */
+  .hero-peek-slide {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    overflow: hidden;
+    border-radius: 18px;
+    transition:
+      left 0.7s cubic-bezier(0.77, 0, 0.175, 1),
+      width 0.7s cubic-bezier(0.77, 0, 0.175, 1),
+      opacity 0.7s ease;
+  }
+
+  /* Active island: centered, wide — with gap on both sides */
+  .hero-peek-slide.active {
+    left: calc(13% + 8px);
+    width: calc(74% - 16px);
+    opacity: 1;
+    cursor: default;
+    z-index: 2;
+  }
+
+  /* Prev island: peeking left — small gap from left edge */
+  .hero-peek-slide.prev {
+    left: 8px;
+    width: calc(13% - 16px);
+    opacity: 0.7;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .hero-peek-slide.prev:hover { opacity: 0.9; }
+
+  /* Next island: peeking right — small gap from right edge */
+  .hero-peek-slide.next {
+    left: calc(87% + 8px);
+    width: calc(13% - 16px);
+    opacity: 0.7;
+    cursor: pointer;
+    z-index: 1;
+  }
+  .hero-peek-slide.next:hover { opacity: 0.9; }
+
+  /* Hidden */
+  .hero-peek-slide.hidden-slide {
+    left: 50%;
+    width: 0;
+    opacity: 0;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Image: zoom effect on entry */
+  .hero-peek-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+    transform: scale(1.09);
+  }
+  .hero-peek-img.zoomed-in {
+    transform: scale(1.0);
+  }
+
+  /* Text content */
+  .hero-peek-content {
+    position: absolute;
+    bottom: 72px;
+    left: 44px;
+    z-index: 10;
+    max-width: 560px;
+  }
+  .hero-peek-title {
+    font-size: clamp(2rem, 4.2vw, 3.8rem);
+    font-weight: 900;
+    line-height: 1.0;
+    color: #fff;
+    letter-spacing: -0.02em;
+    margin-bottom: 22px;
+    white-space: pre-line;
+    text-shadow: 0 2px 24px rgba(0,0,0,0.25);
+  }
+
+  /* Controls: sit inside the active island at the bottom */
+  .hero-peek-controls {
+    position: absolute;
+    bottom: 28px;
+    left: calc(13% + 8px);
+    width: calc(74% - 16px);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 20;
+    padding: 0 12px;
+  }
+  .hero-ctrl-btn {
+    font-size: 18px;
+    color: rgba(255,255,255,0.75);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px 8px;
+    transition: color 0.15s;
+    font-weight: 300;
+  }
+  .hero-ctrl-btn:hover { color: #fff; }
+
+  @media (max-width: 768px) {
+    /* Mobile: single slide with rounded corners and small side margin */
+    .hero-peek-section {
+      padding: 10px 0 10px 0;
+      height: 100svh;
+      max-height: 720px;
+    }
+    .hero-peek-slide {
+      border-radius: 16px !important;
+    }
+    .hero-peek-slide.active {
+      left: 12px !important;
+      width: calc(100% - 24px) !important;
+      opacity: 1;
+    }
+    .hero-peek-slide.prev,
+    .hero-peek-slide.next {
+      left: 0 !important;
+      width: 0 !important;
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+    .hero-peek-controls {
+      left: 12px !important;
+      width: calc(100% - 24px) !important;
+      bottom: 24px;
+      padding: 0 12px;
+    }
+    .hero-peek-content {
+      left: 24px;
+      bottom: 76px;
+      max-width: calc(100% - 48px);
+    }
+    .hero-peek-title {
+      font-size: 1.9rem;
+    }
+    .hero-social-bar { display: none; }
+  }
+
+  /* ── Admin sidebar (dark) ── */
+  .admin-sidebar {
+    background: #1a1a1a;
+    color: #fff;
+  }
+  .admin-sidebar a {
+    color: rgba(255,255,255,0.7);
+    transition: color 0.15s;
+  }
+  .admin-sidebar a:hover,
+  .admin-sidebar a.active {
+    color: #fff;
+  }
+}
+
+/* ── shadcn Sidebar menu button colors (admin dark sidebar) ── */
+[data-sidebar="menu-button"],
+[data-sidebar="menu-button"] svg,
+[data-sidebar="menu-button"] span {
+  color: white !important;
+  fill: white !important;
+}
+
+.sidebar-wrapper *,
+[data-sidebar] * {
+  color: white !important;
+}
+
+/* Force sidebar text white */
+.group\/menu-button,
+.group\/menu-button span,
+.group\/menu-button svg {
+  color: white !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   RESPONSIVE MOBILE — ISEKAI WORLD
+   Breakpoints: <480px (xs), <768px (sm/mobile)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Container padding on small screens ──────────────────────────────────── */
+@media (max-width: 767px) {
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+
+/* ── Best Sellers: scroll arrows hidden on mobile (swipe instead) ─────────── */
+@media (max-width: 640px) {
+  .best-sellers-arrows { display: none; }
+}
+
+/* ── Sale Slider: compact on mobile ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* countdown separator colons */
+  .sale-countdown-sep { display: none; }
+}
+
+/* ── FeaturedProductCard: no float on mobile ─────────────────────────────── */
+@media (max-width: 767px) {
+  .featured-product-floating {
+    position: static !important;
+    margin: 16px !important;
+    transform: none !important;
+    right: auto !important;
+    bottom: auto !important;
+    width: auto !important;
+    max-width: none !important;
+  }
+}
+
+/* ── Product Card — touch-friendly: always show add to cart ─────────────── */
+@media (max-width: 767px) {
+  .group .opacity-0.group-hover\\:opacity-100 {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+/* ── Navbar announcement bar: smaller text on mobile ────────────────────── */
+@media (max-width: 480px) {
+  .announcement-text {
+    font-size: 10px !important;
+  }
+}
+
+/* ── Tab pills: scroll horizontally on mobile ────────────────────────────── */
+@media (max-width: 640px) {
+  .tab-pills-row {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap !important;
+    padding-bottom: 4px;
+  }
+  .tab-pills-row::-webkit-scrollbar { display: none; }
+  .tab-pill {
+    flex-shrink: 0;
+  }
+}
+
+/* ── Press Quote: smaller text on mobile ─────────────────────────────────── */
+@media (max-width: 640px) {
+  .press-quote {
+    font-size: 1.25rem !important;
+  }
+}
+
+/* ── Brand logos: readable on mobile ────────────────────────────────────── */
+@media (max-width: 640px) {
+  .brands-bar span {
+    font-size: 1rem !important;
+  }
+}
+
+/* ── Cart Drawer: full width on mobile ───────────────────────────────────── */
+@media (max-width: 480px) {
+  .cart-drawer {
+    max-width: 100vw !important;
+  }
+}
+
+/* ── Admin: sidebar collapses on mobile ─────────────────────────────────── */
+@media (max-width: 767px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+  .admin-sidebar-panel {
+    width: 100% !important;
+    min-height: auto !important;
+  }
+}
+
+/* ── Product Detail: full-width image on mobile ─────────────────────────── */
+@media (max-width: 767px) {
+  .product-detail-container {
+    padding-top: 1.5rem !important;
+  }
+  .product-gallery-main {
+    border-radius: 1rem !important;
+  }
+  /* Thumbnails scroll */
+  .product-thumbnails {
+    display: flex;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .product-thumbnails::-webkit-scrollbar { display: none; }
+}
+
+/* ── Checkout: form fields full width ────────────────────────────────────── */
+@media (max-width: 640px) {
+  .checkout-grid-2 {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ── Video banner: shorter on mobile ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  .video-banner {
+    height: 320px !important;
+  }
+  .video-banner h2 {
+    font-size: clamp(28px, 8vw, 48px) !important;
+  }
+}
+
+/* ── Instagram section: compact on mobile ───────────────────────────────── */
+@media (max-width: 640px) {
+  .instagram-cta-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ── Touch: larger tap targets everywhere ────────────────────────────────── */
+@media (max-width: 767px) {
+  .hero-ctrl-btn {
+    font-size: 22px;
+    padding: 8px 14px;
+  }
+  /* Product card add to cart: always visible */
+  .product-card-cta {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+  }
+}
+
+/* ── Safe area for notched phones ────────────────────────────────────────── */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-bottom-safe {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  .cart-drawer-footer {
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+  }
+}
+
+/* ── Touch & UX improvements ─────────────────────────────────────────────── */
+html {
+  -webkit-text-size-adjust: 100%; /* prevent font scaling on orientation change */
+  text-size-adjust: 100%;
+}
+
+/* Prevent horizontal overflow on mobile */
+body {
+  overflow-x: hidden;
+}
+
+/* Better tap highlight */
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Smooth scroll on iOS */
+.overflow-y-auto,
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Input zoom prevention on iOS (font-size >= 16px prevents auto-zoom) */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="number"],
+  input[type="search"],
+  input[type="password"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* ── NewsletterPopup: always full width on mobile ────────────────────────── */
+@media (max-width: 640px) {
+  .newsletter-popup {
+    width: calc(100vw - 2rem) !important;
+    max-width: none !important;
+    bottom: 1rem !important;
+    left: 1rem !important;
+    right: 1rem !important;
+    border-radius: 1.25rem !important;
+  }
+}
+
+/* ── Guardas de desbordamiento horizontal ─────────────────────────────────
+   Evita que un elemento que se sale del ancho genere scroll lateral.
+   Los <svg> quedan FUERA a propósito: traen su propio width/height y
+   forzarles height:auto encoge los iconos. */
+/* `clip` corta el desbordamiento lateral igual que `hidden`, pero SIN
+   convertir el elemento en contenedor de scroll — que es lo que rompía los
+   position:sticky de la web (el video de fondo de World Fest, entre otros).
+   Se deja `hidden` primero como respaldo para navegadores viejos. */
+html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
+
+/* ── Guardas de desbordamiento en teléfono ────────────────────────────────
+   La causa más común aquí son las cadenas largas sin espacios: los enlaces
+   de las entregas de misiones, los códigos de referido y los correos.
+   Al no poder partirse, estiran su contenedor y mueven la página de lado. */
+@media (max-width: 767px) {
+  /* Los hijos de flex y grid no se encogen por debajo de su contenido salvo
+     que se les permita: sin esto, un enlace largo empuja todo de lado.
+     Se aplica desde body y NO solo desde main, porque los modales y menús
+     se dibujan fuera de main (era el caso del modal de nueva actividad). */
+  body :is(div, section, article, li, p, span, a, label) { min-width: 0; }
+
+  /* Enlaces, correos y códigos: que partan en vez de desbordar */
+  body a[href^="http"], body a[href^="mailto"],
+  body code, body pre { overflow-wrap: anywhere; word-break: break-word; }
+
+  /* Nada puede superar el ancho de la pantalla */
+  body table, body pre { max-width: 100%; display: block; overflow-x: auto; }
+
+  /* Capas fijas (modales, hojas inferiores): nunca más anchas que la pantalla */
+  body .fixed { max-width: 100vw; }
+
+  /* Rejillas de muchas columnas: en pantallas estrechas se compactan
+     en vez de estirar el contenedor (ej. la tabla de tickets por tier) */
+  body .grid-cols-5 { gap: 0.125rem; font-size: 0.6875rem; }
+}
+img, video, iframe { max-width: 100%; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MODO OSCURO — v2, por roles
+   Lecciones de la versión anterior aplicadas:
+   1. Los elementos se traducen según su ROL, no solo su color. El mismo
+      #1a1a1a es el cuerpo del footer (se queda oscuro) y un botón sólido
+      (se invierte a claro para conservar contraste).
+   2. Se cubren hover, focus y placeholder, que antes quedaban a medias.
+   3. Exclusiones explícitas: panel admin (.admin-shell), World Fest
+      (.wf-page) y el <footer>, que ya es oscuro por diseño.
+   Paleta con contraste verificado: texto principal ≈15:1 sobre tarjeta,
+   secundarios nunca por debajo de 4.5:1.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+html.dark { color-scheme: dark; }
+
+/* Tokens de shadcn (menús, selects, diálogos, drawers) */
+html.dark {
+  --color-background: oklch(0.17 0.01 285);
+  --color-foreground: oklch(0.955 0.005 285);
+  --color-card: oklch(0.205 0.012 285);
+  --color-card-foreground: oklch(0.955 0.005 285);
+  --color-popover: oklch(0.215 0.012 285);
+  --color-popover-foreground: oklch(0.955 0.005 285);
+  --color-primary: oklch(0.955 0.005 285);
+  --color-primary-foreground: oklch(0.17 0.01 285);
+  --color-secondary: oklch(0.26 0.012 285);
+  --color-secondary-foreground: oklch(0.955 0.005 285);
+  --color-muted: oklch(0.26 0.012 285);
+  --color-muted-foreground: oklch(0.72 0.008 285);
+  --color-accent: oklch(0.29 0.012 285);
+  --color-accent-foreground: oklch(0.955 0.005 285);
+  --color-border: oklch(0.33 0.01 285);
+  --color-input: oklch(0.33 0.01 285);
+  --color-ring: oklch(0.72 0.008 285);
+}
+
+/* El panel admin conserva su esquema claro */
+html.dark .admin-shell {
   color-scheme: light;
   --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.08 0 0);
@@ -1106,23 +1954,194 @@ html.admin-light {
   --color-input: oklch(0.9 0 0);
   --color-ring: oklch(0.08 0 0);
 }
-html.admin-light body { background-color: #f6f6f7; color: #111111; }
 
-/* Red de seguridad para los diálogos del admin: aunque algún componente
-   traiga su propio color, el texto nunca queda blanco sobre blanco. */
-html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) {
-  color: #111111;
+/* Base: los textos e iconos sin clase de color heredan de aquí */
+html.dark body { background-color: #050507; color: #f2f2f7; }
+html.dark ::selection { background: #e5007d; color: #ffffff; }
+
+/* Toasts de sonner */
+html.dark [data-sonner-toaster] {
+  --normal-bg: #1b1b23;
+  --normal-text: #f2f2f7;
+  --normal-border: #2c2c38;
 }
-html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(h1,h2,h3,h4,p,span,label,li,td,th,div) {
-  color: inherit;
+
+/* ── Capa de traducción, con exclusiones por rol ─────────────────────────── */
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
+
+  /* Superficies claras → oscuras */
+  &.bg-white            { background-color: #15151b; }
+  &.bg-\[\#fafafa\]     { background-color: #050507; }
+  &.bg-\[\#f8f8f8\]     { background-color: #050507; }
+  &.bg-\[\#f6f6f7\]     { background-color: #050507; }
+  &.bg-\[\#f5f5f5\]     { background-color: #0a0a0e; }
+  &.bg-\[\#f0f0f0\]     { background-color: #101016; }
+  &.bg-\[\#ebebeb\]     { background-color: #14141a; }
+  &.bg-\[\#e5e5e5\]     { background-color: #17171e; }
+  &.bg-gray-50, &.bg-gray-100 { background-color: #0a0a0e; }
+  /* Clases que faltaban en el mapa */
+  &.bg-\[\#f2f2f2\]     { background-color: #0d0d12; }
+  &.bg-\[\#f9f9f9\]     { background-color: #101016; }
+  &.bg-\[\#fff8f0\]     { background-color: #221a12; }
+  &.bg-white\/90, &.bg-white\/80 { background-color: rgba(16,16,22,0.92); }
+  &.border-\[\#e0e0e0\] { border-color: #2e2e3a; }
+
+  /* Fondos ya oscuros: se afinan al negro del tema, no se invierten */
+  &.bg-\[\#0d0d0d\]     { background-color: #0b0b10; }
+  &.bg-black            { background-color: #0b0b10; }
+
+  /* BOTÓN SÓLIDO (fondo tinta + texto blanco): se invierte a claro.
+     El footer no llega aquí porque está excluido arriba. */
+  &.bg-\[\#1a1a1a\].text-white,
+  &.bg-\[\#111\].text-white {
+    background-color: #f2f2f7;
+    color: #14141a;
+  }
+  &.bg-\[\#1a1a1a\].text-white:hover,
+  &.bg-\[\#111\].text-white:hover { background-color: #dcdce6; }
+  /* Fondo tinta SIN texto blanco (raro): pasa a superficie elevada */
+  &.bg-\[\#1a1a1a\]:not(.text-white),
+  &.bg-\[\#111\]:not(.text-white) { background-color: #23232c; }
+
+  /* Texto tinta → claro */
+  &.text-\[\#111\], &.text-\[\#1a1a1a\], &.text-black { color: #f2f2f7; }
+  &.text-\[\#222\]   { color: #e8e8f0; }
+  &.text-\[\#333\]   { color: #d9d9e3; }
+  &.text-\[\#555\]   { color: #c8c8d4; }
+  &.text-\[\#666\]   { color: #c0c0cc; }
+  &.text-\[\#777\]   { color: #b8b8c4; }
+  &.text-\[\#888\]   { color: #b0b0bd; }
+  &.text-\[\#999\]   { color: #a8a8b5; }
+  &.text-\[\#aaa\]   { color: #a0a0ad; }
+  &.text-\[\#bbb\]   { color: #9898a5; }
+  &.text-\[\#ccc\]   { color: #90909d; }
+
+  /* Magenta de marca en TEXTO: se sube un punto de brillo para pasar de
+     3.1:1 a ~4.6:1 sobre las superficies oscuras. Fondos y bordes de marca
+     no se tocan. */
+  &.text-\[\#e5007d\] { color: #ff45a0; }
+  &.text-\[\#c4006b\] { color: #ff45a0; }
+
+  /* Bordes */
+  &.border-\[\#e5e5e5\], &.border-\[\#ebebeb\] { border-color: #3d3d4a; }
+  &.border-\[\#f0f0f0\], &.border-\[\#f5f5f5\] { border-color: #242430; }
+  &.border-white { border-color: #2c2c38; }
+  &.border-\[\#1a1a1a\], &.border-\[\#111\] { border-color: #f2f2f7; }
+
+  /* Estados hover de superficies */
+  &.hover\:bg-\[\#f5f5f5\]:hover { background-color: #22222b; }
+  &.hover\:bg-\[\#fafafa\]:hover { background-color: #1d1d25; }
+  &.hover\:bg-\[\#f0f0f0\]:hover { background-color: #262630; }
+  &.hover\:bg-white:hover        { background-color: #22222b; }
+  &.hover\:bg-\[\#333\]:hover    { background-color: #dcdce6; }
+
+  /* Estados hover de texto */
+  &.hover\:text-\[\#111\]:hover, &.hover\:text-\[\#1a1a1a\]:hover { color: #ffffff; }
+  &.hover\:text-\[\#e5007d\]:hover, &.hover\:text-\[\#c4006b\]:hover { color: #ff45a0; }
+
+  /* Foco de campos */
+  &.focus\:border-\[\#111\]:focus, &.focus\:border-\[\#1a1a1a\]:focus { border-color: #f2f2f7; }
 }
-html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(input, textarea, select) {
-  color: #111111;
-  background-color: #ffffff;
+
+/* Títulos principales en magenta. Los que ya son blancos sobre imagen
+   (text-white) o ya son magenta se respetan. */
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) :is(h1, h2):not(.text-white):not(.text-\[\#e5007d\]) {
+  color: #ff3d9e !important;
 }
-html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(input, textarea)::placeholder {
-  color: #8a8a8a;
+
+/* Divisores */
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#e5e5e5\] > * + *,
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#ebebeb\] > * + *,
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(footer):not(footer *)).divide-\[\#f0f0f0\] > * + * {
+  border-color: #2c2c38;
 }
+
+/* Franja superior: gris oscuro con texto blanco en ambos modos.
+   El !important la protege de la inversión de botones sólidos. */
+html.dark .top-bar { background-color: #141418 !important; }
+html.dark .top-bar, html.dark .top-bar * { color: #ffffff !important; }
+html.dark .top-bar .text-\[\#e5007d\] { color: #ff45a0 !important; }
+html.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#f5e642\],
+html.dark :where(:not(.wf-page):not(.wf-page *)).bg-\[\#ffd700\] {
+  background-color: #e5007d !important;
+  color: #0b0b10 !important;
+}
+html.dark .bg-\[\#f5e642\] *, html.dark .bg-\[\#ffd700\] * { color: #0b0b10 !important; }
+
+/* Campos de formulario y placeholders */
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *)) :is(input, textarea, select) {
+  color: #f2f2f7;
+}
+html.dark :where(:not(.admin-shell):not(.admin-shell *)) :is(input, textarea)::placeholder { color: #7c7c8c; }
+
+/* Sombras con profundidad real sobre fondo oscuro */
+html.dark :where(:not(.admin-shell):not(.admin-shell *)):is(.shadow-sm, .shadow-md, .shadow-lg, .shadow-xl, .shadow-2xl) {
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.6);
+}
+
+/* Barra de confianza (vive dentro del footer, que está excluido de la capa
+   general): en oscuro pasa a magenta con todo el contenido en blanco */
+html.dark .trust-bar { background-color: #e5007d !important; border-color: #e5007d !important; }
+html.dark .trust-bar p, html.dark .trust-bar svg { color: #ffffff !important; }
+
+/* Header del catálogo: bg-card/30 compila con el blanco incrustado, se
+   corrige aquí por si quedara en alguna otra pantalla */
+html.dark .bg-card\/30 { background-color: #0a0a0e; }
+
+/* Marquee de la franja superior */
+@keyframes iw-topbar { to { transform: translateX(-50%); } }
+.iw-topbar-track { animation: iw-topbar 26s linear infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .iw-topbar-track { animation: none; }
+}
+
+/* Velo de la sección destacada de la home (spotlight).
+   En claro es blanco; en oscuro, negro. Vive en CSS y no en un style en
+   línea justamente para que el tema pueda cambiarlo. */
+.spotlight-veil {
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,0.15) 0%,
+    rgba(255,255,255,0.92) 60%,
+    rgba(255,255,255,1) 100%);
+}
+
+
+/* Mismo caso en la página de cuenta */
+.account-veil {
+  background: linear-gradient(to bottom, rgba(255,255,255,0.3) 0%, rgba(255,255,255,1) 100%);
+}
+html.dark .account-veil {
+  background: linear-gradient(to bottom, rgba(5,5,7,0.4) 0%, rgba(5,5,7,1) 100%);
+}
+
+/* ── Chips de categoría y franja de filtros en oscuro ────────────────────── */
+html.dark .tab-pill {
+  border-color: #3d3d4a;
+  color: #d2d2dd;          /* antes quedaban muy apagados */
+  background: transparent;
+}
+html.dark .tab-pill:hover  { border-color: #ff45a0; color: #ff45a0; }
+html.dark .tab-pill.active {
+  background: #e5007d;
+  border-color: #e5007d;
+  color: #ffffff;
+}
+html.dark .cat-arrow {
+  background: #15151b;
+  border-color: #3d3d4a;
+  color: #d2d2dd;
+}
+html.dark .cat-arrow:hover { border-color: #ff45a0; color: #ff45a0; }
+
+/* Franja de migas de la ficha de producto: fondo oscuro real (bg-card/20
+   compila con blanco incrustado), texto blanco y el activo en magenta */
+html.dark .breadcrumb-bar { background-color: #0d0d12 !important; border-color: #23232c !important; }
+html.dark .breadcrumb-bar, html.dark .breadcrumb-bar span { color: #ffffff !important; }
+html.dark .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
+
+/* Sección destacada de la home: negro total, sin el degradado gris */
+html.dark .spotlight-veil { background: #000000; }
+
 
 /* ── iOS: evitar el zoom al enfocar un campo ──────────────────────────────
    Safari en iPhone hace zoom automático cuando el campo tiene menos de 16px
@@ -1139,3 +2158,103 @@ html.admin-light :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(i
 /* Área con scroll pero sin barra visible (historial de códigos, carriles) */
 .iw-scroll-oculto { scrollbar-width: none; -ms-overflow-style: none; }
 .iw-scroll-oculto::-webkit-scrollbar { display: none; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PANEL ADMIN EN OSCURO
+   La capa general excluye .admin-shell, así que el panel lleva la suya, con
+   la jerarquía pedida: fondo negro, texto blanco, títulos magenta, iconos
+   blancos y el elemento activo en magenta.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Superficies del panel */
+.dark .admin-shell {
+  background-color: #050507 !important;
+  color: #f2f2f7;
+}
+
+.dark .admin-shell :where(*) {
+  /* Fondos claros → oscuros */
+  &.bg-white            { background-color: #15151b; }
+  &.bg-\[\#fafafa\]     { background-color: #101016; }
+  &.bg-\[\#f8f8f8\]     { background-color: #0a0a0e; }
+  &.bg-\[\#f6f6f7\]     { background-color: #050507; }
+  &.bg-\[\#f5f5f5\]     { background-color: #14141a; }
+  &.bg-\[\#f0f0f0\]     { background-color: #1a1a22; }
+  &.bg-\[\#ebebeb\]     { background-color: #1f1f28; }
+  &.bg-\[\#e5e5e5\]     { background-color: #22222c; }
+  &.bg-muted            { background-color: #17171e; }
+
+  /* Botón sólido oscuro → claro, para no perderse sobre el fondo negro */
+  &.bg-\[\#111\].text-white, &.bg-\[\#1a1a1a\].text-white {
+    background-color: #f2f2f7;
+    color: #14141a;
+  }
+
+  /* Texto */
+  &.text-\[\#111\], &.text-\[\#1a1a1a\], &.text-black { color: #f2f2f7; }
+  &.text-\[\#333\] { color: #dcdce6; }
+  &.text-\[\#555\] { color: #c8c8d4; }
+  &.text-\[\#666\] { color: #c0c0cc; }
+  &.text-\[\#888\] { color: #b0b0bd; }
+  &.text-\[\#999\] { color: #a8a8b5; }
+  &.text-\[\#aaa\] { color: #a0a0ad; }
+  &.text-\[\#ccc\] { color: #90909d; }
+
+  /* Bordes */
+  &.border-\[\#e5e5e5\], &.border-\[\#ebebeb\] { border-color: #2e2e3a; }
+  &.border-\[\#f0f0f0\], &.border-\[\#f5f5f5\] { border-color: #26262f; }
+
+  /* Hover de superficies */
+  &.hover\:bg-\[\#fafafa\]:hover { background-color: #1b1b23; }
+  &.hover\:bg-\[\#f8f8f8\]:hover { background-color: #14141a; }
+  &.hover\:bg-\[\#f5f5f5\]:hover { background-color: #1e1e26; }
+  &.hover\:bg-\[\#f0f0f0\]:hover { background-color: #22222b; }
+}
+
+/* Títulos en magenta */
+.dark .admin-shell :is(h1, h2):not(.text-\[\#e5007d\]) { color: #ff3d9e; }
+.dark .admin-shell h3 { color: #f2f2f7; }
+
+/* Iconos en blanco por defecto; los de marca conservan su magenta */
+.dark .admin-shell svg { color: inherit; }
+.dark .admin-shell button svg:not(.text-\[\#e5007d\]):not(.text-red-500) { color: #e8e8f0; }
+
+/* Elemento activo del menú lateral y de las pestañas → magenta */
+.dark .admin-shell nav a[aria-current="page"],
+.dark .admin-shell .is-active,
+.dark .admin-shell button[aria-selected="true"] {
+  background-color: #e5007d !important;
+  color: #ffffff !important;
+}
+.dark .admin-shell nav a[aria-current="page"] svg,
+.dark .admin-shell button[aria-selected="true"] svg { color: #ffffff !important; }
+
+/* El ítem activo del sidebar se pinta con bg-[#111] + text-white: en oscuro
+   pasa a magenta en vez de invertirse a blanco */
+.dark .admin-shell aside .bg-\[\#111\].text-white,
+.dark .admin-shell aside .bg-\[\#1a1a1a\].text-white,
+.dark .admin-shell .bg-\[\#111\].text-white.rounded-xl {
+  background-color: #e5007d !important;
+  color: #ffffff !important;
+}
+
+/* Campos del panel */
+.dark .admin-shell :is(input, textarea, select) {
+  background-color: #101016;
+  color: #f2f2f7;
+  border-color: #2e2e3a;
+}
+.dark .admin-shell :is(input, textarea)::placeholder { color: #7c7c8c; }
+
+/* Diálogos del admin: se dibujan fuera de .admin-shell, así que los cubre la
+   capa general, pero se les fija fondo y texto por si traen color propio */
+.dark :is([role="dialog"], [data-radix-popper-content-wrapper]) {
+  background-color: #15151b;
+  color: #f2f2f7;
+}
+.dark :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(h1,h2,h3) { color: #ff3d9e; }
+.dark :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(input, textarea, select) {
+  background-color: #101016;
+  color: #f2f2f7;
+  border-color: #2e2e3a;
+}

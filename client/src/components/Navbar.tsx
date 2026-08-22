@@ -63,7 +63,7 @@ const MOBILE_MENU_CSS = `
     position: fixed;
     inset: 0;
     z-index: 60;
-    background: #ffffff;
+    background: #050507;
     overflow-y: auto;
     padding-top: env(safe-area-inset-top);
     opacity: 0;
@@ -92,11 +92,11 @@ const MOBILE_MENU_CSS = `
     font-size: 26px;
     font-weight: 900;
     letter-spacing: -0.02em;
-    color: #1a1a1a;
+    color: #f2f2f7;
     transition: color .2s ease, transform .25s cubic-bezier(.34,1.56,.64,1);
   }
   .iw-menu-link:hover, .iw-menu-link:focus-visible {
-    color: #e5007d;
+    color: #ff45a0;
     transform: translateY(-2px) scale(1.03);
   }
   @media (prefers-reduced-motion: reduce) {
@@ -466,11 +466,11 @@ export default function Navbar() {
         className={`iw-menu md:hidden ${mobileOpen ? "is-open" : ""}`}
         aria-hidden={!mobileOpen}
       >
-        <div className="flex items-center justify-between border-b border-[#ebebeb] px-6 h-[60px]">
+        <div className="flex items-center justify-between border-b border-[#22222c] px-6 h-[60px]">
           {logoUrl
             ? <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
             : <span className="font-bold text-[15px]">{storeName}</span>}
-          <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" tabIndex={mobileOpen ? 0 : -1} className="p-2">
+          <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" tabIndex={mobileOpen ? 0 : -1} className="p-2 text-white">
             <X size={20} />
           </button>
         </div>
@@ -483,7 +483,7 @@ export default function Navbar() {
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Buscar productos..."
               tabIndex={mobileOpen ? 0 : -1}
-              className="flex-1 rounded-full border border-[#e5e5e5] bg-[#f8f8f8] px-4 py-2.5 text-sm outline-none transition-colors focus:border-[#1a1a1a]"
+              className="flex-1 rounded-full border border-[#2e2e3a] bg-[#101016] px-4 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-[#7c7c8c] focus:border-[#e5007d]"
             />
             <button type="submit" aria-label="Buscar" tabIndex={mobileOpen ? 0 : -1} className="btn-pill px-4 text-sm"><Search size={15} /></button>
           </form>

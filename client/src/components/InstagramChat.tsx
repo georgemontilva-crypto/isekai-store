@@ -1,4 +1,5 @@
 import { Instagram } from 'lucide-react';
+import { useCart } from "@/contexts/CartContext";
 import { trpc } from '@/lib/trpc';
 
 /**
@@ -12,10 +13,13 @@ import { trpc } from '@/lib/trpc';
  */
 export function InstagramChat() {
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
+  // Mientras el carrito está abierto, la burbuja estorba (se monta encima del
+  // botón de pagar), así que se esconde y vuelve al cerrarlo.
+  const { isOpen: carritoAbierto } = useCart();
   const rawUsername = siteSettings?.['instagram_username'] ?? '';
   const username = rawUsername.trim().replace(/^@/, '');
 
-  if (!username) return null;
+  if (!username || carritoAbierto) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

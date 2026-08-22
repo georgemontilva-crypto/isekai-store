@@ -2170,19 +2170,8 @@ function destinoNotificacion(n: { type: string; body: string }): {
 
 // ============ COMPONENTE PRINCIPAL ============
 
-/** El panel admin se ve siempre en claro, aunque la tienda sea oscura.
-    La clase va en <html> porque los diálogos se dibujan en un portal fuera
-    del árbol del componente. */
-function useAdminLightTheme() {
-  useEffect(() => {
-    const html = document.documentElement;
-    html.classList.add("admin-light");
-    return () => html.classList.remove("admin-light");
-  }, []);
-}
 
 export default function AdminMobile() {
-  useAdminLightTheme();
   const [activeTab, setActiveTab] = useState<MobileTab>('stats');
   const utils = trpc.useUtils();
   const { user, isAuthenticated, loading, logout } = useAuth();

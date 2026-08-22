@@ -48,7 +48,7 @@ export default function CartDrawer() {
             style={{ background: BG, borderLeft: `1px solid ${BORDER}` }}
           >
             {/* ── Header ── */}
-            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: `1px solid ${BORDER}` }}>
+            <div className="flex items-center justify-between px-6 py-5" style={{ borderBottom: `1px solid ${BORDER}`, paddingTop: 'calc(env(safe-area-inset-top) + 1.25rem)' }}>
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: BG_MUTED }}>
                   <ShoppingCart className="w-4 h-4" style={{ color: TEXT }} />
