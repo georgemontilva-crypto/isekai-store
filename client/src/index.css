@@ -817,7 +817,15 @@ html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
      que se les permita: sin esto, un enlace largo empuja todo de lado.
      Se aplica desde body y NO solo desde main, porque los modales y menús
      se dibujan fuera de main (era el caso del modal de nueva actividad). */
-  body :is(div, section, article, li, p, span, a, label) { min-width: 0; }
+  /* OJO: esta regla NO puede incluir <a> ni contenedores de carrusel. Al
+     quitarles el ancho mínimo automático, los elementos de un flex se
+     comprimen por debajo de su contenido y se apilan en tiras (pasó con las
+     tarjetas de universos, que van envueltas en un <a>). Se limita a
+     elementos de texto, que es donde hacía falta. */
+  body :is(p, span, label, h1, h2, h3, h4) { min-width: 0; }
+
+  /* Los hijos de un carrusel horizontal nunca se encogen */
+  body .overflow-x-auto > * { flex-shrink: 0; }
 
   /* Enlaces, correos y códigos: que partan en vez de desbordar */
   body a[href^="http"], body a[href^="mailto"],
@@ -858,8 +866,10 @@ html.dark {
   --color-card-foreground: oklch(0.955 0.005 285);
   --color-popover: oklch(0.215 0.012 285);
   --color-popover-foreground: oklch(0.955 0.005 285);
-  --color-primary: oklch(0.955 0.005 285);
-  --color-primary-foreground: oklch(0.17 0.01 285);
+  /* Magenta de marca: antes era casi blanco y dejaba chips y botones
+     blancos sobre fondo negro (catálogo, filtros, "Ordenar"). */
+  --color-primary: oklch(0.60 0.24 350);
+  --color-primary-foreground: oklch(1 0 0);
   --color-secondary: oklch(0.26 0.012 285);
   --color-secondary-foreground: oklch(0.955 0.005 285);
   --color-muted: oklch(0.26 0.012 285);
@@ -1920,8 +1930,10 @@ html.dark {
   --color-card-foreground: oklch(0.955 0.005 285);
   --color-popover: oklch(0.215 0.012 285);
   --color-popover-foreground: oklch(0.955 0.005 285);
-  --color-primary: oklch(0.955 0.005 285);
-  --color-primary-foreground: oklch(0.17 0.01 285);
+  /* Magenta de marca: antes era casi blanco y dejaba chips y botones
+     blancos sobre fondo negro (catálogo, filtros, "Ordenar"). */
+  --color-primary: oklch(0.60 0.24 350);
+  --color-primary-foreground: oklch(1 0 0);
   --color-secondary: oklch(0.26 0.012 285);
   --color-secondary-foreground: oklch(0.955 0.005 285);
   --color-muted: oklch(0.26 0.012 285);

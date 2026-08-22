@@ -252,8 +252,8 @@ export default function Catalog() {
               onClick={() => setSelectedCategory(undefined)}
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                 !selectedCategory
-                  ? "bg-primary text-primary-foreground neon-glow-purple"
-                  : "bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30"
+                  ? "bg-[#e5007d] text-white"
+                  : "bg-[#15151b] border border-[#2e2e3a] text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
               }`}
             >
               Todos
@@ -264,8 +264,8 @@ export default function Catalog() {
                 onClick={() => setSelectedCategory(cat.id)}
                 className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   selectedCategory === cat.id
-                    ? "bg-primary text-primary-foreground neon-glow-purple"
-                    : "bg-card border border-border/50 text-muted-foreground hover:text-foreground hover:border-primary/30"
+                    ? "bg-[#e5007d] text-white"
+                    : "bg-[#15151b] border border-[#2e2e3a] text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
                 }`}
               >
                 {cat.name}
