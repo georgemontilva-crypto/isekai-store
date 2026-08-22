@@ -36,12 +36,12 @@ const STATUS_COLORS: Record<string, string> = {
 
 type Tab = "orders" | "wishlist" | "coupons" | "reserve" | "profile";
 
-const TABS: { id: Tab; label: string; icon: React.ElementType }[] = [
-  { id: "orders",   label: "Mis Pedidos",     icon: Package },
-  { id: "wishlist", label: "Guardados",        icon: Heart },
-  { id: "coupons",  label: "Cupones",          icon: Ticket },
-  { id: "reserve",  label: "CredIsekai",         icon: Layers },
-  { id: "profile",  label: "Mi Perfil",        icon: User },
+const TABS: { id: Tab; label: string; short: string; icon: React.ElementType }[] = [
+  { id: "orders",   label: "Mis Pedidos", short: "Pedidos",   icon: Package },
+  { id: "wishlist", label: "Guardados",   short: "Guardados", icon: Heart },
+  { id: "coupons",  label: "Cupones",     short: "Cupones",   icon: Ticket },
+  { id: "reserve",  label: "CredIsekai",  short: "Cred",      icon: Layers },
+  { id: "profile",  label: "Mi Perfil",   short: "Perfil",    icon: User },
 ];
 
 export default function Account() {
@@ -139,7 +139,7 @@ export default function Account() {
   const initial = user?.name?.charAt(0).toUpperCase() ?? "?";
 
   return (
-    <div className="min-h-screen bg-white pt-0 pb-20">
+    <div className="min-h-screen bg-white pt-0 pb-24 md:pb-20">
 
       {/* ── Avatar + Header — full width ── */}
       <motion.div
@@ -196,7 +196,7 @@ export default function Account() {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="grid grid-cols-2 sm:flex sm:flex-wrap sm:justify-center gap-2 mb-8"
+          className="mb-8 hidden gap-2 md:flex md:flex-wrap md:justify-center"
         >
           {TABS.map(tab => {
             const Icon = tab.icon;
@@ -710,6 +710,33 @@ export default function Account() {
           </motion.div>
         </AnimatePresence>
       </div>
+
+      {/* Barra inferior tipo app — solo en teléfono */}
+      <nav
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-[#222] bg-[#111]/95 backdrop-blur md:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="flex">
+          {TABS.map(tab => {
+            const Icon = tab.icon;
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+                className="relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-transform active:scale-95"
+                style={{ minHeight: 58, WebkitTapHighlightColor: 'transparent' }}
+              >
+                {isActive && <span className="absolute top-0 h-0.5 w-8 rounded-full bg-[#e5007d]" />}
+                <Icon className={`h-5 w-5 ${isActive ? 'text-[#e5007d]' : 'text-[#777]'}`} />
+                <span className={`text-[10px] font-bold ${isActive ? 'text-[#e5007d]' : 'text-[#777]'}`}>
+                  {tab.short}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </nav>
     </div>
   );
 }

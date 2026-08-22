@@ -132,6 +132,16 @@ function Layout() {
   const [location] = useLocation();
   const isAdmin = location.startsWith("/admin");
 
+  /**
+   * Pantallas que funcionan como app (paneles con su propia barra inferior):
+   * no llevan footer ni burbuja de Instagram, porque estorban a la barra fija
+   * y no aportan nada dentro de un panel privado.
+   */
+  const esPanelApp =
+    isAdmin ||
+    location.startsWith("/cosplay/dashboard") ||
+    location.startsWith("/account");
+
   return (
     <>
       <ScrollToTop />
@@ -140,9 +150,9 @@ function Layout() {
       <main className="min-h-screen">
         <Router />
       </main>
-      {!isAdmin && <Footer />}
+      {!esPanelApp && <Footer />}
       {!isAdmin && location !== '/links' && <PopupManager />}
-      {!isAdmin && <InstagramChat />}
+      {!esPanelApp && <InstagramChat />}
       <AuthDialog />
     </>
   );
