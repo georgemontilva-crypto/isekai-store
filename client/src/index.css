@@ -807,6 +807,23 @@ body {
    position:sticky de la web (el video de fondo de World Fest, entre otros).
    Se deja `hidden` primero como respaldo para navegadores viejos. */
 html, body { overflow-x: hidden; overflow-x: clip; max-width: 100%; }
+
+/* ── Guardas de desbordamiento en teléfono ────────────────────────────────
+   La causa más común aquí son las cadenas largas sin espacios: los enlaces
+   de las entregas de misiones, los códigos de referido y los correos.
+   Al no poder partirse, estiran su contenedor y mueven la página de lado. */
+@media (max-width: 767px) {
+  /* Los hijos de flex y grid no se encogen por debajo de su contenido
+     salvo que se les permita: sin esto, un enlace largo empuja todo. */
+  main :is(div, section, article, li, p, span, a) { min-width: 0; }
+
+  /* Enlaces, correos y códigos: que partan en vez de desbordar */
+  main a[href^="http"], main a[href^="mailto"],
+  main code, main pre { overflow-wrap: anywhere; word-break: break-word; }
+
+  /* Nada dentro del contenido puede superar el ancho de la pantalla */
+  main table, main pre { max-width: 100%; display: block; overflow-x: auto; }
+}
 img, video, iframe { max-width: 100%; }
 
 /* ═══════════════════════════════════════════════════════════════════════════

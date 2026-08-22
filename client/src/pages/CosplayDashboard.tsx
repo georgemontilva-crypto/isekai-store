@@ -598,25 +598,50 @@ export default function CosplayDashboard() {
                             )}
                           </div>
 
-                          {/* Barra de progreso: solo en misiones de varias fases */}
-                          {totalFases > 1 && (
-                            <div className="mt-3">
-                              <div className="mb-1.5 flex items-center justify-between text-xs">
-                                <span className="font-semibold text-white">Fase {Math.min(siguienteFase, totalFases)} de {totalFases}</span>
-                                <span className="text-[#888]">{entregadas}/{totalFases} entregadas</span>
+                          {/* Misión por fases: explicación, progreso y aliento */}
+                          {totalFases > 1 && (() => {
+                            const faltan = totalFases - entregadas;
+                            const pct = Math.round((entregadas / totalFases) * 100);
+                            const aliento =
+                              entregadas === 0
+                                ? `Esta misión tiene ${totalFases} fases. Sube una publicación distinta en cada una y pega su enlace aquí.`
+                                : faltan === 1
+                                  ? '¡Última fase! Con esta entrega reclamas la recompensa completa.'
+                                  : `Vas ${pct}% del camino. Te faltan ${faltan} fases para la recompensa.`;
+
+                            return (
+                              <div className="mt-3 rounded-xl border border-[#333] bg-[#111] p-3">
+                                <div className="mb-2 flex items-center justify-between text-xs">
+                                  <span className="font-bold text-white">
+                                    Fase {Math.min(siguienteFase, totalFases)} de {totalFases}
+                                  </span>
+                                  <span className="font-semibold text-[#e5007d]">{pct}%</span>
+                                </div>
+
+                                <div className="flex gap-1.5">
+                                  {Array.from({ length: totalFases }, (_, i) => (
+                                    <div
+                                      key={i}
+                                      className={`h-2 flex-1 rounded-full transition-colors ${
+                                        i < entregadas ? 'bg-[#e5007d]' : 'bg-[#333]'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+
+                                <p className="mt-2.5 text-xs leading-relaxed text-[#aaa]">{aliento}</p>
+
+                                {/* Con fecha límite la recompensa es todo o nada */}
+                                {venceEl && !alreadyDone && (
+                                  <p className={`mt-2 text-xs font-semibold leading-relaxed ${vencida ? 'text-red-400' : 'text-[#ffd700]'}`}>
+                                    {vencida
+                                      ? 'La fecha límite pasó y no completaste todas las fases: esta misión ya no otorga tickets.'
+                                      : `Debes completar las ${totalFases} fases antes del ${venceEl.toLocaleDateString('es-VE', { day: '2-digit', month: 'long' })}. Si falta alguna, la misión no paga.`}
+                                  </p>
+                                )}
                               </div>
-                              <div className="flex gap-1.5">
-                                {Array.from({ length: totalFases }, (_, i) => (
-                                  <div
-                                    key={i}
-                                    className={`h-2 flex-1 rounded-full transition-colors ${
-                                      i < entregadas ? 'bg-[#e5007d]' : 'bg-[#333]'
-                                    }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                            );
+                          })()}
                           {act.type === 'event' && !alreadyDone && (
                             <div className="mt-3 pt-3 border-t border-[#333]">
                               <p className="text-[#555] text-xs mb-2">Una vez que hayas completado la actividad, marca tu participación:</p>

@@ -1446,7 +1446,31 @@ export async function evaluateCosplaySubmission(input: { submissionId: number; p
   if (!cosplayer) throw new Error('Cosplayer not found');
 
   const multiplier = TIER_MULTIPLIERS[cosplayer.tier ?? 'bronce'] ?? 1;
-  const finalPoints = Math.round(input.pointsAwarded * multiplier);
+  let finalPoints = Math.round(input.pointsAwarded * multiplier);
+
+  // Misión por fases con fecha límite: la recompensa es TODO o NADA. Si la
+  // fecha pasó y no entregó todas las fases, no se paga aunque haya subido
+  // algunas — así el plazo significa algo.
+  const [actividad] = await db.select().from(cosplayActivities)
+    .where(eq(cosplayActivities.id, sub.activityId)).limit(1);
+
+  if (actividad?.deadline && (actividad.phases ?? 1) > 1) {
+    const entregas = await db.select().from(cosplaySubmissions)
+      .where(and(
+        eq(cosplaySubmissions.cosplayerId, sub.cosplayerId),
+        eq(cosplaySubmissions.activityId, sub.activityId),
+      ));
+    const completas = entregas.filter(e => e.status !== 'rejected').length;
+    const vencida = new Date(actividad.deadline).getTime() < Date.now();
+
+    if (vencida && completas < (actividad.phases ?? 1)) {
+      finalPoints = 0;
+      console.warn(
+        `[Misión] ${cosplayer.artisticName} no completó "${actividad.title}" antes de la fecha ` +
+        `(${completas}/${actividad.phases}): sin recompensa.`
+      );
+    }
+  }
 
   await db.update(cosplaySubmissions).set({
     status: input.status,

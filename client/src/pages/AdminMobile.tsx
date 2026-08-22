@@ -359,7 +359,7 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
   });
   const [expandedActivity, setExpandedActivity] = useState<number | null>(null);
   const [showNewActivity, setShowNewActivity] = useState(false);
-  const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post', deadline: '' });
+  const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 });
 
   const createActivity = trpc.cosplay.createActivity.useMutation({
     onSuccess: () => { setShowNewActivity(false); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '' }); refetchActivities(); },
@@ -610,7 +610,14 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   <div className="bg-[#f8f8f8] rounded-xl p-3 mb-3">
                     <p className="text-xs text-[#999] mb-0.5">Actividad</p>
                     <p className="text-sm font-semibold text-[#111]">{sub.activityTitle ?? '—'}</p>
-                    <p className="text-xs text-[#999]">Puntos base: {sub.activityBasePoints}</p>
+                    <div className="flex flex-wrap items-center gap-2 text-xs text-[#999]">
+                      <span>Puntos base: {sub.activityBasePoints}</span>
+                      {(sub.phase ?? 1) > 1 || (sub.activityPhases ?? 1) > 1 ? (
+                        <span className="rounded-full bg-[#e5007d]/10 px-2 py-0.5 font-bold text-[#e5007d]">
+                          Fase {sub.phase ?? 1}{sub.activityPhases ? ` de ${sub.activityPhases}` : ''}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                   <div className="mb-3">
                     <p className="text-xs text-[#999] mb-1">Evidencia</p>
@@ -841,14 +848,50 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   ))}
                 </div>
               </div>
-              <div>
-                <label className="text-sm font-medium block mb-1">Fecha límite (opcional)</label>
-                <input
-                  type="date"
-                  value={activityForm.deadline}
-                  onChange={e => setActivityForm({ ...activityForm, deadline: e.target.value })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
-                />
+              {/* Fecha límite opcional */}
+              <div className="rounded-xl border border-[#e5e5e5] p-3">
+                <label className="flex items-center gap-2.5 cursor-pointer" style={{ minHeight: 40 }}>
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 accent-[#e5007d]"
+                    checked={activityForm.conFecha}
+                    onChange={e => setActivityForm({ ...activityForm, conFecha: e.target.checked, deadline: e.target.checked ? activityForm.deadline : '' })}
+                  />
+                  <span className="text-sm font-medium">Ponerle fecha límite</span>
+                </label>
+                {activityForm.conFecha ? (
+                  <input
+                    type="date"
+                    value={activityForm.deadline}
+                    onChange={e => setActivityForm({ ...activityForm, deadline: e.target.value })}
+                    className="mt-2 w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  />
+                ) : (
+                  <p className="mt-1 text-xs text-[#999]">Sin fecha límite: la misión queda abierta.</p>
+                )}
+              </div>
+
+              {/* Fases de la misión */}
+              <div className="rounded-xl border border-[#e5e5e5] p-3">
+                <label className="text-sm font-medium block">Fases de la misión</label>
+                <p className="text-xs text-[#999] mb-2">
+                  Cuántas publicaciones debe subir. Con más de una verá barra de progreso
+                  y deberá pegar un enlace distinto en cada fase.
+                </p>
+                <div className="flex gap-2">
+                  {[1, 2, 3, 4, 5, 6].map(n => (
+                    <button
+                      key={n}
+                      onClick={() => setActivityForm({ ...activityForm, phases: n })}
+                      className={`h-10 w-10 rounded-xl text-sm font-bold transition-colors ${
+                        activityForm.phases === n ? 'bg-[#e5007d] text-white' : 'bg-[#f0f0f0] text-[#666]'
+                      }`}
+                      style={{ WebkitTapHighlightColor: 'transparent' }}
+                    >
+                      {n}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex gap-2 mt-2">
                 <button onClick={() => setShowNewActivity(false)}
@@ -856,7 +899,14 @@ function CosplaySection({ onModalChange }: { onModalChange: (open: boolean) => v
                   Cancelar
                 </button>
                 <button
-                  onClick={() => createActivity.mutate(activityForm)}
+                  onClick={() => createActivity.mutate({
+                    title: activityForm.title,
+                    description: activityForm.description || undefined,
+                    basePoints: activityForm.basePoints,
+                    type: activityForm.type as any,
+                    deadline: activityForm.conFecha && activityForm.deadline ? activityForm.deadline : undefined,
+                    phases: activityForm.phases,
+                  })}
                   disabled={!activityForm.title || createActivity.isPending}
                   className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
                 >
