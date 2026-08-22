@@ -1325,20 +1325,114 @@ export async function updateCosplayerProfile(userId: number, data: {
   await db.update(cosplayers).set(data as any).where(eq(cosplayers.id, cosplayer.id));
 }
 
-export async function submitCosplayActivity(userId: number, input: { activityId: number; evidenceUrl: string }) {
+/** Normaliza un enlace para comparar: sin protocolo, sin www, sin barra final
+    ni parámetros de campaña. Así "instagram.com/p/ABC" y
+    "https://www.instagram.com/p/ABC/?igshid=x" cuentan como el MISMO enlace. */
+export function normalizarEnlace(url: string): string {
+  let v = url.trim().toLowerCase();
+  v = v.replace(/^https?:\/\//, '').replace(/^www\./, '');
+  v = v.split('#')[0];
+  const [base, query] = v.split('?');
+  const limpio = base.replace(/\/+$/, '');
+  if (!query) return limpio;
+  // Se conservan los parámetros que identifican contenido (ej. ?v= de YouTube)
+  const utiles = new URLSearchParams();
+  new URLSearchParams(query).forEach((val, k) => {
+    if (/^(utm_|igshid|fbclid|si$|feature$)/i.test(k)) return;
+    utiles.append(k, val);
+  });
+  const q = utiles.toString();
+  return q ? `${limpio}?${q}` : limpio;
+}
+
+/**
+ * Registra la entrega de UNA fase de una misión.
+ *
+ * Reglas que se validan en el servidor (no basta con el formulario):
+ *  - el enlace es obligatorio y debe ser una URL http(s) válida
+ *  - no se puede repetir un enlace ya usado por ese cosplayer en esa misión
+ *  - no se puede reenviar una fase ya entregada
+ *  - las fases se entregan en orden
+ *  - si la misión tiene fecha límite y ya pasó, no se admite
+ */
+export async function submitCosplayActivity(
+  userId: number,
+  input: { activityId: number; evidenceUrl: string; phase?: number },
+) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   const cosplayer = await getCosplayerByUserId(userId);
   if (!cosplayer) throw new Error('Not a cosplayer');
-  const deadline = new Date();
-  deadline.setDate(deadline.getDate() + 30);
+
+  const url = (input.evidenceUrl ?? '').trim();
+  if (!/^https?:\/\/[^\s]+\.[^\s]+/i.test(url)) {
+    throw new Error('Debes pegar el enlace de tu publicación para completar la fase');
+  }
+
+  const [actividad] = await db.select().from(cosplayActivities)
+    .where(eq(cosplayActivities.id, input.activityId)).limit(1);
+  if (!actividad) throw new Error('La misión no existe');
+  if (actividad.active === false) throw new Error('Esta misión ya no está activa');
+  if (actividad.deadline && new Date(actividad.deadline).getTime() < Date.now()) {
+    throw new Error('La fecha límite de esta misión ya pasó');
+  }
+
+  const totalFases = actividad.phases ?? 1;
+  const fase = input.phase ?? 1;
+  if (fase < 1 || fase > totalFases) throw new Error('Fase inválida');
+
+  const previas = await db.select().from(cosplaySubmissions)
+    .where(and(
+      eq(cosplaySubmissions.cosplayerId, cosplayer.id),
+      eq(cosplaySubmissions.activityId, input.activityId),
+    ));
+
+  if (previas.some(p => (p.phase ?? 1) === fase)) {
+    throw new Error(`Ya entregaste la fase ${fase} de esta misión`);
+  }
+
+  const esperada = (previas.length ?? 0) + 1;
+  if (fase !== esperada) {
+    throw new Error(`Debes completar primero la fase ${esperada}`);
+  }
+
+  const nuevo = normalizarEnlace(url);
+  if (previas.some(p => normalizarEnlace(p.evidenceUrl) === nuevo)) {
+    throw new Error('Ese enlace ya lo usaste en otra fase. Cada fase necesita una publicación distinta.');
+  }
+
+  const evalDeadline = new Date();
+  evalDeadline.setDate(evalDeadline.getDate() + 30);
+
   await db.insert(cosplaySubmissions).values({
     cosplayerId: cosplayer.id,
     activityId: input.activityId,
-    evidenceUrl: input.evidenceUrl,
+    evidenceUrl: url,
+    phase: fase,
     status: 'pending',
-    evaluationDeadline: deadline,
+    evaluationDeadline: evalDeadline,
   });
+
+  return {
+    fase,
+    totalFases,
+    completada: fase >= totalFases,
+    artisticName: cosplayer.artisticName,
+    cosplayerId: cosplayer.id,
+    tituloMision: actividad.title,
+    evidenceUrl: url,
+  };
+}
+
+/** Entregas del cosplayer en una misión, para dibujar la barra de progreso */
+export async function getMyActivityProgress(userId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  const cosplayer = await getCosplayerByUserId(userId);
+  if (!cosplayer) return [];
+  return db.select().from(cosplaySubmissions)
+    .where(eq(cosplaySubmissions.cosplayerId, cosplayer.id))
+    .orderBy(desc(cosplaySubmissions.id));
 }
 
 export async function evaluateCosplaySubmission(input: { submissionId: number; pointsAwarded: number; status: string }) {

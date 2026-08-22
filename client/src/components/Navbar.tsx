@@ -44,8 +44,13 @@ function destinoNotificacion(n: { type: string; body: string }, esAdmin: boolean
     }
     case "new_subscriber":
       return { href: "/admin?tab=subscribers", label: "Ver suscriptores" };
-    case "new_user":
+    case "new_user": {
+      // Las entregas de misiones reutilizan este tipo: se reconocen porque el
+      // cuerpo trae el enlace de la publicación.
+      const enlace = n.body.match(/https?:\/\/[^\s]+/)?.[0];
+      if (enlace) return { href: "/admin?tab=cosplay&sub=evaluations", label: "Revisar entrega" };
       return { href: "/admin?tab=users", label: "Ver usuarios" };
+    }
     default:
       return { href: "/admin", label: "Ver en el panel" };
   }

@@ -419,7 +419,10 @@ export const cosplayActivities = mysqlTable('cosplayActivities', {
   description: text('description'),
   basePoints: int('basePoints').notNull(),
   type: varchar('type', { length: 50 }).default('post'),
+  // Fecha límite opcional: null = la misión no caduca
   deadline: timestamp('deadline'),
+  // Cuántas entregas hacen falta para completarla (1 = misión simple)
+  phases: int('phases').notNull().default(1),
   active: boolean('active').default(true),
   createdAt: timestamp('createdAt').defaultNow(),
 });
@@ -429,6 +432,8 @@ export const cosplaySubmissions = mysqlTable('cosplaySubmissions', {
   cosplayerId: int('cosplayerId').notNull(),
   activityId: int('activityId').notNull(),
   evidenceUrl: varchar('evidenceUrl', { length: 500 }).notNull(),
+  // Qué fase de la misión cubre esta entrega (1 en misiones simples)
+  phase: int('phase').notNull().default(1),
   status: varchar('status', { length: 20 }).default('pending'),
   pointsAwarded: int('pointsAwarded'),
   evaluationDeadline: timestamp('evaluationDeadline'),

@@ -567,7 +567,13 @@ export default function CosplayDashboard() {
                   )}
                   {activities.map((act: any) => {
                     const wouldEarn = Math.round(act.basePoints * multiplier);
-                    const alreadyDone = submissions.some((s: any) => s.activityId === act.id && s.status !== 'rejected');
+                    // Fases entregadas de esta misión (las rechazadas no cuentan)
+                    const totalFases = act.phases ?? 1;
+                    const entregadas = submissions.filter((s: any) => s.activityId === act.id && s.status !== 'rejected').length;
+                    const siguienteFase = entregadas + 1;
+                    const alreadyDone = entregadas >= totalFases;
+                    const venceEl = act.deadline ? new Date(act.deadline) : null;
+                    const vencida = venceEl ? venceEl.getTime() < Date.now() : false;
                     return (
                       <div key={act.id} className="flex items-start justify-between gap-4 p-5 rounded-2xl bg-[#1a1a1a] border border-[#333]">
                         <div className="flex-1">
@@ -580,10 +586,37 @@ export default function CosplayDashboard() {
                               {renderDescription(act.description)}
                             </p>
                           )}
-                          <div className="flex items-center gap-3 text-xs text-[#888]">
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-[#888]">
                             <span>Base: {act.basePoints} pts</span>
                             <span className="text-[#e5007d] font-bold">→ Ganarías: {wouldEarn} tickets</span>
+                            {venceEl ? (
+                              <span className={vencida ? 'text-red-400 font-semibold' : 'text-[#aaa]'}>
+                                {vencida ? 'Fecha límite vencida' : `Hasta el ${venceEl.toLocaleDateString('es-VE', { day: '2-digit', month: 'short' })}`}
+                              </span>
+                            ) : (
+                              <span className="text-[#666]">Sin fecha límite</span>
+                            )}
                           </div>
+
+                          {/* Barra de progreso: solo en misiones de varias fases */}
+                          {totalFases > 1 && (
+                            <div className="mt-3">
+                              <div className="mb-1.5 flex items-center justify-between text-xs">
+                                <span className="font-semibold text-white">Fase {Math.min(siguienteFase, totalFases)} de {totalFases}</span>
+                                <span className="text-[#888]">{entregadas}/{totalFases} entregadas</span>
+                              </div>
+                              <div className="flex gap-1.5">
+                                {Array.from({ length: totalFases }, (_, i) => (
+                                  <div
+                                    key={i}
+                                    className={`h-2 flex-1 rounded-full transition-colors ${
+                                      i < entregadas ? 'bg-[#e5007d]' : 'bg-[#333]'
+                                    }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
                           {act.type === 'event' && !alreadyDone && (
                             <div className="mt-3 pt-3 border-t border-[#333]">
                               <p className="text-[#555] text-xs mb-2">Una vez que hayas completado la actividad, marca tu participación:</p>
@@ -597,11 +630,11 @@ export default function CosplayDashboard() {
                           )}
                         </div>
                         <button
-                          disabled={alreadyDone}
-                          onClick={() => { setSubmitModal(act); setEvidenceUrl(""); }}
-                          className={`shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${alreadyDone ? 'bg-[#222] text-[#555] border border-[#333] cursor-not-allowed' : 'bg-[#e5007d] hover:bg-[#c4006b] text-white'}`}
+                          disabled={alreadyDone || vencida}
+                          onClick={() => { setSubmitModal({ ...act, _fase: siguienteFase, _totalFases: totalFases }); setEvidenceUrl(""); }}
+                          className={`shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-colors ${alreadyDone || vencida ? 'bg-[#222] text-[#555] border border-[#333] cursor-not-allowed' : 'bg-[#e5007d] hover:bg-[#c4006b] text-white'}`}
                         >
-                          {alreadyDone ? 'Enviada' : 'Completar'}
+                          {alreadyDone ? 'Completada' : vencida ? 'Vencida' : totalFases > 1 ? `Fase ${siguienteFase}` : 'Completar'}
                         </button>
                       </div>
                     );
@@ -921,7 +954,7 @@ export default function CosplayDashboard() {
             <div className="flex gap-3">
               <button
                 disabled={!evidenceUrl || submitActivity.isPending}
-                onClick={() => submitActivity.mutate({ activityId: submitModal.id, evidenceUrl })}
+                onClick={() => submitActivity.mutate({ activityId: submitModal.id, evidenceUrl, phase: submitModal._fase ?? 1 })}
                 className="flex-1 py-3 bg-[#e5007d] rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors disabled:opacity-50 text-white"
               >
                 {submitActivity.isPending ? "Enviando..." : "Enviar actividad"}

@@ -54,7 +54,7 @@ import {
   deleteCosplayActivity, updateCosplayActivity,
   evaluateCosplaySubmission, getAllCosplaySubmissions, addEvidenceToSubmission, getAdminUsers,
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
-  checkReferralEligibility, isCosplayerEmail,
+  checkReferralEligibility, isCosplayerEmail, getMyActivityProgress,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
   deleteCosplayer, grantTicketsManually, findUserByEmail, getDb,
   getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
@@ -1225,8 +1225,55 @@ export const appRouter = router({
       .mutation(({ ctx, input }) => updateCosplayerProfile(ctx.user.id, input)),
 
     submitActivity: protectedProcedure
-      .input(z.object({ activityId: z.number(), evidenceUrl: z.string().min(1).max(500) }))
-      .mutation(({ ctx, input }) => submitCosplayActivity(ctx.user.id, input)),
+      .input(z.object({
+        activityId: z.number(),
+        evidenceUrl: z.string().min(1).max(500),
+        phase: z.number().int().min(1).max(20).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const r = await submitCosplayActivity(ctx.user.id, input);
+
+        const etiquetaFase = r.totalFases > 1
+          ? `fase ${r.fase} de ${r.totalFases}`
+          : 'la misión';
+
+        // Aviso en la campanita del panel, con enlace a Evaluaciones
+        try {
+          await insertAdminNotification({
+            type: 'new_user',
+            title: r.completada && r.totalFases > 1
+              ? `${r.artisticName} completó "${r.tituloMision}"`
+              : `${r.artisticName} entregó ${etiquetaFase}`,
+            body: `${r.tituloMision} · ${r.evidenceUrl}`,
+          });
+        } catch (e) { console.error('[Misión] No se pudo crear la notificación:', e); }
+
+        // Correo al dueño, con el enlace de la publicación pinchable
+        try {
+          await notifyOwner({
+            title: `${r.artisticName} entregó ${etiquetaFase} — ${r.tituloMision}`,
+            content: `
+              <p><strong>Cosplayer:</strong> ${r.artisticName}</p>
+              <p><strong>Misión:</strong> ${r.tituloMision}</p>
+              <p><strong>Progreso:</strong> ${r.fase} de ${r.totalFases}${r.completada ? ' — COMPLETADA' : ''}</p>
+              <p><strong>Publicación:</strong> <a href="${r.evidenceUrl}">${r.evidenceUrl}</a></p>
+              <p style="margin-top:16px">
+                <a href="https://isekaiworld.co/admin?tab=cosplay&sub=evaluations">Revisar en el panel</a>
+              </p>
+            `,
+          });
+        } catch (e) { console.error('[Misión] No se pudo enviar el correo:', e); }
+
+        try {
+          const admins = await getAdminUsers();
+          for (const admin of admins) io.to(`user:${admin.id}`).emit('notification:new');
+        } catch { /* no crítico */ }
+
+        return r;
+      }),
+
+    /** Entregas del cosplayer, para pintar la barra de progreso */
+    getMyProgress: protectedProcedure.query(({ ctx }) => getMyActivityProgress(ctx.user.id)),
 
     getMySubmissions: protectedProcedure.query(({ ctx }) => getMyCosplayerSubmissions(ctx.user.id)),
 
@@ -1300,7 +1347,10 @@ export const appRouter = router({
         description: z.string().max(5000).optional(),
         basePoints: z.number().min(1),
         type: z.enum(['post', 'reel', 'tiktok', 'story', 'event']),
+        /** Vacío = la misión no caduca */
         deadline: z.string().optional(),
+        /** Entregas necesarias para completarla */
+        phases: z.number().int().min(1).max(20).default(1),
       }))
       .mutation(({ input }) => createCosplayActivity(input)),
 

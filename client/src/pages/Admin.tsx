@@ -653,6 +653,7 @@ export default function Admin() {
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [ordersView, setOrdersView] = useState<"active" | "archived">("active");
+  const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'|'withdrawals'>('applications');
 
   const [orderSearch, setOrderSearch] = useState('');
 
@@ -671,13 +672,15 @@ export default function Admin() {
       const params = new URLSearchParams(query);
       const destino = params.get("tab");
       const orden = params.get("orden");
+      const sub = params.get("sub");
       if (destino) setTab(destino as AdminTab);
+      if (sub) setCosplaySubTab(sub as any);
       if (orden) {
         setOrderSearch(orden);
         setOrdersView("active");
         setExpandedOrderId(null);
       }
-      if (destino || orden) window.history.replaceState({}, "", "/admin");
+      if (destino || orden || sub) window.history.replaceState({}, "", "/admin");
     };
 
     aplicar();
@@ -725,7 +728,6 @@ export default function Admin() {
   const [showLinkForm, setShowLinkForm] = useState(false);
 
   // Cosplay state
-  const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'|'withdrawals'>('applications');
   const [cosplayAppFilter, setCosplayAppFilter] = useState('pending');
   const [cosplaySubFilter, setCosplaySubFilter] = useState('pending');
   const [selectedApplication, setSelectedApplication] = useState<any>(null);
@@ -734,7 +736,7 @@ export default function Admin() {
   const [approveForm, setApproveForm] = useState({ tier: 'bronce', totalFollowers: 0 });
   const [rejectReason, setRejectReason] = useState('');
   const [showActivityModal, setShowActivityModal] = useState(false);
-  const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post' as const, deadline: '' });
+  const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post' as const, deadline: '', conFecha: false, phases: 1 });
   const [showEvalModal, setShowEvalModal] = useState<any>(null);
   const [evalForm, setEvalForm] = useState({ pointsAwarded: 0, status: 'approved' as 'approved' | 'rejected' });
   const [grantTicketsModal, setGrantTicketsModal] = useState<any>(null);
@@ -3971,7 +3973,7 @@ export default function Admin() {
                 {cosplaySubTab === 'activities' && (
                   <div>
                     <div className="flex justify-end mb-4">
-                      <Button className="bg-primary text-white text-xs" onClick={() => { setShowActivityModal(true); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '' }); }}>
+                      <Button className="bg-primary text-white text-xs" onClick={() => { setShowActivityModal(true); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 }); }}>
                         <Plus className="w-3.5 h-3.5 mr-1.5" /> Nueva actividad
                       </Button>
                     </div>
@@ -4272,10 +4274,53 @@ export default function Admin() {
                             </select>
                           </div>
                         </div>
-                        <div><Label className="text-xs">Fecha límite (opcional)</Label><Input type="datetime-local" value={activityForm.deadline} onChange={e => setActivityForm(f => ({ ...f, deadline: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
+                        {/* Fecha límite: se activa a gusto. Apagada = la misión no caduca */}
+                        <div className="rounded-xl border border-border/50 p-3">
+                          <label className="flex items-center gap-2.5 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              className="h-4 w-4 accent-[#e5007d]"
+                              checked={activityForm.conFecha}
+                              onChange={e => setActivityForm(f => ({ ...f, conFecha: e.target.checked, deadline: e.target.checked ? f.deadline : '' }))}
+                            />
+                            <span className="text-xs font-semibold">Ponerle fecha límite</span>
+                          </label>
+                          {activityForm.conFecha ? (
+                            <Input
+                              type="datetime-local"
+                              value={activityForm.deadline}
+                              onChange={e => setActivityForm(f => ({ ...f, deadline: e.target.value }))}
+                              className="mt-2 bg-muted border-border/50 text-sm"
+                            />
+                          ) : (
+                            <p className="mt-1.5 text-[11px] text-muted-foreground">Sin fecha límite: la misión queda abierta.</p>
+                          )}
+                        </div>
+
+                        {/* Fases: cuántas entregas hacen falta */}
+                        <div className="rounded-xl border border-border/50 p-3">
+                          <Label className="text-xs">Fases de la misión</Label>
+                          <p className="text-[11px] text-muted-foreground mb-2">
+                            Cuántas publicaciones debe subir el cosplayer. Con más de una,
+                            verá una barra de progreso y tendrá que pegar un enlace distinto en cada fase.
+                          </p>
+                          <div className="flex items-center gap-2">
+                            {[1, 2, 3, 4, 5, 6].map(n => (
+                              <button
+                                key={n}
+                                onClick={() => setActivityForm(f => ({ ...f, phases: n }))}
+                                className={`h-9 w-9 rounded-lg text-sm font-bold transition-colors ${
+                                  activityForm.phases === n ? 'bg-[#e5007d] text-white' : 'bg-muted text-muted-foreground hover:bg-muted/70'
+                                }`}
+                              >
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                       <div className="flex gap-3 mt-4">
-                        <Button className="flex-1 bg-primary text-white" disabled={!activityForm.title || createActivity.isPending} onClick={() => createActivity.mutate({ title: activityForm.title, description: activityForm.description || undefined, basePoints: activityForm.basePoints, type: activityForm.type, deadline: activityForm.deadline || undefined })}>
+                        <Button className="flex-1 bg-primary text-white" disabled={!activityForm.title || createActivity.isPending} onClick={() => createActivity.mutate({ title: activityForm.title, description: activityForm.description || undefined, basePoints: activityForm.basePoints, type: activityForm.type, deadline: activityForm.conFecha && activityForm.deadline ? activityForm.deadline : undefined, phases: activityForm.phases })}>
                           {createActivity.isPending ? "Creando..." : "Crear actividad"}
                         </Button>
                         <Button variant="outline" onClick={() => setShowActivityModal(false)}>Cancelar</Button>
