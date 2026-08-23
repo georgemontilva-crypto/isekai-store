@@ -19,6 +19,7 @@ import {
   siteSettings,
   mediaAssets,
   subscribers,
+  quotes,
   authTokens,
   adminNotifications,
   AdminNotification,
@@ -2428,4 +2429,112 @@ export async function isCosplayerEmail(email: string) {
 
   const [perfil] = await db.select().from(cosplayers).where(eq(cosplayers.userId, usuario.id)).limit(1);
   return Boolean(perfil);
+}
+
+// ─── Cotizaciones ─────────────────────────────────────────────────────────────
+
+/** Token del enlace: largo y aleatorio, es lo único que protege la cotización */
+function nuevoTokenCotizacion() {
+  return `${nanoid(24)}${nanoid(16)}`.replace(/[^a-zA-Z0-9]/g, "x").slice(0, 48);
+}
+
+export async function createQuote(data: {
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  title: string;
+  description?: string;
+  items: Array<{ concepto: string; cantidad: number; precio: string }>;
+  referenceImages?: string[];
+  notes?: string;
+  expiresInDays?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  // El importe se calcula aquí, nunca se acepta del formulario
+  const subtotal = data.items.reduce(
+    (acc, i) => acc + parseFloat(i.precio || "0") * (i.cantidad || 1), 0,
+  );
+
+  const token = nuevoTokenCotizacion();
+  const quoteNumber = `COT-${Date.now().toString().slice(-8)}-${nanoid(4).toUpperCase()}`;
+  const expiresAt = data.expiresInDays
+    ? new Date(Date.now() + data.expiresInDays * 86400000)
+    : null;
+
+  await db.insert(quotes).values({
+    token,
+    quoteNumber,
+    customerName: data.customerName,
+    customerEmail: data.customerEmail,
+    customerPhone: data.customerPhone,
+    title: data.title,
+    description: data.description,
+    items: data.items,
+    referenceImages: data.referenceImages ?? [],
+    subtotal: subtotal.toFixed(2),
+    total: subtotal.toFixed(2),
+    notes: data.notes,
+    status: "sent",
+    expiresAt,
+  });
+
+  const [row] = await db.select().from(quotes).where(eq(quotes.token, token)).limit(1);
+  return row;
+}
+
+/** Consulta pública: solo por token, y sin exponer datos internos */
+export async function getQuoteByToken(token: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+  const [row] = await db.select().from(quotes).where(eq(quotes.token, token)).limit(1);
+  return row;
+}
+
+export async function getAllQuotes() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(quotes).orderBy(desc(quotes.id)).limit(200);
+}
+
+export async function updateQuote(id: number, data: Partial<{ status: string; orderId: number }>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(quotes).set(data).where(eq(quotes.id, id));
+}
+
+export async function deleteQuote(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(quotes).where(eq(quotes.id, id));
+}
+
+/**
+ * Vincula un pedido a una cuenta a partir del correo.
+ *
+ * Si ya existe cuenta con ese correo, se usa. Si no, se crea en silencio: la
+ * autenticación es por Google o enlace mágico, así que no hay contraseña que
+ * inventar. Escribir un correo NO da acceso a esa cuenta — para entrar sigue
+ * haciendo falta el enlace mágico enviado a ese buzón.
+ */
+export async function vincularCuentaPorCorreo(email: string, nombre?: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const correo = email.trim().toLowerCase();
+  const [existente] = await db.select().from(users).where(eq(users.email, correo)).limit(1);
+  if (existente) return { user: existente, creada: false };
+
+  // openId es obligatorio y único; para cuentas creadas desde una cotización
+  // se usa un identificador propio con prefijo, que no colisiona con Google.
+  await db.insert(users).values({
+    openId: `quote_${nanoid(20)}`,
+    email: correo,
+    name: nombre ?? correo.split("@")[0],
+    role: "user",
+    loginMethod: "magic_link",
+  });
+  const [creado] = await db.select().from(users).where(eq(users.email, correo)).limit(1);
+  return { user: creado, creada: true };
 }

@@ -5,7 +5,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -19,7 +19,7 @@ import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -788,6 +788,30 @@ export default function Admin() {
   });
 
   const [subsFilter, setSubsFilter] = useState<"all" | "worldfest" | "newsletter">("all");
+
+  // ── Cotizaciones a medida ──
+  const { data: quotes = [], refetch: refetchQuotes } = trpc.quotes.list.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+  const [quoteForm, setQuoteForm] = useState({
+    customerName: "", customerEmail: "", customerPhone: "",
+    title: "", description: "", notes: "", expiresInDays: 15,
+    items: [{ concepto: "", cantidad: 1, precio: "" }],
+  });
+  const [showQuoteForm, setShowQuoteForm] = useState(false);
+  const createQuote = trpc.quotes.create.useMutation({
+    onSuccess: () => {
+      refetchQuotes();
+      setShowQuoteForm(false);
+      setQuoteForm({ customerName: "", customerEmail: "", customerPhone: "", title: "", description: "", notes: "", expiresInDays: 15, items: [{ concepto: "", cantidad: 1, precio: "" }] });
+      toast.success("Cotización creada — copia el enlace y envíaselo");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const deleteQuote = trpc.quotes.delete.useMutation({
+    onSuccess: () => { refetchQuotes(); toast.success("Cotización eliminada"); },
+  });
+  const quoteTotal = quoteForm.items.reduce((a, i) => a + (parseFloat(i.precio || "0") * (i.cantidad || 1)), 0);
   const { data: subscribers = [], refetch: refetchSubscribers } = trpc.subscribers.list.useQuery(
     subsFilter === "all" ? {} : { source: subsFilter },
     { enabled: isAuthenticated && user?.role === "admin" },
@@ -1065,6 +1089,7 @@ export default function Admin() {
     { id: "categories" as AdminTab, label: "Categorías", icon: Tag },
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
     { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
+    { id: "quotes" as AdminTab,   label: "Cotizaciones", icon: FileText },
     { id: "subscribers" as AdminTab, label: "Suscriptores", icon: Mail },
     { id: "media" as AdminTab,    label: "Medios",        icon: ImageIcon },
     { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
@@ -2163,6 +2188,171 @@ export default function Admin() {
                     );
                   })}
                 </div>
+              </motion.div>
+            )}
+
+          {/* ─── Cotizaciones a medida ────────────────────────────────────────── */}
+            {tab === "quotes" && (
+              <motion.div key="quotes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h1 className="text-2xl font-bold">Cotizaciones</h1>
+                    <p className="mt-1 text-sm text-[#666]">
+                      Para piezas a medida: armas la cotización, compartes el enlace y el cliente paga por la web.
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => setShowQuoteForm(!showQuoteForm)}
+                    className="flex items-center gap-2 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white"
+                  >
+                    <Plus className="h-4 w-4" /> Nueva cotización
+                  </button>
+                </div>
+
+                {showQuoteForm && (
+                  <div className="mb-6 rounded-2xl border border-[#e5e5e5] bg-white p-5">
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <div>
+                        <Label className="text-xs">Título del trabajo *</Label>
+                        <Input value={quoteForm.title} onChange={e => setQuoteForm(f => ({ ...f, title: e.target.value }))}
+                          placeholder="Ej: Casco de Iron Man a escala 1:1" className="mt-1 bg-muted text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Nombre del cliente</Label>
+                        <Input value={quoteForm.customerName} onChange={e => setQuoteForm(f => ({ ...f, customerName: e.target.value }))}
+                          className="mt-1 bg-muted text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Correo del cliente</Label>
+                        <Input type="email" value={quoteForm.customerEmail} onChange={e => setQuoteForm(f => ({ ...f, customerEmail: e.target.value }))}
+                          className="mt-1 bg-muted text-sm" />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Vence en (días)</Label>
+                        <Input type="number" min={1} max={365} value={quoteForm.expiresInDays}
+                          onChange={e => setQuoteForm(f => ({ ...f, expiresInDays: parseInt(e.target.value) || 15 }))}
+                          className="mt-1 bg-muted text-sm" />
+                      </div>
+                    </div>
+
+                    <div className="mt-3">
+                      <Label className="text-xs">Descripción</Label>
+                      <textarea rows={3} value={quoteForm.description}
+                        onChange={e => setQuoteForm(f => ({ ...f, description: e.target.value }))}
+                        placeholder="Qué incluye el trabajo, materiales, acabados, tiempo estimado..."
+                        className="mt-1 w-full resize-y rounded-lg border border-border/50 bg-muted px-3 py-2 text-sm outline-none" />
+                    </div>
+
+                    {/* Líneas */}
+                    <div className="mt-4">
+                      <Label className="text-xs">Conceptos</Label>
+                      <div className="mt-2 flex flex-col gap-2">
+                        {quoteForm.items.map((it, idx) => (
+                          <div key={idx} className="flex gap-2">
+                            <Input value={it.concepto} placeholder="Concepto"
+                              onChange={e => setQuoteForm(f => ({ ...f, items: f.items.map((x, i) => i === idx ? { ...x, concepto: e.target.value } : x) }))}
+                              className="flex-1 bg-muted text-sm" />
+                            <Input type="number" min={1} value={it.cantidad} title="Cantidad"
+                              onChange={e => setQuoteForm(f => ({ ...f, items: f.items.map((x, i) => i === idx ? { ...x, cantidad: parseInt(e.target.value) || 1 } : x) }))}
+                              className="w-20 bg-muted text-sm" />
+                            <Input value={it.precio} placeholder="0.00" inputMode="decimal"
+                              onChange={e => setQuoteForm(f => ({ ...f, items: f.items.map((x, i) => i === idx ? { ...x, precio: e.target.value.replace(/[^0-9.]/g, "") } : x) }))}
+                              className="w-28 bg-muted text-sm" />
+                            {quoteForm.items.length > 1 && (
+                              <button onClick={() => setQuoteForm(f => ({ ...f, items: f.items.filter((_, i) => i !== idx) }))}
+                                className="rounded-lg px-2 text-[#999] hover:text-red-500"><Trash2 className="h-4 w-4" /></button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={() => setQuoteForm(f => ({ ...f, items: [...f.items, { concepto: "", cantidad: 1, precio: "" }] }))}
+                        className="mt-2 text-xs font-bold text-[#e5007d]">+ Agregar concepto</button>
+                    </div>
+
+                    <div className="mt-4 flex items-center justify-between border-t border-[#f0f0f0] pt-4">
+                      <span className="text-sm text-[#666]">Total</span>
+                      <span className="text-xl font-black text-[#e5007d]">${quoteTotal.toFixed(2)} USD</span>
+                    </div>
+
+                    <div className="mt-4 flex gap-2">
+                      <button onClick={() => setShowQuoteForm(false)}
+                        className="flex-1 rounded-xl border border-[#e5e5e5] py-3 text-sm font-bold text-[#666]">Cancelar</button>
+                      <button
+                        onClick={() => createQuote.mutate({
+                          ...quoteForm,
+                          customerName: quoteForm.customerName || undefined,
+                          customerEmail: quoteForm.customerEmail || undefined,
+                          customerPhone: quoteForm.customerPhone || undefined,
+                          description: quoteForm.description || undefined,
+                          notes: quoteForm.notes || undefined,
+                          items: quoteForm.items.filter(i => i.concepto && i.precio),
+                        })}
+                        disabled={!quoteForm.title || quoteTotal <= 0 || createQuote.isPending}
+                        className="flex-1 rounded-xl bg-[#e5007d] py-3 text-sm font-bold text-white disabled:opacity-40">
+                        {createQuote.isPending ? "Creando..." : "Crear y generar enlace"}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {(quotes as any[]).length === 0 ? (
+                  <div className="rounded-2xl border border-[#e5e5e5] bg-white p-12 text-center text-sm text-[#888]">
+                    Todavía no has creado cotizaciones.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {(quotes as any[]).map((q: any) => {
+                      const enlace = `${window.location.origin}/cotizacion/${q.token}`;
+                      return (
+                        <div key={q.id} className="rounded-2xl border border-[#e5e5e5] bg-white p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="mb-1 flex flex-wrap items-center gap-2">
+                                <span className="font-mono text-[11px] text-[#999]">{q.quoteNumber}</span>
+                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                                  q.status === "paid" ? "bg-green-100 text-green-700"
+                                  : q.status === "cancelled" ? "bg-red-100 text-red-700"
+                                  : "bg-blue-100 text-blue-700"
+                                }`}>
+                                  {q.status === "paid" ? "Pagada" : q.status === "cancelled" ? "Cancelada" : "Enviada"}
+                                </span>
+                              </div>
+                              <p className="font-bold text-[#111]">{q.title}</p>
+                              <p className="text-xs text-[#888]">
+                                {q.customerName ?? "Sin nombre"}{q.customerEmail ? ` · ${q.customerEmail}` : ""}
+                              </p>
+                            </div>
+                            <p className="shrink-0 text-lg font-black text-[#e5007d]">${q.total} USD</p>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap gap-2">
+                            <button
+                              onClick={async () => {
+                                try { await navigator.clipboard.writeText(enlace); toast.success("Enlace copiado"); }
+                                catch { prompt("Copia el enlace:", enlace); }
+                              }}
+                              className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#e5007d] hover:text-[#e5007d]"
+                            >
+                              <Copy className="h-3.5 w-3.5" /> Copiar enlace
+                            </button>
+                            <a href={enlace} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#111] hover:text-[#111]">
+                              Ver como cliente <ExternalLink className="h-3.5 w-3.5" />
+                            </a>
+                            {q.status !== "paid" && (
+                              <button
+                                onClick={() => { if (confirm("¿Eliminar esta cotización?")) deleteQuote.mutate({ id: q.id }); }}
+                                className="rounded-full border border-red-200 px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50"
+                              >
+                                Eliminar
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </motion.div>
             )}
 

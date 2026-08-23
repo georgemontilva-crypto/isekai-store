@@ -12,6 +12,7 @@ import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
 import { antiSpamSchema, guardPublicForm, clientIp } from "./antiSpam";
+import { validarPedido, descontarStock, devolverStock } from "./orderValidation";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
@@ -30,6 +31,7 @@ import {
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
+  createQuote, getQuoteByToken, getAllQuotes, updateQuote, deleteQuote, vincularCuentaPorCorreo,
   ensureOwnCosplayerProfile, setOwnCosplayerVisibility, getOwnCosplayerVisibility,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
@@ -339,7 +341,48 @@ export const appRouter = router({
           }
         }
 
-        const order = await createOrder({ ...input, referralCode, userId: ctx.user?.id });
+        // ── Blindaje del checkout ────────────────────────────────────────
+        // El precio, el subtotal, el descuento y el total se recalculan contra
+        // la base de datos. Lo que manda el navegador NO se usa para dinero:
+        // antes se podía enviar un pedido de $48 con total "1.00".
+        const validado = await validarPedido({
+          items: input.items.map(i => ({
+            productId: i.productId,
+            variantId: i.variantId ?? undefined,
+            quantity: i.quantity,
+          })),
+          giftCardCode: input.giftCardCode,
+        });
+
+        // Se avisa si el importe no coincide con lo que vio el cliente: puede
+        // ser un cambio de precio legítimo mientras compraba, o un intento.
+        if (Math.abs(parseFloat(input.total) - parseFloat(validado.total)) > 0.01) {
+          console.warn(
+            `[Checkout] Total distinto al del cliente: enviado ${input.total}, ` +
+            `real ${validado.total} — ${input.customerEmail}`
+          );
+        }
+
+        // Reserva de stock antes de crear el pedido: si algo se agotó en el
+        // camino, se falla aquí y no queda un pedido de algo inexistente.
+        await descontarStock(validado.items);
+
+        let order;
+        try {
+          order = await createOrder({
+            ...input,
+            referralCode,
+            userId: ctx.user?.id,
+            items: validado.items,
+            subtotal: validado.subtotal,
+            total: validado.total,
+            giftCardDiscount: validado.giftCardDiscount,
+          });
+        } catch (e) {
+          // Si el pedido no se pudo guardar, el stock vuelve a su sitio
+          await devolverStock(validado.items).catch(() => {});
+          throw e;
+        }
         // Redeem gift card if provided
         if (input.giftCardCode) {
           try { await redeemGiftCard(input.giftCardCode, ctx.user?.id ?? null, order.id); } catch { /* non-critical */ }
@@ -429,6 +472,21 @@ export const appRouter = router({
         trackingCarrier: z.string().optional(),
       }))
       .mutation(async ({ input }) => {
+        // Al cancelar, el stock reservado vuelve al inventario
+        if (input.status === 'cancelled') {
+          try {
+            const anterior = await getOrderById(input.id);
+            if (anterior && (anterior as any).status !== 'cancelled') {
+              const lineas = ((anterior as any).items ?? []).map((i: any) => ({
+                productId: i.productId,
+                variantId: i.variantId ?? null,
+                quantity: i.quantity,
+              }));
+              if (lineas.length) await devolverStock(lineas);
+            }
+          } catch (e) { console.error('[Pedido] No se pudo devolver el stock:', e); }
+        }
+
         await updateOrderStatus(input.id, input.status, input.trackingNumber, input.trackingCarrier);
 
         const STATUS_MESSAGES: Record<string, { title: string; body: string }> = {
@@ -937,6 +995,152 @@ export const appRouter = router({
         }
         return { success: true, mailchimp: true };
       }),
+  }),
+
+  // ─── Cotizaciones ────────────────────────────────────────────────────────────
+  quotes: router({
+    /** Vista pública: solo con el token del enlace */
+    byToken: publicProcedure
+      .input(z.object({ token: z.string().min(10).max(64) }))
+      .query(async ({ input }) => {
+        const q = await getQuoteByToken(input.token);
+        if (!q) throw new TRPCError({ code: "NOT_FOUND", message: "Esta cotización no existe o el enlace no es válido" });
+        if (q.expiresAt && new Date(q.expiresAt as any).getTime() < Date.now() && q.status !== "paid") {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización venció. Escríbenos para renovarla." });
+        }
+        // No se exponen campos internos
+        return {
+          quoteNumber: q.quoteNumber,
+          title: q.title,
+          description: q.description,
+          items: q.items,
+          referenceImages: q.referenceImages,
+          subtotal: q.subtotal,
+          total: q.total,
+          notes: q.notes,
+          status: q.status,
+          customerName: q.customerName,
+          customerEmail: q.customerEmail,
+          expiresAt: q.expiresAt,
+        };
+      }),
+
+    /** El cliente acepta y paga: crea el pedido y vincula (o crea) su cuenta */
+    pay: publicProcedure
+      .input(z.object({
+        token: z.string().min(10).max(64),
+        customerName: z.string().min(2).max(200),
+        customerEmail: z.string().email().max(254),
+        customerPhone: z.string().max(30).optional(),
+        shippingAddress: z.object({
+          street: z.string().max(300), city: z.string().max(100),
+          state: z.string().max(100), country: z.string().max(100), zip: z.string().max(20),
+        }).optional(),
+        paymentMethod: z.string().max(50).optional(),
+        receiptUrl: z.string().url().max(2048).optional(),
+        paymentReference: z.string().max(256).optional(),
+        receiptHolder: z.string().max(256).optional(),
+        ...antiSpamSchema,
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await guardPublicForm(input, clientIp(ctx.req), { form: "quote-pay", max: 6 });
+
+        const q = await getQuoteByToken(input.token);
+        if (!q) throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
+        if (q.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización ya fue pagada" });
+        if (q.status === "cancelled") throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización fue cancelada" });
+        if (q.expiresAt && new Date(q.expiresAt as any).getTime() < Date.now()) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización venció" });
+        }
+
+        // Cuenta: si el correo ya existe se usa; si no, se crea en silencio.
+        // Entrar sigue exigiendo enlace mágico, así que escribir un correo
+        // ajeno no da acceso a esa cuenta.
+        let userId: number | undefined = ctx.user?.id;
+        let cuentaCreada = false;
+        if (!userId) {
+          const r = await vincularCuentaPorCorreo(input.customerEmail, input.customerName);
+          userId = r?.user?.id;
+          cuentaCreada = Boolean(r?.creada);
+        }
+
+        // El importe sale de la cotización guardada, nunca del formulario
+        const lineas = ((q.items as any[]) ?? []).map((i: any) => ({
+          productId: 0,
+          productName: `${i.concepto}${i.cantidad > 1 ? ` ×${i.cantidad}` : ""}`,
+          price: String(i.precio),
+          quantity: Number(i.cantidad) || 1,
+        }));
+
+        const order = await createOrder({
+          userId,
+          customerName: input.customerName,
+          customerEmail: input.customerEmail,
+          customerPhone: input.customerPhone,
+          shippingAddress: input.shippingAddress,
+          subtotal: String(q.subtotal),
+          total: String(q.total),
+          notes: `Cotización ${q.quoteNumber}: ${q.title}${input.paymentReference ? ` · Ref. ${input.paymentReference}` : ""}`,
+          paymentMethod: input.paymentMethod,
+          receiptUrl: input.receiptUrl,
+          paymentReference: input.paymentReference,
+          receiptHolder: input.receiptHolder,
+          items: lineas as any,
+        });
+
+        await updateQuote(q.id, { status: "paid", orderId: order.id });
+
+        try {
+          await insertAdminNotification({
+            type: "new_order",
+            title: "Cotización pagada",
+            body: `${order.orderNumber} · ${q.title} · $${q.total} USD`,
+          });
+          await notifyOwner({
+            title: `Cotización pagada — ${q.quoteNumber}`,
+            content: `
+              <p><strong>Pedido:</strong> ${order.orderNumber}</p>
+              <p><strong>Cliente:</strong> ${input.customerName} (${input.customerEmail})</p>
+              <p><strong>Trabajo:</strong> ${q.title}</p>
+              <p><strong>Total:</strong> $${q.total} USD</p>
+              ${input.receiptUrl ? `<p><a href="${input.receiptUrl}">Ver comprobante</a></p>` : "<p>Sin comprobante adjunto</p>"}
+            `,
+          });
+          const admins = await getAdminUsers();
+          for (const a of admins) io.to(`user:${a.id}`).emit("notification:new");
+        } catch (e) { console.error("[Cotización] Aviso fallido:", e); }
+
+        return { orderNumber: order.orderNumber, cuentaCreada };
+      }),
+
+    // ── Admin ──
+    list: adminProcedure.query(() => getAllQuotes()),
+
+    create: adminProcedure
+      .input(z.object({
+        customerName: z.string().max(200).optional(),
+        customerEmail: z.string().email().max(320).optional(),
+        customerPhone: z.string().max(50).optional(),
+        title: z.string().min(1).max(300),
+        description: z.string().max(5000).optional(),
+        items: z.array(z.object({
+          concepto: z.string().min(1).max(300),
+          cantidad: z.number().int().min(1).max(999),
+          precio: z.string().regex(/^\d+(\.\d{1,2})?$/),
+        })).min(1).max(50),
+        referenceImages: z.array(z.string().url()).max(10).optional(),
+        notes: z.string().max(2000).optional(),
+        expiresInDays: z.number().int().min(1).max(365).optional(),
+      }))
+      .mutation(({ input }) => createQuote(input)),
+
+    setStatus: adminProcedure
+      .input(z.object({ id: z.number(), status: z.enum(["draft", "sent", "paid", "cancelled"]) }))
+      .mutation(({ input }) => updateQuote(input.id, { status: input.status })),
+
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteQuote(input.id)),
   }),
 
   // ─── Suscriptores (admin) ────────────────────────────────────────────────────

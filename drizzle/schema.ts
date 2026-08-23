@@ -164,6 +164,42 @@ export const orders = mysqlTable("orders", {
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 
+// ─── Cotizaciones ─────────────────────────────────────────────────────────────
+// Piezas encargadas a medida: el admin arma la cotización y comparte un enlace
+// único. El cliente la abre sin iniciar sesión, la paga y sube su comprobante,
+// y a partir de ahí el pedido vive dentro del sistema como cualquier otro.
+export const quotes = mysqlTable("quotes", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Token del enlace público. Largo y aleatorio: es la única llave. */
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  quoteNumber: varchar("quoteNumber", { length: 32 }).notNull().unique(),
+
+  customerName: varchar("customerName", { length: 200 }),
+  customerEmail: varchar("customerEmail", { length: 320 }),
+  customerPhone: varchar("customerPhone", { length: 50 }),
+
+  title: varchar("title", { length: 300 }).notNull(),
+  description: text("description"),
+  /** Líneas de la cotización: [{ concepto, cantidad, precio }] */
+  items: json("items"),
+  referenceImages: json("referenceImages"),
+
+  subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
+  total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  notes: text("notes"),
+
+  /** draft | sent | paid | cancelled | expired */
+  status: varchar("status", { length: 20 }).notNull().default("draft"),
+  /** Pedido generado cuando el cliente paga */
+  orderId: int("orderId"),
+
+  expiresAt: timestamp("expiresAt"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+export type Quote = typeof quotes.$inferSelect;
+
 // ─── Suscriptores ─────────────────────────────────────────────────────────────
 // Registro propio de los correos que deja la gente. Antes solo iban a Mailchimp
 // y al correo del dueño, así que no había forma de consultarlos desde el panel.
