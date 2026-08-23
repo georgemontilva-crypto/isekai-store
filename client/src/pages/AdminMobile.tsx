@@ -1851,7 +1851,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
   const isStep1Valid = form.customerName && form.customerEmail && form.items[0].productName && form.items[0].price;
 
   return (
-    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', background: '#f8f8f8', zIndex: 500 }}>
+    <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', background: 'var(--iw-bg)', zIndex: 500 }}>
 
       {/* Header */}
       <div style={{ background: 'var(--iw-surface)', borderBottom: '1px solid var(--iw-border)', flexShrink: 0, paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)', paddingBottom: '12px', paddingLeft: '16px', paddingRight: '16px' }}>
@@ -1925,7 +1925,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
             <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Productos / Servicios</p>
               {form.items.map((item, i) => (
-                <div key={i} style={{ background: '#f8f8f8', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div key={i} style={{ background: 'var(--iw-surface-alt)', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <input type="text" value={item.productName}
                       onChange={e => updateItem(i, 'productName', e.target.value)}
@@ -2250,9 +2250,14 @@ export default function AdminMobile() {
               <span className="text-white text-xs font-black">IW</span>
             </div>
           )}
-          <span className="font-black text-[#111] text-sm">
-            {isExtraTab ? EXTRA_TITLES[activeTab] : SECTION_TITLES[activeTab]}
-          </span>
+          {/* El nombre de la sección solo se muestra en las pantallas que se
+              abren desde "Más": en las de la barra inferior ya está indicado
+              abajo y repetirlo arriba es ruido. */}
+          {isExtraTab && (
+            <span className="font-black text-[#111] text-sm">
+              {EXTRA_TITLES[activeTab]}
+            </span>
+          )}
         </div>
 
         <button

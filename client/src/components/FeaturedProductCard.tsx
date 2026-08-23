@@ -73,7 +73,7 @@ export default function FeaturedProductCard({
                 className="w-full aspect-square rounded-xl overflow-hidden cursor-pointer transition-all"
                 style={{
                   border: ti === activeIdx ? '2px solid #1a1a1a' : '2px solid transparent',
-                  background: '#f5f5f5',
+                  background: 'var(--iw-surface-alt)',
                   outline: 'none',
                 }}
               >
@@ -161,7 +161,7 @@ export default function FeaturedProductCard({
                           className="w-[55px] h-[55px] rounded-lg overflow-hidden cursor-pointer transition-all shrink-0"
                           style={{
                             border: isActive ? '2px solid #1a1a1a' : '2px solid #e0e0e0',
-                            background: '#f5f5f5',
+                            background: 'var(--iw-surface-alt)',
                           }}
                           title={v.name}
                         >

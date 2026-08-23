@@ -61,7 +61,7 @@ export default function AuthDialog() {
             backgroundImage: 'url(/textura-isekai.svg)',
             backgroundSize: 'cover',
             backgroundPosition: 'center',
-          } : { background: 'white' }}
+          } : { background: 'var(--iw-surface)' }}
         >
           {textureEnabled && <div className="absolute inset-0 bg-white/90 pointer-events-none" />}
           <div className="relative z-10 p-8">
