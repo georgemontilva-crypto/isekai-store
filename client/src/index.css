@@ -2270,3 +2270,51 @@ html.dark .spotlight-veil { background: #000000; }
   color: #f2f2f7;
   border-color: #2e2e3a;
 }
+
+/* ── Variables para estilos escritos en línea ─────────────────────────────
+   Algunos componentes del panel móvil traen sus colores en el atributo
+   style (crear pedido manual). Los estilos en línea ganan a cualquier hoja,
+   así que la única forma de que el tema los controle es que apunten aquí. */
+:root {
+  --iw-surface: #ffffff;
+  --iw-border: #e5e5e5;
+  --iw-input-bg: #ffffff;
+  --iw-text: #111111;
+  --iw-text-muted: #999999;
+  --iw-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  --iw-shadow-lg: 0 4px 20px rgba(0,0,0,0.1);
+}
+html.dark {
+  --iw-surface: #15151b;
+  --iw-border: #2e2e3a;
+  --iw-input-bg: #101016;
+  --iw-text: #f2f2f7;
+  --iw-text-muted: #a8a8b5;
+  --iw-shadow: 0 1px 4px rgba(0,0,0,0.5);
+  --iw-shadow-lg: 0 10px 34px rgba(0,0,0,0.6);
+}
+
+/* Superficies claras que faltaban en el mapeo (halladas en un barrido del
+   código, no reportadas de a una). Cubren tanto la tienda como el admin. */
+.dark :where(:not(.wf-page):not(.wf-page *)) {
+  &.bg-\[\#f3f3f3\]  { background-color: #17171e; }
+  &.bg-\[\#e0e0e0\]  { background-color: #22222c; }
+  &.bg-\[\#ccc\]     { background-color: #2e2e3a; }
+  /* Avisos de color suave: se conserva el matiz, se baja el brillo */
+  &.bg-\[\#fff0f8\]  { background-color: #2a0f1f; }
+  &.bg-\[\#fff8fc\]  { background-color: #24101c; }
+  &.bg-\[\#fff8e1\]  { background-color: #2a2312; }
+  &.bg-\[\#fff8f0\]  { background-color: #2a1a12; }
+  &.border-\[\#e0e0e0\] { border-color: #2e2e3a; }
+}
+
+/* Etiquetas de estado con fondo pastel (pedidos, pagos): se oscurecen para
+   que el texto de color siga leyéndose sobre ellas */
+.dark :where(:not(.wf-page):not(.wf-page *)) {
+  &.bg-green-50, &.bg-green-100   { background-color: #0f2417; }
+  &.bg-blue-50,  &.bg-blue-100    { background-color: #101f33; }
+  &.bg-yellow-50,&.bg-yellow-100  { background-color: #2a2312; }
+  &.bg-red-50,   &.bg-red-100     { background-color: #2a1216; }
+  &.bg-orange-50,&.bg-orange-100  { background-color: #2a1c10; }
+  &.bg-purple-50,&.bg-purple-100  { background-color: #1d1230; }
+}

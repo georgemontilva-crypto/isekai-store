@@ -163,7 +163,8 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         <button onClick={onCreateOrder}
-          className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white py-3 rounded-2xl font-bold text-sm mb-1">
+          className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white rounded-2xl font-bold text-sm mb-1 transition-transform active:scale-[0.98]"
+          style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}>
           <Plus size={16} /> Crear pedido manual
         </button>
         {orders.length === 0 && (
@@ -743,7 +744,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
           <div className="bg-white w-full max-w-full rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
-              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'var(--iw-surface)' }}>
               <h3 className="font-black text-[#111]">{viewApplication.artisticName ?? viewApplication.fullName}</h3>
               <button onClick={() => setViewApplication(null)}>
                 <X size={20} className="text-[#999]" />
@@ -833,7 +834,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
           <div className="bg-white w-full max-w-full rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
-              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'var(--iw-surface)' }}>
               <h3 className="font-black text-[#111]">Nueva actividad</h3>
               <button onClick={() => setShowNewActivity(false)}>
                 <X size={20} className="text-[#999]" />
@@ -973,7 +974,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
           <div className="bg-white w-full max-w-full rounded-t-3xl max-h-[90vh] overflow-y-auto overflow-x-hidden"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
-              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'var(--iw-surface)' }}>
               <h3 className="font-black text-[#111]">{viewCosplayer.artisticName}</h3>
               <button onClick={() => setViewCosplayer(null)}><X size={20} className="text-[#999]" /></button>
             </div>
@@ -1333,7 +1334,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
           <div className="bg-white w-full rounded-t-3xl max-h-[95vh] overflow-y-auto"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
-              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'var(--iw-surface)' }}>
               <h3 className="font-black text-[#111] truncate flex-1 mr-2">{editProduct.name}</h3>
               <button onClick={() => setEditProduct(null)}><X size={20} className="text-[#999]" /></button>
             </div>
@@ -1567,7 +1568,7 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
           <div className="bg-white w-full rounded-t-3xl max-h-[95vh] overflow-y-auto"
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between z-10"
-              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'rgba(255,255,255,0.98)' }}>
+              style={{ backdropFilter: 'blur(8px)', backgroundColor: 'var(--iw-surface)' }}>
               <h3 className="font-black text-[#111]">Nuevo artículo</h3>
               <button onClick={() => setShowNew(false)}><X size={20} className="text-[#999]" /></button>
             </div>
@@ -1853,7 +1854,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
     <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', flexDirection: 'column', background: '#f8f8f8', zIndex: 500 }}>
 
       {/* Header */}
-      <div style={{ background: 'white', borderBottom: '1px solid #e5e5e5', flexShrink: 0, paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)', paddingBottom: '12px', paddingLeft: '16px', paddingRight: '16px' }}>
+      <div style={{ background: 'var(--iw-surface)', borderBottom: '1px solid var(--iw-border)', flexShrink: 0, paddingTop: 'calc(env(safe-area-inset-top, 0px) + 12px)', paddingBottom: '12px', paddingLeft: '16px', paddingRight: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
           <button onClick={step === 1 ? onBack : () => setStep(1)} style={{ padding: '8px', margin: '-8px' }}>
             <ArrowLeft size={20} color="#111" />
@@ -1863,7 +1864,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
         </div>
         <div style={{ display: 'flex', gap: '4px', marginBottom: '4px' }}>
           <div style={{ flex: 1, height: '3px', borderRadius: '99px', background: '#e5007d' }} />
-          <div style={{ flex: 1, height: '3px', borderRadius: '99px', background: step === 2 ? '#e5007d' : '#e5e5e5' }} />
+          <div style={{ flex: 1, height: '3px', borderRadius: '99px', background: step === 2 ? '#e5007d' : 'var(--iw-border)' }} />
         </div>
         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
           <span style={{ fontSize: '11px', color: step === 1 ? '#e5007d' : '#999', fontWeight: 600 }}>Datos</span>
@@ -1876,16 +1877,16 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
 
         {step === 1 && (
           <>
-            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cliente</p>
               <div style={{ position: 'relative' }}>
                 <input type="email" value={form.customerEmail}
                   onChange={e => { setForm({ ...form, customerEmail: e.target.value }); setShowSuggestions(true); }}
                   onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
                   placeholder="Email *"
-                  style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                  style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '12px', padding: '12px 16px', fontSize: '16px', outline: 'none', boxSizing: 'border-box', background: 'var(--iw-input-bg)', color: 'var(--iw-text)' }} />
                 {showSuggestions && userSuggestions.data && userSuggestions.data.length > 0 && (
-                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'white', border: '1px solid #e5e5e5', borderRadius: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.1)', zIndex: 600, marginTop: '4px', overflow: 'hidden' }}>
+                  <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, background: 'var(--iw-surface)', border: '1px solid var(--iw-border)', borderRadius: '12px', boxShadow: 'var(--iw-shadow-lg)', zIndex: 600, marginTop: '4px', overflow: 'hidden' }}>
                     {userSuggestions.data.map((user: any) => (
                       <button
                         key={user.id}
@@ -1914,14 +1915,14 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
               <input type="text" value={form.customerName}
                 onChange={e => setForm({ ...form, customerName: e.target.value })}
                 placeholder="Nombre completo *"
-                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '12px', padding: '12px 16px', fontSize: '16px', outline: 'none', boxSizing: 'border-box', background: 'var(--iw-input-bg)', color: 'var(--iw-text)' }} />
               <input type="tel" value={form.customerPhone}
                 onChange={e => setForm({ ...form, customerPhone: e.target.value })}
                 placeholder="Teléfono"
-                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '12px', padding: '12px 16px', fontSize: '16px', outline: 'none', boxSizing: 'border-box', background: 'var(--iw-input-bg)', color: 'var(--iw-text)' }} />
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Productos / Servicios</p>
               {form.items.map((item, i) => (
                 <div key={i} style={{ background: '#f8f8f8', borderRadius: '12px', padding: '12px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -1929,7 +1930,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                     <input type="text" value={item.productName}
                       onChange={e => updateItem(i, 'productName', e.target.value)}
                       placeholder="Nombre del producto *"
-                      style={{ flex: 1, border: '1px solid #e5e5e5', borderRadius: '10px', padding: '10px 12px', fontSize: '13px', outline: 'none', background: 'white', boxSizing: 'border-box' }} />
+                      style={{ flex: 1, border: '1px solid var(--iw-border)', borderRadius: '10px', padding: '10px 12px', fontSize: '16px', outline: 'none', background: 'var(--iw-input-bg)', color: 'var(--iw-text)', boxSizing: 'border-box' }} />
                     {form.items.length > 1 && (
                       <button onClick={() => removeItem(i)} style={{ color: '#f87171', flexShrink: 0 }}><X size={16} /></button>
                     )}
@@ -1939,14 +1940,14 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                       <p style={{ fontSize: '10px', color: '#999', marginBottom: '4px' }}>Cant.</p>
                       <input type="number" value={item.quantity} min={1}
                         onChange={e => updateItem(i, 'quantity', parseInt(e.target.value) || 1)}
-                        style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '8px', fontSize: '13px', outline: 'none', background: 'white', textAlign: 'center', boxSizing: 'border-box' }} />
+                        style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '10px', padding: '8px', fontSize: '16px', outline: 'none', background: 'var(--iw-input-bg)', color: 'var(--iw-text)', textAlign: 'center', boxSizing: 'border-box' }} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <p style={{ fontSize: '10px', color: '#999', marginBottom: '4px' }}>Precio USD</p>
                       <input type="number" value={item.price}
                         onChange={e => updateItem(i, 'price', e.target.value)}
                         placeholder="0"
-                        style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '10px', padding: '8px 12px', fontSize: '13px', outline: 'none', background: 'white', boxSizing: 'border-box' }} />
+                        style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '10px', padding: '8px 12px', fontSize: '16px', outline: 'none', background: 'var(--iw-input-bg)', color: 'var(--iw-text)', boxSizing: 'border-box' }} />
                     </div>
                     <p style={{ fontSize: '12px', fontWeight: 700, color: '#e5007d', flexShrink: 0, paddingBottom: '6px' }}>
                       ${((parseFloat(item.price) || 0) * item.quantity).toFixed(2)} USD
@@ -1959,7 +1960,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
               </button>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Estado del pago</p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
                 {([
@@ -1969,7 +1970,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                 ] as const).map(opt => (
                   <button key={opt.value}
                     onClick={() => setForm({ ...form, paymentStatus: opt.value })}
-                    style={{ padding: '12px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 700, border: `2px solid ${form.paymentStatus === opt.value ? opt.color : '#e5e5e5'}`, background: form.paymentStatus === opt.value ? opt.color + '15' : 'white', color: form.paymentStatus === opt.value ? opt.color : '#999', cursor: 'pointer' }}>
+                    style={{ padding: '12px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 700, border: `2px solid ${form.paymentStatus === opt.value ? opt.color : 'var(--iw-border)'}`, background: form.paymentStatus === opt.value ? opt.color + '25' : 'var(--iw-input-bg)', color: form.paymentStatus === opt.value ? opt.color : 'var(--iw-text-muted)', cursor: 'pointer' }}>
                     {opt.label}
                   </button>
                 ))}
@@ -1980,7 +1981,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                   <input type="number" value={form.amountPaid}
                     onChange={e => setForm({ ...form, amountPaid: e.target.value })}
                     placeholder="0"
-                    style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', boxSizing: 'border-box' }} />
+                    style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '12px', padding: '12px 16px', fontSize: '16px', outline: 'none', boxSizing: 'border-box', background: 'var(--iw-input-bg)', color: 'var(--iw-text)' }} />
                   {form.amountPaid && (
                     <p style={{ fontSize: '12px', color: '#999', marginTop: '4px' }}>
                       Restante: ${(total - parseFloat(form.amountPaid || '0')).toFixed(2)} USD
@@ -1990,12 +1991,12 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
               )}
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Código de referido (opcional)</p>
               <select
                 value={form.referralCode ?? ''}
                 onChange={e => setForm({ ...form, referralCode: e.target.value })}
-                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', background: 'white', boxSizing: 'border-box' }}
+                style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '12px', padding: '12px 16px', fontSize: '16px', outline: 'none', background: 'var(--iw-input-bg)', color: 'var(--iw-text)', boxSizing: 'border-box' }}
               >
                 <option value="">Sin código de referido</option>
                 {(activeCosplayers as any[]).filter(c => c.referralCode).map(c => (
@@ -2006,26 +2007,26 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
               </select>
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '12px' }}>Notas</p>
               <textarea value={form.notes}
                 onChange={e => setForm({ ...form, notes: e.target.value })}
                 rows={3} placeholder="Instrucciones especiales..."
-                style={{ width: '100%', border: '1px solid #e5e5e5', borderRadius: '12px', padding: '12px 16px', fontSize: '14px', outline: 'none', resize: 'none', boxSizing: 'border-box', fontFamily: 'inherit' }} />
+                style={{ width: '100%', border: '1px solid var(--iw-border)', borderRadius: '12px', padding: '12px 16px', fontSize: '16px', outline: 'none', resize: 'none', background: 'var(--iw-input-bg)', color: 'var(--iw-text)', boxSizing: 'border-box', fontFamily: 'inherit' }} />
             </div>
           </>
         )}
 
         {step === 2 && (
           <>
-            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', marginBottom: '12px' }}>Cliente</p>
               <p style={{ fontWeight: 900, color: '#111', marginBottom: '2px' }}>{form.customerName}</p>
               <p style={{ fontSize: '13px', color: '#999' }}>{form.customerEmail}</p>
               {form.customerPhone && <p style={{ fontSize: '13px', color: '#999' }}>{form.customerPhone}</p>}
             </div>
 
-            <div style={{ background: 'white', borderRadius: '16px', padding: '16px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <div style={{ background: 'var(--iw-surface)', borderRadius: '16px', padding: '16px', boxShadow: 'var(--iw-shadow)' }}>
               <p style={{ fontSize: '11px', fontWeight: 700, color: '#999', textTransform: 'uppercase', marginBottom: '12px' }}>Productos</p>
               {form.items.map((item, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '10px', marginBottom: '10px', borderBottom: i < form.items.length - 1 ? '1px solid #f0f0f0' : 'none' }}>
@@ -2038,7 +2039,7 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
                   </p>
                 </div>
               ))}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '2px solid #f0f0f0', marginTop: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '12px', borderTop: '2px solid var(--iw-border)', marginTop: '4px' }}>
                 <p style={{ fontWeight: 700, color: '#111' }}>Total</p>
                 <p style={{ fontSize: '22px', fontWeight: 900, color: '#e5007d' }}>${total.toFixed(2)} USD</p>
               </div>
@@ -2056,16 +2057,16 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
       </div>
 
       {/* Botones fijos abajo */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'white', borderTop: '1px solid #e5e5e5', padding: '10px 16px', paddingBottom: 'env(safe-area-inset-bottom, 0px)', display: 'flex', gap: '8px' }}>
+      <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'var(--iw-surface)', borderTop: '1px solid var(--iw-border)', padding: '10px 16px', paddingBottom: 'env(safe-area-inset-bottom, 0px)', display: 'flex', gap: '8px' }}>
         {step === 1 ? (
           <button onClick={() => setStep(2)} disabled={!isStep1Valid}
-            style={{ flex: 1, background: isStep1Valid ? '#e5007d' : '#e5e5e5', color: 'white', border: 'none', borderRadius: '14px', padding: '13px', fontSize: '15px', fontWeight: 900, cursor: isStep1Valid ? 'pointer' : 'not-allowed' }}>
+            style={{ flex: 1, background: isStep1Valid ? '#e5007d' : 'var(--iw-border)', color: 'white', border: 'none', borderRadius: '14px', padding: '15px', minHeight: '52px', fontSize: '15px', fontWeight: 900, cursor: isStep1Valid ? 'pointer' : 'not-allowed' }}>
             Revisar pedido
           </button>
         ) : (
           <>
             <button onClick={() => setStep(1)}
-              style={{ flex: 1, background: 'white', border: '2px solid #e5e5e5', borderRadius: '16px', padding: '16px', fontSize: '14px', fontWeight: 700, color: '#666', cursor: 'pointer' }}>
+              style={{ flex: 1, background: 'var(--iw-surface)', border: '2px solid var(--iw-border)', borderRadius: '16px', padding: '16px', fontSize: '14px', fontWeight: 700, color: 'var(--iw-text-muted)', cursor: 'pointer' }}>
               Editar
             </button>
             <button
@@ -2346,8 +2347,13 @@ export default function AdminMobile() {
 
       {/* Bottom Tab Bar */}
       {!hasModalOpen && activeTab !== 'newOrder' && (
-      <div className="bg-white border-t border-[#e5e5e5] flex-shrink-0"
-        style={{ paddingBottom: 'env(safe-area-inset-bottom)', backgroundColor: 'rgba(255,255,255,1)', zIndex: hasModalOpen ? -1 : 'auto' as any }}>
+      <div className="border-t flex-shrink-0"
+        style={{
+          paddingBottom: 'env(safe-area-inset-bottom)',
+          backgroundColor: 'var(--iw-surface)',
+          borderColor: 'var(--iw-border)',
+          zIndex: hasModalOpen ? -1 : 'auto' as any,
+        }}>
         <div className="flex">
           {TABS.map(tab => (
             <button key={tab.id}
