@@ -2212,10 +2212,19 @@ html.dark .spotlight-veil { background: #000000; }
   &.bg-orange-50,&.bg-orange-100 { background-color: #2a1c10; }
   &.bg-purple-50,&.bg-purple-100 { background-color: #1d1230; }
 
-  /* Botón sólido oscuro → claro, para no perderse sobre el fondo negro */
+  /* Botón sólido oscuro → magenta de marca. Antes se invertía a claro, pero
+     la cascada dejaba el texto oscuro sobre fondo oscuro y no se leía.
+     El !important evita que las utilidades de Tailwind lo pisen. */
   &.bg-\[\#111\].text-white, &.bg-\[\#1a1a1a\].text-white {
-    background-color: #f2f2f7;
-    color: #14141a;
+    background-color: #e5007d !important;
+    color: #ffffff !important;
+  }
+  &.bg-\[\#111\].text-white:hover, &.bg-\[\#1a1a1a\].text-white:hover {
+    background-color: #c4006b !important;
+  }
+  /* Iconos y texto dentro del botón: blancos sin excepción */
+  &.bg-\[\#111\].text-white *, &.bg-\[\#1a1a1a\].text-white * {
+    color: #ffffff !important;
   }
 
   /* Texto. Los grises van más claros que en la tienda porque el panel es de
@@ -2369,3 +2378,5 @@ html.dark {
   &.text-muted-foreground { color: #b4b4c2; }
   &.text-primary  { color: #ff3d9e; }
 }
+
+
