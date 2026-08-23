@@ -1651,7 +1651,7 @@ export default function Admin() {
                 <div className="flex items-center justify-between mb-6">
                   <h1 className="text-2xl font-bold">Pedidos</h1>
                   <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 bg-[#111] text-white px-5 py-3.5 rounded-xl text-sm font-bold">
-                    <Plus size={16} /> Crear pedido
+                    <Plus size={16} /> Registrar pedido ya pagado
                   </button>
                 </div>
                 <div className="relative mb-3">
@@ -2199,6 +2199,10 @@ export default function Admin() {
                     <h1 className="text-2xl font-bold">Cotizaciones</h1>
                     <p className="mt-1 text-sm text-[#666]">
                       Para piezas a medida: armas la cotización, compartes el enlace y el cliente paga por la web.
+                    </p>
+                    <p className="mt-2 max-w-2xl text-xs leading-relaxed text-[#888]">
+                      Úsala cuando la venta <strong>aún no ocurre</strong>. Si ya te pagaron por fuera y solo
+                      quieres dejarlo registrado, usa «Registrar pedido ya pagado» en Pedidos.
                     </p>
                   </div>
                   <button

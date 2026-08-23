@@ -4,17 +4,18 @@ import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import {
   ShoppingBag, CreditCard, Sparkles, Package,
-  BarChart3, Bell, ChevronRight, Check, Trash2,
+  BarChart3, Bell, ChevronRight, Check, Trash2, FileText,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
   LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
   Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import PullToRefresh from '@/components/admin/PullToRefresh';
+import QuotesSection from '@/components/admin/QuotesSection';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -165,7 +166,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
         <button onClick={onCreateOrder}
           className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white rounded-2xl font-bold text-sm mb-1 transition-transform active:scale-[0.98]"
           style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}>
-          <Plus size={16} /> Crear pedido manual
+          <Plus size={16} /> Registrar pedido ya pagado
         </button>
         {orders.length === 0 && (
           <div className="text-center py-16 text-[#999] text-sm">No hay pedidos</div>
@@ -1759,6 +1760,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
+        { label: 'Cotizaciones', tab: 'quotes'      as MobileTab, icon: FileText },
         { label: 'Comentarios',  tab: 'comments'    as MobileTab, icon: MessageCircle },
       ],
     },
@@ -2333,13 +2335,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2399,6 +2401,7 @@ export default function AdminMobile() {
         {activeTab === 'blog'        && <BlogSection onModalChange={setBlogHasModal} />}
         {activeTab === 'subscribers' && <SubscribersSection />}
         {activeTab === 'comments'    && <CommentsSection />}
+        {activeTab === 'quotes'      && <QuotesSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
         {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
       </PullToRefresh>
