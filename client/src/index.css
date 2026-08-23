@@ -2343,3 +2343,29 @@ html.dark {
   &.bg-orange-50,&.bg-orange-100  { background-color: #2a1c10; }
   &.bg-purple-50,&.bg-purple-100  { background-color: #1d1230; }
 }
+
+/* ── Refuerzo del panel admin ─────────────────────────────────────────────
+   Las tarjetas del panel usan tokens (bg-card, bg-background, text-accent).
+   Se fijan aquí de forma explícita para que ninguna quede clara aunque el
+   token no llegue por herencia. */
+.dark .admin-shell :where(*) {
+  &.bg-card       { background-color: #15151b; }
+  &.bg-background { background-color: #050507; }
+  &.bg-popover    { background-color: #1a1a22; }
+  &.bg-secondary  { background-color: #1e1e26; }
+  &.bg-accent     { background-color: #22222c; }
+  &.text-card-foreground, &.text-foreground { color: #f2f2f7; }
+  &.text-muted-foreground { color: #b4b4c2; }
+  &.text-accent   { color: #7dd8ff; }
+  &.text-primary  { color: #ff3d9e; }
+  &.border-border, &.border-border\/50, &.border-border\/30 { border-color: #2e2e3a; }
+}
+
+/* Y en los diálogos, que se dibujan fuera del panel */
+.dark :is([role="dialog"], [data-radix-popper-content-wrapper]) :where(*) {
+  &.bg-card       { background-color: #1a1a22; }
+  &.bg-background { background-color: #15151b; }
+  &.bg-muted      { background-color: #22222c; }
+  &.text-muted-foreground { color: #b4b4c2; }
+  &.text-primary  { color: #ff3d9e; }
+}

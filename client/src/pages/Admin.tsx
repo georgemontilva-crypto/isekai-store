@@ -1162,7 +1162,7 @@ export default function Admin() {
           >
             <Menu className="w-4 h-4" />
           </button>
-          <h1 className="text-lg font-extrabold uppercase tracking-tight text-[#0f0f0f] truncate">
+          <h1 className="text-lg font-extrabold uppercase tracking-tight text-[#0f0f0f] truncate lg:hidden">
             {activeTab?.label ?? "Admin"}
           </h1>
         </header>
@@ -1178,8 +1178,8 @@ export default function Admin() {
                 <div className="grid grid-cols-2 gap-3 w-full mb-6 md:grid-cols-4">
                   {[
                     { label: "Ingresos totales", value: `$${revenueUSD.toFixed(2)} USD`, icon: DollarSign, color: "text-green-400" },
-                    { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-primary" },
-                    { label: "Productos", value: products.length, icon: Package, color: "text-accent" },
+                    { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-[#ff3d9e]" },
+                    { label: "Productos", value: products.length, icon: Package, color: "text-[#7dd8ff]" },
                     { label: "Categorías", value: categories?.length ?? 0, icon: Tag, color: "text-yellow-400" },
                   ].map((m, i) => (
                     <motion.div
