@@ -4,7 +4,7 @@ import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
 import {
   ShoppingBag, CreditCard, Sparkles, Package,
-  BarChart3, Bell, ChevronRight, Check,
+  BarChart3, Bell, ChevronRight, Check, Trash2,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
   LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
   Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
@@ -14,7 +14,7 @@ import PullToRefresh from '@/components/admin/PullToRefresh';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -388,7 +388,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
   const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 });
 
   const createActivity = trpc.cosplay.createActivity.useMutation({
-    onSuccess: () => { setShowNewActivity(false); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '' }); refetchActivities(); },
+    onSuccess: () => { setShowNewActivity(false); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 }); refetchActivities(); },
   });
   const deleteActivity = trpc.cosplay.deleteActivity.useMutation({ onSuccess: () => refetchActivities() });
   const updateActivityMut = trpc.cosplay.updateActivity.useMutation({ onSuccess: () => refetchActivities() });
@@ -1759,6 +1759,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
+        { label: 'Comentarios',  tab: 'comments'    as MobileTab, icon: MessageCircle },
       ],
     },
     {
@@ -2148,7 +2149,7 @@ function SubscribersSection() {
  * Las entregas de misiones llegan como "new_user" pero traen el enlace de la
  * publicación en el cuerpo: por ahí se distinguen.
  */
-function destinoNotificacion(n: { type: string; body: string }): {
+function destinoNotificacion(n: { type: string; body: string; title?: string }): {
   tab: string | null; sub?: string; buscar?: string; label: string;
 } {
   switch (n.type) {
@@ -2162,11 +2163,119 @@ function destinoNotificacion(n: { type: string; body: string }): {
       if (/https?:\/\//.test(n.body)) {
         return { tab: 'cosplay', sub: 'evaluations', label: 'Revisar entrega' };
       }
+      if (/comentó en el blog/i.test(n.title ?? '')) {
+        return { tab: 'comments', label: 'Moderar comentario' };
+      }
       return { tab: 'users', label: 'Ver usuarios' };
     }
     default:
       return { tab: null, label: 'Abrir' };
   }
+}
+
+
+// ============ COMENTARIOS DEL BLOG ============
+function CommentsSection() {
+  const { user, isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
+  const [filtro, setFiltro] = useState<'pending' | 'approved' | 'all'>('pending');
+
+  const { data: comentarios = [] } = trpc.blog.getAllComments.useQuery(
+    { status: filtro === 'all' ? undefined : filtro },
+    { enabled: isAuthenticated && user?.role === 'admin' },
+  );
+
+  const moderar = trpc.blog.updateCommentStatus.useMutation({
+    onSuccess: (_d, vars: any) => {
+      utils.blog.getAllComments.invalidate();
+      toast.success(vars.status === 'approved' ? 'Comentario publicado' : 'Comentario rechazado');
+    },
+    onError: () => toast.error('No se pudo moderar'),
+  });
+
+  const borrar = trpc.blog.deleteComment.useMutation({
+    onSuccess: () => { utils.blog.getAllComments.invalidate(); toast.success('Comentario eliminado'); },
+    onError: () => toast.error('No se pudo eliminar'),
+  });
+
+  return (
+    <div className="p-4 flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-2">
+        {([['pending', 'Pendientes'], ['approved', 'Publicados'], ['all', 'Todos']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setFiltro(id)}
+            className={`px-3.5 rounded-full text-xs font-bold transition-colors ${
+              filtro === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[#999]'
+            }`}
+            style={{ minHeight: 40, WebkitTapHighlightColor: 'transparent' }}
+          >
+            {label}
+          </button>
+        ))}
+        <span className="ml-auto text-xs text-[#999]">{(comentarios as any[]).length}</span>
+      </div>
+
+      {(comentarios as any[]).length === 0 ? (
+        <p className="text-center text-[#999] text-sm py-12">
+          {filtro === 'pending' ? 'No hay comentarios por revisar.' : 'No hay comentarios.'}
+        </p>
+      ) : (
+        (comentarios as any[]).map((c: any) => (
+          <div key={c.id} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+            <div className="flex items-start justify-between gap-2 mb-2">
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-[#111] truncate">{c.guestName ?? 'Anónimo'}</p>
+                <p className="text-[11px] text-[#999]">
+                  {new Date(c.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              <span className={`shrink-0 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                c.status === 'approved' ? 'bg-green-500/15 text-green-500'
+                : c.status === 'rejected' ? 'bg-red-500/15 text-red-500'
+                : 'bg-yellow-500/15 text-yellow-600'
+              }`}>
+                {c.status === 'approved' ? 'Publicado' : c.status === 'rejected' ? 'Rechazado' : 'Pendiente'}
+              </span>
+            </div>
+
+            <p className="text-sm text-[#666] leading-relaxed" style={{ overflowWrap: 'anywhere' }}>
+              {c.content}
+            </p>
+
+            <div className="mt-3 flex gap-2">
+              {c.status !== 'approved' && (
+                <button
+                  onClick={() => moderar.mutate({ id: c.id, status: 'approved' })}
+                  className="flex-1 rounded-xl bg-[#e5007d] text-white text-xs font-bold transition-transform active:scale-95"
+                  style={{ minHeight: 44 }}
+                >
+                  Publicar
+                </button>
+              )}
+              {c.status !== 'rejected' && (
+                <button
+                  onClick={() => moderar.mutate({ id: c.id, status: 'rejected' })}
+                  className="flex-1 rounded-xl border border-[var(--iw-border)] text-[#999] text-xs font-bold"
+                  style={{ minHeight: 44 }}
+                >
+                  Rechazar
+                </button>
+              )}
+              <button
+                onClick={() => { if (confirm('¿Eliminar este comentario?')) borrar.mutate({ id: c.id }); }}
+                className="rounded-xl border border-red-500/30 px-4 text-red-500"
+                style={{ minHeight: 44 }}
+                aria-label="Eliminar"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
 }
 
 // ============ COMPONENTE PRINCIPAL ============
@@ -2224,13 +2333,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2289,6 +2398,7 @@ export default function AdminMobile() {
         {activeTab === 'users'       && <UsersSection />}
         {activeTab === 'blog'        && <BlogSection onModalChange={setBlogHasModal} />}
         {activeTab === 'subscribers' && <SubscribersSection />}
+        {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
         {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
       </PullToRefresh>

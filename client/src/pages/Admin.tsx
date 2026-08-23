@@ -643,6 +643,7 @@ export default function Admin() {
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [ordersView, setOrdersView] = useState<"active" | "archived">("active");
   const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'|'withdrawals'>('applications');
+  const [blogSubTab, setBlogSubTab] = useState<'posts' | 'categories' | 'comments'>('posts');
 
   const [orderSearch, setOrderSearch] = useState('');
 
@@ -663,7 +664,11 @@ export default function Admin() {
       const orden = params.get("orden");
       const sub = params.get("sub");
       if (destino) setTab(destino as AdminTab);
-      if (sub) setCosplaySubTab(sub as any);
+      if (sub) {
+        // El mismo parámetro sirve para las sub-pestañas de Cosplay y de Blog
+        if (sub === 'comments' || sub === 'posts' || sub === 'categories') setBlogSubTab(sub as any);
+        else setCosplaySubTab(sub as any);
+      }
       if (orden) {
         setOrderSearch(orden);
         setOrdersView("active");
@@ -746,7 +751,6 @@ export default function Admin() {
   const [popupImageUploading, setPopupImageUploading] = useState(false);
 
   // Blog state
-  const [blogSubTab, setBlogSubTab] = useState<'posts' | 'categories' | 'comments'>('posts');
   const [showBlogPostModal, setShowBlogPostModal] = useState(false);
   const [editingBlogPost, setEditingBlogPost] = useState<any | null>(null);
   const [blogModalTab, setBlogModalTab] = useState<'content' | 'seo'>('content');

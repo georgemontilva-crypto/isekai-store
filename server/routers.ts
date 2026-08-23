@@ -1584,8 +1584,55 @@ export const appRouter = router({
       .query(({ input }) => getBlogComments(input.postId, 'approved')),
 
     addComment: publicProcedure
-      .input(z.object({ postId: z.number(), userId: z.number().optional(), guestName: z.string().max(200).optional(), guestEmail: z.string().email().optional(), content: z.string().min(1).max(2000) }))
-      .mutation(({ input }) => createBlogComment({ ...input, status: 'pending' })),
+      .input(z.object({
+        postId: z.number(),
+        userId: z.number().optional(),
+        guestName: z.string().max(200).optional(),
+        guestEmail: z.string().email().optional(),
+        content: z.string().min(1).max(2000),
+        ...antiSpamSchema,
+      }))
+      .mutation(async ({ ctx, input }) => {
+        // Mismo antispam que el resto de formularios públicos
+        await guardPublicForm(input, clientIp(ctx.req), { form: 'blog-comment', max: 4 });
+
+        const { hp, elapsedMs, captchaToken, ...datos } = input;
+        const creado = await createBlogComment({ ...datos, status: 'pending' });
+
+        // Los comentarios nacen pendientes: sin aviso se quedaban sin publicar
+        const autor = input.guestName ?? 'Alguien';
+        const extracto = input.content.length > 120 ? input.content.slice(0, 120) + '…' : input.content;
+
+        try {
+          await insertAdminNotification({
+            type: 'new_user',
+            title: `${autor} comentó en el blog`,
+            body: extracto,
+          });
+        } catch (e) { console.error('[Blog] No se pudo crear la notificación:', e); }
+
+        try {
+          await notifyOwner({
+            title: `Nuevo comentario en el blog — ${autor}`,
+            content: `
+              <p><strong>De:</strong> ${autor}${input.guestEmail ? ` (${input.guestEmail})` : ''}</p>
+              <p><strong>Comentario:</strong></p>
+              <blockquote>${input.content}</blockquote>
+              <p style="margin-top:16px">
+                <a href="https://isekaiworld.co/admin?tab=blog&sub=comments">Revisar y publicar</a>
+              </p>
+              <p style="color:#888;font-size:13px">Queda pendiente hasta que lo apruebes.</p>
+            `,
+          });
+        } catch (e) { console.error('[Blog] No se pudo enviar el correo:', e); }
+
+        try {
+          const admins = await getAdminUsers();
+          for (const admin of admins) io.to(`user:${admin.id}`).emit('notification:new');
+        } catch { /* no crítico */ }
+
+        return creado;
+      }),
 
     getAllPosts: adminProcedure
       .input(z.object({ status: z.string().optional() }))

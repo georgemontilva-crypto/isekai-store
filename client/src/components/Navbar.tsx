@@ -31,7 +31,7 @@ type ActiveMenu = "collections"|"explore"|null;
  * a su cuenta. Antes TODAS iban a /account, así que al admin le parecía que el
  * clic no hacía nada (ya estaba en esa página o no era su destino).
  */
-function destinoNotificacion(n: { type: string; body: string }, esAdmin: boolean) {
+function destinoNotificacion(n: { type: string; body: string; title?: string }, esAdmin: boolean) {
   if (!esAdmin) return { href: "/account", label: "Ver en mi cuenta" };
 
   switch (n.type) {
@@ -49,6 +49,10 @@ function destinoNotificacion(n: { type: string; body: string }, esAdmin: boolean
       // cuerpo trae el enlace de la publicación.
       const enlace = n.body.match(/https?:\/\/[^\s]+/)?.[0];
       if (enlace) return { href: "/admin?tab=cosplay&sub=evaluations", label: "Revisar entrega" };
+      // Comentario del blog: el título lo delata
+      if (/comentó en el blog/i.test((n as any).title ?? "")) {
+        return { href: "/admin?tab=blog&sub=comments", label: "Moderar comentario" };
+      }
       return { href: "/admin?tab=users", label: "Ver usuarios" };
     }
     default:
