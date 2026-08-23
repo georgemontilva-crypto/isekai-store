@@ -35,6 +35,19 @@ vi.mock("./db", () => ({
   getDashboardMetrics: vi.fn().mockResolvedValue({ totalRevenue: 0, totalOrders: 0, recentOrders: [], topProducts: [] }),
 }));
 
+// El checkout ahora recalcula precios y stock contra la base de datos.
+// En las pruebas se simula ese módulo para no necesitar productos reales.
+vi.mock("./orderValidation", () => ({
+  validarPedido: vi.fn().mockResolvedValue({
+    items: [{ productId: 1, productName: "Test", price: "59.99", quantity: 1 }],
+    subtotal: "59.99",
+    giftCardDiscount: "0.00",
+    total: "59.99",
+  }),
+  descontarStock: vi.fn().mockResolvedValue(undefined),
+  devolverStock: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock("./_core/notification", () => ({
   notifyOwner: vi.fn().mockResolvedValue(true),
 }));
