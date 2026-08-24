@@ -141,7 +141,8 @@ function InstagramFeedSection() {
           rel="noopener noreferrer"
           className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-3xl overflow-hidden px-6 py-10 md:px-10 md:py-16 group cursor-pointer"
           style={{
-            background: "linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 70%, #533483 100%)",
+            // Base oscura: el humo magenta se mueve encima de ella
+            background: "linear-gradient(135deg, #120610 0%, #1c0714 45%, #0a0509 100%)",
           }}
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}

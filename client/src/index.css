@@ -527,12 +527,26 @@
       width: calc(100% - 24px) !important;
       opacity: 1;
     }
-    .hero-peek-slide.prev,
-    .hero-peek-slide.next {
-      left: 0 !important;
-      width: 0 !important;
+    /* En teléfono los laterales no se muestran, pero NO pueden colapsar a
+       ancho cero: eso hacía que el cambio se viera seco, sin transición.
+       Se desplazan fuera de la pantalla manteniendo su tamaño, así el slide
+       entra deslizándose de verdad. */
+    .hero-peek-slide.prev {
+      left: -100% !important;
+      width: calc(100% - 24px) !important;
       opacity: 0 !important;
       pointer-events: none;
+    }
+    .hero-peek-slide.next {
+      left: 100% !important;
+      width: calc(100% - 24px) !important;
+      opacity: 0 !important;
+      pointer-events: none;
+    }
+    .hero-peek-slide.hidden-slide {
+      left: 100% !important;
+      width: calc(100% - 24px) !important;
+      opacity: 0 !important;
     }
     .hero-peek-controls {
       left: 12px !important;
@@ -2402,25 +2416,25 @@ html.dark {
 .iw-humo span {
   position: absolute;
   border-radius: 9999px;
-  filter: blur(60px);
+  filter: blur(48px);
   will-change: transform;
 }
 .iw-humo-1 {
   width: 26rem; height: 26rem;
   top: -8rem; right: -6rem;
-  background: radial-gradient(circle, rgba(229,0,125,0.55), transparent 70%);
+  background: radial-gradient(circle, rgba(229,0,125,0.85), transparent 70%);
   animation: iw-humo-a 22s ease-in-out infinite alternate;
 }
 .iw-humo-2 {
   width: 20rem; height: 20rem;
   bottom: -7rem; left: -4rem;
-  background: radial-gradient(circle, rgba(160,20,110,0.45), transparent 70%);
+  background: radial-gradient(circle, rgba(190,25,130,0.7), transparent 70%);
   animation: iw-humo-b 28s ease-in-out infinite alternate;
 }
 .iw-humo-3 {
   width: 22rem; height: 22rem;
   top: 30%; left: 40%;
-  background: radial-gradient(circle, rgba(255,60,160,0.25), transparent 70%);
+  background: radial-gradient(circle, rgba(255,70,175,0.5), transparent 70%);
   animation: iw-humo-c 34s ease-in-out infinite alternate;
 }
 @keyframes iw-humo-a {
