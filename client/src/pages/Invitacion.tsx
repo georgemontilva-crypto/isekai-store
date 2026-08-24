@@ -42,6 +42,7 @@ export default function Invitacion() {
   const { data: settings } = trpc.settings.getAll.useQuery();
 
   const heroImage = settings?.["invitacion_hero_image"] ?? "";
+  const fondoGeneral = settings?.["invitacion_fondo_image"] ?? "";
   const imagenMedia = settings?.["invitacion_media_image"] ?? "";
   const imagenCierre = settings?.["invitacion_cierre_image"] ?? "";
 
@@ -53,7 +54,18 @@ export default function Invitacion() {
   };
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white">
+    <div className="relative min-h-screen bg-[#050507] text-white">
+      {/* Fondo de toda la página. Va fijo (no se desplaza con el scroll) para
+          que una sola imagen cubra el recorrido completo sin repetirse ni
+          estirarse, y con un velo oscuro encima que garantiza que el texto
+          se lea sobre cualquier imagen. */}
+      {fondoGeneral && (
+        <div className="pointer-events-none fixed inset-0 z-0">
+          <img src={fondoGeneral} alt="" className="h-full w-full object-cover opacity-30" />
+          <div className="absolute inset-0 bg-[#050507]/70" />
+        </div>
+      )}
+      <div className="relative z-10">
       <style>{`
         /* El portal: un resplandor magenta que respira detrás del título.
            Solo se anima transform y opacity, así que no cuesta rendimiento. */
@@ -202,6 +214,7 @@ export default function Invitacion() {
           <p className="mt-1.5 text-sm italic text-white/50">Donde los mundos cobran vida.</p>
         </motion.div>
       </section>
+      </div>
     </div>
   );
 }

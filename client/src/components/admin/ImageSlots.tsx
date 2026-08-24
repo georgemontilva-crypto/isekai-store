@@ -154,6 +154,9 @@ const PAGES: PageGroup[] = [
   {
     page: "Invitación (QR)",
     slots: [
+      { kind: "site", key: "invitacion_fondo_image", label: "Fondo de toda la página",
+        where: "Detrás de todo el contenido de /invitacion, fijo al hacer scroll.",
+        spec: "Vertical, ~1440 × 2560 px (9:16). Se muestra al 30% con un velo oscuro encima, así que funciona cualquier imagen; las oscuras y sin texto son las que mejor quedan." },
       { kind: "site", key: "invitacion_hero_image", label: "Fondo de la apertura",
         where: "Detrás del título en la página de invitación (/invitacion).",
         spec: "Vertical u horizontal, ~1600 × 2000 px. Se oscurece bastante: mejor con zonas despejadas." },
