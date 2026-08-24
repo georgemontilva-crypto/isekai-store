@@ -227,6 +227,22 @@ export default function WorldFest() {
         }
         .wf-locked { opacity: 0.72; }
 
+        /* Carril de misiones.
+           En teléfono se sale del contenedor para que las tarjetas lleguen al
+           borde; en escritorio se queda dentro y muestra exactamente cuatro,
+           que es lo que evita que se vean pequeñas y amontonadas. */
+        .wf-rail { margin-left: calc(-50vw + 50%); width: 100vw; }
+        #wf-misiones { padding-left: max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem)); padding-right: 1.5rem; }
+        .wf-mision { width: 248px; padding: 1.5rem; }
+        #wf-misiones::-webkit-scrollbar { display: none; }
+
+        @media (min-width: 1024px) {
+          .wf-rail { margin-left: 0; width: auto; }
+          #wf-misiones { padding-left: 0; padding-right: 0; }
+          /* Cuatro por vista: (ancho - 3 huecos de 1rem) / 4 */
+          .wf-mision { width: calc((100% - 3rem) / 4); padding: 1.75rem; }
+        }
+
         /* Variante morada: las tres últimas misiones, de rango superior */
         .wf-window-morado {
           border-color: rgba(160,120,255,0.45);
@@ -499,19 +515,18 @@ export default function WorldFest() {
             las tarjetas lleguen hasta el borde y no parezca que se cortan.
             El relleno izquierdo replica el margen del contenedor, así la
             primera tarjeta queda alineada con el título de arriba. */}
-        <div className="relative left-1/2 mt-9 w-screen -translate-x-1/2">
+        <div className="wf-rail relative mt-9">
           <button
-            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: -300, behavior: "smooth" })}
+            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: -280, behavior: "smooth" })}
             aria-label="Misiones anteriores"
-            className="wf-rail-arrow absolute top-1/2 z-20 hidden -translate-y-1/2 md:flex"
-            style={{ left: "calc(max(1.5rem, (100vw - 72rem) / 2 + 1.5rem) - 0.5rem)" }}
+            className="wf-rail-arrow absolute -left-5 top-1/2 z-20 hidden -translate-y-1/2 lg:flex"
           >
             <ChevronLeft size={16} />
           </button>
           <button
-            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: 300, behavior: "smooth" })}
+            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: 280, behavior: "smooth" })}
             aria-label="Más misiones"
-            className="wf-rail-arrow absolute right-4 top-1/2 z-20 hidden -translate-y-1/2 md:flex"
+            className="wf-rail-arrow absolute -right-5 top-1/2 z-20 hidden -translate-y-1/2 lg:flex"
           >
             <ChevronRight size={16} />
           </button>
@@ -523,10 +538,6 @@ export default function WorldFest() {
               scrollbarWidth: "none",
               msOverflowStyle: "none",
               WebkitOverflowScrolling: "touch",
-              // Mismo margen que el contenedor (max-w-6xl = 72rem, px-6 = 1.5rem)
-              paddingLeft: "max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem))",
-              paddingRight: "1.5rem",
-              scrollPaddingLeft: "max(1.5rem, calc((100vw - 72rem) / 2 + 1.5rem))",
             }}
           >
             {MISIONES.map((m, i) => {
@@ -534,7 +545,7 @@ export default function WorldFest() {
               return (
                 <div
                   key={i}
-                  className={`wf-window wf-scan wf-locked w-[248px] shrink-0 rounded-sm p-6 sm:w-[272px] ${morada ? "wf-window-morado" : ""}`}
+                  className={`wf-window wf-scan wf-locked wf-mision shrink-0 rounded-sm ${morada ? "wf-window-morado" : ""}`}
                 >
                   <span className={`wf-corner -left-px -top-px border-l-2 border-t-2 ${morada ? "wf-corner-morado" : ""}`} />
                   <span className={`wf-corner -right-px -top-px border-r-2 border-t-2 ${morada ? "wf-corner-morado" : ""}`} />
