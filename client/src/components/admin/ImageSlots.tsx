@@ -152,6 +152,20 @@ const PAGES: PageGroup[] = [
     ],
   },
   {
+    page: "Invitación (QR)",
+    slots: [
+      { kind: "site", key: "invitacion_hero_image", label: "Fondo de la apertura",
+        where: "Detrás del título en la página de invitación (/invitacion).",
+        spec: "Vertical u horizontal, ~1600 × 2000 px. Se oscurece bastante: mejor con zonas despejadas." },
+      { kind: "site", key: "invitacion_media_image", label: "Imagen intermedia",
+        where: "Entre los bloques de texto de la invitación.",
+        spec: "Horizontal, ~1800 × 1000 px. Ideal: foto de cosplayers o de un evento." },
+      { kind: "site", key: "invitacion_cierre_image", label: "Fondo del cierre",
+        where: "Detrás del llamado final a postularse.",
+        spec: "Horizontal, ~2000 × 1200 px, preferiblemente oscura." },
+    ],
+  },
+  {
     page: "Link in bio",
     slots: [
       { kind: "site", key: "linkbio_avatar_image", label: "Avatar",

@@ -18,6 +18,7 @@ import Home from "./pages/Home";
 const Catalog = lazy(() => import("./pages/Catalog"));
 const WorldFest = lazy(() => import("./pages/WorldFest"));
 const QuoteView = lazy(() => import("./pages/QuoteView"));
+const Invitacion = lazy(() => import("./pages/Invitacion"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Account = lazy(() => import("./pages/Account"));
@@ -114,6 +115,8 @@ function Router() {
         <Route path="/politicas" component={Politicas} />
         <Route path="/world-fest" component={WorldFest} />
         <Route path="/cotizacion/:token" component={QuoteView} />
+        {/* Invitación por QR: intencionalmente fuera del menú y del sitemap */}
+        <Route path="/invitacion" component={Invitacion} />
         <Route path="/cosplay" component={CosplayLanding} />
         <Route path="/cosplay/apply" component={CosplayApply} />
         <Route path="/cosplay/guild" component={CosplayGuild} />
@@ -143,7 +146,8 @@ function Layout() {
     isAdmin ||
     location.startsWith("/cosplay/dashboard") ||
     location.startsWith("/account") ||
-    location.startsWith("/cotizacion/");
+    location.startsWith("/cotizacion/") ||
+    location.startsWith("/invitacion");
 
   return (
     <>

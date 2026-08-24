@@ -2,5 +2,7 @@ User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /api
+Disallow: /invitacion
+Disallow: /cotizacion
 
 Sitemap: https://isekaiworld.co/sitemap.xml
