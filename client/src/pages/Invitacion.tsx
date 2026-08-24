@@ -197,8 +197,15 @@ export default function Invitacion() {
 
           {/* Imagen entre bloques, si está cargada */}
           {i === 0 && imagenMedia && (
-            <motion.div {...aparecer} className="mt-8 overflow-hidden rounded-3xl border border-white/10">
-              <img src={imagenMedia} alt="" className="w-full object-cover" />
+            // Espacio para un personaje: contenida y centrada, sin ocupar el
+            // ancho completo. Sin recorte, para que la figura se vea entera.
+            <motion.div {...aparecer} className="mt-8 flex justify-center">
+              <img
+                src={imagenMedia}
+                alt=""
+                className="max-h-[340px] w-auto max-w-[260px] object-contain sm:max-h-[420px] sm:max-w-[300px]"
+                style={{ filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.6))" }}
+              />
             </motion.div>
           )}
         </section>
