@@ -38,6 +38,59 @@ const bloques = [
   },
 ];
 
+
+/**
+ * Rayo horizontal animado.
+ *
+ * Separa el bloque anterior del anuncio de lo que viene. Es un SVG con dos
+ * trazos: uno grueso que hace de resplandor y otro fino encima. El recorrido
+ * se dibuja de izquierda a derecha animando `stroke-dashoffset`, y un destello
+ * recorre la línea. Solo se animan propiedades que no fuerzan recálculo de
+ * diseño, así que no le cuesta rendimiento a la página.
+ */
+function RayoHorizontal() {
+  // Trazo irregular: un rayo no es una línea recta
+  const trazo = "M0 26 L120 26 L142 12 L176 38 L206 20 L236 30 L268 8 L300 26 L420 26 L446 14 L472 34 L500 26 L620 26";
+
+  return (
+    <div className="inv-rayo pointer-events-none relative mx-auto my-4 w-full max-w-3xl px-6" aria-hidden="true">
+      <svg viewBox="0 0 620 46" className="h-12 w-full overflow-visible" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="rayoGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#e5007d" stopOpacity="0" />
+            <stop offset="18%" stopColor="#e5007d" stopOpacity="1" />
+            <stop offset="82%" stopColor="#ff5fb0" stopOpacity="1" />
+            <stop offset="100%" stopColor="#ff5fb0" stopOpacity="0" />
+          </linearGradient>
+        </defs>
+
+        {/* Resplandor: mismo trazo, grueso y difuminado */}
+        <path
+          d={trazo}
+          fill="none"
+          stroke="url(#rayoGrad)"
+          strokeWidth="7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          opacity="0.45"
+          style={{ filter: "blur(6px)" }}
+          className="inv-rayo-trazo"
+        />
+        {/* Línea principal */}
+        <path
+          d={trazo}
+          fill="none"
+          stroke="url(#rayoGrad)"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="inv-rayo-trazo inv-rayo-linea"
+        />
+      </svg>
+    </div>
+  );
+}
+
 export default function Invitacion() {
   const { data: settings } = trpc.settings.getAll.useQuery();
 
@@ -86,7 +139,31 @@ export default function Invitacion() {
           50%      { transform: translate3d(0,-3%,0) scale(1.18); opacity: 0.9; }
         }
         .inv-portal { animation: inv-portal 12s ease-in-out infinite; will-change: transform; }
-        @media (prefers-reduced-motion: reduce) { .inv-portal { animation: none; } }
+
+        /* El rayo se dibuja de izquierda a derecha y luego destella */
+        @keyframes inv-rayo-dibujo {
+          0%   { stroke-dashoffset: 1400; opacity: 0; }
+          6%   { opacity: 1; }
+          38%  { stroke-dashoffset: 0; opacity: 1; }
+          100% { stroke-dashoffset: 0; opacity: 1; }
+        }
+        @keyframes inv-rayo-destello {
+          0%, 44%, 100% { opacity: 1; }
+          46%           { opacity: 0.25; }
+          48%           { opacity: 1; }
+          52%           { opacity: 0.4; }
+          54%           { opacity: 1; }
+        }
+        .inv-rayo-trazo {
+          stroke-dasharray: 1400;
+          animation: inv-rayo-dibujo 5.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
+        }
+        .inv-rayo-linea { animation: inv-rayo-dibujo 5.5s cubic-bezier(0.22, 1, 0.36, 1) infinite, inv-rayo-destello 5.5s linear infinite; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .inv-portal { animation: none; }
+          .inv-rayo-trazo, .inv-rayo-linea { animation: none; stroke-dashoffset: 0; }
+        }
       `}</style>
 
       {/* ─── Apertura ─────────────────────────────────────────────────────── */}
@@ -176,6 +253,18 @@ export default function Invitacion() {
       {/* ─── Bloques ──────────────────────────────────────────────────────── */}
       {bloques.map((b, i) => (
         <section key={b.titulo} className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
+          {/* El rayo antecede a "El próximo mundo está por abrirse" */}
+          {i === 1 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.4 }}
+              className="mb-12"
+            >
+              <RayoHorizontal />
+            </motion.div>
+          )}
           <motion.div {...aparecer}>
             <h2 className="mb-7 text-[clamp(1.6rem,5vw,2.6rem)] font-black uppercase leading-[0.95] tracking-tight">
               {b.titulo}
