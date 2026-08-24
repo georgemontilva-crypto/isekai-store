@@ -421,6 +421,19 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
     return 'bronce';
   };
 
+  // Visibilidad del perfil interno del admin en el directorio público
+  const { data: miPerfil, refetch: refetchMiPerfil } = trpc.cosplay.myCosplayerVisibility.useQuery(
+    undefined, { enabled: isAuthenticated && user?.role === 'admin' },
+  );
+  const cambiarVisibilidad = trpc.cosplay.setMyCosplayerVisibility.useMutation({
+    onSuccess: (d) => {
+      refetchMiPerfil();
+      refetchCosplayers();
+      toast.success(d.visible ? 'Tu perfil ya se ve en el directorio' : 'Tu perfil quedó oculto');
+    },
+    onError: () => toast.error('No se pudo cambiar'),
+  });
+
   const approveApp = trpc.cosplay.approveApplication.useMutation({
     onSuccess: () => { setApproveModal(null); refetchApps(); refetchCosplayers(); },
   });
@@ -508,6 +521,31 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
         )}
 
         {/* Cosplayers activos */}
+        {subTab === 'cosplayers' && miPerfil?.exists && (
+          <button
+            onClick={() => cambiarVisibilidad.mutate({ visible: !miPerfil.visible })}
+            disabled={cambiarVisibilidad.isPending}
+            className={`w-full flex items-center gap-3 rounded-2xl border px-4 text-left transition-colors ${
+              miPerfil.visible
+                ? 'border-[#e5007d] bg-[#e5007d]/10'
+                : 'border-[var(--iw-border)] bg-[var(--iw-surface)]'
+            }`}
+            style={{ minHeight: 56, WebkitTapHighlightColor: 'transparent' }}
+          >
+            <span className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${miPerfil.visible ? 'bg-[#e5007d]' : 'bg-[#999]'}`}>
+              <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-all ${miPerfil.visible ? 'left-[1.15rem]' : 'left-0.5'}`} />
+            </span>
+            <span className="min-w-0">
+              <span className={`block text-sm font-bold ${miPerfil.visible ? 'text-[#e5007d]' : 'text-[var(--iw-text)]'}`}>
+                Mi perfil en el directorio
+              </span>
+              <span className="block text-xs text-[var(--iw-text-muted)]">
+                {miPerfil.visible ? 'Tu tarjeta de admin se está mostrando' : 'Oculto del directorio público'}
+              </span>
+            </span>
+          </button>
+        )}
+
         {subTab === 'cosplayers' && (cosplayers as any[]).map((cp: any) => (
           <button
             key={cp.id}
