@@ -166,15 +166,15 @@ export default function WorldFest() {
             muted
             loop
             playsInline
-            className="sticky top-0 h-[100dvh] w-full object-cover opacity-80"
+            className="sticky top-0 h-[100dvh] w-full object-cover opacity-90"
           />
           {/* Tinte azul del Sistema por encima del video */}
           <div className="absolute inset-0 bg-[#04102a]/20 mix-blend-multiply" />
-          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_115%,rgba(18,58,107,0.30)_0%,rgba(10,24,54,0.25)_42%,rgba(4,6,15,0.55)_100%)]" />
+          <div className="absolute inset-0 bg-[radial-gradient(120%_90%_at_50%_115%,rgba(18,58,107,0.22)_0%,rgba(8,18,40,0.45)_42%,rgba(2,4,10,0.85)_100%)]" />
           {/* Vidrio negro (glassmorfismo): oscurece y desenfoca apenas el video
               en toda la página. Si el navegador no soporta backdrop-filter,
               queda solo la opacidad, que ya cumple. */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px]" />
+          <div className="absolute inset-0 bg-black/62 backdrop-blur-[5px]" />
         </div>
       )}
 
@@ -590,7 +590,7 @@ export default function WorldFest() {
       )}
 
       {/* ─── Registro ─────────────────────────────────────────────────────── */}
-      <section className="relative z-10 overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/55 py-16 sm:py-20">
+      <section className="relative z-10 overflow-hidden border-t border-[#5db4ff]/15 bg-[#060b1c]/35 py-16 sm:py-20">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(70%_100%_at_50%_0%,rgba(70,150,255,0.22)_0%,transparent_65%)]" />
         <div className="relative mx-auto max-w-2xl px-6 text-center">
           <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
