@@ -39,58 +39,6 @@ const bloques = [
 ];
 
 
-/**
- * Rayo horizontal animado.
- *
- * Separa el bloque anterior del anuncio de lo que viene. Es un SVG con dos
- * trazos: uno grueso que hace de resplandor y otro fino encima. El recorrido
- * se dibuja de izquierda a derecha animando `stroke-dashoffset`, y un destello
- * recorre la línea. Solo se animan propiedades que no fuerzan recálculo de
- * diseño, así que no le cuesta rendimiento a la página.
- */
-function RayoHorizontal() {
-  // Trazo irregular: un rayo no es una línea recta
-  const trazo = "M0 26 L120 26 L142 12 L176 38 L206 20 L236 30 L268 8 L300 26 L420 26 L446 14 L472 34 L500 26 L620 26";
-
-  return (
-    <div className="inv-rayo pointer-events-none relative mx-auto my-4 w-full max-w-3xl px-6" aria-hidden="true">
-      <svg viewBox="0 0 620 46" className="h-12 w-full overflow-visible" preserveAspectRatio="none">
-        <defs>
-          <linearGradient id="rayoGrad" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#e5007d" stopOpacity="0" />
-            <stop offset="18%" stopColor="#e5007d" stopOpacity="1" />
-            <stop offset="82%" stopColor="#ff5fb0" stopOpacity="1" />
-            <stop offset="100%" stopColor="#ff5fb0" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-
-        {/* Resplandor: mismo trazo, grueso y difuminado */}
-        <path
-          d={trazo}
-          fill="none"
-          stroke="url(#rayoGrad)"
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          opacity="0.45"
-          style={{ filter: "blur(6px)" }}
-          className="inv-rayo-trazo"
-        />
-        {/* Línea principal */}
-        <path
-          d={trazo}
-          fill="none"
-          stroke="url(#rayoGrad)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="inv-rayo-trazo inv-rayo-linea"
-        />
-      </svg>
-    </div>
-  );
-}
-
 export default function Invitacion() {
   const { data: settings } = trpc.settings.getAll.useQuery();
 
@@ -100,6 +48,7 @@ export default function Invitacion() {
   const logo = settings?.["store_logo_dark_url"] || settings?.["store_logo_url"] || "";
   const imagenMedia = settings?.["invitacion_media_image"] ?? "";
   const imagenCierre = settings?.["invitacion_cierre_image"] ?? "";
+  const imagenPrevia = settings?.["invitacion_previa_image"] ?? "";
 
   const aparecer = {
     initial: { opacity: 0, y: 24 },
@@ -140,30 +89,7 @@ export default function Invitacion() {
         }
         .inv-portal { animation: inv-portal 12s ease-in-out infinite; will-change: transform; }
 
-        /* El rayo se dibuja de izquierda a derecha y luego destella */
-        @keyframes inv-rayo-dibujo {
-          0%   { stroke-dashoffset: 1400; opacity: 0; }
-          6%   { opacity: 1; }
-          38%  { stroke-dashoffset: 0; opacity: 1; }
-          100% { stroke-dashoffset: 0; opacity: 1; }
-        }
-        @keyframes inv-rayo-destello {
-          0%, 44%, 100% { opacity: 1; }
-          46%           { opacity: 0.25; }
-          48%           { opacity: 1; }
-          52%           { opacity: 0.4; }
-          54%           { opacity: 1; }
-        }
-        .inv-rayo-trazo {
-          stroke-dasharray: 1400;
-          animation: inv-rayo-dibujo 5.5s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-        }
-        .inv-rayo-linea { animation: inv-rayo-dibujo 5.5s cubic-bezier(0.22, 1, 0.36, 1) infinite, inv-rayo-destello 5.5s linear infinite; }
-
-        @media (prefers-reduced-motion: reduce) {
-          .inv-portal { animation: none; }
-          .inv-rayo-trazo, .inv-rayo-linea { animation: none; stroke-dashoffset: 0; }
-        }
+        @media (prefers-reduced-motion: reduce) { .inv-portal { animation: none; } }
       `}</style>
 
       {/* ─── Apertura ─────────────────────────────────────────────────────── */}
@@ -252,32 +178,26 @@ export default function Invitacion() {
 
       {/* ─── Bloques ──────────────────────────────────────────────────────── */}
       {bloques.map((b, i) => (
-        <section key={b.titulo} className="mx-auto max-w-3xl px-6 py-16 sm:py-20">
-          {/* El rayo antecede a "El próximo mundo está por abrirse" */}
-          {i === 1 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true, margin: "-100px" }}
-              transition={{ duration: 0.4 }}
-              className="mb-12"
-            >
-              <RayoHorizontal />
+        <section key={b.titulo} className="mx-auto max-w-3xl px-6 py-10 sm:py-12">
+          {/* Imagen que antecede a "El próximo mundo está por abrirse" */}
+          {i === 1 && imagenPrevia && (
+            <motion.div {...aparecer} className="mb-10 overflow-hidden rounded-3xl border border-white/10">
+              <img src={imagenPrevia} alt="" className="w-full object-cover" />
             </motion.div>
           )}
           <motion.div {...aparecer}>
-            <h2 className="mb-7 text-[clamp(1.6rem,5vw,2.6rem)] font-black uppercase leading-[0.95] tracking-tight">
+            <h2 className="mb-5 text-[clamp(1.6rem,5vw,2.6rem)] font-black uppercase leading-[0.95] tracking-tight">
               {b.titulo}
             </h2>
-            <div className="space-y-5 text-[16px] leading-relaxed text-white/70">
+            <div className="space-y-4 text-[16px] leading-relaxed text-white/70">
               {b.parrafos.map((p, j) => <p key={j}>{p}</p>)}
             </div>
-            <p className="mt-7 text-xl font-black text-[#ff45a0] sm:text-2xl">{b.cierre}</p>
+            <p className="mt-5 text-xl font-black text-[#ff45a0] sm:text-2xl">{b.cierre}</p>
           </motion.div>
 
           {/* Imagen entre bloques, si está cargada */}
           {i === 0 && imagenMedia && (
-            <motion.div {...aparecer} className="mt-12 overflow-hidden rounded-3xl border border-white/10">
+            <motion.div {...aparecer} className="mt-8 overflow-hidden rounded-3xl border border-white/10">
               <img src={imagenMedia} alt="" className="w-full object-cover" />
             </motion.div>
           )}
@@ -285,7 +205,7 @@ export default function Invitacion() {
       ))}
 
       {/* ─── Cierre ───────────────────────────────────────────────────────── */}
-      <section className="relative overflow-hidden px-6 py-20 sm:py-28">
+      <section className="relative overflow-hidden px-6 py-14 sm:py-20">
         <div className="absolute inset-0">
           {imagenCierre && (
             <img src={imagenCierre} alt="" className="h-full w-full object-cover opacity-25" />
@@ -293,7 +213,7 @@ export default function Invitacion() {
         </div>
 
         <motion.div {...aparecer} className="relative z-10 mx-auto max-w-2xl text-center">
-          <div className="mb-10 space-y-1 text-[clamp(1.8rem,7vw,3.4rem)] font-black uppercase leading-[0.9] tracking-tight">
+          <div className="mb-8 space-y-1 text-[clamp(1.8rem,7vw,3.4rem)] font-black uppercase leading-[0.9] tracking-tight">
             <p>Tu personaje.</p>
             <p className="text-white/60">Tu historia.</p>
             <p className="text-[#ff45a0]">Tu mundo.</p>
@@ -302,7 +222,7 @@ export default function Invitacion() {
           <h2 className="mb-3 text-2xl font-black uppercase tracking-tight sm:text-3xl">
             ¿Quieres formar parte?
           </h2>
-          <p className="mx-auto mb-9 max-w-md text-[15px] leading-relaxed text-white/60">
+          <p className="mx-auto mb-7 max-w-md text-[15px] leading-relaxed text-white/60">
             Únete a nuestra comunidad de cosplayers. La postulación toma unos minutos.
           </p>
 
@@ -315,7 +235,7 @@ export default function Invitacion() {
             <ArrowRight size={18} />
           </Link>
 
-          <p className="mt-12 text-[11px] font-bold uppercase tracking-[0.35em] text-white/40">
+          <p className="mt-10 text-[11px] font-bold uppercase tracking-[0.35em] text-white/40">
             Isekai World
           </p>
           <p className="mt-1.5 text-sm italic text-white/50">Donde los mundos cobran vida.</p>
