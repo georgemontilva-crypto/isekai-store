@@ -404,10 +404,14 @@
     bottom: 0;
     overflow: hidden;
     border-radius: 18px;
+    /* Curva de salida suave (sin el tirón de la ease-in-out fuerte) y una
+       pizca más de duración: el cambio pasa de brusco a fluido. */
     transition:
-      left 0.7s cubic-bezier(0.77, 0, 0.175, 1),
-      width 0.7s cubic-bezier(0.77, 0, 0.175, 1),
-      opacity 0.7s ease;
+      left 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.9s ease;
+    will-change: left, width, opacity;
   }
 
   /* Active island: centered, wide — with gap on both sides */
@@ -423,7 +427,8 @@
   .hero-peek-slide.prev {
     left: 8px;
     width: calc(13% - 16px);
-    opacity: 0.7;
+    opacity: 0.55;
+    filter: blur(1.5px);
     cursor: pointer;
     z-index: 1;
   }
@@ -433,7 +438,8 @@
   .hero-peek-slide.next {
     left: calc(87% + 8px);
     width: calc(13% - 16px);
-    opacity: 0.7;
+    opacity: 0.55;
+    filter: blur(1.5px);
     cursor: pointer;
     z-index: 1;
   }
@@ -441,9 +447,10 @@
 
   /* Hidden */
   .hero-peek-slide.hidden-slide {
-    left: 50%;
-    width: 0;
+    left: 8px;
+    width: calc(13% - 16px);
     opacity: 0;
+    filter: blur(6px);
     pointer-events: none;
     z-index: 0;
   }
@@ -455,7 +462,7 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
     transform: scale(1.09);
   }
   .hero-peek-img.zoomed-in {
@@ -1476,10 +1483,14 @@ html.dark .spotlight-veil { background: #000000; }
     bottom: 0;
     overflow: hidden;
     border-radius: 18px;
+    /* Curva de salida suave (sin el tirón de la ease-in-out fuerte) y una
+       pizca más de duración: el cambio pasa de brusco a fluido. */
     transition:
-      left 0.7s cubic-bezier(0.77, 0, 0.175, 1),
-      width 0.7s cubic-bezier(0.77, 0, 0.175, 1),
-      opacity 0.7s ease;
+      left 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      width 0.9s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      filter 0.9s ease;
+    will-change: left, width, opacity;
   }
 
   /* Active island: centered, wide — with gap on both sides */
@@ -1495,7 +1506,8 @@ html.dark .spotlight-veil { background: #000000; }
   .hero-peek-slide.prev {
     left: 8px;
     width: calc(13% - 16px);
-    opacity: 0.7;
+    opacity: 0.55;
+    filter: blur(1.5px);
     cursor: pointer;
     z-index: 1;
   }
@@ -1505,7 +1517,8 @@ html.dark .spotlight-veil { background: #000000; }
   .hero-peek-slide.next {
     left: calc(87% + 8px);
     width: calc(13% - 16px);
-    opacity: 0.7;
+    opacity: 0.55;
+    filter: blur(1.5px);
     cursor: pointer;
     z-index: 1;
   }
@@ -1513,9 +1526,10 @@ html.dark .spotlight-veil { background: #000000; }
 
   /* Hidden */
   .hero-peek-slide.hidden-slide {
-    left: 50%;
-    width: 0;
+    left: 8px;
+    width: calc(13% - 16px);
     opacity: 0;
+    filter: blur(6px);
     pointer-events: none;
     z-index: 0;
   }
@@ -1527,7 +1541,7 @@ html.dark .spotlight-veil { background: #000000; }
     width: 100%;
     height: 100%;
     object-fit: cover;
-    transition: transform 0.7s cubic-bezier(0.23, 1, 0.32, 1);
+    transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1);
     transform: scale(1.09);
   }
   .hero-peek-img.zoomed-in {
@@ -2380,3 +2394,50 @@ html.dark {
 }
 
 
+
+/* ── Humo animado de la tarjeta de Instagram ──────────────────────────────
+   Tres manchas difusas magenta/negro que derivan muy lento. Se anima solo
+   transform y opacity (compuestas por la GPU): no dispara recálculos de
+   diseño ni repintados, así que no le cuesta rendimiento a la página. */
+.iw-humo span {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(60px);
+  will-change: transform;
+}
+.iw-humo-1 {
+  width: 26rem; height: 26rem;
+  top: -8rem; right: -6rem;
+  background: radial-gradient(circle, rgba(229,0,125,0.55), transparent 70%);
+  animation: iw-humo-a 22s ease-in-out infinite alternate;
+}
+.iw-humo-2 {
+  width: 20rem; height: 20rem;
+  bottom: -7rem; left: -4rem;
+  background: radial-gradient(circle, rgba(160,20,110,0.45), transparent 70%);
+  animation: iw-humo-b 28s ease-in-out infinite alternate;
+}
+.iw-humo-3 {
+  width: 22rem; height: 22rem;
+  top: 30%; left: 40%;
+  background: radial-gradient(circle, rgba(255,60,160,0.25), transparent 70%);
+  animation: iw-humo-c 34s ease-in-out infinite alternate;
+}
+@keyframes iw-humo-a {
+  0%   { transform: translate3d(0,0,0) scale(1); }
+  50%  { transform: translate3d(-12%, 14%, 0) scale(1.18); }
+  100% { transform: translate3d(6%, -8%, 0) scale(1.05); }
+}
+@keyframes iw-humo-b {
+  0%   { transform: translate3d(0,0,0) scale(1.1); }
+  50%  { transform: translate3d(18%, -12%, 0) scale(0.9); }
+  100% { transform: translate3d(-6%, 8%, 0) scale(1.15); }
+}
+@keyframes iw-humo-c {
+  0%   { transform: translate3d(0,0,0) scale(0.95); opacity: 0.7; }
+  50%  { transform: translate3d(-20%, -10%, 0) scale(1.25); opacity: 1; }
+  100% { transform: translate3d(10%, 12%, 0) scale(1); opacity: 0.6; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iw-humo span { animation: none; }
+}

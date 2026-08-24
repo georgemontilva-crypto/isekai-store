@@ -149,9 +149,15 @@ function InstagramFeedSection() {
           transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
           whileHover={{ scale: 1.005 }}
         >
-          {/* Decorative gradient orbs */}
-          <div className="absolute top-0 right-0 w-96 h-96 rounded-full opacity-20 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #e1306c, transparent 70%)", transform: "translate(30%, -30%)" }} />
-          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full opacity-15 blur-3xl pointer-events-none" style={{ background: "radial-gradient(circle, #833ab4, transparent 70%)", transform: "translate(-20%, 30%)" }} />
+          {/* Humo animado en magenta y negro. Son tres manchas difusas que se
+              desplazan muy lento: solo se anima `transform`, que corre en la
+              tarjeta gráfica y no repinta la página. Se apaga si el sistema
+              pide menos movimiento. */}
+          <div className="iw-humo pointer-events-none absolute inset-0 overflow-hidden">
+            <span className="iw-humo-1" />
+            <span className="iw-humo-2" />
+            <span className="iw-humo-3" />
+          </div>
 
           {/* Left: text */}
           <div className="relative z-10 flex-1 max-w-xl">
