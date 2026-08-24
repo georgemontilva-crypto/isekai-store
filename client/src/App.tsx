@@ -138,6 +138,13 @@ function Layout() {
   const isAdmin = location.startsWith("/admin");
 
   /**
+   * Página en blanco: la invitación por QR va sola, sin navegación ni pie.
+   * Quien llega ahí fue invitado a leer algo concreto, y cualquier elemento
+   * del sitio alrededor le resta fuerza y lo saca del momento.
+   */
+  const esPaginaSola = location.startsWith("/invitacion");
+
+  /**
    * Pantallas que funcionan como app (paneles con su propia barra inferior):
    * no llevan footer ni burbuja de Instagram, porque estorban a la barra fija
    * y no aportan nada dentro de un panel privado.
@@ -153,12 +160,12 @@ function Layout() {
     <>
       <ScrollToTop />
       <WelcomeToastHandler />
-      <Navbar />
+      {!esPaginaSola && <Navbar />}
       <main className="min-h-screen">
         <Router />
       </main>
       {!esPanelApp && <Footer />}
-      {!isAdmin && location !== '/links' && <PopupManager />}
+      {!isAdmin && !esPaginaSola && location !== '/links' && <PopupManager />}
       {!esPanelApp && <InstagramChat />}
       <AuthDialog />
     </>

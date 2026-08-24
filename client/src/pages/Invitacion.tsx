@@ -43,6 +43,8 @@ export default function Invitacion() {
 
   const heroImage = settings?.["invitacion_hero_image"] ?? "";
   const fondoGeneral = settings?.["invitacion_fondo_image"] ?? "";
+  // El logo de la tienda encabeza la invitación
+  const logo = settings?.["store_logo_dark_url"] || settings?.["store_logo_url"] || "";
   const imagenMedia = settings?.["invitacion_media_image"] ?? "";
   const imagenCierre = settings?.["invitacion_cierre_image"] ?? "";
 
@@ -59,12 +61,22 @@ export default function Invitacion() {
           que una sola imagen cubra el recorrido completo sin repetirse ni
           estirarse, y con un velo oscuro encima que garantiza que el texto
           se lea sobre cualquier imagen. */}
-      {fondoGeneral && (
-        <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="pointer-events-none fixed inset-0 z-0">
+        {fondoGeneral && (
           <img src={fondoGeneral} alt="" className="h-full w-full object-cover opacity-30" />
-          <div className="absolute inset-0 bg-[#050507]/70" />
-        </div>
-      )}
+        )}
+        {/* El mismo ambiente del hero, extendido a toda la página: el
+            resplandor magenta y el degradado negro dejan de repetirse por
+            sección y pasan a ser el fondo continuo del documento. */}
+        <div
+          className="inv-portal absolute left-1/2 top-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(229,0,125,0.45) 0%, rgba(120,0,70,0.2) 40%, transparent 70%)",
+            filter: "blur(70px)",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050507] via-[#050507]/55 to-[#050507]" />
+      </div>
       <div className="relative z-10">
       <style>{`
         /* El portal: un resplandor magenta que respira detrás del título.
@@ -79,20 +91,14 @@ export default function Invitacion() {
 
       {/* ─── Apertura ─────────────────────────────────────────────────────── */}
       <section className="relative flex min-h-[92svh] items-center overflow-hidden px-6">
-        <div className="absolute inset-0">
-          {heroImage && (
-            <img src={heroImage} alt="" className="h-full w-full object-cover opacity-35" />
-          )}
-          {/* Resplandor del portal */}
-          <div
-            className="inv-portal pointer-events-none absolute left-1/2 top-1/2 h-[80vmin] w-[80vmin] -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              background: "radial-gradient(circle, rgba(229,0,125,0.55) 0%, rgba(120,0,70,0.25) 40%, transparent 70%)",
-              filter: "blur(70px)",
-            }}
-          />
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#050507] via-transparent to-[#050507]" />
-        </div>
+        {/* El fondo lo pone la capa general de la página (ver arriba). Aquí
+            solo va la imagen propia del hero, si se cargó una. */}
+        {heroImage && (
+          <div className="pointer-events-none absolute inset-0">
+            <img src={heroImage} alt="" className="h-full w-full object-cover opacity-30" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#050507]/60 via-transparent to-[#050507]" />
+          </div>
+        )}
 
         <div className="relative z-10 mx-auto w-full max-w-3xl text-center">
           <motion.p
@@ -104,15 +110,28 @@ export default function Invitacion() {
             <Sparkles size={13} /> Una invitación para ti
           </motion.p>
 
-          <motion.h1
+          <motion.div
             initial={{ opacity: 0, y: 26 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-            className="text-[clamp(2.8rem,12vw,7rem)] font-black uppercase leading-[0.85] tracking-[-0.04em]"
-            style={{ textShadow: "0 0 80px rgba(229,0,125,0.45)" }}
           >
-            Isekai<br />World
-          </motion.h1>
+            {logo ? (
+              <img
+                src={logo}
+                alt="Isekai World"
+                className="mx-auto w-full max-w-[380px] object-contain sm:max-w-[460px]"
+                style={{ filter: "drop-shadow(0 0 60px rgba(229,0,125,0.5))" }}
+              />
+            ) : (
+              // Si aún no hay logo cargado, la invitación no se ve rota
+              <h1
+                className="text-[clamp(2.8rem,12vw,7rem)] font-black uppercase leading-[0.85] tracking-[-0.04em]"
+                style={{ textShadow: "0 0 80px rgba(229,0,125,0.45)" }}
+              >
+                Isekai<br />World
+              </h1>
+            )}
+          </motion.div>
 
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -182,7 +201,6 @@ export default function Invitacion() {
           {imagenCierre && (
             <img src={imagenCierre} alt="" className="h-full w-full object-cover opacity-25" />
           )}
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_100%_at_50%_100%,rgba(229,0,125,0.35)_0%,transparent_65%)]" />
         </div>
 
         <motion.div {...aparecer} className="relative z-10 mx-auto max-w-2xl text-center">
