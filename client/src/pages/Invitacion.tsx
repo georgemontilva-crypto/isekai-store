@@ -178,7 +178,7 @@ export default function Invitacion() {
 
       {/* ─── Bloques ──────────────────────────────────────────────────────── */}
       {bloques.map((b, i) => (
-        <section key={b.titulo} className="mx-auto max-w-3xl px-6 py-10 sm:py-12">
+        <section key={b.titulo} className="mx-auto max-w-3xl px-6 py-7 sm:py-9">
           {/* Imagen que antecede a "El próximo mundo está por abrirse" */}
           {i === 1 && imagenPrevia && (
             <motion.div {...aparecer} className="mb-10 overflow-hidden rounded-3xl border border-white/10">
@@ -196,18 +196,6 @@ export default function Invitacion() {
           </motion.div>
 
           {/* Imagen entre bloques, si está cargada */}
-          {i === 0 && imagenMedia && (
-            // Espacio para un personaje: contenida y centrada, sin ocupar el
-            // ancho completo. Sin recorte, para que la figura se vea entera.
-            <motion.div {...aparecer} className="mt-8 flex justify-center">
-              <img
-                src={imagenMedia}
-                alt=""
-                className="max-h-[340px] w-auto max-w-[260px] object-contain sm:max-h-[420px] sm:max-w-[300px]"
-                style={{ filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.6))" }}
-              />
-            </motion.div>
-          )}
         </section>
       ))}
 
@@ -220,6 +208,17 @@ export default function Invitacion() {
         </div>
 
         <motion.div {...aparecer} className="relative z-10 mx-auto max-w-2xl text-center">
+          {/* El personaje encabeza el cierre: la figura y las tres frases
+              funcionan como una sola imagen final. */}
+          {imagenMedia && (
+            <img
+              src={imagenMedia}
+              alt=""
+              className="mx-auto mb-6 max-h-[340px] w-auto max-w-[260px] object-contain sm:max-h-[420px] sm:max-w-[300px]"
+              style={{ filter: "drop-shadow(0 18px 40px rgba(0,0,0,0.6))" }}
+            />
+          )}
+
           <div className="mb-8 space-y-1 text-[clamp(1.8rem,7vw,3.4rem)] font-black uppercase leading-[0.9] tracking-tight">
             <p>Tu personaje.</p>
             <p className="text-white/60">Tu historia.</p>
