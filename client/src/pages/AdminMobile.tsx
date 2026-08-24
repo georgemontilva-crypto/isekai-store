@@ -15,7 +15,7 @@ import QuotesSection from '@/components/admin/QuotesSection';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -1798,6 +1798,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
+        { label: 'Tasa del día', tab: 'tasa'        as MobileTab, icon: DollarSign },
         { label: 'Cotizaciones', tab: 'quotes'      as MobileTab, icon: FileText },
         { label: 'Comentarios',  tab: 'comments'    as MobileTab, icon: MessageCircle },
       ],
@@ -2135,6 +2136,103 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
 }
 
 
+
+// ============ TASA DEL DÍA ============
+/**
+ * Tasa Bs/USD. Es lo que se le muestra al cliente en el popup de Pago Móvil,
+ * así que conviene poder cambiarla desde el teléfono: es un dato que se
+ * actualiza a diario y casi nunca estás frente a la computadora.
+ */
+function TasaSection() {
+  const { user, isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
+  const { data: settings } = trpc.settings.getAll.useQuery();
+  const [valor, setValor] = useState<string | null>(null);
+
+  const guardar = trpc.settings.upsert.useMutation({
+    onSuccess: () => { utils.settings.getAll.invalidate(); },
+    onError: () => toast.error('No se pudo guardar'),
+  });
+
+  const actual = settings?.['bs_rate'] ?? '';
+  const enPantalla = valor ?? actual;
+  const actualizada = settings?.['bs_rate_updated'];
+
+  const aplicar = async (nuevo: string) => {
+    await guardar.mutateAsync({ key: 'bs_rate', value: nuevo });
+    await guardar.mutateAsync({ key: 'bs_rate_updated', value: nuevo ? new Date().toISOString() : '' });
+    toast.success(nuevo ? 'Tasa actualizada' : 'Tasa desactivada');
+    setValor(null);
+  };
+
+  if (!isAuthenticated || user?.role !== 'admin') return null;
+
+  return (
+    <div className="p-4 flex flex-col gap-4">
+      <div className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+        <p className="text-sm font-bold text-[var(--iw-text)] mb-1">Bolívares por 1 USD</p>
+        <p className="text-xs text-[var(--iw-text-muted)] mb-3">
+          Se muestra en el popup de Pago Móvil para que el cliente sepa cuánto transferir.
+          Los pedidos se siguen guardando en dólares.
+        </p>
+
+        <input
+          type="text"
+          inputMode="decimal"
+          value={enPantalla}
+          onChange={e => setValor(e.target.value.replace(/[^0-9.]/g, ''))}
+          placeholder="36.50"
+          className="w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+          style={{ minHeight: 52, fontSize: 20, fontWeight: 800 }}
+        />
+
+        <button
+          onClick={() => aplicar(enPantalla.trim())}
+          disabled={guardar.isPending || enPantalla.trim() === actual}
+          className="mt-3 w-full rounded-xl bg-[#e5007d] text-white font-bold text-sm disabled:bg-[var(--iw-border)] disabled:text-[var(--iw-text-muted)]"
+          style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}
+        >
+          {guardar.isPending ? 'Guardando...' : 'Guardar tasa'}
+        </button>
+
+        {actual && (
+          <>
+            <p className="mt-3 text-xs text-[var(--iw-text-muted)]">
+              Tasa activa: <strong className="text-[#e5007d]">Bs {parseFloat(actual).toLocaleString('es-VE', { minimumFractionDigits: 2 })}</strong> por USD
+              {actualizada && (
+                <> · actualizada el {new Date(actualizada).toLocaleString('es-VE', { dateStyle: 'short', timeStyle: 'short' })}</>
+              )}
+            </p>
+            <button
+              onClick={() => { if (confirm('¿Quitar la tasa? Dejará de mostrarse el monto en bolívares.')) aplicar(''); }}
+              className="mt-2 text-xs font-bold text-red-500"
+            >
+              Quitar tasa
+            </button>
+          </>
+        )}
+      </div>
+
+      {/* Cálculo rápido: comprobar cuánto es un monto concreto */}
+      {actual && (
+        <div className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+          <p className="text-sm font-bold text-[var(--iw-text)] mb-2">Equivalencias</p>
+          <div className="flex flex-col gap-1.5">
+            {[5, 10, 25, 50, 100].map(usd => (
+              <div key={usd} className="flex items-center justify-between text-sm">
+                <span className="text-[var(--iw-text-muted)]">${usd} USD</span>
+                <span className="font-bold text-[var(--iw-text)]">
+                  Bs {(usd * parseFloat(actual)).toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ============ SUSCRIPTORES ============
 function SubscribersSection() {
   const [filtro, setFiltro] = useState<'all' | 'worldfest' | 'newsletter'>('all');
@@ -2373,13 +2471,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2440,6 +2538,7 @@ export default function AdminMobile() {
         {activeTab === 'subscribers' && <SubscribersSection />}
         {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'quotes'      && <QuotesSection />}
+        {activeTab === 'tasa'        && <TasaSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
         {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
       </PullToRefresh>
