@@ -906,7 +906,10 @@ export const appRouter = router({
 
     // Admin: update a setting key/value pair (validates non-empty value)
     upsert: adminProcedure
-      .input(z.object({ key: z.string().min(1), value: z.string().min(1) }))
+      // El valor puede ir VACÍO: es la forma de quitar una imagen asignada
+      // (banners, slides del hero, etc.). Antes se exigía min(1) y el botón
+      // "Quitar" del gestor de medios no hacía nada.
+      .input(z.object({ key: z.string().min(1), value: z.string().max(4096) }))
       .mutation(({ input }) => upsertSetting(input.key, input.value)),
 
     // Proxy Instagram Basic Display API to avoid CORS (token stays server-side)
