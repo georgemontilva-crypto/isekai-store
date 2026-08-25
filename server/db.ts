@@ -1102,9 +1102,18 @@ const DISCOUNT_COSTS: Record<number, number> = {
 export async function getApprovedCosplayers() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cosplayers)
+
+  const filas = await db.select().from(cosplayers)
     .where(eq(cosplayers.isActive, true))
     .orderBy(desc(cosplayers.approvedAt));
+
+  // El perfil interno del dueño nunca sale en el directorio público, aunque
+  // quedara marcado como activo: se crea solo para previsualizar el panel de
+  // cosplayers, no es un cosplayer real del Guild.
+  const admins = await db.select({ id: users.id }).from(users).where(eq(users.role, 'admin'));
+  const idsAdmin = new Set(admins.map(a => a.id));
+
+  return filas.filter(c => !c.userId || !idsAdmin.has(c.userId));
 }
 
 export async function getCosplayerByUserId(userId: number) {
