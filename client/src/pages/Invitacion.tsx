@@ -81,10 +81,13 @@ export default function Invitacion() {
             las partículas (era la causa de que casi no se vieran). */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#050507] via-[#050507]/55 to-[#050507]" />
 
-        {/* Auroras moradas: dos velos anchos y difusos que ondulan muy lento.
-            En modo "screen" suman luz en vez de tapar, como una aurora real. */}
-        <div className="inv-aurora inv-aurora-1" />
-        <div className="inv-aurora inv-aurora-2" />
+        {/* Estelas de luz: líneas finas y difusas que cruzan la pantalla en
+            diagonal, muy lento. No son manchas de color, son trazos. */}
+        <div className="inv-estelas">
+          {Array.from({ length: 7 }, (_, i) => (
+            <span key={i} className={`inv-e inv-e-${i + 1}`} />
+          ))}
+        </div>
 
         {/* Partículas: puntos de luz que suben despacio. Son elementos con
             animación CSS — sin lienzo ni JavaScript, así que no consumen. */}
@@ -104,37 +107,39 @@ export default function Invitacion() {
         }
         .inv-portal { animation: inv-portal 12s ease-in-out infinite; will-change: transform; }
 
-        /* ── Auroras moradas ── */
-        @keyframes inv-aurora-a {
-          0%   { transform: translate3d(-8%, 0, 0) rotate(-6deg) scaleY(1);    opacity: 0.6; }
-          50%  { transform: translate3d(6%, -4%, 0) rotate(-2deg) scaleY(1.3); opacity: 1; }
-          100% { transform: translate3d(-4%, 3%, 0) rotate(-8deg) scaleY(1.1); opacity: 0.7; }
+        /* ── Estelas de luz ──
+           Líneas finas que cruzan en diagonal y se desvanecen en los extremos.
+           Solo se anima transform y opacity: no cuesta rendimiento. */
+        @keyframes inv-estela {
+          0%   { transform: translate3d(-30%, 0, 0) scaleX(0.6); opacity: 0; }
+          15%  { opacity: 0.9; }
+          70%  { opacity: 0.7; }
+          100% { transform: translate3d(35%, 0, 0) scaleX(1.15); opacity: 0; }
         }
-        @keyframes inv-aurora-b {
-          0%   { transform: translate3d(6%, 4%, 0) rotate(7deg) scaleY(1.2);  opacity: 0.55; }
-          50%  { transform: translate3d(-8%, -2%, 0) rotate(3deg) scaleY(0.9); opacity: 0.95; }
-          100% { transform: translate3d(4%, 5%, 0) rotate(9deg) scaleY(1.25); opacity: 0.6; }
-        }
-        .inv-aurora {
+        .inv-estelas { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .inv-e {
           position: absolute;
-          left: -25%;
-          width: 150%;
-          height: 55vh;
-          filter: blur(70px);
-          mix-blend-mode: screen;
-          pointer-events: none;
+          left: -20%;
+          width: 140%;
+          height: 1px;
+          background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(190,130,255,0.55) 22%,
+            rgba(240,200,255,0.9) 50%,
+            rgba(190,130,255,0.55) 78%,
+            transparent 100%);
+          filter: blur(0.5px);
+          animation: inv-estela linear infinite;
           will-change: transform, opacity;
         }
-        .inv-aurora-1 {
-          top: 4%;
-          background: linear-gradient(100deg, transparent 0%, rgba(165,75,255,0.95) 28%, rgba(229,0,125,0.75) 62%, transparent 100%);
-          animation: inv-aurora-a 26s ease-in-out infinite alternate;
-        }
-        .inv-aurora-2 {
-          bottom: 6%;
-          background: linear-gradient(80deg, transparent 0%, rgba(140,55,240,0.85) 32%, rgba(200,60,220,0.65) 70%, transparent 100%);
-          animation: inv-aurora-b 34s ease-in-out infinite alternate;
-        }
+        /* Cada estela con su inclinación, altura, ritmo y retraso propios */
+        .inv-e-1 { top: 12%; transform-origin: left; rotate: -14deg; animation-duration: 17s; animation-delay: 0s;   }
+        .inv-e-2 { top: 26%; rotate: -8deg;  animation-duration: 23s; animation-delay: 4s;  height: 2px; }
+        .inv-e-3 { top: 39%; rotate: -18deg; animation-duration: 20s; animation-delay: 9s;  }
+        .inv-e-4 { top: 54%; rotate: -6deg;  animation-duration: 27s; animation-delay: 2s;  }
+        .inv-e-5 { top: 67%; rotate: -15deg; animation-duration: 19s; animation-delay: 13s; height: 2px; }
+        .inv-e-6 { top: 80%; rotate: -10deg; animation-duration: 25s; animation-delay: 7s;  }
+        .inv-e-7 { top: 92%; rotate: -16deg; animation-duration: 22s; animation-delay: 16s; }
 
         /* ── Partículas ── */
         @keyframes inv-flotar {
@@ -176,13 +181,14 @@ export default function Invitacion() {
         .inv-p-18 { left: 84%; animation-duration: 19s; animation-delay: 20s;  }
 
         @media (prefers-reduced-motion: reduce) {
-          .inv-portal, .inv-aurora, .inv-p { animation: none; }
+          .inv-portal, .inv-e, .inv-p { animation: none; }
           .inv-p { opacity: 0.5; }
+          .inv-e { opacity: 0.35; }
         }
       `}</style>
 
       {/* ─── Apertura ─────────────────────────────────────────────────────── */}
-      <section className="relative flex min-h-[92svh] items-center overflow-hidden px-6">
+      <section className="relative flex min-h-[92svh] items-center overflow-hidden px-6 pb-10" style={{ paddingTop: "calc(env(safe-area-inset-top) + 4.5rem)" }}>
         {/* El fondo lo pone la capa general de la página (ver arriba). Aquí
             solo va la imagen propia del hero, si se cargó una. */}
         {heroImage && (
