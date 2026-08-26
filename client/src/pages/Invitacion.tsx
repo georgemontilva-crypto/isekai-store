@@ -63,7 +63,7 @@ export default function Invitacion() {
           que una sola imagen cubra el recorrido completo sin repetirse ni
           estirarse, y con un velo oscuro encima que garantiza que el texto
           se lea sobre cualquier imagen. */}
-      <div className="pointer-events-none fixed inset-0 z-0">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[#050507]">
         {fondoGeneral && (
           <img src={fondoGeneral} alt="" className="h-full w-full object-cover opacity-30" />
         )}
@@ -77,21 +77,22 @@ export default function Invitacion() {
             filter: "blur(70px)",
           }}
         />
-        {/* Auroras moradas: dos velos anchos y difusos que ondulan muy lento
-            por detrás de todo. Van en modo "screen" para que sumen luz en vez
-            de tapar, como una aurora real. */}
+        {/* El degradado va PRIMERO: si se dibuja encima, apaga las auroras y
+            las partículas (era la causa de que casi no se vieran). */}
+        <div className="absolute inset-0 bg-gradient-to-b from-[#050507] via-[#050507]/55 to-[#050507]" />
+
+        {/* Auroras moradas: dos velos anchos y difusos que ondulan muy lento.
+            En modo "screen" suman luz en vez de tapar, como una aurora real. */}
         <div className="inv-aurora inv-aurora-1" />
         <div className="inv-aurora inv-aurora-2" />
 
-        {/* Partículas: puntos de luz que suben despacio. Son 14 elementos con
+        {/* Partículas: puntos de luz que suben despacio. Son elementos con
             animación CSS — sin lienzo ni JavaScript, así que no consumen. */}
         <div className="inv-particulas">
-          {Array.from({ length: 14 }, (_, i) => (
+          {Array.from({ length: 18 }, (_, i) => (
             <span key={i} className={`inv-p inv-p-${i + 1}`} />
           ))}
         </div>
-
-        <div className="absolute inset-0 bg-gradient-to-b from-[#050507] via-[#050507]/55 to-[#050507]" />
       </div>
       <div className="relative z-10">
       <style>{`
@@ -105,51 +106,51 @@ export default function Invitacion() {
 
         /* ── Auroras moradas ── */
         @keyframes inv-aurora-a {
-          0%   { transform: translate3d(-8%, 0, 0) rotate(-6deg) scaleY(1);    opacity: 0.35; }
-          50%  { transform: translate3d(6%, -4%, 0) rotate(-2deg) scaleY(1.3); opacity: 0.6; }
-          100% { transform: translate3d(-4%, 3%, 0) rotate(-8deg) scaleY(1.1); opacity: 0.4; }
+          0%   { transform: translate3d(-8%, 0, 0) rotate(-6deg) scaleY(1);    opacity: 0.6; }
+          50%  { transform: translate3d(6%, -4%, 0) rotate(-2deg) scaleY(1.3); opacity: 1; }
+          100% { transform: translate3d(-4%, 3%, 0) rotate(-8deg) scaleY(1.1); opacity: 0.7; }
         }
         @keyframes inv-aurora-b {
-          0%   { transform: translate3d(6%, 4%, 0) rotate(7deg) scaleY(1.2);  opacity: 0.3; }
-          50%  { transform: translate3d(-8%, -2%, 0) rotate(3deg) scaleY(0.9); opacity: 0.55; }
-          100% { transform: translate3d(4%, 5%, 0) rotate(9deg) scaleY(1.25); opacity: 0.32; }
+          0%   { transform: translate3d(6%, 4%, 0) rotate(7deg) scaleY(1.2);  opacity: 0.55; }
+          50%  { transform: translate3d(-8%, -2%, 0) rotate(3deg) scaleY(0.9); opacity: 0.95; }
+          100% { transform: translate3d(4%, 5%, 0) rotate(9deg) scaleY(1.25); opacity: 0.6; }
         }
         .inv-aurora {
           position: absolute;
           left: -25%;
           width: 150%;
           height: 55vh;
-          filter: blur(80px);
+          filter: blur(70px);
           mix-blend-mode: screen;
           pointer-events: none;
           will-change: transform, opacity;
         }
         .inv-aurora-1 {
           top: 4%;
-          background: linear-gradient(100deg, transparent 0%, rgba(150,60,255,0.5) 30%, rgba(229,0,125,0.4) 60%, transparent 100%);
+          background: linear-gradient(100deg, transparent 0%, rgba(165,75,255,0.95) 28%, rgba(229,0,125,0.75) 62%, transparent 100%);
           animation: inv-aurora-a 26s ease-in-out infinite alternate;
         }
         .inv-aurora-2 {
           bottom: 6%;
-          background: linear-gradient(80deg, transparent 0%, rgba(120,40,220,0.45) 35%, rgba(180,50,200,0.35) 70%, transparent 100%);
+          background: linear-gradient(80deg, transparent 0%, rgba(140,55,240,0.85) 32%, rgba(200,60,220,0.65) 70%, transparent 100%);
           animation: inv-aurora-b 34s ease-in-out infinite alternate;
         }
 
         /* ── Partículas ── */
         @keyframes inv-flotar {
           0%   { transform: translate3d(0, 0, 0);            opacity: 0; }
-          10%  { opacity: 0.9; }
-          85%  { opacity: 0.5; }
+          10%  { opacity: 1; }
+          85%  { opacity: 0.8; }
           100% { transform: translate3d(14px, -75vh, 0);     opacity: 0; }
         }
         .inv-particulas { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
         .inv-p {
           position: absolute;
           bottom: -10px;
-          width: 3px; height: 3px;
+          width: 4px; height: 4px;
           border-radius: 9999px;
-          background: #d98cff;
-          box-shadow: 0 0 8px 2px rgba(190,110,255,0.75);
+          background: #efd6ff;
+          box-shadow: 0 0 12px 4px rgba(200,130,255,0.9);
           animation: inv-flotar linear infinite;
           will-change: transform, opacity;
         }
@@ -168,7 +169,11 @@ export default function Invitacion() {
         .inv-p-11 { left: 80%; animation-duration: 27s; animation-delay: 4s;   width: 2px; height: 2px; }
         .inv-p-12 { left: 87%; animation-duration: 20s; animation-delay: 10s;  }
         .inv-p-13 { left: 93%; animation-duration: 23s; animation-delay: 6s;   }
-        .inv-p-14 { left: 98%; animation-duration: 26s; animation-delay: 16s;  width: 2px; height: 2px; }
+        .inv-p-14 { left: 98%; animation-duration: 26s; animation-delay: 16s;  width: 3px; height: 3px; }
+        .inv-p-15 { left: 10%; animation-duration: 29s; animation-delay: 11s;  width: 5px; height: 5px; }
+        .inv-p-16 { left: 34%; animation-duration: 15s; animation-delay: 18s;  }
+        .inv-p-17 { left: 63%; animation-duration: 31s; animation-delay: 13s;  width: 5px; height: 5px; }
+        .inv-p-18 { left: 84%; animation-duration: 19s; animation-delay: 20s;  }
 
         @media (prefers-reduced-motion: reduce) {
           .inv-portal, .inv-aurora, .inv-p { animation: none; }
