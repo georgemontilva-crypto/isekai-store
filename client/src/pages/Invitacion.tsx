@@ -206,8 +206,8 @@ export default function Invitacion() {
               <img
                 src={logo}
                 alt="Isekai World"
-                className="mx-auto w-full max-w-[210px] object-contain sm:max-w-[260px]"
-                style={{ filter: "drop-shadow(0 0 36px rgba(229,0,125,0.5))" }}
+                className="mx-auto w-full max-w-[190px] object-contain sm:max-w-[200px] lg:max-w-[220px]"
+                style={{ filter: "drop-shadow(0 0 28px rgba(229,0,125,0.5))" }}
               />
             ) : (
               // Si aún no hay logo cargado, la invitación no se ve rota
