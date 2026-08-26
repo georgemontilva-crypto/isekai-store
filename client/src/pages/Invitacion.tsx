@@ -77,6 +77,20 @@ export default function Invitacion() {
             filter: "blur(70px)",
           }}
         />
+        {/* Auroras moradas: dos velos anchos y difusos que ondulan muy lento
+            por detrás de todo. Van en modo "screen" para que sumen luz en vez
+            de tapar, como una aurora real. */}
+        <div className="inv-aurora inv-aurora-1" />
+        <div className="inv-aurora inv-aurora-2" />
+
+        {/* Partículas: puntos de luz que suben despacio. Son 14 elementos con
+            animación CSS — sin lienzo ni JavaScript, así que no consumen. */}
+        <div className="inv-particulas">
+          {Array.from({ length: 14 }, (_, i) => (
+            <span key={i} className={`inv-p inv-p-${i + 1}`} />
+          ))}
+        </div>
+
         <div className="absolute inset-0 bg-gradient-to-b from-[#050507] via-[#050507]/55 to-[#050507]" />
       </div>
       <div className="relative z-10">
@@ -89,7 +103,77 @@ export default function Invitacion() {
         }
         .inv-portal { animation: inv-portal 12s ease-in-out infinite; will-change: transform; }
 
-        @media (prefers-reduced-motion: reduce) { .inv-portal { animation: none; } }
+        /* ── Auroras moradas ── */
+        @keyframes inv-aurora-a {
+          0%   { transform: translate3d(-8%, 0, 0) rotate(-6deg) scaleY(1);    opacity: 0.35; }
+          50%  { transform: translate3d(6%, -4%, 0) rotate(-2deg) scaleY(1.3); opacity: 0.6; }
+          100% { transform: translate3d(-4%, 3%, 0) rotate(-8deg) scaleY(1.1); opacity: 0.4; }
+        }
+        @keyframes inv-aurora-b {
+          0%   { transform: translate3d(6%, 4%, 0) rotate(7deg) scaleY(1.2);  opacity: 0.3; }
+          50%  { transform: translate3d(-8%, -2%, 0) rotate(3deg) scaleY(0.9); opacity: 0.55; }
+          100% { transform: translate3d(4%, 5%, 0) rotate(9deg) scaleY(1.25); opacity: 0.32; }
+        }
+        .inv-aurora {
+          position: absolute;
+          left: -25%;
+          width: 150%;
+          height: 55vh;
+          filter: blur(80px);
+          mix-blend-mode: screen;
+          pointer-events: none;
+          will-change: transform, opacity;
+        }
+        .inv-aurora-1 {
+          top: 4%;
+          background: linear-gradient(100deg, transparent 0%, rgba(150,60,255,0.5) 30%, rgba(229,0,125,0.4) 60%, transparent 100%);
+          animation: inv-aurora-a 26s ease-in-out infinite alternate;
+        }
+        .inv-aurora-2 {
+          bottom: 6%;
+          background: linear-gradient(80deg, transparent 0%, rgba(120,40,220,0.45) 35%, rgba(180,50,200,0.35) 70%, transparent 100%);
+          animation: inv-aurora-b 34s ease-in-out infinite alternate;
+        }
+
+        /* ── Partículas ── */
+        @keyframes inv-flotar {
+          0%   { transform: translate3d(0, 0, 0);            opacity: 0; }
+          10%  { opacity: 0.9; }
+          85%  { opacity: 0.5; }
+          100% { transform: translate3d(14px, -75vh, 0);     opacity: 0; }
+        }
+        .inv-particulas { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+        .inv-p {
+          position: absolute;
+          bottom: -10px;
+          width: 3px; height: 3px;
+          border-radius: 9999px;
+          background: #d98cff;
+          box-shadow: 0 0 8px 2px rgba(190,110,255,0.75);
+          animation: inv-flotar linear infinite;
+          will-change: transform, opacity;
+        }
+        /* Cada punto con su posición, ritmo y retraso: sin esto se verían
+           subir en formación, que delata el truco. */
+        .inv-p-1  { left: 6%;  animation-duration: 19s; animation-delay: 0s;    }
+        .inv-p-2  { left: 14%; animation-duration: 25s; animation-delay: 3s;   width: 2px; height: 2px; }
+        .inv-p-3  { left: 22%; animation-duration: 16s; animation-delay: 7s;   }
+        .inv-p-4  { left: 29%; animation-duration: 28s; animation-delay: 1.5s; width: 4px; height: 4px; }
+        .inv-p-5  { left: 37%; animation-duration: 21s; animation-delay: 9s;   }
+        .inv-p-6  { left: 44%; animation-duration: 24s; animation-delay: 5s;   width: 2px; height: 2px; }
+        .inv-p-7  { left: 52%; animation-duration: 18s; animation-delay: 12s;  }
+        .inv-p-8  { left: 59%; animation-duration: 30s; animation-delay: 2s;   }
+        .inv-p-9  { left: 66%; animation-duration: 22s; animation-delay: 8s;   width: 4px; height: 4px; }
+        .inv-p-10 { left: 73%; animation-duration: 17s; animation-delay: 14s;  }
+        .inv-p-11 { left: 80%; animation-duration: 27s; animation-delay: 4s;   width: 2px; height: 2px; }
+        .inv-p-12 { left: 87%; animation-duration: 20s; animation-delay: 10s;  }
+        .inv-p-13 { left: 93%; animation-duration: 23s; animation-delay: 6s;   }
+        .inv-p-14 { left: 98%; animation-duration: 26s; animation-delay: 16s;  width: 2px; height: 2px; }
+
+        @media (prefers-reduced-motion: reduce) {
+          .inv-portal, .inv-aurora, .inv-p { animation: none; }
+          .inv-p { opacity: 0.5; }
+        }
       `}</style>
 
       {/* ─── Apertura ─────────────────────────────────────────────────────── */}
