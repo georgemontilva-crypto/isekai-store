@@ -55,12 +55,7 @@ export default function CosplayGuild() {
         {!isLoading && cosplayers.length === 0 && (
           <div className="text-center py-24 border border-[#222] rounded-2xl">
             <p className="text-[#555] text-lg font-semibold mb-2">Aún no hay cosplayers registrados</p>
-            <p className="text-[#888] text-sm mb-6">Sé el primero en representar a Isekai World</p>
-            <Link href="/cosplay/apply">
-              <button className="bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors">
-                Postularme
-              </button>
-            </Link>
+            <p className="text-[#888] text-sm">Muy pronto verás aquí a nuestros cosplayers aliados</p>
           </div>
         )}
 

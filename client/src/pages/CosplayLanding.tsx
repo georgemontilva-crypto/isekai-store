@@ -182,15 +182,6 @@ export default function CosplayLanding() {
             Representa la marca. Gana tickets. Canjea descuentos.
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
-            <Link href="/cosplay/apply">
-              <motion.button
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-                className="inline-flex items-center gap-2 bg-[#e5007d] text-white px-8 py-4 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors"
-              >
-                Quiero ser representante →
-              </motion.button>
-            </Link>
             <Link href="/cosplay/guild">
               <button className="inline-flex items-center gap-2 border border-[#444] text-[#ccc] px-8 py-4 rounded-full font-bold text-sm hover:border-white hover:text-white transition-colors">
                 Ver cosplayers
@@ -427,9 +418,6 @@ export default function CosplayLanding() {
               <h3 className="text-white font-black text-xl mb-1">¿Listo para empezar a ganar?</h3>
               <p className="text-[#888] text-sm">Aplica ahora y empieza a acumular tickets desde tu primera actividad.</p>
             </div>
-            <Link href="/cosplay/apply" className="flex-shrink-0 bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold hover:bg-[#c4006b] transition-colors whitespace-nowrap text-sm">
-              Quiero ser representante
-            </Link>
           </div>
         </div>
       </section>
@@ -473,15 +461,6 @@ export default function CosplayLanding() {
             "De fan para fan.<br />
             <span className="text-[#e5007d]">De cosplayer para cosplayer."</span>
           </p>
-          <Link href="/cosplay/apply">
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              className="mt-10 inline-block bg-[#e5007d] text-white px-10 py-4 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors"
-            >
-              Únete ahora →
-            </motion.button>
-          </Link>
         </motion.div>
       </section>
 

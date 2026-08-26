@@ -265,9 +265,16 @@ export default function CosplayDashboard() {
       <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-6">
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-white mb-3">No eres cosplayer aún</h2>
-          <p className="text-[#888] mb-6">Postúlate al Isekai Cosplay Guild para acceder a este panel.</p>
-          <Link href="/cosplay/apply">
-            <button className="bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors">Postularme</button>
+          {/* El Guild es por invitación: el acceso al formulario llega por QR,
+              así que aquí no se ofrece postularse. */}
+          <p className="text-[#888] mb-6">
+            El Isekai Cosplay Guild es por invitación. Si recibiste una,
+            escanea tu código para acceder al formulario.
+          </p>
+          <Link href="/">
+            <button className="bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors">
+              Ir a la tienda
+            </button>
           </Link>
         </div>
       </div>
