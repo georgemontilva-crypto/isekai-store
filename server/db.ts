@@ -409,8 +409,9 @@ export async function createOrder(data: {
   giftCardCode?: string;
   giftCardDiscount?: string;
   items: Array<{
-    productId: number;
-    variantId?: number;
+    /** Nulo en pedidos que no salen del catálogo, como las cotizaciones */
+    productId?: number | null;
+    variantId?: number | null;
     productName: string;
     variantName?: string;
     price: string;

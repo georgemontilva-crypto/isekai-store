@@ -480,11 +480,15 @@ export const appRouter = router({
           try {
             const anterior = await getOrderById(input.id);
             if (anterior && (anterior as any).status !== 'cancelled') {
-              const lineas = ((anterior as any).items ?? []).map((i: any) => ({
-                productId: i.productId,
-                variantId: i.variantId ?? null,
-                quantity: i.quantity,
-              }));
+              // Se excluyen las líneas sin producto del catálogo (cotizaciones
+              // a medida): no tienen inventario que devolver.
+              const lineas = ((anterior as any).items ?? [])
+                .filter((i: any) => i.productId)
+                .map((i: any) => ({
+                  productId: i.productId,
+                  variantId: i.variantId ?? null,
+                  quantity: i.quantity,
+                }));
               if (lineas.length) await devolverStock(lineas);
             }
           } catch (e) { console.error('[Pedido] No se pudo devolver el stock:', e); }
@@ -1071,9 +1075,13 @@ export const appRouter = router({
         }
 
         // El importe sale de la cotización guardada, nunca del formulario
+        // Las líneas de una cotización NO son productos del catálogo, así que
+        // productId va nulo. Antes iba 0 y la base lo rechazaba: la columna
+        // tiene clave foránea a products y no existe ningún producto con id 0.
         const lineas = ((q.items as any[]) ?? []).map((i: any) => ({
-          productId: 0,
-          productName: `${i.concepto}${i.cantidad > 1 ? ` ×${i.cantidad}` : ""}`,
+          productId: null,
+          variantId: null,
+          productName: String(i.concepto).slice(0, 250),
           price: String(i.precio),
           quantity: Number(i.cantidad) || 1,
         }));

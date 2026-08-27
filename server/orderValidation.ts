@@ -174,6 +174,8 @@ export async function descontarStock(lineas: LineaValidada[]) {
   if (!db) return;
 
   for (const l of lineas) {
+    // Las líneas sin producto (cotizaciones a medida) no mueven inventario
+    if (!l.productId) continue;
     if (l.variantId) {
       const res: any = await db.execute(
         `UPDATE productVariants SET stock = stock - ${l.quantity}
@@ -201,6 +203,8 @@ export async function devolverStock(lineas: Array<{ productId: number; variantId
   const db = await getDb();
   if (!db) return;
   for (const l of lineas) {
+    // Las líneas sin producto (cotizaciones a medida) no mueven inventario
+    if (!l.productId) continue;
     if (l.variantId) {
       await db.execute(`UPDATE productVariants SET stock = stock + ${l.quantity} WHERE id = ${l.variantId}` as any);
     } else {
