@@ -683,6 +683,15 @@ export async function getOrderNotificationUnreadCount(userId: number): Promise<n
   return rows.length;
 }
 
+/** Marca UNA notificación como leída: se usa al tocarla en la campanita */
+export async function markOrderNotificationRead(userId: number, id: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(orderNotifications)
+    .set({ read: true })
+    .where(and(eq(orderNotifications.id, id), eq(orderNotifications.userId, userId)));
+}
+
 export async function markAllOrderNotificationsRead(userId: number): Promise<void> {
   const db = await getDb();
   if (!db) return;
@@ -1736,15 +1745,42 @@ export async function getAllCosplaySubmissions(status?: string) {
     photo: cosplayers.photo,
     activityTitle: cosplayActivities.title,
     activityBasePoints: cosplayActivities.basePoints,
+    // Fase de esta entrega y total de la misión: sin esto el panel mostraba
+    // cada entrega suelta y pedía premiar en cada una, cuando el premio va
+    // al completar todas.
+    phase: cosplaySubmissions.phase,
+    activityPhases: cosplayActivities.phases,
   })
   .from(cosplaySubmissions)
   .leftJoin(cosplayers, eq(cosplaySubmissions.cosplayerId, cosplayers.id))
   .leftJoin(cosplayActivities, eq(cosplaySubmissions.activityId, cosplayActivities.id))
   .orderBy(desc(cosplaySubmissions.createdAt));
-  if (status && status !== 'all') {
-    return query.where(eq(cosplaySubmissions.status, status));
-  }
-  return query;
+
+  const filas = (status && status !== 'all')
+    ? await query.where(eq(cosplaySubmissions.status, status))
+    : await query;
+
+  // Cuántas fases lleva entregadas cada cosplayer en cada misión: con eso el
+  // panel sabe si esta entrega completa la misión o si aún faltan.
+  const todas = await db.select({
+    cosplayerId: cosplaySubmissions.cosplayerId,
+    activityId: cosplaySubmissions.activityId,
+    status: cosplaySubmissions.status,
+  }).from(cosplaySubmissions);
+
+  return filas.map(f => {
+    const delMismo = todas.filter(t => t.cosplayerId === f.cosplayerId && t.activityId === f.activityId);
+    const entregadas = delMismo.filter(t => t.status !== 'rejected').length;
+    const total = f.activityPhases ?? 1;
+    return {
+      ...f,
+      entregadas,
+      totalFases: total,
+      /** Solo la última entrega habilita el premio */
+      esUltimaFase: (f.phase ?? 1) >= total,
+      misionCompleta: entregadas >= total,
+    };
+  });
 }
 
 export async function addEvidenceToSubmission(submissionId: number, additionalUrl: string, cosplayerId?: number) {

@@ -188,6 +188,12 @@ export default function Navbar() {
   const { data: notifList } = trpc.userNotifications.list.useQuery(
     undefined, { enabled: isRegularUser && notifOpen }
   );
+  // Marca solo la notificación tocada: antes había que usar "marcar todas"
+  // y las que no habías abierto quedaban igualmente como vistas.
+  const markOneRead = trpc.userNotifications.markRead.useMutation({
+    onSuccess: () => { utils.userNotifications.list.invalidate(); utils.userNotifications.unreadCount.invalidate(); },
+  });
+
   const markAllRead = trpc.userNotifications.markAllRead.useMutation({
     onSuccess: () => refetchUnread(),
   });
@@ -204,7 +210,8 @@ export default function Navbar() {
   function handleBellClick() {
     const next = !notifOpen;
     setNotifOpen(next);
-    if (next && notifUnread && notifUnread > 0) markAllRead.mutate();
+    // Abrir la campanita ya no marca todo: cada notificación se marca al tocarla
+    void notifUnread;
   }
 
   function formatRelative(date: Date | string) {
@@ -384,6 +391,7 @@ export default function Navbar() {
                             <button
                               key={n.id}
                               onClick={() => {
+                                if (!n.read) markOneRead.mutate({ id: n.id });
                                 setNotifOpen(false);
                                 navigate(destino.href);
                                 // Si el panel YA está montado, cambiar solo los

@@ -38,7 +38,7 @@ import {
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
   markAllAdminNotificationsRead, markAdminNotificationRead,
   insertOrderNotification, getUserOrderNotifications,
-  getOrderNotificationUnreadCount, markAllOrderNotificationsRead,
+  getOrderNotificationUnreadCount, markAllOrderNotificationsRead, markOrderNotificationRead,
   getWishlist, toggleWishlist, isInWishlist,
   getPublicFaqItems, getAllFaqItems, createFaqItem, updateFaqItem, deleteFaqItem,
   submitOrderReceipt, verifyOrderPayment, getOrdersByPaymentStatus,
@@ -1739,6 +1739,11 @@ export const appRouter = router({
     list: protectedProcedure.query(({ ctx }) => getUserOrderNotifications(ctx.user.id)),
 
     unreadCount: protectedProcedure.query(({ ctx }) => getOrderNotificationUnreadCount(ctx.user.id)),
+
+    /** Al tocar una notificación se marca solo esa como leída */
+    markRead: protectedProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ ctx, input }) => markOrderNotificationRead(ctx.user.id, input.id)),
 
     markAllRead: protectedProcedure.mutation(({ ctx }) => markAllOrderNotificationsRead(ctx.user.id)),
   }),

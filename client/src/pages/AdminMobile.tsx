@@ -2196,7 +2196,7 @@ function FinanzasSection() {
         {tarjetas.map(c => (
           <div key={c.label} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3">
             <p className="text-xs text-[var(--iw-text-muted)]">{c.label}</p>
-            <p className={`mt-0.5 text-lg font-black ${c.color}`}>${c.valor.toFixed(2)}</p>
+            <p className={`mt-0.5 text-base font-black tabular-nums leading-tight ${c.color}`} style={{ overflowWrap: "anywhere" }}>${c.valor.toFixed(2)}</p>
           </div>
         ))}
       </div>
@@ -2606,6 +2606,9 @@ export default function AdminMobile() {
   });
   const [showNotifications, setShowNotifications] = useState(false);
   // Adónde saltar tras tocar una notificación (lo consumen las secciones)
+  const marcarLeida = trpc.notifications.markRead.useMutation({
+    onSuccess: () => { utils.notifications.getAll.invalidate(); utils.notifications.unreadCount.invalidate(); },
+  });
   const [cosplayJumpTo, setCosplayJumpTo] = useState<string | null>(null);
   const [orderJumpTo, setOrderJumpTo] = useState<string | null>(null);
   const [cosplayHasModal, setCosplayHasModal] = useState(false);
@@ -2738,6 +2741,7 @@ export default function AdminMobile() {
                 <button
                   key={n.id}
                   onClick={() => {
+                    if (!n.read) marcarLeida.mutate({ id: n.id });
                     setShowNotifications(false);
                     if (destino.tab) setActiveTab(destino.tab as MobileTab);
                     if (destino.sub) setCosplayJumpTo(destino.sub);

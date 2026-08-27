@@ -1252,7 +1252,7 @@ export default function Admin() {
                         <span className="text-sm text-muted-foreground">{m.label}</span>
                         <m.icon className={`w-5 h-5 ${m.color}`} />
                       </div>
-                      <p className={`text-2xl font-bold ${m.color}`}>{m.value}</p>
+                      <p className={`text-xl font-bold tabular-nums leading-tight ${m.color}`} style={{ overflowWrap: "anywhere" }}>{m.value}</p>
                     </motion.div>
                   ))}
                 </div>
@@ -4404,9 +4404,32 @@ export default function Admin() {
                               ))}
                             </div>
                             <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-VE')}</p>
+
+                            {/* En misiones de varias fases, el premio se entrega
+                                al completar la última: aprobar una intermedia
+                                solo la da por buena, sin pagar tickets. */}
+                            {(sub.totalFases ?? 1) > 1 && (
+                              <div className="mb-3 rounded-xl border border-[#e5e5e5] bg-[#fafafa] px-3 py-2">
+                                <p className="text-xs font-bold text-[#111]">
+                                  Fase {sub.phase ?? 1} de {sub.totalFases} · {sub.entregadas ?? 0} entregadas
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-[#888]">
+                                  {sub.esUltimaFase
+                                    ? 'Última fase: al aprobarla se entrega la recompensa completa.'
+                                    : `Faltan ${(sub.totalFases ?? 1) - (sub.entregadas ?? 0)} fase(s). La recompensa se paga al aprobar la última.`}
+                                </p>
+                              </div>
+                            )}
+
                             {sub.status === 'pending' && (
-                              <Button size="sm" className="w-full bg-[#111] text-white text-sm font-bold" onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: sub.activityBasePoints ?? 100, status: 'approved' }); }}>
-                                Evaluar y aprobar
+                              <Button
+                                size="sm"
+                                className="w-full bg-[#111] text-white text-sm font-bold"
+                                onClick={() => { setShowEvalModal(sub); setEvalForm({ pointsAwarded: sub.activityBasePoints ?? 100, status: 'approved' }); }}
+                              >
+                                {(sub.totalFases ?? 1) > 1 && !sub.esUltimaFase
+                                  ? `Aprobar fase ${sub.phase ?? 1}`
+                                  : 'Evaluar y aprobar'}
                               </Button>
                             )}
                           </div>
