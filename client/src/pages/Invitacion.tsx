@@ -81,14 +81,6 @@ export default function Invitacion() {
             las partículas (era la causa de que casi no se vieran). */}
         <div className="absolute inset-0 bg-gradient-to-b from-[#050507] via-[#050507]/55 to-[#050507]" />
 
-        {/* Estelas de luz: líneas finas y difusas que cruzan la pantalla en
-            diagonal, muy lento. No son manchas de color, son trazos. */}
-        <div className="inv-estelas">
-          {Array.from({ length: 7 }, (_, i) => (
-            <span key={i} className={`inv-e inv-e-${i + 1}`} />
-          ))}
-        </div>
-
         {/* Partículas: puntos de luz que suben despacio. Son elementos con
             animación CSS — sin lienzo ni JavaScript, así que no consumen. */}
         <div className="inv-particulas">
@@ -106,40 +98,6 @@ export default function Invitacion() {
           50%      { transform: translate3d(0,-3%,0) scale(1.18); opacity: 0.9; }
         }
         .inv-portal { animation: inv-portal 12s ease-in-out infinite; will-change: transform; }
-
-        /* ── Estelas de luz ──
-           Líneas finas que cruzan en diagonal y se desvanecen en los extremos.
-           Solo se anima transform y opacity: no cuesta rendimiento. */
-        @keyframes inv-estela {
-          0%   { transform: translate3d(-30%, 0, 0) scaleX(0.6); opacity: 0; }
-          15%  { opacity: 0.9; }
-          70%  { opacity: 0.7; }
-          100% { transform: translate3d(35%, 0, 0) scaleX(1.15); opacity: 0; }
-        }
-        .inv-estelas { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
-        .inv-e {
-          position: absolute;
-          left: -20%;
-          width: 140%;
-          height: 1px;
-          background: linear-gradient(90deg,
-            transparent 0%,
-            rgba(190,130,255,0.55) 22%,
-            rgba(240,200,255,0.9) 50%,
-            rgba(190,130,255,0.55) 78%,
-            transparent 100%);
-          filter: blur(0.5px);
-          animation: inv-estela linear infinite;
-          will-change: transform, opacity;
-        }
-        /* Cada estela con su inclinación, altura, ritmo y retraso propios */
-        .inv-e-1 { top: 12%; transform-origin: left; rotate: -14deg; animation-duration: 17s; animation-delay: 0s;   }
-        .inv-e-2 { top: 26%; rotate: -8deg;  animation-duration: 23s; animation-delay: 4s;  height: 2px; }
-        .inv-e-3 { top: 39%; rotate: -18deg; animation-duration: 20s; animation-delay: 9s;  }
-        .inv-e-4 { top: 54%; rotate: -6deg;  animation-duration: 27s; animation-delay: 2s;  }
-        .inv-e-5 { top: 67%; rotate: -15deg; animation-duration: 19s; animation-delay: 13s; height: 2px; }
-        .inv-e-6 { top: 80%; rotate: -10deg; animation-duration: 25s; animation-delay: 7s;  }
-        .inv-e-7 { top: 92%; rotate: -16deg; animation-duration: 22s; animation-delay: 16s; }
 
         /* ── Partículas ── */
         @keyframes inv-flotar {
@@ -181,9 +139,8 @@ export default function Invitacion() {
         .inv-p-18 { left: 84%; animation-duration: 19s; animation-delay: 20s;  }
 
         @media (prefers-reduced-motion: reduce) {
-          .inv-portal, .inv-e, .inv-p { animation: none; }
+          .inv-portal, .inv-p { animation: none; }
           .inv-p { opacity: 0.5; }
-          .inv-e { opacity: 0.35; }
         }
       `}</style>
 
