@@ -67,7 +67,7 @@ import {
 import { notifyWelcome } from "./_core/notification";
 
 // ─── File upload validation ───────────────────────────────────────────────────
-const ALLOWED_MIME_TYPES = ['image/jpeg','image/png','image/webp','image/gif','image/svg+xml','application/pdf','video/mp4','video/webm'];
+const ALLOWED_MIME_TYPES = ['image/jpeg','image/jpg','image/png','image/webp','image/gif','image/svg+xml','image/heic','image/heif','image/avif','application/pdf','video/mp4','video/webm'];
 const VIDEO_MIME_TYPES = ['video/mp4','video/webm'];
 const MAGIC_BYTES: Record<string, Buffer[]> = {
   'image/jpeg': [Buffer.from([0xFF, 0xD8, 0xFF])],
@@ -80,7 +80,10 @@ const MAX_VIDEO_UPLOAD_BYTES = 60 * 1024 * 1024; // 60 MB para video de fondo
 
 function validateUpload(contentType: string, buffer: Buffer) {
   if (!ALLOWED_MIME_TYPES.includes(contentType))
-    throw new TRPCError({ code: 'BAD_REQUEST', message: 'Tipo de archivo no permitido' });
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: `Formato no admitido${contentType ? ` (${contentType})` : ''}. Usa una imagen JPG, PNG o un PDF.`,
+    });
   const isVideo = VIDEO_MIME_TYPES.includes(contentType);
   const limit = isVideo ? MAX_VIDEO_UPLOAD_BYTES : MAX_UPLOAD_BYTES;
   if (buffer.length > limit)

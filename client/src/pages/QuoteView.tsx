@@ -65,7 +65,7 @@ export default function QuoteView() {
 
   const archivo = async (f: File | null) => {
     if (!f) return;
-    if (f.size > 10 * 1024 * 1024) { toast.error("El archivo no puede superar 10 MB"); return; }
+    if (f.size > 10 * 1024 * 1024) { toast.error("La imagen supera 10 MB. Prueba con una captura o reduce su tamaño."); return; }
     setSubiendo(true);
     try {
       const base64 = await new Promise<string>((res, rej) => {
@@ -74,13 +74,24 @@ export default function QuoteView() {
         r.onerror = () => rej(new Error("read"));
         r.readAsDataURL(f);
       });
+      // Algunos navegadores no informan el tipo del archivo: se deduce por
+      // la extensión para que la subida no falle por eso.
+      const tipo = f.type || (
+        /\.pdf$/i.test(f.name) ? "application/pdf" :
+        /\.png$/i.test(f.name) ? "image/png" :
+        /\.(heic|heif)$/i.test(f.name) ? "image/heic" :
+        "image/jpeg"
+      );
+
       const { url } = await subirComprobante.mutateAsync({
-        fileName: f.name, fileType: f.type, fileBase64: base64,
+        fileName: f.name, fileType: tipo, fileBase64: base64,
       });
       setComprobante(url);
       toast.success("Comprobante cargado");
-    } catch {
-      toast.error("No se pudo subir el comprobante");
+    } catch (e: any) {
+      // Se muestra el motivo real: antes salía siempre el mismo mensaje y no
+      // había forma de saber qué había fallado.
+      toast.error(e?.message ?? "No se pudo subir el comprobante");
     } finally {
       setSubiendo(false);
     }
