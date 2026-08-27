@@ -2212,19 +2212,30 @@ function FinanzasSection() {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        {([['all', 'Todas'], ['verifying', 'Por verificar'], ['approved', 'Cobradas'], ['pending', 'Pendientes']] as const).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setFiltro(id)}
-            className={`px-3.5 rounded-full text-xs font-bold transition-colors ${
-              filtro === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
-            }`}
-            style={{ minHeight: 40, WebkitTapHighlightColor: 'transparent' }}
+      {/* Filtro como desplegable: cuatro pastillas ocupaban dos líneas y se
+          veían apretadas en pantalla estrecha. El <select> nativo además abre
+          la rueda del sistema, que es más cómoda con el pulgar. */}
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <select
+            value={filtro}
+            onChange={e => setFiltro(e.target.value as any)}
+            className="w-full appearance-none rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+            style={{ minHeight: 48 }}
           >
-            {label}
-          </button>
-        ))}
+            <option value="all">Todas las transacciones</option>
+            <option value="verifying">Por verificar</option>
+            <option value="approved">Cobradas</option>
+            <option value="pending">Pendientes</option>
+          </select>
+          <ChevronDown
+            size={16}
+            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--iw-text-muted)]"
+          />
+        </div>
+        <span className="shrink-0 text-xs text-[var(--iw-text-muted)]">
+          {(tx as any[]).length}
+        </span>
       </div>
 
       {(tx as any[]).length === 0 ? (
@@ -2395,19 +2406,20 @@ function SubscribersSection() {
   return (
     <div className="p-4 flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        {([['all', 'Todos'], ['worldfest', 'World Fest'], ['newsletter', 'Newsletter']] as const).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setFiltro(id)}
-            className={`px-3.5 py-2 rounded-full text-xs font-bold transition-colors ${
-              filtro === id ? 'bg-[#111] text-white' : 'bg-white border border-[#e5e5e5] text-[#666]'
-            }`}
-            style={{ minHeight: 40, WebkitTapHighlightColor: 'transparent' }}
+        <div className="relative flex-1">
+          <select
+            value={filtro}
+            onChange={e => setFiltro(e.target.value as any)}
+            className="w-full appearance-none rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+            style={{ minHeight: 48 }}
           >
-            {label}
-          </button>
-        ))}
-        <span className="ml-auto text-xs text-[#999]">{(subs as any[]).length}</span>
+            <option value="all">Todos los correos</option>
+            <option value="worldfest">World Fest</option>
+            <option value="newsletter">Newsletter</option>
+          </select>
+          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--iw-text-muted)]" />
+        </div>
+        <span className="shrink-0 text-xs text-[var(--iw-text-muted)]">{(subs as any[]).length}</span>
       </div>
 
       {(subs as any[]).length === 0 ? (
@@ -2493,19 +2505,20 @@ function CommentsSection() {
   return (
     <div className="p-4 flex flex-col gap-3">
       <div className="flex flex-wrap items-center gap-2">
-        {([['pending', 'Pendientes'], ['approved', 'Publicados'], ['all', 'Todos']] as const).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setFiltro(id)}
-            className={`px-3.5 rounded-full text-xs font-bold transition-colors ${
-              filtro === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[#999]'
-            }`}
-            style={{ minHeight: 40, WebkitTapHighlightColor: 'transparent' }}
+        <div className="relative flex-1">
+          <select
+            value={filtro}
+            onChange={e => setFiltro(e.target.value as any)}
+            className="w-full appearance-none rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+            style={{ minHeight: 48 }}
           >
-            {label}
-          </button>
-        ))}
-        <span className="ml-auto text-xs text-[#999]">{(comentarios as any[]).length}</span>
+            <option value="pending">Pendientes de revisar</option>
+            <option value="approved">Publicados</option>
+            <option value="all">Todos</option>
+          </select>
+          <ChevronDown size={16} className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[var(--iw-text-muted)]" />
+        </div>
+        <span className="shrink-0 text-xs text-[var(--iw-text-muted)]">{(comentarios as any[]).length}</span>
       </div>
 
       {(comentarios as any[]).length === 0 ? (
