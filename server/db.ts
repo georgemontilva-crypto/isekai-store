@@ -2624,3 +2624,33 @@ export async function getFinanceSummary() {
     cantidadPorVerificar,
   };
 }
+
+/**
+ * Elimina un pedido y sus líneas. Se usa para limpiar duplicados o pruebas.
+ *
+ * Si el pedido no estaba cancelado, primero devuelve el stock reservado: de lo
+ * contrario esas unidades quedarían descontadas para siempre sin venta detrás.
+ */
+export async function deleteOrder(id: number) {
+  const db = await getDb();
+  if (!db) return { ok: false };
+
+  const pedido = await getOrderById(id);
+  if (!pedido) return { ok: false };
+
+  if ((pedido as any).status !== 'cancelled') {
+    const lineas = (((pedido as any).items) ?? [])
+      .filter((i: any) => i.productId)
+      .map((i: any) => ({ productId: i.productId, variantId: i.variantId ?? null, quantity: i.quantity }));
+    if (lineas.length) {
+      try {
+        const { devolverStock } = await import('./orderValidation');
+        await devolverStock(lineas);
+      } catch (e) { console.error('[Pedido] No se pudo devolver el stock al eliminar:', e); }
+    }
+  }
+
+  await db.delete(orderItems).where(eq(orderItems.orderId, id));
+  await db.delete(orders).where(eq(orders.id, id));
+  return { ok: true };
+}

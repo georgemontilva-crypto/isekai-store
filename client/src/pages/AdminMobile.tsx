@@ -126,6 +126,12 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
   );
   const orders = ordersData?.items ?? [];
 
+  const utils = trpc.useUtils();
+  const borrarPedido = trpc.orders.delete.useMutation({
+    onSuccess: () => { refetch(); utils.finance.transactions.invalidate(); utils.finance.summary.invalidate(); toast.success('Pedido eliminado'); },
+    onError: (e) => toast.error(e.message),
+  });
+
   // Llega desde una notificación: despliega ese pedido concreto
   useEffect(() => {
     if (!jumpTo || orders.length === 0) return;
@@ -270,6 +276,21 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
                     );
                   })}
                 </div>
+
+                {/* Eliminar el pedido: para duplicados o pruebas. Devuelve el
+                    stock si el pedido no estaba cancelado. */}
+                <button
+                  onClick={() => {
+                    if (confirm(`¿Eliminar el pedido ${order.orderNumber}? Esta acción no se puede deshacer.`)) {
+                      borrarPedido.mutate({ id: order.id });
+                    }
+                  }}
+                  disabled={borrarPedido.isPending}
+                  className="mt-4 w-full rounded-xl border border-red-500/40 text-xs font-bold text-red-500 active:scale-95 transition-transform disabled:opacity-50"
+                  style={{ minHeight: 44 }}
+                >
+                  Eliminar pedido
+                </button>
               </div>
             )}
           </div>
@@ -1798,7 +1819,6 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
-        { label: 'Finanzas',     tab: 'finanzas'    as MobileTab, icon: TrendingUp },
         { label: 'Tasa del día', tab: 'tasa'        as MobileTab, icon: DollarSign },
         { label: 'Cotizaciones', tab: 'quotes'      as MobileTab, icon: FileText },
         { label: 'Comentarios',  tab: 'comments'    as MobileTab, icon: MessageCircle },
@@ -2595,7 +2615,7 @@ export default function AdminMobile() {
   const TABS = [
     { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
     { id: 'orders' as MobileTab,   label: 'Pedidos',   icon: ShoppingBag },
-    { id: 'payments' as MobileTab, label: 'Pagos',     icon: CreditCard,  badge: pendingPaymentsCount },
+    { id: 'finanzas' as MobileTab, label: 'Finanzas',  icon: CreditCard,  badge: pendingPaymentsCount },
     { id: 'cosplay' as MobileTab,  label: 'Cosplay',   icon: Sparkles,    badge: (pendingCosplay as any[]).length },
     { id: 'products' as MobileTab, label: 'Productos', icon: Package },
     { id: 'more' as MobileTab,     label: 'Más',       icon: Menu },

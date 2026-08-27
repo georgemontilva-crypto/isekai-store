@@ -779,6 +779,17 @@ export default function Admin() {
     { enabled: isAuthenticated && user?.role === "admin" },
   );
 
+  const deleteOrder = trpc.orders.delete.useMutation({
+    onSuccess: () => {
+      refetchOrders();
+      utils.finance.transactions.invalidate();
+      utils.finance.summary.invalidate();
+      utils.admin.metrics.invalidate();
+      toast.success("Pedido eliminado");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const setOrderArchived = trpc.orders.setArchived.useMutation({
     onSuccess: (_d, vars) => {
       refetchOrders();
@@ -1819,6 +1830,20 @@ export default function Admin() {
                                   onSaved={() => { refetchOrders(); }}
                                   onClose={() => setExpandedOrderId(null)}
                                 />
+
+                                {/* Eliminar: para duplicados o pruebas. Si el
+                                    pedido no estaba cancelado, el stock vuelve. */}
+                                <button
+                                  onClick={() => {
+                                    if (confirm(`¿Eliminar el pedido ${order.orderNumber}? Esta acción no se puede deshacer.`)) {
+                                      deleteOrder.mutate({ id: order.id });
+                                    }
+                                  }}
+                                  disabled={deleteOrder.isPending}
+                                  className="mt-4 rounded-full border border-red-200 px-5 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50 disabled:opacity-50"
+                                >
+                                  Eliminar pedido
+                                </button>
                               </div>
                             </motion.div>
                           )}

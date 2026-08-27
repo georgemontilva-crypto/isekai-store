@@ -27,7 +27,7 @@ import {
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
-  createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders,
+  createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders, deleteOrder,
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
@@ -451,6 +451,11 @@ export const appRouter = router({
       .query(({ input }) => getOrders({ limit: 100, ...input })),
 
     /** Archiva o desarchiva un pedido (sigue existiendo, sale de la bandeja activa) */
+    /** Elimina un pedido definitivamente (duplicados, pruebas) */
+    delete: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => deleteOrder(input.id)),
+
     setArchived: adminProcedure
       .input(z.object({ id: z.number(), archived: z.boolean() }))
       .mutation(({ input }) => setOrderArchived(input.id, input.archived)),
