@@ -32,6 +32,7 @@ import {
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
   createQuote, getQuoteByToken, getAllQuotes, updateQuote, deleteQuote, vincularCuentaPorCorreo,
+  getTransactions, getFinanceSummary,
   ensureOwnCosplayerProfile, setOwnCosplayerVisibility, getOwnCosplayerVisibility,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
@@ -1005,6 +1006,14 @@ export const appRouter = router({
         }
         return { success: true, mailchimp: true };
       }),
+  }),
+
+  // ─── Finanzas ────────────────────────────────────────────────────────────────
+  finance: router({
+    summary: adminProcedure.query(() => getFinanceSummary()),
+    transactions: adminProcedure
+      .input(z.object({ estado: z.string().optional() }).optional())
+      .query(({ input }) => getTransactions({ estado: input?.estado })),
   }),
 
   // ─── Cotizaciones ────────────────────────────────────────────────────────────

@@ -2548,3 +2548,79 @@ export async function vincularCuentaPorCorreo(email: string, nombre?: string) {
   const [creado] = await db.select().from(users).where(eq(users.email, correo)).limit(1);
   return { user: creado, creada: true };
 }
+
+// ─── Finanzas ─────────────────────────────────────────────────────────────────
+
+/**
+ * Historial de transacciones: todo el dinero que ha entrado, de dónde vino y
+ * en qué estado está. Antes solo existía el total de ingresos en el panel, sin
+ * forma de ver el detalle ni de entender por qué una venta no sumaba.
+ */
+export async function getTransactions(opts?: { estado?: string; limit?: number }) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const condiciones = [];
+  if (opts?.estado && opts.estado !== 'all') {
+    condiciones.push(eq(orders.paymentStatus, opts.estado as any));
+  }
+
+  const filas = await db.select().from(orders)
+    .where(condiciones.length ? and(...condiciones) : undefined)
+    .orderBy(desc(orders.createdAt))
+    .limit(opts?.limit ?? 200);
+
+  return filas.map(o => ({
+    id: o.id,
+    orderNumber: o.orderNumber,
+    customerName: o.customerName,
+    customerEmail: o.customerEmail,
+    total: o.total,
+    amountPaid: o.amountPaid,
+    paymentStatus: o.paymentStatus,
+    paymentMethod: o.paymentMethod,
+    receiptUrl: o.receiptUrl,
+    paymentReference: o.paymentReference,
+    receiptHolder: o.receiptHolder,
+    status: o.status,
+    notes: o.notes,
+    // Una cotización se reconoce por su nota: sirve para separarlas en el panel
+    esCotizacion: Boolean(o.notes && o.notes.startsWith('Cotización ')),
+    createdAt: o.createdAt,
+  }));
+}
+
+/** Resumen de dinero: cobrado, por verificar y pendiente */
+export async function getFinanceSummary() {
+  const db = await getDb();
+  if (!db) return { cobrado: 0, porVerificar: 0, pendiente: 0, parcial: 0, cantidadPorVerificar: 0 };
+
+  const [resetRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, 'revenue_reset_at')).limit(1);
+  const resetAt = resetRow?.value ? new Date(resetRow.value) : null;
+  const desdeCorte = resetAt && !isNaN(resetAt.getTime()) ? gte(orders.createdAt, resetAt) : undefined;
+
+  const todas = await db.select().from(orders).where(desdeCorte);
+
+  let cobrado = 0, porVerificar = 0, pendiente = 0, parcial = 0, cantidadPorVerificar = 0;
+
+  for (const o of todas) {
+    const total = parseFloat(o.total as any) || 0;
+    const pagado = parseFloat((o.amountPaid as any) ?? '0') || 0;
+    if (o.status === 'cancelled') continue;
+
+    switch (o.paymentStatus) {
+      case 'approved': cobrado += total; break;
+      case 'partial':  parcial += pagado; cobrado += pagado; break;
+      case 'verifying': porVerificar += total; cantidadPorVerificar++; break;
+      default: pendiente += total;
+    }
+  }
+
+  return {
+    cobrado: Math.round(cobrado * 100) / 100,
+    porVerificar: Math.round(porVerificar * 100) / 100,
+    pendiente: Math.round(pendiente * 100) / 100,
+    parcial: Math.round(parcial * 100) / 100,
+    cantidadPorVerificar,
+  };
+}

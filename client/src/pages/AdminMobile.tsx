@@ -15,7 +15,7 @@ import QuotesSection from '@/components/admin/QuotesSection';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -1798,6 +1798,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
+        { label: 'Finanzas',     tab: 'finanzas'    as MobileTab, icon: TrendingUp },
         { label: 'Tasa del día', tab: 'tasa'        as MobileTab, icon: DollarSign },
         { label: 'Cotizaciones', tab: 'quotes'      as MobileTab, icon: FileText },
         { label: 'Comentarios',  tab: 'comments'    as MobileTab, icon: MessageCircle },
@@ -2137,6 +2138,139 @@ function NewOrderSection({ onBack, onSuccess }: { onBack: () => void; onSuccess:
 
 
 
+
+// ============ FINANZAS ============
+/**
+ * Historial de transacciones y resumen de dinero. Responde a la pregunta
+ * "¿cuánto me entró y qué falta por cobrar?", que antes no tenía respuesta
+ * en el panel: solo existía un total de ingresos sin detalle.
+ */
+function FinanzasSection() {
+  const { user, isAuthenticated } = useAuth();
+  const utils = trpc.useUtils();
+  const [filtro, setFiltro] = useState<'all' | 'verifying' | 'approved' | 'pending'>('all');
+
+  const habilitado = isAuthenticated && user?.role === 'admin';
+  const { data: resumen } = trpc.finance.summary.useQuery(undefined, { enabled: habilitado });
+  const { data: tx = [] } = trpc.finance.transactions.useQuery({ estado: filtro }, { enabled: habilitado });
+
+  const confirmar = trpc.orders.verifyPayment.useMutation({
+    onSuccess: () => {
+      utils.finance.summary.invalidate();
+      utils.finance.transactions.invalidate();
+      toast.success('Pago confirmado');
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
+  const tarjetas = [
+    { label: 'Cobrado', valor: resumen?.cobrado ?? 0, color: 'text-green-500' },
+    { label: 'Por verificar', valor: resumen?.porVerificar ?? 0, color: 'text-[#d9a400]' },
+    { label: 'Pendiente', valor: resumen?.pendiente ?? 0, color: 'text-[var(--iw-text-muted)]' },
+    { label: 'Abonos', valor: resumen?.parcial ?? 0, color: 'text-[#1a6fbd]' },
+  ];
+
+  return (
+    <div className="p-4 flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-2">
+        {tarjetas.map(c => (
+          <div key={c.label} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3">
+            <p className="text-xs text-[var(--iw-text-muted)]">{c.label}</p>
+            <p className={`mt-0.5 text-lg font-black ${c.color}`}>${c.valor.toFixed(2)}</p>
+          </div>
+        ))}
+      </div>
+
+      {(resumen?.cantidadPorVerificar ?? 0) > 0 && (
+        <div className="rounded-2xl border border-[#d9a400]/40 bg-[#d9a400]/10 p-3">
+          <p className="text-sm font-bold text-[var(--iw-text)]">
+            {resumen?.cantidadPorVerificar} pago(s) esperando verificación
+          </p>
+          <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">
+            Hasta que los confirmes no cuentan como ingreso.
+          </p>
+        </div>
+      )}
+
+      <div className="flex flex-wrap gap-2">
+        {([['all', 'Todas'], ['verifying', 'Por verificar'], ['approved', 'Cobradas'], ['pending', 'Pendientes']] as const).map(([id, label]) => (
+          <button
+            key={id}
+            onClick={() => setFiltro(id)}
+            className={`px-3.5 rounded-full text-xs font-bold transition-colors ${
+              filtro === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
+            }`}
+            style={{ minHeight: 40, WebkitTapHighlightColor: 'transparent' }}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
+      {(tx as any[]).length === 0 ? (
+        <p className="py-12 text-center text-sm text-[var(--iw-text-muted)]">No hay transacciones en este filtro.</p>
+      ) : (
+        (tx as any[]).map((t: any) => (
+          <div key={t.id} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+            <div className="mb-2 flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="mb-1 flex flex-wrap items-center gap-1.5">
+                  <span className="font-mono text-[10px] text-[var(--iw-text-muted)]">{t.orderNumber}</span>
+                  {t.esCotizacion && (
+                    <span className="rounded-full bg-[#e5007d]/15 px-2 py-0.5 text-[9px] font-bold text-[#e5007d]">Cotización</span>
+                  )}
+                  <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${
+                    t.paymentStatus === 'approved' ? 'bg-green-500/15 text-green-500'
+                    : t.paymentStatus === 'verifying' ? 'bg-yellow-500/15 text-[#d9a400]'
+                    : 'bg-[var(--iw-border)] text-[var(--iw-text-muted)]'
+                  }`}>
+                    {t.paymentStatus === 'approved' ? 'Cobrado' : t.paymentStatus === 'verifying' ? 'Por verificar' : 'Pendiente'}
+                  </span>
+                </div>
+                <p className="text-sm font-bold text-[var(--iw-text)] truncate">{t.customerName}</p>
+                <p className="text-[11px] text-[var(--iw-text-muted)]">
+                  {new Date(t.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+              <p className="shrink-0 font-black text-[var(--iw-text)]">${parseFloat(t.total).toFixed(2)}</p>
+            </div>
+
+            {t.receiptUrl ? (
+              <div className="border-t border-[var(--iw-border)] pt-3">
+                <a href={t.receiptUrl} target="_blank" rel="noreferrer" className="flex items-center gap-3">
+                  {t.receiptUrl.toLowerCase().endsWith('.pdf') ? (
+                    <span className="text-xs font-bold text-[#e5007d]">Ver comprobante (PDF)</span>
+                  ) : (
+                    <>
+                      <img src={t.receiptUrl} alt="Comprobante" className="h-20 w-20 rounded-xl border border-[var(--iw-border)] object-cover" />
+                      <span className="text-xs font-bold text-[#e5007d]">Ver completo</span>
+                    </>
+                  )}
+                </a>
+                {t.receiptHolder && (
+                  <p className="mt-2 text-xs text-[var(--iw-text-muted)]">Titular: <strong>{t.receiptHolder}</strong></p>
+                )}
+                {t.paymentStatus === 'verifying' && (
+                  <button
+                    onClick={() => confirmar.mutate({ orderId: t.id, approved: true })}
+                    disabled={confirmar.isPending}
+                    className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white"
+                    style={{ minHeight: 46 }}
+                  >
+                    Confirmar pago
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="border-t border-[var(--iw-border)] pt-3 text-xs text-[var(--iw-text-muted)]">Sin comprobante</p>
+            )}
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 // ============ TASA DEL DÍA ============
 /**
  * Tasa Bs/USD. Es lo que se le muestra al cliente en el popup de Pago Móvil,
@@ -2471,13 +2605,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2539,6 +2673,7 @@ export default function AdminMobile() {
         {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'quotes'      && <QuotesSection />}
         {activeTab === 'tasa'        && <TasaSection />}
+        {activeTab === 'finanzas'    && <FinanzasSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
         {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
       </PullToRefresh>
