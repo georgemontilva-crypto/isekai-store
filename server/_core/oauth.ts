@@ -7,6 +7,7 @@ import { getSessionCookieOptions } from "./cookies";
 import { ENV } from "./env";
 import { notifyWelcome, sendMagicLinkEmail } from "./notification";
 import * as db from "../db";
+import { rolPorCorreo, vincularUsuarioTienda } from "../tickets";
 
 const GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -77,12 +78,18 @@ export function registerOAuthRoutes(app: Express): void {
         email,
         name,
         loginMethod: "google",
-        role:        isOwner(email) ? "admin" : "user",
+        role:        isOwner(email) ? "admin" : ((await rolPorCorreo(email)) ?? "user"),
         lastSignedIn: new Date(),
       });
       if (!existingUser) {
         notifyWelcome(email, name).catch((e) => console.warn("[Auth] Welcome email error:", e));
       }
+
+      // Si el correo pertenece a una tienda autorizada, se vincula su usuario
+      try {
+        const u = await db.getUserByOpenId(openId);
+        if (u) await vincularUsuarioTienda(email, u.id);
+      } catch (e) { console.warn("[Auth] No se pudo vincular la tienda:", e); }
 
       await setSessionCookie(req, res, openId, name ?? "");
       res.redirect("/?welcome=1");
@@ -141,12 +148,18 @@ export function registerOAuthRoutes(app: Express): void {
         email,
         name,
         loginMethod: "magic_link",
-        role:        isOwner(email) ? "admin" : "user",
+        role:        isOwner(email) ? "admin" : ((await rolPorCorreo(email)) ?? "user"),
         lastSignedIn: new Date(),
       });
       if (!existingUser) {
         notifyWelcome(email, name).catch((e) => console.warn("[Auth] Welcome email error:", e));
       }
+
+      // Vincular con su tienda si el correo está autorizado
+      try {
+        const u = await db.getUserByOpenId(openId);
+        if (u) await vincularUsuarioTienda(email, u.id);
+      } catch (e) { console.warn("[Auth] No se pudo vincular la tienda:", e); }
 
       await setSessionCookie(req, res, openId, name);
       res.redirect("/?welcome=1");

@@ -399,3 +399,27 @@ export async function borrarTienda(id: number) {
   await db.delete(stores).where(eq(stores.id, id));
   return { desactivada: false };
 }
+
+/**
+ * Rol que le corresponde a un correo al iniciar sesión.
+ *
+ * Al autorizar una tienda se crea su usuario con un identificador propio, pero
+ * cuando la persona entra con Google el sistema usa OTRO identificador y creaba
+ * un usuario nuevo con rol normal: la tienda quedaba sin acceso. Aquí se
+ * comprueba por correo y se le devuelve el rol correcto.
+ */
+export async function rolPorCorreo(email: string): Promise<"store" | null> {
+  const db = await getDb();
+  if (!db || !email) return null;
+  const correo = email.trim().toLowerCase();
+  const [tienda] = await db.select().from(stores).where(eq(stores.email, correo)).limit(1);
+  return tienda ? "store" : null;
+}
+
+/** Vincula el usuario recién logueado con su tienda */
+export async function vincularUsuarioTienda(email: string, userId: number) {
+  const db = await getDb();
+  if (!db || !email) return;
+  const correo = email.trim().toLowerCase();
+  await db.update(stores).set({ userId }).where(eq(stores.email, correo));
+}

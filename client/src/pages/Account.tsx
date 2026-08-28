@@ -191,6 +191,29 @@ export default function Account() {
           </div>
         )}
 
+        {/* ── Portal de tienda ──
+            Si el usuario es una tienda autorizada, aquí tiene su acceso: sin
+            esto tendría que recordar la dirección /vender. */}
+        {user?.role === "store" && (
+          <div className="w-full max-w-2xl mx-auto mb-6 px-4">
+            <Link
+              href="/vender"
+              className="flex items-center justify-between w-full bg-[#0d0d0d] text-white px-5 py-4 rounded-2xl hover:bg-[#1a1a1a] transition-colors border border-[#e5007d]/40 group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-[#e5007d]/10 border border-[#e5007d]/30 flex items-center justify-center flex-shrink-0">
+                  <Ticket size={16} className="text-[#e5007d]" />
+                </div>
+                <div>
+                  <p className="font-bold text-sm">Vender boletos</p>
+                  <p className="text-[#888] text-xs">Escanea el QR y registra al comprador</p>
+                </div>
+              </div>
+              <ChevronRight size={16} className="text-[#555] group-hover:text-white transition-colors" />
+            </Link>
+          </div>
+        )}
+
         {/* ── Tabs pills ── */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
