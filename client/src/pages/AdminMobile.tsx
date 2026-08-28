@@ -124,7 +124,13 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
     statusFilter !== 'all' ? { status: statusFilter } : undefined,
     { enabled: isAuthenticated && user?.role === 'admin' },
   );
-  const orders = ordersData?.items ?? [];
+  const todosLosPedidos = ordersData?.items ?? [];
+  /** Los kits de cosplayer (IW-KIT) se listan aparte de las ventas reales */
+  const esKit = (o: any) => String(o.orderNumber ?? '').startsWith('IW-KIT-');
+  const [tipoLista, setTipoLista] = useState<'ventas' | 'kits'>('ventas');
+  const orders = todosLosPedidos.filter((o: any) => tipoLista === 'kits' ? esKit(o) : !esKit(o));
+  const nKits = todosLosPedidos.filter(esKit).length;
+  const nVentas = todosLosPedidos.length - nKits;
 
   const utils = trpc.useUtils();
   const borrarPedido = trpc.orders.delete.useMutation({
@@ -177,6 +183,22 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
         {orders.length === 0 && (
           <div className="text-center py-16 text-[#999] text-sm">No hay pedidos</div>
         )}
+        {/* Ventas vs kits */}
+        <div className="flex gap-2">
+          {([['ventas', `Ventas (${nVentas})`], ['kits', `Kits (${nKits})`]] as const).map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setTipoLista(id)}
+              className={`flex-1 rounded-xl text-xs font-bold transition-colors ${
+                tipoLista === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
+              }`}
+              style={{ minHeight: 44, WebkitTapHighlightColor: 'transparent' }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
         {orders.map((order: any) => (
           <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm">
 
@@ -2188,6 +2210,15 @@ function FinanzasSection() {
     onSuccess: () => { utils.orders.abonosPendientes.invalidate(); toast.success('Abono rechazado'); },
   });
 
+  const borrarTx = trpc.orders.delete.useMutation({
+    onSuccess: () => {
+      utils.finance.summary.invalidate();
+      utils.finance.transactions.invalidate();
+      toast.success('Transacción eliminada');
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const [abonoPara, setAbonoPara] = useState<number | null>(null);
   const [abonoMonto, setAbonoMonto] = useState('');
   const abonar = trpc.orders.registrarAbono.useMutation({
@@ -2392,6 +2423,18 @@ function FinanzasSection() {
             ) : (
               <p className="border-t border-[var(--iw-border)] pt-3 text-xs text-[var(--iw-text-muted)]">Sin comprobante</p>
             )}
+
+            {/* Eliminar transacción de prueba */}
+            <button
+              onClick={() => {
+                if (confirm(`¿Eliminar ${t.orderNumber}? Deja de contar en los totales.`)) {
+                  borrarTx.mutate({ id: t.id });
+                }
+              }}
+              className="mt-3 text-[11px] font-bold text-red-400"
+            >
+              Eliminar esta transacción
+            </button>
 
             {/* Registrar abono cuando queda saldo pendiente */}
             {(() => {

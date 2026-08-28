@@ -642,6 +642,10 @@ export default function Admin() {
   const [editingCategory, setEditingCategory] = useState<any | null>(null);
   const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
   const [ordersView, setOrdersView] = useState<"active" | "archived">("active");
+  /** Los kits de cosplayer son pedidos de $0 con prefijo IW-KIT: se separan
+      para que no ensucien la lista de ventas reales. */
+  const [ordersKind, setOrdersKind] = useState<"ventas" | "kits">("ventas");
+  const esKit = (o: any) => String(o.orderNumber ?? "").startsWith("IW-KIT-");
   const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'|'withdrawals'>('applications');
   const [blogSubTab, setBlogSubTab] = useState<'posts' | 'categories' | 'comments'>('posts');
 
@@ -1783,6 +1787,8 @@ export default function Admin() {
                 </div>
                 {(() => {
                   const filteredOrders = orders.filter(order => {
+                    // Kits y ventas van en listas separadas
+                    if (ordersKind === "kits" ? !esKit(order) : esKit(order)) return false;
                     const q = orderSearch.toLowerCase();
                     if (!q) return true;
                     return (
@@ -1791,8 +1797,24 @@ export default function Admin() {
                       order.customerEmail?.toLowerCase().includes(q)
                     );
                   });
+                  const totalKits = orders.filter(esKit).length;
+                  const totalVentas = orders.length - totalKits;
                   return (
                 <div className="space-y-3">
+                  {/* Ventas vs kits */}
+                  <div className="mb-4 flex gap-2">
+                    {([["ventas", `Ventas (${totalVentas})`], ["kits", `Kits de cosplayer (${totalKits})`]] as const).map(([id, label]) => (
+                      <button
+                        key={id}
+                        onClick={() => setOrdersKind(id)}
+                        className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
+                          ordersKind === id ? "bg-[#e5007d] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                   {filteredOrders.map((order) => {
                     const isExpanded = expandedOrderId === order.id;
                     return (
@@ -2495,6 +2517,18 @@ export default function Admin() {
                         ) : (
                           <p className="mt-3 border-t border-[#f0f0f0] pt-3 text-xs text-[#999]">Sin comprobante adjunto</p>
                         )}
+
+                        {/* Eliminar transacción: para limpiar pruebas viejas */}
+                        <button
+                          onClick={() => {
+                            if (confirm(`¿Eliminar ${t.orderNumber}? Se borra el pedido y deja de contar en los totales.`)) {
+                              deleteOrder.mutate({ id: t.id });
+                            }
+                          }}
+                          className="mt-3 text-[11px] font-bold text-red-400 hover:text-red-500 hover:underline"
+                        >
+                          Eliminar esta transacción
+                        </button>
 
                         {/* Registrar abono: suma al pagado y ajusta el estado.
                             Si con este abono se completa el total, el pedido
