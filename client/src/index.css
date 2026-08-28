@@ -2455,3 +2455,24 @@ html.dark {
 @media (prefers-reduced-motion: reduce) {
   .iw-humo span { animation: none; }
 }
+
+/* ── Evitar el zoom automático en móvil ───────────────────────────────────
+   Safari en iOS hace zoom al enfocar cualquier campo cuya tipografía sea
+   menor de 16px, y luego NO vuelve a su sitio: la página queda ampliada.
+   Se cubren todos los campos, incluidos los que no declaran `type` (que por
+   defecto son de texto) y los que usan componentes de shadcn. */
+@media (max-width: 900px) {
+  input, textarea, select,
+  [contenteditable="true"],
+  .input, [role="textbox"] {
+    font-size: 16px !important;
+  }
+}
+
+/* El doble toque sobre botones y enlaces también amplía la página en iOS.
+   `manipulation` conserva el desplazamiento y el pellizco, pero desactiva
+   ese gesto de doble toque, que aquí nunca es intencional. */
+button, a, [role="button"], label,
+input[type="checkbox"], input[type="radio"], select {
+  touch-action: manipulation;
+}
