@@ -2174,6 +2174,19 @@ function FinanzasSection() {
   const { data: resumen } = trpc.finance.summary.useQuery(undefined, { enabled: habilitado });
   const { data: tx = [] } = trpc.finance.transactions.useQuery({ estado: filtro }, { enabled: habilitado });
 
+  const [abonoPara, setAbonoPara] = useState<number | null>(null);
+  const [abonoMonto, setAbonoMonto] = useState('');
+  const abonar = trpc.orders.registrarAbono.useMutation({
+    onSuccess: (r) => {
+      utils.finance.summary.invalidate();
+      utils.finance.transactions.invalidate();
+      setAbonoPara(null);
+      setAbonoMonto('');
+      toast.success(r.completo ? 'Pedido cobrado por completo' : `Abono registrado · Saldo: $${r.saldo.toFixed(2)}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const confirmar = trpc.orders.verifyPayment.useMutation({
     onSuccess: () => {
       utils.finance.summary.invalidate();
@@ -2307,6 +2320,62 @@ function FinanzasSection() {
             ) : (
               <p className="border-t border-[var(--iw-border)] pt-3 text-xs text-[var(--iw-text-muted)]">Sin comprobante</p>
             )}
+
+            {/* Registrar abono cuando queda saldo pendiente */}
+            {(() => {
+              const pagado = parseFloat(t.amountPaid ?? '0');
+              const saldo = Math.round((parseFloat(t.total) - pagado) * 100) / 100;
+              if (saldo <= 0.01 || t.status === 'cancelled') return null;
+              return (
+                <div className="mt-3 border-t border-[var(--iw-border)] pt-3">
+                  {abonoPara === t.id ? (
+                    <div className="flex flex-col gap-2">
+                      <input
+                        autoFocus
+                        inputMode="decimal"
+                        value={abonoMonto}
+                        onChange={e => setAbonoMonto(e.target.value.replace(/[^0-9.]/g, ''))}
+                        placeholder={`Abono recibido (saldo $${saldo.toFixed(2)})`}
+                        className="w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+                        style={{ minHeight: 46 }}
+                      />
+                      <button
+                        onClick={() => setAbonoMonto(saldo.toFixed(2))}
+                        className="rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
+                        style={{ minHeight: 42 }}
+                      >
+                        Pagó todo el saldo (${saldo.toFixed(2)})
+                      </button>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => { setAbonoPara(null); setAbonoMonto(''); }}
+                          className="flex-1 rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
+                          style={{ minHeight: 44 }}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => abonar.mutate({ orderId: t.id, monto: parseFloat(abonoMonto || '0') })}
+                          disabled={!parseFloat(abonoMonto || '0') || abonar.isPending}
+                          className="flex-1 rounded-xl bg-[#e5007d] text-xs font-bold text-white disabled:opacity-40"
+                          style={{ minHeight: 44 }}
+                        >
+                          Registrar
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => { setAbonoPara(t.id); setAbonoMonto(''); }}
+                      className="w-full rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
+                      style={{ minHeight: 44 }}
+                    >
+                      Registrar abono · Saldo ${saldo.toFixed(2)}
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         ))
       )}

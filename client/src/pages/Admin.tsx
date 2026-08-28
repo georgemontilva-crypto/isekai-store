@@ -779,6 +779,21 @@ export default function Admin() {
     { enabled: isAuthenticated && user?.role === "admin" },
   );
 
+  const [abonoPara, setAbonoPara] = useState<number | null>(null);
+  const [abonoMonto, setAbonoMonto] = useState("");
+  const registrarAbono = trpc.orders.registrarAbono.useMutation({
+    onSuccess: (r) => {
+      utils.finance.summary.invalidate();
+      utils.finance.transactions.invalidate();
+      utils.admin.metrics.invalidate();
+      refetchOrders();
+      setAbonoPara(null);
+      setAbonoMonto("");
+      toast.success(r.completo ? "Pedido cobrado por completo" : `Abono registrado · Saldo: $${r.saldo.toFixed(2)}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const deleteOrder = trpc.orders.delete.useMutation({
     onSuccess: () => {
       refetchOrders();
@@ -2398,6 +2413,55 @@ export default function Admin() {
                         ) : (
                           <p className="mt-3 border-t border-[#f0f0f0] pt-3 text-xs text-[#999]">Sin comprobante adjunto</p>
                         )}
+
+                        {/* Registrar abono: suma al pagado y ajusta el estado.
+                            Si con este abono se completa el total, el pedido
+                            pasa a cobrado automáticamente. */}
+                        {(() => {
+                          const pagado = parseFloat(t.amountPaid ?? "0");
+                          const saldo = Math.round((parseFloat(t.total) - pagado) * 100) / 100;
+                          if (saldo <= 0.01 || t.status === "cancelled") return null;
+                          return (
+                            <div className="mt-3 border-t border-[#f0f0f0] pt-3">
+                              {abonoPara === t.id ? (
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-xs text-[#666]">Abono recibido: $</span>
+                                  <Input
+                                    autoFocus
+                                    inputMode="decimal"
+                                    value={abonoMonto}
+                                    onChange={e => setAbonoMonto(e.target.value.replace(/[^0-9.]/g, ""))}
+                                    placeholder={saldo.toFixed(2)}
+                                    className="w-28 bg-muted text-sm"
+                                  />
+                                  <button
+                                    onClick={() => registrarAbono.mutate({ orderId: t.id, monto: parseFloat(abonoMonto || "0") })}
+                                    disabled={!parseFloat(abonoMonto || "0") || registrarAbono.isPending}
+                                    className="rounded-full bg-[#e5007d] px-5 py-2 text-xs font-bold text-white disabled:opacity-40"
+                                  >
+                                    Registrar
+                                  </button>
+                                  <button
+                                    onClick={() => setAbonoMonto(saldo.toFixed(2))}
+                                    className="rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555]"
+                                  >
+                                    Pagó todo el saldo
+                                  </button>
+                                  <button onClick={() => { setAbonoPara(null); setAbonoMonto(""); }} className="text-xs text-[#999]">
+                                    Cancelar
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  onClick={() => { setAbonoPara(t.id); setAbonoMonto(""); }}
+                                  className="rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#e5007d] hover:text-[#e5007d]"
+                                >
+                                  Registrar abono · Saldo ${saldo.toFixed(2)}
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
                     ))}
                   </div>

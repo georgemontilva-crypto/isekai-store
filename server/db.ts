@@ -2753,3 +2753,47 @@ export async function editQuote(id: number, data: {
   const [nueva] = await db.select().from(quotes).where(eq(quotes.id, id)).limit(1);
   return nueva;
 }
+
+/**
+ * Registra un abono sobre un pedido.
+ *
+ * Suma al importe ya pagado y ajusta el estado solo: si con este abono se
+ * completa el total, el pedido pasa a cobrado; si no, queda como parcial.
+ * Antes solo se podía cambiar el estado a mano, sin llevar la cuenta del
+ * dinero recibido.
+ */
+export async function registrarAbono(orderId: number, monto: number, nota?: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const [pedido] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!pedido) throw new Error("El pedido no existe");
+
+  const total = parseFloat(pedido.total as any) || 0;
+  const yaPagado = parseFloat((pedido.amountPaid as any) ?? "0") || 0;
+  const nuevoPagado = Math.round((yaPagado + monto) * 100) / 100;
+
+  if (monto <= 0) throw new Error("El abono debe ser mayor que cero");
+  if (nuevoPagado > total + 0.01) {
+    throw new Error(`Ese abono supera el saldo pendiente ($${(total - yaPagado).toFixed(2)})`);
+  }
+
+  const completo = nuevoPagado >= total - 0.01;
+
+  await db.update(orders).set({
+    amountPaid: nuevoPagado.toFixed(2),
+    paymentStatus: completo ? "approved" : "partial",
+    notes: nota
+      ? `${pedido.notes ? pedido.notes + " · " : ""}Abono $${monto.toFixed(2)}: ${nota}`
+      : pedido.notes,
+  }).where(eq(orders.id, orderId));
+
+  return {
+    pagado: nuevoPagado,
+    total,
+    saldo: Math.max(0, Math.round((total - nuevoPagado) * 100) / 100),
+    completo,
+    /** Si ya estaba cobrado, la comisión ya se pagó y no debe repetirse */
+    yaEstabaAprobado: pedido.paymentStatus === "approved",
+  };
+}

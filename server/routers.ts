@@ -27,7 +27,7 @@ import {
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
-  createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders, deleteOrder,
+  createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders, deleteOrder, registrarAbono,
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
@@ -766,6 +766,33 @@ export const appRouter = router({
         if (!db) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR' });
         await db.update(orders).set({ paymentStatus: input.paymentStatus }).where(eq(orders.id, input.orderId));
         return { success: true };
+      }),
+
+    /** Suma un abono al pedido y ajusta el estado automáticamente */
+    registrarAbono: adminProcedure
+      .input(z.object({
+        orderId: z.number(),
+        monto: z.number().positive(),
+        nota: z.string().max(200).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        const r = await registrarAbono(input.orderId, input.monto, input.nota);
+
+        // Si el pedido quedó cancelado por completo y hay cosplayer referidor,
+        // se acredita su comisión sobre el TOTAL de la venta.
+        if (r.completo && !r.yaEstabaAprobado) {
+          try {
+            const pedido = await getOrderById(input.orderId);
+            const refId = (pedido as any)?.referralCosplayerId;
+            if (refId) {
+              const cashReward = getReferralCash(r.total);
+              const ticketReward = getReferralTickets(r.total);
+              await creditCashToReferrer(refId, cashReward, (pedido as any).orderNumber, ticketReward);
+            }
+          } catch (e) { console.error('[Abono] No se pudo acreditar la comisión:', e); }
+        }
+
+        return r;
       }),
 
     uploadReceipt: protectedProcedure
