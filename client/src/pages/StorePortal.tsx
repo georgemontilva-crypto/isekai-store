@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
-import { Loader2, Check, Store, Ticket, AlertCircle, Search } from "lucide-react";
+import { Loader2, Check, Store, Ticket, AlertCircle, Search, Camera } from "lucide-react";
+import QrScanner from "@/components/admin/QrScanner";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -28,6 +29,7 @@ export default function StorePortal() {
   const [apellido, setApellido] = useState("");
   const [telefono, setTelefono] = useState("");
   const [vendido, setVendido] = useState<any>(null);
+  const [escaneando2, setEscaneando2] = useState(false);
   const nombreRef = useRef<HTMLInputElement>(null);
 
   const esTienda = user?.role === "store" || user?.role === "admin";
@@ -96,6 +98,12 @@ export default function StorePortal() {
 
   return (
     <div className="min-h-screen bg-[#050507] pb-16 text-white">
+      {escaneando2 && (
+        <QrScanner
+          onDetectado={(t) => { setEscaneando2(false); setToken(t); }}
+          onCerrar={() => setEscaneando2(false)}
+        />
+      )}
       <div className="mx-auto max-w-lg px-5 py-8">
         {/* Cabecera */}
         <div className="mb-6 flex items-center gap-3">
@@ -156,9 +164,19 @@ export default function StorePortal() {
           <div className="rounded-2xl border border-[#2e2e3a] bg-[#15151b] p-5">
             <p className="mb-1 text-sm font-bold">Escanea el boleto</p>
             <p className="mb-4 text-xs leading-relaxed text-[#8a8a9c]">
-              Usa la cámara del teléfono sobre el QR del boleto. Si no puedes,
-              escribe aquí el código impreso.
+              Abre la cámara y apunta al QR. Si no funciona, escribe el código impreso.
             </p>
+
+            <button
+              onClick={() => setEscaneando2(true)}
+              className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#e5007d] font-bold text-white transition-transform active:scale-[0.98]"
+              style={{ minHeight: 56, WebkitTapHighlightColor: "transparent" }}
+            >
+              <Camera size={20} /> Escanear con la cámara
+            </button>
+
+            <p className="mb-2 text-center text-[11px] uppercase tracking-wider text-[#6a6a7c]">o escribe el código</p>
+
             <div className="flex gap-2">
               <input
                 value={codigoManual}
