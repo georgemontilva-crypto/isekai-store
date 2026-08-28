@@ -172,6 +172,23 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
             </button>
           ))}
         </div>
+
+        {/* Ventas vs kits: en la cabecera fija, no dentro del scroll, para
+            que las tarjetas no pasen por encima al desplazar. */}
+        <div className="flex gap-2 px-4 pb-3">
+          {([['ventas', `Ventas (${nVentas})`], ['kits', `Kits (${nKits})`]] as const).map(([id, label]) => (
+            <button
+              key={id}
+              onClick={() => setTipoLista(id)}
+              className={`flex-1 rounded-xl text-xs font-bold transition-colors ${
+                tipoLista === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
+              }`}
+              style={{ minHeight: 42, WebkitTapHighlightColor: 'transparent' }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
@@ -183,22 +200,6 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
         {orders.length === 0 && (
           <div className="text-center py-16 text-[#999] text-sm">No hay pedidos</div>
         )}
-        {/* Ventas vs kits */}
-        <div className="flex gap-2">
-          {([['ventas', `Ventas (${nVentas})`], ['kits', `Kits (${nKits})`]] as const).map(([id, label]) => (
-            <button
-              key={id}
-              onClick={() => setTipoLista(id)}
-              className={`flex-1 rounded-xl text-xs font-bold transition-colors ${
-                tipoLista === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
-              }`}
-              style={{ minHeight: 44, WebkitTapHighlightColor: 'transparent' }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
-
         {orders.map((order: any) => (
           <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm">
 
