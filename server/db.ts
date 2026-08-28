@@ -400,6 +400,8 @@ export async function createOrder(data: {
   notes?: string;
   paymentMethod?: string;
   receiptUrl?: string;
+  /** Abono recibido. Si es menor al total, el pedido queda como parcial. */
+  amountPaid?: string;
   paymentReference?: string;
   receiptHolder?: string;
   country?: string;
@@ -446,6 +448,7 @@ export async function createOrder(data: {
     receiptHolder: data.receiptHolder,
     status: "pending",
     // Si el cliente ya subió su comprobante, el pago queda en verificación
+    amountPaid: data.amountPaid,
     paymentStatus: data.receiptUrl ? "verifying" : "pending",
   });
 
@@ -2494,6 +2497,8 @@ export async function createQuote(data: {
   referenceImages?: string[];
   notes?: string;
   expiresInDays?: number;
+  /** Porcentaje mínimo a abonar (100 = se paga completo) */
+  depositPercent?: number;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
@@ -2522,6 +2527,7 @@ export async function createQuote(data: {
     subtotal: subtotal.toFixed(2),
     total: subtotal.toFixed(2),
     notes: data.notes,
+    depositPercent: data.depositPercent ?? 100,
     status: "sent",
     expiresAt,
   });

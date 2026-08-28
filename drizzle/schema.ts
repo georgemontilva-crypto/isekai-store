@@ -188,6 +188,8 @@ export const quotes = mysqlTable("quotes", {
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   notes: text("notes"),
 
+  /** Porcentaje mínimo a abonar para iniciar el trabajo. 100 = pago completo */
+  depositPercent: int("depositPercent").notNull().default(100),
   /** draft | sent | paid | cancelled | expired */
   status: varchar("status", { length: 20 }).notNull().default("draft"),
   /** Pedido generado cuando el cliente paga */

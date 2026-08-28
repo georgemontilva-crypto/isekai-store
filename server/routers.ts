@@ -1042,6 +1042,7 @@ export const appRouter = router({
           subtotal: q.subtotal,
           total: q.total,
           notes: q.notes,
+          depositPercent: q.depositPercent ?? 100,
           status: q.status,
           customerName: q.customerName,
           customerEmail: q.customerEmail,
@@ -1064,6 +1065,8 @@ export const appRouter = router({
         receiptUrl: z.string().url().max(2048).optional(),
         paymentReference: z.string().max(256).optional(),
         receiptHolder: z.string().max(256).optional(),
+        /** Cuánto abonó realmente. Si no viene, se asume el total. */
+        amountPaid: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
         ...antiSpamSchema,
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1100,8 +1103,26 @@ export const appRouter = router({
           quantity: Number(i.cantidad) || 1,
         }));
 
+        // Abono: el cliente puede pagar solo una parte si la cotización lo
+        // permite. El pedido queda como pago parcial con el saldo pendiente.
+        const totalCot = parseFloat(String(q.total));
+        const minimo = Math.round(totalCot * ((q.depositPercent ?? 100) / 100) * 100) / 100;
+        const abonado = input.amountPaid != null
+          ? Math.min(Math.max(parseFloat(input.amountPaid), 0), totalCot)
+          : totalCot;
+
+        if (abonado < minimo - 0.01) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `El abono mínimo para esta cotización es $${minimo.toFixed(2)} USD`,
+          });
+        }
+
+        const esAbono = abonado < totalCot - 0.01;
+
         const order = await createOrder({
           userId,
+          amountPaid: String(abonado.toFixed(2)),
           customerName: input.customerName,
           customerEmail: input.customerEmail,
           customerPhone: input.customerPhone,
@@ -1122,7 +1143,7 @@ export const appRouter = router({
           await insertAdminNotification({
             type: "new_order",
             title: "Cotización pagada",
-            body: `${order.orderNumber} · ${q.title} · $${q.total} USD`,
+            body: `${order.orderNumber} · ${q.title} · $${abonado.toFixed(2)}${esAbono ? ` de $${q.total}` : ""} USD`,
           });
           await notifyOwner({
             title: `Cotización pagada — ${q.quoteNumber}`,
@@ -1131,6 +1152,9 @@ export const appRouter = router({
               <p><strong>Cliente:</strong> ${input.customerName} (${input.customerEmail})</p>
               <p><strong>Trabajo:</strong> ${q.title}</p>
               <p><strong>Total:</strong> $${q.total} USD</p>
+              ${esAbono
+                ? `<p><strong>Abonó:</strong> $${abonado.toFixed(2)} USD · <strong>Saldo pendiente:</strong> $${(totalCot - abonado).toFixed(2)} USD</p>`
+                : "<p><strong>Pagó el total</strong></p>"}
               ${input.receiptUrl ? `<p><a href="${input.receiptUrl}">Ver comprobante</a></p>` : "<p>Sin comprobante adjunto</p>"}
             `,
           });
@@ -1159,6 +1183,8 @@ export const appRouter = router({
         referenceImages: z.array(z.string().url()).max(10).optional(),
         notes: z.string().max(2000).optional(),
         expiresInDays: z.number().int().min(1).max(365).optional(),
+        /** 100 = pago completo; menos = se acepta abono para empezar */
+        depositPercent: z.number().int().min(10).max(100).default(100),
       }))
       .mutation(({ input }) => createQuote(input)),
 

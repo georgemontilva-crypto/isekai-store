@@ -54,6 +54,8 @@ export default function QuoteView() {
   const [comprobante, setComprobante] = useState<string>("");
   const [subiendo, setSubiendo] = useState(false);
   const [listo, setListo] = useState<{ orderNumber: string; cuentaCreada: boolean } | null>(null);
+  // Cuánto va a pagar ahora: el total o solo el abono mínimo
+  const [pagaTodo, setPagaTodo] = useState(true);
 
   const subirComprobante = trpc.orders.uploadReceiptPublic.useMutation();
   const pagar = trpc.quotes.pay.useMutation({
@@ -200,6 +202,43 @@ export default function QuoteView() {
           </div>
         ) : (
           <>
+            {/* Abono: solo si la cotización lo permite */}
+            {(cotizacion.depositPercent ?? 100) < 100 && (() => {
+              const minimo = (parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100;
+              const resto = parseFloat(cotizacion.total) - minimo;
+              return (
+                <>
+                  <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">Cuánto vas a pagar</h2>
+                  <div className="mb-8 flex flex-col gap-2">
+                    <button
+                      onClick={() => setPagaTodo(false)}
+                      className={`rounded-xl border px-4 py-4 text-left transition-colors ${
+                        !pagaTodo ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[#2e2e3a]"
+                      }`}
+                    >
+                      <p className={`text-sm font-bold ${!pagaTodo ? "text-[#ff45a0]" : "text-white"}`}>
+                        Abonar ${minimo.toFixed(2)} USD
+                      </p>
+                      <p className="mt-0.5 text-xs text-[#8a8a9c]">
+                        Pagas el {cotizacion.depositPercent}% para empezar. Quedas debiendo ${resto.toFixed(2)}.
+                      </p>
+                    </button>
+                    <button
+                      onClick={() => setPagaTodo(true)}
+                      className={`rounded-xl border px-4 py-4 text-left transition-colors ${
+                        pagaTodo ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[#2e2e3a]"
+                      }`}
+                    >
+                      <p className={`text-sm font-bold ${pagaTodo ? "text-[#ff45a0]" : "text-white"}`}>
+                        Pagar todo: ${cotizacion.total} USD
+                      </p>
+                      <p className="mt-0.5 text-xs text-[#8a8a9c]">Queda cancelado por completo.</p>
+                    </button>
+                  </div>
+                </>
+              );
+            })()}
+
             {/* Método de pago */}
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">Cómo pagar</h2>
             <div className="mb-4 flex gap-2">
@@ -223,13 +262,22 @@ export default function QuoteView() {
                   <Copiable label="Cédula" valor={PAGO_MOVIL.ci} />
                   <Copiable label="Banco" valor={PAGO_MOVIL.bank} />
                   <Copiable label="Teléfono" valor={PAGO_MOVIL.phone} />
-                  {totalBs && <Copiable label="Monto en bolívares" valor={totalBs} />}
+                  {(() => {
+                    const aPagar = pagaTodo
+                      ? parseFloat(cotizacion.total)
+                      : (parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100;
+                    const enBs = bsRate ? (aPagar * parseFloat(bsRate)).toFixed(2) : null;
+                    return enBs ? <Copiable label="Monto a transferir (Bs)" valor={enBs} /> : null;
+                  })()}
                 </>
               ) : (
                 <>
                   <Copiable label="Red" valor={CRYPTO.network} />
                   <Copiable label="Dirección USDT" valor={CRYPTO.address} />
-                  <Copiable label="Monto" valor={`${cotizacion.total} USDT`} />
+                  <Copiable
+                    label="Monto a transferir"
+                    valor={`${(pagaTodo ? parseFloat(cotizacion.total) : (parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100).toFixed(2)} USDT`}
+                  />
                 </>
               )}
             </div>
@@ -297,6 +345,9 @@ export default function QuoteView() {
                 receiptUrl: comprobante || undefined,
                 paymentReference: referencia.trim() || undefined,
                 receiptHolder: titular.trim() || undefined,
+                amountPaid: pagaTodo
+                  ? cotizacion.total
+                  : ((parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100).toFixed(2),
                 ...antiSpam.fields(),
               })}
               disabled={!puedeEnviar}

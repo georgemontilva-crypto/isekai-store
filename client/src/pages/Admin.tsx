@@ -815,7 +815,7 @@ export default function Admin() {
   });
   const [quoteForm, setQuoteForm] = useState({
     customerName: "", customerEmail: "", customerPhone: "",
-    title: "", description: "", notes: "", expiresInDays: 15,
+    title: "", description: "", notes: "", expiresInDays: 15, depositPercent: 100,
     items: [{ concepto: "", cantidad: 1, precio: "" }],
   });
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -823,7 +823,7 @@ export default function Admin() {
     onSuccess: () => {
       refetchQuotes();
       setShowQuoteForm(false);
-      setQuoteForm({ customerName: "", customerEmail: "", customerPhone: "", title: "", description: "", notes: "", expiresInDays: 15, items: [{ concepto: "", cantidad: 1, precio: "" }] });
+      setQuoteForm({ customerName: "", customerEmail: "", customerPhone: "", title: "", description: "", notes: "", expiresInDays: 15, depositPercent: 100, items: [{ concepto: "", cantidad: 1, precio: "" }] });
       toast.success("Cotización creada — copia el enlace y envíaselo");
     },
     onError: (e) => toast.error(e.message),
@@ -2445,6 +2445,31 @@ export default function Admin() {
                         className="mt-2 text-xs font-bold text-[#e5007d]">+ Agregar concepto</button>
                     </div>
 
+                    {/* Abono: en piezas a medida rara vez se paga todo por
+                        adelantado. El cliente puede abonar y quedar a deber. */}
+                    <div className="mt-4 border-t border-[#f0f0f0] pt-4">
+                      <Label className="text-xs">¿Cuánto debe abonar para empezar?</Label>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        {[100, 50, 30].map(pct => (
+                          <button
+                            key={pct}
+                            onClick={() => setQuoteForm(f => ({ ...f, depositPercent: pct }))}
+                            className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
+                              quoteForm.depositPercent === pct ? "bg-[#e5007d] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
+                            }`}
+                          >
+                            {pct === 100 ? "Pago completo" : `${pct}% de abono`}
+                          </button>
+                        ))}
+                      </div>
+                      {quoteForm.depositPercent < 100 && quoteTotal > 0 && (
+                        <p className="mt-2 text-xs text-[#888]">
+                          Abono mínimo: <strong className="text-[#111]">${(quoteTotal * quoteForm.depositPercent / 100).toFixed(2)}</strong> ·
+                          Saldo restante: <strong className="text-[#111]">${(quoteTotal * (100 - quoteForm.depositPercent) / 100).toFixed(2)}</strong>
+                        </p>
+                      )}
+                    </div>
+
                     <div className="mt-4 flex items-center justify-between border-t border-[#f0f0f0] pt-4">
                       <span className="text-sm text-[#666]">Total</span>
                       <span className="text-xl font-black text-[#e5007d]">${quoteTotal.toFixed(2)} USD</span>
@@ -2461,6 +2486,7 @@ export default function Admin() {
                           customerPhone: quoteForm.customerPhone || undefined,
                           description: quoteForm.description || undefined,
                           notes: quoteForm.notes || undefined,
+                          depositPercent: quoteForm.depositPercent,
                           items: quoteForm.items.filter(i => i.concepto && i.precio),
                         })}
                         disabled={!quoteForm.title || quoteTotal <= 0 || createQuote.isPending}

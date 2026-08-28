@@ -1,0 +1,1 @@
+ALTER TABLE quotes ADD COLUMN depositPercent INT NOT NULL DEFAULT 100;
