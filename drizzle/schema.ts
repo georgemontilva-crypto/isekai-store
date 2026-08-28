@@ -164,6 +164,26 @@ export const orders = mysqlTable("orders", {
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 
+// ─── Abonos ───────────────────────────────────────────────────────────────────
+// Cada pago parcial de un pedido, con su comprobante. Antes solo se guardaba
+// el acumulado en orders.amountPaid, sin rastro de cada abono ni su captura.
+export const orderPayments = mysqlTable("orderPayments", {
+  id: int("id").autoincrement().primaryKey(),
+  orderId: int("orderId").notNull(),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  method: varchar("method", { length: 50 }),
+  reference: varchar("reference", { length: 256 }),
+  holder: varchar("holder", { length: 256 }),
+  receiptUrl: text("receiptUrl"),
+  /** pending | approved | rejected */
+  status: varchar("status", { length: 20 }).notNull().default("pending"),
+  /** Quién lo registró: "cliente" o "admin" */
+  source: varchar("source", { length: 20 }).notNull().default("cliente"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type OrderPayment = typeof orderPayments.$inferSelect;
+
 // ─── Cotizaciones ─────────────────────────────────────────────────────────────
 // Piezas encargadas a medida: el admin arma la cotización y comparte un enlace
 // único. El cliente la abre sin iniciar sesión, la paga y sube su comprobante,

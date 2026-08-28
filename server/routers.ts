@@ -28,6 +28,7 @@ import {
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
   createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders, deleteOrder, registrarAbono,
+  crearAbono, aprobarAbono, rechazarAbono, getAbonos, getAbonosPendientes,
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
@@ -768,6 +769,43 @@ export const appRouter = router({
         return { success: true };
       }),
 
+    /** Abonos pendientes de verificar (los que sube el cliente) */
+    abonosPendientes: adminProcedure.query(() => getAbonosPendientes()),
+
+    /** Historial de abonos de un pedido */
+    abonosDe: adminProcedure
+      .input(z.object({ orderId: z.number() }))
+      .query(({ input }) => getAbonos(input.orderId)),
+
+    /** Aprueba un abono que subió el cliente y lo suma al pedido */
+    aprobarAbono: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const r = await aprobarAbono(input.id);
+
+        // Si con este abono el pedido queda cancelado por completo, se paga
+        // la comisión del cosplayer sobre el TOTAL de la venta (una sola vez).
+        if (r.completo && !r.yaEstabaAprobado && r.orderId) {
+          try {
+            const pedido = await getOrderById(r.orderId);
+            const refId = (pedido as any)?.referralCosplayerId;
+            if (refId) {
+              await creditCashToReferrer(
+                refId,
+                getReferralCash(r.total),
+                (pedido as any).orderNumber,
+                getReferralTickets(r.total),
+              );
+            }
+          } catch (e) { console.error('[Abono] No se pudo acreditar la comisión:', e); }
+        }
+        return r;
+      }),
+
+    rechazarAbono: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => rechazarAbono(input.id)),
+
     /** Suma un abono al pedido y ajusta el estado automáticamente */
     registrarAbono: adminProcedure
       .input(z.object({
@@ -1059,8 +1097,22 @@ export const appRouter = router({
         if (q.expiresAt && new Date(q.expiresAt as any).getTime() < Date.now() && q.status !== "paid") {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización venció. Escríbenos para renovarla." });
         }
+        // Saldo pendiente: el cliente vuelve al mismo enlace a pagar lo que
+        // falta, así que necesita ver cuánto es.
+        let saldoPendiente = 0;
+        let pagado = 0;
+        if (q.orderId) {
+          const pedido = await getOrderById(q.orderId);
+          if (pedido) {
+            pagado = parseFloat((pedido as any).amountPaid ?? "0") || 0;
+            saldoPendiente = Math.max(0, Math.round((parseFloat((pedido as any).total) - pagado) * 100) / 100);
+          }
+        }
+
         // No se exponen campos internos
         return {
+          pagado,
+          saldoPendiente,
           quoteNumber: q.quoteNumber,
           title: q.title,
           description: q.description,
@@ -1212,6 +1264,60 @@ export const appRouter = router({
         } catch (e) { console.error("[Cotización] Aviso fallido:", e); }
 
         return { orderNumber: order.orderNumber, cuentaCreada };
+      }),
+
+    /**
+     * Abonar el saldo pendiente desde el enlace de la cotización.
+     * El cliente vuelve a abrir su enlace, ve cuánto debe y sube el
+     * comprobante del nuevo pago. Queda pendiente hasta que se verifique.
+     */
+    payBalance: publicProcedure
+      .input(z.object({
+        token: z.string().min(10).max(64),
+        amount: z.string().regex(/^\d+(\.\d{1,2})?$/),
+        paymentMethod: z.string().max(50).optional(),
+        receiptUrl: z.string().url().max(2048).optional(),
+        paymentReference: z.string().max(256).optional(),
+        receiptHolder: z.string().max(256).optional(),
+        ...antiSpamSchema,
+      }))
+      .mutation(async ({ ctx, input }) => {
+        await guardPublicForm(input, clientIp(ctx.req), { form: "quote-balance", max: 6 });
+
+        const q = await getQuoteByToken(input.token);
+        if (!q || !q.orderId) throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
+
+        const r = await crearAbono({
+          orderId: q.orderId,
+          amount: parseFloat(input.amount),
+          method: input.paymentMethod,
+          reference: input.paymentReference,
+          holder: input.receiptHolder,
+          receiptUrl: input.receiptUrl,
+          source: "cliente",
+        });
+
+        try {
+          await insertAdminNotification({
+            type: "new_order",
+            title: "Abono recibido",
+            body: `${q.quoteNumber} · ${q.title} · $${parseFloat(input.amount).toFixed(2)} USD`,
+          });
+          await notifyOwner({
+            title: `Abono recibido — ${q.quoteNumber}`,
+            content: `
+              <p><strong>Trabajo:</strong> ${q.title}</p>
+              <p><strong>Abonó:</strong> $${parseFloat(input.amount).toFixed(2)} USD</p>
+              ${input.paymentReference ? `<p><strong>Referencia:</strong> ${input.paymentReference}</p>` : ""}
+              ${input.receiptUrl ? `<p><a href="${input.receiptUrl}">Ver comprobante</a></p>` : "<p>Sin comprobante adjunto</p>"}
+              <p style="margin-top:16px"><a href="https://isekaiworld.co/admin?tab=finanzas">Verificar en Finanzas</a></p>
+            `,
+          });
+          const admins = await getAdminUsers();
+          for (const a of admins) io.to(`user:${a.id}`).emit("notification:new");
+        } catch (e) { console.error("[Abono] Aviso fallido:", e); }
+
+        return r;
       }),
 
     // ── Admin ──

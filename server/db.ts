@@ -20,6 +20,7 @@ import {
   mediaAssets,
   subscribers,
   quotes,
+  orderPayments,
   authTokens,
   adminNotifications,
   AdminNotification,
@@ -2796,4 +2797,137 @@ export async function registrarAbono(orderId: number, monto: number, nota?: stri
     /** Si ya estaba cobrado, la comisión ya se pagó y no debe repetirse */
     yaEstabaAprobado: pedido.paymentStatus === "approved",
   };
+}
+
+// ─── Abonos ───────────────────────────────────────────────────────────────────
+
+/** Registra un abono con su comprobante. Queda pendiente hasta que lo apruebes. */
+export async function crearAbono(data: {
+  orderId: number;
+  amount: number;
+  method?: string;
+  reference?: string;
+  holder?: string;
+  receiptUrl?: string;
+  source?: string;
+  /** Si es del admin, se da por aprobado y suma de inmediato */
+  autoAprobar?: boolean;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const [pedido] = await db.select().from(orders).where(eq(orders.id, data.orderId)).limit(1);
+  if (!pedido) throw new Error("El pedido no existe");
+
+  const total = parseFloat(pedido.total as any) || 0;
+  const yaPagado = parseFloat((pedido.amountPaid as any) ?? "0") || 0;
+  const saldo = Math.round((total - yaPagado) * 100) / 100;
+
+  if (data.amount <= 0) throw new Error("El abono debe ser mayor que cero");
+  if (saldo <= 0.01) throw new Error("Este pedido ya está pagado por completo");
+  if (data.amount > saldo + 0.01) {
+    throw new Error(`Ese monto supera el saldo pendiente ($${saldo.toFixed(2)})`);
+  }
+
+  await db.insert(orderPayments).values({
+    orderId: data.orderId,
+    amount: data.amount.toFixed(2),
+    method: data.method,
+    reference: data.reference,
+    holder: data.holder,
+    receiptUrl: data.receiptUrl,
+    source: data.source ?? "cliente",
+    status: data.autoAprobar ? "approved" : "pending",
+  });
+
+  // Un abono del cliente NO suma hasta que se verifica: igual que el primer
+  // pago, primero se comprueba que el dinero llegó.
+  if (data.autoAprobar) {
+    return aplicarAbono(data.orderId, data.amount);
+  }
+
+  return { pendiente: true, saldo, total };
+}
+
+/** Suma el abono al pedido y ajusta su estado */
+export async function aplicarAbono(orderId: number, monto: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const [pedido] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!pedido) throw new Error("El pedido no existe");
+
+  const total = parseFloat(pedido.total as any) || 0;
+  const yaPagado = parseFloat((pedido.amountPaid as any) ?? "0") || 0;
+  const nuevoPagado = Math.round((yaPagado + monto) * 100) / 100;
+  const completo = nuevoPagado >= total - 0.01;
+  const yaEstabaAprobado = pedido.paymentStatus === "approved";
+
+  await db.update(orders).set({
+    amountPaid: nuevoPagado.toFixed(2),
+    paymentStatus: completo ? "approved" : "partial",
+  }).where(eq(orders.id, orderId));
+
+  return {
+    orderId,
+    pagado: nuevoPagado,
+    total,
+    saldo: Math.max(0, Math.round((total - nuevoPagado) * 100) / 100),
+    completo,
+    yaEstabaAprobado,
+    pendiente: false,
+  };
+}
+
+/** Aprueba un abono pendiente y lo suma al pedido */
+export async function aprobarAbono(abonoId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const [abono] = await db.select().from(orderPayments).where(eq(orderPayments.id, abonoId)).limit(1);
+  if (!abono) throw new Error("El abono no existe");
+  if (abono.status === "approved") throw new Error("Ese abono ya fue aprobado");
+
+  await db.update(orderPayments).set({ status: "approved" }).where(eq(orderPayments.id, abonoId));
+  return aplicarAbono(abono.orderId, parseFloat(abono.amount as any));
+}
+
+export async function rechazarAbono(abonoId: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(orderPayments).set({ status: "rejected" }).where(eq(orderPayments.id, abonoId));
+}
+
+/** Abonos de un pedido, para ver el historial completo */
+export async function getAbonos(orderId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(orderPayments)
+    .where(eq(orderPayments.orderId, orderId))
+    .orderBy(desc(orderPayments.id));
+}
+
+/** Abonos esperando verificación, para el panel */
+export async function getAbonosPendientes() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: orderPayments.id,
+    orderId: orderPayments.orderId,
+    amount: orderPayments.amount,
+    method: orderPayments.method,
+    reference: orderPayments.reference,
+    holder: orderPayments.holder,
+    receiptUrl: orderPayments.receiptUrl,
+    source: orderPayments.source,
+    createdAt: orderPayments.createdAt,
+    orderNumber: orders.orderNumber,
+    customerName: orders.customerName,
+    total: orders.total,
+    amountPaid: orders.amountPaid,
+  })
+    .from(orderPayments)
+    .leftJoin(orders, eq(orderPayments.orderId, orders.id))
+    .where(eq(orderPayments.status, "pending"))
+    .orderBy(desc(orderPayments.id));
 }

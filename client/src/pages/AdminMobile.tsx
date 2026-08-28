@@ -2174,6 +2174,20 @@ function FinanzasSection() {
   const { data: resumen } = trpc.finance.summary.useQuery(undefined, { enabled: habilitado });
   const { data: tx = [] } = trpc.finance.transactions.useQuery({ estado: filtro }, { enabled: habilitado });
 
+  const { data: abonosPend = [] } = trpc.orders.abonosPendientes.useQuery(undefined, { enabled: habilitado });
+  const aprobarAb = trpc.orders.aprobarAbono.useMutation({
+    onSuccess: (r) => {
+      utils.orders.abonosPendientes.invalidate();
+      utils.finance.summary.invalidate();
+      utils.finance.transactions.invalidate();
+      toast.success(r.completo ? 'Pedido cobrado por completo' : `Abono aprobado · Saldo: $${r.saldo.toFixed(2)}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const rechazarAb = trpc.orders.rechazarAbono.useMutation({
+    onSuccess: () => { utils.orders.abonosPendientes.invalidate(); toast.success('Abono rechazado'); },
+  });
+
   const [abonoPara, setAbonoPara] = useState<number | null>(null);
   const [abonoMonto, setAbonoMonto] = useState('');
   const abonar = trpc.orders.registrarAbono.useMutation({
@@ -2213,6 +2227,60 @@ function FinanzasSection() {
           </div>
         ))}
       </div>
+
+      {/* Abonos que subió el cliente */}
+      {(abonosPend as any[]).length > 0 && (
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-bold text-[var(--iw-text)]">
+            Abonos por verificar ({(abonosPend as any[]).length})
+          </p>
+          {(abonosPend as any[]).map((a: any) => (
+            <div key={a.id} className="rounded-2xl border border-[#d9a400]/50 bg-[#d9a400]/10 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] text-[var(--iw-text-muted)]">{a.orderNumber}</p>
+                  <p className="text-sm font-bold text-[var(--iw-text)] truncate">{a.customerName}</p>
+                  <p className="text-[11px] text-[var(--iw-text-muted)]">
+                    {new Date(a.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <p className="font-black text-[var(--iw-text)]">${parseFloat(a.amount).toFixed(2)}</p>
+                  <p className="text-[10px] text-[var(--iw-text-muted)]">de ${parseFloat(a.total).toFixed(2)}</p>
+                </div>
+              </div>
+
+              {a.receiptUrl && (
+                <a href={a.receiptUrl} target="_blank" rel="noreferrer" className="mt-3 flex items-center gap-3">
+                  {a.receiptUrl.toLowerCase().endsWith('.pdf') ? (
+                    <span className="text-xs font-bold text-[#e5007d]">Ver comprobante (PDF)</span>
+                  ) : (
+                    <img src={a.receiptUrl} alt="Comprobante" className="h-20 w-20 rounded-xl border border-[var(--iw-border)] object-cover" />
+                  )}
+                </a>
+              )}
+
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={() => { if (confirm('¿Rechazar este abono?')) rechazarAb.mutate({ id: a.id }); }}
+                  className="flex-1 rounded-xl border border-red-500/40 text-xs font-bold text-red-500"
+                  style={{ minHeight: 44 }}
+                >
+                  Rechazar
+                </button>
+                <button
+                  onClick={() => aprobarAb.mutate({ id: a.id })}
+                  disabled={aprobarAb.isPending}
+                  className="flex-1 rounded-xl bg-[#e5007d] text-xs font-bold text-white disabled:opacity-50"
+                  style={{ minHeight: 44 }}
+                >
+                  Aprobar
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
 
       {(resumen?.cantidadPorVerificar ?? 0) > 0 && (
         <div className="rounded-2xl border border-[#d9a400]/40 bg-[#d9a400]/10 p-3">

@@ -779,6 +779,20 @@ export default function Admin() {
     { enabled: isAuthenticated && user?.role === "admin" },
   );
 
+  const { data: abonosPendientes = [], refetch: refetchAbonos } = trpc.orders.abonosPendientes.useQuery(undefined, {
+    enabled: isAuthenticated && user?.role === "admin",
+  });
+  const aprobarAbono = trpc.orders.aprobarAbono.useMutation({
+    onSuccess: (r) => {
+      refetchAbonos(); utils.finance.summary.invalidate(); utils.finance.transactions.invalidate(); utils.admin.metrics.invalidate();
+      toast.success(r.completo ? "Pedido cobrado por completo" : `Abono aprobado · Saldo: $${r.saldo.toFixed(2)}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const rechazarAbono = trpc.orders.rechazarAbono.useMutation({
+    onSuccess: () => { refetchAbonos(); toast.success("Abono rechazado"); },
+  });
+
   const [abonoPara, setAbonoPara] = useState<number | null>(null);
   const [abonoMonto, setAbonoMonto] = useState("");
   const registrarAbono = trpc.orders.registrarAbono.useMutation({
@@ -2302,6 +2316,68 @@ export default function Admin() {
                     </div>
                   ))}
                 </div>
+
+                {/* Abonos que subió el cliente, esperando verificación */}
+                {(abonosPendientes as any[]).length > 0 && (
+                  <div className="mb-6">
+                    <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-[#111]">
+                      Abonos por verificar ({(abonosPendientes as any[]).length})
+                    </h2>
+                    <div className="flex flex-col gap-3">
+                      {(abonosPendientes as any[]).map((a: any) => (
+                        <div key={a.id} className="rounded-2xl border border-[#ffd700]/50 bg-[#fff8e1] p-4">
+                          <div className="flex flex-wrap items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <p className="font-mono text-[11px] text-[#999]">{a.orderNumber}</p>
+                              <p className="text-sm font-bold text-[#111]">{a.customerName}</p>
+                              <p className="text-xs text-[#666]">
+                                {new Date(a.createdAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}
+                                {a.reference ? ` · Ref. ${a.reference}` : ""}
+                              </p>
+                            </div>
+                            <div className="text-right">
+                              <p className="text-lg font-black text-[#111]">${parseFloat(a.amount).toFixed(2)}</p>
+                              <p className="text-[11px] text-[#888]">
+                                de ${parseFloat(a.total).toFixed(2)} · pagado ${parseFloat(a.amountPaid ?? "0").toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex flex-wrap items-center gap-3 border-t border-[#ffd700]/30 pt-3">
+                            {a.receiptUrl ? (
+                              a.receiptUrl.toLowerCase().endsWith(".pdf") ? (
+                                <a href={a.receiptUrl} target="_blank" rel="noreferrer" className="text-xs font-bold text-[#e5007d] hover:underline">
+                                  Ver comprobante (PDF)
+                                </a>
+                              ) : (
+                                <a href={a.receiptUrl} target="_blank" rel="noreferrer">
+                                  <img src={a.receiptUrl} alt="Comprobante" className="h-24 w-24 rounded-xl border border-[#e5e5e5] object-cover" />
+                                </a>
+                              )
+                            ) : (
+                              <span className="text-xs text-[#999]">Sin comprobante</span>
+                            )}
+                            <div className="ml-auto flex gap-2">
+                              <button
+                                onClick={() => { if (confirm("¿Rechazar este abono?")) rechazarAbono.mutate({ id: a.id }); }}
+                                className="rounded-full border border-red-200 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50"
+                              >
+                                Rechazar
+                              </button>
+                              <button
+                                onClick={() => aprobarAbono.mutate({ id: a.id })}
+                                disabled={aprobarAbono.isPending}
+                                className="rounded-full bg-[#e5007d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#c4006b] disabled:opacity-50"
+                              >
+                                Aprobar abono
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 {(finanzas?.cantidadPorVerificar ?? 0) > 0 && (
                   <div className="mb-6 rounded-2xl border border-[#ffd700]/40 bg-[#fff8e1] px-4 py-3">

@@ -54,6 +54,8 @@ export default function QuoteView() {
   const [comprobante, setComprobante] = useState<string>("");
   const [subiendo, setSubiendo] = useState(false);
   const [listo, setListo] = useState<{ orderNumber: string; cuentaCreada: boolean } | null>(null);
+  const [abonoEnviado, setAbonoEnviado] = useState(false);
+  const [montoAbono, setMontoAbono] = useState("");
   // Cuánto va a pagar ahora: el total o solo el abono mínimo
   const [pagaTodo, setPagaTodo] = useState(true);
   // Código del cosplayer que refirió al cliente
@@ -65,6 +67,11 @@ export default function QuoteView() {
   );
 
   const subirComprobante = trpc.orders.uploadReceiptPublic.useMutation();
+  const pagarSaldo = trpc.quotes.payBalance.useMutation({
+    onSuccess: () => setAbonoEnviado(true),
+    onError: (e) => toast.error(e.message),
+  });
+
   const pagar = trpc.quotes.pay.useMutation({
     onSuccess: (d) => setListo(d),
     onError: (e) => toast.error(e.message),
@@ -211,9 +218,117 @@ export default function QuoteView() {
           </p>
         )}
 
-        {yaPagada ? (
+        {abonoEnviado ? (
+          <div className="rounded-2xl border border-[#e5007d]/40 bg-[#e5007d]/10 px-5 py-6 text-center">
+            <Check className="mx-auto mb-2 h-7 w-7 text-[#e5007d]" />
+            <p className="font-bold text-white">Abono enviado</p>
+            <p className="mt-1 text-sm text-[#b4b4c2]">
+              Verificamos tu pago y te confirmamos por correo.
+            </p>
+          </div>
+        ) : yaPagada && (cotizacion.saldoPendiente ?? 0) > 0.01 ? (
+          /* Queda saldo: el cliente puede pagarlo aquí mismo */
+          <>
+            <div className="mb-6 rounded-2xl border border-[#ffd700]/40 bg-[#ffd700]/10 px-5 py-4">
+              <p className="text-sm text-[#b4b4c2]">
+                Ya abonaste <strong className="text-white">${(cotizacion.pagado ?? 0).toFixed(2)} USD</strong>
+              </p>
+              <p className="mt-1 text-lg font-black text-[#ffd700]">
+                Saldo pendiente: ${(cotizacion.saldoPendiente ?? 0).toFixed(2)} USD
+              </p>
+            </div>
+
+            <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">Pagar el saldo</h2>
+            <div className="mb-4 flex gap-2">
+              {([["pago_movil", "Pago Móvil"], ["crypto", "Cripto USDT"]] as const).map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => setMetodo(id)}
+                  className={`flex-1 rounded-xl border px-4 text-sm font-bold transition-colors ${
+                    metodo === id ? "border-[#e5007d] bg-[#e5007d]/10 text-[#e5007d]" : "border-[#2e2e3a] text-[#b4b4c2]"
+                  }`}
+                  style={{ minHeight: 48 }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <div className="mb-6 flex flex-col gap-2">
+              {metodo === "pago_movil" ? (
+                <>
+                  <Copiable label="Cédula" valor={PAGO_MOVIL.ci} />
+                  <Copiable label="Banco" valor={PAGO_MOVIL.bank} />
+                  <Copiable label="Teléfono" valor={PAGO_MOVIL.phone} />
+                  {bsRate && (
+                    <Copiable
+                      label="Saldo en bolívares"
+                      valor={((cotizacion.saldoPendiente ?? 0) * parseFloat(bsRate)).toFixed(2)}
+                    />
+                  )}
+                </>
+              ) : (
+                <>
+                  <Copiable label="Red" valor={CRYPTO.network} />
+                  <Copiable label="Dirección USDT" valor={CRYPTO.address} />
+                  <Copiable label="Saldo" valor={`${(cotizacion.saldoPendiente ?? 0).toFixed(2)} USDT`} />
+                </>
+              )}
+            </div>
+
+            <div className="mb-6 flex flex-col gap-3">
+              <antiSpam.HoneyPot />
+              <input
+                inputMode="decimal"
+                value={montoAbono}
+                onChange={e => setMontoAbono(e.target.value.replace(/[^0-9.]/g, ""))}
+                placeholder={`Cuánto abonas (hasta ${(cotizacion.saldoPendiente ?? 0).toFixed(2)})`}
+                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                style={{ minHeight: 50 }}
+              />
+              <button
+                onClick={() => setMontoAbono((cotizacion.saldoPendiente ?? 0).toFixed(2))}
+                className="rounded-xl border border-[#2e2e3a] text-xs font-bold text-[#b4b4c2]"
+                style={{ minHeight: 44 }}
+              >
+                Pagar todo el saldo
+              </button>
+              <input
+                value={referencia} onChange={e => setReferencia(e.target.value)}
+                placeholder="Referencia del pago"
+                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                style={{ minHeight: 50 }}
+              />
+              <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed px-4 text-sm font-semibold transition-colors ${
+                comprobante ? "border-green-500/50 text-green-400" : "border-[#2e2e3a] text-[#b4b4c2] hover:border-[#e5007d]"
+              }`} style={{ minHeight: 54 }}>
+                {subiendo ? <Loader2 size={16} className="animate-spin" /> : comprobante ? <Check size={16} /> : <Upload size={16} />}
+                {subiendo ? "Subiendo..." : comprobante ? "Comprobante cargado" : "Subir comprobante"}
+                <input type="file" accept="image/*,application/pdf" className="hidden" disabled={subiendo}
+                  onChange={e => archivo(e.target.files?.[0] ?? null)} />
+              </label>
+            </div>
+
+            <button
+              onClick={() => pagarSaldo.mutate({
+                token,
+                amount: parseFloat(montoAbono || "0").toFixed(2),
+                paymentMethod: metodo,
+                receiptUrl: comprobante || undefined,
+                paymentReference: referencia.trim() || undefined,
+                ...antiSpam.fields(),
+              })}
+              disabled={!parseFloat(montoAbono || "0") || pagarSaldo.isPending}
+              className="flex w-full items-center justify-center gap-2 rounded-full bg-[#e5007d] text-base font-bold text-white transition-colors hover:bg-[#c4006b] disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+              style={{ minHeight: 54 }}
+            >
+              {pagarSaldo.isPending ? <Loader2 size={18} className="animate-spin" /> : null}
+              Enviar abono
+            </button>
+          </>
+        ) : yaPagada ? (
           <div className="rounded-2xl border border-green-500/30 bg-green-500/10 px-5 py-4 text-center">
-            <p className="font-bold text-green-400">Esta cotización ya fue pagada</p>
+            <p className="font-bold text-green-400">Esta cotización está pagada por completo</p>
             <p className="mt-1 text-sm text-[#b4b4c2]">Si tienes dudas, escríbenos por Instagram.</p>
           </div>
         ) : (
