@@ -57,7 +57,11 @@ export default function QuoteView() {
   const [abonoEnviado, setAbonoEnviado] = useState(false);
   const [montoAbono, setMontoAbono] = useState("");
   // Cuánto va a pagar ahora: el total o solo el abono mínimo
-  const [pagaTodo, setPagaTodo] = useState(true);
+  // null hasta que se conoce la cotización: si tiene abono configurado, la
+  // opción marcada por defecto es ABONAR. Antes venía marcado "pagar todo" y
+  // un cliente que solo abonaba enviaba el total sin darse cuenta, con lo que
+  // el pedido quedaba saldado sin haberlo estado.
+  const [pagaTodoManual, setPagaTodoManual] = useState<boolean | null>(null);
   // Código del cosplayer que refirió al cliente
   const [codigoRef, setCodigoRef] = useState("");
 
@@ -166,6 +170,10 @@ export default function QuoteView() {
   // "Pagada" solo cuando no queda saldo. Con un abono el estado es "partial"
   // y la página debe ofrecer pagar lo que falta.
   const yaPagada = cotizacion.status === "paid" || cotizacion.status === "partial";
+  const hayAbono = Boolean(cotizacion.depositAmount) &&
+    parseFloat(cotizacion.depositAmount!) < parseFloat(cotizacion.total);
+  const pagaTodo = pagaTodoManual ?? !hayAbono;
+  const setPagaTodo = setPagaTodoManual;
   const items = (cotizacion.items as any[]) ?? [];
   const totalBs = bsRate ? (parseFloat(cotizacion.total) * parseFloat(bsRate)).toFixed(2) : null;
   const puedeEnviar = nombre.trim().length >= 2 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && !pagar.isPending;
