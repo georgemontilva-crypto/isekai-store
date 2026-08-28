@@ -371,3 +371,57 @@ export async function notifyCosplayActivity(
     `Nueva actividad disponible: ${activity.title} — ${pointsWouldEarn} tickets para ti`,
   );
 }
+
+/**
+ * Correo de activación para una tienda autorizada a vender boletos.
+ *
+ * Sin esto, había que pasarle el enlace por WhatsApp y explicarle a mano cómo
+ * entrar y cómo vender.
+ */
+export async function notifyStoreActivated(
+  storeEmail: string,
+  storeName: string,
+  eventName?: string,
+): Promise<boolean> {
+  const url = "https://isekaiworld.co/vender";
+  const content = `
+    <h1>Tu tienda ya puede vender boletos</h1>
+    <p>Hola <strong>${storeName}</strong>, quedaste autorizada como punto de venta
+    ${eventName ? `de <strong>${eventName}</strong>` : "de nuestros eventos"}.</p>
+
+    <div class="order-box">
+      <p><strong>Cómo entrar</strong></p>
+      <p style="margin-top:8px">
+        Entra en <a href="${url}">isekaiworld.co/vender</a> con <strong>este mismo correo</strong>
+        (${storeEmail}). No necesitas contraseña: te llegará un enlace de acceso a tu buzón.
+      </p>
+    </div>
+
+    <div class="order-box">
+      <p><strong>Cómo vender un boleto</strong></p>
+      <p style="margin-top:8px">
+        1. Escanea el código QR del boleto con la cámara del teléfono.<br>
+        2. Elige el tipo de boleto que compró el cliente.<br>
+        3. Registra su nombre, apellido y teléfono.<br>
+        4. Confirma. Listo.
+      </p>
+      <p style="margin-top:8px; color:#888; font-size:13px">
+        Revisa bien los datos antes de confirmar: una vez registrado, el boleto no se puede editar.
+      </p>
+    </div>
+
+    <p style="margin-top:20px">
+      <a href="${url}" class="btn">Entrar al portal de venta</a>
+    </p>
+
+    <p style="color:#888; font-size:13px; margin-top:16px">
+      En el portal verás en todo momento cuántos boletos llevas vendidos y el total acumulado.
+    </p>
+  `;
+  return sendEmail(
+    storeEmail,
+    "Tu tienda ya puede vender boletos — Isekai World",
+    content,
+    "Ya estás autorizada como punto de venta. Entra con este correo.",
+  );
+}

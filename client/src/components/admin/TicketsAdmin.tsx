@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { Plus, Download, Store, Ticket, Trash2, RefreshCw } from "lucide-react";
+import { Plus, Download, Store, Ticket, Trash2, RefreshCw, Mail } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -80,6 +80,10 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
   });
   const editarTienda = trpc.tickets.editarTienda.useMutation({
     onSuccess: () => { utils.tickets.tiendas.invalidate(); },
+  });
+  const reenviarAcceso = trpc.tickets.reenviarAcceso.useMutation({
+    onSuccess: () => toast.success("Correo de acceso reenviado"),
+    onError: (e) => toast.error(e.message),
   });
   const borrarTienda = trpc.tickets.borrarTienda.useMutation({
     onSuccess: (r: any) => {
@@ -413,7 +417,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Autorizar tienda</p>
             <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
-              Con el correo se le crea su acceso al portal de venta. Entra con enlace mágico, sin contraseña.
+Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra sin contraseña.
             </p>
             <div className="flex flex-col gap-3">
               <input placeholder="Nombre de la tienda" value={nuevaTienda.name}
@@ -453,6 +457,17 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {s.email && (
+                      <button
+                        onClick={() => reenviarAcceso.mutate({ id: s.id })}
+                        disabled={reenviarAcceso.isPending}
+                        className="p-2 text-[var(--iw-text-muted)] hover:text-[#e5007d]"
+                        aria-label="Reenviar acceso"
+                        title="Reenviar correo de acceso"
+                      >
+                        <Mail size={15} />
+                      </button>
+                    )}
                     <button
                       onClick={() => editarTienda.mutate({ id: s.id, active: !s.active })}
                       className={`rounded-full px-4 text-xs font-bold ${

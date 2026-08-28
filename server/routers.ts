@@ -5,7 +5,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
+import { notifyStoreActivated, notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
 import { orders, orderItems, users } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
@@ -1154,7 +1154,32 @@ export const appRouter = router({
         contactName: z.string().max(200).optional(),
         phone: z.string().max(50).optional(),
       }))
-      .mutation(({ input }) => crearTienda(input)),
+      .mutation(async ({ input }) => {
+        const r = await crearTienda(input);
+
+        // Correo de activación con el enlace y las instrucciones
+        if (input.email) {
+          try {
+            const activos = (await listarEventos()).filter(e => e.active);
+            await notifyStoreActivated(input.email, input.name, activos[0]?.name);
+          } catch (e) {
+            console.error("[Tienda] No se pudo enviar el correo de activación:", e);
+          }
+        }
+        return r;
+      }),
+    /** Reenviar el correo de acceso, por si la tienda lo perdió */
+    reenviarAcceso: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        const tiendas = await listarTiendas();
+        const t = tiendas.find(x => x.id === input.id);
+        if (!t?.email) throw new TRPCError({ code: "BAD_REQUEST", message: "Esa tienda no tiene correo registrado" });
+        const activos = (await listarEventos()).filter(e => e.active);
+        await notifyStoreActivated(t.email, t.name, activos[0]?.name);
+        return { enviado: true };
+      }),
+
     borrarTienda: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => borrarTienda(input.id)),
