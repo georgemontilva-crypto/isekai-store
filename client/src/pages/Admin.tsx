@@ -2709,10 +2709,13 @@ export default function Admin() {
                                 <span className="font-mono text-[11px] text-[#999]">{q.quoteNumber}</span>
                                 <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
                                   q.status === "paid" ? "bg-green-100 text-green-700"
+                                  : q.status === "partial" ? "bg-yellow-100 text-yellow-700"
                                   : q.status === "cancelled" ? "bg-red-100 text-red-700"
                                   : "bg-blue-100 text-blue-700"
                                 }`}>
-                                  {q.status === "paid" ? "Pagada" : q.status === "cancelled" ? "Cancelada" : "Enviada"}
+                                  {q.status === "paid" ? "Pagada"
+                                    : q.status === "partial" ? "Abonada"
+                                    : q.status === "cancelled" ? "Cancelada" : "Enviada"}
                                 </span>
                               </div>
                               <p className="font-bold text-[#111]">{q.title}</p>

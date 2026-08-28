@@ -163,7 +163,9 @@ export default function QuoteView() {
     );
   }
 
-  const yaPagada = cotizacion.status === "paid";
+  // "Pagada" solo cuando no queda saldo. Con un abono el estado es "partial"
+  // y la página debe ofrecer pagar lo que falta.
+  const yaPagada = cotizacion.status === "paid" || cotizacion.status === "partial";
   const items = (cotizacion.items as any[]) ?? [];
   const totalBs = bsRate ? (parseFloat(cotizacion.total) * parseFloat(bsRate)).toFixed(2) : null;
   const puedeEnviar = nombre.trim().length >= 2 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && !pagar.isPending;

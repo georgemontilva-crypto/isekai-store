@@ -2886,6 +2886,11 @@ export async function aplicarAbono(orderId: number, monto: number) {
     paymentStatus: completo ? "approved" : "partial",
   }).where(eq(orders.id, orderId));
 
+  // La cotización asociada sigue el mismo destino que su pedido
+  if (completo) {
+    await db.update(quotes).set({ status: "paid" }).where(eq(quotes.orderId, orderId));
+  }
+
   return {
     orderId,
     pagado: nuevoPagado,

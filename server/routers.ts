@@ -1157,6 +1157,7 @@ export const appRouter = router({
         const q = await getQuoteByToken(input.token);
         if (!q) throw new TRPCError({ code: "NOT_FOUND", message: "Cotización no encontrada" });
         if (q.status === "paid") throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización ya fue pagada" });
+        if (q.status === "partial") throw new TRPCError({ code: "BAD_REQUEST", message: "Ya abonaste esta cotización. Recarga la página para pagar el saldo." });
         if (q.status === "cancelled") throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización fue cancelada" });
         if (q.expiresAt && new Date(q.expiresAt as any).getTime() < Date.now()) {
           throw new TRPCError({ code: "BAD_REQUEST", message: "Esta cotización venció" });
@@ -1239,7 +1240,10 @@ export const appRouter = router({
           items: lineas as any,
         });
 
-        await updateQuote(q.id, { status: "paid", orderId: order.id });
+        // Si solo abonó, la cotización NO queda "pagada": pasa a "partial"
+        // hasta que se cubra el total. Antes se marcaba pagada con cualquier
+        // abono y el cliente veía su cotización como saldada.
+        await updateQuote(q.id, { status: esAbono ? "partial" : "paid", orderId: order.id });
 
         try {
           await insertAdminNotification({
@@ -1368,7 +1372,7 @@ export const appRouter = router({
       }),
 
     setStatus: adminProcedure
-      .input(z.object({ id: z.number(), status: z.enum(["draft", "sent", "paid", "cancelled"]) }))
+      .input(z.object({ id: z.number(), status: z.enum(["draft", "sent", "partial", "paid", "cancelled"]) }))
       .mutation(({ input }) => updateQuote(input.id, { status: input.status })),
 
     delete: adminProcedure

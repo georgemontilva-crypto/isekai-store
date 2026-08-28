@@ -265,10 +265,13 @@ export default function QuotesSection() {
                     <span className="font-mono text-[10px] text-[var(--iw-text-muted)]">{q.quoteNumber}</span>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
                       q.status === 'paid' ? 'bg-green-500/15 text-green-500'
+                      : q.status === 'partial' ? 'bg-yellow-500/15 text-[#d9a400]'
                       : q.status === 'cancelled' ? 'bg-red-500/15 text-red-500'
                       : 'bg-blue-500/15 text-blue-400'
                     }`}>
-                      {q.status === 'paid' ? 'Pagada' : q.status === 'cancelled' ? 'Cancelada' : 'Enviada'}
+                      {q.status === 'paid' ? 'Pagada'
+                        : q.status === 'partial' ? 'Abonada'
+                        : q.status === 'cancelled' ? 'Cancelada' : 'Enviada'}
                     </span>
                   </div>
                   <p className="text-sm font-bold text-[var(--iw-text)] truncate">{q.title}</p>
