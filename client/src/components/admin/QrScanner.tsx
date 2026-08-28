@@ -43,33 +43,53 @@ export default function QrScanner({
       return ultimo.trim();
     };
 
-    escaner
+    try {
+      escaner
       .start(
         { facingMode: "environment" },
         { fps: 10, qrbox: { width: 240, height: 240 } },
         (texto) => {
           if (cancelado) return;
           cancelado = true;
+          const token = extraerToken(texto);
           // Se detiene antes de avisar, para no leer el mismo código dos veces
-          escaner.stop().catch(() => {});
-          onDetectado(extraerToken(texto));
+          try { escaner.stop().catch(() => {}); } catch { /* ya detenido */ }
+          onDetectado(token);
         },
         () => { /* lecturas fallidas: normales mientras enfoca */ },
       )
       .then(() => { if (!cancelado) setEstado("listo"); })
       .catch((e) => {
         setEstado("error");
+        const txt = String(e?.message ?? e).toLowerCase();
         setMensaje(
-          String(e?.message ?? e).toLowerCase().includes("permission")
+          txt.includes("permission") || txt.includes("denied")
             ? "No diste permiso para usar la cámara. Actívalo en los ajustes del navegador."
-            : "No se pudo abrir la cámara en este dispositivo.",
+            : txt.includes("notfound") || txt.includes("no camera")
+              ? "No se encontró ninguna cámara en este dispositivo."
+              : "No se pudo abrir la cámara. Escribe el código del boleto.",
         );
       });
+    } catch (e) {
+      // Si la librería falla al construirse, no debe tumbar la pantalla
+      console.error("[QR] No se pudo iniciar el escáner:", e);
+      setEstado("error");
+      setMensaje("No se pudo abrir la cámara. Escribe el código del boleto.");
+    }
 
     return () => {
       cancelado = true;
-      escaner.stop().catch(() => {});
-      escaner.clear?.();
+      // Detener y limpiar puede lanzar si la cámara nunca llegó a arrancar,
+      // y esa excepción tumbaba toda la pantalla con un error genérico.
+      try {
+        const estadoActual = escaner.getState?.();
+        // 2 = escaneando, 3 = en pausa
+        if (estadoActual === 2 || estadoActual === 3) {
+          escaner.stop().then(() => { try { escaner.clear(); } catch { /* ya limpio */ } }).catch(() => {});
+        } else {
+          try { escaner.clear(); } catch { /* ya limpio */ }
+        }
+      } catch { /* el escáner no llegó a iniciarse */ }
     };
   }, [onDetectado]);
 

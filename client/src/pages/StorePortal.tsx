@@ -2,6 +2,21 @@ import { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
 import { Loader2, Check, Store, Ticket, AlertCircle, Search, Camera } from "lucide-react";
 import QrScanner from "@/components/admin/QrScanner";
+import { Component, type ReactNode } from "react";
+
+/**
+ * Barrera de errores del escáner.
+ *
+ * Si la librería de cámara falla, sin esto el fallo sube y React tumba toda la
+ * pantalla con un "error inesperado". Aquí se contiene: el portal sigue vivo y
+ * la tienda puede escribir el código a mano.
+ */
+class EscanerSeguro extends Component<{ children: ReactNode; onFallo: () => void }, { roto: boolean }> {
+  state = { roto: false };
+  static getDerivedStateFromError() { return { roto: true }; }
+  componentDidCatch(e: unknown) { console.error("[QR] El escáner falló:", e); this.props.onFallo(); }
+  render() { return this.state.roto ? null : this.props.children; }
+}
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -128,10 +143,15 @@ export default function StorePortal() {
   return (
     <div className="min-h-screen bg-[#050507] pb-16 text-white">
       {escaneando2 && (
-        <QrScanner
-          onDetectado={(t) => { setEscaneando2(false); setUltimoEscaneo(t); setToken(t); }}
-          onCerrar={() => setEscaneando2(false)}
-        />
+        <EscanerSeguro onFallo={() => {
+          setEscaneando2(false);
+          toast.error("La cámara no funcionó. Escribe el código del boleto.");
+        }}>
+          <QrScanner
+            onDetectado={(t) => { setEscaneando2(false); setUltimoEscaneo(t); setToken(t); }}
+            onCerrar={() => setEscaneando2(false)}
+          />
+        </EscanerSeguro>
       )}
       <div className="mx-auto max-w-lg px-5 py-8">
         {/* Cabecera */}
