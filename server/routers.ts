@@ -1067,6 +1067,8 @@ export const appRouter = router({
         receiptHolder: z.string().max(256).optional(),
         /** Cuánto abonó realmente. Si no viene, se asume el total. */
         amountPaid: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+        /** Código del cosplayer que refirió al cliente */
+        referralCode: z.string().max(50).optional(),
         ...antiSpamSchema,
       }))
       .mutation(async ({ ctx, input }) => {
@@ -1123,9 +1125,26 @@ export const appRouter = router({
 
         const esAbono = abonado < totalCot - 0.01;
 
+        // Código de referido: mismas reglas que el checkout. Un cosplayer no
+        // puede usar códigos, ni el suyo ni el de un compañero.
+        let referralCode = input.referralCode?.trim().toUpperCase() || undefined;
+        let referralCosplayer = referralCode ? await getCosplayerByReferralCode(referralCode) : null;
+
+        if (referralCosplayer) {
+          const motivo = await checkReferralEligibility(userId ?? null, referralCode!);
+          const compradorEsCosplayer = await isCosplayerEmail(input.customerEmail);
+          if (motivo || compradorEsCosplayer) {
+            console.warn(`[Cotización] Código descartado (${motivo ?? 'CORREO_DE_COSPLAYER'}) — ${input.customerEmail}`);
+            referralCode = undefined;
+            referralCosplayer = null;
+          }
+        }
+
         const order = await createOrder({
           userId,
           amountPaid: String(abonado.toFixed(2)),
+          referralCode,
+          referralCosplayerId: referralCosplayer?.id,
           customerName: input.customerName,
           customerEmail: input.customerEmail,
           customerPhone: input.customerPhone,

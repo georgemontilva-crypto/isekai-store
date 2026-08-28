@@ -56,6 +56,13 @@ export default function QuoteView() {
   const [listo, setListo] = useState<{ orderNumber: string; cuentaCreada: boolean } | null>(null);
   // Cuánto va a pagar ahora: el total o solo el abono mínimo
   const [pagaTodo, setPagaTodo] = useState(true);
+  // Código del cosplayer que refirió al cliente
+  const [codigoRef, setCodigoRef] = useState("");
+
+  const refValido = trpc.cosplay.validateReferralCode.useQuery(
+    { code: codigoRef.trim().toUpperCase() },
+    { enabled: codigoRef.trim().length >= 4, retry: false },
+  );
 
   const subirComprobante = trpc.orders.uploadReceiptPublic.useMutation();
   const pagar = trpc.quotes.pay.useMutation({
@@ -331,6 +338,27 @@ export default function QuoteView() {
                 className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
+              {/* Código de cosplayer: opcional, pero da comisión a quien te
+                  refirió y suele ser lo que motiva a compartir el enlace. */}
+              <div>
+                <input
+                  value={codigoRef}
+                  onChange={e => setCodigoRef(e.target.value.toUpperCase())}
+                  placeholder="Código de cosplayer (opcional)"
+                  className="w-full rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 font-mono text-sm uppercase text-white outline-none transition-colors placeholder:font-sans placeholder:normal-case placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                  style={{ minHeight: 50 }}
+                />
+                {codigoRef.trim().length >= 4 && (
+                  <p className={`mt-1.5 text-[11px] ${refValido.data ? "text-green-400" : refValido.isLoading ? "text-[#8a8a9c]" : "text-[#ff6b6b]"}`}>
+                    {refValido.isLoading
+                      ? "Comprobando código..."
+                      : refValido.data
+                        ? `✓ Código de ${(refValido.data as any).artisticName}`
+                        : "Ese código no es válido"}
+                  </p>
+                )}
+              </div>
+
               <input
                 value={referencia} onChange={e => setReferencia(e.target.value)}
                 placeholder="Referencia del pago"
@@ -367,6 +395,7 @@ export default function QuoteView() {
                 receiptUrl: comprobante || undefined,
                 paymentReference: referencia.trim() || undefined,
                 receiptHolder: titular.trim() || undefined,
+                referralCode: codigoRef.trim() || undefined,
                 amountPaid: pagaTodo || !cotizacion.depositAmount
                   ? cotizacion.total
                   : parseFloat(cotizacion.depositAmount).toFixed(2),
