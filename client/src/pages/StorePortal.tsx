@@ -24,6 +24,23 @@ export default function StorePortal() {
   const utils = trpc.useUtils();
 
   const [token, setToken] = useState(params?.token ?? "");
+  const [ultimoEscaneo, setUltimoEscaneo] = useState("");
+
+  /**
+   * El token se guarda al llegar por QR. Si el navegador se abre sin sesión
+   * —lo normal al escanear con la cámara del sistema—, tras iniciar sesión la
+   * app vuelve al inicio y el token se perdía: había que escanear otra vez.
+   */
+  useEffect(() => {
+    if (params?.token) {
+      try { localStorage.setItem("iw_boleto_pendiente", params.token); } catch { /* modo privado */ }
+    } else {
+      try {
+        const guardado = localStorage.getItem("iw_boleto_pendiente");
+        if (guardado) { setToken(guardado); localStorage.removeItem("iw_boleto_pendiente"); }
+      } catch { /* modo privado */ }
+    }
+  }, [params?.token]);
   const [codigoManual, setCodigoManual] = useState("");
   const [tipoElegido, setTipoElegido] = useState<number | null>(null);
   const [nombre, setNombre] = useState("");
@@ -68,7 +85,8 @@ export default function StorePortal() {
   }, [escaneo?.ticket?.status]);
 
   const limpiar = () => {
-    setToken(""); setCodigoManual(""); setTipoElegido(null);
+    try { localStorage.removeItem("iw_boleto_pendiente"); } catch { /* modo privado */ }
+    setToken(""); setCodigoManual(""); setTipoElegido(null); setUltimoEscaneo("");
     setNombre(""); setApellido(""); setTelefono(""); setVendido(null);
   };
 
@@ -111,7 +129,7 @@ export default function StorePortal() {
     <div className="min-h-screen bg-[#050507] pb-16 text-white">
       {escaneando2 && (
         <QrScanner
-          onDetectado={(t) => { setEscaneando2(false); setToken(t); }}
+          onDetectado={(t) => { setEscaneando2(false); setUltimoEscaneo(t); setToken(t); }}
           onCerrar={() => setEscaneando2(false)}
         />
       )}
@@ -215,6 +233,11 @@ export default function StorePortal() {
             <AlertCircle className="mx-auto mb-3 h-8 w-8 text-red-400" />
             <p className="font-bold">Código no válido</p>
             <p className="mt-1 text-sm text-[#b4b4c2]">{errorEscaneo.message}</p>
+            {ultimoEscaneo && (
+              <p className="mt-3 break-all rounded-lg bg-[#101016] px-3 py-2 font-mono text-[11px] text-[#6a6a7c]">
+                Leído: {ultimoEscaneo}
+              </p>
+            )}
             <button onClick={limpiar} className="mt-5 w-full rounded-full border border-[#2e2e3a] font-bold text-[#b4b4c2]" style={{ minHeight: 48 }}>
               Escanear otro
             </button>

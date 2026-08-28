@@ -28,11 +28,19 @@ export default function QrScanner({
     const escaner = new Html5Qrcode(idRegion.current, { verbose: false });
     escanerRef.current = escaner;
 
+    /**
+     * Saca el token de lo leído. El QR guarda la URL completa, pero se acepta
+     * también un token suelto, con barra final, o con parámetros añadidos por
+     * algún lector: cualquiera de esas variantes debe funcionar.
+     */
     const extraerToken = (texto: string) => {
-      const limpio = texto.trim();
-      // El QR trae la URL completa; también se acepta un token pegado a mano
+      let limpio = texto.trim();
+      limpio = limpio.split("?")[0].split("#")[0];   // fuera parámetros
+      limpio = limpio.replace(/\/+$/, "");           // fuera barra final
       const partes = limpio.split("/").filter(Boolean);
-      return partes[partes.length - 1] ?? limpio;
+      const ultimo = partes[partes.length - 1] ?? limpio;
+      // Si el QR fuera solo el código impreso, se devuelve tal cual
+      return ultimo.trim();
     };
 
     escaner
