@@ -2581,8 +2581,20 @@ function TasaSection() {
   });
 
   const actual = settings?.['bs_rate'] ?? '';
+  const fuente = settings?.['bs_rate_source'];
+  const autoActivo = settings?.['bs_rate_auto'] !== 'false';
+
+  const actualizarAhora = trpc.tasa.actualizarAhora.useMutation({
+    onSuccess: (r) => { utils.settings.getAll.invalidate(); toast.success(`Tasa actualizada: Bs ${r.tasa}`); },
+    onError: (e) => toast.error(e.message),
+  });
   const enPantalla = valor ?? actual;
   const actualizada = settings?.['bs_rate_updated'];
+
+  const aplicarAjuste = async (clave: string, valor: string) => {
+    await guardar.mutateAsync({ key: clave, value: valor });
+    utils.settings.getAll.invalidate();
+  };
 
   const aplicar = async (nuevo: string) => {
     await guardar.mutateAsync({ key: 'bs_rate', value: nuevo });
@@ -2620,6 +2632,44 @@ function TasaSection() {
         >
           {guardar.isPending ? 'Guardando...' : 'Guardar tasa'}
         </button>
+
+        {/* Tasa automática desde Binance */}
+        <div className="mt-4 rounded-xl border border-[var(--iw-border)] p-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-bold text-[var(--iw-text)]">Tasa automática</p>
+              <p className="text-[11px] text-[var(--iw-text-muted)]">
+                {autoActivo
+                  ? 'Se consulta Binance P2P cada hora'
+                  : 'Desactivada: usas la tasa que escribas'}
+              </p>
+            </div>
+            <button
+              onClick={() => aplicarAjuste('bs_rate_auto', autoActivo ? 'false' : 'true')}
+              className={`shrink-0 rounded-full px-4 text-xs font-bold ${
+                autoActivo ? 'bg-[#e5007d] text-white' : 'border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
+              }`}
+              style={{ minHeight: 40 }}
+            >
+              {autoActivo ? 'Activa' : 'Activar'}
+            </button>
+          </div>
+
+          {autoActivo && (
+            <button
+              onClick={() => actualizarAhora.mutate()}
+              disabled={actualizarAhora.isPending}
+              className="mt-2 w-full rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)] disabled:opacity-50"
+              style={{ minHeight: 42 }}
+            >
+              {actualizarAhora.isPending ? 'Consultando Binance...' : 'Actualizar ahora'}
+            </button>
+          )}
+
+          {fuente && (
+            <p className="mt-2 text-[11px] text-[var(--iw-text-muted)]">Origen: {fuente}</p>
+          )}
+        </div>
 
         {actual && (
           <>

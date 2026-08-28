@@ -13,6 +13,7 @@ import { storagePut, storageDelete } from "./storage";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
 import { antiSpamSchema, guardPublicForm, clientIp, limitarPorUsuario } from "./antiSpam";
 import { validarPedido, descontarStock, devolverStock } from "./orderValidation";
+import { consultarTasaBinance, actualizarTasaAutomatica } from "./binanceRate";
 import {
   crearEvento, listarEventos, editarEvento,
   crearTipoBoleto, listarTipos, editarTipo, borrarTipo,
@@ -1398,6 +1399,25 @@ export const appRouter = router({
     eventosActivos: storeProcedure.query(async () => {
       const todos = await listarEventos();
       return todos.filter(e => e.active);
+    }),
+  }),
+
+  // ─── Tasa automática ─────────────────────────────────────────────────────────
+  tasa: router({
+    /** Consulta Binance ahora mismo, sin guardar: para previsualizar */
+    consultar: adminProcedure.query(async () => {
+      const r = await consultarTasaBinance();
+      if (!r) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Binance no respondió. Se conserva la tasa actual." });
+      return r;
+    }),
+
+    /** Fuerza la actualización sin esperar a la hora */
+    actualizarAhora: adminProcedure.mutation(async () => {
+      const r = await actualizarTasaAutomatica();
+      if (!r.actualizada) {
+        throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "No se pudo obtener la tasa. Se conserva la anterior." });
+      }
+      return r;
     }),
   }),
 
