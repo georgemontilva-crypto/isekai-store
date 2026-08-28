@@ -188,6 +188,11 @@ export async function generarBoletos(eventId: number, cantidad: number) {
   if (!db) throw new Error("DB no disponible");
   if (cantidad < 1 || cantidad > 500) throw new Error("Cantidad entre 1 y 500");
 
+  // El evento debe existir: antes se podían generar boletos huérfanos que
+  // luego fallaban al escanearse.
+  const [ev] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+  if (!ev) throw new Error("Ese evento no existe");
+
   const lote = `L${Date.now().toString().slice(-8)}`;
   const filas = Array.from({ length: cantidad }, () => ({
     eventId,
@@ -292,19 +297,28 @@ export async function venderBoleto(data: {
   const precioUsd = parseFloat(tipo.priceUsd as any);
   const precioBs = tasa > 0 ? Math.round(precioUsd * tasa * 100) / 100 : null;
 
-  await db.update(eventTickets).set({
+  // La venta se marca con la condición de que el boleto SIGA en blanco. Si dos
+  // tiendas escanean el mismo boleto a la vez, solo una consulta afecta filas
+  // y la otra falla: sin esto, ambas lo vendían y el segundo comprador
+  // sobrescribía al primero.
+  const res: any = await db.update(eventTickets).set({
     status: "sold",
     ticketTypeId: tipo.id,
     storeId: data.storeId,
-    buyerName: data.buyerName.trim(),
-    buyerLastName: data.buyerLastName.trim(),
-    buyerPhone: data.buyerPhone.trim(),
+    buyerName: data.buyerName.trim().slice(0, 200),
+    buyerLastName: data.buyerLastName.trim().slice(0, 200),
+    buyerPhone: data.buyerPhone.trim().slice(0, 50),
     priceUsd: precioUsd.toFixed(2),
     rateBs: tasa > 0 ? tasa.toFixed(2) : null,
     priceBs: precioBs != null ? precioBs.toFixed(2) : null,
     soldAt: new Date(),
     soldByUserId: data.userId,
-  }).where(eq(eventTickets.id, t.id));
+  }).where(and(eq(eventTickets.id, t.id), eq(eventTickets.status, "blank")));
+
+  const afectadas = res?.[0]?.affectedRows ?? res?.affectedRows ?? 1;
+  if (!afectadas) {
+    throw new Error("Ese boleto acaba de venderse en otro dispositivo");
+  }
 
   return {
     code: t.code,

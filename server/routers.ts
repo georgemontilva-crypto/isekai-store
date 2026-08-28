@@ -11,7 +11,7 @@ import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { storagePut, storageDelete } from "./storage";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
-import { antiSpamSchema, guardPublicForm, clientIp } from "./antiSpam";
+import { antiSpamSchema, guardPublicForm, clientIp, limitarPorUsuario } from "./antiSpam";
 import { validarPedido, descontarStock, devolverStock } from "./orderValidation";
 import {
   crearEvento, listarEventos, editarEvento,
@@ -1236,7 +1236,14 @@ export const appRouter = router({
     escanear: storeProcedure
       // Acepta tanto el token del QR (largo) como el código impreso (corto)
       .input(z.object({ token: z.string().min(4).max(64) }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        // Freno al sondeo de tokens: 60 escaneos cada 10 minutos por usuario
+        if (!limitarPorUsuario(`scan:${ctx.user.id}`, 60, 10 * 60 * 1000)) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "Demasiados escaneos seguidos. Espera un momento.",
+          });
+        }
         try {
           const r = await boletoPorToken(input.token);
           if (!r) {
@@ -1267,6 +1274,10 @@ export const appRouter = router({
         buyerPhone: z.string().min(4).max(50),
       }))
       .mutation(async ({ ctx, input }) => {
+        if (!limitarPorUsuario(`venta:${ctx.user.id}`, 40, 10 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiadas ventas seguidas. Espera un momento." });
+        }
+
         const tienda = await tiendaDeUsuario(ctx.user.id);
         if (!tienda) throw new TRPCError({ code: "FORBIDDEN", message: "Tu usuario no está asociado a una tienda" });
         if (!tienda.active) throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está desactivada" });

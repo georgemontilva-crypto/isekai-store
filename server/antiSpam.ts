@@ -127,3 +127,28 @@ export function clientIp(req: any): string {
   if (typeof fwd === "string" && fwd.length > 0) return fwd.split(",")[0].trim();
   return req?.ip ?? req?.socket?.remoteAddress ?? "desconocida";
 }
+
+/**
+ * Límite de intentos por usuario, sin honeypot ni tiempo mínimo.
+ *
+ * Para acciones de personas ya autenticadas (como escanear boletos) donde no
+ * hay formulario público, pero sí conviene frenar el abuso: sin esto, una
+ * tienda con acceso podría probar tokens al azar sin límite.
+ */
+const intentos = new Map<string, number[]>();
+
+export function limitarPorUsuario(clave: string, max: number, ventanaMs: number) {
+  const ahora = Date.now();
+  const previos = (intentos.get(clave) ?? []).filter(t => ahora - t < ventanaMs);
+  previos.push(ahora);
+  intentos.set(clave, previos);
+
+  // Limpieza para que el mapa no crezca sin control
+  if (intentos.size > 5000) {
+    intentos.forEach((v, k) => {
+      if (!v.length || ahora - v[v.length - 1] > ventanaMs) intentos.delete(k);
+    });
+  }
+
+  return previos.length <= max;
+}
