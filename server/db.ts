@@ -560,8 +560,11 @@ export async function getDashboardMetrics() {
   const resetAt = resetRow?.value ? new Date(resetRow.value) : null;
   const desdeCorte = resetAt && !isNaN(resetAt.getTime()) ? gte(orders.createdAt, resetAt) : undefined;
 
+  // Se cuenta el dinero REALMENTE recibido, no el importe del pedido: si hubo
+  // abono, `amountPaid` manda. Solo se usa `total` cuando no se registró
+  // ningún abono (pedidos pagados de una vez, donde amountPaid queda en 0).
   const [fullRevenue] = await db
-    .select({ total: sql<string>`SUM(total)` })
+    .select({ total: sql<string>`SUM(CASE WHEN amountPaid > 0 THEN amountPaid ELSE total END)` })
     .from(orders)
     .where(desdeCorte ? and(eq(orders.paymentStatus, 'approved'), desdeCorte) : eq(orders.paymentStatus, 'approved'));
 
@@ -2673,9 +2676,21 @@ export async function getFinanceSummary() {
     if (o.status === 'cancelled') continue;
 
     switch (o.paymentStatus) {
-      case 'approved': cobrado += total; break;
-      case 'partial':  parcial += pagado; cobrado += pagado; break;
-      case 'verifying': porVerificar += total; cantidadPorVerificar++; break;
+      // Dinero real: si hubo abonos, se cuenta lo recibido
+      case 'approved': cobrado += pagado > 0 ? pagado : total; break;
+      // Parcial: lo abonado ya es dinero tuyo; el resto se suma a lo pendiente
+      case 'partial':
+        parcial += pagado;
+        cobrado += pagado;
+        pendiente += Math.max(0, total - pagado);
+        break;
+      // Por verificar: se cuenta lo que el cliente dice haber pagado, no el
+      // total del pedido. Si abonó $8 de $15, lo que se verifica son $8.
+      case 'verifying':
+        porVerificar += pagado > 0 ? pagado : total;
+        if (pagado > 0 && pagado < total) pendiente += total - pagado;
+        cantidadPorVerificar++;
+        break;
       default: pendiente += total;
     }
   }
