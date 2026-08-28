@@ -18,7 +18,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "store"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -163,6 +163,92 @@ export const orders = mysqlTable("orders", {
 
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
+
+// ─── Eventos y boletería ──────────────────────────────────────────────────────
+// Todo queda agrupado por evento para conservar el historial de cada edición.
+export const events = mysqlTable("events", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  /** Fechas del evento: definen los días válidos para ingresar */
+  startDate: timestamp("startDate").notNull(),
+  endDate: timestamp("endDate").notNull(),
+  location: varchar("location", { length: 300 }),
+  /** Solo un evento activo a la vez es lo normal, pero se permite más */
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Tipos de boleto configurables por evento, con su precio y qué incluye */
+export const ticketTypes = mysqlTable("ticketTypes", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  priceUsd: decimal("priceUsd", { precision: 10, scale: 2 }).notNull(),
+  /** 1 = un día, 2 = ambos días */
+  days: int("days").notNull().default(1),
+  perks: text("perks"),
+  active: boolean("active").notNull().default(true),
+  sortOrder: int("sortOrder").notNull().default(0),
+});
+
+/** Tiendas autorizadas a vender. Cada una tiene su usuario con rol `store`. */
+export const stores = mysqlTable("stores", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  userId: int("userId"),
+  contactName: varchar("contactName", { length: 200 }),
+  phone: varchar("phone", { length: 50 }),
+  email: varchar("email", { length: 320 }),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/**
+ * Boletos. Se generan EN BLANCO (solo token) y la tienda los activa al
+ * venderlos, eligiendo el tipo y registrando al comprador.
+ * Estados: blank (sin vender) | sold (vendido) | void (anulado)
+ */
+export const eventTickets = mysqlTable("eventTickets", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  /** Lo que lleva el QR: aleatorio y no secuencial */
+  token: varchar("token", { length: 64 }).notNull().unique(),
+  /** Código corto legible, para buscarlo a mano */
+  code: varchar("code", { length: 20 }).notNull().unique(),
+
+  status: varchar("status", { length: 20 }).notNull().default("blank"),
+
+  /** Se rellenan al venderlo */
+  ticketTypeId: int("ticketTypeId"),
+  storeId: int("storeId"),
+  buyerName: varchar("buyerName", { length: 200 }),
+  buyerLastName: varchar("buyerLastName", { length: 200 }),
+  buyerPhone: varchar("buyerPhone", { length: 50 }),
+  /** Precio y tasa congelados en el momento de la venta */
+  priceUsd: decimal("priceUsd", { precision: 10, scale: 2 }),
+  rateBs: decimal("rateBs", { precision: 12, scale: 2 }),
+  priceBs: decimal("priceBs", { precision: 14, scale: 2 }),
+  soldAt: timestamp("soldAt"),
+  soldByUserId: int("soldByUserId"),
+
+  batch: varchar("batch", { length: 40 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Un registro por cada ingreso: permite bloquear el reingreso por día */
+export const ticketCheckins = mysqlTable("ticketCheckins", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketId: int("ticketId").notNull(),
+  /** Día del evento: 1 o 2 */
+  eventDay: int("eventDay").notNull(),
+  checkedAt: timestamp("checkedAt").defaultNow().notNull(),
+  checkedByUserId: int("checkedByUserId"),
+});
+
+export type EventRow = typeof events.$inferSelect;
+export type TicketType = typeof ticketTypes.$inferSelect;
+export type Store = typeof stores.$inferSelect;
+export type EventTicket = typeof eventTickets.$inferSelect;
 
 // ─── Abonos ───────────────────────────────────────────────────────────────────
 // Cada pago parcial de un pedido, con su comprobante. Antes solo se guardaba

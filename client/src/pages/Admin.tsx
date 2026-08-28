@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import TicketsAdmin from "@/components/admin/TicketsAdmin";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
@@ -19,7 +20,7 @@ import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -1181,6 +1182,7 @@ export default function Admin() {
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
     { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
     { id: "finanzas" as AdminTab, label: "Finanzas",     icon: DollarSign },
+    { id: "boleteria" as AdminTab, label: "Boletería",    icon: Ticket },
     { id: "quotes" as AdminTab,   label: "Cotizaciones", icon: FileText },
     { id: "subscribers" as AdminTab, label: "Suscriptores", icon: Mail },
     { id: "media" as AdminTab,    label: "Medios",        icon: ImageIcon },
@@ -2582,6 +2584,17 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
+              </motion.div>
+            )}
+
+          {/* ─── Boletería de eventos ─────────────────────────────────────────── */}
+            {tab === "boleteria" && (
+              <motion.div key="boleteria" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <h1 className="mb-1 text-2xl font-bold">Boletería</h1>
+                <p className="mb-6 text-sm text-[#666]">
+                  Eventos, tipos de boleto, tiendas autorizadas y generación de QR.
+                </p>
+                <TicketsAdmin />
               </motion.div>
             )}
 

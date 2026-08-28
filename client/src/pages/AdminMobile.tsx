@@ -11,10 +11,11 @@ import {
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
+import TicketsAdmin from '@/components/admin/TicketsAdmin';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'boleteria' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -1905,6 +1906,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
         { label: 'Tasa del día', tab: 'tasa'        as MobileTab, icon: DollarSign },
+        { label: 'Boletería',    tab: 'boleteria'   as MobileTab, icon: Ticket },
         { label: 'Cotizaciones', tab: 'quotes'      as MobileTab, icon: FileText },
         { label: 'Comentarios',  tab: 'comments'    as MobileTab, icon: MessageCircle },
       ],
@@ -2900,13 +2902,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2964,6 +2966,7 @@ export default function AdminMobile() {
         {activeTab === 'subscribers' && <SubscribersSection />}
         {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'quotes'      && <QuotesSection />}
+        {activeTab === 'boleteria'   && <TicketsAdmin compact />}
         {activeTab === 'tasa'        && <TasaSection />}
         {activeTab === 'finanzas'    && <FinanzasSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}

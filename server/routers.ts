@@ -13,6 +13,13 @@ import { storagePut, storageDelete } from "./storage";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
 import { antiSpamSchema, guardPublicForm, clientIp } from "./antiSpam";
 import { validarPedido, descontarStock, devolverStock } from "./orderValidation";
+import {
+  crearEvento, listarEventos, editarEvento,
+  crearTipoBoleto, listarTipos, editarTipo, borrarTipo,
+  crearTienda, listarTiendas, editarTienda, tiendaDeUsuario,
+  generarBoletos, boletoPorToken, venderBoleto, corregirBoleto,
+  listarBoletos, resumenEvento, ventasDeTienda,
+} from "./tickets";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
@@ -100,6 +107,14 @@ function validateUpload(contentType: string, buffer: Buffer) {
 // Admin guard middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+  return next({ ctx });
+});
+
+/** Portal de tiendas: admin también entra, para poder probarlo */
+const storeProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "store" && ctx.user.role !== "admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Solo para tiendas autorizadas" });
+  }
   return next({ ctx });
 });
 
@@ -1077,6 +1092,155 @@ export const appRouter = router({
         }
         return { success: true, mailchimp: true };
       }),
+  }),
+
+  // ─── Boletería de eventos ────────────────────────────────────────────────────
+  tickets: router({
+    // ── Eventos (admin) ──
+    eventos: adminProcedure.query(() => listarEventos()),
+    crearEvento: adminProcedure
+      .input(z.object({
+        name: z.string().min(1).max(200),
+        startDate: z.string(),
+        endDate: z.string(),
+        location: z.string().max(300).optional(),
+      }))
+      .mutation(({ input }) => crearEvento(input)),
+    editarEvento: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().max(200).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+        location: z.string().max(300).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(({ input }) => { const { id, ...d } = input; return editarEvento(id, d); }),
+
+    // ── Tipos de boleto ──
+    tipos: protectedProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => listarTipos(input.eventId)),
+    crearTipo: adminProcedure
+      .input(z.object({
+        eventId: z.number(),
+        name: z.string().min(1).max(200),
+        priceUsd: z.string().regex(/^\d+(\.\d{1,2})?$/),
+        days: z.number().int().min(1).max(7),
+        perks: z.string().max(1000).optional(),
+        sortOrder: z.number().int().optional(),
+      }))
+      .mutation(({ input }) => crearTipoBoleto(input)),
+    editarTipo: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().max(200).optional(),
+        priceUsd: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+        days: z.number().int().min(1).max(7).optional(),
+        perks: z.string().max(1000).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(({ input }) => { const { id, ...d } = input; return editarTipo(id, d); }),
+    borrarTipo: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => borrarTipo(input.id)),
+
+    // ── Tiendas ──
+    tiendas: adminProcedure.query(() => listarTiendas()),
+    crearTienda: adminProcedure
+      .input(z.object({
+        name: z.string().min(1).max(200),
+        email: z.string().email().max(320).optional(),
+        contactName: z.string().max(200).optional(),
+        phone: z.string().max(50).optional(),
+      }))
+      .mutation(({ input }) => crearTienda(input)),
+    editarTienda: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().max(200).optional(),
+        contactName: z.string().max(200).optional(),
+        phone: z.string().max(50).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(({ input }) => { const { id, ...d } = input; return editarTienda(id, d); }),
+
+    // ── Generación de boletos (solo el dueño) ──
+    generar: adminProcedure
+      .input(z.object({ eventId: z.number(), cantidad: z.number().int().min(1).max(500) }))
+      .mutation(({ input }) => generarBoletos(input.eventId, input.cantidad)),
+
+    listar: adminProcedure
+      .input(z.object({ eventId: z.number(), status: z.string().optional(), storeId: z.number().optional() }))
+      .query(({ input }) => listarBoletos(input.eventId, { status: input.status, storeId: input.storeId })),
+
+    resumen: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => resumenEvento(input.eventId)),
+
+    corregir: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        buyerName: z.string().max(200).optional(),
+        buyerLastName: z.string().max(200).optional(),
+        buyerPhone: z.string().max(50).optional(),
+        ticketTypeId: z.number().optional(),
+        status: z.enum(["blank", "sold", "void"]).optional(),
+      }))
+      .mutation(({ input }) => { const { id, ...d } = input; return corregirBoleto(id, d); }),
+
+    // ── Portal de la tienda ──
+    /** Datos del boleto escaneado. Exige sesión de tienda: un QR suelto no
+        revela nada ni puede activarlo cualquiera que lo fotografíe. */
+    escanear: storeProcedure
+      .input(z.object({ token: z.string().min(10).max(64) }))
+      .query(async ({ input }) => {
+        const r = await boletoPorToken(input.token);
+        if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "Ese código no corresponde a ningún boleto" });
+        return r;
+      }),
+
+    vender: storeProcedure
+      .input(z.object({
+        token: z.string().min(10).max(64),
+        ticketTypeId: z.number(),
+        buyerName: z.string().min(1).max(200),
+        buyerLastName: z.string().min(1).max(200),
+        buyerPhone: z.string().min(4).max(50),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const tienda = await tiendaDeUsuario(ctx.user.id);
+        if (!tienda) throw new TRPCError({ code: "FORBIDDEN", message: "Tu usuario no está asociado a una tienda" });
+        if (!tienda.active) throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está desactivada" });
+
+        const r = await venderBoleto({ ...input, storeId: tienda.id, userId: ctx.user.id });
+
+        // Aviso en vivo al panel: la venta aparece sin recargar
+        try {
+          const admins = await getAdminUsers();
+          for (const a of admins) io.to(`user:${a.id}`).emit("ticket:sold");
+        } catch { /* no crítico */ }
+
+        return r;
+      }),
+
+    miTienda: storeProcedure.query(async ({ ctx }) => {
+      const tienda = await tiendaDeUsuario(ctx.user.id);
+      return tienda ?? null;
+    }),
+
+    misVentas: storeProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(async ({ ctx, input }) => {
+        const tienda = await tiendaDeUsuario(ctx.user.id);
+        if (!tienda) return { cantidad: 0, totalUsd: 0, totalBs: 0, boletos: [] };
+        return ventasDeTienda(tienda.id, input.eventId);
+      }),
+
+    eventosActivos: storeProcedure.query(async () => {
+      const todos = await listarEventos();
+      return todos.filter(e => e.active);
+    }),
   }),
 
   // ─── Finanzas ────────────────────────────────────────────────────────────────

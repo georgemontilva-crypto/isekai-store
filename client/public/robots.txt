@@ -4,5 +4,6 @@ Disallow: /admin
 Disallow: /api
 Disallow: /invitacion
 Disallow: /cotizacion
+Disallow: /vender
 
 Sitemap: https://isekaiworld.co/sitemap.xml
