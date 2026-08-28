@@ -5,12 +5,11 @@ import { useAuth } from '@/_core/hooks/useAuth';
 import {
   ShoppingBag, CreditCard, Sparkles, Package,
   BarChart3, Bell, ChevronRight, Check, Trash2, FileText,
-  TrendingUp, Gift, ExternalLink, Pencil, X, Plus,
+  TrendingUp, Gift, ExternalLink, Pencil, X, Plus, SlidersHorizontal,
   LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
   Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
-import PullToRefresh from '@/components/admin/PullToRefresh';
 import QuotesSection from '@/components/admin/QuotesSection';
 
 // ============ TIPOS ============
@@ -128,6 +127,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
   /** Los kits de cosplayer (IW-KIT) se listan aparte de las ventas reales */
   const esKit = (o: any) => String(o.orderNumber ?? '').startsWith('IW-KIT-');
   const [tipoLista, setTipoLista] = useState<'ventas' | 'kits'>('ventas');
+  const [filtrosAbiertos, setFiltrosAbiertos] = useState(false);
   const orders = todosLosPedidos.filter((o: any) => tipoLista === 'kits' ? esKit(o) : !esKit(o));
   const nKits = todosLosPedidos.filter(esKit).length;
   const nVentas = todosLosPedidos.length - nKits;
@@ -160,36 +160,98 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Filtros scroll horizontal */}
-      <div className="px-4 py-3 bg-white border-b border-[#e5e5e5] overflow-x-auto">
-        <div className="flex gap-2 min-w-max">
-          {['all', ...ORDER_STEPS.map(s => s.key)].map(s => (
-            <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors ${
-                statusFilter === s ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'
-              }`}>
-              {s === 'all' ? 'Todos' : ORDER_STEPS.find(o => o.key === s)?.label}
-            </button>
-          ))}
-        </div>
+      {/* Barra de filtros: un icono que abre la hoja con todas las opciones.
+          Antes eran dos filas de pastillas que ocupaban buena parte de la
+          pantalla y empujaban la lista hacia abajo. */}
+      <div className="flex items-center gap-3 border-b border-[var(--iw-border)] bg-[var(--iw-surface)] px-4 py-3">
+        <button
+          onClick={() => setFiltrosAbiertos(true)}
+          className="flex items-center gap-2 rounded-xl border border-[var(--iw-border)] px-3.5 text-sm font-bold text-[var(--iw-text)]"
+          style={{ minHeight: 42, WebkitTapHighlightColor: 'transparent' }}
+        >
+          <SlidersHorizontal size={16} />
+          Filtros
+          {(statusFilter !== 'all' || tipoLista !== 'ventas') && (
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#e5007d] px-1 text-[10px] font-black text-white">
+              {(statusFilter !== 'all' ? 1 : 0) + (tipoLista !== 'ventas' ? 1 : 0)}
+            </span>
+          )}
+        </button>
 
-        {/* Ventas vs kits: en la cabecera fija, no dentro del scroll, para
-            que las tarjetas no pasen por encima al desplazar. */}
-        <div className="flex gap-2 px-4 pb-3">
-          {([['ventas', `Ventas (${nVentas})`], ['kits', `Kits (${nKits})`]] as const).map(([id, label]) => (
-            <button
-              key={id}
-              onClick={() => setTipoLista(id)}
-              className={`flex-1 rounded-xl text-xs font-bold transition-colors ${
-                tipoLista === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-surface)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
-              }`}
-              style={{ minHeight: 42, WebkitTapHighlightColor: 'transparent' }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <span className="truncate text-xs text-[var(--iw-text-muted)]">
+          {tipoLista === 'kits' ? 'Kits' : 'Ventas'}
+          {statusFilter !== 'all' && ` · ${ORDER_STEPS.find(o => o.key === statusFilter)?.label}`}
+        </span>
+
+        <span className="ml-auto shrink-0 text-xs font-bold text-[var(--iw-text-muted)]">
+          {orders.length}
+        </span>
       </div>
+
+      {/* Hoja de filtros */}
+      {filtrosAbiertos && (
+        <div className="fixed inset-0 z-[200] flex items-end bg-black/60" onClick={() => setFiltrosAbiertos(false)}>
+          <div
+            className="max-h-[85vh] w-full overflow-y-auto rounded-t-3xl bg-[var(--iw-surface)]"
+            style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 20px)' }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-[var(--iw-border)] px-5 py-4">
+              <h3 className="font-black text-[var(--iw-text)]">Filtros</h3>
+              <button onClick={() => setFiltrosAbiertos(false)} className="p-2 text-[var(--iw-text-muted)]">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="p-5 flex flex-col gap-5">
+              {/* Primero el tipo, que es la separación más importante */}
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--iw-text-muted)]">Tipo</p>
+                <div className="flex gap-2">
+                  {([['ventas', `Ventas (${nVentas})`], ['kits', `Kits (${nKits})`]] as const).map(([id, label]) => (
+                    <button
+                      key={id}
+                      onClick={() => setTipoLista(id)}
+                      className={`flex-1 rounded-xl text-sm font-bold transition-colors ${
+                        tipoLista === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
+                      }`}
+                      style={{ minHeight: 48 }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--iw-text-muted)]">Estado</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {['all', ...ORDER_STEPS.map(st => st.key)].map(st => (
+                    <button
+                      key={st}
+                      onClick={() => setStatusFilter(st)}
+                      className={`rounded-xl text-sm font-bold transition-colors ${
+                        statusFilter === st ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
+                      }`}
+                      style={{ minHeight: 48 }}
+                    >
+                      {st === 'all' ? 'Todos' : ORDER_STEPS.find(o => o.key === st)?.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <button
+                onClick={() => setFiltrosAbiertos(false)}
+                className="w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white"
+                style={{ minHeight: 52 }}
+              >
+                Ver {orders.length} pedido(s)
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         <button onClick={onCreateOrder}
@@ -2888,10 +2950,7 @@ export default function AdminMobile() {
       </div>}
 
       {/* Contenido */}
-      <PullToRefresh
-        onRefresh={() => utils.invalidate()}
-        className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}
-      >
+      <div className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
         {activeTab === 'stats'    && <StatsSection />}
         {activeTab === 'orders'   && <OrdersSection jumpTo={orderJumpTo} onJumpDone={() => setOrderJumpTo(null)} onCreateOrder={() => setActiveTab('newOrder')} />}
         {activeTab === 'payments' && <PaymentsSection />}
@@ -2909,7 +2968,7 @@ export default function AdminMobile() {
         {activeTab === 'finanzas'    && <FinanzasSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}
         {activeTab === 'newOrder'    && <NewOrderSection onBack={() => setActiveTab('orders')} onSuccess={() => setActiveTab('orders')} />}
-      </PullToRefresh>
+      </div>
 
       {/* Modal notificaciones */}
       {showNotifications && (
