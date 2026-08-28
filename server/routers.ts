@@ -1234,7 +1234,8 @@ export const appRouter = router({
     /** Datos del boleto escaneado. Exige sesión de tienda: un QR suelto no
         revela nada ni puede activarlo cualquiera que lo fotografíe. */
     escanear: storeProcedure
-      .input(z.object({ token: z.string().min(10).max(64) }))
+      // Acepta tanto el token del QR (largo) como el código impreso (corto)
+      .input(z.object({ token: z.string().min(4).max(64) }))
       .query(async ({ input }) => {
         const r = await boletoPorToken(input.token);
         if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "Ese código no corresponde a ningún boleto" });
@@ -1243,7 +1244,7 @@ export const appRouter = router({
 
     vender: storeProcedure
       .input(z.object({
-        token: z.string().min(10).max(64),
+        token: z.string().min(4).max(64),
         ticketTypeId: z.number(),
         buyerName: z.string().min(1).max(200),
         buyerLastName: z.string().min(1).max(200),

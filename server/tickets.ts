@@ -206,11 +206,27 @@ export async function generarBoletos(eventId: number, cantidad: number) {
   return { lote, boletos: creados };
 }
 
-/** Consulta pública por token: lo que ve quien escanea el QR */
-export async function boletoPorToken(token: string) {
+/**
+ * Busca un boleto por su token (el del QR) o por su código impreso.
+ *
+ * Antes solo buscaba por token, así que teclear el código a mano no
+ * encontraba nada: son dos identificadores distintos del mismo boleto.
+ */
+export async function boletoPorToken(tokenOCodigo: string) {
   const db = await getDb();
   if (!db) return undefined;
-  const [t] = await db.select().from(eventTickets).where(eq(eventTickets.token, token)).limit(1);
+
+  const valor = tokenOCodigo.trim();
+
+  let [t] = await db.select().from(eventTickets).where(eq(eventTickets.token, valor)).limit(1);
+
+  if (!t) {
+    // Se prueba como código impreso, sin distinguir mayúsculas ni el prefijo
+    const codigo = valor.toUpperCase();
+    const conPrefijo = codigo.startsWith("IW-") ? codigo : `IW-${codigo}`;
+    [t] = await db.select().from(eventTickets).where(eq(eventTickets.code, conPrefijo)).limit(1);
+  }
+
   if (!t) return undefined;
 
   const [evento] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
@@ -241,7 +257,8 @@ export async function venderBoleto(data: {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
 
-  const [t] = await db.select().from(eventTickets).where(eq(eventTickets.token, data.token)).limit(1);
+  const encontrado = await boletoPorToken(data.token);
+  const t = encontrado?.ticket;
   if (!t) throw new Error("Ese boleto no existe");
   if (t.status === "void") throw new Error("Ese boleto fue anulado");
   if (t.status !== "blank") throw new Error("Ese boleto ya fue vendido");

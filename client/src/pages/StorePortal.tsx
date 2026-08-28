@@ -5,6 +5,7 @@ import QrScanner from "@/components/admin/QrScanner";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { openLoginModal } from "@/const";
 
 /**
  * Portal de tiendas autorizadas.
@@ -44,7 +45,7 @@ export default function StorePortal() {
   );
 
   const { data: escaneo, isLoading: escaneando, error: errorEscaneo } =
-    trpc.tickets.escanear.useQuery({ token }, { enabled: esTienda && token.length > 10, retry: false });
+    trpc.tickets.escanear.useQuery({ token }, { enabled: esTienda && token.trim().length >= 4, retry: false });
 
   const { data: misVentas } = trpc.tickets.misVentas.useQuery(
     { eventId: evento?.id ?? 0 },
@@ -87,10 +88,20 @@ export default function StorePortal() {
         <div className="max-w-sm text-center">
           <Store className="mx-auto mb-4 h-10 w-10 text-[#3a3a48]" />
           <h1 className="mb-2 text-xl font-black text-white">Portal de tiendas</h1>
-          <p className="text-sm text-[#b4b4c2]">
-            Esta zona es solo para tiendas autorizadas. Inicia sesión con el correo
-            que registramos para tu tienda.
+          <p className="mb-6 text-sm leading-relaxed text-[#b4b4c2]">
+            {!isAuthenticated
+              ? "Esta zona es solo para tiendas autorizadas. Entra con el correo que registramos para tu tienda."
+              : "Tu cuenta no está registrada como tienda autorizada. Si crees que es un error, escríbenos."}
           </p>
+          {!isAuthenticated && (
+            <button
+              onClick={openLoginModal}
+              className="w-full rounded-full bg-[#e5007d] font-bold text-white"
+              style={{ minHeight: 52 }}
+            >
+              Iniciar sesión
+            </button>
+          )}
         </div>
       </div>
     );
