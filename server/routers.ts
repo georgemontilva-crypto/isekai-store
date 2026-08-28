@@ -31,7 +31,7 @@ import {
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
-  createQuote, getQuoteByToken, getAllQuotes, updateQuote, deleteQuote, vincularCuentaPorCorreo,
+  createQuote, getQuoteByToken, getAllQuotes, updateQuote, deleteQuote, editQuote, vincularCuentaPorCorreo,
   getTransactions, getFinanceSummary,
   ensureOwnCosplayerProfile, setOwnCosplayerVisibility, getOwnCosplayerVisibility,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
@@ -1190,6 +1190,29 @@ export const appRouter = router({
         depositAmount: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
       }))
       .mutation(({ input }) => createQuote(input)),
+
+    /** Corregir una cotización sin invalidar el enlace ya compartido */
+    edit: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        customerName: z.string().max(200).optional(),
+        customerEmail: z.string().email().max(320).optional(),
+        customerPhone: z.string().max(50).optional(),
+        title: z.string().min(1).max(300).optional(),
+        description: z.string().max(5000).optional(),
+        items: z.array(z.object({
+          concepto: z.string().min(1).max(300),
+          cantidad: z.number().int().min(1).max(999),
+          precio: z.string().regex(/^\d+(\.\d{1,2})?$/),
+        })).min(1).max(50).optional(),
+        notes: z.string().max(2000).optional(),
+        depositAmount: z.string().regex(/^\d+(\.\d{1,2})?$/).optional().or(z.literal("")),
+        expiresInDays: z.number().int().min(1).max(365).optional(),
+      }))
+      .mutation(({ input }) => {
+        const { id, ...datos } = input;
+        return editQuote(id, datos);
+      }),
 
     setStatus: adminProcedure
       .input(z.object({ id: z.number(), status: z.enum(["draft", "sent", "paid", "cancelled"]) }))

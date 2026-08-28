@@ -2699,3 +2699,57 @@ export async function deleteOrder(id: number) {
   await db.delete(orders).where(eq(orders.id, id));
   return { ok: true };
 }
+
+/**
+ * Edita una cotización que aún no se ha pagado.
+ *
+ * Se conserva el token: el enlace que ya compartiste sigue siendo válido, así
+ * no tienes que volver a mandarlo tras corregir un precio o un concepto.
+ * El importe se recalcula aquí, nunca se acepta del formulario.
+ */
+export async function editQuote(id: number, data: {
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+  title?: string;
+  description?: string;
+  items?: Array<{ concepto: string; cantidad: number; precio: string }>;
+  notes?: string;
+  depositAmount?: string | null;
+  expiresInDays?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const [actual] = await db.select().from(quotes).where(eq(quotes.id, id)).limit(1);
+  if (!actual) throw new Error("La cotización no existe");
+  if (actual.status === "paid") throw new Error("No se puede editar una cotización ya pagada");
+
+  const cambios: any = {};
+  if (data.customerName !== undefined) cambios.customerName = data.customerName;
+  if (data.customerEmail !== undefined) cambios.customerEmail = data.customerEmail;
+  if (data.customerPhone !== undefined) cambios.customerPhone = data.customerPhone;
+  if (data.title !== undefined) cambios.title = data.title;
+  if (data.description !== undefined) cambios.description = data.description;
+  if (data.notes !== undefined) cambios.notes = data.notes;
+  if (data.depositAmount !== undefined) cambios.depositAmount = data.depositAmount || null;
+
+  if (data.items) {
+    const subtotal = data.items.reduce(
+      (acc, i) => acc + parseFloat(i.precio || "0") * (i.cantidad || 1), 0,
+    );
+    cambios.items = data.items;
+    cambios.subtotal = subtotal.toFixed(2);
+    cambios.total = subtotal.toFixed(2);
+  }
+
+  if (data.expiresInDays !== undefined) {
+    cambios.expiresAt = data.expiresInDays
+      ? new Date(Date.now() + data.expiresInDays * 86400000)
+      : null;
+  }
+
+  await db.update(quotes).set(cambios).where(eq(quotes.id, id));
+  const [nueva] = await db.select().from(quotes).where(eq(quotes.id, id)).limit(1);
+  return nueva;
+}

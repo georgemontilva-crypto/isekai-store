@@ -819,6 +819,25 @@ export default function Admin() {
     items: [{ concepto: "", cantidad: 1, precio: "" }],
   });
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  // Id de la cotización que se está corrigiendo (null = se está creando una nueva)
+  const [editingQuoteId, setEditingQuoteId] = useState<number | null>(null);
+
+  /** Carga una cotización en el formulario para corregirla */
+  const abrirEdicion = (q: any) => {
+    setEditingQuoteId(q.id);
+    setQuoteForm({
+      customerName: q.customerName ?? "",
+      customerEmail: q.customerEmail ?? "",
+      customerPhone: q.customerPhone ?? "",
+      title: q.title ?? "",
+      description: q.description ?? "",
+      notes: q.notes ?? "",
+      expiresInDays: 15,
+      depositAmount: q.depositAmount ? String(q.depositAmount) : "",
+      items: (q.items ?? []).length ? q.items : [{ concepto: "", cantidad: 1, precio: "" }],
+    });
+    setShowQuoteForm(true);
+  };
   const createQuote = trpc.quotes.create.useMutation({
     onSuccess: () => {
       refetchQuotes();
@@ -828,6 +847,16 @@ export default function Admin() {
     },
     onError: (e) => toast.error(e.message),
   });
+  const editQuote = trpc.quotes.edit.useMutation({
+    onSuccess: () => {
+      refetchQuotes();
+      setShowQuoteForm(false);
+      setEditingQuoteId(null);
+      toast.success("Cotización actualizada — el enlace sigue siendo el mismo");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const deleteQuote = trpc.quotes.delete.useMutation({
     onSuccess: () => { refetchQuotes(); toast.success("Cotización eliminada"); },
   });
@@ -2391,7 +2420,7 @@ export default function Admin() {
                     </p>
                   </div>
                   <button
-                    onClick={() => setShowQuoteForm(!showQuoteForm)}
+                    onClick={() => { setEditingQuoteId(null); setShowQuoteForm(!showQuoteForm); }}
                     className="flex items-center gap-2 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white"
                   >
                     <Plus className="h-4 w-4" /> Nueva cotización
@@ -2490,22 +2519,29 @@ export default function Admin() {
                     </div>
 
                     <div className="mt-4 flex gap-2">
-                      <button onClick={() => setShowQuoteForm(false)}
+                      <button onClick={() => { setShowQuoteForm(false); setEditingQuoteId(null); }}
                         className="flex-1 rounded-xl border border-[#e5e5e5] py-3 text-sm font-bold text-[#666]">Cancelar</button>
                       <button
-                        onClick={() => createQuote.mutate({
-                          ...quoteForm,
-                          customerName: quoteForm.customerName || undefined,
-                          customerEmail: quoteForm.customerEmail || undefined,
-                          customerPhone: quoteForm.customerPhone || undefined,
-                          description: quoteForm.description || undefined,
-                          notes: quoteForm.notes || undefined,
-                          depositAmount: quoteForm.depositAmount || undefined,
-                          items: quoteForm.items.filter(i => i.concepto && i.precio),
-                        })}
-                        disabled={!quoteForm.title || quoteTotal <= 0 || createQuote.isPending}
+                        onClick={() => {
+                          const datos = {
+                            title: quoteForm.title,
+                            expiresInDays: quoteForm.expiresInDays,
+                            customerName: quoteForm.customerName || undefined,
+                            customerEmail: quoteForm.customerEmail || undefined,
+                            customerPhone: quoteForm.customerPhone || undefined,
+                            description: quoteForm.description || undefined,
+                            notes: quoteForm.notes || undefined,
+                            depositAmount: quoteForm.depositAmount || undefined,
+                            items: quoteForm.items.filter(i => i.concepto && i.precio),
+                          };
+                          if (editingQuoteId) editQuote.mutate({ id: editingQuoteId, ...datos });
+                          else createQuote.mutate(datos);
+                        }}
+                        disabled={!quoteForm.title || quoteTotal <= 0 || createQuote.isPending || editQuote.isPending}
                         className="flex-1 rounded-xl bg-[#e5007d] py-3 text-sm font-bold text-white disabled:opacity-40">
-                        {createQuote.isPending ? "Creando..." : "Crear y generar enlace"}
+                        {createQuote.isPending || editQuote.isPending
+                          ? "Guardando..."
+                          : editingQuoteId ? "Guardar cambios" : "Crear y generar enlace"}
                       </button>
                     </div>
                   </div>
@@ -2555,6 +2591,14 @@ export default function Admin() {
                               className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#111] hover:text-[#111]">
                               Ver como cliente <ExternalLink className="h-3.5 w-3.5" />
                             </a>
+                            {q.status !== "paid" && (
+                              <button
+                                onClick={() => abrirEdicion(q)}
+                                className="rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#e5007d] hover:text-[#e5007d]"
+                              >
+                                Editar
+                              </button>
+                            )}
                             {q.status !== "paid" && (
                               <button
                                 onClick={() => { if (confirm("¿Eliminar esta cotización?")) deleteQuote.mutate({ id: q.id }); }}

@@ -19,6 +19,8 @@ export default function QuotesSection() {
   });
 
   const [abierto, setAbierto] = useState(false);
+  // Cotización que se está corrigiendo (null = se crea una nueva)
+  const [editandoId, setEditandoId] = useState<number | null>(null);
   const [form, setForm] = useState({
     customerName: '', customerEmail: '', title: '', description: '',
     expiresInDays: 15, depositAmount: '',
@@ -47,9 +49,35 @@ export default function QuotesSection() {
     onError: (e) => toast.error(e.message),
   });
 
+  const editar = trpc.quotes.edit.useMutation({
+    onSuccess: async () => {
+      await utils.quotes.list.invalidate();
+      setAbierto(false);
+      setEditandoId(null);
+      vacio();
+      toast.success('Cotización actualizada — el enlace no cambia');
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const borrar = trpc.quotes.delete.useMutation({
     onSuccess: () => { utils.quotes.list.invalidate(); toast.success('Cotización eliminada'); },
   });
+
+  /** Carga una cotización en el formulario para corregirla */
+  const abrirEdicion = (q: any) => {
+    setEditandoId(q.id);
+    setForm({
+      customerName: q.customerName ?? '',
+      customerEmail: q.customerEmail ?? '',
+      title: q.title ?? '',
+      description: q.description ?? '',
+      expiresInDays: 15,
+      depositAmount: q.depositAmount ? String(q.depositAmount) : '',
+      items: (q.items ?? []).length ? q.items : [{ concepto: '', cantidad: 1, precio: '' }],
+    });
+    setAbierto(true);
+  };
 
   const total = form.items.reduce((a, i) => a + (parseFloat(i.precio || '0') * (i.cantidad || 1)), 0);
   const valido = form.title.trim().length > 0 && total > 0;
@@ -74,7 +102,7 @@ export default function QuotesSection() {
       </div>
 
       <button
-        onClick={() => setAbierto(!abierto)}
+        onClick={() => { setEditandoId(null); if (!abierto) vacio(); setAbierto(!abierto); }}
         className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white rounded-2xl font-bold text-sm transition-transform active:scale-[0.98]"
         style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}
       >
@@ -197,21 +225,25 @@ export default function QuotesSection() {
           </div>
 
           <button
-            onClick={() => crear.mutate({
-              title: form.title,
-              description: form.description || undefined,
-              customerName: form.customerName || undefined,
-              customerEmail: form.customerEmail || undefined,
-              expiresInDays: form.expiresInDays,
-              depositAmount: form.depositAmount || undefined,
-              items: form.items.filter(i => i.concepto && i.precio),
-            })}
-            disabled={!valido || crear.isPending}
+            onClick={() => {
+              const datos = {
+                title: form.title,
+                description: form.description || undefined,
+                customerName: form.customerName || undefined,
+                customerEmail: form.customerEmail || undefined,
+                expiresInDays: form.expiresInDays,
+                depositAmount: form.depositAmount || undefined,
+                items: form.items.filter(i => i.concepto && i.precio),
+              };
+              if (editandoId) editar.mutate({ id: editandoId, ...datos });
+              else crear.mutate(datos);
+            }}
+            disabled={!valido || crear.isPending || editar.isPending}
             className="w-full flex items-center justify-center gap-2 rounded-2xl bg-[#e5007d] text-white font-bold text-sm disabled:bg-[var(--iw-border)] disabled:text-[var(--iw-text-muted)]"
             style={{ minHeight: 52 }}
           >
-            {crear.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-            Crear y copiar enlace
+            {crear.isPending || editar.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+            {editandoId ? 'Guardar cambios' : 'Crear y copiar enlace'}
           </button>
         </div>
       )}
@@ -263,6 +295,15 @@ export default function QuotesSection() {
                 >
                   <ExternalLink size={14} />
                 </a>
+                {q.status !== 'paid' && (
+                  <button
+                    onClick={() => abrirEdicion(q)}
+                    className="flex items-center justify-center rounded-xl border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)]"
+                    style={{ minHeight: 44 }}
+                  >
+                    Editar
+                  </button>
+                )}
                 {q.status !== 'paid' && (
                   <button
                     onClick={() => { if (confirm('¿Eliminar esta cotización?')) borrar.mutate({ id: q.id }); }}
