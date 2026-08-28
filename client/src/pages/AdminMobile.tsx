@@ -2381,7 +2381,11 @@ function FinanzasSection() {
                     className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white"
                     style={{ minHeight: 46 }}
                   >
-                    Confirmar pago
+                    {(() => {
+                      const pagado = parseFloat(t.amountPaid ?? '0');
+                      const esAbono = pagado > 0 && pagado < parseFloat(t.total) - 0.01;
+                      return esAbono ? `Confirmar abono de $${pagado.toFixed(2)}` : 'Confirmar pago';
+                    })()}
                   </button>
                 )}
               </div>

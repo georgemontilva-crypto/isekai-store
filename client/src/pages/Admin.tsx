@@ -2482,7 +2482,13 @@ export default function Admin() {
                                 onClick={() => verifyPayment.mutate({ orderId: t.id, approved: true })}
                                 className="ml-auto rounded-full bg-[#e5007d] px-5 py-2.5 text-xs font-bold text-white hover:bg-[#c4006b]"
                               >
-                                Confirmar pago
+                                {/* El texto refleja lo que realmente pasa: si
+                                    fue un abono, el pedido queda parcial. */}
+                                {(() => {
+                                  const pagado = parseFloat(t.amountPaid ?? "0");
+                                  const esAbono = pagado > 0 && pagado < parseFloat(t.total) - 0.01;
+                                  return esAbono ? `Confirmar abono de $${pagado.toFixed(2)}` : "Confirmar pago";
+                                })()}
                               </button>
                             )}
                           </div>

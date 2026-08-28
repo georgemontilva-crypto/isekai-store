@@ -571,7 +571,7 @@ export const appRouter = router({
       .mutation(async ({ input }) => {
         const order = await getOrderById(input.orderId);
         if (!order) throw new TRPCError({ code: "NOT_FOUND" });
-        await verifyOrderPayment(input.orderId, input.approved);
+        const resultado = await verifyOrderPayment(input.orderId, input.approved);
         const title = input.approved ? "Pago aprobado" : "Pago rechazado";
         const body = input.approved
           ? "Tu pago fue verificado. ¡Estamos preparando tu pedido!"
@@ -589,8 +589,9 @@ export const appRouter = router({
           await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, title, body);
         } catch { /* non-critical */ }
 
-        // Acreditar la comisión por tramo al cosplayer referidor
-        if (input.approved && (order as any).referralCosplayerId) {
+        // La comisión se paga solo cuando el pedido queda cancelado por
+        // completo: con un abono parcial el cliente todavía debe.
+        if (input.approved && resultado?.completo && (order as any).referralCosplayerId) {
           try {
             const orderTotal = parseFloat(order.total);
             const cashReward = getReferralCash(orderTotal);

@@ -792,11 +792,29 @@ export async function verifyOrderPayment(
 ) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  if (approved) {
-    await db.update(orders).set({ paymentStatus: "approved", status: "preparing" }).where(eq(orders.id, orderId));
-  } else {
+
+  if (!approved) {
     await db.update(orders).set({ paymentStatus: "rejected" }).where(eq(orders.id, orderId));
+    return { completo: false };
   }
+
+  // Verificar un pago NO significa que se pagó todo: si lo recibido es menor
+  // al total, el pedido queda como PARCIAL con su saldo pendiente. Antes se
+  // marcaba "approved" sin mirar el importe, y un abono de $8 sobre $15
+  // aparecía como pagado por completo.
+  const [pedido] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!pedido) throw new Error("El pedido no existe");
+
+  const total = parseFloat(pedido.total as any) || 0;
+  const pagado = parseFloat((pedido.amountPaid as any) ?? "0") || 0;
+  const completo = pagado <= 0 || pagado >= total - 0.01;
+
+  await db.update(orders).set({
+    paymentStatus: completo ? "approved" : "partial",
+    status: "preparing",
+  }).where(eq(orders.id, orderId));
+
+  return { completo, pagado, total, saldo: Math.max(0, Math.round((total - pagado) * 100) / 100) };
 }
 
 export async function updateOrderPaymentStatus(orderNumber: string, paymentStatus: string) {
