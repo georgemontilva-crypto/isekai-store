@@ -1237,9 +1237,25 @@ export const appRouter = router({
       // Acepta tanto el token del QR (largo) como el código impreso (corto)
       .input(z.object({ token: z.string().min(4).max(64) }))
       .query(async ({ input }) => {
-        const r = await boletoPorToken(input.token);
-        if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "Ese código no corresponde a ningún boleto" });
-        return r;
+        try {
+          const r = await boletoPorToken(input.token);
+          if (!r) {
+            throw new TRPCError({
+              code: "NOT_FOUND",
+              message: `No encontramos ningún boleto con ese código (${input.token.slice(0, 24)})`,
+            });
+          }
+          return r;
+        } catch (e: any) {
+          if (e instanceof TRPCError) throw e;
+          // Cualquier otro fallo se registra y se explica, en vez de dejar
+          // el "error inesperado" que no dice nada.
+          console.error("[Boleto] Error al escanear:", e);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "No se pudo leer el boleto. Avísanos para revisarlo.",
+          });
+        }
       }),
 
     vender: storeProcedure

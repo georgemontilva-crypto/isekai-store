@@ -229,14 +229,33 @@ export async function boletoPorToken(tokenOCodigo: string) {
 
   if (!t) return undefined;
 
-  const [evento] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
-  const tipo = t.ticketTypeId
-    ? (await db.select().from(ticketTypes).where(eq(ticketTypes.id, t.ticketTypeId)).limit(1))[0]
-    : undefined;
-  const tienda = t.storeId
-    ? (await db.select().from(stores).where(eq(stores.id, t.storeId)).limit(1))[0]
-    : undefined;
-  const ingresos = await db.select().from(ticketCheckins).where(eq(ticketCheckins.ticketId, t.id));
+  // Los datos de apoyo se consultan por separado y sin romper el escaneo: si
+  // alguna consulta falla, el boleto se devuelve igual. Antes un fallo aquí
+  // tumbaba todo el escaneo con un error genérico.
+  let evento: any = undefined;
+  let tipo: any = undefined;
+  let tienda: any = undefined;
+  let ingresos: any[] = [];
+
+  try {
+    [evento] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
+  } catch (e) { console.error("[Boleto] No se pudo leer el evento:", e); }
+
+  try {
+    if (t.ticketTypeId) {
+      [tipo] = await db.select().from(ticketTypes).where(eq(ticketTypes.id, t.ticketTypeId)).limit(1);
+    }
+  } catch (e) { console.error("[Boleto] No se pudo leer el tipo:", e); }
+
+  try {
+    if (t.storeId) {
+      [tienda] = await db.select().from(stores).where(eq(stores.id, t.storeId)).limit(1);
+    }
+  } catch (e) { console.error("[Boleto] No se pudo leer la tienda:", e); }
+
+  try {
+    ingresos = await db.select().from(ticketCheckins).where(eq(ticketCheckins.ticketId, t.id));
+  } catch (e) { console.error("[Boleto] No se pudieron leer los ingresos:", e); }
 
   return { ticket: t, evento, tipo, tienda, ingresos };
 }
