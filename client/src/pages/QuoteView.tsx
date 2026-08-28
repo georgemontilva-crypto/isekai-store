@@ -63,7 +63,9 @@ export default function QuoteView() {
     onError: (e) => toast.error(e.message),
   });
 
-  const bsRate = trpc.settings.getAll.useQuery().data?.["bs_rate"];
+  const ajustes = trpc.settings.getAll.useQuery().data;
+  const bsRate = ajustes?.["bs_rate"];
+  const tasaActualizada = ajustes?.["bs_rate_updated"];
 
   const archivo = async (f: File | null) => {
     if (!f) return;
@@ -184,7 +186,14 @@ export default function QuoteView() {
             <span className="text-sm font-bold uppercase tracking-wide text-[#b4b4c2]">Total</span>
             <div className="text-right">
               <p className="text-2xl font-black text-[#e5007d]">${cotizacion.total} USD</p>
-              {totalBs && <p className="text-xs text-[#8a8a9c]">Bs {totalBs}</p>}
+              {totalBs && (
+                <>
+                  <p className="text-xs text-[#8a8a9c]">Bs {totalBs}</p>
+                  <p className="text-[10px] text-[#6a6a7c]">
+                    Tasa: Bs {parseFloat(bsRate!).toLocaleString("es-VE", { minimumFractionDigits: 2 })}/USD
+                  </p>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -267,7 +276,20 @@ export default function QuoteView() {
                       ? parseFloat(cotizacion.total)
                       : parseFloat(cotizacion.depositAmount);
                     const enBs = bsRate ? (aPagar * parseFloat(bsRate)).toFixed(2) : null;
-                    return enBs ? <Copiable label="Monto a transferir (Bs)" valor={enBs} /> : null;
+                    if (!enBs) return null;
+                    return (
+                      <>
+                        <Copiable label="Monto a transferir (Bs)" valor={enBs} />
+                        {/* La tasa a la vista: el cliente entiende de dónde
+                            sale la cifra en vez de tener que confiar. */}
+                        <p className="px-1 text-[11px] text-[#8a8a9c]">
+                          Calculado a Bs {parseFloat(bsRate!).toLocaleString("es-VE", { minimumFractionDigits: 2 })} por dólar
+                          {tasaActualizada && (
+                            <> · tasa del {new Date(tasaActualizada).toLocaleDateString("es-VE", { day: "2-digit", month: "long" })}</>
+                          )}
+                        </p>
+                      </>
+                    );
                   })()}
                 </>
               ) : (
