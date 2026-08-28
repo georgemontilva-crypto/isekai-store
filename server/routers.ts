@@ -18,7 +18,7 @@ import {
   crearTipoBoleto, listarTipos, editarTipo, borrarTipo,
   crearTienda, listarTiendas, editarTienda, borrarTienda, tiendaDeUsuario,
   generarBoletos, boletoPorToken, venderBoleto, corregirBoleto,
-  listarBoletos, resumenEvento, ventasDeTienda,
+  listarBoletos, resumenEvento, ventasDeTienda, lotesDeEvento, boletosDeLote, ventasPorDia,
 } from "./tickets";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
@@ -1202,6 +1202,18 @@ export const appRouter = router({
     listar: adminProcedure
       .input(z.object({ eventId: z.number(), status: z.string().optional(), storeId: z.number().optional() }))
       .query(({ input }) => listarBoletos(input.eventId, { status: input.status, storeId: input.storeId })),
+
+    lotes: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => lotesDeEvento(input.eventId)),
+
+    boletosDeLote: adminProcedure
+      .input(z.object({ eventId: z.number(), lote: z.string().max(40) }))
+      .query(({ input }) => boletosDeLote(input.eventId, input.lote)),
+
+    ventasPorDia: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => ventasPorDia(input.eventId)),
 
     resumen: adminProcedure
       .input(z.object({ eventId: z.number() }))

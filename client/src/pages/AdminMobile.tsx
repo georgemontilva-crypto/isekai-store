@@ -15,7 +15,7 @@ import TicketsAdmin from '@/components/admin/TicketsAdmin';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-tiendas' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -2900,7 +2900,7 @@ export default function AdminMobile() {
     ? [
         { id: 'boleteria' as MobileTab,          label: 'Resumen',  icon: BarChart3 },
         { id: 'boleteria-boletos' as MobileTab,  label: 'Vendidos', icon: Ticket },
-        { id: 'boleteria-tipos' as MobileTab,    label: 'Tipos',    icon: Tag },
+        { id: 'boleteria-codigos' as MobileTab,  label: 'Códigos',  icon: Tag },
         { id: 'boleteria-tiendas' as MobileTab,  label: 'Tiendas',  icon: Store },
         { id: 'more' as MobileTab,               label: 'Salir',    icon: Menu },
       ]
@@ -2917,13 +2917,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2986,6 +2986,7 @@ export default function AdminMobile() {
             compact
             vistaFija={
               activeTab === 'boleteria-boletos' ? 'boletos'
+              : activeTab === 'boleteria-codigos' ? 'codigos'
               : activeTab === 'boleteria-tipos' ? 'tipos'
               : activeTab === 'boleteria-tiendas' ? 'tiendas'
               : 'resumen'

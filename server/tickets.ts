@@ -423,3 +423,55 @@ export async function vincularUsuarioTienda(email: string, userId: number) {
   const correo = email.trim().toLowerCase();
   await db.update(stores).set({ userId }).where(eq(stores.email, correo));
 }
+
+/** Lotes generados de un evento, con su estado: para reimprimir o revisar */
+export async function lotesDeEvento(eventId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const filas = await db.select().from(eventTickets).where(eq(eventTickets.eventId, eventId));
+
+  const porLote = new Map<string, { lote: string; total: number; vendidos: number; enBlanco: number; creado: Date | null }>();
+  for (const t of filas) {
+    const clave = t.batch ?? "sin-lote";
+    const actual = porLote.get(clave) ?? { lote: clave, total: 0, vendidos: 0, enBlanco: 0, creado: t.createdAt };
+    actual.total++;
+    if (t.status === "sold") actual.vendidos++;
+    if (t.status === "blank") actual.enBlanco++;
+    porLote.set(clave, actual);
+  }
+
+  return Array.from(porLote.values()).sort((a, b) => b.lote.localeCompare(a.lote));
+}
+
+/** Boletos de un lote, para volver a imprimir sus QR */
+export async function boletosDeLote(eventId: number, lote: string) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(eventTickets)
+    .where(and(eq(eventTickets.eventId, eventId), eq(eventTickets.batch, lote)))
+    .orderBy(eventTickets.id);
+}
+
+/** Ventas por día, para la gráfica */
+export async function ventasPorDia(eventId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const filas = await db.select().from(eventTickets)
+    .where(and(eq(eventTickets.eventId, eventId), eq(eventTickets.status, "sold")));
+
+  const porDia = new Map<string, { dia: string; cantidad: number; usd: number }>();
+  for (const t of filas) {
+    if (!t.soldAt) continue;
+    const dia = new Date(t.soldAt).toISOString().slice(0, 10);
+    const actual = porDia.get(dia) ?? { dia, cantidad: 0, usd: 0 };
+    actual.cantidad++;
+    actual.usd += parseFloat(t.priceUsd as any) || 0;
+    porDia.set(dia, actual);
+  }
+
+  return Array.from(porDia.values())
+    .map(d => ({ ...d, usd: Math.round(d.usd * 100) / 100 }))
+    .sort((a, b) => a.dia.localeCompare(b.dia));
+}

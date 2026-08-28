@@ -15,14 +15,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function TicketsAdmin({ compact = false, vistaFija }: {
   compact?: boolean;
   /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
-  vistaFija?: "resumen" | "boletos" | "tipos" | "tiendas";
+  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas";
 }) {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
   const habilitado = isAuthenticated && user?.role === "admin";
 
   const [eventoId, setEventoId] = useState<number | null>(null);
-  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "tipos" | "tiendas">("resumen");
+  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas">("resumen");
   const vista = vistaFija ?? vistaLocal;
   const setVista = setVistaLocal;
 
@@ -40,6 +40,16 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento },
   );
   const { data: tiendas = [] } = trpc.tickets.tiendas.useQuery(undefined, { enabled: habilitado });
+  const { data: ventasDia = [] } = trpc.tickets.ventasPorDia.useQuery(
+    { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento && vista === "resumen", refetchInterval: 30000 },
+  );
+  const { data: lotes = [] } = trpc.tickets.lotes.useQuery(
+    { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento && vista === "codigos" },
+  );
+  const { data: todosLosCodigos = [] } = trpc.tickets.listar.useQuery(
+    { eventId: evento?.id ?? 0, status: "all" },
+    { enabled: habilitado && !!evento && vista === "codigos" },
+  );
   const { data: boletos = [] } = trpc.tickets.listar.useQuery(
     { eventId: evento?.id ?? 0, status: "sold" },
     { enabled: habilitado && !!evento && vista === "boletos", refetchInterval: 15000 },
@@ -136,6 +146,14 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     w.document.close();
   };
 
+  /** Vuelve a abrir la hoja imprimible de un lote ya generado */
+  const reimprimir = async (lote: string) => {
+    if (!evento) return;
+    const lista = await utils.tickets.boletosDeLote.fetch({ eventId: evento.id, lote });
+    if (!lista.length) { toast.error("Ese lote no tiene boletos"); return; }
+    await descargarQrs(lista, lote);
+  };
+
   if (!habilitado) return null;
 
   // Variables de tema para que funcione igual en claro y oscuro, y `min-w-0`
@@ -212,8 +230,8 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
 
       {/* Pestañas */}
       {!vistaFija && (
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"]] as const).map(([id, label]) => (
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
+        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"]] as const).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setVista(id)}
@@ -300,27 +318,69 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             )}
           </div>
 
-          {/* Por tienda */}
+          {/* Por tienda, con barras comparativas.
+              Una barra dice de un vistazo quién vende más; una lista de
+              números obliga a compararlos mentalmente. */}
           <div className={tarjeta}>
-            <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Por tienda</p>
+            <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Ventas por tienda</p>
             {resumen.porTienda.length === 0 ? (
               <p className="py-4 text-center text-sm text-[var(--iw-text-muted)]">Ninguna tienda ha vendido todavía.</p>
-            ) : (
-              <div className="flex flex-col gap-2">
-                {resumen.porTienda.map((t: any) => (
-                  <div key={t.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-2 last:border-0">
-                    <p className="min-w-0 truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
-                    <div className="shrink-0 text-right">
-                      <p className="font-black text-[var(--iw-text)]">{t.cantidad} boletos</p>
-                      <p className="text-xs text-[#e5007d]">
-                        ${t.totalUsd.toFixed(2)} · Bs {t.totalBs.toLocaleString("es-VE")}
+            ) : (() => {
+              const mayor = Math.max(...resumen.porTienda.map((t: any) => t.totalUsd), 1);
+              return (
+                <div className="flex flex-col gap-3">
+                  {[...resumen.porTienda].sort((a: any, b: any) => b.totalUsd - a.totalUsd).map((t: any) => (
+                    <div key={t.id}>
+                      <div className="mb-1 flex items-end justify-between gap-3">
+                        <p className="min-w-0 truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
+                        <div className="shrink-0 text-right">
+                          <span className="text-sm font-black text-[var(--iw-text)]">${t.totalUsd.toFixed(2)}</span>
+                          <span className="ml-2 text-xs text-[var(--iw-text-muted)]">{t.cantidad} boletos</span>
+                        </div>
+                      </div>
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--iw-border)]">
+                        <div
+                          className="h-full rounded-full bg-[#e5007d] transition-all duration-500"
+                          style={{ width: `${Math.max(4, (t.totalUsd / mayor) * 100)}%` }}
+                        />
+                      </div>
+                      <p className="mt-0.5 text-[11px] text-[var(--iw-text-muted)]">
+                        Bs {t.totalBs.toLocaleString("es-VE")}
                       </p>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              );
+            })()}
           </div>
+
+          {/* Ritmo de ventas por día */}
+          {(ventasDia as any[]).length > 0 && (
+            <div className={tarjeta}>
+              <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Ventas por día</p>
+              {(() => {
+                const dias = ventasDia as any[];
+                const tope = Math.max(...dias.map(d => d.cantidad), 1);
+                return (
+                  <div className="flex items-end gap-1.5" style={{ height: 120 }}>
+                    {dias.map(d => (
+                      <div key={d.dia} className="flex min-w-0 flex-1 flex-col items-center justify-end gap-1">
+                        <span className="text-[10px] font-bold text-[var(--iw-text)]">{d.cantidad}</span>
+                        <div
+                          className="w-full rounded-t bg-[#e5007d]"
+                          style={{ height: `${Math.max(6, (d.cantidad / tope) * 80)}px` }}
+                          title={`${d.cantidad} boletos · $${d.usd.toFixed(2)}`}
+                        />
+                        <span className="truncate text-[9px] text-[var(--iw-text-muted)]">
+                          {new Date(d.dia + "T12:00:00").toLocaleDateString("es-VE", { day: "2-digit", month: "short" })}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+          )}
         </>
       )}
 
@@ -351,6 +411,72 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             </div>
           ))}
         </div>
+      )}
+
+      {/* ── Códigos generados ── */}
+      {vista === "codigos" && (
+        <>
+          <div className={tarjeta}>
+            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Lotes generados</p>
+            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
+              Cada vez que generas boletos se crea un lote. Puedes volver a imprimir sus QR.
+            </p>
+            {lotes.length === 0 ? (
+              <p className="py-4 text-center text-sm text-[var(--iw-text-muted)]">Todavía no has generado boletos.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {lotes.map((l: any) => (
+                  <div key={l.lote} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--iw-border)] p-3">
+                    <div className="min-w-0">
+                      <p className="font-mono text-sm font-bold text-[var(--iw-text)]">{l.lote}</p>
+                      <p className="text-xs text-[var(--iw-text-muted)]">
+                        {l.total} boletos · {l.vendidos} vendidos · {l.enBlanco} sin vender
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => reimprimir(l.lote)}
+                      className="flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)] hover:border-[#e5007d] hover:text-[#e5007d]"
+                      style={{ minHeight: 40 }}
+                    >
+                      <Download size={14} /> Imprimir
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className={tarjeta}>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-bold text-[var(--iw-text)]">Todos los códigos</p>
+              <span className="text-xs text-[var(--iw-text-muted)]">{todosLosCodigos.length}</span>
+            </div>
+            <div className="iw-scroll-oculto flex max-h-[420px] flex-col gap-1.5 overflow-y-auto pr-1">
+              {todosLosCodigos.map((b: any) => (
+                <div key={b.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-1.5 last:border-0">
+                  <div className="min-w-0">
+                    <p className="font-mono text-xs font-bold text-[var(--iw-text)]">{b.code}</p>
+                    {b.buyerName && (
+                      <p className="truncate text-[11px] text-[var(--iw-text-muted)]">
+                        {b.buyerName} {b.buyerLastName} · {b.tiendaNombre ?? "—"}
+                      </p>
+                    )}
+                  </div>
+                  <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                    b.status === "sold" ? "bg-green-500/15 text-green-500"
+                    : b.status === "void" ? "bg-red-500/15 text-red-500"
+                    : "bg-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                  }`}>
+                    {b.status === "sold" ? "Vendido" : b.status === "void" ? "Anulado" : "En blanco"}
+                  </span>
+                </div>
+              ))}
+              {todosLosCodigos.length === 0 && (
+                <p className="py-6 text-center text-sm text-[var(--iw-text-muted)]">No hay códigos generados.</p>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
       {/* ── Tipos ── */}
