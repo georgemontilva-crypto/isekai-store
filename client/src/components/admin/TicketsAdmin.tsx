@@ -121,17 +121,21 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
 
   if (!habilitado) return null;
 
-  const tarjeta = "rounded-2xl border border-[#e5e5e5] bg-white p-4";
-  const campo = "w-full rounded-xl border border-[#e5e5e5] bg-[#fafafa] px-4 py-3 text-sm outline-none focus:border-[#e5007d]";
+  // Variables de tema para que funcione igual en claro y oscuro, y `min-w-0`
+  // en todos los contenedores para que nada se salga en pantalla estrecha.
+  const tarjeta = "rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4 min-w-0";
+  const campo = "w-full min-w-0 rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]";
+  const altoCampo = { minHeight: 48 };
 
   return (
     <div className={compact ? "p-4 flex flex-col gap-4" : "flex flex-col gap-5"}>
       {/* Selector de evento */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex min-w-0 gap-2">
         <select
           value={evento?.id ?? ""}
           onChange={e => setEventoId(Number(e.target.value))}
-          className="rounded-xl border border-[#e5e5e5] bg-white px-4 py-2.5 text-sm font-bold outline-none"
+          className={`${campo} flex-1 font-bold`}
+          style={altoCampo}
         >
           {eventos.map((e: any) => (
             <option key={e.id} value={e.id}>{e.name}</option>
@@ -140,41 +144,47 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
         </select>
         <button
           onClick={() => setFormEvento(!formEvento)}
-          className="flex items-center gap-2 rounded-xl bg-[#e5007d] px-4 py-2.5 text-sm font-bold text-white"
+          className="flex shrink-0 items-center justify-center rounded-xl bg-[#e5007d] px-4 text-white"
+          style={altoCampo}
+          aria-label="Nuevo evento"
         >
-          <Plus size={15} /> Evento
+          <Plus size={18} />
         </button>
         <button
           onClick={() => refetchResumen()}
-          className="rounded-xl border border-[#e5e5e5] p-2.5 text-[#666]"
+          className="flex shrink-0 items-center justify-center rounded-xl border border-[var(--iw-border)] px-4 text-[var(--iw-text-muted)]"
+          style={altoCampo}
           aria-label="Actualizar"
         >
-          <RefreshCw size={15} />
+          <RefreshCw size={16} />
         </button>
       </div>
 
       {formEvento && (
         <div className={tarjeta}>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="flex flex-col gap-3">
             <input placeholder="Nombre del evento" value={nuevoEvento.name}
-              onChange={e => setNuevoEvento(f => ({ ...f, name: e.target.value }))} className={campo} />
+              onChange={e => setNuevoEvento(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
             <input placeholder="Lugar" value={nuevoEvento.location}
-              onChange={e => setNuevoEvento(f => ({ ...f, location: e.target.value }))} className={campo} />
-            <div>
-              <label className="mb-1 block text-xs text-[#888]">Primer día</label>
-              <input type="date" value={nuevoEvento.startDate}
-                onChange={e => setNuevoEvento(f => ({ ...f, startDate: e.target.value }))} className={campo} />
-            </div>
-            <div>
-              <label className="mb-1 block text-xs text-[#888]">Último día</label>
-              <input type="date" value={nuevoEvento.endDate}
-                onChange={e => setNuevoEvento(f => ({ ...f, endDate: e.target.value }))} className={campo} />
+              onChange={e => setNuevoEvento(f => ({ ...f, location: e.target.value }))} className={campo} style={altoCampo} />
+            <div className="grid grid-cols-2 gap-2">
+              <div className="min-w-0">
+                <label className="mb-1 block text-xs text-[var(--iw-text-muted)]">Primer día</label>
+                <input type="date" value={nuevoEvento.startDate}
+                  onChange={e => setNuevoEvento(f => ({ ...f, startDate: e.target.value }))} className={campo} style={altoCampo} />
+              </div>
+              <div className="min-w-0">
+                <label className="mb-1 block text-xs text-[var(--iw-text-muted)]">Último día</label>
+                <input type="date" value={nuevoEvento.endDate}
+                  onChange={e => setNuevoEvento(f => ({ ...f, endDate: e.target.value }))} className={campo} style={altoCampo} />
+              </div>
             </div>
           </div>
           <button
             onClick={() => crearEvento.mutate(nuevoEvento)}
             disabled={!nuevoEvento.name || !nuevoEvento.startDate || !nuevoEvento.endDate}
-            className="mt-3 w-full rounded-xl bg-[#e5007d] py-3 text-sm font-bold text-white disabled:opacity-40"
+            className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+            style={{ minHeight: 52 }}
           >
             Crear evento
           </button>
@@ -182,14 +192,15 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
       )}
 
       {/* Pestañas */}
-      <div className="flex flex-wrap gap-2">
-        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["tipos", "Tipos de boleto"], ["tiendas", "Tiendas"]] as const).map(([id, label]) => (
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"]] as const).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setVista(id)}
-            className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-              vista === id ? "bg-[#e5007d] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
+            className={`rounded-xl text-xs font-bold transition-colors ${
+              vista === id ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
             }`}
+            style={{ minHeight: 44, WebkitTapHighlightColor: "transparent" }}
           >
             {label}
           </button>
@@ -199,61 +210,67 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
       {/* ── Resumen ── */}
       {vista === "resumen" && resumen && (
         <>
-          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             {[
               { l: "Vendidos", v: String(resumen.vendidos), c: "text-[#e5007d]" },
               { l: "Recaudado", v: `$${resumen.totalUsd.toFixed(2)}`, c: "text-green-500" },
-              { l: "En bolívares", v: `Bs ${resumen.totalBs.toLocaleString("es-VE")}`, c: "text-[#111]" },
-              { l: "Sin vender", v: String(resumen.enBlanco), c: "text-[#888]" },
+              { l: "En bolívares", v: `Bs ${resumen.totalBs.toLocaleString("es-VE")}`, c: "text-[var(--iw-text)]" },
+              { l: "Sin vender", v: String(resumen.enBlanco), c: "text-[var(--iw-text-muted)]" },
             ].map(c => (
               <div key={c.l} className={tarjeta}>
-                <p className="text-xs text-[#888]">{c.l}</p>
-                <p className={`mt-1 text-xl font-black tabular-nums ${c.c}`}>{c.v}</p>
+                <p className="text-[11px] text-[var(--iw-text-muted)]">{c.l}</p>
+                <p className={`mt-1 text-base font-black tabular-nums leading-tight ${c.c}`}
+                   style={{ overflowWrap: "anywhere" }}>{c.v}</p>
               </div>
             ))}
           </div>
 
           {/* Generar boletos */}
           <div className={tarjeta}>
-            <p className="mb-1 text-sm font-bold">Generar boletos en blanco</p>
-            <p className="mb-3 text-xs text-[#888]">
+            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Generar boletos en blanco</p>
+            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
               Se crean sin datos. Al generarlos se abre la hoja de QR lista para imprimir.
             </p>
-            <div className="flex flex-wrap items-center gap-2">
+            <div className="grid grid-cols-4 gap-2">
               {[10, 25, 50, 100].map(n => (
                 <button key={n} onClick={() => setCantidad(n)}
-                  className={`rounded-full px-4 py-2 text-xs font-bold ${cantidad === n ? "bg-[#111] text-white" : "bg-[#f0f0f0] text-[#666]"}`}>
+                  className={`rounded-xl text-xs font-bold transition-colors ${
+                    cantidad === n ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                  }`}
+                  style={{ minHeight: 44 }}>
                   {n}
                 </button>
               ))}
-              <input type="number" min={1} max={500} value={cantidad}
-                onChange={e => setCantidad(Math.min(500, Math.max(1, parseInt(e.target.value) || 1)))}
-                className="w-24 rounded-xl border border-[#e5e5e5] bg-[#fafafa] px-3 py-2 text-sm outline-none" />
-              <button
-                onClick={() => evento && generar.mutate({ eventId: evento.id, cantidad })}
-                disabled={!evento || generar.isPending}
-                className="flex items-center gap-2 rounded-xl bg-[#e5007d] px-5 py-2.5 text-sm font-bold text-white disabled:opacity-40"
-              >
-                <Download size={15} /> {generar.isPending ? "Generando..." : "Generar e imprimir"}
-              </button>
             </div>
+            <input type="number" inputMode="numeric" min={1} max={500} value={cantidad}
+              onChange={e => setCantidad(Math.min(500, Math.max(1, parseInt(e.target.value) || 1)))}
+              placeholder="Otra cantidad"
+              className={`${campo} mt-2`} style={altoCampo} />
+            <button
+              onClick={() => evento && generar.mutate({ eventId: evento.id, cantidad })}
+              disabled={!evento || generar.isPending}
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              style={{ minHeight: 52 }}
+            >
+              <Download size={16} /> {generar.isPending ? "Generando..." : `Generar ${cantidad} e imprimir`}
+            </button>
           </div>
 
           {/* Por tipo */}
           <div className={tarjeta}>
-            <p className="mb-3 text-sm font-bold">Por tipo de boleto</p>
+            <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Por tipo de boleto</p>
             {resumen.porTipo.length === 0 ? (
-              <p className="py-4 text-center text-sm text-[#888]">Aún no hay ventas.</p>
+              <p className="py-4 text-center text-sm text-[var(--iw-text-muted)]">Aún no hay ventas.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {resumen.porTipo.map((t: any) => (
-                  <div key={t.id} className="flex items-center justify-between gap-3 border-b border-[#f5f5f5] pb-2 last:border-0">
+                  <div key={t.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-2 last:border-0">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[#111]">{t.nombre}</p>
-                      <p className="text-xs text-[#888]">${t.precioUsd.toFixed(2)} · {t.dias} día(s)</p>
+                      <p className="truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
+                      <p className="text-xs text-[var(--iw-text-muted)]">${t.precioUsd.toFixed(2)} · {t.dias} día(s)</p>
                     </div>
                     <div className="shrink-0 text-right">
-                      <p className="font-black text-[#111]">{t.cantidad}</p>
+                      <p className="font-black text-[var(--iw-text)]">{t.cantidad}</p>
                       <p className="text-xs text-[#e5007d]">${t.totalUsd.toFixed(2)}</p>
                     </div>
                   </div>
@@ -264,16 +281,16 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
 
           {/* Por tienda */}
           <div className={tarjeta}>
-            <p className="mb-3 text-sm font-bold">Por tienda</p>
+            <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Por tienda</p>
             {resumen.porTienda.length === 0 ? (
-              <p className="py-4 text-center text-sm text-[#888]">Ninguna tienda ha vendido todavía.</p>
+              <p className="py-4 text-center text-sm text-[var(--iw-text-muted)]">Ninguna tienda ha vendido todavía.</p>
             ) : (
               <div className="flex flex-col gap-2">
                 {resumen.porTienda.map((t: any) => (
-                  <div key={t.id} className="flex items-center justify-between gap-3 border-b border-[#f5f5f5] pb-2 last:border-0">
-                    <p className="min-w-0 truncate text-sm font-semibold text-[#111]">{t.nombre}</p>
+                  <div key={t.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-2 last:border-0">
+                    <p className="min-w-0 truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
                     <div className="shrink-0 text-right">
-                      <p className="font-black text-[#111]">{t.cantidad} boletos</p>
+                      <p className="font-black text-[var(--iw-text)]">{t.cantidad} boletos</p>
                       <p className="text-xs text-[#e5007d]">
                         ${t.totalUsd.toFixed(2)} · Bs {t.totalBs.toLocaleString("es-VE")}
                       </p>
@@ -290,24 +307,24 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
       {vista === "boletos" && (
         <div className="flex flex-col gap-2">
           {boletos.length === 0 ? (
-            <p className="py-12 text-center text-sm text-[#888]">Todavía no hay boletos vendidos.</p>
+            <p className="py-12 text-center text-sm text-[var(--iw-text-muted)]">Todavía no hay boletos vendidos.</p>
           ) : boletos.map((b: any) => (
             <div key={b.id} className={tarjeta}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[11px] text-[#999]">{b.code}</p>
-                  <p className="text-sm font-bold text-[#111]">{b.buyerName} {b.buyerLastName}</p>
-                  <p className="text-xs text-[#888]">
+                  <p className="font-mono text-[11px] text-[var(--iw-text-muted)]">{b.code}</p>
+                  <p className="text-sm font-bold text-[var(--iw-text)]">{b.buyerName} {b.buyerLastName}</p>
+                  <p className="text-xs text-[var(--iw-text-muted)]">
                     {b.tipoNombre} · {b.buyerPhone}
                   </p>
-                  <p className="mt-0.5 text-[11px] text-[#999]">
+                  <p className="mt-0.5 text-[11px] text-[var(--iw-text-muted)]">
                     {b.tiendaNombre ?? "—"} ·{" "}
                     {b.soldAt ? new Date(b.soldAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" }) : ""}
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="font-black text-[#111]">${parseFloat(b.priceUsd ?? "0").toFixed(2)}</p>
-                  {b.priceBs && <p className="text-[11px] text-[#888]">Bs {parseFloat(b.priceBs).toLocaleString("es-VE")}</p>}
+                  <p className="font-black text-[var(--iw-text)]">${parseFloat(b.priceUsd ?? "0").toFixed(2)}</p>
+                  {b.priceBs && <p className="text-[11px] text-[var(--iw-text-muted)]">Bs {parseFloat(b.priceBs).toLocaleString("es-VE")}</p>}
                 </div>
               </div>
             </div>
@@ -319,30 +336,31 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
       {vista === "tipos" && (
         <>
           <div className={tarjeta}>
-            <p className="mb-3 text-sm font-bold">Nuevo tipo de boleto</p>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Nuevo tipo de boleto</p>
+            <div className="flex flex-col gap-3">
               <input placeholder="Ej: Boleto General x1 Día" value={nuevoTipo.name}
-                onChange={e => setNuevoTipo(f => ({ ...f, name: e.target.value }))} className={campo} />
-              <div className="flex gap-2">
+                onChange={e => setNuevoTipo(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
+              <div className="grid grid-cols-2 gap-2">
                 <input placeholder="Precio USD" inputMode="decimal" value={nuevoTipo.priceUsd}
                   onChange={e => setNuevoTipo(f => ({ ...f, priceUsd: e.target.value.replace(/[^0-9.]/g, "") }))}
-                  className={campo} />
+                  className={campo} style={altoCampo} />
                 <select value={nuevoTipo.days}
                   onChange={e => setNuevoTipo(f => ({ ...f, days: Number(e.target.value) }))}
-                  className="rounded-xl border border-[#e5e5e5] bg-[#fafafa] px-3 text-sm outline-none">
+                  className={campo} style={altoCampo}>
                   <option value={1}>1 día</option>
                   <option value={2}>2 días</option>
                 </select>
               </div>
+              <textarea rows={3} placeholder="Qué incluye (Level Pass, zona cosplayers, etc.)"
+                value={nuevoTipo.perks}
+                onChange={e => setNuevoTipo(f => ({ ...f, perks: e.target.value }))}
+                className={`${campo} resize-y py-3`} />
             </div>
-            <textarea rows={2} placeholder="Qué incluye (Level Pass, zona cosplayers, etc.)"
-              value={nuevoTipo.perks}
-              onChange={e => setNuevoTipo(f => ({ ...f, perks: e.target.value }))}
-              className={`${campo} mt-3 resize-y`} />
             <button
               onClick={() => evento && crearTipo.mutate({ ...nuevoTipo, eventId: evento.id, perks: nuevoTipo.perks || undefined })}
               disabled={!nuevoTipo.name || !parseFloat(nuevoTipo.priceUsd || "0")}
-              className="mt-3 w-full rounded-xl bg-[#e5007d] py-3 text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              style={{ minHeight: 52 }}
             >
               Añadir tipo
             </button>
@@ -353,21 +371,21 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
               <div key={t.id} className={`${tarjeta} ${t.active ? "" : "opacity-50"}`}>
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-[#111]">{t.name}</p>
-                    <p className="text-xs text-[#888]">{t.days} día(s){t.active ? "" : " · desactivado"}</p>
-                    {t.perks && <p className="mt-1 text-[11px] leading-snug text-[#999]">{t.perks}</p>}
+                    <p className="text-sm font-bold text-[var(--iw-text)]">{t.name}</p>
+                    <p className="text-xs text-[var(--iw-text-muted)]">{t.days} día(s){t.active ? "" : " · desactivado"}</p>
+                    {t.perks && <p className="mt-1 text-[11px] leading-snug text-[var(--iw-text-muted)]">{t.perks}</p>}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <p className="font-black text-[#e5007d]">${parseFloat(t.priceUsd).toFixed(2)}</p>
                     <button onClick={() => { if (confirm(`¿Eliminar "${t.name}"?`)) borrarTipo.mutate({ id: t.id }); }}
-                      className="text-[#999] hover:text-red-500">
+                      className="p-2 text-[var(--iw-text-muted)] hover:text-red-500">
                       <Trash2 size={15} />
                     </button>
                   </div>
                 </div>
               </div>
             ))}
-            {tipos.length === 0 && <p className="py-8 text-center text-sm text-[#888]">Aún no has creado tipos de boleto.</p>}
+            {tipos.length === 0 && <p className="py-8 text-center text-sm text-[var(--iw-text-muted)]">Aún no has creado tipos de boleto.</p>}
           </div>
         </>
       )}
@@ -376,19 +394,21 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
       {vista === "tiendas" && (
         <>
           <div className={tarjeta}>
-            <p className="mb-1 text-sm font-bold">Autorizar tienda</p>
-            <p className="mb-3 text-xs text-[#888]">
+            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Autorizar tienda</p>
+            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
               Con el correo se le crea su acceso al portal de venta. Entra con enlace mágico, sin contraseña.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex flex-col gap-3">
               <input placeholder="Nombre de la tienda" value={nuevaTienda.name}
-                onChange={e => setNuevaTienda(f => ({ ...f, name: e.target.value }))} className={campo} />
-              <input placeholder="Correo de acceso" type="email" value={nuevaTienda.email}
-                onChange={e => setNuevaTienda(f => ({ ...f, email: e.target.value }))} className={campo} />
-              <input placeholder="Persona de contacto" value={nuevaTienda.contactName}
-                onChange={e => setNuevaTienda(f => ({ ...f, contactName: e.target.value }))} className={campo} />
-              <input placeholder="Teléfono" value={nuevaTienda.phone}
-                onChange={e => setNuevaTienda(f => ({ ...f, phone: e.target.value }))} className={campo} />
+                onChange={e => setNuevaTienda(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
+              <input placeholder="Correo de acceso" type="email" inputMode="email" value={nuevaTienda.email}
+                onChange={e => setNuevaTienda(f => ({ ...f, email: e.target.value }))} className={campo} style={altoCampo} />
+              <div className="grid grid-cols-2 gap-2">
+                <input placeholder="Contacto" value={nuevaTienda.contactName}
+                  onChange={e => setNuevaTienda(f => ({ ...f, contactName: e.target.value }))} className={campo} style={altoCampo} />
+                <input placeholder="Teléfono" inputMode="tel" value={nuevaTienda.phone}
+                  onChange={e => setNuevaTienda(f => ({ ...f, phone: e.target.value }))} className={campo} style={altoCampo} />
+              </div>
             </div>
             <button
               onClick={() => crearTienda.mutate({
@@ -398,7 +418,8 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
                 phone: nuevaTienda.phone || undefined,
               })}
               disabled={!nuevaTienda.name}
-              className="mt-3 w-full rounded-xl bg-[#e5007d] py-3 text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              style={{ minHeight: 52 }}
             >
               Autorizar
             </button>
@@ -409,23 +430,24 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
               <div key={s.id} className={`${tarjeta} ${s.active ? "" : "opacity-50"}`}>
                 <div className="flex items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-bold text-[#111]">{s.name}</p>
-                    <p className="truncate text-xs text-[#888]" style={{ overflowWrap: "anywhere" }}>
+                    <p className="text-sm font-bold text-[var(--iw-text)]">{s.name}</p>
+                    <p className="truncate text-xs text-[var(--iw-text-muted)]" style={{ overflowWrap: "anywhere" }}>
                       {s.email ?? "sin correo"}{s.phone ? ` · ${s.phone}` : ""}
                     </p>
                   </div>
                   <button
                     onClick={() => editarTienda.mutate({ id: s.id, active: !s.active })}
-                    className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold ${
-                      s.active ? "border border-[#e5e5e5] text-[#666]" : "bg-[#e5007d] text-white"
+                    className={`shrink-0 rounded-full px-4 text-xs font-bold ${
+                      s.active ? "border border-[var(--iw-border)] text-[var(--iw-text-muted)]" : "bg-[#e5007d] text-white"
                     }`}
+                    style={{ minHeight: 40 }}
                   >
                     {s.active ? "Desactivar" : "Activar"}
                   </button>
                 </div>
               </div>
             ))}
-            {tiendas.length === 0 && <p className="py-8 text-center text-sm text-[#888]">No hay tiendas autorizadas.</p>}
+            {tiendas.length === 0 && <p className="py-8 text-center text-sm text-[var(--iw-text-muted)]">No hay tiendas autorizadas.</p>}
           </div>
         </>
       )}
