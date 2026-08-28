@@ -19,6 +19,8 @@ import {
   crearTienda, listarTiendas, editarTienda, borrarTienda, tiendaDeUsuario,
   generarBoletos, boletoPorToken, venderBoleto, corregirBoleto,
   listarBoletos, resumenEvento, ventasDeTienda, lotesDeEvento, boletosDeLote, ventasPorDia,
+  paqueteAcceso, registrarIngreso, resumenAsistencia,
+  crearPortero, listarPorteros, editarPortero, borrarPortero, esPorteroPorCorreo,
 } from "./tickets";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
@@ -107,6 +109,14 @@ function validateUpload(contentType: string, buffer: Buffer) {
 // Admin guard middleware
 const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+  return next({ ctx });
+});
+
+/** Portal de porteros: valida entradas, no vende ni ve dinero */
+const gateProcedure = protectedProcedure.use(({ ctx, next }) => {
+  if (ctx.user.role !== "gate" && ctx.user.role !== "admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Solo para el personal de acceso" });
+  }
   return next({ ctx });
 });
 
@@ -1305,6 +1315,85 @@ export const appRouter = router({
         if (!tienda) return { cantidad: 0, totalUsd: 0, totalBs: 0, boletos: [] };
         return ventasDeTienda(tienda.id, input.eventId);
       }),
+
+    // ── Control de acceso (porteros) ──
+    /** Paquete completo para validar sin conexión */
+    paqueteAcceso: gateProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(async ({ input }) => {
+        const r = await paqueteAcceso(input.eventId);
+        if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "Ese evento no existe" });
+        return r;
+      }),
+
+    eventosParaAcceso: gateProcedure.query(async () => {
+      const todos = await listarEventos();
+      return todos.filter(e => e.active);
+    }),
+
+    /** Registra un ingreso. Devuelve el motivo si no procede, sin lanzar. */
+    validarIngreso: gateProcedure
+      .input(z.object({
+        token: z.string().min(4).max(64),
+        offline: z.boolean().optional(),
+        diaForzado: z.number().int().min(1).max(7).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!limitarPorUsuario(`acceso:${ctx.user.id}`, 400, 10 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados escaneos seguidos" });
+        }
+        return registrarIngreso({ ...input, userId: ctx.user.id });
+      }),
+
+    /**
+     * Sincroniza los ingresos que el portero registró sin conexión.
+     * Cada uno se procesa por separado: si alguno resulta duplicado, se informa
+     * pero no bloquea a los demás.
+     */
+    sincronizarIngresos: gateProcedure
+      .input(z.object({
+        ingresos: z.array(z.object({
+          token: z.string().min(4).max(64),
+          dia: z.number().int().min(1).max(7),
+        })).max(500),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const resultados = [];
+        for (const i of input.ingresos) {
+          try {
+            const r = await registrarIngreso({
+              token: i.token,
+              userId: ctx.user.id,
+              offline: true,
+              diaForzado: i.dia,
+            });
+            resultados.push({ token: i.token, ...r });
+          } catch (e: any) {
+            resultados.push({ token: i.token, ok: false, motivo: "error", mensaje: String(e?.message ?? e) });
+          }
+        }
+        return {
+          total: resultados.length,
+          aceptados: resultados.filter(r => r.ok).length,
+          rechazados: resultados.filter(r => !r.ok),
+        };
+      }),
+
+    // ── Porteros (admin) ──
+    porteros: adminProcedure.query(() => listarPorteros()),
+    crearPortero: adminProcedure
+      .input(z.object({ name: z.string().min(1).max(200), email: z.string().email().max(320).optional() }))
+      .mutation(({ input }) => crearPortero(input)),
+    editarPortero: adminProcedure
+      .input(z.object({ id: z.number(), name: z.string().max(200).optional(), active: z.boolean().optional() }))
+      .mutation(({ input }) => { const { id, ...d } = input; return editarPortero(id, d); }),
+    borrarPortero: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => borrarPortero(input.id)),
+
+    asistencia: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => resumenAsistencia(input.eventId)),
 
     eventosActivos: storeProcedure.query(async () => {
       const todos = await listarEventos();

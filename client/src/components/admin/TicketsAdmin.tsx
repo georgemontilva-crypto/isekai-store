@@ -15,14 +15,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function TicketsAdmin({ compact = false, vistaFija }: {
   compact?: boolean;
   /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
-  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas";
+  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso";
 }) {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
   const habilitado = isAuthenticated && user?.role === "admin";
 
   const [eventoId, setEventoId] = useState<number | null>(null);
-  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas">("resumen");
+  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso">("resumen");
   const vista = vistaFija ?? vistaLocal;
   const setVista = setVistaLocal;
 
@@ -43,6 +43,26 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
   const { data: ventasDia = [] } = trpc.tickets.ventasPorDia.useQuery(
     { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento && vista === "resumen", refetchInterval: 30000 },
   );
+  const { data: porteros = [] } = trpc.tickets.porteros.useQuery(undefined, {
+    enabled: habilitado && vista === "acceso",
+  });
+  const { data: asistencia } = trpc.tickets.asistencia.useQuery(
+    { eventId: evento?.id ?? 0 },
+    { enabled: habilitado && !!evento && vista === "acceso", refetchInterval: 20000 },
+  );
+  const [nuevoPortero, setNuevoPortero] = useState({ name: "", email: "" });
+  const crearPortero = trpc.tickets.crearPortero.useMutation({
+    onSuccess: () => {
+      utils.tickets.porteros.invalidate();
+      setNuevoPortero({ name: "", email: "" });
+      toast.success("Portero autorizado");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const borrarPortero = trpc.tickets.borrarPortero.useMutation({
+    onSuccess: () => { utils.tickets.porteros.invalidate(); toast.success("Portero eliminado"); },
+  });
+
   const { data: lotes = [] } = trpc.tickets.lotes.useQuery(
     { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento && vista === "codigos" },
   );
@@ -230,8 +250,8 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
 
       {/* Pestañas */}
       {!vistaFija && (
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"]] as const).map(([id, label]) => (
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"], ["acceso", "Acceso"]] as const).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setVista(id)}
@@ -475,6 +495,87 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 <p className="py-6 text-center text-sm text-[var(--iw-text-muted)]">No hay códigos generados.</p>
               )}
             </div>
+          </div>
+        </>
+      )}
+
+      {/* ── Control de acceso ── */}
+      {vista === "acceso" && (
+        <>
+          {asistencia && (
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+              {[
+                { l: "Boletos vendidos", v: String(asistencia.vendidos), c: "text-[var(--iw-text)]" },
+                { l: "Han ingresado", v: String(asistencia.ingresosTotales), c: "text-green-500" },
+                { l: "Día actual", v: asistencia.diaActual ? `Día ${asistencia.diaActual}` : "Fuera de fecha", c: "text-[#e5007d]" },
+                { l: "Sin conexión", v: String(asistencia.sincronizadosSinConexion), c: "text-[var(--iw-text-muted)]" },
+              ].map(c => (
+                <div key={c.l} className={tarjeta}>
+                  <p className="text-[11px] text-[var(--iw-text-muted)]">{c.l}</p>
+                  <p className={`mt-1 text-base font-black tabular-nums leading-tight ${c.c}`}>{c.v}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {(asistencia?.porDia.length ?? 0) > 0 && (
+            <div className={tarjeta}>
+              <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Ingresos por día</p>
+              <div className="flex flex-col gap-2">
+                {asistencia!.porDia.map((d: any) => (
+                  <div key={d.dia} className="flex items-center justify-between border-b border-[var(--iw-border)] pb-2 last:border-0">
+                    <span className="text-sm text-[var(--iw-text)]">Día {d.dia}</span>
+                    <span className="font-black text-[#e5007d]">{d.cantidad} personas</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className={tarjeta}>
+            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Personal de acceso</p>
+            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
+              Validan entradas en la puerta desde isekaiworld.co/acceso. No ven ventas ni dinero.
+            </p>
+            <div className="flex flex-col gap-3">
+              <input placeholder="Nombre" value={nuevoPortero.name}
+                onChange={e => setNuevoPortero(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
+              <input placeholder="Correo de acceso" type="email" inputMode="email" value={nuevoPortero.email}
+                onChange={e => setNuevoPortero(f => ({ ...f, email: e.target.value }))} className={campo} style={altoCampo} />
+            </div>
+            <button
+              onClick={() => crearPortero.mutate({ name: nuevoPortero.name, email: nuevoPortero.email || undefined })}
+              disabled={!nuevoPortero.name || crearPortero.isPending}
+              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              style={{ minHeight: 52 }}
+            >
+              {crearPortero.isPending ? "Autorizando..." : "Autorizar portero"}
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {porteros.map((g: any) => (
+              <div key={g.id} className={tarjeta}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[var(--iw-text)]">{g.name}</p>
+                    <p className="truncate text-xs text-[var(--iw-text-muted)]" style={{ overflowWrap: "anywhere" }}>
+                      {g.email ?? "sin correo"}
+                    </p>
+                  </div>
+                  <button
+                    onClick={() => { if (confirm(`¿Eliminar a ${g.name}?`)) borrarPortero.mutate({ id: g.id }); }}
+                    className="p-2 text-[var(--iw-text-muted)] hover:text-red-500"
+                    aria-label="Eliminar portero"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            ))}
+            {porteros.length === 0 && (
+              <p className="py-8 text-center text-sm text-[var(--iw-text-muted)]">No hay personal de acceso autorizado.</p>
+            )}
           </div>
         </>
       )}

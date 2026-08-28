@@ -7,7 +7,7 @@ import { getSessionCookieOptions } from "./cookies";
 import { ENV } from "./env";
 import { notifyWelcome, sendMagicLinkEmail } from "./notification";
 import * as db from "../db";
-import { rolPorCorreo, vincularUsuarioTienda } from "../tickets";
+import { rolPorCorreo, vincularUsuarioTienda, esPorteroPorCorreo } from "../tickets";
 
 const GOOGLE_AUTH_URL  = "https://accounts.google.com/o/oauth2/v2/auth";
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -78,7 +78,7 @@ export function registerOAuthRoutes(app: Express): void {
         email,
         name,
         loginMethod: "google",
-        role:        isOwner(email) ? "admin" : ((await rolPorCorreo(email)) ?? "user"),
+        role:        isOwner(email) ? "admin" : ((await rolPorCorreo(email)) ?? (await esPorteroPorCorreo(email)) ?? "user"),
         lastSignedIn: new Date(),
       });
       if (!existingUser) {
@@ -148,7 +148,7 @@ export function registerOAuthRoutes(app: Express): void {
         email,
         name,
         loginMethod: "magic_link",
-        role:        isOwner(email) ? "admin" : ((await rolPorCorreo(email)) ?? "user"),
+        role:        isOwner(email) ? "admin" : ((await rolPorCorreo(email)) ?? (await esPorteroPorCorreo(email)) ?? "user"),
         lastSignedIn: new Date(),
       });
       if (!existingUser) {

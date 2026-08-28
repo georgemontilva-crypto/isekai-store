@@ -20,6 +20,7 @@ const WorldFest = lazy(() => import("./pages/WorldFest"));
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const Invitacion = lazy(() => import("./pages/Invitacion"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
+const GateControl = lazy(() => import("./pages/GateControl"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Account = lazy(() => import("./pages/Account"));
@@ -121,6 +122,8 @@ function Router() {
         {/* Portal de tiendas: el QR del boleto apunta a /vender/TOKEN */}
         <Route path="/vender/:token" component={StorePortal} />
         <Route path="/vender" component={StorePortal} />
+        {/* Control de acceso: pantalla del portero */}
+        <Route path="/acceso" component={GateControl} />
         <Route path="/cosplay" component={CosplayLanding} />
         <Route path="/cosplay/apply" component={CosplayApply} />
         <Route path="/cosplay/guild" component={CosplayGuild} />
@@ -159,7 +162,8 @@ function Layout() {
     location.startsWith("/account") ||
     location.startsWith("/cotizacion/") ||
     location.startsWith("/invitacion") ||
-    location.startsWith("/vender");
+    location.startsWith("/vender") ||
+    location.startsWith("/acceso");
 
   return (
     <>

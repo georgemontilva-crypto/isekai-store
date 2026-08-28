@@ -18,7 +18,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin", "store"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "store", "gate"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -243,6 +243,18 @@ export const ticketCheckins = mysqlTable("ticketCheckins", {
   eventDay: int("eventDay").notNull(),
   checkedAt: timestamp("checkedAt").defaultNow().notNull(),
   checkedByUserId: int("checkedByUserId"),
+  /** Se registró sin conexión y se sincronizó después */
+  offline: boolean("offline").notNull().default(false),
+});
+
+/** Porteros autorizados a validar entradas */
+export const gateUsers = mysqlTable("gateUsers", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  userId: int("userId"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 
 export type EventRow = typeof events.$inferSelect;

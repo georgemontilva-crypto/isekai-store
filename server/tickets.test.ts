@@ -172,3 +172,67 @@ describe("límite de intentos", () => {
     expect(limitar("u1", 5, 60000, inicio + 61000)).toBe(true);
   });
 });
+
+// ─── Día del evento ───────────────────────────────────────────────────────────
+function diaDelEvento(ev: { startDate: string; endDate: string }, fecha: Date) {
+  const f = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  const hoy = f(fecha), d1 = f(new Date(ev.startDate)), d2 = f(new Date(ev.endDate));
+  if (hoy < d1 || hoy > d2) return null;
+  return Math.floor((hoy - d1) / 86400000) + 1;
+}
+
+describe("día del evento", () => {
+  const ev = { startDate: "2027-08-14", endDate: "2027-08-15" };
+
+  it("el primer día es el 1", () => {
+    expect(diaDelEvento(ev, new Date("2027-08-14T10:00:00"))).toBe(1);
+  });
+
+  it("el segundo día es el 2", () => {
+    expect(diaDelEvento(ev, new Date("2027-08-15T23:00:00"))).toBe(2);
+  });
+
+  it("antes del evento no hay día", () => {
+    expect(diaDelEvento(ev, new Date("2027-08-13T23:59:00"))).toBeNull();
+  });
+
+  it("después del evento no hay día", () => {
+    expect(diaDelEvento(ev, new Date("2027-08-16T00:01:00"))).toBeNull();
+  });
+});
+
+// ─── Reglas de acceso ─────────────────────────────────────────────────────────
+function puedeEntrar(opts: { dias: number; dia: number | null; diasUsados: number[] }) {
+  if (!opts.dia) return { ok: false, motivo: "fuera_de_fecha" };
+  if (opts.dia > opts.dias) return { ok: false, motivo: "dia_no_cubierto" };
+  if (opts.diasUsados.includes(opts.dia)) return { ok: false, motivo: "ya_entro" };
+  return { ok: true, motivo: "ok" };
+}
+
+describe("reglas de acceso", () => {
+  it("un boleto de 1 día entra el día 1", () => {
+    expect(puedeEntrar({ dias: 1, dia: 1, diasUsados: [] })).toEqual({ ok: true, motivo: "ok" });
+  });
+
+  it("un boleto de 1 día NO entra el día 2", () => {
+    expect(puedeEntrar({ dias: 1, dia: 2, diasUsados: [] }).motivo).toBe("dia_no_cubierto");
+  });
+
+  it("un boleto de 2 días entra ambos días", () => {
+    expect(puedeEntrar({ dias: 2, dia: 1, diasUsados: [] }).ok).toBe(true);
+    expect(puedeEntrar({ dias: 2, dia: 2, diasUsados: [1] }).ok).toBe(true);
+  });
+
+  it("no se puede entrar dos veces el mismo día", () => {
+    expect(puedeEntrar({ dias: 2, dia: 1, diasUsados: [1] }).motivo).toBe("ya_entro");
+  });
+
+  it("fuera de las fechas del evento no entra nadie", () => {
+    expect(puedeEntrar({ dias: 2, dia: null, diasUsados: [] }).motivo).toBe("fuera_de_fecha");
+  });
+
+  it("una fotocopia del boleto no sirve el mismo día", () => {
+    // El original ya entró: el duplicado se rechaza
+    expect(puedeEntrar({ dias: 2, dia: 1, diasUsados: [1] }).ok).toBe(false);
+  });
+});

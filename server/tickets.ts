@@ -2,7 +2,7 @@ import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "./db";
 import {
-  events, ticketTypes, stores, eventTickets, ticketCheckins, users, siteSettings,
+  events, ticketTypes, stores, eventTickets, ticketCheckins, gateUsers, users, siteSettings,
 } from "../drizzle/schema";
 
 /**
@@ -524,4 +524,234 @@ export async function ventasPorDia(eventId: number) {
   return Array.from(porDia.values())
     .map(d => ({ ...d, usd: Math.round(d.usd * 100) / 100 }))
     .sort((a, b) => a.dia.localeCompare(b.dia));
+}
+
+// ─── Control de acceso al evento ──────────────────────────────────────────────
+
+/**
+ * Qué día del evento es hoy (1, 2, …). Devuelve null si la fecha actual cae
+ * fuera del evento: sin esto no se podría distinguir "ya entró hoy" de
+ * "ya entró ayer", que es lo que impide reusar un boleto de un solo día.
+ */
+export function diaDelEvento(evento: { startDate: Date | string; endDate: Date | string }, fecha = new Date()) {
+  const inicio = new Date(evento.startDate);
+  const fin = new Date(evento.endDate);
+
+  const soloFecha = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
+  const hoy = soloFecha(fecha);
+  const d1 = soloFecha(inicio);
+  const d2 = soloFecha(fin);
+
+  if (hoy < d1 || hoy > d2) return null;
+  return Math.floor((hoy - d1) / 86400000) + 1;
+}
+
+/** Todo lo que el portero necesita para validar sin conexión */
+export async function paqueteAcceso(eventId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [evento] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+  if (!evento) return null;
+
+  const tipos = await listarTipos(eventId);
+  const vendidos = await db.select().from(eventTickets)
+    .where(and(eq(eventTickets.eventId, eventId), eq(eventTickets.status, "sold")));
+
+  const ingresos = await db.select().from(ticketCheckins);
+  const porBoleto = new Map<number, number[]>();
+  for (const i of ingresos) {
+    porBoleto.set(i.ticketId, [...(porBoleto.get(i.ticketId) ?? []), i.eventDay]);
+  }
+
+  return {
+    evento: {
+      id: evento.id,
+      name: evento.name,
+      startDate: evento.startDate,
+      endDate: evento.endDate,
+    },
+    diaActual: diaDelEvento(evento),
+    // Solo lo imprescindible: el paquete viaja al teléfono del portero
+    boletos: vendidos.map(t => ({
+      token: t.token,
+      code: t.code,
+      nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(),
+      tipoId: t.ticketTypeId,
+      dias: tipos.find(x => x.id === t.ticketTypeId)?.days ?? 1,
+      tipoNombre: tipos.find(x => x.id === t.ticketTypeId)?.name ?? "",
+      diasUsados: porBoleto.get(t.id) ?? [],
+    })),
+    generadoEn: new Date().toISOString(),
+  };
+}
+
+/**
+ * Registra el ingreso de un boleto.
+ *
+ * Reglas: el boleto debe estar vendido, la fecha debe caer dentro del evento,
+ * el día debe estar cubierto por el tipo comprado (un boleto de un día no vale
+ * el segundo), y no puede haber entrado ya ese mismo día.
+ */
+export async function registrarIngreso(data: {
+  token: string;
+  userId: number;
+  offline?: boolean;
+  /** Día forzado, solo para sincronizar ingresos guardados sin conexión */
+  diaForzado?: number;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+
+  const encontrado = await boletoPorToken(data.token);
+  const t = encontrado?.ticket;
+  if (!t) return { ok: false, motivo: "inexistente" as const, mensaje: "Ese boleto no existe" };
+  if (t.status === "void") return { ok: false, motivo: "anulado" as const, mensaje: "Boleto anulado" };
+  if (t.status !== "sold") {
+    return { ok: false, motivo: "sin_vender" as const, mensaje: "Este boleto no fue vendido" };
+  }
+
+  const [evento] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
+  if (!evento) return { ok: false, motivo: "sin_evento" as const, mensaje: "El evento no existe" };
+
+  const dia = data.diaForzado ?? diaDelEvento(evento);
+  if (!dia) {
+    return { ok: false, motivo: "fuera_de_fecha" as const, mensaje: "Hoy no hay evento" };
+  }
+
+  const tipo = t.ticketTypeId
+    ? (await db.select().from(ticketTypes).where(eq(ticketTypes.id, t.ticketTypeId)).limit(1))[0]
+    : undefined;
+  const diasCubiertos = tipo?.days ?? 1;
+
+  if (dia > diasCubiertos) {
+    return {
+      ok: false,
+      motivo: "dia_no_cubierto" as const,
+      mensaje: `Este boleto es solo para ${diasCubiertos} día(s) y hoy es el día ${dia}`,
+      nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(),
+      tipoNombre: tipo?.name,
+    };
+  }
+
+  const previos = await db.select().from(ticketCheckins)
+    .where(and(eq(ticketCheckins.ticketId, t.id), eq(ticketCheckins.eventDay, dia)));
+
+  if (previos.length) {
+    return {
+      ok: false,
+      motivo: "ya_entro" as const,
+      mensaje: "Este boleto ya entró hoy",
+      entroA: previos[0].checkedAt,
+      nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(),
+      tipoNombre: tipo?.name,
+    };
+  }
+
+  await db.insert(ticketCheckins).values({
+    ticketId: t.id,
+    eventDay: dia,
+    checkedByUserId: data.userId,
+    offline: Boolean(data.offline),
+  });
+
+  return {
+    ok: true as const,
+    motivo: "ok" as const,
+    mensaje: "Acceso permitido",
+    nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(),
+    tipoNombre: tipo?.name,
+    dia,
+    diasCubiertos,
+  };
+}
+
+/** Resumen de asistencia del evento */
+export async function resumenAsistencia(eventId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [evento] = await db.select().from(events).where(eq(events.id, eventId)).limit(1);
+  if (!evento) return null;
+
+  const vendidos = await db.select().from(eventTickets)
+    .where(and(eq(eventTickets.eventId, eventId), eq(eventTickets.status, "sold")));
+  const idsVendidos = new Set(vendidos.map(t => t.id));
+
+  const ingresos = (await db.select().from(ticketCheckins))
+    .filter(i => idsVendidos.has(i.ticketId));
+
+  const porDia = new Map<number, number>();
+  for (const i of ingresos) porDia.set(i.eventDay, (porDia.get(i.eventDay) ?? 0) + 1);
+
+  return {
+    vendidos: vendidos.length,
+    ingresosTotales: ingresos.length,
+    diaActual: diaDelEvento(evento),
+    porDia: Array.from(porDia.entries())
+      .map(([dia, cantidad]) => ({ dia, cantidad }))
+      .sort((a, b) => a.dia - b.dia),
+    sincronizadosSinConexion: ingresos.filter(i => i.offline).length,
+  };
+}
+
+// ─── Porteros ─────────────────────────────────────────────────────────────────
+
+export async function crearPortero(data: { name: string; email?: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+
+  const correo = data.email?.trim().toLowerCase();
+  const existentes = await db.select().from(gateUsers);
+  if (correo && existentes.some(g => g.email === correo)) {
+    throw new Error("Ya existe un portero con ese correo");
+  }
+
+  let userId: number | undefined;
+  if (correo) {
+    const [u] = await db.select().from(users).where(eq(users.email, correo)).limit(1);
+    if (u) {
+      userId = u.id;
+      if (u.role !== "admin") await db.update(users).set({ role: "gate" }).where(eq(users.id, u.id));
+    } else {
+      await db.insert(users).values({
+        openId: `gate_${nanoid(20)}`,
+        email: correo,
+        name: data.name,
+        role: "gate",
+        loginMethod: "magic_link",
+      });
+      const [creado] = await db.select().from(users).where(eq(users.email, correo)).limit(1);
+      userId = creado?.id;
+    }
+  }
+
+  await db.insert(gateUsers).values({ name: data.name.trim(), email: correo, userId });
+}
+
+export async function listarPorteros() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(gateUsers).orderBy(desc(gateUsers.id));
+}
+
+export async function editarPortero(id: number, data: Partial<{ name: string; active: boolean }>) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(gateUsers).set(data as any).where(eq(gateUsers.id, id));
+}
+
+export async function borrarPortero(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(gateUsers).where(eq(gateUsers.id, id));
+}
+
+/** Rol de portero según el correo, para conservarlo al iniciar sesión */
+export async function esPorteroPorCorreo(email: string): Promise<"gate" | null> {
+  const db = await getDb();
+  if (!db || !email) return null;
+  const correo = email.trim().toLowerCase();
+  const [g] = await db.select().from(gateUsers).where(eq(gateUsers.email, correo)).limit(1);
+  return g?.active ? "gate" : null;
 }
