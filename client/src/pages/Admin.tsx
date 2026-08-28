@@ -815,7 +815,7 @@ export default function Admin() {
   });
   const [quoteForm, setQuoteForm] = useState({
     customerName: "", customerEmail: "", customerPhone: "",
-    title: "", description: "", notes: "", expiresInDays: 15, depositPercent: 100,
+    title: "", description: "", notes: "", expiresInDays: 15, depositAmount: "",
     items: [{ concepto: "", cantidad: 1, precio: "" }],
   });
   const [showQuoteForm, setShowQuoteForm] = useState(false);
@@ -823,7 +823,7 @@ export default function Admin() {
     onSuccess: () => {
       refetchQuotes();
       setShowQuoteForm(false);
-      setQuoteForm({ customerName: "", customerEmail: "", customerPhone: "", title: "", description: "", notes: "", expiresInDays: 15, depositPercent: 100, items: [{ concepto: "", cantidad: 1, precio: "" }] });
+      setQuoteForm({ customerName: "", customerEmail: "", customerPhone: "", title: "", description: "", notes: "", expiresInDays: 15, depositAmount: "", items: [{ concepto: "", cantidad: 1, precio: "" }] });
       toast.success("Cotización creada — copia el enlace y envíaselo");
     },
     onError: (e) => toast.error(e.message),
@@ -2322,7 +2322,20 @@ export default function Admin() {
                               {t.paymentReference ? ` · Ref. ${t.paymentReference}` : ""}
                             </p>
                           </div>
-                          <p className="shrink-0 text-lg font-black text-[#111]">${parseFloat(t.total).toFixed(2)}</p>
+                          <div className="shrink-0 text-right">
+                            <p className="text-lg font-black text-[#111]">${parseFloat(t.total).toFixed(2)}</p>
+                            {/* Saldo pendiente cuando hubo abono */}
+                            {(() => {
+                              const pagado = parseFloat(t.amountPaid ?? "0");
+                              const resta = Math.round((parseFloat(t.total) - pagado) * 100) / 100;
+                              if (pagado <= 0 || resta <= 0.01) return null;
+                              return (
+                                <p className="mt-0.5 text-[11px] font-bold text-[#b8860b]">
+                                  Abonó ${pagado.toFixed(2)} · Debe ${resta.toFixed(2)}
+                                </p>
+                              );
+                            })()}
+                          </div>
                         </div>
 
                         {/* Comprobante: lo que faltaba ver en las cotizaciones */}
@@ -2448,24 +2461,25 @@ export default function Admin() {
                     {/* Abono: en piezas a medida rara vez se paga todo por
                         adelantado. El cliente puede abonar y quedar a deber. */}
                     <div className="mt-4 border-t border-[#f0f0f0] pt-4">
-                      <Label className="text-xs">¿Cuánto debe abonar para empezar?</Label>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {[100, 50, 30].map(pct => (
-                          <button
-                            key={pct}
-                            onClick={() => setQuoteForm(f => ({ ...f, depositPercent: pct }))}
-                            className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-                              quoteForm.depositPercent === pct ? "bg-[#e5007d] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
-                            }`}
-                          >
-                            {pct === 100 ? "Pago completo" : `${pct}% de abono`}
-                          </button>
-                        ))}
+                      <Label className="text-xs">Abono para empezar (opcional)</Label>
+                      <p className="text-[11px] text-[#888] mb-2">
+                        Escribe cuánto quieres cobrar por adelantado. Déjalo vacío para cobrar el total.
+                      </p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-[#666]">$</span>
+                        <Input
+                          inputMode="decimal"
+                          placeholder="0.00"
+                          value={quoteForm.depositAmount}
+                          onChange={e => setQuoteForm(f => ({ ...f, depositAmount: e.target.value.replace(/[^0-9.]/g, "") }))}
+                          className="w-36 bg-muted text-sm"
+                        />
+                        <span className="text-xs text-[#888]">USD</span>
                       </div>
-                      {quoteForm.depositPercent < 100 && quoteTotal > 0 && (
+                      {parseFloat(quoteForm.depositAmount || "0") > 0 && quoteTotal > 0 && (
                         <p className="mt-2 text-xs text-[#888]">
-                          Abono mínimo: <strong className="text-[#111]">${(quoteTotal * quoteForm.depositPercent / 100).toFixed(2)}</strong> ·
-                          Saldo restante: <strong className="text-[#111]">${(quoteTotal * (100 - quoteForm.depositPercent) / 100).toFixed(2)}</strong>
+                          Abona <strong className="text-[#111]">${parseFloat(quoteForm.depositAmount).toFixed(2)}</strong> ·
+                          Queda debiendo <strong className="text-[#111]">${Math.max(0, quoteTotal - parseFloat(quoteForm.depositAmount)).toFixed(2)}</strong>
                         </p>
                       )}
                     </div>
@@ -2486,7 +2500,7 @@ export default function Admin() {
                           customerPhone: quoteForm.customerPhone || undefined,
                           description: quoteForm.description || undefined,
                           notes: quoteForm.notes || undefined,
-                          depositPercent: quoteForm.depositPercent,
+                          depositAmount: quoteForm.depositAmount || undefined,
                           items: quoteForm.items.filter(i => i.concepto && i.precio),
                         })}
                         disabled={!quoteForm.title || quoteTotal <= 0 || createQuote.isPending}

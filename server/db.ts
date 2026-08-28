@@ -2497,8 +2497,10 @@ export async function createQuote(data: {
   referenceImages?: string[];
   notes?: string;
   expiresInDays?: number;
-  /** Porcentaje mínimo a abonar (100 = se paga completo) */
+  /** Porcentaje mínimo a abonar (compatibilidad) */
   depositPercent?: number;
+  /** Monto fijo del abono en USD. Vacío = se cobra el total. */
+  depositAmount?: string | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
@@ -2528,6 +2530,7 @@ export async function createQuote(data: {
     total: subtotal.toFixed(2),
     notes: data.notes,
     depositPercent: data.depositPercent ?? 100,
+    depositAmount: data.depositAmount || null,
     status: "sent",
     expiresAt,
   });

@@ -1042,7 +1042,7 @@ export const appRouter = router({
           subtotal: q.subtotal,
           total: q.total,
           notes: q.notes,
-          depositPercent: q.depositPercent ?? 100,
+          depositAmount: q.depositAmount,
           status: q.status,
           customerName: q.customerName,
           customerEmail: q.customerEmail,
@@ -1106,7 +1106,10 @@ export const appRouter = router({
         // Abono: el cliente puede pagar solo una parte si la cotización lo
         // permite. El pedido queda como pago parcial con el saldo pendiente.
         const totalCot = parseFloat(String(q.total));
-        const minimo = Math.round(totalCot * ((q.depositPercent ?? 100) / 100) * 100) / 100;
+        // El mínimo es el abono que fijó el admin; si no hay, se cobra todo
+        const minimo = q.depositAmount
+          ? Math.min(parseFloat(String(q.depositAmount)), totalCot)
+          : totalCot;
         const abonado = input.amountPaid != null
           ? Math.min(Math.max(parseFloat(input.amountPaid), 0), totalCot)
           : totalCot;
@@ -1183,8 +1186,8 @@ export const appRouter = router({
         referenceImages: z.array(z.string().url()).max(10).optional(),
         notes: z.string().max(2000).optional(),
         expiresInDays: z.number().int().min(1).max(365).optional(),
-        /** 100 = pago completo; menos = se acepta abono para empezar */
-        depositPercent: z.number().int().min(10).max(100).default(100),
+        /** Monto del abono en USD. Vacío = se cobra el total. */
+        depositAmount: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
       }))
       .mutation(({ input }) => createQuote(input)),
 

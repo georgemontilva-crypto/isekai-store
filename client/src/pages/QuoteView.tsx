@@ -202,9 +202,9 @@ export default function QuoteView() {
           </div>
         ) : (
           <>
-            {/* Abono: solo si la cotización lo permite */}
-            {(cotizacion.depositPercent ?? 100) < 100 && (() => {
-              const minimo = (parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100;
+            {/* Abono: solo si el admin fijó un monto adelantado */}
+            {cotizacion.depositAmount && parseFloat(cotizacion.depositAmount) < parseFloat(cotizacion.total) && (() => {
+              const minimo = parseFloat(cotizacion.depositAmount!);
               const resto = parseFloat(cotizacion.total) - minimo;
               return (
                 <>
@@ -220,7 +220,7 @@ export default function QuoteView() {
                         Abonar ${minimo.toFixed(2)} USD
                       </p>
                       <p className="mt-0.5 text-xs text-[#8a8a9c]">
-                        Pagas el {cotizacion.depositPercent}% para empezar. Quedas debiendo ${resto.toFixed(2)}.
+                        Pagas esto para empezar. Quedas debiendo ${resto.toFixed(2)}.
                       </p>
                     </button>
                     <button
@@ -263,9 +263,9 @@ export default function QuoteView() {
                   <Copiable label="Banco" valor={PAGO_MOVIL.bank} />
                   <Copiable label="Teléfono" valor={PAGO_MOVIL.phone} />
                   {(() => {
-                    const aPagar = pagaTodo
+                    const aPagar = pagaTodo || !cotizacion.depositAmount
                       ? parseFloat(cotizacion.total)
-                      : (parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100;
+                      : parseFloat(cotizacion.depositAmount);
                     const enBs = bsRate ? (aPagar * parseFloat(bsRate)).toFixed(2) : null;
                     return enBs ? <Copiable label="Monto a transferir (Bs)" valor={enBs} /> : null;
                   })()}
@@ -276,7 +276,7 @@ export default function QuoteView() {
                   <Copiable label="Dirección USDT" valor={CRYPTO.address} />
                   <Copiable
                     label="Monto a transferir"
-                    valor={`${(pagaTodo ? parseFloat(cotizacion.total) : (parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100).toFixed(2)} USDT`}
+                    valor={`${(pagaTodo || !cotizacion.depositAmount ? parseFloat(cotizacion.total) : parseFloat(cotizacion.depositAmount)).toFixed(2)} USDT`}
                   />
                 </>
               )}
@@ -345,9 +345,9 @@ export default function QuoteView() {
                 receiptUrl: comprobante || undefined,
                 paymentReference: referencia.trim() || undefined,
                 receiptHolder: titular.trim() || undefined,
-                amountPaid: pagaTodo
+                amountPaid: pagaTodo || !cotizacion.depositAmount
                   ? cotizacion.total
-                  : ((parseFloat(cotizacion.total) * (cotizacion.depositPercent ?? 100)) / 100).toFixed(2),
+                  : parseFloat(cotizacion.depositAmount).toFixed(2),
                 ...antiSpam.fields(),
               })}
               disabled={!puedeEnviar}

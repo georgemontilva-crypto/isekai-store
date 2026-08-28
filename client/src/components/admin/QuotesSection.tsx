@@ -21,13 +21,13 @@ export default function QuotesSection() {
   const [abierto, setAbierto] = useState(false);
   const [form, setForm] = useState({
     customerName: '', customerEmail: '', title: '', description: '',
-    expiresInDays: 15, depositPercent: 100,
+    expiresInDays: 15, depositAmount: '',
     items: [{ concepto: '', cantidad: 1, precio: '' }],
   });
 
   const vacio = () => setForm({
     customerName: '', customerEmail: '', title: '', description: '',
-    expiresInDays: 15, depositPercent: 100, items: [{ concepto: '', cantidad: 1, precio: '' }],
+    expiresInDays: 15, depositAmount: '', items: [{ concepto: '', cantidad: 1, precio: '' }],
   });
 
   const crear = trpc.quotes.create.useMutation({
@@ -170,26 +170,23 @@ export default function QuotesSection() {
 
           {/* Abono mínimo para empezar el trabajo */}
           <div className="border-t border-[var(--iw-border)] pt-3">
-            <label className="text-xs font-semibold text-[var(--iw-text-muted)] block mb-2">
-              ¿Cuánto debe abonar para empezar?
+            <label className="text-xs font-semibold text-[var(--iw-text-muted)] block mb-1">
+              Abono para empezar (opcional)
             </label>
-            <div className="flex gap-2">
-              {[100, 50, 30].map(pct => (
-                <button
-                  key={pct}
-                  onClick={() => setForm(f => ({ ...f, depositPercent: pct }))}
-                  className={`flex-1 rounded-xl text-xs font-bold transition-colors ${
-                    form.depositPercent === pct ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
-                  }`}
-                  style={{ minHeight: 44 }}
-                >
-                  {pct === 100 ? 'Completo' : `${pct}%`}
-                </button>
-              ))}
-            </div>
-            {form.depositPercent < 100 && total > 0 && (
+            <p className="text-[11px] text-[var(--iw-text-muted)] mb-2">
+              Cuánto cobras por adelantado. Vacío = cobras el total.
+            </p>
+            <input
+              inputMode="decimal"
+              placeholder="Ej: 50.00"
+              value={form.depositAmount}
+              onChange={e => setForm(f => ({ ...f, depositAmount: e.target.value.replace(/[^0-9.]/g, '') }))}
+              className={campo}
+              style={{ minHeight: 48 }}
+            />
+            {parseFloat(form.depositAmount || '0') > 0 && total > 0 && (
               <p className="mt-2 text-xs text-[var(--iw-text-muted)]">
-                Abona ${(total * form.depositPercent / 100).toFixed(2)} · Queda debiendo ${(total * (100 - form.depositPercent) / 100).toFixed(2)}
+                Abona ${parseFloat(form.depositAmount).toFixed(2)} · Queda debiendo ${Math.max(0, total - parseFloat(form.depositAmount)).toFixed(2)}
               </p>
             )}
           </div>
@@ -206,7 +203,7 @@ export default function QuotesSection() {
               customerName: form.customerName || undefined,
               customerEmail: form.customerEmail || undefined,
               expiresInDays: form.expiresInDays,
-              depositPercent: form.depositPercent,
+              depositAmount: form.depositAmount || undefined,
               items: form.items.filter(i => i.concepto && i.precio),
             })}
             disabled={!valido || crear.isPending}

@@ -279,6 +279,25 @@ export default function Account() {
                                   <span>·</span>
                                   <span className="font-semibold text-[#1a1a1a]">${parseFloat(order.total).toFixed(2)}</span>
                                 </div>
+
+                                {/* Saldo pendiente: en pedidos con abono, el
+                                    cliente necesita ver cuánto le falta. */}
+                                {(() => {
+                                  const total = parseFloat(order.total);
+                                  const pagado = parseFloat((order as any).amountPaid ?? "0");
+                                  const resta = Math.round((total - pagado) * 100) / 100;
+                                  if (pagado <= 0 || resta <= 0.01) return null;
+                                  return (
+                                    <div className="mt-2 inline-flex flex-wrap items-center gap-2 rounded-lg bg-[#fff8e1] px-2.5 py-1.5">
+                                      <span className="text-[11px] text-[#666]">
+                                        Abonado <strong className="text-[#111]">${pagado.toFixed(2)}</strong>
+                                      </span>
+                                      <span className="text-[11px] font-bold text-[#b8860b]">
+                                        Saldo pendiente: ${resta.toFixed(2)}
+                                      </span>
+                                    </div>
+                                  );
+                                })()}
                               </div>
                               <ChevronRight className={`w-4 h-4 text-[#ccc] transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`} />
                             </div>

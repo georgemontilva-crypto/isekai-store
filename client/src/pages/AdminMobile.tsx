@@ -2263,7 +2263,19 @@ function FinanzasSection() {
                   {new Date(t.createdAt).toLocaleDateString('es-VE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
-              <p className="shrink-0 font-black text-[var(--iw-text)]">${parseFloat(t.total).toFixed(2)}</p>
+              <div className="shrink-0 text-right">
+                <p className="font-black text-[var(--iw-text)]">${parseFloat(t.total).toFixed(2)}</p>
+                {(() => {
+                  const pagado = parseFloat(t.amountPaid ?? '0');
+                  const resta = Math.round((parseFloat(t.total) - pagado) * 100) / 100;
+                  if (pagado <= 0 || resta <= 0.01) return null;
+                  return (
+                    <p className="mt-0.5 text-[10px] font-bold text-[#d9a400]">
+                      Debe ${resta.toFixed(2)}
+                    </p>
+                  );
+                })()}
+              </div>
             </div>
 
             {t.receiptUrl ? (
