@@ -2476,3 +2476,12 @@ button, a, [role="button"], label,
 input[type="checkbox"], input[type="radio"], select {
   touch-action: manipulation;
 }
+
+/* Los campos de fecha y hora en iOS traen un ancho mínimo propio que ignora
+   su contenedor y lo desborda. Se les fuerza a respetarlo. */
+input[type="date"], input[type="datetime-local"], input[type="time"], input[type="month"] {
+  max-width: 100%;
+  min-width: 0;
+  -webkit-appearance: none;
+  appearance: none;
+}

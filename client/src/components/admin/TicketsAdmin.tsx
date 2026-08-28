@@ -167,17 +167,19 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
               onChange={e => setNuevoEvento(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
             <input placeholder="Lugar" value={nuevoEvento.location}
               onChange={e => setNuevoEvento(f => ({ ...f, location: e.target.value }))} className={campo} style={altoCampo} />
-            <div className="grid grid-cols-2 gap-2">
-              <div className="min-w-0">
-                <label className="mb-1 block text-xs text-[var(--iw-text-muted)]">Primer día</label>
-                <input type="date" value={nuevoEvento.startDate}
-                  onChange={e => setNuevoEvento(f => ({ ...f, startDate: e.target.value }))} className={campo} style={altoCampo} />
-              </div>
-              <div className="min-w-0">
-                <label className="mb-1 block text-xs text-[var(--iw-text-muted)]">Último día</label>
-                <input type="date" value={nuevoEvento.endDate}
-                  onChange={e => setNuevoEvento(f => ({ ...f, endDate: e.target.value }))} className={campo} style={altoCampo} />
-              </div>
+            {/* Las fechas van apiladas: en iOS el campo `date` tiene un ancho
+                mínimo propio que ignora la columna y desborda el contenedor. */}
+            <div className="min-w-0">
+              <label className="mb-1 block text-xs text-[var(--iw-text-muted)]">Primer día</label>
+              <input type="date" value={nuevoEvento.startDate}
+                onChange={e => setNuevoEvento(f => ({ ...f, startDate: e.target.value }))}
+                className={campo} style={{ ...altoCampo, maxWidth: "100%" }} />
+            </div>
+            <div className="min-w-0">
+              <label className="mb-1 block text-xs text-[var(--iw-text-muted)]">Último día</label>
+              <input type="date" value={nuevoEvento.endDate}
+                onChange={e => setNuevoEvento(f => ({ ...f, endDate: e.target.value }))}
+                className={campo} style={{ ...altoCampo, maxWidth: "100%" }} />
             </div>
           </div>
           <button
