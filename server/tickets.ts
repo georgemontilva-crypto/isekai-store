@@ -110,6 +110,19 @@ export async function crearTienda(data: {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
 
+  // Guarda contra duplicados: un doble toque en el botón creaba dos tiendas.
+  const nombreLimpio = data.name.trim();
+  const correoLimpio = data.email?.trim().toLowerCase();
+
+  const existentes = await db.select().from(stores);
+  const yaExiste = existentes.find(t =>
+    t.name.trim().toLowerCase() === nombreLimpio.toLowerCase() ||
+    (correoLimpio && t.email === correoLimpio)
+  );
+  if (yaExiste) {
+    throw new Error(`Ya existe una tienda con ese ${yaExiste.email === correoLimpio ? "correo" : "nombre"}`);
+  }
+
   let userId: number | undefined;
 
   // Si se da un correo, se le crea (o reutiliza) la cuenta con rol `store`,
@@ -136,11 +149,11 @@ export async function crearTienda(data: {
   }
 
   await db.insert(stores).values({
-    name: data.name,
+    name: nombreLimpio,
     userId,
     contactName: data.contactName,
     phone: data.phone,
-    email: data.email?.trim().toLowerCase(),
+    email: correoLimpio,
   });
 }
 
@@ -368,4 +381,21 @@ export async function ventasDeTienda(storeId: number, eventId: number) {
     totalBs: Math.round(filas.reduce((a, b) => a + (parseFloat((b.priceBs as any) ?? "0") || 0), 0) * 100) / 100,
     boletos: filas.map(t => ({ ...t, tipoNombre: tipos.find(x => x.id === t.ticketTypeId)?.name ?? null })),
   };
+}
+
+/** Elimina una tienda. Si ya vendió boletos, se desactiva en lugar de borrar
+    para no perder el registro de quién vendió qué. */
+export async function borrarTienda(id: number) {
+  const db = await getDb();
+  if (!db) return { desactivada: false };
+
+  const [conVentas] = await db.select({ n: sql<number>`count(*)` })
+    .from(eventTickets).where(eq(eventTickets.storeId, id));
+
+  if ((conVentas?.n ?? 0) > 0) {
+    await db.update(stores).set({ active: false }).where(eq(stores.id, id));
+    return { desactivada: true };
+  }
+  await db.delete(stores).where(eq(stores.id, id));
+  return { desactivada: false };
 }

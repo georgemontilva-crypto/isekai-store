@@ -7,7 +7,7 @@ import {
   BarChart3, Bell, ChevronRight, Check, Trash2, FileText,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus, SlidersHorizontal,
   LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
-  Tag, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
+  Tag, Store, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
@@ -15,7 +15,7 @@ import TicketsAdmin from '@/components/admin/TicketsAdmin';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'boleteria' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-tiendas' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -2889,26 +2889,41 @@ export default function AdminMobile() {
   const unreadCount = (notifications as any[]).filter((n: any) => !n.read).length;
   const hasModalOpen = cosplayHasModal || productsHasModal || blogHasModal || showNotifications;
 
-  const TABS = [
-    { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
-    { id: 'orders' as MobileTab,   label: 'Pedidos',   icon: ShoppingBag },
-    { id: 'finanzas' as MobileTab, label: 'Finanzas',  icon: CreditCard,  badge: pendingPaymentsCount },
-    { id: 'cosplay' as MobileTab,  label: 'Cosplay',   icon: Sparkles,    badge: (pendingCosplay as any[]).length },
-    { id: 'products' as MobileTab, label: 'Productos', icon: Package },
-    { id: 'more' as MobileTab,     label: 'Más',       icon: Menu },
-  ];
+  /**
+   * La barra inferior cambia según dónde estés. Dentro de Boletería muestra
+   * sus propias secciones, para no tener que volver a "Más" cada vez que
+   * quieras pasar de las ventas a las tiendas.
+   */
+  const enBoleteria = activeTab.startsWith('boleteria');
+
+  const TABS = enBoleteria
+    ? [
+        { id: 'boleteria' as MobileTab,          label: 'Resumen',  icon: BarChart3 },
+        { id: 'boleteria-boletos' as MobileTab,  label: 'Vendidos', icon: Ticket },
+        { id: 'boleteria-tipos' as MobileTab,    label: 'Tipos',    icon: Tag },
+        { id: 'boleteria-tiendas' as MobileTab,  label: 'Tiendas',  icon: Store },
+        { id: 'more' as MobileTab,               label: 'Salir',    icon: Menu },
+      ]
+    : [
+        { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
+        { id: 'orders' as MobileTab,   label: 'Pedidos',   icon: ShoppingBag },
+        { id: 'finanzas' as MobileTab, label: 'Finanzas',  icon: CreditCard,  badge: pendingPaymentsCount },
+        { id: 'cosplay' as MobileTab,  label: 'Cosplay',   icon: Sparkles,    badge: (pendingCosplay as any[]).length },
+        { id: 'products' as MobileTab, label: 'Productos', icon: Package },
+        { id: 'more' as MobileTab,     label: 'Más',       icon: Menu },
+      ];
 
   const EXTRA_TABS = ['categories', 'faq', 'users', 'blog', 'popups', 'newOrder'];
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -2966,7 +2981,17 @@ export default function AdminMobile() {
         {activeTab === 'subscribers' && <SubscribersSection />}
         {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'quotes'      && <QuotesSection />}
-        {activeTab === 'boleteria'   && <TicketsAdmin compact />}
+        {enBoleteria && (
+          <TicketsAdmin
+            compact
+            vistaFija={
+              activeTab === 'boleteria-boletos' ? 'boletos'
+              : activeTab === 'boleteria-tipos' ? 'tipos'
+              : activeTab === 'boleteria-tiendas' ? 'tiendas'
+              : 'resumen'
+            }
+          />
+        )}
         {activeTab === 'tasa'        && <TasaSection />}
         {activeTab === 'finanzas'    && <FinanzasSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}

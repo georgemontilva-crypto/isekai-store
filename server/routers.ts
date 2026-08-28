@@ -16,7 +16,7 @@ import { validarPedido, descontarStock, devolverStock } from "./orderValidation"
 import {
   crearEvento, listarEventos, editarEvento,
   crearTipoBoleto, listarTipos, editarTipo, borrarTipo,
-  crearTienda, listarTiendas, editarTienda, tiendaDeUsuario,
+  crearTienda, listarTiendas, editarTienda, borrarTienda, tiendaDeUsuario,
   generarBoletos, boletoPorToken, venderBoleto, corregirBoleto,
   listarBoletos, resumenEvento, ventasDeTienda,
 } from "./tickets";
@@ -1155,6 +1155,10 @@ export const appRouter = router({
         phone: z.string().max(50).optional(),
       }))
       .mutation(({ input }) => crearTienda(input)),
+    borrarTienda: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => borrarTienda(input.id)),
+
     editarTienda: adminProcedure
       .input(z.object({
         id: z.number(),

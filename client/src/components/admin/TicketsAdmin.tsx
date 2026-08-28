@@ -12,13 +12,19 @@ import { useAuth } from "@/_core/hooks/useAuth";
  * autorizan las tiendas y se generan los QR en blanco. Los totales se
  * actualizan en vivo conforme las tiendas registran ventas.
  */
-export default function TicketsAdmin({ compact = false }: { compact?: boolean }) {
+export default function TicketsAdmin({ compact = false, vistaFija }: {
+  compact?: boolean;
+  /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
+  vistaFija?: "resumen" | "boletos" | "tipos" | "tiendas";
+}) {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
   const habilitado = isAuthenticated && user?.role === "admin";
 
   const [eventoId, setEventoId] = useState<number | null>(null);
-  const [vista, setVista] = useState<"resumen" | "boletos" | "tipos" | "tiendas">("resumen");
+  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "tipos" | "tiendas">("resumen");
+  const vista = vistaFija ?? vistaLocal;
+  const setVista = setVistaLocal;
 
   const { data: eventos = [] } = trpc.tickets.eventos.useQuery(undefined, { enabled: habilitado });
   const evento = eventos.find((e: any) => e.id === eventoId) ?? eventos[0];
@@ -75,6 +81,13 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
   const editarTienda = trpc.tickets.editarTienda.useMutation({
     onSuccess: () => { utils.tickets.tiendas.invalidate(); },
   });
+  const borrarTienda = trpc.tickets.borrarTienda.useMutation({
+    onSuccess: (r: any) => {
+      utils.tickets.tiendas.invalidate();
+      toast.success(r?.desactivada ? "Tienda desactivada (ya tiene ventas)" : "Tienda eliminada");
+    },
+    onError: (e) => toast.error(e.message),
+  });
 
   const [cantidad, setCantidad] = useState(10);
   const generar = trpc.tickets.generar.useMutation({
@@ -130,7 +143,7 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
   return (
     <div className={compact ? "p-4 flex flex-col gap-4" : "flex flex-col gap-5"}>
       {/* Selector de evento */}
-      <div className="flex min-w-0 gap-2">
+      <div className={`flex min-w-0 gap-2 ${vistaFija && vistaFija !== "resumen" ? "hidden" : ""}`}>
         <select
           value={evento?.id ?? ""}
           onChange={e => setEventoId(Number(e.target.value))}
@@ -194,6 +207,7 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
       )}
 
       {/* Pestañas */}
+      {!vistaFija && (
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"]] as const).map(([id, label]) => (
           <button
@@ -208,6 +222,7 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
           </button>
         ))}
       </div>
+      )}
 
       {/* ── Resumen ── */}
       {vista === "resumen" && resumen && (
@@ -419,11 +434,11 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
                 contactName: nuevaTienda.contactName || undefined,
                 phone: nuevaTienda.phone || undefined,
               })}
-              disabled={!nuevaTienda.name}
+              disabled={!nuevaTienda.name || crearTienda.isPending}
               className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
-              Autorizar
+              {crearTienda.isPending ? "Autorizando..." : "Autorizar"}
             </button>
           </div>
 
@@ -437,15 +452,24 @@ export default function TicketsAdmin({ compact = false }: { compact?: boolean })
                       {s.email ?? "sin correo"}{s.phone ? ` · ${s.phone}` : ""}
                     </p>
                   </div>
-                  <button
-                    onClick={() => editarTienda.mutate({ id: s.id, active: !s.active })}
-                    className={`shrink-0 rounded-full px-4 text-xs font-bold ${
-                      s.active ? "border border-[var(--iw-border)] text-[var(--iw-text-muted)]" : "bg-[#e5007d] text-white"
-                    }`}
-                    style={{ minHeight: 40 }}
-                  >
-                    {s.active ? "Desactivar" : "Activar"}
-                  </button>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <button
+                      onClick={() => editarTienda.mutate({ id: s.id, active: !s.active })}
+                      className={`rounded-full px-4 text-xs font-bold ${
+                        s.active ? "border border-[var(--iw-border)] text-[var(--iw-text-muted)]" : "bg-[#e5007d] text-white"
+                      }`}
+                      style={{ minHeight: 40 }}
+                    >
+                      {s.active ? "Desactivar" : "Activar"}
+                    </button>
+                    <button
+                      onClick={() => { if (confirm(`¿Eliminar "${s.name}"?`)) borrarTienda.mutate({ id: s.id }); }}
+                      className="p-2 text-[var(--iw-text-muted)] hover:text-red-500"
+                      aria-label="Eliminar tienda"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
