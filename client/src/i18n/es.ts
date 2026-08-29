@@ -2,7 +2,7 @@ export const es = {
   // ── Navbar ──────────────────────────────────────────────────────────────
   nav: {
     announcements: [
-      "Envío gratis en pedidos +$150 USD · Código FREESHIP",
+      "Envío gratis desde $50 USD en San Francisco · Consulta otras zonas",
       "Nuevos drops cada semana — ¡No te los pierdas!",
       "20% off en tu primer pedido · Únete ahora",
     ],
@@ -76,7 +76,7 @@ export const es = {
     noProductsDesc: "Agrega productos desde el panel admin",
     specs: { driver: "Controlador", weight: "Peso", battery: "Batería" },
     instagram: { title: "Ve el Feed", cta: "Seguirnos en Instagram" },
-    marquee: ["Figuras Anime 3D", "★", "Ediciones Limitadas", "★", "Gaming Culture", "★", "Envío Gratis +$150 USD", "★", "Coleccionables Premium", "★", "Nuevos Drops Semanales", "★", "ISEKAI WORLD", "★"],
+    marquee: ["Figuras Anime 3D", "★", "Ediciones Limitadas", "★", "Gaming Culture", "★", "Envío Gratis en San Francisco +$50", "★", "Coleccionables Premium", "★", "Nuevos Drops Semanales", "★", "ISEKAI WORLD", "★"],
   },
 
   // ── Cart ────────────────────────────────────────────────────────────────
@@ -213,7 +213,7 @@ export const es = {
     tagline: "Tu destino para merch premium de anime y gaming. Calidad para verdaderos fans.",
     trust: [
       { title: "Atención al Cliente", desc: "Estamos aquí para ayudarte con cualquier pregunta" },
-      { title: "Envío Gratis", desc: "Pedidos desde $150 USD" },
+      { title: "Envío Gratis", desc: "Desde $50 USD en San Francisco" },
       { title: "Referidos", desc: "Refiere un amigo y ambos ganan 15% off" },
       { title: "Pago Seguro", desc: "Tu información está protegida al 100%" },
     ],

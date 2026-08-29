@@ -79,7 +79,7 @@ export default function CartDrawer() {
                 {freeShippingLeft <= 0 ? (
                   <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: "#22c55e" }}>
                     <Truck className="w-3.5 h-3.5" />
-                    ¡Tienes envío gratis!
+                    ¡Envío gratis en San Francisco!
                   </div>
                 ) : (
                   <div>
@@ -89,7 +89,7 @@ export default function CartDrawer() {
                         <span className="font-semibold" style={{ color: "#a78bfa" }}>
                           ${freeShippingLeft.toFixed(2)}
                         </span>{" "}
-                        más para envío gratis
+                        más para envío gratis en San Francisco
                       </span>
                       <Truck className="w-3.5 h-3.5" style={{ color: TEXT_MUTED }} />
                     </div>
