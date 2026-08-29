@@ -535,10 +535,10 @@ export default function Home() {
 
         {/* ── VIDEO BANNER ── */}
         {videoUrl && (
-        <section className="hidden px-4 py-0 sm:px-6 md:block lg:px-16 xl:px-[233px]">
+        <section className="px-4 py-0 sm:px-6 lg:px-16 xl:px-[233px]">
           <div
             className="relative overflow-hidden"
-            style={{ height: 480, borderRadius: 18 }}
+            style={{ height: isMobile ? 300 : 480, borderRadius: 18 }}
           >
             <video
               ref={videoRef}
