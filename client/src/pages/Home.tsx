@@ -10,7 +10,7 @@ function useWindowWidth() {
   return width;
 }
 import { Link, useLocation } from "wouter";
-import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink, Layers } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { PriceDisplay } from "@/components/PriceDisplay";
 import ProductCard from "@/components/ProductCard";
@@ -400,120 +400,96 @@ export default function Home() {
           2. COLLECTIONS CAROUSEL (Shopify Concept style)
       ══════════════════════════════════════════════ */}
       {categories && categories.length > 0 && (
-      <section className="bg-white border-b border-[#ebebeb] py-0" style={{ padding: '0 8px' }}>
-        <div className="relative">
+      <section className="px-4 pb-10 sm:px-5 lg:px-[22px]">
+        <div className="mx-auto w-full">
 
-          {/* Flecha izquierda */}
-          <button
-            onClick={() => scrollCategories('left')}
-            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white shadow-lg rounded-full flex items-center justify-center border border-[#e5e5e5] hover:border-[#111] transition-colors -ml-2"
-          >
-            <ChevronLeft size={18} className="text-[#111]" />
-          </button>
-
-          {/* Scroll container */}
-          <div
-            ref={categoryScrollRef}
-            className="flex gap-3 overflow-x-auto scrollbar-hide py-6"
-            style={{
-              scrollSnapType: 'x mandatory',
-              // El relleno deja que la primera y la última tarjeta también
-              // lleguen al centro de la pantalla.
-              paddingLeft: isMobile ? 'calc((100vw - (100vw - 48px)) / 2)' : '1.5rem',
-              paddingRight: isMobile ? 'calc((100vw - (100vw - 48px)) / 2)' : '1.5rem',
-              scrollPaddingInline: isMobile ? 'calc((100vw - (100vw - 48px)) / 2)' : '1.5rem',
-            }}
-          >
-            {categories.map((cat, idx) => {
-              const href = cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
-              return (
-              <Link key={cat.id} href={href}>
-                <div
-                  className="shrink-0 relative overflow-hidden cursor-pointer group"
-                  style={{
-                    scrollSnapAlign: 'center',
-                    width: collectionCardWidth,
-                    minWidth: isMobile ? 140 : 160,
-                    aspectRatio: '1/1',
-                    borderRadius: 18,
-                    background: idx === 0 ? '#1a1a1a' : '#f0f0f0',
-                  }}
-                >
-                  {cat.imageUrl && (
-                    <img
-                      src={cat.imageUrl}
-                      alt={cat.name}
-                      width={300}
-                      height={300}
-                      className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                      style={{ opacity: idx === 0 ? 0.65 : 1 }}
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  )}
-                  <div
-                    className="absolute inset-0"
-                    style={{
-                      background: idx === 0
-                        ? 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 55%, transparent 100%)'
-                        : 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.05) 50%, transparent 100%)',
-                    }}
-                  />
-                  <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <div className="flex items-end justify-between">
-                      <div>
-                        <p
-                          className="font-black text-white leading-tight"
-                          style={{ fontSize: idx === 0 ? 18 : 16, fontFamily: idx === 0 ? "'Orbitron', sans-serif" : 'inherit' }}
-                        >
-                          {cat.name}
-                        </p>
-                        {cat.description && (
-                          <p className="text-white/60 text-[11px] mt-0.5 leading-tight">{cat.description}</p>
-                        )}
-                      </div>
-                      <div className="w-7 h-7 rounded-full bg-white/20 border border-white/30 flex items-center justify-center flex-shrink-0 ml-2">
-                        <ArrowRight size={12} className="text-white" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {/* Título con los controles a su derecha, como en la referencia */}
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-lg font-black text-white sm:text-xl">
+              {t.nav.collections ?? "Universos"}
+            </h2>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => scrollCategories('left')}
+                aria-label="Anterior"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
+              >
+                <ChevronLeft size={15} />
+              </button>
+              <button
+                onClick={() => scrollCategories('right')}
+                aria-label="Siguiente"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-white/[0.06] text-white/70 transition-colors hover:bg-white/[0.12] hover:text-white"
+              >
+                <ChevronRight size={15} />
+              </button>
+              <Link href="/catalog" className="ml-1 flex items-center gap-1.5 text-xs font-bold text-[#ff45a0] transition-colors hover:text-white">
+                Ver todo <ArrowRight size={14} />
               </Link>
-            );})}
+            </div>
           </div>
 
-          {/* Flecha derecha */}
-          <button
-            onClick={() => scrollCategories('right')}
-            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-9 h-9 bg-white shadow-lg rounded-full flex items-center justify-center border border-[#e5e5e5] hover:border-[#111] transition-colors -mr-2"
+          {/* Carril: dos tarjetas por vista en teléfono, tres en tableta y
+              cuatro en escritorio. Las tarjetas son verticales (3:4) con el
+              nombre sobre un degradado, como las de la referencia. */}
+          <div
+            ref={categoryScrollRef}
+            className="flex gap-4 pb-1"
+            style={{
+              overflowX: "auto",
+              overflowY: "hidden",
+              scrollBehavior: "smooth",
+              scrollSnapType: "x mandatory",
+              WebkitOverflowScrolling: "touch",
+              msOverflowStyle: "none",
+              scrollbarWidth: "none",
+            }}
           >
-            <ChevronRight size={18} className="text-[#111]" />
-          </button>
+            {categories.map((cat: any) => {
+              const href = cat.slug ? `/catalog?category=${cat.slug}` : "/catalog";
+              return (
+                <Link key={cat.id} href={href} className="iw-universo-card" style={{ scrollSnapAlign: "start" }}>
+                  <div
+                    className="group relative w-full cursor-pointer overflow-hidden rounded-2xl bg-[#16191f]"
+                    style={{
+                      aspectRatio: "3 / 4",
+                      border: "1px solid rgba(255,255,255,0.07)",
+                      boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+                    }}
+                  >
+                    {cat.imageUrl ? (
+                      <img
+                        src={cat.imageUrl}
+                        alt={cat.name}
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+                      />
+                    ) : (
+                      <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-[#1a1d24] to-[#0a0a0a]">
+                        <Layers size={40} className="text-white/15" />
+                      </div>
+                    )}
 
-          {/* Dots */}
-          {categories.length > 3 && (
-            <div className="flex justify-center gap-2 pb-4">
-              {Array.from({ length: Math.ceil(categories.length / 2) }).map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    const container = categoryScrollRef.current;
-                    if (container) {
-                      container.scrollTo({ left: i * 160 * 2, behavior: 'smooth' });
-                      setCategoryIndex(i);
-                    }
-                  }}
-                  className="rounded-full transition-all duration-300"
-                  style={{
-                    width: i === categoryIndex ? '20px' : '8px',
-                    height: '8px',
-                    background: i === categoryIndex ? '#111' : '#e5e5e5',
-                  }}
-                />
-              ))}
-            </div>
-          )}
+                    {/* Degradado para que el nombre se lea sobre cualquier foto */}
+                    <div
+                      className="absolute inset-0"
+                      style={{ background: "linear-gradient(to top, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.2) 50%, transparent 100%)" }}
+                    />
+                    {/* Tinte magenta al pasar por encima */}
+                    <div
+                      className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                      style={{ background: "linear-gradient(to top, rgba(229,0,125,0.25) 0%, transparent 60%)" }}
+                    />
 
+                    <div className="absolute inset-x-0 bottom-0 p-3.5">
+                      <p className="text-sm font-bold leading-tight text-white transition-colors group-hover:text-[#ff45a0]">
+                        {cat.name}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
         </div>
       </section>
       )}

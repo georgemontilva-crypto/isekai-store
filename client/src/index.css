@@ -2629,3 +2629,22 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   &.border-border\/50, &.border-border\/30,
   &.border-border\/40, &.border-border\/60        { border-color: rgba(255, 255, 255, 0.08); }
 }
+
+/* Tarjetas de universos: dos por vista en teléfono, tres en tableta y cuatro
+   en escritorio, calculadas para que la última quede justo en el borde. */
+.iw-universo-card {
+  flex: 0 0 calc((100% - 1rem) / 2);
+  min-width: calc((100% - 1rem) / 2);
+}
+@media (min-width: 640px) {
+  .iw-universo-card {
+    flex: 0 0 calc((100% - 2rem) / 3);
+    min-width: calc((100% - 2rem) / 3);
+  }
+}
+@media (min-width: 1024px) {
+  .iw-universo-card {
+    flex: 0 0 calc((100% - 3rem) / 4);
+    min-width: calc((100% - 3rem) / 4);
+  }
+}
