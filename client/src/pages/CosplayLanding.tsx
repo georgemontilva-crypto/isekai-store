@@ -178,8 +178,13 @@ export default function CosplayLanding() {
             Cosplay<br />
             <span className="text-[#e5007d]">Guild</span>
           </h1>
+          {/* El texto habla de lo que gana el cosplayer, no de lo que hace por
+              la marca: la iniciativa existe para darles valor y visibilidad. */}
           <p className="text-[#ccc] text-lg mt-6 max-w-xl leading-relaxed">
-            Representa la marca. Gana tickets. Canjea descuentos.
+            Tu personaje merece más que un aplauso.
+            <span className="mt-2 block text-white">
+              Un espacio donde tu trabajo se ve, se comparte y se reconoce.
+            </span>
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
             <Link href="/cosplay/guild">
