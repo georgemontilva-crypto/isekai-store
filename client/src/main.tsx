@@ -62,7 +62,31 @@ createRoot(document.getElementById("root")!).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
-      .then((reg) => console.log('[SW] Registered:', reg.scope))
+      .then((reg) => {
+        // Se comprueba si hay una versión nueva al abrir y cada media hora:
+        // sin esto, una pestaña abierta podía quedarse con código viejo.
+        reg.update().catch(() => {});
+        setInterval(() => { reg.update().catch(() => {}); }, 30 * 60 * 1000);
+
+        // Cuando el nuevo service worker toma el control, se recarga una vez
+        // para que la pantalla muestre la versión actual.
+        let recargando = false;
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+          if (recargando) return;
+          recargando = true;
+          window.location.reload();
+        });
+
+        reg.addEventListener('updatefound', () => {
+          const nuevo = reg.installing;
+          if (!nuevo) return;
+          nuevo.addEventListener('statechange', () => {
+            if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
+              nuevo.postMessage('saltar-espera');
+            }
+          });
+        });
+      })
       .catch((err) => console.warn('[SW] Error:', err));
   });
 }
