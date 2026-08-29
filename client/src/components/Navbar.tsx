@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell } from "lucide-react";
+import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell, Home, Layers, Users, HelpCircle, FileText, BookOpen, Sparkles, Ticket } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { openLoginModal } from "@/const";
@@ -170,6 +170,9 @@ export default function Navbar() {
 
   useEffect(() => { setActiveMenu(null); }, [location]);
 
+  const { data: miCosplayer } = trpc.cosplay.getMyProfile.useQuery(undefined, { enabled: isAuthenticated, retry: false });
+  const esCosplayer = Boolean(miCosplayer);
+
   const isRegularUser = isAuthenticated && user?.role !== "admin";
   const socket = useSocket();
   const utils = trpc.useUtils();
@@ -268,6 +271,21 @@ export default function Navbar() {
     (item, i, arr) => arr.findIndex(x => x.href === item.href) === i
   );
 
+  /** Icono de cada destino del menú, buscado por su dirección */
+  const iconoDe = (href: string) => {
+    if (href === "/") return Home;
+    if (href.startsWith("/catalog")) return ShoppingBag;
+    if (href.startsWith("/universos") || href.startsWith("/colecciones")) return Layers;
+    if (href.startsWith("/nosotros")) return Users;
+    if (href.startsWith("/faq")) return HelpCircle;
+    if (href.startsWith("/politicas")) return FileText;
+    if (href.startsWith("/blog")) return BookOpen;
+    if (href.startsWith("/cosplay")) return Sparkles;
+    if (href.startsWith("/world-fest")) return Ticket;
+    if (href.startsWith("/account")) return User;
+    return ChevronRight;
+  };
+
   if (location.startsWith("/admin")) return null;
 
   return (
@@ -344,6 +362,7 @@ export default function Navbar() {
               href="/cosplay"
               className="ml-2 inline-flex items-center rounded-full border-2 border-[#e5007d] bg-white px-4 py-1.5 text-[13px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
             >
+              <Sparkles size={17} strokeWidth={1.8} />
               Cosplay Guild
             </Link>
 
@@ -353,6 +372,7 @@ export default function Navbar() {
               href="/world-fest"
               className="wf-pill relative ml-2 inline-flex items-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-4 py-1.5 text-[13px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
             >
+              <Ticket size={17} strokeWidth={1.8} />
               World Fest
             </Link>
           </nav>
@@ -388,9 +408,15 @@ export default function Navbar() {
                 <LayoutDashboard size={17} strokeWidth={1.8} />
               </Link>
             )}
+            {/* El cosplayer entra a su panel desde aquí, igual que el admin */}
+            {isAuthenticated && esCosplayer && (
+              <Link href="/cosplay/dashboard" className="iw-icon-btn md:hidden" aria-label="Mi perfil de cosplayer">
+                <Sparkles size={17} strokeWidth={1.8} />
+              </Link>
+            )}
             {isRegularUser && (
               <div ref={notifRef} className="relative">
-                <button onClick={handleBellClick} className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Notificaciones">
+                <button onClick={handleBellClick} className="iw-icon-btn relative max-md:hidden" aria-label="Notificaciones">
                   <Bell size={17} strokeWidth={1.8} />
                   {notifUnread != null && notifUnread > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -444,10 +470,10 @@ export default function Navbar() {
               </div>
             )}
             {isAuthenticated
-              ? <Link href="/account" aria-label="Mi cuenta" className="iw-icon-btn"><User size={17} strokeWidth={1.8}/></Link>
-              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="iw-icon-btn"><User size={17} strokeWidth={1.8}/></button>
+              ? <Link href="/account" aria-label="Mi cuenta" className="iw-icon-btn max-md:hidden"><User size={17} strokeWidth={1.8}/></Link>
+              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="iw-icon-btn max-md:hidden"><User size={17} strokeWidth={1.8}/></button>
             }
-            <button onClick={() => openCart()} aria-label="Abrir carrito" className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
+            <button onClick={() => openCart()} aria-label="Abrir carrito" className="iw-icon-btn relative max-md:hidden">
               <ShoppingBag size={17} strokeWidth={1.8}/>
               {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#111] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
             </button>
@@ -543,16 +569,17 @@ export default function Navbar() {
                   href={l.href}
                   onClick={() => setMobileOpen(false)}
                   tabIndex={mobileOpen ? 0 : -1}
-                  className="iw-menu-item flex items-end rounded-xl px-4 py-3.5 text-[15px] font-bold transition-colors"
+                  className="iw-menu-item iw-menu-card flex flex-col justify-between rounded-xl px-4 py-3.5 transition-colors"
                   style={{
                     transitionDelay: mobileOpen ? `${100 + i * 45}ms` : "0ms",
-                    minHeight: 74,
+                    minHeight: 86,
                     background: activo ? "rgba(229,0,125,0.18)" : "rgba(255,255,255,0.06)",
                     border: `1px solid ${activo ? "rgba(229,0,125,0.35)" : "rgba(255,255,255,0.07)"}`,
                     color: activo ? "#ff45a0" : "#ffffff",
                   }}
                 >
-                  {l.label}
+                  {(() => { const Icono = iconoDe(l.href); return <Icono size={19} strokeWidth={1.8} className="opacity-70" />; })()}
+                  <span className="text-[14px]">{l.label}</span>
                 </Link>
               );
             })}
@@ -564,8 +591,9 @@ export default function Navbar() {
               href="/cosplay"
               onClick={() => setMobileOpen(false)}
               tabIndex={mobileOpen ? 0 : -1}
-              className="inline-flex items-center justify-center rounded-full border-2 border-[#e5007d] bg-white px-5 py-3 text-[14px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+              className="iw-menu-cta inline-flex items-center justify-center gap-2 rounded-xl border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 py-3.5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
             >
+              <Sparkles size={17} strokeWidth={1.8} />
               Cosplay Guild
             </Link>
             <style>{WORLD_FEST_GLOW}</style>
@@ -573,14 +601,15 @@ export default function Navbar() {
               href="/world-fest"
               onClick={() => setMobileOpen(false)}
               tabIndex={mobileOpen ? 0 : -1}
-              className="wf-pill relative inline-flex items-center justify-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-5 py-3 text-[14px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+              className="wf-pill iw-menu-cta relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#2b8fe0]/60 bg-[#2b8fe0]/10 px-5 py-3.5 text-[14px] text-[#7dd8ff] transition-colors hover:bg-[#1a6fbd] hover:text-white"
             >
+              <Ticket size={17} strokeWidth={1.8} />
               World Fest
             </Link>
           </div>
 
           {/* Cuenta */}
-          <div className="iw-menu-item mt-9 flex flex-col gap-3 border-t border-[#f0f0f0] pt-7" style={{ transitionDelay: mobileOpen ? `${160 + mobileLinks.length * 55}ms` : "0ms" }}>
+          <div className="iw-menu-item mt-9 flex flex-col gap-3 border-t border-white/[0.08] pt-7" style={{ transitionDelay: mobileOpen ? `${160 + mobileLinks.length * 55}ms` : "0ms" }}>
             {isRegularUser && (
               <Link
                 href="/account"

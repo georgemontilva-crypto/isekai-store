@@ -2585,3 +2585,11 @@ html.dark .iw-search:focus-within {
 @media (max-width: 767px) {
   .iw-hero { height: 340px; }
 }
+
+/* Tipografía del menú de teléfono: Montserrat semibold, algo más redonda y
+   estable que la del cuerpo para etiquetas cortas. */
+.iw-menu-card, .iw-menu-cta {
+  font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
