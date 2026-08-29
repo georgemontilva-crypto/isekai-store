@@ -172,7 +172,7 @@ export default function Checkout() {
     const igUser = (siteSettings?.["instagram_username"] ?? "").trim().replace(/^@/, "");
 
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center">
+      <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -216,7 +216,7 @@ export default function Checkout() {
   // ─── Empty cart ──────────────────────────────────────────────────────────────
   if (items.length === 0) {
     return (
-      <div className="min-h-screen pt-24 flex items-center justify-center">
+      <div className="flex min-h-[70vh] items-center justify-center px-4 py-10">
         <div className="text-center">
           <ShoppingBag className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
           <h2 className="text-2xl font-bold mb-2">{t.checkout.empty}</h2>
@@ -229,7 +229,7 @@ export default function Checkout() {
   }
 
   return (
-    <div className="min-h-screen pt-24 pb-16">
+    <div className="min-h-screen pt-6 pb-16 sm:pt-8">
       <div className="container max-w-5xl px-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
           <Link href="/catalog">
