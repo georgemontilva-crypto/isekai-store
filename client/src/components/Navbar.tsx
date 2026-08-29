@@ -488,7 +488,12 @@ export default function Navbar() {
       >
         <div className="flex items-center justify-between border-b border-white/[0.08] px-6 h-[60px]">
           {logoUrl
-            ? <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
+            ? <img
+                src={logoUrl}
+                alt={storeName}
+                className="iw-logo object-contain"
+                style={{ ['--iw-logo-h' as string]: `${logoHeight}px` }}
+              />
             : <span className="font-bold text-[15px]">{storeName}</span>}
           <button onClick={() => setMobileOpen(false)} aria-label="Cerrar menú" tabIndex={mobileOpen ? 0 : -1} className="p-2 text-white">
             <X size={20} />
