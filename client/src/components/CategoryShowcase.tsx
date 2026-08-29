@@ -119,7 +119,7 @@ export default function CategoryShowcase({
                     href={`/product/${prod.slug}`}
                     className="group flex items-center gap-4 rounded-xl border border-white/[0.07] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.03]"
                   >
-                    <div className="h-[88px] w-[68px] shrink-0 overflow-hidden rounded-lg bg-[#16191f]">
+                    <div className="h-[96px] w-[96px] shrink-0 overflow-hidden rounded-lg bg-[#16191f]">
                       {prod.imageUrl && (
                         <img
                           src={prod.imageUrl}
