@@ -2648,3 +2648,9 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
     min-width: calc((100% - 3rem) / 4);
   }
 }
+
+/* Columnas de la vitrina: en escritorio caben tres a la vez (nueve productos);
+   en teléfono una por vista y se desliza. */
+.iw-vitrina-col { width: 100%; }
+@media (min-width: 640px) { .iw-vitrina-col { width: calc((100% - 1.25rem) / 2); } }
+@media (min-width: 1024px) { .iw-vitrina-col { width: calc((100% - 2.5rem) / 3); } }
