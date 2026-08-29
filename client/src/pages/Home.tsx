@@ -58,7 +58,7 @@ function SaleSlider() {
 
   if (!banners.length) {
     return (
-      <section style={{ padding: '24px 8px 0 8px' }}>
+      <section className="px-4 pt-6 sm:px-6 lg:px-14 xl:px-20">
         <div className="h-[140px] sm:h-[200px] bg-[#f0f0f0] rounded-[18px] flex items-center justify-center">
           <p className="text-[#888] text-sm">Configura los banners desde el panel admin → Configuración</p>
         </div>
@@ -69,7 +69,7 @@ function SaleSlider() {
   const total = banners.length;
 
   return (
-    <section style={{ padding: '24px 8px 0 8px' }}>
+    <section className="px-4 pt-6 sm:px-6 lg:px-14 xl:px-20">
       <div
         className="relative overflow-hidden rounded-[18px]"
         style={{ aspectRatio: isMobile ? '4/5' : '1920/600' }}
@@ -324,7 +324,7 @@ export default function Home() {
           indica cuánto falta para el siguiente; al tocar cualquiera se salta
           a él. En teléfono la lista se oculta y queda solo el banner. */}
       {heroSlides.length > 0 && (
-      <section className="px-4 pt-4 pb-8 sm:px-5 lg:px-[22px]">
+      <section className="px-4 pt-4 pb-8 sm:px-6 lg:px-14 xl:px-20">
         <div className="mx-auto w-full lg:grid lg:gap-4" style={{ gridTemplateColumns: "3.6fr 1fr" }}>
 
           {/* Banner */}
@@ -414,7 +414,7 @@ export default function Home() {
           2. COLLECTIONS CAROUSEL (Shopify Concept style)
       ══════════════════════════════════════════════ */}
       {categories && categories.length > 0 && (
-      <section className="px-4 pb-10 sm:px-5 lg:px-[22px]">
+      <section className="px-4 pb-10 sm:px-6 lg:px-14 xl:px-20">
         <div className="mx-auto w-full">
 
           {/* Título con los controles a su derecha, como en la referencia */}
@@ -535,7 +535,7 @@ export default function Home() {
 
         {/* ── VIDEO BANNER ── */}
         {videoUrl && (
-        <section className="hidden md:block bg-[#f5f5f5] py-0" style={{ padding: '0 8px 0 8px' }}>
+        <section className="hidden px-4 py-0 sm:px-6 md:block lg:px-14 xl:px-20">
           <div
             className="relative overflow-hidden"
             style={{ height: 480, borderRadius: 18 }}
