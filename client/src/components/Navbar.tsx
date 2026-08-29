@@ -274,7 +274,7 @@ export default function Navbar() {
     <>
       {/* TOP BAR */}
       {siteSettings?.["promo_bar_enabled"] !== "false" && (
-      <div className="top-bar bg-[#16191f] text-white overflow-hidden">
+      <div className="top-bar bg-[#111] text-white overflow-hidden">
         {/* Marquee infinito: la pista se duplica y se desplaza el 50 % de su
             ancho, así el bucle no tiene costura */}
         <div className="iw-topbar-track flex w-max whitespace-nowrap items-center">
@@ -317,13 +317,13 @@ export default function Navbar() {
             <Link href="/catalog" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">{t.nav.shop}</Link>
 
             <div className="relative" onMouseEnter={() => openMenu("collections")} onMouseLeave={scheduleClose}>
-              <Link href="/collections" className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="collections"?"bg-[#16191f] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
+              <Link href="/collections" className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="collections"?"bg-[#111] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
                 {t.nav.collections}
               </Link>
             </div>
 
             <div className="relative" onMouseEnter={() => openMenu("explore")} onMouseLeave={scheduleClose}>
-              <button className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="explore"?"bg-[#16191f] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
+              <button className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="explore"?"bg-[#111] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
                 {t.nav.explore}<ChevronDown size={12} className={`transition-transform duration-200 ${activeMenu==="explore"?"rotate-180":""}`}/>
               </button>
               <AnimatePresence>
@@ -450,7 +450,7 @@ export default function Navbar() {
             }
             <button onClick={() => openCart()} aria-label="Abrir carrito" className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
               <ShoppingBag size={17} strokeWidth={1.8}/>
-              {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#16191f] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
+              {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#111] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
             </button>
             <button onClick={() => setMobileOpen(true)} aria-label="Abrir menú" className="md:hidden p-2 hover:bg-[#f5f5f5] rounded-full transition-colors ml-0.5"><Menu size={17} strokeWidth={1.8}/></button>
           </div>

@@ -104,7 +104,7 @@ export default function ProductCard({
 
           {/* Discount badge */}
           {hasDiscount && (
-            <span className="absolute top-3 left-3 bg-[#16191f] text-white text-[10px] font-bold px-2 py-1 rounded-full leading-none">
+            <span className="absolute top-3 left-3 bg-[#111] text-white text-[10px] font-bold px-2 py-1 rounded-full leading-none">
               -{discountPct}%
             </span>
           )}
@@ -131,7 +131,7 @@ export default function ProductCard({
             <button
               onClick={handleAddToCart}
               disabled={isLoading}
-              className="absolute bottom-3 left-3 right-3 bg-[#16191f] text-white text-[13px] font-semibold py-2.5 rounded-xl opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 flex items-center justify-center gap-1.5 disabled:opacity-50"
+              className="absolute bottom-3 left-3 right-3 bg-[#111] text-white text-[13px] font-semibold py-2.5 rounded-xl opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0 transition-all duration-200 flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
               <ShoppingBag size={13} />
               {t.catalog.addToCart}
