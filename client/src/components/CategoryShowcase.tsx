@@ -22,6 +22,7 @@ export default function CategoryShowcase({
   imagenMovil,
   ctaTexto,
   esMovil,
+  menosEspacioArriba = false,
 }: {
   categoryId: number;
   categorySlug?: string;
@@ -30,6 +31,8 @@ export default function CategoryShowcase({
   imagenMovil?: string;
   ctaTexto?: string;
   esMovil: boolean;
+  /** Reduce el aire superior cuando la sección de arriba ya deja margen */
+  menosEspacioArriba?: boolean;
 }) {
   const carril = useRef<HTMLDivElement>(null);
 
@@ -49,7 +52,13 @@ export default function CategoryShowcase({
   const destino = categorySlug ? `/catalog?category=${categorySlug}` : "/catalog";
 
   return (
-    <section className="px-4 py-9 sm:px-6 sm:py-16 lg:px-16 lg:py-20 xl:px-24 2xl:px-[233px]">
+    <section
+      className={`px-4 sm:px-6 lg:px-16 xl:px-24 2xl:px-[233px] ${
+        menosEspacioArriba
+          ? "pt-2 pb-9 sm:pt-6 sm:pb-16 lg:pt-8 lg:pb-20"
+          : "py-9 sm:py-16 lg:py-20"
+      }`}
+    >
       <div className="mx-auto w-full">
 
         {/* Cabecera del carril */}

@@ -522,6 +522,7 @@ export default function Home() {
             imagenMovil={settings?.["showcase_1_image_mobile"]}
             ctaTexto={settings?.["showcase_1_cta"]}
             esMovil={isMobile}
+            menosEspacioArriba
           />
         );
       })()}
