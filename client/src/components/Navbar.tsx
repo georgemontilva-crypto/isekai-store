@@ -297,7 +297,9 @@ export default function Navbar() {
         className={`iw-header sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "iw-header-scrolled" : ""}`}
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="container flex items-center h-[64px] gap-4 md:h-[76px] md:gap-5">
+        {/* Ancho completo: la cabecera ocupa toda la pantalla en vez de quedar
+            limitada al contenedor de 1400px, como en las plataformas. */}
+        <div className="flex w-full items-center gap-4 px-5 h-[64px] md:h-[76px] md:gap-5 md:px-8">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[160px] md:max-w-none overflow-hidden">
             {logoUrl ? (
