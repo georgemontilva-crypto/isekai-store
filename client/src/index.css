@@ -2593,3 +2593,17 @@ html.dark .iw-search:focus-within {
   font-weight: 600;
   letter-spacing: -0.01em;
 }
+
+/* Logo de la cabecera: en teléfono se limita para que no empuje la fila y
+   deje sitio a los iconos; en escritorio usa la altura configurada. */
+.iw-logo {
+  height: min(var(--iw-logo-h, 36px), 30px);
+  width: auto;
+  max-width: 130px;
+}
+@media (min-width: 768px) {
+  .iw-logo {
+    height: var(--iw-logo-h, 36px);
+    max-width: none;
+  }
+}

@@ -318,9 +318,16 @@ export default function Navbar() {
             limitada al contenedor de 1400px, como en las plataformas. */}
         <div className="flex w-full items-center gap-4 px-5 h-[64px] md:h-[76px] md:gap-5 md:px-8">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[160px] md:max-w-none overflow-hidden">
+          <Link href="/" className="flex min-w-0 shrink items-center gap-2 overflow-hidden">
             {logoUrl ? (
-              <img src={logoUrl} alt={storeName} width={120} height={40} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
+              <img
+                src={logoUrl}
+                alt={storeName}
+                width={120}
+                height={40}
+                className="iw-logo object-contain"
+                style={{ ['--iw-logo-h' as string]: `${logoHeight}px` }}
+              />
             ) : (
               <div className="flex items-end gap-[2px]">
                 {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#16191f] rounded-full" style={{height:`${h}px`}}/>)}
@@ -377,7 +384,7 @@ export default function Navbar() {
           </nav>
 
           {/* Right icons */}
-          <div className="flex items-center gap-1 ml-auto">
+          <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1">
             {/* Buscador en píldora en escritorio; en teléfono queda el icono,
                 que abre el buscador a pantalla completa. */}
             <form
@@ -409,7 +416,7 @@ export default function Navbar() {
             )}
 
             {isRegularUser && (
-              <div ref={notifRef} className="relative">
+              <div ref={notifRef} className="relative hidden md:block">
                 <button onClick={handleBellClick} className="iw-icon-btn relative hidden md:inline-flex" aria-label="Notificaciones">
                   <Bell size={17} strokeWidth={1.8} />
                   {notifUnread != null && notifUnread > 0 && (
