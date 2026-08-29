@@ -82,7 +82,7 @@ export default function CategoryShowcase({
         <div className="flex flex-col gap-4 lg:flex-row lg:gap-6">
 
           {banner && (
-            <Link href={destino} className="block shrink-0 lg:w-[300px]">
+            <Link href={destino} className="block shrink-0 lg:w-[360px]">
               <div className="relative overflow-hidden rounded-2xl" style={{ aspectRatio: "1/1" }}>
                 <img src={banner} alt={titulo} className="h-full w-full object-cover" />
                 {ctaTexto && (
@@ -110,12 +110,16 @@ export default function CategoryShowcase({
             {Array.from({ length: Math.ceil(productos.length / 3) }, (_, bloque) => (
               <div
                 key={bloque}
-                className="iw-vitrina-col flex shrink-0 flex-col gap-4"
+                className="iw-vitrina-col flex shrink-0 flex-col gap-2"
                 style={{ scrollSnapAlign: "start" }}
               >
                 {productos.slice(bloque * 3, bloque * 3 + 3).map((prod: any) => (
-                  <Link key={prod.id} href={`/product/${prod.slug}`} className="group flex items-center gap-3.5">
-                    <div className="h-[72px] w-[56px] shrink-0 overflow-hidden rounded-lg bg-[#16191f]">
+                  <Link
+                    key={prod.id}
+                    href={`/product/${prod.slug}`}
+                    className="group flex items-center gap-4 rounded-xl border border-white/[0.07] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.03]"
+                  >
+                    <div className="h-[88px] w-[68px] shrink-0 overflow-hidden rounded-lg bg-[#16191f]">
                       {prod.imageUrl && (
                         <img
                           src={prod.imageUrl}
@@ -125,10 +129,10 @@ export default function CategoryShowcase({
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-white transition-colors group-hover:text-[#ff45a0]">
+                      <p className="truncate text-[15px] font-semibold text-white transition-colors group-hover:text-[#ff45a0]">
                         {prod.name}
                       </p>
-                      <p className="mt-1 text-sm text-white/60">
+                      <p className="mt-1.5 text-sm text-white/60">
                         ${parseFloat(prod.price).toFixed(2)} USD
                       </p>
                     </div>
