@@ -139,8 +139,6 @@ const WORLD_FEST_GLOW = `
 
 export default function Navbar() {
   const [location, navigate] = useLocation();
-  const [headerQuery, setHeaderQuery] = useState("");
-  const [headerFocused, setHeaderFocused] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [announcementIdx, setAnnouncementIdx] = useState(0);
@@ -385,29 +383,6 @@ export default function Navbar() {
 
           {/* Right icons */}
           <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1">
-            {/* Buscador en píldora en escritorio; en teléfono queda el icono,
-                que abre el buscador a pantalla completa. */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                const q = headerQuery.trim();
-                if (!q) return;
-                navigate(`/catalog?search=${encodeURIComponent(q)}`);
-                setHeaderQuery("");
-              }}
-              className="iw-search hidden lg:flex"
-              style={{ width: headerFocused ? 320 : 240 }}
-            >
-              <Search size={16} strokeWidth={1.8} className="ml-4 shrink-0 opacity-60" />
-              <input
-                value={headerQuery}
-                onChange={(e) => setHeaderQuery(e.target.value)}
-                onFocus={() => setHeaderFocused(true)}
-                onBlur={() => setHeaderFocused(false)}
-                placeholder="Buscar en la tienda"
-                className="w-full bg-transparent px-3 text-sm outline-none placeholder:opacity-60"
-              />
-            </form>
 
             {isAuthenticated && user?.role === "admin" && (
               <Link href="/admin" className="iw-icon-btn" aria-label="Panel Admin">
@@ -470,10 +445,6 @@ export default function Navbar() {
                 </AnimatePresence>
               </div>
             )}
-            {isAuthenticated
-              ? <Link href="/account" aria-label="Mi cuenta" className="iw-icon-btn hidden md:inline-flex"><User size={17} strokeWidth={1.8}/></Link>
-              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="iw-icon-btn hidden md:inline-flex"><User size={17} strokeWidth={1.8}/></button>
-            }
             <button onClick={() => openCart()} aria-label="Abrir carrito" className="iw-icon-btn relative hidden md:inline-flex">
               <ShoppingBag size={17} strokeWidth={1.8}/>
               {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#111] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
