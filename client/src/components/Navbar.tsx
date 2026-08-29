@@ -139,6 +139,8 @@ const WORLD_FEST_GLOW = `
 
 export default function Navbar() {
   const [location, navigate] = useLocation();
+  const [headerQuery, setHeaderQuery] = useState("");
+  const [headerFocused, setHeaderFocused] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [announcementIdx, setAnnouncementIdx] = useState(0);
@@ -292,10 +294,10 @@ export default function Navbar() {
 
       {/* MAIN NAVBAR */}
       <header
-        className={`sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "shadow-[0_1px_0_rgba(0,0,0,0.08)]" : "border-b border-[#ebebeb]"}`}
+        className={`iw-header sticky top-0 z-50 bg-white transition-all duration-200 relative ${scrolled ? "iw-header-scrolled" : ""}`}
         style={{ paddingTop: 'env(safe-area-inset-top)' }}
       >
-        <div className="container flex items-center h-[60px] gap-4">
+        <div className="container flex items-center h-[64px] gap-4 md:h-[76px] md:gap-5">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 shrink-0 mr-2 max-w-[160px] md:max-w-none overflow-hidden">
             {logoUrl ? (
@@ -355,9 +357,33 @@ export default function Navbar() {
 
           {/* Right icons */}
           <div className="flex items-center gap-1 ml-auto">
-            <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><Search size={17} strokeWidth={1.8}/></button>
+            {/* Buscador en píldora en escritorio; en teléfono queda el icono,
+                que abre el buscador a pantalla completa. */}
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                const q = headerQuery.trim();
+                if (!q) return;
+                navigate(`/catalog?search=${encodeURIComponent(q)}`);
+                setHeaderQuery("");
+              }}
+              className="iw-search hidden lg:flex"
+              style={{ width: headerFocused ? 320 : 240 }}
+            >
+              <Search size={16} strokeWidth={1.8} className="ml-4 shrink-0 opacity-60" />
+              <input
+                value={headerQuery}
+                onChange={(e) => setHeaderQuery(e.target.value)}
+                onFocus={() => setHeaderFocused(true)}
+                onBlur={() => setHeaderFocused(false)}
+                placeholder="Buscar en la tienda"
+                className="w-full bg-transparent px-3 text-sm outline-none placeholder:opacity-60"
+              />
+            </form>
+
+            <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="iw-icon-btn lg:hidden"><Search size={17} strokeWidth={1.8}/></button>
             {isAuthenticated && user?.role === "admin" && (
-              <Link href="/admin" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors" aria-label="Panel Admin">
+              <Link href="/admin" className="iw-icon-btn" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
               </Link>
             )}
@@ -417,8 +443,8 @@ export default function Navbar() {
               </div>
             )}
             {isAuthenticated
-              ? <Link href="/account" aria-label="Mi cuenta" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></Link>
-              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors"><User size={17} strokeWidth={1.8}/></button>
+              ? <Link href="/account" aria-label="Mi cuenta" className="iw-icon-btn"><User size={17} strokeWidth={1.8}/></Link>
+              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="iw-icon-btn"><User size={17} strokeWidth={1.8}/></button>
             }
             <button onClick={() => openCart()} aria-label="Abrir carrito" className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
               <ShoppingBag size={17} strokeWidth={1.8}/>

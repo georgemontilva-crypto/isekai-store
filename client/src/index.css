@@ -881,31 +881,42 @@ html.dark { color-scheme: dark; }
 
 /* Tokens de shadcn (menús, selects, diálogos, drawers) */
 html.dark {
-  --color-background: oklch(0.17 0.01 285);
-  --color-foreground: oklch(0.955 0.005 285);
-  --color-card: oklch(0.205 0.012 285);
-  --color-card-foreground: oklch(0.955 0.005 285);
-  --color-popover: oklch(0.215 0.012 285);
-  --color-popover-foreground: oklch(0.955 0.005 285);
-  /* Magenta de marca: antes era casi blanco y dejaba chips y botones
-     blancos sobre fondo negro (catálogo, filtros, "Ordenar"). */
+  /* Paleta oscura de plataforma: el fondo no es negro puro sino con un punto
+     de gris, y las superficies llevan un matiz azulado que las despega del
+     fondo sin necesidad de bordes marcados. Los bordes son casi invisibles
+     (blanco al 6-8%): la separación la da el contraste de fondo. El acento
+     sigue siendo el magenta de la marca. */
+  --color-background: #0a0a0a;
+  --color-foreground: #ffffff;
+  --color-card: #16191f;
+  --color-card-foreground: #ffffff;
+  --color-popover: #1a1d24;
+  --color-popover-foreground: #ffffff;
   --color-primary: oklch(0.60 0.24 350);
   --color-primary-foreground: oklch(1 0 0);
-  --color-secondary: oklch(0.26 0.012 285);
-  --color-secondary-foreground: oklch(0.955 0.005 285);
-  --color-muted: oklch(0.26 0.012 285);
-  --color-muted-foreground: oklch(0.76 0.008 285);
-  --color-accent: oklch(0.29 0.012 285);
-  --color-accent-foreground: oklch(0.955 0.005 285);
-  --color-border: oklch(0.33 0.01 285);
-  --color-input: oklch(0.33 0.01 285);
+  --color-secondary: rgba(255,255,255,0.06);
+  --color-secondary-foreground: #c9c9d1;
+  --color-muted: rgba(255,255,255,0.04);
+  --color-muted-foreground: #9a9aa4;
+  --color-accent: rgba(229,0,125,0.12);
+  --color-accent-foreground: #ff45a0;
+  --color-border: rgba(255,255,255,0.08);
+  --color-input: rgba(255,255,255,0.10);
+
+  /* Superficies para los estilos escritos en línea */
+  --iw-surface: #16191f;
+  --iw-surface-alt: #1a1d24;
+  --iw-bg: #0a0a0a;
+  --iw-border: rgba(255,255,255,0.08);
+  --iw-text: #ffffff;
+  --iw-text-muted: #9a9aa4;
   --color-ring: oklch(0.72 0.008 285);
 }
 
 
 
 /* Base: los textos e iconos sin clase de color heredan de aquí */
-html.dark body { background-color: #050507; color: #f2f2f7; }
+html.dark body { background-color: #0a0a0a; color: #f2f2f7; }
 html.dark ::selection { background: #e5007d; color: #ffffff; }
 
 /* Toasts de sonner */
@@ -919,21 +930,21 @@ html.dark [data-sonner-toaster] {
 html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
 
   /* Superficies claras → oscuras */
-  &.bg-white            { background-color: #15151b; }
-  &.bg-\[\#fafafa\]     { background-color: #050507; }
-  &.bg-\[\#f8f8f8\]     { background-color: #050507; }
-  &.bg-\[\#f6f6f7\]     { background-color: #050507; }
-  &.bg-\[\#f5f5f5\]     { background-color: #0a0a0e; }
-  &.bg-\[\#f0f0f0\]     { background-color: #101016; }
-  &.bg-\[\#ebebeb\]     { background-color: #14141a; }
-  &.bg-\[\#e5e5e5\]     { background-color: #17171e; }
-  &.bg-gray-50, &.bg-gray-100 { background-color: #0a0a0e; }
+  &.bg-white            { background-color: #16191f; }
+  &.bg-\[\#fafafa\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f8f8f8\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f6f6f7\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f5f5f5\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f0f0f0\]     { background-color: #101319; }
+  &.bg-\[\#ebebeb\]     { background-color: #14171d; }
+  &.bg-\[\#e5e5e5\]     { background-color: #171a20; }
+  &.bg-gray-50, &.bg-gray-100 { background-color: #0a0a0a; }
   /* Clases que faltaban en el mapa */
   &.bg-\[\#f2f2f2\]     { background-color: #0d0d12; }
-  &.bg-\[\#f9f9f9\]     { background-color: #101016; }
+  &.bg-\[\#f9f9f9\]     { background-color: #101319; }
   &.bg-\[\#fff8f0\]     { background-color: #221a12; }
   &.bg-white\/90, &.bg-white\/80 { background-color: rgba(16,16,22,0.92); }
-  &.border-\[\#e0e0e0\] { border-color: #2e2e3a; }
+  &.border-\[\#e0e0e0\] { border-color: rgba(255,255,255,0.10); }
 
   /* Fondos ya oscuros: se afinan al negro del tema, no se invierten */
   &.bg-\[\#0d0d0d\]     { background-color: #0b0b10; }
@@ -1035,7 +1046,7 @@ html.dark .trust-bar p, html.dark .trust-bar svg { color: #ffffff !important; }
 
 /* Header del catálogo: bg-card/30 compila con el blanco incrustado, se
    corrige aquí por si quedara en alguna otra pantalla */
-html.dark .bg-card\/30 { background-color: #0a0a0e; }
+html.dark .bg-card\/30 { background-color: #0a0a0a; }
 
 /* Marquee de la franja superior */
 @keyframes iw-topbar { to { transform: translateX(-50%); } }
@@ -2000,7 +2011,7 @@ html.dark .admin-shell {
 }
 
 /* Base: los textos e iconos sin clase de color heredan de aquí */
-html.dark body { background-color: #050507; color: #f2f2f7; }
+html.dark body { background-color: #0a0a0a; color: #f2f2f7; }
 html.dark ::selection { background: #e5007d; color: #ffffff; }
 
 /* Toasts de sonner */
@@ -2014,21 +2025,21 @@ html.dark [data-sonner-toaster] {
 html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
 
   /* Superficies claras → oscuras */
-  &.bg-white            { background-color: #15151b; }
-  &.bg-\[\#fafafa\]     { background-color: #050507; }
-  &.bg-\[\#f8f8f8\]     { background-color: #050507; }
-  &.bg-\[\#f6f6f7\]     { background-color: #050507; }
-  &.bg-\[\#f5f5f5\]     { background-color: #0a0a0e; }
-  &.bg-\[\#f0f0f0\]     { background-color: #101016; }
-  &.bg-\[\#ebebeb\]     { background-color: #14141a; }
-  &.bg-\[\#e5e5e5\]     { background-color: #17171e; }
-  &.bg-gray-50, &.bg-gray-100 { background-color: #0a0a0e; }
+  &.bg-white            { background-color: #16191f; }
+  &.bg-\[\#fafafa\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f8f8f8\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f6f6f7\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f5f5f5\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f0f0f0\]     { background-color: #101319; }
+  &.bg-\[\#ebebeb\]     { background-color: #14171d; }
+  &.bg-\[\#e5e5e5\]     { background-color: #171a20; }
+  &.bg-gray-50, &.bg-gray-100 { background-color: #0a0a0a; }
   /* Clases que faltaban en el mapa */
   &.bg-\[\#f2f2f2\]     { background-color: #0d0d12; }
-  &.bg-\[\#f9f9f9\]     { background-color: #101016; }
+  &.bg-\[\#f9f9f9\]     { background-color: #101319; }
   &.bg-\[\#fff8f0\]     { background-color: #221a12; }
   &.bg-white\/90, &.bg-white\/80 { background-color: rgba(16,16,22,0.92); }
-  &.border-\[\#e0e0e0\] { border-color: #2e2e3a; }
+  &.border-\[\#e0e0e0\] { border-color: rgba(255,255,255,0.10); }
 
   /* Fondos ya oscuros: se afinan al negro del tema, no se invierten */
   &.bg-\[\#0d0d0d\]     { background-color: #0b0b10; }
@@ -2130,7 +2141,7 @@ html.dark .trust-bar p, html.dark .trust-bar svg { color: #ffffff !important; }
 
 /* Header del catálogo: bg-card/30 compila con el blanco incrustado, se
    corrige aquí por si quedara en alguna otra pantalla */
-html.dark .bg-card\/30 { background-color: #0a0a0e; }
+html.dark .bg-card\/30 { background-color: #0a0a0a; }
 
 /* Marquee de la franja superior */
 @keyframes iw-topbar { to { transform: translateX(-50%); } }
@@ -2212,27 +2223,27 @@ html.dark .spotlight-veil { background: #000000; }
 
 /* Superficies del panel */
 .dark .admin-shell {
-  background-color: #050507 !important;
+  background-color: #0a0a0a !important;
   color: #f2f2f7;
 }
 
 .dark .admin-shell :where(*) {
   /* Fondos claros → oscuros */
-  &.bg-white            { background-color: #15151b; }
-  &.bg-\[\#fafafa\]     { background-color: #101016; }
-  &.bg-\[\#f8f8f8\]     { background-color: #0a0a0e; }
-  &.bg-\[\#f6f6f7\]     { background-color: #050507; }
-  &.bg-\[\#f5f5f5\]     { background-color: #14141a; }
-  &.bg-\[\#f0f0f0\]     { background-color: #1a1a22; }
+  &.bg-white            { background-color: #16191f; }
+  &.bg-\[\#fafafa\]     { background-color: #101319; }
+  &.bg-\[\#f8f8f8\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f6f6f7\]     { background-color: #0a0a0a; }
+  &.bg-\[\#f5f5f5\]     { background-color: #14171d; }
+  &.bg-\[\#f0f0f0\]     { background-color: #1a1d24; }
   &.bg-\[\#ebebeb\]     { background-color: #1f1f28; }
-  &.bg-\[\#e5e5e5\]     { background-color: #22222c; }
-  &.bg-muted            { background-color: #17171e; }
-  &.bg-\[\#f3f3f3\]     { background-color: #17171e; }
-  &.bg-\[\#e0e0e0\]     { background-color: #22222c; }
+  &.bg-\[\#e5e5e5\]     { background-color: #22252d; }
+  &.bg-muted            { background-color: #171a20; }
+  &.bg-\[\#f3f3f3\]     { background-color: #171a20; }
+  &.bg-\[\#e0e0e0\]     { background-color: #22252d; }
   &.bg-\[\#fff8fc\]     { background-color: #24101c; }
   &.bg-\[\#fff0f8\]     { background-color: #2a0f1f; }
   &.bg-\[\#fff8e1\]     { background-color: #2a2312; }
-  &.bg-gray-50, &.bg-gray-100 { background-color: #17171e; }
+  &.bg-gray-50, &.bg-gray-100 { background-color: #171a20; }
   &.bg-green-50, &.bg-green-100  { background-color: #0f2417; }
   &.bg-blue-50,  &.bg-blue-100   { background-color: #101f33; }
   &.bg-yellow-50,&.bg-yellow-100 { background-color: #2a2312; }
@@ -2271,13 +2282,13 @@ html.dark .spotlight-veil { background: #000000; }
   &.text-\[\#ccc\] { color: #9e9eac; }
 
   /* Bordes */
-  &.border-\[\#e5e5e5\], &.border-\[\#ebebeb\] { border-color: #2e2e3a; }
-  &.border-\[\#f0f0f0\], &.border-\[\#f5f5f5\] { border-color: #26262f; }
+  &.border-\[\#e5e5e5\], &.border-\[\#ebebeb\] { border-color: rgba(255,255,255,0.10); }
+  &.border-\[\#f0f0f0\], &.border-\[\#f5f5f5\] { border-color: rgba(255,255,255,0.07); }
 
   /* Hover de superficies */
   &.hover\:bg-\[\#fafafa\]:hover { background-color: #1b1b23; }
-  &.hover\:bg-\[\#f8f8f8\]:hover { background-color: #14141a; }
-  &.hover\:bg-\[\#f5f5f5\]:hover { background-color: #1e1e26; }
+  &.hover\:bg-\[\#f8f8f8\]:hover { background-color: #14171d; }
+  &.hover\:bg-\[\#f5f5f5\]:hover { background-color: #1e2129; }
   &.hover\:bg-\[\#f0f0f0\]:hover { background-color: #22222b; }
 }
 
@@ -2310,23 +2321,23 @@ html.dark .spotlight-veil { background: #000000; }
 
 /* Campos del panel */
 .dark .admin-shell :is(input, textarea, select) {
-  background-color: #101016;
+  background-color: #101319;
   color: #f2f2f7;
-  border-color: #2e2e3a;
+  border-color: rgba(255,255,255,0.10);
 }
 .dark .admin-shell :is(input, textarea)::placeholder { color: #7c7c8c; }
 
 /* Diálogos del admin: se dibujan fuera de .admin-shell, así que los cubre la
    capa general, pero se les fija fondo y texto por si traen color propio */
 .dark :is([role="dialog"], [data-radix-popper-content-wrapper]) {
-  background-color: #15151b;
+  background-color: #16191f;
   color: #f2f2f7;
 }
 .dark :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(h1,h2,h3) { color: #ff3d9e; }
 .dark :is([role="dialog"], [data-radix-popper-content-wrapper]) :is(input, textarea, select) {
-  background-color: #101016;
+  background-color: #101319;
   color: #f2f2f7;
-  border-color: #2e2e3a;
+  border-color: rgba(255,255,255,0.10);
 }
 
 /* ── Variables para estilos escritos en línea ─────────────────────────────
@@ -2359,15 +2370,15 @@ html.dark {
 /* Superficies claras que faltaban en el mapeo (halladas en un barrido del
    código, no reportadas de a una). Cubren tanto la tienda como el admin. */
 .dark :where(:not(.wf-page):not(.wf-page *)) {
-  &.bg-\[\#f3f3f3\]  { background-color: #17171e; }
-  &.bg-\[\#e0e0e0\]  { background-color: #22222c; }
+  &.bg-\[\#f3f3f3\]  { background-color: #171a20; }
+  &.bg-\[\#e0e0e0\]  { background-color: #22252d; }
   &.bg-\[\#ccc\]     { background-color: #2e2e3a; }
   /* Avisos de color suave: se conserva el matiz, se baja el brillo */
   &.bg-\[\#fff0f8\]  { background-color: #2a0f1f; }
   &.bg-\[\#fff8fc\]  { background-color: #24101c; }
   &.bg-\[\#fff8e1\]  { background-color: #2a2312; }
   &.bg-\[\#fff8f0\]  { background-color: #2a1a12; }
-  &.border-\[\#e0e0e0\] { border-color: #2e2e3a; }
+  &.border-\[\#e0e0e0\] { border-color: rgba(255,255,255,0.10); }
 }
 
 /* Etiquetas de estado con fondo pastel (pedidos, pagos): se oscurecen para
@@ -2386,23 +2397,23 @@ html.dark {
    Se fijan aquí de forma explícita para que ninguna quede clara aunque el
    token no llegue por herencia. */
 .dark .admin-shell :where(*) {
-  &.bg-card       { background-color: #15151b; }
-  &.bg-background { background-color: #050507; }
-  &.bg-popover    { background-color: #1a1a22; }
-  &.bg-secondary  { background-color: #1e1e26; }
-  &.bg-accent     { background-color: #22222c; }
+  &.bg-card       { background-color: #16191f; }
+  &.bg-background { background-color: #0a0a0a; }
+  &.bg-popover    { background-color: #1a1d24; }
+  &.bg-secondary  { background-color: #1e2129; }
+  &.bg-accent     { background-color: #22252d; }
   &.text-card-foreground, &.text-foreground { color: #f2f2f7; }
   &.text-muted-foreground { color: #b4b4c2; }
   &.text-accent   { color: #7dd8ff; }
   &.text-primary  { color: #ff3d9e; }
-  &.border-border, &.border-border\/50, &.border-border\/30 { border-color: #2e2e3a; }
+  &.border-border, &.border-border\/50, &.border-border\/30 { border-color: rgba(255,255,255,0.10); }
 }
 
 /* Y en los diálogos, que se dibujan fuera del panel */
 .dark :is([role="dialog"], [data-radix-popper-content-wrapper]) :where(*) {
-  &.bg-card       { background-color: #1a1a22; }
-  &.bg-background { background-color: #15151b; }
-  &.bg-muted      { background-color: #22222c; }
+  &.bg-card       { background-color: #1a1d24; }
+  &.bg-background { background-color: #16191f; }
+  &.bg-muted      { background-color: #22252d; }
   &.text-muted-foreground { color: #b4b4c2; }
   &.text-primary  { color: #ff3d9e; }
 }
@@ -2484,4 +2495,63 @@ input[type="date"], input[type="datetime-local"], input[type="time"], input[type
   min-width: 0;
   -webkit-appearance: none;
   appearance: none;
+}
+
+/* ── Cabecera estilo plataforma ────────────────────────────────────────────
+   Más alta, sin línea divisoria marcada y con los iconos como botones
+   circulares que se iluminan al pasar por encima. La separación con el
+   contenido la da el propio fondo, no un borde. */
+.iw-header {
+  border-bottom: 1px solid transparent;
+}
+html.dark .iw-header {
+  background: #0a0a0a;
+}
+.iw-header-scrolled {
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+}
+html.dark .iw-header-scrolled {
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Botones de icono: círculo con fondo al pasar por encima */
+.iw-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 9999px;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.iw-icon-btn:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+html.dark .iw-icon-btn:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+@media (max-width: 767px) {
+  .iw-icon-btn { width: 38px; height: 38px; }
+}
+
+/* Buscador en píldora que se ensancha al enfocarse */
+.iw-search {
+  display: flex;
+  align-items: center;
+  height: 44px;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid transparent;
+  transition: width 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+html.dark .iw-search {
+  background: #16191f;
+}
+.iw-search:focus-within {
+  border-color: rgba(0, 0, 0, 0.12);
+}
+html.dark .iw-search:focus-within {
+  background: #1a1d24;
+  border-color: rgba(255, 255, 255, 0.15);
 }
