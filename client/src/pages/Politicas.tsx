@@ -3,13 +3,194 @@ import { useLang } from "@/i18n/LangContext";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 
-type Section = "devoluciones" | "privacidad" | "cookies";
+type Section = "terminos" | "encargos" | "envios" | "boletos" | "devoluciones" | "privacidad" | "cookies";
 
 const sections: { id: Section; label: string }[] = [
+  { id: "terminos",     label: "Términos de venta" },
+  { id: "encargos",     label: "Piezas por encargo" },
+  { id: "envios",       label: "Envíos" },
+  { id: "boletos",      label: "Boletos de eventos" },
   { id: "devoluciones", label: "Devoluciones" },
   { id: "privacidad",   label: "Privacidad" },
   { id: "cookies",      label: "Cookies" },
 ];
+
+/** Estilos compartidos por las secciones nuevas */
+const H2 = "text-xl font-black text-[#1a1a1a] mb-3";
+const H3 = "font-bold text-[#1a1a1a] mt-6 mb-2";
+const FECHA = "text-xs text-[#888] mb-4";
+
+function Terminos() {
+  return (
+    <div className="space-y-8 text-[15px] text-[#555] leading-relaxed">
+      <section>
+        <h2 className={H2}>Términos y Condiciones de Venta</h2>
+        <p className={FECHA}>Última actualización: Agosto 2026</p>
+
+        <h3 className={H3}>Precios</h3>
+        <p>
+          Todos los precios se muestran en dólares estadounidenses (USD). El monto en bolívares
+          que ves al pagar es referencial y se calcula con la tasa vigente en ese momento. Esa
+          tasa puede variar entre el momento en que consultas un producto y el momento en que pagas.
+        </p>
+
+        <h3 className={H3}>Formas de pago</h3>
+        <p>
+          Aceptamos Pago Móvil y criptomonedas (USDT, red TRC20). El pedido se considera
+          confirmado cuando verificamos que el pago fue recibido, no cuando se sube el
+          comprobante. Nos reservamos el derecho de rechazar un comprobante que no podamos verificar.
+        </p>
+
+        <h3 className={H3}>Disponibilidad</h3>
+        <p>
+          El precio y la existencia de cada producto se validan en nuestro sistema al confirmar
+          el pedido. Si un producto se agota mientras completas tu compra, te lo informaremos y
+          podrás elegir entre esperar, cambiarlo o recibir la devolución del monto pagado.
+        </p>
+
+        <h3 className={H3}>Códigos y descuentos</h3>
+        <p>
+          Los códigos de referido no pueden ser usados por cosplayers del Isekai Cosplay Guild,
+          ni el propio ni el de otro cosplayer. Las tarjetas de regalo tienen un límite de usos
+          y una fecha de vencimiento indicados al emitirlas.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function Encargos() {
+  return (
+    <div className="space-y-8 text-[15px] text-[#555] leading-relaxed">
+      <section>
+        <h2 className={H2}>Piezas por Encargo y Cotizaciones</h2>
+        <p className={FECHA}>Última actualización: Agosto 2026</p>
+
+        <h3 className={H3}>Cómo funciona</h3>
+        <p>
+          Para piezas a medida emitimos una cotización con un enlace único donde consta el
+          trabajo acordado, el desglose de conceptos y el precio. La cotización tiene una fecha
+          de vencimiento; pasada esa fecha, el precio puede cambiar.
+        </p>
+
+        <h3 className={H3}>Abonos</h3>
+        <p>
+          Algunas cotizaciones permiten abonar una parte para iniciar el trabajo.{" "}
+          <strong className="text-[#1a1a1a]">
+            El abono cubre materiales y horas de trabajo, y no es reembolsable una vez iniciada
+            la producción
+          </strong>
+          , ya que se trata de una pieza fabricada específicamente para ti que no puede revenderse.
+        </p>
+
+        <h3 className={H3}>Saldo pendiente</h3>
+        <p>
+          El saldo debe pagarse antes de la entrega. Puedes abonarlo desde el mismo enlace de tu
+          cotización, subiendo el comprobante de cada pago.
+        </p>
+
+        <h3 className={H3}>Modificaciones</h3>
+        <p>
+          Los cambios solicitados después de aprobada la cotización pueden implicar un ajuste de
+          precio y de tiempo de entrega. Se acordarán por escrito antes de ejecutarlos.
+        </p>
+
+        <h3 className={H3}>Devoluciones</h3>
+        <p>
+          Al tratarse de piezas personalizadas, no aplica la devolución por arrepentimiento. Sí
+          respondemos por defectos de fabricación o por piezas que no correspondan a lo acordado.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function Envios() {
+  return (
+    <div className="space-y-8 text-[15px] text-[#555] leading-relaxed">
+      <section>
+        <h2 className={H2}>Envíos y Entregas</h2>
+        <p className={FECHA}>Última actualización: Agosto 2026</p>
+
+        <h3 className={H3}>San Francisco</h3>
+        <p>
+          Envío gratuito en compras desde <strong className="text-[#1a1a1a]">$50 USD</strong>.
+          Por debajo de ese monto, el costo se acuerda al confirmar el pedido.
+        </p>
+
+        <h3 className={H3}>Maracaibo y resto del país</h3>
+        <p>
+          El costo de envío se cotiza aparte según la zona y se acuerda antes de despachar.{" "}
+          <strong className="text-[#1a1a1a]">No está incluido en el precio de los productos.</strong>
+        </p>
+
+        <h3 className={H3}>Tiempos de entrega</h3>
+        <p>
+          Las piezas impresas requieren producción, post-procesado y empaque. El tiempo total
+          depende de la pieza y se informa al confirmar el pedido. Puedes seguir cada etapa desde
+          tu cuenta.
+        </p>
+
+        <h3 className={H3}>Dirección de entrega</h3>
+        <p>
+          Los datos de entrega son responsabilidad del comprador. Si un envío se pierde o se
+          retrasa por datos incorrectos o incompletos, el costo de reenvío corre por su cuenta.
+        </p>
+      </section>
+    </div>
+  );
+}
+
+function Boletos() {
+  return (
+    <div className="space-y-8 text-[15px] text-[#555] leading-relaxed">
+      <section>
+        <h2 className={H2}>Boletos de Eventos</h2>
+        <p className={FECHA}>Última actualización: Agosto 2026</p>
+
+        <h3 className={H3}>Compra</h3>
+        <p>
+          Los boletos se venden a través de puntos de venta autorizados. Cada boleto es único,
+          nominal y queda registrado con el nombre, apellido y teléfono del comprador.
+        </p>
+
+        <h3 className={H3}>Titularidad</h3>
+        <p>
+          Los boletos son{" "}
+          <strong className="text-[#1a1a1a]">personales e intransferibles</strong>. El acceso
+          puede condicionarse a que el nombre registrado coincida con un documento de identidad.
+          Cualquier cambio de titular requiere autorización previa de la organización.
+        </p>
+
+        <h3 className={H3}>Acceso</h3>
+        <p>
+          El boleto da acceso a los días indicados en su tipo. Un boleto de un día no permite el
+          ingreso el segundo día. Cada boleto permite{" "}
+          <strong className="text-[#1a1a1a]">un solo ingreso por día</strong>: una vez registrada
+          la entrada, el mismo código no vuelve a admitirse esa jornada.
+        </p>
+
+        <h3 className={H3}>Copias</h3>
+        <p>
+          Las reproducciones o fotografías del código no otorgan acceso adicional. Si el boleto
+          ya fue utilizado, cualquier copia será rechazada en la puerta.
+        </p>
+
+        <h3 className={H3}>Reembolsos</h3>
+        <p>
+          Los boletos no son reembolsables, salvo cancelación del evento por parte de la
+          organización. En caso de reprogramación, el boleto conserva su validez para la nueva fecha.
+        </p>
+
+        <h3 className={H3}>Uso de imagen</h3>
+        <p>
+          Durante el evento se captarán fotografías y video con fines de comunicación. Al
+          ingresar, aceptas la posible aparición de tu imagen en ese material.
+        </p>
+      </section>
+    </div>
+  );
+}
 
 function Devoluciones() {
   return (
@@ -265,9 +446,13 @@ function Cookies() {
 
 export default function Politicas() {
   const { t } = useLang();
-  const [active, setActive] = useState<Section>("devoluciones");
+  const [active, setActive] = useState<Section>("terminos");
 
   const content = {
+    terminos: <Terminos />,
+    encargos: <Encargos />,
+    envios: <Envios />,
+    boletos: <Boletos />,
     devoluciones: <Devoluciones />,
     privacidad: <Privacidad />,
     cookies: <Cookies />,
