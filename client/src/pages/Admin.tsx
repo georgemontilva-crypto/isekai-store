@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
+import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
@@ -853,6 +854,8 @@ export default function Admin() {
     items: [{ concepto: "", cantidad: 1, precio: "" }],
   });
   const [showQuoteForm, setShowQuoteForm] = useState(false);
+  /** Vitrina cuya imagen se está eligiendo (null = ninguna) */
+  const [vitrinaPicker, setVitrinaPicker] = useState<number | null>(null);
   // Id de la cotización que se está corrigiendo (null = se está creando una nueva)
   const [editingQuoteId, setEditingQuoteId] = useState<number | null>(null);
 
@@ -2598,7 +2601,18 @@ export default function Admin() {
               </motion.div>
             )}
 
-          {/* ─── Cotizaciones a medida ────────────────────────────────────────── */}
+          {/* Selector de imagen para las vitrinas */}
+      {vitrinaPicker !== null && (
+        <MediaPickerModal
+          onPick={item => {
+            upsertSetting.mutate({ key: `showcase_${vitrinaPicker}_image`, value: item.url });
+            setVitrinaPicker(null);
+          }}
+          onClose={() => setVitrinaPicker(null)}
+        />
+      )}
+
+      {/* ─── Cotizaciones a medida ────────────────────────────────────────── */}
             {tab === "quotes" && (
               <motion.div key="quotes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
@@ -2921,37 +2935,71 @@ export default function Admin() {
                         <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[var(--iw-text-muted)]">
                           Vitrina {n}
                         </p>
-                        <div className="grid gap-3 sm:grid-cols-3">
-                          <div>
-                            <Label className="text-xs">Categoría</Label>
-                            <select
-                              defaultValue={siteSettings?.[`showcase_${n}_category`] ?? ""}
-                              onChange={e => upsertSetting.mutate({ key: `showcase_${n}_category`, value: e.target.value })}
-                              className="mt-1 w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-3 py-2.5 text-sm outline-none"
+                        <div className="flex flex-col gap-4 sm:flex-row">
+                          {/* Imagen aquí mismo: antes había que ir a Medios
+                              para ponerla y volver aquí para lo demás. */}
+                          <div className="shrink-0">
+                            <Label className="text-xs">Imagen cuadrada</Label>
+                            <div
+                              className="mt-1 flex items-center justify-center overflow-hidden rounded-xl border border-dashed border-[var(--iw-border)] bg-[var(--iw-input-bg)]"
+                              style={{ width: 120, height: 120 }}
                             >
-                              <option value="">— Sin vitrina —</option>
-                              {(categories ?? []).map((c: any) => (
-                                <option key={c.id} value={c.id}>{c.name}</option>
-                              ))}
-                            </select>
+                              {siteSettings?.[`showcase_${n}_image`] ? (
+                                <img src={siteSettings[`showcase_${n}_image`]} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <ImageIcon className="h-6 w-6 text-[var(--iw-text-muted)]" />
+                              )}
+                            </div>
+                            <div className="mt-2 flex gap-2">
+                              <button
+                                onClick={() => setVitrinaPicker(n)}
+                                className="rounded-lg border border-[var(--iw-border)] px-3 py-1.5 text-[11px] font-bold text-[var(--iw-text-muted)] hover:border-[#e5007d] hover:text-[#e5007d]"
+                              >
+                                {siteSettings?.[`showcase_${n}_image`] ? "Cambiar" : "Elegir"}
+                              </button>
+                              {siteSettings?.[`showcase_${n}_image`] && (
+                                <button
+                                  onClick={() => upsertSetting.mutate({ key: `showcase_${n}_image`, value: "" })}
+                                  className="rounded-lg px-2 py-1.5 text-[11px] font-bold text-red-500"
+                                >
+                                  Quitar
+                                </button>
+                              )}
+                            </div>
                           </div>
-                          <div>
-                            <Label className="text-xs">Título (opcional)</Label>
-                            <Input
-                              defaultValue={siteSettings?.[`showcase_${n}_title`] ?? ""}
-                              placeholder="Nombre de la categoría"
-                              onBlur={e => upsertSetting.mutate({ key: `showcase_${n}_title`, value: e.target.value })}
-                              className="mt-1 bg-muted text-sm"
-                            />
-                          </div>
-                          <div>
-                            <Label className="text-xs">Texto del botón</Label>
-                            <Input
-                              defaultValue={siteSettings?.[`showcase_${n}_cta`] ?? ""}
-                              placeholder="Ej: Descúbrelo ya"
-                              onBlur={e => upsertSetting.mutate({ key: `showcase_${n}_cta`, value: e.target.value })}
-                              className="mt-1 bg-muted text-sm"
-                            />
+
+                          <div className="grid flex-1 gap-3 sm:grid-cols-3">
+                            <div>
+                              <Label className="text-xs">Categoría</Label>
+                              <select
+                                defaultValue={siteSettings?.[`showcase_${n}_category`] ?? ""}
+                                onChange={e => upsertSetting.mutate({ key: `showcase_${n}_category`, value: e.target.value })}
+                                className="mt-1 w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-3 py-2.5 text-sm outline-none"
+                              >
+                                <option value="">— Sin vitrina —</option>
+                                {(categories ?? []).map((c: any) => (
+                                  <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <Label className="text-xs">Título (opcional)</Label>
+                              <Input
+                                defaultValue={siteSettings?.[`showcase_${n}_title`] ?? ""}
+                                placeholder="Nombre de la categoría"
+                                onBlur={e => upsertSetting.mutate({ key: `showcase_${n}_title`, value: e.target.value })}
+                                className="mt-1 bg-muted text-sm"
+                              />
+                            </div>
+                            <div>
+                              <Label className="text-xs">Texto del botón</Label>
+                              <Input
+                                defaultValue={siteSettings?.[`showcase_${n}_cta`] ?? ""}
+                                placeholder="Ej: Descúbrelo ya"
+                                onBlur={e => upsertSetting.mutate({ key: `showcase_${n}_cta`, value: e.target.value })}
+                                className="mt-1 bg-muted text-sm"
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
