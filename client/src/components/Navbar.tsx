@@ -527,9 +527,10 @@ export default function Navbar() {
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Buscar productos..."
               tabIndex={mobileOpen ? 0 : -1}
-              className="flex-1 rounded-full border border-white/10 bg-[#101319] px-4 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-[#7c7c8c] focus:border-[#e5007d]"
+              className="flex-1 rounded-xl border border-white/10 bg-[#101319] px-4 text-sm text-white outline-none transition-colors placeholder:text-[#7c7c8c] focus:border-[#e5007d]"
+              style={{ minHeight: 52 }}
             />
-            <button type="submit" aria-label="Buscar" tabIndex={mobileOpen ? 0 : -1} className="btn-pill px-4 text-sm"><Search size={15} /></button>
+            <button type="submit" aria-label="Buscar" tabIndex={mobileOpen ? 0 : -1} className="shrink-0 rounded-xl bg-[#e5007d] px-5 text-sm font-bold text-white" style={{ minHeight: 52 }}><Search size={16} /></button>
           </form>
 
           {/* Navegación en rejilla de tarjetas: se recorre de un vistazo y cada
@@ -564,23 +565,6 @@ export default function Navbar() {
             })}
           </div>
 
-          {/* Carrito: al quitarlo de la barra en teléfono, este es su acceso */}
-          <button
-            onClick={() => { setMobileOpen(false); openCart(); }}
-            tabIndex={mobileOpen ? 0 : -1}
-            className="iw-menu-item iw-menu-cta mt-3 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.06] px-5 py-3.5 text-[14px] text-white transition-colors hover:bg-white/[0.1]"
-            style={{ transitionDelay: mobileOpen ? `${90 + mobileLinks.length * 45}ms` : "0ms" }}
-          >
-            <span className="flex items-center gap-2">
-              <ShoppingBag size={17} strokeWidth={1.8} />
-              Mi carrito
-            </span>
-            {totalItems > 0 && (
-              <span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-[#e5007d] px-1.5 text-[11px] font-black text-white">
-                {totalItems}
-              </span>
-            )}
-          </button>
 
           {/* Destacados */}
           <div className="iw-menu-item mt-9 flex flex-col gap-3" style={{ transitionDelay: mobileOpen ? `${100 + mobileLinks.length * 55}ms` : "0ms" }}>
@@ -588,7 +572,8 @@ export default function Navbar() {
               href="/cosplay"
               onClick={() => setMobileOpen(false)}
               tabIndex={mobileOpen ? 0 : -1}
-              className="iw-menu-cta inline-flex items-center justify-center gap-2 rounded-xl border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 py-3.5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
+              className="iw-menu-cta inline-flex items-center justify-center gap-2 rounded-xl border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
+              style={{ minHeight: 54 }}
             >
               <Sparkles size={17} strokeWidth={1.8} />
               Cosplay Guild
@@ -598,7 +583,8 @@ export default function Navbar() {
               href="/world-fest"
               onClick={() => setMobileOpen(false)}
               tabIndex={mobileOpen ? 0 : -1}
-              className="wf-pill iw-menu-cta relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#2b8fe0]/60 bg-[#2b8fe0]/10 px-5 py-3.5 text-[14px] text-[#7dd8ff] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+              className="wf-pill iw-menu-cta relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#2b8fe0]/60 bg-[#2b8fe0]/10 px-5 text-[14px] text-[#7dd8ff] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+              style={{ minHeight: 54 }}
             >
               <Ticket size={17} strokeWidth={1.8} />
               World Fest
