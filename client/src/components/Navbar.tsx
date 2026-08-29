@@ -599,9 +599,17 @@ export default function Navbar() {
                 )}
               </Link>
             )}
-            {isAuthenticated
-              ? <Link href={user?.role === "admin" ? "/admin" : "/account"} onClick={() => setMobileOpen(false)} tabIndex={mobileOpen ? 0 : -1} className="btn-pill w-full justify-center">{t.nav.account}</Link>
-              : <button onClick={() => { setMobileOpen(false); openLoginModal(); }} tabIndex={mobileOpen ? 0 : -1} className="btn-pill w-full justify-center">{t.nav.signIn}</button>}
+            {/* "Mi cuenta" ya está en la rejilla de arriba: repetirlo aquí
+                sobraba. Se conserva solo el acceso para quien no ha entrado. */}
+            {!isAuthenticated && (
+              <button
+                onClick={() => { setMobileOpen(false); openLoginModal(); }}
+                tabIndex={mobileOpen ? 0 : -1}
+                className="iw-menu-cta w-full rounded-xl border border-white/10 bg-white/[0.06] px-5 py-3.5 text-[14px] text-white transition-colors hover:bg-white/[0.1]"
+              >
+                {t.nav.signIn}
+              </button>
+            )}
           </div>
         </nav>
       </div>
