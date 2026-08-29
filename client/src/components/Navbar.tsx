@@ -146,7 +146,7 @@ const WORLD_FEST_GLOW = `
     position: absolute;
     top: 0; bottom: 0; left: 0;
     width: 38%;
-    background: linear-gradient(90deg, transparent, rgba(190,240,255,0.9), transparent);
+    background: linear-gradient(90deg, transparent, rgba(125,216,255,0.22), transparent);
     animation: wf-sheen 3.2s ease-in-out infinite;
     pointer-events: none;
   }
@@ -172,6 +172,17 @@ export default function Navbar() {
   const { t } = useLang();
 
   const announcements = t.nav.announcements;
+
+  /**
+   * Bloquea el desplazamiento de la página mientras el menú está abierto.
+   * Sin esto se seguía moviendo el contenido de detrás al arrastrar.
+   */
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = previo; };
+  }, [mobileOpen]);
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 10);
@@ -520,7 +531,7 @@ export default function Navbar() {
         </div>
 
         <nav className="iw-menu-body flex flex-col px-6 py-8">
-          <form onSubmit={handleSearch} className="iw-menu-item mb-8 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
+          <form onSubmit={handleSearch} className="iw-menu-item mb-10 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
             <input
               type="text"
               value={searchQuery}
