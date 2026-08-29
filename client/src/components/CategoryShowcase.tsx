@@ -49,7 +49,7 @@ export default function CategoryShowcase({
   const destino = categorySlug ? `/catalog?category=${categorySlug}` : "/catalog";
 
   return (
-    <section className="px-4 pb-10 sm:px-6 lg:px-14 xl:px-20">
+    <section className="px-4 pb-10 sm:px-6 lg:px-16 xl:px-24 2xl:px-[233px]">
       <div className="mx-auto w-full">
 
         {/* Cabecera del carril */}
