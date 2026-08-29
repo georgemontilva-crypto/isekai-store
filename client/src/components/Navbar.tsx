@@ -383,7 +383,6 @@ export default function Navbar() {
               />
             </form>
 
-            <button onClick={() => setSearchOpen(true)} aria-label="Buscar" className="iw-icon-btn lg:hidden"><Search size={17} strokeWidth={1.8}/></button>
             {isAuthenticated && user?.role === "admin" && (
               <Link href="/admin" className="iw-icon-btn" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
@@ -528,20 +527,35 @@ export default function Navbar() {
             <button type="submit" aria-label="Buscar" tabIndex={mobileOpen ? 0 : -1} className="btn-pill px-4 text-sm"><Search size={15} /></button>
           </form>
 
-          {/* Navegación principal — lista única, sin repetir destinos */}
-          <div className="flex flex-col items-start gap-6">
-            {mobileLinks.map((l, i) => (
-              <Link
-                key={l.href}
-                href={l.href}
-                onClick={() => setMobileOpen(false)}
-                tabIndex={mobileOpen ? 0 : -1}
-                className="iw-menu-link iw-menu-item"
-                style={{ transitionDelay: mobileOpen ? `${100 + i * 55}ms` : "0ms" }}
-              >
-                {l.label}
-              </Link>
-            ))}
+          {/* Navegación en rejilla de tarjetas: se recorre de un vistazo y cada
+              destino tiene un área de toque amplia, en vez de una lista larga
+              de enlaces de texto. */}
+          <p className="iw-menu-item mb-2.5 text-[10px] font-bold uppercase tracking-[0.25em] text-white/40"
+             style={{ transitionDelay: mobileOpen ? "80ms" : "0ms" }}>
+            Navegación
+          </p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {mobileLinks.map((l, i) => {
+              const activo = location === l.href;
+              return (
+                <Link
+                  key={l.href}
+                  href={l.href}
+                  onClick={() => setMobileOpen(false)}
+                  tabIndex={mobileOpen ? 0 : -1}
+                  className="iw-menu-item flex items-end rounded-xl px-4 py-3.5 text-[15px] font-bold transition-colors"
+                  style={{
+                    transitionDelay: mobileOpen ? `${100 + i * 45}ms` : "0ms",
+                    minHeight: 74,
+                    background: activo ? "rgba(229,0,125,0.18)" : "rgba(255,255,255,0.06)",
+                    border: `1px solid ${activo ? "rgba(229,0,125,0.35)" : "rgba(255,255,255,0.07)"}`,
+                    color: activo ? "#ff45a0" : "#ffffff",
+                  }}
+                >
+                  {l.label}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Destacados */}
