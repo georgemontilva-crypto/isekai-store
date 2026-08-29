@@ -68,7 +68,9 @@ const MOBILE_MENU_CSS = `
     inset: 0;
     z-index: 60;
     background: #050507;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
     padding-top: env(safe-area-inset-top);
     opacity: 0;
     visibility: hidden;
@@ -85,6 +87,23 @@ const MOBILE_MENU_CSS = `
                 transform .36s cubic-bezier(.34,1.56,.64,1),
                 visibility 0s linear 0s;
   }
+  /* La cabecera con el logo y la X no se mueve */
+  .iw-menu-header {
+    flex: 0 0 auto;
+  }
+  /* Solo esta zona se desplaza, y sin barra visible */
+  .iw-menu-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 2rem);
+  }
+  .iw-menu-body::-webkit-scrollbar { display: none; }
+
   .iw-menu-item {
     opacity: 0;
     transform: translateY(14px);
@@ -486,7 +505,7 @@ export default function Navbar() {
         className={`iw-menu md:hidden ${mobileOpen ? "is-open" : ""}`}
         aria-hidden={!mobileOpen}
       >
-        <div className="flex items-center justify-between border-b border-white/[0.08] px-6 h-[60px]">
+        <div className="iw-menu-header flex items-center justify-between border-b border-white/[0.08] px-6 h-[60px]">
           {logoUrl
             ? <img
                 src={logoUrl}
@@ -500,7 +519,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        <nav className="flex flex-col px-6 py-8">
+        <nav className="iw-menu-body flex flex-col px-6 py-8">
           <form onSubmit={handleSearch} className="iw-menu-item mb-8 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
             <input
               type="text"
