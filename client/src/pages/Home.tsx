@@ -10,6 +10,7 @@ function useWindowWidth() {
   return width;
 }
 import { Link, useLocation } from "wouter";
+import CategoryShowcase from "@/components/CategoryShowcase";
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink, Layers } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { PriceDisplay } from "@/components/PriceDisplay";
@@ -783,6 +784,29 @@ export default function Home() {
           )}
         </div>
       </section>
+
+      {/* ══════════════════════════════════════════════
+          VITRINAS POR CATEGORÍA
+          Imagen grande y, debajo, los productos de esa categoría en filas
+          que se deslizan. Se configuran desde el panel: hasta tres.
+      ══════════════════════════════════════════════ */}
+      {[1, 2, 3].map(n => {
+        const catId = parseInt(settings?.[`showcase_${n}_category`] ?? "0");
+        if (!catId) return null;
+        const cat = categories?.find((c: any) => c.id === catId);
+        return (
+          <CategoryShowcase
+            key={n}
+            categoryId={catId}
+            categorySlug={cat?.slug}
+            titulo={settings?.[`showcase_${n}_title`] || cat?.name || "Novedades"}
+            imagen={settings?.[`showcase_${n}_image`]}
+            imagenMovil={settings?.[`showcase_${n}_image_mobile`]}
+            ctaTexto={settings?.[`showcase_${n}_cta`]}
+            esMovil={isMobile}
+          />
+        );
+      })}
 
       {/* ══════════════════════════════════════════════
           9. MARQUEE TICKER

@@ -2906,6 +2906,58 @@ export default function Admin() {
                 className="p-8"
               >
                 <h2 className="text-2xl font-bold mb-1">Configuración</h2>
+                {/* Se define aquí y no en Medios porque además de la imagen
+                    hace falta elegir la categoría y el texto del botón. */}
+                <div className="mt-6 mb-8 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-5">
+                  <p className="text-sm font-bold text-[var(--iw-text)]">Vitrinas de la página de inicio</p>
+                  <p className="mt-1 mb-4 text-xs text-[var(--iw-text-muted)]">
+                    Cada vitrina muestra una imagen y, debajo, los productos de la categoría elegida.
+                    Las imágenes se suben en la pestaña Medios.
+                  </p>
+
+                  <div className="flex flex-col gap-4">
+                    {[1, 2, 3].map(n => (
+                      <div key={n} className="rounded-xl border border-[var(--iw-border)] p-4">
+                        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[var(--iw-text-muted)]">
+                          Vitrina {n}
+                        </p>
+                        <div className="grid gap-3 sm:grid-cols-3">
+                          <div>
+                            <Label className="text-xs">Categoría</Label>
+                            <select
+                              defaultValue={siteSettings?.[`showcase_${n}_category`] ?? ""}
+                              onChange={e => upsertSetting.mutate({ key: `showcase_${n}_category`, value: e.target.value })}
+                              className="mt-1 w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-3 py-2.5 text-sm outline-none"
+                            >
+                              <option value="">— Sin vitrina —</option>
+                              {(categories ?? []).map((c: any) => (
+                                <option key={c.id} value={c.id}>{c.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <Label className="text-xs">Título (opcional)</Label>
+                            <Input
+                              defaultValue={siteSettings?.[`showcase_${n}_title`] ?? ""}
+                              placeholder="Nombre de la categoría"
+                              onBlur={e => upsertSetting.mutate({ key: `showcase_${n}_title`, value: e.target.value })}
+                              className="mt-1 bg-muted text-sm"
+                            />
+                          </div>
+                          <div>
+                            <Label className="text-xs">Texto del botón</Label>
+                            <Input
+                              defaultValue={siteSettings?.[`showcase_${n}_cta`] ?? ""}
+                              placeholder="Ej: Descúbrelo ya"
+                              onBlur={e => upsertSetting.mutate({ key: `showcase_${n}_cta`, value: e.target.value })}
+                              className="mt-1 bg-muted text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 <p className="text-muted-foreground text-sm mb-8">Personaliza la tienda y conecta tus redes sociales.</p>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
