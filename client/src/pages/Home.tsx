@@ -287,12 +287,14 @@ export default function Home() {
           1. HERO PEEK CAROUSEL
       ══════════════════════════════════════════════ */}
       {/* ── Banner principal ──
-          Carrusel a ancho completo con transición por fundido: la imagen ocupa
-          todo el espacio y el texto se apoya sobre un degradado, de forma que
-          se lee sobre cualquier fotografía. Las flechas aparecen al pasar el
-          cursor y los puntos marcan la posición. */}
+          Carrusel contenido: con márgenes laterales, aire arriba y abajo y
+          esquinas redondeadas, para que se lea como una pieza sobre el fondo
+          y no como una imagen a sangre. La transición es por fundido y el
+          texto se apoya en un degradado, de modo que se lee sobre cualquier
+          fotografía. */}
       {heroSlides.length > 0 && (
-      <section className="iw-hero group relative w-full overflow-hidden">
+      <section className="px-4 pt-4 pb-6 sm:px-6 sm:pt-6 sm:pb-8">
+        <div className="iw-hero group relative mx-auto w-full max-w-[1400px] overflow-hidden rounded-2xl">
         {heroSlides.map((slide, i) => (
           <div
             key={i}
@@ -369,6 +371,7 @@ export default function Home() {
             ))}
           </div>
         )}
+        </div>
       </section>
       )}
 

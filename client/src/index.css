@@ -2579,14 +2579,9 @@ html.dark .iw-search:focus-within {
    imagen respire, y algo más contenido en teléfono para que no ocupe toda la
    pantalla antes del contenido. */
 .iw-hero {
-  height: 62vh;
-  min-height: 380px;
-  max-height: 620px;
-  background: #0a0a0a;
+  height: 460px;
+  background: #16191f;
 }
 @media (max-width: 767px) {
-  .iw-hero {
-    height: 58vh;
-    min-height: 320px;
-  }
+  .iw-hero { height: 340px; }
 }
