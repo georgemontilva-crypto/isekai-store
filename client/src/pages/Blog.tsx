@@ -20,9 +20,9 @@ export default function Blog() {
   const { data: categories = [] } = trpc.blog.getCategories.useQuery();
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
-      <div className="border-b border-[#222] py-16 px-6 lg:px-16">
+      <div className="border-b border-white/[0.08] py-16 px-6 lg:px-16">
         <div className="max-w-6xl mx-auto">
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-3">Isekai World</p>
           <h1 className="text-5xl lg:text-7xl font-black text-white mb-4">Blog</h1>
@@ -39,7 +39,7 @@ export default function Blog() {
             <button
               onClick={() => setSelectedCategory('')}
               className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                !selectedCategory ? 'bg-[#e5007d] text-white' : 'bg-[#1a1a1a] text-[#888] border border-[#333] hover:border-[#e5007d]'
+                !selectedCategory ? 'bg-[#e5007d] text-white' : 'bg-[#16191f] text-[#888] border border-white/10 hover:border-[#e5007d]'
               }`}
             >
               Todos
@@ -49,7 +49,7 @@ export default function Blog() {
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.slug)}
                 className={`px-4 py-2 rounded-full text-sm font-semibold transition-colors ${
-                  selectedCategory === cat.slug ? 'bg-[#e5007d] text-white' : 'bg-[#1a1a1a] text-[#888] border border-[#333] hover:border-[#e5007d]'
+                  selectedCategory === cat.slug ? 'bg-[#e5007d] text-white' : 'bg-[#16191f] text-[#888] border border-white/10 hover:border-[#e5007d]'
                 }`}
               >
                 {cat.name}
@@ -67,7 +67,7 @@ export default function Blog() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {(posts as any[]).map((post, i) => (
               <Link key={post.id} href={`/blog/${post.slug}`}>
-                <article className={`group bg-[#1a1a1a] border border-[#333] rounded-2xl overflow-hidden hover:border-[#e5007d] transition-all cursor-pointer ${
+                <article className={`group bg-[#16191f] border border-white/10 rounded-2xl overflow-hidden hover:border-[#e5007d] transition-all cursor-pointer ${
                   i === 0 ? 'md:col-span-2' : ''
                 }`}>
                   {post.coverImage && (

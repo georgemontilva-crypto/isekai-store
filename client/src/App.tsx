@@ -184,7 +184,7 @@ function Layout() {
 function AppRoot() {
   const [location] = useLocation();
   if (location.startsWith("/links")) return (
-    <Suspense fallback={<div className="min-h-screen bg-[#0d0d0d]" />}>
+    <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
       <LinkBio />
     </Suspense>
   );

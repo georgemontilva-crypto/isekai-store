@@ -33,13 +33,13 @@ export default function BlogPost() {
   });
 
   if (isLoading) return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
       <div className="w-8 h-8 border-2 border-[#e5007d] border-t-transparent rounded-full animate-spin" />
     </div>
   );
 
   if (!post) return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
       <div className="text-center">
         <p className="text-white text-2xl font-black mb-4">Artículo no encontrado</p>
         <Link href="/blog" className="text-[#e5007d] underline">Volver al blog</Link>
@@ -50,7 +50,7 @@ export default function BlogPost() {
   const p = post as any;
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
+    <div className="min-h-screen bg-[#0a0a0a]">
       {/* Hero */}
       {p.coverImage && (
         <div className="relative h-[50vh] overflow-hidden">
@@ -70,7 +70,7 @@ export default function BlogPost() {
 
         <h1 className="text-4xl lg:text-5xl font-black text-white leading-tight mb-6">{p.title}</h1>
 
-        <div className="flex flex-wrap items-center gap-4 text-sm text-[#555] mb-8 pb-8 border-b border-[#222]">
+        <div className="flex flex-wrap items-center gap-4 text-sm text-[#555] mb-8 pb-8 border-b border-white/[0.08]">
           <span className="text-[#888]">Por {p.authorName ?? 'Isekai World'}</span>
           {p.publishedAt && (
             <span className="flex items-center gap-1">
@@ -86,15 +86,15 @@ export default function BlogPost() {
         )}
 
         <div
-          className="prose prose-invert prose-lg max-w-none prose-headings:font-black prose-headings:text-white prose-p:text-[#ccc] prose-p:leading-relaxed prose-a:text-[#e5007d] prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-img:rounded-2xl prose-img:w-full prose-blockquote:border-[#e5007d] prose-blockquote:text-[#888] prose-code:text-[#e5007d] prose-code:bg-[#1a1a1a] prose-code:px-1 prose-code:rounded prose-ul:text-[#ccc] prose-ol:text-[#ccc] prose-hr:border-[#333]"
+          className="prose prose-invert prose-lg max-w-none prose-headings:font-black prose-headings:text-white prose-p:text-[#ccc] prose-p:leading-relaxed prose-a:text-[#e5007d] prose-a:no-underline hover:prose-a:underline prose-strong:text-white prose-img:rounded-2xl prose-img:w-full prose-blockquote:border-[#e5007d] prose-blockquote:text-[#888] prose-code:text-[#e5007d] prose-code:bg-[#16191f] prose-code:px-1 prose-code:rounded prose-ul:text-[#ccc] prose-ol:text-[#ccc] prose-hr:border-white/10"
           dangerouslySetInnerHTML={{ __html: p.content ?? '' }}
         />
 
         {p.tags && (p.tags as string[]).length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t border-[#222]">
+          <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t border-white/[0.08]">
             <Tag size={14} className="text-[#555] mt-1" />
             {(p.tags as string[]).map((tag: string) => (
-              <span key={tag} className="text-xs bg-[#1a1a1a] border border-[#333] text-[#888] px-3 py-1 rounded-full">{tag}</span>
+              <span key={tag} className="text-xs bg-[#16191f] border border-white/10 text-[#888] px-3 py-1 rounded-full">{tag}</span>
             ))}
           </div>
         )}
@@ -106,7 +106,7 @@ export default function BlogPost() {
           {(comments as any[]).length > 0 && (
             <div className="flex flex-col gap-4 mb-10">
               {(comments as any[]).map((c) => (
-                <div key={c.id} className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-5">
+                <div key={c.id} className="bg-[#16191f] border border-white/10 rounded-2xl p-5">
                   <div className="flex items-center justify-between mb-3">
                     <p className="font-bold text-white text-sm">{c.guestName ?? 'Usuario'}</p>
                     <p className="text-[#555] text-xs">{new Date(c.createdAt).toLocaleDateString('es-VE')}</p>
@@ -118,17 +118,17 @@ export default function BlogPost() {
           )}
 
           {!submitted ? (
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
+            <div className="bg-[#16191f] border border-white/10 rounded-2xl p-6">
               <h4 className="text-white font-bold mb-4">Deja un comentario</h4>
               <div className="flex flex-col gap-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <input type="text" placeholder="Tu nombre *" value={comment.name} onChange={e => setComment({ ...comment, name: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-xl text-white text-sm outline-none focus:border-[#e5007d] transition-colors" />
+                    className="w-full px-4 py-3 bg-white/[0.06] border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#e5007d] transition-colors" />
                   <input type="email" placeholder="Tu email *" value={comment.email} onChange={e => setComment({ ...comment, email: e.target.value })}
-                    className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-xl text-white text-sm outline-none focus:border-[#e5007d] transition-colors" />
+                    className="w-full px-4 py-3 bg-white/[0.06] border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#e5007d] transition-colors" />
                 </div>
                 <textarea placeholder="Escribe tu comentario..." value={comment.content} onChange={e => setComment({ ...comment, content: e.target.value })} rows={4}
-                  className="w-full px-4 py-3 bg-[#222] border border-[#333] rounded-xl text-white text-sm outline-none focus:border-[#e5007d] transition-colors resize-none" />
+                  className="w-full px-4 py-3 bg-white/[0.06] border border-white/10 rounded-xl text-white text-sm outline-none focus:border-[#e5007d] transition-colors resize-none" />
                 <button
                   onClick={() => {
                     if (!comment.name || !comment.email || !comment.content) return;
@@ -157,7 +157,7 @@ export default function BlogPost() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {(related as any[]).filter(r => r.id !== p.id).slice(0, 2).map((r) => (
                 <Link key={r.id} href={`/blog/${r.slug}`}>
-                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer group">
+                  <div className="bg-[#16191f] border border-white/10 rounded-2xl overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer group">
                     {r.coverImage && (
                       <div className="h-36 overflow-hidden">
                         <img src={r.coverImage} alt={r.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />

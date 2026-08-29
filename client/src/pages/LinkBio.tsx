@@ -45,7 +45,7 @@ export default function LinkBio() {
   const bottomImage  = settings?.["linkbio_bottom_image"] ?? "";
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] flex flex-col items-center px-4 py-10">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center px-4 py-10">
       <div className="w-full max-w-[480px]">
 
         {/* Banner */}
@@ -64,7 +64,7 @@ export default function LinkBio() {
               alt={storeName}
             />
           ) : (
-            <div className="w-20 h-20 rounded-full border-4 border-[#0d0d0d] bg-[#1a1a1a] flex items-center justify-center">
+            <div className="w-20 h-20 rounded-full border-4 border-[#0d0d0d] bg-[#16191f] flex items-center justify-center">
               <span className="text-white text-2xl font-bold">{storeName[0]}</span>
             </div>
           )}

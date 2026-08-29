@@ -38,7 +38,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={() => { navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-      className="p-1.5 rounded-lg bg-[#222] hover:bg-[#333] border border-[#333] transition-colors"
+      className="p-1.5 rounded-lg bg-white/[0.06] hover:bg-[#333] border border-white/10 transition-colors"
     >
       {copied ? <Check size={12} className="text-green-400" /> : <Copy size={12} className="text-[#888]" />}
     </button>
@@ -218,15 +218,15 @@ export default function CosplayDashboard() {
 
   if (loading || cpLoading) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#333] border-t-[#e5007d] rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/10 border-t-[#e5007d] rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-white mb-3">Inicia sesión para continuar</h2>
           <button onClick={() => window.location.href = getLoginUrl()} className="bg-[#e5007d] text-white px-8 py-3 rounded-full font-bold text-sm hover:bg-[#c4006b] transition-colors">
@@ -242,7 +242,7 @@ export default function CosplayDashboard() {
     // pueda ver el panel tal como lo ven los cosplayers y probar cambios.
     if (user?.role === 'admin') {
       return (
-        <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-6">
+        <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
           <div className="text-center max-w-md">
             <h2 className="text-2xl font-bold text-white mb-3">Activa tu perfil de cosplayer</h2>
             <p className="text-[#888] mb-6">
@@ -262,7 +262,7 @@ export default function CosplayDashboard() {
     }
 
     return (
-      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-6">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
         <div className="text-center max-w-md">
           <h2 className="text-2xl font-bold text-white mb-3">No eres cosplayer aún</h2>
           {/* El Guild es por invitación: el acceso al formulario llega por QR,
@@ -295,11 +295,11 @@ export default function CosplayDashboard() {
   }
   const balance    = tickets?.balance ?? 0;
 
-  const inputCls = "w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors";
+  const inputCls = "w-full px-4 py-3 bg-[#16191f] border border-white/10 rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors";
   const labelCls = "block text-[#ccc] text-sm font-medium mb-2";
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] pb-24 md:pb-20">
+    <div className="min-h-screen bg-[#0a0a0a] pb-24 md:pb-20">
 
       <div className="container max-w-4xl py-8">
 
@@ -319,7 +319,7 @@ export default function CosplayDashboard() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`relative flex items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-4 py-2 text-sm font-medium transition-all ${
-                  isActive ? "bg-[#e5007d] text-white" : "border border-[#333] bg-[#1a1a1a] text-[#888] hover:border-[#444] hover:text-white"
+                  isActive ? "bg-[#e5007d] text-white" : "border border-white/10 bg-[#16191f] text-[#888] hover:border-[#444] hover:text-white"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -350,7 +350,7 @@ export default function CosplayDashboard() {
               <div className="max-w-2xl mx-auto">
 
                 {/* Banner editable */}
-                <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-0 bg-[#1a1a1a] border-2 border-dashed border-[#333]">
+                <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-0 bg-[#16191f] border-2 border-dashed border-white/10">
                   {profileForm.bannerImage && (
                     <img src={profileForm.bannerImage} className="w-full h-full object-cover" />
                   )}
@@ -372,7 +372,7 @@ export default function CosplayDashboard() {
                     style={{ outline: `3px solid ${tierColor}` }}>
                     {profileForm.photo
                       ? <img src={profileForm.photo} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full bg-[#222] flex items-center justify-center">
+                      : <div className="w-full h-full bg-white/[0.06] flex items-center justify-center">
                           <User size={28} className="text-[#555]" />
                         </div>
                     }
@@ -382,7 +382,7 @@ export default function CosplayDashboard() {
                       </div>
                     )}
                   </div>
-                  <label className="bg-[#1a1a1a] border border-[#333] text-white text-xs px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 hover:border-[#e5007d] transition-colors">
+                  <label className="bg-[#16191f] border border-white/10 text-white text-xs px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 hover:border-[#e5007d] transition-colors">
                     <Upload size={12} />
                     {profileForm.photo ? 'Cambiar foto' : 'Subir foto de perfil'}
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
@@ -408,7 +408,7 @@ export default function CosplayDashboard() {
                   </span>
                 </div>
 
-                <hr className="border-[#222] mb-6" />
+                <hr className="border-white/[0.08] mb-6" />
 
                 {/* Campos de edición */}
                 <div className="flex flex-col gap-4">
@@ -421,7 +421,7 @@ export default function CosplayDashboard() {
                       onChange={e => setProfileForm(f => ({ ...f, bio: e.target.value }))}
                       rows={4}
                       placeholder="Cuéntale al mundo quién eres como cosplayer..."
-                      className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors resize-none"
+                      className="w-full px-4 py-3 bg-[#16191f] border border-white/10 rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors resize-none"
                     />
                   </div>
 
@@ -443,7 +443,7 @@ export default function CosplayDashboard() {
                             value={(profileForm as any)[red.key] ?? ''}
                             onChange={e => setProfileForm(f => ({ ...f, [red.key]: e.target.value }))}
                             placeholder={red.placeholder}
-                            className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors"
+                            className="w-full px-4 py-3 bg-[#16191f] border border-white/10 rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors"
                           />
                         </div>
                       ))}
@@ -468,7 +468,7 @@ export default function CosplayDashboard() {
                         </div>
                       ))}
                       {profileForm.gallery.length < 9 && (
-                        <label className="aspect-square rounded-xl border-2 border-dashed border-[#333] flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors gap-1">
+                        <label className="aspect-square rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors gap-1">
                           <Plus size={20} className="text-[#555]" />
                           <span className="text-[#555] text-xs">Agregar</span>
                           <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
@@ -497,17 +497,17 @@ export default function CosplayDashboard() {
                 <h2 className="text-2xl font-black text-white mb-6">Tu kit está en camino</h2>
 
                 {!(cosplayer as any)?.kitOrderId ? (
-                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8 text-center">
+                  <div className="bg-[#16191f] border border-white/10 rounded-2xl p-8 text-center">
                     <Package size={40} className="text-[#555] mx-auto mb-3" />
                     <p className="text-[#888] text-sm">Tu kit de bienvenida será asignado pronto.</p>
                   </div>
                 ) : !kitOrder ? (
-                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8 text-center">
+                  <div className="bg-[#16191f] border border-white/10 rounded-2xl p-8 text-center">
                     <div className="animate-spin w-6 h-6 border-2 border-[#e5007d] border-t-transparent rounded-full mx-auto" />
                   </div>
                 ) : (
-                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
-                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-[#333]">
+                  <div className="bg-[#16191f] border border-white/10 rounded-2xl p-6">
+                    <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
                       <div>
                         <p className="text-[#888] text-xs">Número de orden</p>
                         <p className="text-white font-black">{kitOrder.orderNumber}</p>
@@ -527,7 +527,7 @@ export default function CosplayDashboard() {
                               <div className={`w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 ${
                                 isDone    ? 'bg-green-500 text-white' :
                                 isCurrent ? 'bg-[#e5007d] text-white' :
-                                            'bg-[#222] text-[#555]'
+                                            'bg-white/[0.06] text-[#555]'
                               }`}>
                                 <step.icon size={16} />
                               </div>
@@ -550,7 +550,7 @@ export default function CosplayDashboard() {
                     </div>
 
                     {kitOrder.status === 'shipped' && (kitOrder as any).trackingNumber && (
-                      <div className="mt-4 p-4 bg-[#222] rounded-xl border border-[#333]">
+                      <div className="mt-4 p-4 bg-white/[0.06] rounded-xl border border-white/10">
                         <p className="text-[#888] text-xs mb-1">Número de guía</p>
                         <p className="text-white font-bold">{(kitOrder as any).trackingNumber}</p>
                         {(kitOrder as any).trackingCarrier && (
@@ -572,7 +572,7 @@ export default function CosplayDashboard() {
                 </p>
                 <div className="space-y-4 mb-10">
                   {activities.length === 0 && (
-                    <div className="text-center py-16 border border-[#222] rounded-2xl">
+                    <div className="text-center py-16 border border-white/[0.08] rounded-2xl">
                       <p className="text-[#555]">No hay actividades activas en este momento.</p>
                     </div>
                   )}
@@ -598,11 +598,11 @@ export default function CosplayDashboard() {
                         : `Vas ${pct}% del camino. Te faltan ${faltan} fases para la recompensa.`;
 
                     return (
-                      <div key={act.id} className="overflow-hidden rounded-2xl border border-[#333] bg-[#1a1a1a]">
+                      <div key={act.id} className="overflow-hidden rounded-2xl border border-white/10 bg-[#16191f]">
                         {/* Cabecera compacta */}
                         <div className="p-4">
                           <div className="mb-2 flex flex-wrap items-center gap-2">
-                            <span className="rounded-full border border-[#333] bg-[#222] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#888]">
+                            <span className="rounded-full border border-white/10 bg-white/[0.06] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[#888]">
                               {act.type}
                             </span>
                             {totalFases > 1 && (
@@ -692,7 +692,7 @@ export default function CosplayDashboard() {
                                 value={linkPorActividad[act.id] ?? ''}
                                 onChange={(e) => setLinkPorActividad(prev => ({ ...prev, [act.id]: e.target.value }))}
                                 placeholder="https://instagram.com/p/..."
-                                className="w-full rounded-xl border border-[#333] bg-[#0d0d0d] px-4 text-sm text-white outline-none transition-colors placeholder:text-[#555] focus:border-[#e5007d]"
+                                className="w-full rounded-xl border border-white/10 bg-[#0a0a0a] px-4 text-sm text-white outline-none transition-colors placeholder:text-[#555] focus:border-[#e5007d]"
                                 style={{ minHeight: 46 }}
                               />
                               <button
@@ -728,7 +728,7 @@ export default function CosplayDashboard() {
                         let evidenceUrls: string[] = [];
                         try { evidenceUrls = JSON.parse(s.evidenceUrl); } catch { evidenceUrls = [s.evidenceUrl]; }
                         return (
-                          <div key={s.id} className="flex flex-col gap-2 bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3">
+                          <div key={s.id} className="flex flex-col gap-2 bg-[#16191f] border border-white/10 rounded-xl px-4 py-3">
                             <div className="flex flex-col gap-1">
                               {evidenceUrls.map((url: string, i: number) => (
                                 <a key={i} href={url} target="_blank" rel="noopener noreferrer"
@@ -758,7 +758,7 @@ export default function CosplayDashboard() {
                                   value={newLinks[s.id] ?? ''}
                                   onChange={e => setNewLinks(prev => ({ ...prev, [s.id]: e.target.value }))}
                                   placeholder="https://..."
-                                  className="flex-1 bg-[#222] border border-[#333] rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-[#e5007d]"
+                                  className="flex-1 bg-white/[0.06] border border-white/10 rounded-lg px-3 py-2 text-white text-xs outline-none focus:border-[#e5007d]"
                                 />
                                 <button
                                   onClick={() => addEvidence.mutate({ submissionId: s.id, url: newLinks[s.id] ?? '' })}
@@ -784,7 +784,7 @@ export default function CosplayDashboard() {
 
                 {/* Balance cards */}
                 <div className="grid grid-cols-2 gap-4 mb-8">
-                  <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6">
+                  <div className="bg-[#16191f] border border-white/10 rounded-2xl p-6">
                     <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Tickets</p>
                     <p className="text-xl sm:text-2xl font-black text-white">{balance.toLocaleString()}</p>
                     <p className="text-[#555] text-xs mt-1">Para canjear por descuentos</p>
@@ -796,7 +796,7 @@ export default function CosplayDashboard() {
                     </button>
                   </div>
 
-                  <div className="bg-[#1a1a1a] border border-[#ffd700]/30 rounded-2xl p-6">
+                  <div className="bg-[#16191f] border border-[#ffd700]/30 rounded-2xl p-6">
                     <p className="text-[#888] text-xs uppercase tracking-widest mb-2">Cash</p>
                     <p className="text-2xl font-black text-[#ffd700]">
                       ${parseFloat(String(cosplayer?.cashBalance ?? '0')).toFixed(2)} USD
@@ -806,7 +806,7 @@ export default function CosplayDashboard() {
                       <button
                         disabled={parseFloat(String(cosplayer?.cashBalance ?? '0')) < MIN_WITHDRAWAL_USD}
                         onClick={() => setShowWithdraw(true)}
-                        className="flex-1 bg-[#1a1a1a] border border-[#ffd700]/50 text-[#ffd700] py-2 rounded-xl text-xs font-bold disabled:opacity-40 hover:bg-[#222] transition-colors"
+                        className="flex-1 bg-[#16191f] border border-[#ffd700]/50 text-[#ffd700] py-2 rounded-xl text-xs font-bold disabled:opacity-40 hover:bg-white/[0.06] transition-colors"
                       >
                         Retirar
                       </button>
@@ -818,9 +818,9 @@ export default function CosplayDashboard() {
                 </div>
 
                 {/* Referral code */}
-                <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 mb-8">
+                <div className="bg-[#16191f] border border-white/10 rounded-2xl p-6 mb-8">
                   <p className="text-[#888] text-xs uppercase tracking-widest mb-3">Mi código de referido</p>
-                  <div className="flex items-center justify-between bg-[#0d0d0d] border border-dashed border-[#e5007d]/50 rounded-xl px-5 py-4">
+                  <div className="flex items-center justify-between bg-[#0a0a0a] border border-dashed border-[#e5007d]/50 rounded-xl px-5 py-4">
                     <span className="text-[#e5007d] font-black tracking-widest text-lg">
                       {(cosplayer as any).referralCode ?? '—'}
                     </span>
@@ -861,7 +861,7 @@ export default function CosplayDashboard() {
                 <p className="text-[#888] text-xs uppercase tracking-widest mb-4">Historial de movimientos</p>
                 <div className="flex flex-col gap-2">
                   {(tickets?.ledger ?? []).map((e: any) => (
-                    <div key={e.id} className="flex items-center justify-between bg-[#1a1a1a] border border-[#333] rounded-xl px-4 py-3">
+                    <div key={e.id} className="flex items-center justify-between bg-[#16191f] border border-white/10 rounded-xl px-4 py-3">
                       <div>
                         <p className="text-white text-sm font-medium">{e.description}</p>
                         <p className="text-[#555] text-xs">{new Date(e.createdAt).toLocaleDateString('es-VE')}</p>
@@ -883,7 +883,7 @@ export default function CosplayDashboard() {
                 {/* Withdrawal modal */}
                 {showWithdraw && (
                   <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4">
-                    <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 w-full max-w-md">
+                    <div className="bg-[#16191f] border border-white/10 rounded-2xl p-6 w-full max-w-md">
                       <h3 className="text-white font-black text-lg mb-4">Solicitar retiro</h3>
                       <p className="text-[#888] text-sm mb-4">
                         Balance disponible: <strong className="text-[#ffd700]">${parseFloat(String(cosplayer?.cashBalance ?? '0')).toFixed(2)} USD</strong>
@@ -897,7 +897,7 @@ export default function CosplayDashboard() {
                             max={parseFloat(String(cosplayer?.cashBalance ?? '0'))}
                             value={withdrawForm.amount}
                             onChange={e => setWithdrawForm({ ...withdrawForm, amount: e.target.value })}
-                            className="w-full bg-[#222] border border-[#333] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d]"
+                            className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d]"
                             placeholder="20.00"
                           />
                         </div>
@@ -906,7 +906,7 @@ export default function CosplayDashboard() {
                           <select
                             value={withdrawForm.paymentMethod}
                             onChange={e => setWithdrawForm({ ...withdrawForm, paymentMethod: e.target.value })}
-                            className="w-full bg-[#222] border border-[#333] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d]"
+                            className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d]"
                           >
                             <option value="">Selecciona método</option>
                             <option value="binance">Binance Pay</option>
@@ -922,14 +922,14 @@ export default function CosplayDashboard() {
                             onChange={e => setWithdrawForm({ ...withdrawForm, paymentDetails: e.target.value })}
                             placeholder="Email de Binance, número de Zelle, etc."
                             rows={3}
-                            className="w-full bg-[#222] border border-[#333] rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d] resize-none"
+                            className="w-full bg-white/[0.06] border border-white/10 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-[#e5007d] resize-none"
                           />
                         </div>
                       </div>
                       <div className="flex gap-3 mt-6">
                         <button
                           onClick={() => setShowWithdraw(false)}
-                          className="flex-1 border border-[#333] text-[#888] py-3 rounded-xl text-sm"
+                          className="flex-1 border border-white/10 text-[#888] py-3 rounded-xl text-sm"
                         >
                           Cancelar
                         </button>
@@ -967,7 +967,7 @@ export default function CosplayDashboard() {
                       <div
                         key={opt.pct}
                         style={{ scrollSnapAlign: 'start' }}
-                        className={`w-[200px] shrink-0 rounded-2xl border bg-[#1a1a1a] p-5 transition-all sm:w-[220px] ${canAfford ? 'border-[#333] hover:border-[#e5007d]/60' : 'border-[#222] opacity-50'}`}>
+                        className={`w-[200px] shrink-0 rounded-2xl border bg-[#16191f] p-5 transition-all sm:w-[220px] ${canAfford ? 'border-white/10 hover:border-[#e5007d]/60' : 'border-white/[0.08] opacity-50'}`}>
                         <div className="flex items-baseline justify-between mb-2">
                           <span className="text-3xl font-black text-[#e5007d]">{opt.pct}%</span>
                           <span className="text-xs text-[#888] font-semibold">{opt.cost.toLocaleString()} tickets</span>
@@ -976,7 +976,7 @@ export default function CosplayDashboard() {
                         <button
                           disabled={!canAfford || redeemDiscount.isPending}
                           onClick={() => redeemDiscount.mutate({ discountPercent: opt.pct as any })}
-                          className={`w-full py-2 rounded-full text-sm font-bold transition-colors ${canAfford ? 'bg-[#e5007d] hover:bg-[#c4006b] text-white' : 'bg-[#222] text-[#555] cursor-not-allowed'}`}
+                          className={`w-full py-2 rounded-full text-sm font-bold transition-colors ${canAfford ? 'bg-[#e5007d] hover:bg-[#c4006b] text-white' : 'bg-white/[0.06] text-[#555] cursor-not-allowed'}`}
                         >
                           {canAfford ? 'Canjear' : `Faltan ${(opt.cost - balance).toLocaleString()}`}
                         </button>
@@ -993,14 +993,14 @@ export default function CosplayDashboard() {
                     {/* Scroll propio: el historial no alarga la página */}
                     <div className="iw-scroll-oculto max-h-[260px] space-y-2 overflow-y-auto pr-1">
                       {discountCodes.map((c: any) => (
-                        <div key={c.id} className={`flex flex-col gap-2 rounded-xl border bg-[#1a1a1a] px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between ${c.used ? 'border-[#222] opacity-50' : 'border-[#333]'}`}>
+                        <div key={c.id} className={`flex flex-col gap-2 rounded-xl border bg-[#16191f] px-4 py-3 text-sm sm:flex-row sm:items-center sm:justify-between ${c.used ? 'border-white/[0.08] opacity-50' : 'border-white/10'}`}>
                           <div className="flex min-w-0 items-center gap-2">
                             <span className="truncate text-[15px] font-black tracking-wider text-[#e5007d]">{c.code}</span>
                             <CopyButton text={c.code} />
                           </div>
                           <div className="flex shrink-0 items-center gap-2">
                             <span className="text-[#888] text-xs">{c.discountPercent}% OFF</span>
-                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.used ? 'bg-[#222] text-[#555]' : 'bg-green-500/10 text-green-400'}`}>
+                            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${c.used ? 'bg-white/[0.06] text-[#555]' : 'bg-green-500/10 text-green-400'}`}>
                               {c.used ? 'Usado' : 'Disponible'}
                             </span>
                           </div>
@@ -1019,7 +1019,7 @@ export default function CosplayDashboard() {
       {/* Modal evidencia */}
       {submitModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#1a1a1a] border border-[#333] rounded-2xl w-full max-w-md p-6 shadow-2xl">
+          <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className="bg-[#16191f] border border-white/10 rounded-2xl w-full max-w-md p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-bold text-white">Enviar evidencia</h3>
               <button onClick={() => setSubmitModal(null)} className="text-[#888] hover:text-white transition-colors"><X size={18} /></button>
@@ -1033,11 +1033,11 @@ export default function CosplayDashboard() {
                   value={evidenceUrl}
                   onChange={e => setEvidenceUrl(e.target.value)}
                   placeholder="https://instagram.com/p/..."
-                  className="w-full px-4 py-3 rounded-xl bg-[#222] border border-[#333] text-white placeholder-[#555] outline-none focus:border-[#e5007d] text-sm"
+                  className="w-full px-4 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-white placeholder-[#555] outline-none focus:border-[#e5007d] text-sm"
                 />
               </div>
             ) : (
-              <div className="bg-[#1a1a1a] border border-[#e5007d]/30 rounded-xl px-4 py-3 mb-5">
+              <div className="bg-[#16191f] border border-[#e5007d]/30 rounded-xl px-4 py-3 mb-5">
                 <p className="text-[#e5007d] text-sm font-semibold">✓ Participación registrada</p>
                 <p className="text-[#888] text-xs mt-1">El admin verificará tu participación y asignará los tickets.</p>
               </div>
@@ -1050,7 +1050,7 @@ export default function CosplayDashboard() {
               >
                 {submitActivity.isPending ? "Enviando..." : "Enviar actividad"}
               </button>
-              <button onClick={() => setSubmitModal(null)} className="px-5 py-3 bg-[#222] border border-[#333] rounded-full font-bold text-sm text-[#ccc] hover:border-[#444] transition-colors">
+              <button onClick={() => setSubmitModal(null)} className="px-5 py-3 bg-white/[0.06] border border-white/10 rounded-full font-bold text-sm text-[#ccc] hover:border-[#444] transition-colors">
                 Cancelar
               </button>
             </div>
@@ -1060,7 +1060,7 @@ export default function CosplayDashboard() {
 
       {/* Barra inferior tipo app — solo en teléfono */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-[#222] bg-[#111]/95 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-[#111]/95 backdrop-blur md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex">

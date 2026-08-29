@@ -55,10 +55,10 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="group bg-[#1a1a1a] border border-[#333] rounded-2xl overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer"
+                className="group bg-[#16191f] border border-white/10 rounded-2xl overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer"
               >
                 {/* Banner/foto superior */}
-                <div className="relative h-40 overflow-hidden bg-[#222]">
+                <div className="relative h-40 overflow-hidden bg-white/[0.06]">
                   {cp.bannerImage
                     ? <img src={cp.bannerImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
                     : cp.photo
@@ -103,7 +103,7 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
         <div className="flex items-center justify-between mt-6">
           <button
             onClick={prev}
-            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center hover:border-[#e5007d] transition-colors"
+            className="w-10 h-10 rounded-full bg-[#16191f] border border-white/10 flex items-center justify-center hover:border-[#e5007d] transition-colors"
           >
             <ChevronLeft size={18} className="text-white" />
           </button>
@@ -123,7 +123,7 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
           </div>
           <button
             onClick={next}
-            className="w-10 h-10 rounded-full bg-[#1a1a1a] border border-[#333] flex items-center justify-center hover:border-[#e5007d] transition-colors"
+            className="w-10 h-10 rounded-full bg-[#16191f] border border-white/10 flex items-center justify-center hover:border-[#e5007d] transition-colors"
           >
             <ChevronRight size={18} className="text-white" />
           </button>
@@ -149,7 +149,7 @@ export default function CosplayLanding() {
   const ctaImage  = siteSettings?.["cosplay_cta_image"]  ?? "";
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] overflow-x-hidden">
+    <div className="min-h-screen bg-[#0a0a0a] overflow-x-hidden">
 
       {/* ── 1. Hero full-bleed parallax ── */}
       <section className="relative h-[90vh] overflow-hidden flex items-end pb-20">
@@ -197,7 +197,7 @@ export default function CosplayLanding() {
       </section>
 
       {/* ── 2. Cómo funciona — lista con hover ── */}
-      <section className="bg-[#0d0d0d]">
+      <section className="bg-[#0a0a0a]">
         <div className="px-6 lg:px-20 pt-20 pb-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">El proceso</p>
           <h2 className="text-3xl lg:text-5xl font-black text-white">Cómo funciona</h2>
@@ -206,7 +206,7 @@ export default function CosplayLanding() {
           {STEPS.map((s, i) => (
             <div
               key={s.n}
-              className="group relative border-t border-[#222] cursor-default overflow-hidden"
+              className="group relative border-t border-white/[0.08] cursor-default overflow-hidden"
               onMouseEnter={() => setHoveredStep(i)}
               onMouseLeave={() => setHoveredStep(null)}
             >
@@ -232,12 +232,12 @@ export default function CosplayLanding() {
               </div>
             </div>
           ))}
-          <div className="border-t border-[#222]" />
+          <div className="border-t border-white/[0.08]" />
         </div>
       </section>
 
       {/* ── 3. Tiers ── */}
-      <section className="py-24 bg-[#0d0d0d] overflow-hidden">
+      <section className="py-24 bg-[#0a0a0a] overflow-hidden">
         <div className="container">
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2 font-medium">Niveles del Guild</p>
           <h2 className="text-4xl lg:text-6xl font-black text-white mb-4">
@@ -249,7 +249,7 @@ export default function CosplayLanding() {
             Cada nivel multiplica los tickets que ganas por actividad.
           </p>
 
-          <div className="flex items-center gap-3 bg-[#1a1a1a] border border-[#e5007d]/30 rounded-xl px-5 py-4 mb-10 max-w-xl">
+          <div className="flex items-center gap-3 bg-[#16191f] border border-[#e5007d]/30 rounded-xl px-5 py-4 mb-10 max-w-xl">
             <Info size={16} className="text-[#e5007d] flex-shrink-0" />
             <p className="text-[#888] text-sm">
               <span className="text-white font-bold">Requisito mínimo:</span> necesitas al menos{" "}
@@ -296,7 +296,7 @@ export default function CosplayLanding() {
             })}
           </div>
 
-          <p className="text-[#555] text-sm mt-10 border-t border-[#222] pt-6">
+          <p className="text-[#555] text-sm mt-10 border-t border-white/[0.08] pt-6">
             El admin asigna puntos base por actividad. Tu tier multiplica ese valor automáticamente.
           </p>
         </div>
@@ -317,7 +317,7 @@ export default function CosplayLanding() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Códigos de descuento */}
-            <div className="bg-[#1a1a1a] rounded-2xl p-8 border border-[#333] relative overflow-hidden">
+            <div className="bg-[#16191f] rounded-2xl p-8 border border-white/10 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5" style={{ background: '#e5007d', transform: 'translate(30%, -30%)' }} />
               <Tag size={32} className="text-[#e5007d] mb-4" strokeWidth={1.5} />
               <h3 className="text-white font-black text-2xl mb-2">Códigos de descuento</h3>
@@ -332,7 +332,7 @@ export default function CosplayLanding() {
                   { percent: '30%', tickets: 2000 },
                   { percent: '50%', tickets: 5000 },
                 ].map(item => (
-                  <div key={item.percent} className="flex items-center justify-between py-3 px-4 rounded-xl bg-[#222] border border-[#333]">
+                  <div key={item.percent} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.06] border border-white/10">
                     <span className="text-white font-bold text-sm">{item.percent} de descuento</span>
                     <span className="text-[#e5007d] font-black text-sm">{item.tickets.toLocaleString()} tickets</span>
                   </div>
@@ -341,7 +341,7 @@ export default function CosplayLanding() {
             </div>
 
             {/* Tienda exclusiva */}
-            <div className="bg-[#1a1a1a] rounded-2xl p-8 border border-[#333] relative overflow-hidden">
+            <div className="bg-[#16191f] rounded-2xl p-8 border border-white/10 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5" style={{ background: '#ffd700', transform: 'translate(30%, -30%)' }} />
               <ShoppingBag size={32} className="text-[#ffd700] mb-4" strokeWidth={1.5} />
               <h3 className="text-white font-black text-2xl mb-2">Tienda exclusiva</h3>
@@ -365,7 +365,7 @@ export default function CosplayLanding() {
             </div>
 
             {/* Card — Código de referido */}
-            <div className="bg-[#1a1a1a] border border-[#333] rounded-2xl p-8 relative overflow-hidden lg:col-span-2">
+            <div className="bg-[#16191f] border border-white/10 rounded-2xl p-8 relative overflow-hidden lg:col-span-2">
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5"
                 style={{ background: '#ffd700', transform: 'translate(30%, -30%)' }} />
               <div className="flex flex-col lg:flex-row lg:items-center gap-6">
@@ -408,7 +408,7 @@ export default function CosplayLanding() {
                 </div>
                 <div className="flex-shrink-0">
                   <p className="text-[#555] text-xs uppercase tracking-widest mb-2 text-center">Ejemplo</p>
-                  <div className="bg-[#0d0d0d] border-2 border-dashed border-[#ffd700]/40 rounded-2xl px-8 py-5 text-center">
+                  <div className="bg-[#0a0a0a] border-2 border-dashed border-[#ffd700]/40 rounded-2xl px-8 py-5 text-center">
                     <p className="text-[#ffd700] font-black tracking-widest text-2xl">ISK-NOMBRE-0000</p>
                     <p className="text-[#555] text-xs mt-2">Tu código único e intransferible</p>
                   </div>
@@ -418,7 +418,7 @@ export default function CosplayLanding() {
           </div>
 
           {/* Banner CTA */}
-          <div className="bg-[#0d0d0d] rounded-2xl p-8 border border-[#e5007d]/30 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="bg-[#0a0a0a] rounded-2xl p-8 border border-[#e5007d]/30 flex flex-col lg:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-white font-black text-xl mb-1">¿Listo para empezar a ganar?</h3>
               <p className="text-[#888] text-sm">Aplica ahora y empieza a acumular tickets desde tu primera actividad.</p>
@@ -429,7 +429,7 @@ export default function CosplayLanding() {
 
       {/* ── 5. Cosplayers aliados ── */}
       {cosplayers.length > 0 && (
-        <section className="py-24 bg-[#0d0d0d] overflow-hidden">
+        <section className="py-24 bg-[#0a0a0a] overflow-hidden">
           <div className="px-6 lg:px-20 mb-12">
             <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">La comunidad</p>
             <h2 className="text-3xl lg:text-5xl font-black text-white">Cosplayers aliados</h2>

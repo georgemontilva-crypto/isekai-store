@@ -27,15 +27,15 @@ function DarkSelect({ value, onChange, options, placeholder }: {
   const selected = options.find(o => o.value === value);
   return (
     <div ref={ref} className="relative">
-      <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-4 py-3 bg-[#222] border border-[#333] rounded-xl text-sm text-white outline-none transition-colors hover:border-[#444]">
+      <button type="button" onClick={() => setOpen(!open)} className="w-full flex items-center justify-between px-4 py-3 bg-white/[0.06] border border-white/10 rounded-xl text-sm text-white outline-none transition-colors hover:border-[#444]">
         <span className={selected ? "text-white" : "text-[#555]"}>{selected ? selected.label : placeholder}</span>
         <ChevronDown size={16} className={`text-[#555] transition-transform duration-200 ${open ? "rotate-180" : ""}`} />
       </button>
       {open && (
-        <div className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a1a] border border-[#333] rounded-xl overflow-hidden z-50 shadow-xl">
+        <div className="absolute top-full left-0 right-0 mt-1 bg-[#16191f] border border-white/10 rounded-xl overflow-hidden z-50 shadow-xl">
           {options.map(opt => (
             <button key={opt.value} type="button" onClick={() => { onChange(opt.value); setOpen(false); }}
-              className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-[#222] ${value === opt.value ? "text-[#e5007d] font-semibold" : "text-[#ccc]"}`}>
+              className={`w-full text-left px-4 py-3 text-sm transition-colors hover:bg-white/[0.06] ${value === opt.value ? "text-[#e5007d] font-semibold" : "text-[#ccc]"}`}>
               {opt.label}
             </button>
           ))}
@@ -45,8 +45,8 @@ function DarkSelect({ value, onChange, options, placeholder }: {
   );
 }
 
-const sectionCls = "bg-[#1a1a1a] border border-[#333] rounded-2xl p-6 mb-6";
-const inputCls = "w-full px-4 py-3 bg-[#222] border border-[#333] rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors";
+const sectionCls = "bg-[#16191f] border border-white/10 rounded-2xl p-6 mb-6";
+const inputCls = "w-full px-4 py-3 bg-white/[0.06] border border-white/10 rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors";
 const labelCls = "block text-[#ccc] text-sm font-medium mb-2";
 const sectionTitle = "text-[#e5007d] text-xs tracking-widest uppercase font-semibold mb-1";
 const sectionSub = "text-[#555] text-xs mb-4";
@@ -166,10 +166,10 @@ export default function CosplayApply() {
     });
   };
 
-  if (loading) return <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center"><div className="w-8 h-8 border-2 border-[#333] border-t-[#e5007d] rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center"><div className="w-8 h-8 border-2 border-white/10 border-t-[#e5007d] rounded-full animate-spin" /></div>;
 
   if (!isAuthenticated) return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center px-4">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="max-w-md text-center">
         <Sparkles size={48} className="text-[#e5007d] mx-auto mb-6" strokeWidth={1.5} />
         <h2 className="text-3xl font-black text-white mb-3">Primero crea tu cuenta</h2>
@@ -181,7 +181,7 @@ export default function CosplayApply() {
   );
 
   if (submitted) return (
-    <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center p-6">
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center max-w-md">
         <CheckCircle2 size={64} className="text-[#e5007d] mx-auto mb-6" strokeWidth={1.5} />
         <h2 className="text-3xl font-black text-white mb-3">¡Solicitud enviada!</h2>
@@ -195,7 +195,7 @@ export default function CosplayApply() {
   );
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] py-16">
+    <div className="min-h-screen bg-[#0a0a0a] py-16">
       <div className="container max-w-2xl">
         <Link href="/cosplay">
           <button className="flex items-center gap-2 text-[#888] hover:text-white transition-colors text-sm mb-8">
@@ -209,7 +209,7 @@ export default function CosplayApply() {
           <p className="text-[#888] mb-6 leading-relaxed">Completa todos los campos. Revisaremos tu solicitud en 24–48 horas.</p>
 
           {/* Requisito mínimo */}
-          <div className="flex items-start gap-3 bg-[#1a1a1a] border border-[#333] rounded-xl p-4 mb-8">
+          <div className="flex items-start gap-3 bg-[#16191f] border border-white/10 rounded-xl p-4 mb-8">
             <Info size={16} className="text-[#e5007d] flex-shrink-0 mt-0.5" />
             <p className="text-[#888] text-sm leading-relaxed">
               <strong className="text-white">Requisito mínimo:</strong> al menos{" "}
@@ -252,10 +252,10 @@ export default function CosplayApply() {
                 <label className={labelCls}>Foto de perfil <span className="text-[#e5007d]">*</span></label>
                 <p className="text-[#555] text-xs mb-3">Preferiblemente con alguno de tus cosplays. Formato cuadrado 1:1 recomendado.</p>
                 <div className="flex items-center gap-4">
-                  <div className="w-24 h-24 rounded-full overflow-hidden bg-[#222] border-2 border-dashed border-[#333] flex-shrink-0 flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-full overflow-hidden bg-white/[0.06] border-2 border-dashed border-white/10 flex-shrink-0 flex items-center justify-center">
                     {form.photo ? <img src={form.photo} className="w-full h-full object-cover object-top" alt="" /> : <User size={28} className="text-[#555]" />}
                   </div>
-                  <label className={`flex-1 border-2 border-dashed border-[#333] rounded-xl px-4 py-6 text-center cursor-pointer hover:border-[#e5007d] transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                  <label className={`flex-1 border-2 border-dashed border-white/10 rounded-xl px-4 py-6 text-center cursor-pointer hover:border-[#e5007d] transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                     <Upload size={20} className="text-[#555] mx-auto mb-2" />
                     <p className="text-[#888] text-sm">{form.photo ? 'Cambiar foto' : 'Subir foto de perfil'}</p>
                     <p className="text-[#555] text-xs mt-1">JPG, PNG o WebP · Máx 10MB</p>
@@ -268,7 +268,7 @@ export default function CosplayApply() {
               <div className="mb-6">
                 <label className={labelCls}>Imagen de banner <span className="text-[#e5007d]">*</span></label>
                 <p className="text-[#555] text-xs mb-3">Aparece como fondo en la parte superior de tu perfil. Formato horizontal recomendado.</p>
-                <div className="relative w-full h-32 rounded-xl overflow-hidden bg-[#222] border-2 border-dashed border-[#333]">
+                <div className="relative w-full h-32 rounded-xl overflow-hidden bg-white/[0.06] border-2 border-dashed border-white/10">
                   {form.bannerImage
                     ? <img src={form.bannerImage} className="w-full h-full object-cover" alt="" />
                     : <div className="absolute inset-0 flex items-center justify-center"><p className="text-[#555] text-sm">Sin banner</p></div>
@@ -298,8 +298,8 @@ export default function CosplayApply() {
                     </div>
                   ))}
                   {form.gallery.length < 10 && (
-                    <label className={`aspect-square rounded-xl border-2 border-dashed border-[#333] flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors gap-1 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                      {uploading ? <div className="w-5 h-5 border-2 border-[#333] border-t-[#e5007d] rounded-full animate-spin" /> : <Plus size={20} className="text-[#555]" />}
+                    <label className={`aspect-square rounded-xl border-2 border-dashed border-white/10 flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors gap-1 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                      {uploading ? <div className="w-5 h-5 border-2 border-white/10 border-t-[#e5007d] rounded-full animate-spin" /> : <Plus size={20} className="text-[#555]" />}
                       <span className="text-[#555] text-xs">Agregar</span>
                       <input type="file" accept="image/*" multiple className="hidden" onChange={handleGalleryUpload} />
                     </label>

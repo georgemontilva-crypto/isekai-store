@@ -154,7 +154,7 @@ export default function Account() {
       >
         <div className="absolute inset-0 pointer-events-none account-veil" />
         <div className="relative z-10 flex flex-col items-center gap-2 text-center pt-4 sm:pt-0">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#1a1a1a] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-sm">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-[#16191f] text-white flex items-center justify-center text-2xl sm:text-3xl font-bold shadow-sm">
             {initial}
           </div>
           <h1 className="text-xl font-bold text-[#1a1a1a]">{user?.name}</h1>
@@ -175,7 +175,7 @@ export default function Account() {
           <div className="w-full max-w-2xl mx-auto mb-6 px-4">
             <Link
               href="/cosplay/dashboard"
-              className="flex items-center justify-between w-full bg-[#0d0d0d] text-white px-5 py-4 rounded-2xl hover:bg-[#1a1a1a] transition-colors border border-[#333] group"
+              className="flex items-center justify-between w-full bg-[#0a0a0a] text-white px-5 py-4 rounded-2xl hover:bg-[#16191f] transition-colors border border-white/10 group"
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#e5007d]/10 border border-[#e5007d]/30 flex items-center justify-center flex-shrink-0">
@@ -198,7 +198,7 @@ export default function Account() {
           <div className="w-full max-w-2xl mx-auto mb-6 px-4">
             <Link
               href="/vender"
-              className="flex items-center justify-between w-full bg-[#0d0d0d] text-white px-5 py-4 rounded-2xl hover:bg-[#1a1a1a] transition-colors border border-[#e5007d]/40 group"
+              className="flex items-center justify-between w-full bg-[#0a0a0a] text-white px-5 py-4 rounded-2xl hover:bg-[#16191f] transition-colors border border-[#e5007d]/40 group"
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#e5007d]/10 border border-[#e5007d]/30 flex items-center justify-center flex-shrink-0">
@@ -230,7 +230,7 @@ export default function Account() {
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center justify-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all ${
                   isActive
-                    ? "bg-[#1a1a1a] text-white"
+                    ? "bg-[#16191f] text-white"
                     : "bg-white border border-[#ebebeb] text-[#555] hover:border-[#1a1a1a]/30"
                 }`}
               >
@@ -360,7 +360,7 @@ export default function Account() {
                                   {/* Tracking card — only when shipped/delivered and data exists */}
                                   {hasTracking && (
                                     <div className="mt-4 flex items-start gap-3 p-3.5 rounded-xl border border-[#ebebeb] bg-[#fafafa]">
-                                      <div className="w-8 h-8 rounded-full bg-[#1a1a1a] flex items-center justify-center shrink-0">
+                                      <div className="w-8 h-8 rounded-full bg-[#16191f] flex items-center justify-center shrink-0">
                                         <MapPin className="w-4 h-4 text-white" />
                                       </div>
                                       <div className="text-sm">
@@ -755,7 +755,7 @@ export default function Account() {
 
       {/* Barra inferior tipo app — solo en teléfono */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-[#222] bg-[#111]/95 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.08] bg-[#111]/95 backdrop-blur md:hidden"
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex">

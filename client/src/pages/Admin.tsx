@@ -1235,7 +1235,7 @@ export default function Admin() {
                 onClick={() => { handleTabChange(t.id); setSidebarOpen(false); }}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
                   isActive
-                    ? "bg-[#0f0f0f] text-white"
+                    ? "bg-[#0a0a0a] text-white"
                     : "text-[#4a4a4a] hover:bg-[#f6f6f7] hover:text-[#0f0f0f]"
                 }`}
               >
@@ -2913,7 +2913,7 @@ export default function Admin() {
                 {/* 1. Identidad de la tienda — left col */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#16191f] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
                     </div>
                     <div>
@@ -3157,7 +3157,7 @@ export default function Admin() {
                 {/* 3. Brand Story — left col */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#16191f] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
                     </div>
                     <div>
@@ -3201,7 +3201,7 @@ export default function Admin() {
                 {/* 4. Redes sociales / Promo bar — right col */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#16191f] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
                     </div>
                     <div>
@@ -3315,7 +3315,7 @@ export default function Admin() {
                 {/* 6. Banner lateral producto — right col */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#16191f] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
                     </div>
                     <div>
@@ -3351,7 +3351,7 @@ export default function Admin() {
                 {/* 7. Hero Slides + Video Banner — full width */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50 lg:col-span-2">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#16191f] flex items-center justify-center">
                       <Megaphone className="w-5 h-5 text-white" strokeWidth={1.5} />
                     </div>
                     <div>
@@ -3540,7 +3540,7 @@ export default function Admin() {
                 {/* 11. Cosplay Guild */}
                 <div className="p-6 rounded-2xl bg-card border border-border/50">
                   <div className="flex items-center gap-3 mb-5">
-                    <div className="w-9 h-9 rounded-xl bg-[#1a1a1a] flex items-center justify-center">
+                    <div className="w-9 h-9 rounded-xl bg-[#16191f] flex items-center justify-center">
                       <Sparkles className="w-4 h-4 text-white" />
                     </div>
                     <div>

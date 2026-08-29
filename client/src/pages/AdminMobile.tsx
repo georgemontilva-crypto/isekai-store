@@ -2989,7 +2989,7 @@ export default function AdminMobile() {
               <ArrowLeft size={20} className="text-[#111]" />
             </button>
           ) : (
-            <div className="w-7 h-7 bg-[#0d0d0d] rounded-lg flex items-center justify-center">
+            <div className="w-7 h-7 bg-[#0a0a0a] rounded-lg flex items-center justify-center">
               <span className="text-white text-xs font-black">IW</span>
             </div>
           )}

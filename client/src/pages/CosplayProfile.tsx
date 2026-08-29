@@ -16,15 +16,15 @@ export default function CosplayProfile() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[#333] border-t-[#e5007d] rounded-full animate-spin" />
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-white/10 border-t-[#e5007d] rounded-full animate-spin" />
       </div>
     );
   }
 
   if (!cosplayer) {
     return (
-      <div className="min-h-screen bg-[#0d0d0d] flex items-center justify-center">
+      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
         <div className="text-center">
           <p className="text-[#888] text-lg mb-6">Cosplayer no encontrado</p>
           <Link href="/cosplay/guild">
@@ -50,13 +50,13 @@ export default function CosplayProfile() {
   ].filter(r => (cosplayer as any)[r.key]);
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d] flex flex-col items-center px-4 py-0">
+    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center px-4 py-0">
 
       {/* Banner superior */}
       <div className="w-full h-[200px] sm:h-[260px] overflow-hidden relative">
         {banner
           ? <img src={banner} className="w-full h-full object-cover" alt="" />
-          : <div className="w-full h-full bg-[#1a1a1a]" />
+          : <div className="w-full h-full bg-[#16191f]" />
         }
         <div className="absolute inset-0" style={{ background: 'linear-gradient(to bottom, transparent 40%, rgba(13,13,13,1) 100%)' }} />
       </div>
@@ -65,7 +65,7 @@ export default function CosplayProfile() {
       <div className="w-full max-w-[480px] -mt-16 relative z-10 flex flex-col items-center">
 
         {/* Foto de perfil */}
-        <div className="w-24 h-24 rounded-full overflow-hidden border-4 mb-3 flex-shrink-0 bg-[#222]" style={{ borderColor: tierColor, outline: '3px solid #0d0d0d', outlineOffset: '0px' }}>
+        <div className="w-24 h-24 rounded-full overflow-hidden border-4 mb-3 flex-shrink-0 bg-white/[0.06]" style={{ borderColor: tierColor, outline: '3px solid #0d0d0d', outlineOffset: '0px' }}>
           {cosplayer.photo
             ? <img src={cosplayer.photo} className="w-full h-full object-cover" alt={cosplayer.artisticName} />
             : <div className="w-full h-full flex items-center justify-center"><User size={32} className="text-[#555]" /></div>
@@ -99,7 +99,7 @@ export default function CosplayProfile() {
                 href={(cosplayer as any)[r.key]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full bg-[#1a1a1a] border border-[#333] text-white font-semibold text-center py-4 rounded-2xl hover:border-[#e5007d] hover:bg-[#222] transition-all text-sm"
+                className="w-full bg-[#16191f] border border-white/10 text-white font-semibold text-center py-4 rounded-2xl hover:border-[#e5007d] hover:bg-white/[0.06] transition-all text-sm"
               >
                 {r.label}
               </a>

@@ -165,7 +165,7 @@ export default function ProductDetail() {
             <Frown className="w-16 h-16" strokeWidth={1} />
           </div>
           <h2 className="text-2xl font-bold mb-2">Producto no encontrado</h2>
-          <Link href="/catalog" className="mt-4 inline-block bg-[#1a1a1a] text-white text-sm font-semibold px-6 py-3 rounded-full hover:bg-[#333] transition-colors">
+          <Link href="/catalog" className="mt-4 inline-block bg-[#16191f] text-white text-sm font-semibold px-6 py-3 rounded-full hover:bg-[#333] transition-colors">
             Volver al catálogo
           </Link>
         </div>
@@ -241,7 +241,7 @@ export default function ProductDetail() {
               {/* Badges */}
               <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
                 {hasDiscount && (
-                  <span className="bg-[#1a1a1a] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">
+                  <span className="bg-[#16191f] text-white text-[10px] font-bold px-2.5 py-1 rounded-full leading-none">
                     -{discountPct}%
                   </span>
                 )}
@@ -400,7 +400,7 @@ export default function ProductDetail() {
                         disabled={variant.stock <= 0}
                         className={`relative px-4 py-2.5 rounded-xl text-sm font-medium border-2 transition-all duration-200 ${
                           isSelected
-                            ? "border-[#1a1a1a] bg-[#1a1a1a] text-white"
+                            ? "border-[#1a1a1a] bg-[#16191f] text-white"
                             : variant.stock <= 0
                             ? "border-[#ebebeb] text-[#ccc] cursor-not-allowed"
                             : "border-[#ebebeb] text-[#555] hover:border-[#1a1a1a] hover:text-[#1a1a1a]"
@@ -469,7 +469,7 @@ export default function ProductDetail() {
             <button
               onClick={handleAddToCart}
               disabled={isOutOfStock || adding || buying}
-              className="w-full mt-3 bg-white text-[#1a1a1a] font-semibold text-[15px] py-4 rounded-full border-2 border-[#1a1a1a] hover:bg-[#1a1a1a] hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              className="w-full mt-3 bg-white text-[#1a1a1a] font-semibold text-[15px] py-4 rounded-full border-2 border-[#1a1a1a] hover:bg-[#16191f] hover:text-white transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
             >
               {adding ? (
                 <>

@@ -164,7 +164,7 @@ export default function GateControl() {
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050507]">
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
         <Loader2 className="h-6 w-6 animate-spin text-[#e5007d]" />
       </div>
     );
@@ -172,7 +172,7 @@ export default function GateControl() {
 
   if (!isAuthenticated || !esPortero) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050507] px-6">
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-6">
         <div className="max-w-sm text-center">
           <ShieldCheck className="mx-auto mb-4 h-10 w-10 text-[#3a3a48]" />
           <h1 className="mb-2 text-xl font-black text-white">Control de acceso</h1>
@@ -191,10 +191,10 @@ export default function GateControl() {
     );
   }
 
-  const campo = "w-full rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
+  const campo = "w-full rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
 
   return (
-    <div className="min-h-screen bg-[#050507] text-white">
+    <div className="min-h-screen bg-[#0a0a0a] text-white">
       {escaneando && (
         <QrScanner
           onDetectado={(t) => { setEscaneando(false); void procesar(t); }}
@@ -220,7 +220,7 @@ export default function GateControl() {
         </div>
 
         {/* Preparación */}
-        <div className="mb-5 rounded-2xl border border-[#2e2e3a] bg-[#15151b] p-4">
+        <div className="mb-5 rounded-2xl border border-white/10 bg-[#16191f] p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-bold">Lista de boletos</p>
@@ -233,7 +233,7 @@ export default function GateControl() {
             <button
               onClick={descargar}
               disabled={!enLinea || !evento}
-              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-[#2e2e3a] px-4 text-xs font-bold text-[#b4b4c2] disabled:opacity-40"
+              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 px-4 text-xs font-bold text-[#b4b4c2] disabled:opacity-40"
               style={{ minHeight: 44 }}
             >
               <RefreshCw size={14} /> Descargar
@@ -241,7 +241,7 @@ export default function GateControl() {
           </div>
 
           {cola.length > 0 && (
-            <div className="mt-3 flex items-center justify-between gap-3 border-t border-[#2e2e3a] pt-3">
+            <div className="mt-3 flex items-center justify-between gap-3 border-t border-white/10 pt-3">
               <p className="text-xs text-[#ffd700]">
                 {cola.length} ingreso(s) sin enviar
               </p>

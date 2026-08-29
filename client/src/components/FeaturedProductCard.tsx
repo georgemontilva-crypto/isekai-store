@@ -181,14 +181,14 @@ export default function FeaturedProductCard({
 
               <p className="text-[12px] text-[#e53e3e] font-medium mb-1">¡Solo quedan {activeVariant?.stock ?? fullProduct?.stock ?? 5} unidades!</p>
               <div className="w-full h-1 bg-[#f0f0f0] rounded-full mb-4">
-                <div className="h-full bg-[#1a1a1a] rounded-full" style={{ width: '20%' }} />
+                <div className="h-full bg-[#16191f] rounded-full" style={{ width: '20%' }} />
               </div>
             </div>
 
             <div>
               <button
                 onClick={() => onAddToCart(product.id, product.name)}
-                className="w-full flex items-center justify-between bg-[#1a1a1a] text-white font-semibold text-[14px] px-6 py-4 rounded-full hover:bg-[#333] transition-colors mb-3 active:scale-[0.98]"
+                className="w-full flex items-center justify-between bg-[#16191f] text-white font-semibold text-[14px] px-6 py-4 rounded-full hover:bg-[#333] transition-colors mb-3 active:scale-[0.98]"
               >
                 <span>{t.product.addToCart}</span>
                 <span className="text-white/70">

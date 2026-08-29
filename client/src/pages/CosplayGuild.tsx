@@ -21,7 +21,7 @@ export default function CosplayGuild() {
   const bannerImage = siteSettings?.["cosplay_guild_banner"] ?? "";
 
   return (
-    <div className="min-h-screen bg-[#0d0d0d]">
+    <div className="min-h-screen bg-[#0a0a0a]">
 
       {/* Banner */}
       {bannerImage && (
@@ -41,11 +41,11 @@ export default function CosplayGuild() {
         {isLoading && (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
-              <div key={i} className="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-[#333] animate-pulse">
-                <div className="aspect-square bg-[#222]" />
+              <div key={i} className="bg-[#16191f] rounded-2xl overflow-hidden border border-white/10 animate-pulse">
+                <div className="aspect-square bg-white/[0.06]" />
                 <div className="p-4 space-y-2">
-                  <div className="h-4 bg-[#222] rounded w-3/4" />
-                  <div className="h-3 bg-[#222] rounded w-1/3" />
+                  <div className="h-4 bg-white/[0.06] rounded w-3/4" />
+                  <div className="h-3 bg-white/[0.06] rounded w-1/3" />
                 </div>
               </div>
             ))}
@@ -53,7 +53,7 @@ export default function CosplayGuild() {
         )}
 
         {!isLoading && cosplayers.length === 0 && (
-          <div className="text-center py-24 border border-[#222] rounded-2xl">
+          <div className="text-center py-24 border border-white/[0.08] rounded-2xl">
             <p className="text-[#555] text-lg font-semibold mb-2">Aún no hay cosplayers registrados</p>
             <p className="text-[#888] text-sm">Muy pronto verás aquí a nuestros cosplayers aliados</p>
           </div>
@@ -71,8 +71,8 @@ export default function CosplayGuild() {
                   transition={{ delay: i * 0.04 }}
                 >
                   <Link href={`/cosplay/guild/${cp.username ?? cp.id}`}>
-                    <div className="bg-[#1a1a1a] rounded-2xl overflow-hidden border border-[#333] hover:border-[#e5007d] transition-colors group cursor-pointer">
-                      <div className="aspect-square overflow-hidden bg-[#222]">
+                    <div className="bg-[#16191f] rounded-2xl overflow-hidden border border-white/10 hover:border-[#e5007d] transition-colors group cursor-pointer">
+                      <div className="aspect-square overflow-hidden bg-white/[0.06]">
                         {cp.photo
                           ? <img src={cp.photo} alt={cp.artisticName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           : (

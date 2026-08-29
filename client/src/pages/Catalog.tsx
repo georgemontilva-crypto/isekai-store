@@ -86,7 +86,7 @@ export default function Catalog() {
   return (
     <div className="min-h-screen pb-16">
       {/* ── Page Hero Banner ── */}
-      <div className="relative py-6 md:py-9 overflow-hidden border-b border-[#1f1f1f] bg-[#0a0a0e]">
+      <div className="relative py-6 md:py-9 overflow-hidden border-b border-[#1f1f1f] bg-[#0a0a0a]">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute -top-20 -right-20 w-80 h-80 rounded-full bg-primary/5 blur-3xl" />
           <div className="absolute -bottom-20 -left-20 w-80 h-80 rounded-full bg-accent/5 blur-3xl" />
@@ -256,7 +256,7 @@ export default function Catalog() {
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                 !selectedCategory
                   ? "bg-[#e5007d] text-white"
-                  : "bg-[#15151b] border border-[#2e2e3a] text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
+                  : "bg-[#16191f] border border-white/10 text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
               }`}
             >
               Todos
@@ -268,7 +268,7 @@ export default function Catalog() {
                 className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? "bg-[#e5007d] text-white"
-                    : "bg-[#15151b] border border-[#2e2e3a] text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
+                    : "bg-[#16191f] border border-white/10 text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
                 }`}
               >
                 {cat.name}

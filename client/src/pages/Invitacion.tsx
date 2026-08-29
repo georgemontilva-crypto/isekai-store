@@ -58,12 +58,12 @@ export default function Invitacion() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#050507] text-white">
+    <div className="relative min-h-screen bg-[#0a0a0a] text-white">
       {/* Fondo de toda la página. Va fijo (no se desplaza con el scroll) para
           que una sola imagen cubra el recorrido completo sin repetirse ni
           estirarse, y con un velo oscuro encima que garantiza que el texto
           se lea sobre cualquier imagen. */}
-      <div className="pointer-events-none fixed inset-0 z-0 bg-[#050507]">
+      <div className="pointer-events-none fixed inset-0 z-0 bg-[#0a0a0a]">
         {fondoGeneral && (
           <img src={fondoGeneral} alt="" className="h-full w-full object-cover opacity-30" />
         )}

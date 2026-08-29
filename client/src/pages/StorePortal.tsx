@@ -105,11 +105,11 @@ export default function StorePortal() {
     setNombre(""); setApellido(""); setTelefono(""); setVendido(null);
   };
 
-  const campo = "w-full rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
+  const campo = "w-full rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
 
   if (cargandoSesion) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050507]">
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
         <Loader2 className="h-6 w-6 animate-spin text-[#e5007d]" />
       </div>
     );
@@ -117,7 +117,7 @@ export default function StorePortal() {
 
   if (!isAuthenticated || !esTienda) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050507] px-6">
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-6">
         <div className="max-w-sm text-center">
           <Store className="mx-auto mb-4 h-10 w-10 text-[#3a3a48]" />
           <h1 className="mb-2 text-xl font-black text-white">Portal de tiendas</h1>
@@ -141,7 +141,7 @@ export default function StorePortal() {
   }
 
   return (
-    <div className="min-h-screen bg-[#050507] pb-16 text-white">
+    <div className="min-h-screen bg-[#0a0a0a] pb-16 text-white">
       {escaneando2 && (
         <EscanerSeguro onFallo={() => {
           setEscaneando2(false);
@@ -168,15 +168,15 @@ export default function StorePortal() {
         {/* Resumen de la tienda */}
         {misVentas && (
           <div className="mb-6 grid grid-cols-3 gap-2">
-            <div className="rounded-2xl border border-[#2e2e3a] bg-[#15151b] p-3">
+            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Vendidos</p>
               <p className="text-lg font-black">{misVentas.cantidad}</p>
             </div>
-            <div className="rounded-2xl border border-[#2e2e3a] bg-[#15151b] p-3">
+            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Total USD</p>
               <p className="text-lg font-black text-[#e5007d]">${misVentas.totalUsd.toFixed(2)}</p>
             </div>
-            <div className="rounded-2xl border border-[#2e2e3a] bg-[#15151b] p-3">
+            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Total Bs</p>
               <p className="text-sm font-black">{misVentas.totalBs.toLocaleString("es-VE")}</p>
             </div>
@@ -210,7 +210,7 @@ export default function StorePortal() {
           </div>
         ) : !token ? (
           /* ── Sin boleto cargado ── */
-          <div className="rounded-2xl border border-[#2e2e3a] bg-[#15151b] p-5">
+          <div className="rounded-2xl border border-white/10 bg-[#16191f] p-5">
             <p className="mb-1 text-sm font-bold">Escanea el boleto</p>
             <p className="mb-4 text-xs leading-relaxed text-[#8a8a9c]">
               Abre la cámara y apunta al QR. Si no funciona, escribe el código impreso.
@@ -254,11 +254,11 @@ export default function StorePortal() {
             <p className="font-bold">Código no válido</p>
             <p className="mt-1 text-sm text-[#b4b4c2]">{errorEscaneo.message}</p>
             {ultimoEscaneo && (
-              <p className="mt-3 break-all rounded-lg bg-[#101016] px-3 py-2 font-mono text-[11px] text-[#6a6a7c]">
+              <p className="mt-3 break-all rounded-lg bg-[#101319] px-3 py-2 font-mono text-[11px] text-[#6a6a7c]">
                 Leído: {ultimoEscaneo}
               </p>
             )}
-            <button onClick={limpiar} className="mt-5 w-full rounded-full border border-[#2e2e3a] font-bold text-[#b4b4c2]" style={{ minHeight: 48 }}>
+            <button onClick={limpiar} className="mt-5 w-full rounded-full border border-white/10 font-bold text-[#b4b4c2]" style={{ minHeight: 48 }}>
               Escanear otro
             </button>
           </div>
@@ -281,14 +281,14 @@ export default function StorePortal() {
                 </p>
               </div>
             )}
-            <button onClick={limpiar} className="mt-5 w-full rounded-full border border-[#2e2e3a] font-bold text-[#b4b4c2]" style={{ minHeight: 48 }}>
+            <button onClick={limpiar} className="mt-5 w-full rounded-full border border-white/10 font-bold text-[#b4b4c2]" style={{ minHeight: 48 }}>
               Escanear otro
             </button>
           </div>
         ) : (
           /* ── Boleto en blanco: registrar la venta ── */
           <div className="flex flex-col gap-5">
-            <div className="rounded-2xl border border-[#2e2e3a] bg-[#15151b] p-4 text-center">
+            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-4 text-center">
               <p className="text-xs text-[#8a8a9c]">Boleto</p>
               <p className="font-mono text-lg font-black text-[#e5007d]">{escaneo.ticket.code}</p>
             </div>
@@ -302,7 +302,7 @@ export default function StorePortal() {
                     key={t.id}
                     onClick={() => setTipoElegido(t.id)}
                     className={`rounded-xl border px-4 py-3 text-left transition-colors ${
-                      tipoElegido === t.id ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[#2e2e3a]"
+                      tipoElegido === t.id ? "border-[#e5007d] bg-[#e5007d]/10" : "border-white/10"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
@@ -341,7 +341,7 @@ export default function StorePortal() {
             </div>
 
             <div className="flex gap-2">
-              <button onClick={limpiar} className="flex-1 rounded-full border border-[#2e2e3a] font-bold text-[#b4b4c2]" style={{ minHeight: 52 }}>
+              <button onClick={limpiar} className="flex-1 rounded-full border border-white/10 font-bold text-[#b4b4c2]" style={{ minHeight: 52 }}>
                 Cancelar
               </button>
               <button
@@ -369,7 +369,7 @@ export default function StorePortal() {
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#8a8a9c]">Tus últimas ventas</p>
             <div className="flex flex-col gap-2">
               {misVentas!.boletos.slice(0, 10).map((b: any) => (
-                <div key={b.id} className="flex items-center justify-between gap-3 rounded-xl border border-[#2e2e3a] bg-[#15151b] px-4 py-3">
+                <div key={b.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#16191f] px-4 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">{b.buyerName} {b.buyerLastName}</p>
                     <p className="truncate text-[11px] text-[#8a8a9c]">{b.tipoNombre} · {b.code}</p>

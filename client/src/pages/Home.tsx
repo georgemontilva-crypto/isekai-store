@@ -737,7 +737,7 @@ export default function Home() {
                               if (!isOutOfStock) { try { await addItem(product.id); toast.success("Agregado al carrito"); } catch { toast.error("No se pudo agregar"); } }
                             }}
                             disabled={isOutOfStock}
-                            className="w-full bg-[#1a1a1a] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
+                            className="w-full bg-[#16191f] text-white text-[12px] font-semibold py-2.5 rounded-full hover:bg-[#333] transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
                           >
                             <ShoppingBag size={12} />
                             {isOutOfStock ? "Agotado" : "Agregar al carrito"}

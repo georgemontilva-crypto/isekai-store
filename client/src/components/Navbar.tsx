@@ -274,7 +274,7 @@ export default function Navbar() {
     <>
       {/* TOP BAR */}
       {siteSettings?.["promo_bar_enabled"] !== "false" && (
-      <div className="top-bar bg-[#1a1a1a] text-white overflow-hidden">
+      <div className="top-bar bg-[#16191f] text-white overflow-hidden">
         {/* Marquee infinito: la pista se duplica y se desplaza el 50 % de su
             ancho, así el bucle no tiene costura */}
         <div className="iw-topbar-track flex w-max whitespace-nowrap items-center">
@@ -306,7 +306,7 @@ export default function Navbar() {
               <img src={logoUrl} alt={storeName} width={120} height={40} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
             ) : (
               <div className="flex items-end gap-[2px]">
-                {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#1a1a1a] rounded-full" style={{height:`${h}px`}}/>)}
+                {[6,10,14,10,6].map((h,i) => <div key={i} className="w-[3px] bg-[#16191f] rounded-full" style={{height:`${h}px`}}/>)}
               </div>
             )}
             {!logoUrl && <span className="font-bold text-xl md:text-[15px] tracking-tight text-[#1a1a1a]">{storeName}</span>}
@@ -317,13 +317,13 @@ export default function Navbar() {
             <Link href="/catalog" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">{t.nav.shop}</Link>
 
             <div className="relative" onMouseEnter={() => openMenu("collections")} onMouseLeave={scheduleClose}>
-              <Link href="/collections" className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="collections"?"bg-[#1a1a1a] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
+              <Link href="/collections" className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="collections"?"bg-[#16191f] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
                 {t.nav.collections}
               </Link>
             </div>
 
             <div className="relative" onMouseEnter={() => openMenu("explore")} onMouseLeave={scheduleClose}>
-              <button className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="explore"?"bg-[#1a1a1a] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
+              <button className={`flex items-center gap-1 px-3.5 py-2 text-[13.5px] font-medium transition-all rounded-full ${activeMenu==="explore"?"bg-[#16191f] text-white":"text-[#1a1a1a] hover:opacity-50"}`}>
                 {t.nav.explore}<ChevronDown size={12} className={`transition-transform duration-200 ${activeMenu==="explore"?"rotate-180":""}`}/>
               </button>
               <AnimatePresence>
@@ -450,7 +450,7 @@ export default function Navbar() {
             }
             <button onClick={() => openCart()} aria-label="Abrir carrito" className="relative p-2 md:p-2.5 hover:bg-[#f5f5f5] rounded-full transition-colors">
               <ShoppingBag size={17} strokeWidth={1.8}/>
-              {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#1a1a1a] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
+              {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#16191f] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
             </button>
             <button onClick={() => setMobileOpen(true)} aria-label="Abrir menú" className="md:hidden p-2 hover:bg-[#f5f5f5] rounded-full transition-colors ml-0.5"><Menu size={17} strokeWidth={1.8}/></button>
           </div>
@@ -462,7 +462,7 @@ export default function Navbar() {
             <motion.div variants={dropdownVariants} initial="hidden" animate="visible" exit="exit" transition={{duration:0.22,type:"tween"}} onMouseEnter={cancelClose} onMouseLeave={scheduleClose} className="hidden lg:block absolute left-0 right-0 top-[60px] z-50 bg-[#f2f2f2] border-b border-[#e0e0e0] shadow-[0_4px_20px_rgba(0,0,0,0.06)]">
               <div className="flex gap-3 px-4 py-4 overflow-x-auto scrollbar-hide">
                 {collectionsMenu.map(col => (
-                  <Link key={col.label} href={col.href} onClick={() => setActiveMenu(null)} className={`group relative flex flex-col overflow-hidden rounded-2xl shrink-0 shadow-sm ${col.dark?"bg-[#1a1a1a]":"bg-white"}`} style={{width:"calc(20% - 10px)",minWidth:"200px"}}>
+                  <Link key={col.label} href={col.href} onClick={() => setActiveMenu(null)} className={`group relative flex flex-col overflow-hidden rounded-2xl shrink-0 shadow-sm ${col.dark?"bg-[#16191f]":"bg-white"}`} style={{width:"calc(20% - 10px)",minWidth:"200px"}}>
                     <div className="aspect-[4/3] overflow-hidden"><img src={col.img} alt={col.label} width={400} height={300} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"/></div>
                     <div className={`px-4 py-3 flex items-start justify-between gap-2 ${col.dark?"text-white":"text-[#1a1a1a]"}`}>
                       <div>
@@ -506,7 +506,7 @@ export default function Navbar() {
         className={`iw-menu md:hidden ${mobileOpen ? "is-open" : ""}`}
         aria-hidden={!mobileOpen}
       >
-        <div className="flex items-center justify-between border-b border-[#22222c] px-6 h-[60px]">
+        <div className="flex items-center justify-between border-b border-white/[0.08] px-6 h-[60px]">
           {logoUrl
             ? <img src={logoUrl} alt={storeName} style={{ height: logoHeight, width: 'auto' }} className="object-contain" />
             : <span className="font-bold text-[15px]">{storeName}</span>}
@@ -523,7 +523,7 @@ export default function Navbar() {
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Buscar productos..."
               tabIndex={mobileOpen ? 0 : -1}
-              className="flex-1 rounded-full border border-[#2e2e3a] bg-[#101016] px-4 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-[#7c7c8c] focus:border-[#e5007d]"
+              className="flex-1 rounded-full border border-white/10 bg-[#101319] px-4 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-[#7c7c8c] focus:border-[#e5007d]"
             />
             <button type="submit" aria-label="Buscar" tabIndex={mobileOpen ? 0 : -1} className="btn-pill px-4 text-sm"><Search size={15} /></button>
           </form>

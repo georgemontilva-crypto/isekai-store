@@ -17,7 +17,7 @@ import { useAntiSpam } from "@/hooks/useAntiSpam";
 
 function Copiable({ label, valor }: { label: string; valor: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 py-3">
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#101319] px-4 py-3">
       <div className="min-w-0">
         <p className="text-[11px] uppercase tracking-wider text-[#8a8a9c]">{label}</p>
         <p className="truncate font-mono text-sm text-white" style={{ overflowWrap: "anywhere" }}>{valor}</p>
@@ -27,7 +27,7 @@ function Copiable({ label, valor }: { label: string; valor: string }) {
           try { await navigator.clipboard.writeText(valor); toast.success("Copiado"); }
           catch { prompt("Copia este dato:", valor); }
         }}
-        className="shrink-0 rounded-lg border border-[#2e2e3a] p-2 text-[#b4b4c2] transition-colors hover:border-[#e5007d] hover:text-[#e5007d]"
+        className="shrink-0 rounded-lg border border-white/10 p-2 text-[#b4b4c2] transition-colors hover:border-[#e5007d] hover:text-[#e5007d]"
         aria-label={`Copiar ${label}`}
       >
         <Copy size={15} />
@@ -121,7 +121,7 @@ export default function QuoteView() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center bg-[#050507]">
+      <div className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0a]">
         <Loader2 className="h-6 w-6 animate-spin text-[#e5007d]" />
       </div>
     );
@@ -129,7 +129,7 @@ export default function QuoteView() {
 
   if (error || !cotizacion) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center bg-[#050507] px-6">
+      <div className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0a] px-6">
         <div className="max-w-sm text-center">
           <FileText className="mx-auto mb-4 h-10 w-10 text-[#3a3a48]" />
           <h1 className="mb-2 text-xl font-black text-white">Cotización no disponible</h1>
@@ -146,7 +146,7 @@ export default function QuoteView() {
 
   if (listo) {
     return (
-      <div className="flex min-h-[70vh] items-center justify-center bg-[#050507] px-6">
+      <div className="flex min-h-[70vh] items-center justify-center bg-[#0a0a0a] px-6">
         <div className="max-w-md text-center">
           <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[#e5007d]/15">
             <Check className="h-7 w-7 text-[#e5007d]" />
@@ -179,7 +179,7 @@ export default function QuoteView() {
   const puedeEnviar = nombre.trim().length >= 2 && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) && !pagar.isPending;
 
   return (
-    <div className="min-h-screen bg-[#050507] pb-16">
+    <div className="min-h-screen bg-[#0a0a0a] pb-16">
       <div className="mx-auto max-w-2xl px-6 py-10">
         <Link href="/" className="mb-8 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8a8a9c] transition-colors hover:text-white">
           <ArrowLeft size={13} /> Isekai World
@@ -194,9 +194,9 @@ export default function QuoteView() {
         )}
 
         {/* Detalle */}
-        <div className="mb-6 overflow-hidden rounded-2xl border border-[#2e2e3a] bg-[#15151b]">
+        <div className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-[#16191f]">
           {items.map((i: any, idx: number) => (
-            <div key={idx} className="flex items-start justify-between gap-4 border-b border-[#22222c] px-5 py-4 last:border-0">
+            <div key={idx} className="flex items-start justify-between gap-4 border-b border-white/[0.08] px-5 py-4 last:border-0">
               <div className="min-w-0">
                 <p className="text-sm font-semibold text-white">{i.concepto}</p>
                 {i.cantidad > 1 && <p className="text-xs text-[#8a8a9c]">Cantidad: {i.cantidad}</p>}
@@ -206,7 +206,7 @@ export default function QuoteView() {
               </p>
             </div>
           ))}
-          <div className="flex items-center justify-between bg-[#101016] px-5 py-4">
+          <div className="flex items-center justify-between bg-[#101319] px-5 py-4">
             <span className="text-sm font-bold uppercase tracking-wide text-[#b4b4c2]">Total</span>
             <div className="text-right">
               <p className="text-2xl font-black text-[#e5007d]">${cotizacion.total} USD</p>
@@ -223,7 +223,7 @@ export default function QuoteView() {
         </div>
 
         {cotizacion.notes && (
-          <p className="mb-8 rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 py-3 text-xs leading-relaxed text-[#b4b4c2]">
+          <p className="mb-8 rounded-xl border border-white/10 bg-[#101319] px-4 py-3 text-xs leading-relaxed text-[#b4b4c2]">
             {cotizacion.notes}
           </p>
         )}
@@ -255,7 +255,7 @@ export default function QuoteView() {
                   key={id}
                   onClick={() => setMetodo(id)}
                   className={`flex-1 rounded-xl border px-4 text-sm font-bold transition-colors ${
-                    metodo === id ? "border-[#e5007d] bg-[#e5007d]/10 text-[#e5007d]" : "border-[#2e2e3a] text-[#b4b4c2]"
+                    metodo === id ? "border-[#e5007d] bg-[#e5007d]/10 text-[#e5007d]" : "border-white/10 text-[#b4b4c2]"
                   }`}
                   style={{ minHeight: 48 }}
                 >
@@ -293,12 +293,12 @@ export default function QuoteView() {
                 value={montoAbono}
                 onChange={e => setMontoAbono(e.target.value.replace(/[^0-9.]/g, ""))}
                 placeholder={`Cuánto abonas (hasta ${(cotizacion.saldoPendiente ?? 0).toFixed(2)})`}
-                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                className="rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
               <button
                 onClick={() => setMontoAbono((cotizacion.saldoPendiente ?? 0).toFixed(2))}
-                className="rounded-xl border border-[#2e2e3a] text-xs font-bold text-[#b4b4c2]"
+                className="rounded-xl border border-white/10 text-xs font-bold text-[#b4b4c2]"
                 style={{ minHeight: 44 }}
               >
                 Pagar todo el saldo
@@ -306,11 +306,11 @@ export default function QuoteView() {
               <input
                 value={referencia} onChange={e => setReferencia(e.target.value)}
                 placeholder="Referencia del pago"
-                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                className="rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
               <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed px-4 text-sm font-semibold transition-colors ${
-                comprobante ? "border-green-500/50 text-green-400" : "border-[#2e2e3a] text-[#b4b4c2] hover:border-[#e5007d]"
+                comprobante ? "border-green-500/50 text-green-400" : "border-white/10 text-[#b4b4c2] hover:border-[#e5007d]"
               }`} style={{ minHeight: 54 }}>
                 {subiendo ? <Loader2 size={16} className="animate-spin" /> : comprobante ? <Check size={16} /> : <Upload size={16} />}
                 {subiendo ? "Subiendo..." : comprobante ? "Comprobante cargado" : "Subir comprobante"}
@@ -354,7 +354,7 @@ export default function QuoteView() {
                     <button
                       onClick={() => setPagaTodo(false)}
                       className={`rounded-xl border px-4 py-4 text-left transition-colors ${
-                        !pagaTodo ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[#2e2e3a]"
+                        !pagaTodo ? "border-[#e5007d] bg-[#e5007d]/10" : "border-white/10"
                       }`}
                     >
                       <p className={`text-sm font-bold ${!pagaTodo ? "text-[#ff45a0]" : "text-white"}`}>
@@ -367,7 +367,7 @@ export default function QuoteView() {
                     <button
                       onClick={() => setPagaTodo(true)}
                       className={`rounded-xl border px-4 py-4 text-left transition-colors ${
-                        pagaTodo ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[#2e2e3a]"
+                        pagaTodo ? "border-[#e5007d] bg-[#e5007d]/10" : "border-white/10"
                       }`}
                     >
                       <p className={`text-sm font-bold ${pagaTodo ? "text-[#ff45a0]" : "text-white"}`}>
@@ -388,7 +388,7 @@ export default function QuoteView() {
                   key={id}
                   onClick={() => setMetodo(id)}
                   className={`flex-1 rounded-xl border px-4 text-sm font-bold transition-colors ${
-                    metodo === id ? "border-[#e5007d] bg-[#e5007d]/10 text-[#e5007d]" : "border-[#2e2e3a] text-[#b4b4c2]"
+                    metodo === id ? "border-[#e5007d] bg-[#e5007d]/10 text-[#e5007d]" : "border-white/10 text-[#b4b4c2]"
                   }`}
                   style={{ minHeight: 48 }}
                 >
@@ -443,14 +443,14 @@ export default function QuoteView() {
               <input
                 value={nombre} onChange={e => setNombre(e.target.value)}
                 placeholder="Tu nombre completo"
-                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                className="rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
               <input
                 type="email" inputMode="email"
                 value={email} onChange={e => setEmail(e.target.value)}
                 placeholder="Tu correo"
-                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                className="rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
               <p className="-mt-1 text-[11px] text-[#8a8a9c]">
@@ -460,7 +460,7 @@ export default function QuoteView() {
                 type="tel" inputMode="tel"
                 value={telefono} onChange={e => setTelefono(e.target.value)}
                 placeholder="Tu teléfono (opcional)"
-                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                className="rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
               {/* Código de cosplayer: opcional, pero da comisión a quien te
@@ -470,7 +470,7 @@ export default function QuoteView() {
                   value={codigoRef}
                   onChange={e => setCodigoRef(e.target.value.toUpperCase())}
                   placeholder="Código de cosplayer (opcional)"
-                  className="w-full rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 font-mono text-sm uppercase text-white outline-none transition-colors placeholder:font-sans placeholder:normal-case placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                  className="w-full rounded-xl border border-white/10 bg-[#101319] px-4 font-mono text-sm uppercase text-white outline-none transition-colors placeholder:font-sans placeholder:normal-case placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                   style={{ minHeight: 50 }}
                 />
                 {codigoRef.trim().length >= 4 && (
@@ -487,19 +487,19 @@ export default function QuoteView() {
               <input
                 value={referencia} onChange={e => setReferencia(e.target.value)}
                 placeholder="Referencia del pago"
-                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                className="rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
               <input
                 value={titular} onChange={e => setTitular(e.target.value)}
                 placeholder="Titular de la cuenta que pagó"
-                className="rounded-xl border border-[#2e2e3a] bg-[#101016] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                className="rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
                 style={{ minHeight: 50 }}
               />
 
               {/* Comprobante */}
               <label className={`flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed px-4 text-sm font-semibold transition-colors ${
-                comprobante ? "border-green-500/50 text-green-400" : "border-[#2e2e3a] text-[#b4b4c2] hover:border-[#e5007d]"
+                comprobante ? "border-green-500/50 text-green-400" : "border-white/10 text-[#b4b4c2] hover:border-[#e5007d]"
               }`} style={{ minHeight: 54 }}>
                 {subiendo ? <Loader2 size={16} className="animate-spin" /> : comprobante ? <Check size={16} /> : <Upload size={16} />}
                 {subiendo ? "Subiendo..." : comprobante ? "Comprobante cargado" : "Subir comprobante de pago"}

@@ -250,7 +250,7 @@ function Devoluciones() {
             { n: "4", text: "Si el cambio es aprobado, coordinaremos la recolección del producto dañado y el envío del reemplazo sin costo para ti. / If the exchange is approved, we will coordinate the pickup of the damaged product and ship the replacement at no cost to you." },
           ].map(({ n, text }) => (
             <div key={n} className="flex gap-4 items-start">
-              <span className="w-8 h-8 rounded-full bg-[#1a1a1a] text-white text-sm font-bold flex items-center justify-center shrink-0">{n}</span>
+              <span className="w-8 h-8 rounded-full bg-[#16191f] text-white text-sm font-bold flex items-center justify-center shrink-0">{n}</span>
               <p className="pt-1">{text}</p>
             </div>
           ))}
@@ -472,7 +472,7 @@ export default function Politicas() {
   return (
     <div className="min-h-screen bg-white">
       {/* Hero */}
-      <div className="bg-[#1a1a1a] text-white py-20">
+      <div className="bg-[#16191f] text-white py-20">
         <div className="container max-w-4xl text-center">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
