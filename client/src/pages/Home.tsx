@@ -232,11 +232,29 @@ export default function Home() {
     }))
     .filter(s => s.image);
 
-  // Auto-advance hero
+  /**
+   * Avance del banner con barra de progreso.
+   *
+   * En vez de un simple temporizador, se lleva la cuenta del porcentaje
+   * transcurrido: es lo que llena el fondo del slide activo en la lista
+   * lateral y avisa al visitante de cuánto falta para el cambio.
+   */
+  const DURACION_SLIDE = 8000;
+  const [heroProgreso, setHeroProgreso] = useState(0);
+
   useEffect(() => {
-    const t = setInterval(() => setHeroIdx(i => (i + 1) % heroSlides.length), 5000);
-    return () => clearInterval(t);
-  }, [heroSlides.length]);
+    if (heroSlides.length < 2) return;
+    const inicio = Date.now();
+    setHeroProgreso(0);
+
+    const id = setInterval(() => {
+      const pct = Math.min(((Date.now() - inicio) / DURACION_SLIDE) * 100, 100);
+      setHeroProgreso(pct);
+      if (pct >= 100) setHeroIdx(i => (i + 1) % heroSlides.length);
+    }, 40);
+
+    return () => clearInterval(id);
+  }, [heroIdx, heroSlides.length]);
 
   const videoUrl      = settings?.["video_banner_video_url"] ?? "";
   const videoTitle    = settings?.["video_banner_title"]     ?? "";
@@ -286,91 +304,94 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           1. HERO PEEK CAROUSEL
       ══════════════════════════════════════════════ */}
-      {/* ── Banner principal ──
-          Carrusel contenido: con márgenes laterales, aire arriba y abajo y
-          esquinas redondeadas, para que se lea como una pieza sobre el fondo
-          y no como una imagen a sangre. La transición es por fundido y el
-          texto se apoya en un degradado, de modo que se lee sobre cualquier
-          fotografía. */}
+      {/* ── Banner principal — estilo Epic Games Store ──
+          Rejilla 3:1: el banner grande a la izquierda y la lista de slides a
+          la derecha. El slide activo se llena con una barra de progreso que
+          indica cuánto falta para el siguiente; al tocar cualquiera se salta
+          a él. En teléfono la lista se oculta y queda solo el banner. */}
       {heroSlides.length > 0 && (
-      <section className="px-4 pt-4 pb-6 sm:px-6 sm:pt-6 sm:pb-8">
-        <div className="iw-hero group relative mx-auto w-full max-w-[1400px] overflow-hidden rounded-2xl">
-        {heroSlides.map((slide, i) => (
-          <div
-            key={i}
-            className="absolute inset-0 transition-opacity duration-700"
-            style={{ opacity: i === heroIdx ? 1 : 0, pointerEvents: i === heroIdx ? "auto" : "none" }}
-          >
-            <img src={slide.image} alt={slide.title || ""} className="h-full w-full object-cover" />
+      <section className="px-4 pt-4 pb-8 sm:px-6">
+        <div className="mx-auto w-full max-w-[1400px] lg:grid lg:gap-6" style={{ gridTemplateColumns: "3fr 1fr" }}>
 
-            {/* Degradados: uno lateral para el texto y otro inferior para
-                fundir el banner con el fondo de la página */}
-            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+          {/* Banner */}
+          <div className="relative w-full overflow-hidden rounded-xl bg-[#16191f]" style={{ height: "clamp(240px, 46vw, 470px)" }}>
+            {heroSlides.map((slide, i) => (
+              <div
+                key={i}
+                className="absolute inset-0 transition-opacity duration-300"
+                style={{ opacity: i === heroIdx ? 1 : 0, pointerEvents: i === heroIdx ? "auto" : "none" }}
+              >
+                <img src={slide.image} alt={slide.title || ""} className="h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/35 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-transparent" />
 
-            {(slide.title || slide.buttonText) && (
-              <div className="absolute bottom-0 left-0 w-full max-w-2xl p-7 sm:p-12">
-                {slide.subtitle && (
-                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff45a0]">
-                    {slide.subtitle}
-                  </p>
-                )}
-                {slide.title && (
-                  <h2 className="mb-4 text-3xl font-black leading-[1.05] text-white sm:text-5xl">
-                    {slide.title}
-                  </h2>
-                )}
-                {slide.buttonText && slide.buttonUrl && (
-                  <Link href={slide.buttonUrl}>
-                    <button className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-[#111] transition-transform hover:scale-105">
-                      {slide.buttonText}
-                      <ArrowRight size={16} />
-                    </button>
-                  </Link>
+                {(slide.title || slide.buttonText) && (
+                  <div className="absolute bottom-0 left-0 w-full max-w-xl p-6 sm:p-9">
+                    {slide.subtitle && (
+                      <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.28em] text-[#ff45a0]">
+                        {slide.subtitle}
+                      </p>
+                    )}
+                    {slide.title && (
+                      <h2 className="mb-4 text-2xl font-black leading-[1.08] text-white sm:text-4xl">
+                        {slide.title}
+                      </h2>
+                    )}
+                    {slide.buttonText && slide.buttonUrl && (
+                      <Link href={slide.buttonUrl}>
+                        <button className="inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-bold text-[#111] transition-colors hover:bg-white/85">
+                          {slide.buttonText}
+                          <ArrowRight size={16} />
+                        </button>
+                      </Link>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-          </div>
-        ))}
-
-        {/* Flechas: aparecen al acercar el cursor */}
-        {heroSlides.length > 1 && (
-          <>
-            <button
-              onClick={() => setHeroIdx(i => (i - 1 + heroSlides.length) % heroSlides.length)}
-              aria-label="Anterior"
-              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:opacity-0 md:group-hover:opacity-100"
-            >
-              <ChevronLeft size={20} />
-            </button>
-            <button
-              onClick={() => setHeroIdx(i => (i + 1) % heroSlides.length)}
-              aria-label="Siguiente"
-              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:opacity-0 md:group-hover:opacity-100"
-            >
-              <ChevronRight size={20} />
-            </button>
-          </>
-        )}
-
-        {/* Puntos: el activo se alarga */}
-        {heroSlides.length > 1 && (
-          <div className="absolute bottom-5 right-6 z-10 flex items-center gap-1.5">
-            {heroSlides.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setHeroIdx(i)}
-                aria-label={`Ir al slide ${i + 1}`}
-                className="rounded-full transition-all duration-300"
-                style={{
-                  width: i === heroIdx ? 22 : 6,
-                  height: 6,
-                  background: i === heroIdx ? "#ffffff" : "rgba(255,255,255,0.35)",
-                }}
-              />
             ))}
           </div>
-        )}
+
+          {/* Lista lateral: solo en escritorio */}
+          {heroSlides.length > 1 && (
+            <div className="hidden flex-col gap-2 lg:flex">
+              {heroSlides.map((slide, i) => {
+                const activo = i === heroIdx;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setHeroIdx(i)}
+                    className="relative flex items-center gap-3.5 overflow-hidden rounded-lg px-3 py-2.5 text-left transition-colors"
+                    style={{ background: "rgba(255,255,255,0.04)", isolation: "isolate" }}
+                  >
+                    {/* El fondo se llena marcando cuánto falta para el cambio */}
+                    {activo && (
+                      <div
+                        className="pointer-events-none absolute inset-y-0 left-0 rounded-lg"
+                        style={{
+                          background: "rgba(255,255,255,0.09)",
+                          width: `${heroProgreso}%`,
+                          transition: "width 40ms linear",
+                          zIndex: 0,
+                        }}
+                      />
+                    )}
+                    <div
+                      className="relative z-10 shrink-0 overflow-hidden rounded-lg bg-[#1a1a1f]"
+                      style={{ width: 56, height: 56 }}
+                    >
+                      <img src={slide.image} alt="" className="h-full w-full object-cover" />
+                    </div>
+                    <p
+                      className="relative z-10 min-w-0 flex-1 text-sm font-semibold leading-snug"
+                      style={{ color: activo ? "#fff" : "rgba(255,255,255,0.65)", wordBreak: "break-word" }}
+                    >
+                      {slide.title || `Novedad ${i + 1}`}
+                    </p>
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </div>
       </section>
       )}
