@@ -256,6 +256,10 @@ export const es = {
     label: "Legal",
     title: "Políticas",
     tabs: [
+      { id: "terminos",     label: "Términos de venta" },
+      { id: "encargos",     label: "Piezas por encargo" },
+      { id: "envios",       label: "Envíos" },
+      { id: "boletos",      label: "Boletos de eventos" },
       { id: "devoluciones", label: "Devoluciones" },
       { id: "privacidad",   label: "Privacidad" },
       { id: "cookies",      label: "Cookies" },

@@ -249,6 +249,10 @@ export const en: Translations = {
     label: "Legal",
     title: "Policies",
     tabs: [
+      { id: "terminos",     label: "Sales Terms" },
+      { id: "encargos",     label: "Custom Orders" },
+      { id: "envios",       label: "Shipping" },
+      { id: "boletos",      label: "Event Tickets" },
       { id: "devoluciones", label: "Returns" },
       { id: "privacidad",   label: "Privacy" },
       { id: "cookies",      label: "Cookies" },
