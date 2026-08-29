@@ -508,6 +508,25 @@ export default function Home() {
       </section>
       )}
 
+      {/* Vitrina 1 — debajo de los universos */}
+      {(() => {
+        const catId = parseInt(settings?.["showcase_1_category"] ?? "0");
+        if (!catId) return null;
+        const cat = categories?.find((c: any) => c.id === catId);
+        return (
+          <CategoryShowcase
+            categoryId={catId}
+            categorySlug={cat?.slug}
+            titulo={settings?.["showcase_1_title"] || cat?.name || "Novedades"}
+            imagen={settings?.["showcase_1_image"]}
+            imagenMovil={settings?.["showcase_1_image_mobile"]}
+            ctaTexto={settings?.["showcase_1_cta"]}
+            esMovil={isMobile}
+          />
+        );
+      })()}
+
+
       {/* ══════════════════════════════════════════════
           4+5. VIDEO BANNER + FLOATING FEATURED PRODUCT
       ══════════════════════════════════════════════ */}
@@ -565,6 +584,25 @@ export default function Home() {
 
       </div>
 
+      {/* Vitrina 2 — después del banner de video */}
+      {(() => {
+        const catId = parseInt(settings?.["showcase_2_category"] ?? "0");
+        if (!catId) return null;
+        const cat = categories?.find((c: any) => c.id === catId);
+        return (
+          <CategoryShowcase
+            categoryId={catId}
+            categorySlug={cat?.slug}
+            titulo={settings?.["showcase_2_title"] || cat?.name || "Novedades"}
+            imagen={settings?.["showcase_2_image"]}
+            imagenMovil={settings?.["showcase_2_image_mobile"]}
+            ctaTexto={settings?.["showcase_2_cta"]}
+            esMovil={isMobile}
+          />
+        );
+      })()}
+
+
 
 
       {/* ══════════════════════════════════════════════
@@ -572,29 +610,25 @@ export default function Home() {
       ══════════════════════════════════════════════ */}
       <SaleSlider />
 
-
-      {/* ══════════════════════════════════════════════
-          VITRINAS POR CATEGORÍA
-          Imagen grande y, debajo, los productos de esa categoría en filas
-          que se deslizan. Se configuran desde el panel: hasta tres.
-      ══════════════════════════════════════════════ */}
-      {[1, 2, 3].map(n => {
-        const catId = parseInt(settings?.[`showcase_${n}_category`] ?? "0");
+      {/* Vitrina 3 — después del banner de imágenes */}
+      {(() => {
+        const catId = parseInt(settings?.["showcase_3_category"] ?? "0");
         if (!catId) return null;
         const cat = categories?.find((c: any) => c.id === catId);
         return (
           <CategoryShowcase
-            key={n}
             categoryId={catId}
             categorySlug={cat?.slug}
-            titulo={settings?.[`showcase_${n}_title`] || cat?.name || "Novedades"}
-            imagen={settings?.[`showcase_${n}_image`]}
-            imagenMovil={settings?.[`showcase_${n}_image_mobile`]}
-            ctaTexto={settings?.[`showcase_${n}_cta`]}
+            titulo={settings?.["showcase_3_title"] || cat?.name || "Novedades"}
+            imagen={settings?.["showcase_3_image"]}
+            imagenMovil={settings?.["showcase_3_image_mobile"]}
+            ctaTexto={settings?.["showcase_3_cta"]}
             esMovil={isMobile}
           />
         );
-      })}
+      })()}
+
+
 
       {/* ══════════════════════════════════════════════
           9. MARQUEE TICKER
