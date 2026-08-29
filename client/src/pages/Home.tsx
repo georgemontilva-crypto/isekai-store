@@ -286,89 +286,89 @@ export default function Home() {
       {/* ══════════════════════════════════════════════
           1. HERO PEEK CAROUSEL
       ══════════════════════════════════════════════ */}
+      {/* ── Banner principal ──
+          Carrusel a ancho completo con transición por fundido: la imagen ocupa
+          todo el espacio y el texto se apoya sobre un degradado, de forma que
+          se lee sobre cualquier fotografía. Las flechas aparecen al pasar el
+          cursor y los puntos marcan la posición. */}
       {heroSlides.length > 0 && (
-      <section className="hero-peek-section">
-        {/* Track */}
-        <div className="hero-peek-track">
-          {heroSlides.map((slide, i) => {
-            const offset = i - heroIdx;
-            const isActive = offset === 0;
-            const isPrev = offset === -1 || (heroIdx === 0 && i === heroSlides.length - 1);
-            const isNext = offset === 1 || (heroIdx === heroSlides.length - 1 && i === 0);
-            return (
-              <div
-                key={i}
-                className={`hero-peek-slide ${
-                  isActive ? "active" : isPrev ? "prev" : isNext ? "next" : "hidden-slide"
-                }`}
-                onClick={() => !isActive && setHeroIdx(i)}
-              >
-                <img
-                  src={slide.image}
-                  alt={slide.title}
-                  width={1920}
-                  height={1080}
-                  className={`hero-peek-img object-right sm:object-center ${isActive ? "zoomed-in" : ""}`}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  decoding={i === 0 ? "sync" : "async"}
-                  fetchPriority={i === 0 ? "high" : "low"}
-                />
-                <div className="absolute inset-0 sm:hidden" style={{
-                  background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 40%, transparent 70%)'
-                }} />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/50 via-black/20 to-transparent" />
-                {isActive && (slide.title || slide.buttonText) && (
-                  <div className="hero-peek-content">
-                    {slide.title && (
-                      <h1 className="hero-peek-title">{slide.title.toUpperCase()}</h1>
-                    )}
-                    {slide.subtitle && (
-                      <p className="text-white/80 text-base mb-4">{slide.subtitle}</p>
-                    )}
-                    {slide.buttonText && slide.buttonUrl && (
-                      <Link
-                        href={slide.buttonUrl}
-                        className="inline-flex items-center gap-2 bg-white text-[#111] px-6 py-3 rounded-full font-semibold text-sm hover:bg-white/90 transition-colors mt-4"
-                      >
-                        {slide.buttonText} →
-                      </Link>
-                    )}
-                  </div>
+      <section className="iw-hero group relative w-full overflow-hidden">
+        {heroSlides.map((slide, i) => (
+          <div
+            key={i}
+            className="absolute inset-0 transition-opacity duration-700"
+            style={{ opacity: i === heroIdx ? 1 : 0, pointerEvents: i === heroIdx ? "auto" : "none" }}
+          >
+            <img src={slide.image} alt={slide.title || ""} className="h-full w-full object-cover" />
+
+            {/* Degradados: uno lateral para el texto y otro inferior para
+                fundir el banner con el fondo de la página */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+
+            {(slide.title || slide.buttonText) && (
+              <div className="absolute bottom-0 left-0 w-full max-w-2xl p-7 sm:p-12">
+                {slide.subtitle && (
+                  <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff45a0]">
+                    {slide.subtitle}
+                  </p>
+                )}
+                {slide.title && (
+                  <h2 className="mb-4 text-3xl font-black leading-[1.05] text-white sm:text-5xl">
+                    {slide.title}
+                  </h2>
+                )}
+                {slide.buttonText && slide.buttonUrl && (
+                  <Link href={slide.buttonUrl}>
+                    <button className="inline-flex items-center gap-2 rounded-full bg-white px-7 py-3.5 text-sm font-bold text-[#111] transition-transform hover:scale-105">
+                      {slide.buttonText}
+                      <ArrowRight size={16} />
+                    </button>
+                  </Link>
                 )}
               </div>
-            );
-          })}
-        </div>
+            )}
+          </div>
+        ))}
 
-        {/* Controls row */}
-        <div className="hero-peek-controls">
-          <button
-            onClick={() => setHeroIdx(i => (i - 1 + heroSlides.length) % heroSlides.length)}
-            className="hero-ctrl-btn"
-            aria-label="Anterior"
-          >
-            ←
-          </button>
-          <div className="flex items-center gap-2">
+        {/* Flechas: aparecen al acercar el cursor */}
+        {heroSlides.length > 1 && (
+          <>
+            <button
+              onClick={() => setHeroIdx(i => (i - 1 + heroSlides.length) % heroSlides.length)}
+              aria-label="Anterior"
+              className="absolute left-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:opacity-0 md:group-hover:opacity-100"
+            >
+              <ChevronLeft size={20} />
+            </button>
+            <button
+              onClick={() => setHeroIdx(i => (i + 1) % heroSlides.length)}
+              aria-label="Siguiente"
+              className="absolute right-4 top-1/2 z-10 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-black/40 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:opacity-0 md:group-hover:opacity-100"
+            >
+              <ChevronRight size={20} />
+            </button>
+          </>
+        )}
+
+        {/* Puntos: el activo se alarga */}
+        {heroSlides.length > 1 && (
+          <div className="absolute bottom-5 right-6 z-10 flex items-center gap-1.5">
             {heroSlides.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setHeroIdx(i)}
-                aria-label={`Slide ${i + 1}`}
-                className={`rounded-full transition-all duration-300 ${
-                  i === heroIdx ? "w-5 h-[6px] bg-white" : "w-[6px] h-[6px] bg-white/40"
-                }`}
+                aria-label={`Ir al slide ${i + 1}`}
+                className="rounded-full transition-all duration-300"
+                style={{
+                  width: i === heroIdx ? 22 : 6,
+                  height: 6,
+                  background: i === heroIdx ? "#ffffff" : "rgba(255,255,255,0.35)",
+                }}
               />
             ))}
           </div>
-          <button
-            onClick={() => setHeroIdx(i => (i + 1) % heroSlides.length)}
-            className="hero-ctrl-btn"
-            aria-label="Siguiente"
-          >
-            →
-          </button>
-        </div>
+        )}
       </section>
       )}
 

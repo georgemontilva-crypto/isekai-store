@@ -2573,3 +2573,20 @@ html.dark .iw-search:focus-within {
   background: #1a1d24;
   border-color: rgba(255, 255, 255, 0.15);
 }
+
+/* ── Banner principal ──────────────────────────────────────────────────────
+   A ancho completo y con altura proporcional: alto en escritorio para que la
+   imagen respire, y algo más contenido en teléfono para que no ocupe toda la
+   pantalla antes del contenido. */
+.iw-hero {
+  height: 62vh;
+  min-height: 380px;
+  max-height: 620px;
+  background: #0a0a0a;
+}
+@media (max-width: 767px) {
+  .iw-hero {
+    height: 58vh;
+    min-height: 320px;
+  }
+}
