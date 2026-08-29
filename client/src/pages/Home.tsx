@@ -310,7 +310,7 @@ export default function Home() {
           indica cuánto falta para el siguiente; al tocar cualquiera se salta
           a él. En teléfono la lista se oculta y queda solo el banner. */}
       {heroSlides.length > 0 && (
-      <section className="px-1.5 pt-4 pb-8 sm:px-2.5 lg:px-3">
+      <section className="px-4 pt-4 pb-8 sm:px-5 lg:px-[22px]">
         <div className="mx-auto w-full lg:grid lg:gap-4" style={{ gridTemplateColumns: "3.6fr 1fr" }}>
 
           {/* Banner */}
