@@ -195,6 +195,16 @@ function Boletos() {
 function Devoluciones() {
   return (
     <div className="space-y-8 text-[15px] text-[#555] leading-relaxed">
+      {/* Aviso destacado: es la excepción que más malentendidos genera */}
+      <div className="rounded-xl border border-[#e5007d]/30 bg-[#fff0f8] p-4">
+        <p className="text-sm font-bold text-[#1a1a1a]">Piezas por encargo</p>
+        <p className="mt-1 text-sm text-[#555]">
+          Las piezas fabricadas a medida no admiten devolución por arrepentimiento, ya que se
+          producen específicamente para cada cliente. Consulta la sección{" "}
+          <strong className="text-[#1a1a1a]">Piezas por encargo</strong> para las condiciones completas.
+        </p>
+      </div>
+
       <section>
         <h2 className="text-xl font-black text-[#1a1a1a] mb-3">Política de Devoluciones y Cambios</h2>
         <p className="text-xs text-[#888] mb-4">Return & Exchange Policy · Última actualización: Mayo 2025</p>
@@ -288,7 +298,9 @@ function Privacidad() {
             "Nombre completo, correo electrónico y número de teléfono al crear una cuenta o realizar un pedido. / Full name, email address and phone number when creating an account or placing an order.",
             "Dirección de envío para procesar y entregar tus pedidos. / Shipping address to process and deliver your orders.",
             "Datos de navegación y uso del sitio (páginas visitadas, tiempo de sesión) mediante cookies técnicas y analíticas. / Browsing and site usage data (pages visited, session time) through technical and analytics cookies.",
-            "Información de pago procesada de forma segura por Bold. Isekai World no almacena datos de tarjetas. / Payment information securely processed by Bold. Isekai World does not store card data.",
+            "Comprobantes de pago que subes al confirmar un pedido (Pago Móvil o cripto), junto con la referencia y el titular de la cuenta. Los conservamos como respaldo de la transacción. / Payment receipts you upload when confirming an order, along with the reference and account holder.",
+            "Si eres cosplayer del Guild: tu nombre artístico, biografía, redes sociales, galería y los enlaces de tus entregas de actividades. / If you are a Guild cosplayer: artistic name, bio, social media, gallery and activity submission links.",
+            "Si compras un boleto de evento: nombre, apellido y teléfono, registrados por el punto de venta autorizado. / If you buy an event ticket: name, surname and phone number, registered by the authorized point of sale.",
           ].map((text) => (
             <li key={text} className="flex gap-2">
               <span className="text-[#888] shrink-0">•</span>
@@ -320,11 +332,11 @@ function Privacidad() {
         <p className="mb-3">No vendemos ni cedemos tus datos personales a terceros. Solo compartimos la información estrictamente necesaria con: / We do not sell or transfer your personal data to third parties. We only share strictly necessary information with:</p>
         <div className="grid gap-3">
           {[
-            { name: "Bold", desc: "Procesamiento de pagos" },
-            { name: "Resend", desc: "Envío de emails transaccionales" },
+            { name: "Resend", desc: "Envío de correos transaccionales" },
             { name: "Mailchimp", desc: "Newsletter (solo si te suscribes) / Newsletter (only if you subscribe)" },
             { name: "Cloudflare R2", desc: "Almacenamiento de imágenes" },
             { name: "Operadora logística", desc: "Entrega de pedidos" },
+            { name: "Puntos de venta autorizados", desc: "Solo para boletos de eventos: registran los datos del asistente" },
           ].map(({ name, desc }) => (
             <div key={name} className="flex gap-3 bg-[#f9f9f9] rounded-xl p-4">
               <strong className="shrink-0 text-[#1a1a1a]">{name}</strong>
@@ -392,7 +404,6 @@ function Cookies() {
                 { name: "app_session_id", type: "Esencial", duration: "1 año", purpose: "Mantiene tu sesión iniciada" },
                 { name: "isekai-cart-*", type: "Esencial", duration: "Sesión", purpose: "Guarda los ítems del carrito" },
                 { name: "_ga, _gid", type: "Analítica", duration: "2 años / 1 día", purpose: "Google Analytics — estadísticas de uso anónimas" },
-                { name: "_fbp", type: "Marketing", duration: "3 meses", purpose: "Facebook Pixel — seguimiento de conversiones" },
               ].map((row, i) => (
                 <tr key={row.name} className={i % 2 === 0 ? "" : "bg-[#fafafa]"}>
                   <td className="p-3 font-mono text-[12px] text-[#1a1a1a]">{row.name}</td>
