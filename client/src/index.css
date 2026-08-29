@@ -2607,3 +2607,25 @@ html.dark .iw-search:focus-within {
     max-width: none;
   }
 }
+
+/* ── Tokens de superficie en modo oscuro ───────────────────────────────────
+   Las utilidades bg-card, bg-muted y compañía se compilan con el valor fijo
+   del tema claro, así que redefinir la variable no basta: hay que traducir
+   la clase. Sin esto, pantallas como el checkout quedaban con las tarjetas
+   en blanco sobre el fondo negro. */
+html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-page *):not(footer):not(footer *)) {
+  &.bg-card        { background-color: #16191f; }
+  &.bg-popover     { background-color: #1a1d24; }
+  &.bg-muted       { background-color: rgba(255, 255, 255, 0.05); }
+  &.bg-secondary   { background-color: rgba(255, 255, 255, 0.06); }
+  &.bg-background  { background-color: #0a0a0a; }
+  &.bg-accent      { background-color: rgba(229, 0, 125, 0.12); }
+
+  &.text-card-foreground, &.text-foreground        { color: #ffffff; }
+  &.text-muted-foreground                          { color: #9a9aa4; }
+  &.text-secondary-foreground                      { color: #c9c9d1; }
+
+  &.border-border, &.border-input                  { border-color: rgba(255, 255, 255, 0.10); }
+  &.border-border\/50, &.border-border\/30,
+  &.border-border\/40, &.border-border\/60        { border-color: rgba(255, 255, 255, 0.08); }
+}
