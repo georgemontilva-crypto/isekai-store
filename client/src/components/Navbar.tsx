@@ -144,7 +144,6 @@ export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [announcementIdx, setAnnouncementIdx] = useState(0);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [activeMenu, setActiveMenu] = useState<ActiveMenu>(null);
   const [notifOpen, setNotifOpen] = useState(false);
@@ -233,7 +232,7 @@ export default function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) { window.location.href = `/catalog?search=${encodeURIComponent(searchQuery.trim())}`; setSearchOpen(false); setSearchQuery(""); }
+    if (searchQuery.trim()) { window.location.href = `/catalog?search=${encodeURIComponent(searchQuery.trim())}`; setSearchQuery(""); }
   };
 
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
@@ -499,23 +498,6 @@ export default function Navbar() {
         </AnimatePresence>
       </header>
 
-      {/* Search overlay */}
-      <AnimatePresence>
-        {searchOpen && (
-          <motion.div initial={{opacity:0}} animate={{opacity:1}} exit={{opacity:0}} className="fixed inset-0 z-[60] bg-black/30 backdrop-blur-sm flex items-start justify-center pt-20 px-4" onClick={e=>{if(e.target===e.currentTarget)setSearchOpen(false);}}>
-            <motion.div initial={{opacity:0,y:-16,scale:0.97}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-8,scale:0.97}} transition={{duration:0.22,ease:"easeOut"}} className="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-base">{t.nav.searchTitle}</h3>
-                <button onClick={() => setSearchOpen(false)} aria-label="Cerrar búsqueda" className="p-1 hover:bg-[#f5f5f5] rounded-full"><X size={16}/></button>
-              </div>
-              <form onSubmit={handleSearch} className="flex gap-2">
-                <input autoFocus type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder={t.nav.searchPlaceholder} className="flex-1 border border-[#e5e5e5] rounded-full px-4 py-2.5 text-sm outline-none focus:border-[#1a1a1a] transition-colors"/>
-                <button type="submit" className="btn-pill text-sm">{t.nav.search}</button>
-              </form>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
 
       {/* ── Menú de teléfono ────────────────────────────────────────────────
           Al estilo YEYPEE: el panel vive siempre en el DOM y se anima con CSS,
