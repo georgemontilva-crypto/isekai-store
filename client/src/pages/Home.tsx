@@ -32,11 +32,22 @@ function SaleSlider() {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth < 640;
 
-  const banners = [
+  const bannersEscritorio = [
     settings?.["sale_banner_1_image"],
     settings?.["sale_banner_2_image"],
     settings?.["sale_banner_3_image"],
-  ].filter((b): b is string => !!b);
+  ];
+  const bannersMovil = [
+    settings?.["sale_banner_1_image_mobile"],
+    settings?.["sale_banner_2_image_mobile"],
+    settings?.["sale_banner_3_image_mobile"],
+  ];
+
+  // En teléfono se prefiere la versión vertical de cada banner; si no existe,
+  // se usa la horizontal para no dejar el hueco vacío.
+  const banners = bannersEscritorio
+    .map((src, i) => (isMobile ? bannersMovil[i] || src : src))
+    .filter((b): b is string => !!b);
 
   useEffect(() => {
     if (banners.length < 2) return;
@@ -58,7 +69,10 @@ function SaleSlider() {
 
   return (
     <section style={{ padding: '24px 8px 0 8px' }}>
-      <div className="relative overflow-hidden rounded-[18px]" style={{ aspectRatio: '1920/600' }}>
+      <div
+        className="relative overflow-hidden rounded-[18px]"
+        style={{ aspectRatio: isMobile ? '4/5' : '1920/600' }}
+      >
         {/* Images — crossfade */}
         {banners.map((src, i) => (
           <div
