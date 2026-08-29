@@ -311,7 +311,7 @@ export default function Home() {
           a él. En teléfono la lista se oculta y queda solo el banner. */}
       {heroSlides.length > 0 && (
       <section className="px-1.5 pt-4 pb-8 sm:px-2.5 lg:px-3">
-        <div className="mx-auto w-full max-w-[1720px] lg:grid lg:gap-5" style={{ gridTemplateColumns: "3.6fr 1fr" }}>
+        <div className="mx-auto w-full lg:grid lg:gap-4" style={{ gridTemplateColumns: "3.6fr 1fr" }}>
 
           {/* Banner */}
           <div className="relative w-full overflow-hidden rounded-xl bg-[#16191f]" style={{ height: "clamp(250px, 44vw, 560px)" }}>
