@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
-import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell, Home, Layers, Users, HelpCircle, FileText, BookOpen, Sparkles, Ticket } from "lucide-react";
+import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell, Home, Layers, Users, HelpCircle, FileText, BookOpen, Sparkles, Ticket, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import { openLoginModal } from "@/const";
@@ -275,7 +275,7 @@ export default function Navbar() {
   const iconoDe = (href: string) => {
     if (href === "/") return Home;
     if (href.startsWith("/catalog")) return ShoppingBag;
-    if (href.startsWith("/universos") || href.startsWith("/colecciones")) return Layers;
+    if (href.startsWith("/universos") || href.startsWith("/colecciones")) return Globe;
     if (href.startsWith("/nosotros")) return Users;
     if (href.startsWith("/faq")) return HelpCircle;
     if (href.startsWith("/politicas")) return FileText;
@@ -408,15 +408,10 @@ export default function Navbar() {
                 <LayoutDashboard size={17} strokeWidth={1.8} />
               </Link>
             )}
-            {/* El cosplayer entra a su panel desde aquí, igual que el admin */}
-            {isAuthenticated && esCosplayer && (
-              <Link href="/cosplay/dashboard" className="iw-icon-btn md:hidden" aria-label="Mi perfil de cosplayer">
-                <Sparkles size={17} strokeWidth={1.8} />
-              </Link>
-            )}
+
             {isRegularUser && (
               <div ref={notifRef} className="relative">
-                <button onClick={handleBellClick} className="iw-icon-btn relative max-md:hidden" aria-label="Notificaciones">
+                <button onClick={handleBellClick} className="iw-icon-btn relative hidden md:inline-flex" aria-label="Notificaciones">
                   <Bell size={17} strokeWidth={1.8} />
                   {notifUnread != null && notifUnread > 0 && (
                     <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
@@ -470,10 +465,10 @@ export default function Navbar() {
               </div>
             )}
             {isAuthenticated
-              ? <Link href="/account" aria-label="Mi cuenta" className="iw-icon-btn max-md:hidden"><User size={17} strokeWidth={1.8}/></Link>
-              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="iw-icon-btn max-md:hidden"><User size={17} strokeWidth={1.8}/></button>
+              ? <Link href="/account" aria-label="Mi cuenta" className="iw-icon-btn hidden md:inline-flex"><User size={17} strokeWidth={1.8}/></Link>
+              : <button onClick={openLoginModal} aria-label="Iniciar sesión" className="iw-icon-btn hidden md:inline-flex"><User size={17} strokeWidth={1.8}/></button>
             }
-            <button onClick={() => openCart()} aria-label="Abrir carrito" className="iw-icon-btn relative max-md:hidden">
+            <button onClick={() => openCart()} aria-label="Abrir carrito" className="iw-icon-btn relative hidden md:inline-flex">
               <ShoppingBag size={17} strokeWidth={1.8}/>
               {totalItems > 0 && <span className="absolute -top-0.5 -right-0.5 w-[18px] h-[18px] bg-[#111] text-white text-[10px] font-bold rounded-full flex items-center justify-center">{totalItems>9?"9+":totalItems}</span>}
             </button>
@@ -561,7 +556,7 @@ export default function Navbar() {
             Navegación
           </p>
           <div className="grid grid-cols-2 gap-2.5">
-            {mobileLinks.map((l, i) => {
+            {[...mobileLinks, ...(isAuthenticated ? [{ href: "/account", label: t.nav.account ?? "Mi cuenta" }] : [])].map((l, i) => {
               const activo = location === l.href;
               return (
                 <Link
@@ -584,6 +579,24 @@ export default function Navbar() {
               );
             })}
           </div>
+
+          {/* Carrito: al quitarlo de la barra en teléfono, este es su acceso */}
+          <button
+            onClick={() => { setMobileOpen(false); openCart(); }}
+            tabIndex={mobileOpen ? 0 : -1}
+            className="iw-menu-item iw-menu-cta mt-3 flex w-full items-center justify-between rounded-xl border border-white/10 bg-white/[0.06] px-5 py-3.5 text-[14px] text-white transition-colors hover:bg-white/[0.1]"
+            style={{ transitionDelay: mobileOpen ? `${90 + mobileLinks.length * 45}ms` : "0ms" }}
+          >
+            <span className="flex items-center gap-2">
+              <ShoppingBag size={17} strokeWidth={1.8} />
+              Mi carrito
+            </span>
+            {totalItems > 0 && (
+              <span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-[#e5007d] px-1.5 text-[11px] font-black text-white">
+                {totalItems}
+              </span>
+            )}
+          </button>
 
           {/* Destacados */}
           <div className="iw-menu-item mt-9 flex flex-col gap-3" style={{ transitionDelay: mobileOpen ? `${100 + mobileLinks.length * 55}ms` : "0ms" }}>
