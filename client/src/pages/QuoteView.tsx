@@ -206,19 +206,59 @@ export default function QuoteView() {
               </p>
             </div>
           ))}
-          <div className="flex items-center justify-between bg-[#101319] px-5 py-4">
-            <span className="text-sm font-bold uppercase tracking-wide text-[#b4b4c2]">Total</span>
-            <div className="text-right">
-              <p className="text-2xl font-black text-[#e5007d]">${cotizacion.total} USD</p>
-              {totalBs && (
-                <>
-                  <p className="text-xs text-[#8a8a9c]">Bs {totalBs}</p>
-                  <p className="text-[10px] text-[#6a6a7c]">
-                    Tasa: Bs {parseFloat(bsRate!).toLocaleString("es-VE", { minimumFractionDigits: 2 })}/USD
-                  </p>
-                </>
-              )}
+          {/* Desglose. Cuando ya hay abonos, mostrar solo el total en
+              bolívares confundía: parecía el monto a transferir cuando en
+              realidad lo pendiente es menos. */}
+          <div className="bg-[#101319] px-5 py-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-bold uppercase tracking-wide text-[#b4b4c2]">
+                Total del trabajo
+              </span>
+              <div className="text-right">
+                <p className="text-xl font-black text-white">${cotizacion.total} USD</p>
+                {totalBs && <p className="text-xs text-[#8a8a9c]">Bs {totalBs}</p>}
+              </div>
             </div>
+
+            {(cotizacion.pagado ?? 0) > 0 && (
+              <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
+                <span className="text-sm text-[#b4b4c2]">Ya abonado</span>
+                <div className="text-right">
+                  <p className="text-sm font-bold text-green-400">
+                    − ${(cotizacion.pagado ?? 0).toFixed(2)} USD
+                  </p>
+                  {bsRate && (
+                    <p className="text-xs text-[#8a8a9c]">
+                      Bs {((cotizacion.pagado ?? 0) * parseFloat(bsRate)).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(cotizacion.saldoPendiente ?? 0) > 0.01 && (cotizacion.pagado ?? 0) > 0 && (
+              <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-3">
+                <span className="text-sm font-bold uppercase tracking-wide text-[#ffd700]">
+                  Falta por pagar
+                </span>
+                <div className="text-right">
+                  <p className="text-2xl font-black text-[#ffd700]">
+                    ${(cotizacion.saldoPendiente ?? 0).toFixed(2)} USD
+                  </p>
+                  {bsRate && (
+                    <p className="text-xs text-[#8a8a9c]">
+                      Bs {((cotizacion.saldoPendiente ?? 0) * parseFloat(bsRate)).toLocaleString("es-VE", { minimumFractionDigits: 2 })}
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {bsRate && (
+              <p className="mt-3 text-[10px] text-[#6a6a7c]">
+                Tasa: Bs {parseFloat(bsRate).toLocaleString("es-VE", { minimumFractionDigits: 2 })}/USD
+              </p>
+            )}
           </div>
         </div>
 
@@ -239,15 +279,6 @@ export default function QuoteView() {
         ) : yaPagada && (cotizacion.saldoPendiente ?? 0) > 0.01 ? (
           /* Queda saldo: el cliente puede pagarlo aquí mismo */
           <>
-            <div className="mb-6 rounded-2xl border border-[#ffd700]/40 bg-[#ffd700]/10 px-5 py-4">
-              <p className="text-sm text-[#b4b4c2]">
-                Ya abonaste <strong className="text-white">${(cotizacion.pagado ?? 0).toFixed(2)} USD</strong>
-              </p>
-              <p className="mt-1 text-lg font-black text-[#ffd700]">
-                Saldo pendiente: ${(cotizacion.saldoPendiente ?? 0).toFixed(2)} USD
-              </p>
-            </div>
-
             <h2 className="mb-3 text-sm font-bold uppercase tracking-wide text-white">Pagar el saldo</h2>
             <div className="mb-4 flex gap-2">
               {([["pago_movil", "Pago Móvil"], ["crypto", "Cripto USDT"]] as const).map(([id, label]) => (
