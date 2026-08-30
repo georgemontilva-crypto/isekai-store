@@ -161,6 +161,14 @@ const PAGES: PageGroup[] = [
     ],
   },
   {
+    page: "Tarjetas de regalo",
+    slots: [
+      { kind: "site", key: "giftcard_template", label: "Plantilla de la tarjeta",
+        where: "Fondo de la imagen que se descarga al generar una tarjeta de regalo.",
+        spec: "Horizontal, 1200 × 750 px. El monto y el código se escriben encima, en la mitad inferior izquierda: deja esa zona despejada." },
+    ],
+  },
+  {
     page: "Invitación (QR)",
     slots: [
       { kind: "site", key: "invitacion_fondo_image", label: "Fondo de toda la página",

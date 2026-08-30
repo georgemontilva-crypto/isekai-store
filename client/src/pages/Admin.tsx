@@ -2,12 +2,13 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
+import { descargarTarjeta } from "@/lib/giftCardImage";
 import {
   LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText, Download,
 } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -5520,6 +5521,22 @@ export default function Admin() {
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-0.5">
                             <p className="font-mono font-bold tracking-widest text-[#e5007d]">{card.code}</p>
+                            {/* Descarga la tarjeta como imagen, lista para
+                                enviar al cliente por WhatsApp o correo. */}
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await descargarTarjeta(card, siteSettings?.["giftcard_template"]);
+                                } catch (e: any) {
+                                  toast.error(e?.message ?? "No se pudo generar la imagen");
+                                }
+                              }}
+                              className="text-muted-foreground hover:text-[#e5007d]"
+                              aria-label="Descargar imagen"
+                              title="Descargar imagen de la tarjeta"
+                            >
+                              <Download className="h-4 w-4" />
+                            </button>
                             <button onClick={() => navigator.clipboard.writeText(card.code)} className="text-muted-foreground hover:text-foreground">
                               <Copy className="w-3.5 h-3.5" />
                             </button>
