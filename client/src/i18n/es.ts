@@ -76,7 +76,6 @@ export const es = {
     noProductsDesc: "Agrega productos desde el panel admin",
     specs: { driver: "Controlador", weight: "Peso", battery: "Batería" },
     instagram: { title: "Ve el Feed", cta: "Seguirnos en Instagram" },
-    marquee: ["Figuras Anime 3D", "★", "Ediciones Limitadas", "★", "Gaming Culture", "★", "Envío Gratis en San Francisco +$50", "★", "Coleccionables Premium", "★", "Nuevos Drops Semanales", "★", "ISEKAI WORLD", "★"],
   },
 
   // ── Cart ────────────────────────────────────────────────────────────────

@@ -76,7 +76,6 @@ export const en: Translations = {
     noProductsDesc: "Add products from the admin panel to see them here",
     specs: { driver: "Driver size", weight: "Weight", battery: "Battery" },
     instagram: { title: "Shop the Feed", cta: "Follow us on Instagram" },
-    marquee: ["Anime 3D Figures", "★", "Limited Editions", "★", "Gaming Culture", "★", "Free Shipping +$150", "★", "Premium Collectibles", "★", "New Weekly Drops", "★", "ISEKAI WORLD", "★"],
   },
 
   cart: {

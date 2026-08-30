@@ -631,57 +631,6 @@ export default function Home() {
 
 
 
-      {/* ══════════════════════════════════════════════
-          9. MARQUEE TICKER
-      ══════════════════════════════════════════════ */}
-      <section className="bg-[#f5e642] border-y border-[#e8d800] overflow-hidden py-5">
-        <style>{`
-          @keyframes marquee-scroll {
-            0%   { transform: translateX(0); }
-            100% { transform: translateX(-50%); }
-          }
-          .marquee-track {
-            display: flex;
-            width: max-content;
-            animation: marquee-scroll 22s linear infinite;
-          }
-          .marquee-track:hover { animation-play-state: paused; }
-        `}</style>
-        <div className="marquee-track">
-          {[...Array(2)].map((_, rep) => (
-            <div key={rep} className="flex items-center shrink-0">
-              {[
-                "Figuras Anime 3D",
-                "★",
-                "Ediciones Limitadas",
-                "★",
-                "Gaming Culture",
-                "★",
-                "Envío Gratis +$150",
-                "★",
-                "Coleccionables Premium",
-                "★",
-                "Nuevos Drops Semanales",
-                "★",
-                "ISEKAI WORLD",
-                "★",
-              ].map((item, i) => (
-                <span
-                  key={i}
-                  className="text-[#1a1a1a] font-black uppercase tracking-wide px-6 shrink-0"
-                  style={{
-                    fontSize: item === "★" ? "18px" : "clamp(18px, 2.5vw, 26px)",
-                    fontFamily: item === "ISEKAI WORLD" ? "'Orbitron', sans-serif" : "inherit",
-                    opacity: item === "★" ? 0.35 : 1,
-                  }}
-                >
-                  {item}
-                </span>
-              ))}
-            </div>
-          ))}
-        </div>
-      </section>
 
         {/* ════════════════════════════════════════════
           11. SHOP THE FEED (Instagram)
