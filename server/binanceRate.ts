@@ -17,7 +17,13 @@ import { eq } from "drizzle-orm";
 
 const URL_P2P = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
 
-/** Cuántas ofertas se promedian */
+/**
+ * Las primeras ofertas del P2P suelen tener límites muy altos o muy bajos que
+ * casi nadie puede usar, y arrastran el promedio hacia abajo. Se saltan las
+ * primeras y se promedian las siguientes, que es la tasa a la que realmente
+ * se compra.
+ */
+const OFERTAS_A_SALTAR = 2;
 const OFERTAS_A_PROMEDIAR = 5;
 
 export interface ResultadoTasa {
@@ -48,7 +54,7 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
         fiat: "VES",
         tradeType: "SELL",
         page: 1,
-        rows: 10,
+        rows: 15,
         payTypes: [],
         publisherType: null,
       }),
@@ -67,7 +73,7 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
     const precios = anuncios
       .map(a => parseFloat(a?.adv?.price))
       .filter(p => Number.isFinite(p) && p > 0)
-      .slice(0, OFERTAS_A_PROMEDIAR);
+      .slice(OFERTAS_A_SALTAR, OFERTAS_A_SALTAR + OFERTAS_A_PROMEDIAR);
 
     if (!precios.length) {
       console.warn("[Tasa] Binance no devolvió ofertas utilizables");
@@ -104,6 +110,14 @@ export async function actualizarTasaAutomatica(): Promise<{ actualizada: boolean
   const r = await consultarTasaBinance();
   if (!r) return { actualizada: false };
 
+  // Ajuste opcional: permite subir o bajar un porcentaje sobre lo que
+  // devuelve Binance, para cuadrar con la tasa a la que compras de verdad.
+  const [ajusteRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, "bs_rate_margin")).limit(1);
+  const ajuste = parseFloat(ajusteRow?.value ?? "0") || 0;
+  if (ajuste !== 0) {
+    r.tasa = Math.round(r.tasa * (1 + ajuste / 100) * 100) / 100;
+  }
+
   const guardar = async (clave: string, valor: string) => {
     const [existe] = await db.select().from(siteSettings).where(eq(siteSettings.key, clave)).limit(1);
     if (existe) {
@@ -115,7 +129,7 @@ export async function actualizarTasaAutomatica(): Promise<{ actualizada: boolean
 
   await guardar("bs_rate", r.tasa.toFixed(2));
   await guardar("bs_rate_updated", r.consultadoEn);
-  await guardar("bs_rate_source", `Binance P2P · promedio de ${r.ofertas} ofertas`);
+  await guardar("bs_rate_source", `Binance P2P · promedio de ${r.ofertas} ofertas${ajuste !== 0 ? ` · ajuste ${ajuste > 0 ? "+" : ""}${ajuste}%` : ""}`);
 
   console.log(`[Tasa] Actualizada a Bs ${r.tasa} (${r.ofertas} ofertas de Binance)`);
   return { actualizada: true, tasa: r.tasa };

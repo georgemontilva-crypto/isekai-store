@@ -2675,6 +2675,27 @@ function TasaSection() {
           </div>
 
           {autoActivo && (
+            <div className="mt-3">
+              <label className="mb-1 block text-[11px] font-semibold text-[var(--iw-text-muted)]">
+                Ajuste sobre la tasa de Binance (%)
+              </label>
+              <input
+                type="text"
+                inputMode="decimal"
+                defaultValue={settings?.['bs_rate_margin'] ?? '0'}
+                onBlur={e => aplicarAjuste('bs_rate_margin', e.target.value.replace(/[^0-9.\-]/g, '') || '0')}
+                placeholder="0"
+                className="w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-sm text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+                style={{ minHeight: 44 }}
+              />
+              <p className="mt-1 text-[11px] leading-relaxed text-[var(--iw-text-muted)]">
+                Si Binance te marca más alto que lo que guarda el sistema, sube este número.
+                Ejemplo: 1 suma un 1%.
+              </p>
+            </div>
+          )}
+
+          {autoActivo && (
             <button
               onClick={() => actualizarAhora.mutate()}
               disabled={actualizarAhora.isPending}
