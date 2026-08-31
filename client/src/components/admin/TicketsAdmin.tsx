@@ -23,8 +23,20 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
 
   const [eventoId, setEventoId] = useState<number | null>(null);
   const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass">("resumen");
-  const vista = vistaFija ?? vistaLocal;
-  const setVista = setVistaLocal;
+
+  /**
+   * La vista puede venir de la barra inferior del teléfono, pero en cuanto se
+   * toca una pestaña interna manda la elección local: la barra no llega a
+   * todas las secciones y sin esto quedaban inalcanzables.
+   */
+  const [usarLocal, setUsarLocal] = useState(false);
+  const vista = usarLocal || !vistaFija ? vistaLocal : vistaFija;
+  const setVista = (v: typeof vistaLocal) => { setUsarLocal(true); setVistaLocal(v); };
+
+  // Si la barra inferior cambia de sección, vuelve a mandar ella
+  useEffect(() => {
+    if (vistaFija) { setUsarLocal(false); setVistaLocal(vistaFija); }
+  }, [vistaFija]);
 
   const { data: eventos = [] } = trpc.tickets.eventos.useQuery(undefined, { enabled: habilitado });
   const evento = eventos.find((e: any) => e.id === eventoId) ?? eventos[0];
@@ -242,7 +254,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
   return (
     <div className={compact ? "p-4 flex flex-col gap-4" : "flex flex-col gap-5"}>
       {/* Selector de evento */}
-      <div className={`flex min-w-0 gap-2 ${vistaFija && vistaFija !== "resumen" ? "hidden" : ""}`}>
+      <div className="flex min-w-0 gap-2">
         <select
           value={evento?.id ?? ""}
           onChange={e => setEventoId(Number(e.target.value))}
@@ -306,8 +318,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       )}
 
       {/* Pestañas */}
-      {!vistaFija && (
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+      <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
         {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"], ["acceso", "Acceso"], ["levelpass", "Level Pass"]] as const).map(([id, label]) => (
           <button
             key={id}
@@ -321,7 +332,6 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           </button>
         ))}
       </div>
-      )}
 
       {/* ── Resumen ── */}
       {vista === "resumen" && resumen && (

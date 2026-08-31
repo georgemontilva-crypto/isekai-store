@@ -2990,11 +2990,10 @@ export default function AdminMobile() {
 
   const TABS = enBoleteria
     ? [
-        { id: 'boleteria' as MobileTab,          label: 'Resumen',  icon: BarChart3 },
-        { id: 'boleteria-boletos' as MobileTab,  label: 'Vendidos', icon: Ticket },
-        { id: 'boleteria-codigos' as MobileTab,  label: 'Códigos',  icon: Tag },
-        { id: 'boleteria-tiendas' as MobileTab,  label: 'Tiendas',  icon: Store },
-        { id: 'more' as MobileTab,               label: 'Salir',    icon: Menu },
+        { id: 'boleteria' as MobileTab, label: 'Boletería', icon: Ticket },
+        { id: 'stats' as MobileTab,     label: 'Inicio',    icon: BarChart3 },
+        { id: 'orders' as MobileTab,    label: 'Pedidos',   icon: ShoppingBag },
+        { id: 'more' as MobileTab,      label: 'Más',       icon: Menu },
       ]
     : [
         { id: 'stats' as MobileTab,    label: 'Inicio',    icon: BarChart3 },
