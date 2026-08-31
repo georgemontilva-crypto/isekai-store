@@ -35,7 +35,7 @@ export interface ResultadoTasa {
  * pagas en bolívares para comprarlo. Con "SELL" salían los del lado contrario,
  * con precios más bajos, y la tasa quedaba corta.
  */
-export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
+export async function consultarTasaBinance(montoBs?: number): Promise<ResultadoTasa | null> {
   try {
     const respuesta = await fetch(URL_P2P, {
       method: "POST",
@@ -51,9 +51,12 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
         tradeType: "BUY",
         page: 1,
         rows: 20,
-        // Sin filtro de método de pago ni de anunciante: se ve toda la oferta
         payTypes: [],
         publisherType: null,
+        // Filtro por monto: sin él salen anuncios cuyos límites no admiten la
+        // cantidad que realmente vas a cambiar, y la tasa queda distinta a la
+        // que ves al buscar en la app.
+        ...(montoBs && montoBs > 0 ? { transAmount: String(montoBs) } : {}),
       }),
       // Si Binance tarda, no se bloquea la aplicación
       signal: AbortSignal.timeout(8000),
@@ -107,7 +110,12 @@ export async function actualizarTasaAutomatica(): Promise<{ actualizada: boolean
   const [modo] = await db.select().from(siteSettings).where(eq(siteSettings.key, "bs_rate_auto")).limit(1);
   if (modo?.value === "false") return { actualizada: false };
 
-  const r = await consultarTasaBinance();
+  // Monto de referencia: el sistema busca ofertas que admitan esa cantidad,
+  // igual que cuando lo consultas a mano en la app.
+  const [montoRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, "bs_rate_amount")).limit(1);
+  const montoBs = parseFloat(montoRow?.value ?? "0") || undefined;
+
+  const r = await consultarTasaBinance(montoBs);
   if (!r) return { actualizada: false };
 
   // Ajuste opcional: permite subir o bajar un porcentaje sobre lo que

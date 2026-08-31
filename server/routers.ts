@@ -1484,8 +1484,10 @@ export const appRouter = router({
   // ─── Tasa automática ─────────────────────────────────────────────────────────
   tasa: router({
     /** Consulta Binance ahora mismo, sin guardar: para previsualizar */
-    consultar: adminProcedure.query(async () => {
-      const r = await consultarTasaBinance();
+    consultar: adminProcedure
+      .input(z.object({ montoBs: z.number().optional() }).optional())
+      .query(async ({ input }) => {
+      const r = await consultarTasaBinance(input?.montoBs);
       if (!r) throw new TRPCError({ code: "SERVICE_UNAVAILABLE", message: "Binance no respondió. Se conserva la tasa actual." });
       return r;
     }),

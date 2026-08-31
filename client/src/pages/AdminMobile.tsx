@@ -2590,7 +2590,10 @@ function TasaSection() {
 
   /** Muestra las ofertas que ve el servidor, para compararlas con Binance */
   const [ofertasVistas, setOfertasVistas] = useState<number[] | null>(null);
-  const verOfertas = trpc.tasa.consultar.useQuery(undefined, { enabled: false });
+  const verOfertas = trpc.tasa.consultar.useQuery(
+    { montoBs: parseFloat(settings?.['bs_rate_amount'] ?? '0') || undefined },
+    { enabled: false },
+  );
 
   const actualizarAhora = trpc.tasa.actualizarAhora.useMutation({
     onSuccess: (r) => { utils.settings.getAll.invalidate(); toast.success(`Tasa actualizada: Bs ${r.tasa}`); },
@@ -2680,6 +2683,23 @@ function TasaSection() {
 
           {autoActivo && (
             <div className="mt-3">
+              <label className="mb-1 block text-[11px] font-semibold text-[var(--iw-text-muted)]">
+                Monto de referencia en bolívares
+              </label>
+              <input
+                type="text"
+                inputMode="numeric"
+                defaultValue={settings?.['bs_rate_amount'] ?? ''}
+                onBlur={e => aplicarAjuste('bs_rate_amount', e.target.value.replace(/[^0-9]/g, ''))}
+                placeholder="Ej: 40000"
+                className="mb-1 w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-sm text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+                style={{ minHeight: 44 }}
+              />
+              <p className="mb-3 text-[11px] leading-relaxed text-[var(--iw-text-muted)]">
+                El sistema buscará ofertas que acepten esa cantidad, igual que cuando
+                lo consultas a mano en Binance. Déjalo vacío para ver todas.
+              </p>
+
               <label className="mb-1 block text-[11px] font-semibold text-[var(--iw-text-muted)]">
                 Ajuste sobre la tasa de Binance (%)
               </label>
