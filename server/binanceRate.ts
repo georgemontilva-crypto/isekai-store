@@ -10,21 +10,14 @@ import { eq } from "drizzle-orm";
  * silencio y conserva la última tasa buena: la tienda nunca debe quedarse sin
  * tasa porque un tercero deje de responder.
  *
- * Se toma el promedio de las mejores ofertas en lugar de la primera, porque
- * una sola oferta puede ser de un anunciante con un precio atípico o con
- * límites que nadie usa.
+ * Se consulta un grupo de ofertas y se toma la MÁS ALTA: es la tasa más
+ * conservadora, la que evita quedarse corto al cobrar en bolívares.
  */
 
 const URL_P2P = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
 
-/**
- * Las primeras ofertas del P2P suelen tener límites muy altos o muy bajos que
- * casi nadie puede usar, y arrastran el promedio hacia abajo. Se saltan las
- * primeras y se promedian las siguientes, que es la tasa a la que realmente
- * se compra.
- */
-const OFERTAS_A_SALTAR = 2;
-const OFERTAS_A_PROMEDIAR = 5;
+/** Cuántas ofertas se consultan para buscar la más alta */
+const OFERTAS_A_REVISAR = 15;
 
 export interface ResultadoTasa {
   tasa: number;
@@ -54,7 +47,7 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
         fiat: "VES",
         tradeType: "SELL",
         page: 1,
-        rows: 15,
+        rows: 20,
         payTypes: [],
         publisherType: null,
       }),
@@ -73,17 +66,19 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
     const precios = anuncios
       .map(a => parseFloat(a?.adv?.price))
       .filter(p => Number.isFinite(p) && p > 0)
-      .slice(OFERTAS_A_SALTAR, OFERTAS_A_SALTAR + OFERTAS_A_PROMEDIAR);
+      .slice(0, OFERTAS_A_REVISAR);
 
     if (!precios.length) {
       console.warn("[Tasa] Binance no devolvió ofertas utilizables");
       return null;
     }
 
-    const promedio = precios.reduce((a, b) => a + b, 0) / precios.length;
+    // Se toma la MÁS ALTA de las ofertas consultadas: es la tasa más
+    // conservadora, la que evita quedarse corto al convertir a bolívares.
+    const masAlta = Math.max(...precios);
 
     return {
-      tasa: Math.round(promedio * 100) / 100,
+      tasa: Math.round(masAlta * 100) / 100,
       ofertas: precios.length,
       consultadoEn: new Date().toISOString(),
     };
@@ -129,7 +124,7 @@ export async function actualizarTasaAutomatica(): Promise<{ actualizada: boolean
 
   await guardar("bs_rate", r.tasa.toFixed(2));
   await guardar("bs_rate_updated", r.consultadoEn);
-  await guardar("bs_rate_source", `Binance P2P · promedio de ${r.ofertas} ofertas${ajuste !== 0 ? ` · ajuste ${ajuste > 0 ? "+" : ""}${ajuste}%` : ""}`);
+  await guardar("bs_rate_source", `Binance P2P · la más alta de ${r.ofertas} ofertas${ajuste !== 0 ? ` · ajuste ${ajuste > 0 ? "+" : ""}${ajuste}%` : ""}`);
 
   console.log(`[Tasa] Actualizada a Bs ${r.tasa} (${r.ofertas} ofertas de Binance)`);
   return { actualizada: true, tasa: r.tasa };
