@@ -2771,3 +2771,102 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   }
   .lp-anillo, .lp-brillo { display: none; }
 }
+
+/* ── Ascenso de rango: efectos ────────────────────────────────────────────── */
+
+/* Partículas que ascienden desde el sello, como el despertar del sistema */
+@keyframes lp-particula {
+  0%   { opacity: 0; transform: translateY(0) scale(0.4); }
+  15%  { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-150px) scale(1.1); }
+}
+.lp-particula {
+  position: absolute;
+  bottom: 0;
+  width: 4px;
+  height: 4px;
+  border-radius: 9999px;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  animation: lp-particula 2.4s ease-out infinite;
+  pointer-events: none;
+}
+
+/* La letra del rango se desdobla un instante antes de estabilizarse */
+@keyframes lp-glitch {
+  0%, 100% { transform: translate(0); opacity: 1; }
+  8%   { transform: translate(-3px, 1px); }
+  16%  { transform: translate(3px, -1px); }
+  24%  { transform: translate(-2px, -2px); }
+  32%  { transform: translate(2px, 2px); }
+  40%  { transform: translate(0); }
+}
+@keyframes lp-glitch-capa {
+  0%, 100% { opacity: 0; transform: translate(0); }
+  10%  { opacity: 0.8; transform: translate(-4px, 0); }
+  20%  { opacity: 0.6; transform: translate(4px, 0); }
+  30%  { opacity: 0.7; transform: translate(-3px, 1px); }
+  45%  { opacity: 0; }
+}
+.lp-glitch { position: relative; animation: lp-glitch 1.1s steps(2, end) .5s 1 both; }
+.lp-glitch-capa {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.lp-glitch-cian    { color: #22d3ee; animation: lp-glitch-capa 1.1s steps(2, end) .5s 1 both; }
+.lp-glitch-magenta { color: #e5007d; animation: lp-glitch-capa 1.1s steps(2, end) .58s 1 both; }
+
+/* Línea de escaneo que recorre la ventana una vez */
+@keyframes lp-escaneo {
+  0%   { transform: translateY(-10%); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(1000%); opacity: 0; }
+}
+.lp-escaneo {
+  position: absolute;
+  left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(125,216,255,0.75), transparent);
+  box-shadow: 0 0 14px rgba(125,216,255,0.6);
+  animation: lp-escaneo 1.3s ease-in-out .3s 1 both;
+  pointer-events: none;
+}
+
+/* Destello del color del rango que tiñe toda la pantalla al aparecer */
+@keyframes lp-fogonazo {
+  0%   { opacity: 0; }
+  18%  { opacity: 0.5; }
+  100% { opacity: 0; }
+}
+.lp-fogonazo {
+  position: fixed;
+  inset: 0;
+  animation: lp-fogonazo 1.1s ease-out both;
+  pointer-events: none;
+}
+
+/* Rango S: aura mayor y giro continuo del halo */
+@keyframes lp-aura {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+.lp-aura {
+  position: absolute;
+  inset: -18px;
+  border-radius: 9999px;
+  border: 1px dashed currentColor;
+  opacity: 0.45;
+  animation: lp-aura 9s linear infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-particula, .lp-escaneo, .lp-fogonazo, .lp-aura { display: none; }
+  .lp-glitch, .lp-glitch-capa { animation: none; }
+  .lp-glitch-capa { opacity: 0; }
+}

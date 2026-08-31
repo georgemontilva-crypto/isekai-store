@@ -114,6 +114,7 @@ export default function WorldFestPass() {
     if (!data?.rango) return;
     if (rangoPrevio.current && rangoPrevio.current !== data.rango) {
       setRangoAnunciado(data.rango);
+      setAnchoBarra(0);   // se llenará de nuevo al cerrar el anuncio
       // Vibración corta: en el teléfono refuerza el momento sin depender
       // de que el asistente esté mirando la pantalla.
       try { navigator.vibrate?.([40, 60, 120]); } catch { /* no soportado */ }
@@ -136,6 +137,20 @@ export default function WorldFestPass() {
   };
 
   const color = data ? (COLOR_RANGO[data.rango] ?? "#38bdf8") : "#38bdf8";
+  const esRangoMaximo = rangoAnunciado === "S";
+
+  /**
+   * La barra de experiencia se llena desde cero al entrar y al cambiar de
+   * rango: ver el avance producirse es lo que da sensación de progreso,
+   * frente a encontrarla ya llena.
+   */
+  const [anchoBarra, setAnchoBarra] = useState(0);
+  useEffect(() => {
+    if (!data) return;
+    const destino = data.siguiente?.progreso ?? 100;
+    const id = setTimeout(() => setAnchoBarra(destino), 120);
+    return () => clearTimeout(id);
+  }, [data?.xpTotal, data?.rango]);
 
   // ── Entrada: sin boleto todavía ──
   if (!data) {
@@ -213,6 +228,13 @@ export default function WorldFestPass() {
           className="lp-overlay fixed inset-0 z-[200] flex items-center justify-center bg-black/88 px-6"
           onClick={() => setRangoAnunciado(null)}
         >
+          {/* Destello del color del rango que tiñe la pantalla */}
+          <span
+            className="lp-fogonazo"
+            style={{
+              background: `radial-gradient(circle at 50% 45%, ${COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"}, transparent 65%)`,
+            }}
+          />
           <div
             className="lp-ventana lp-anuncio relative w-full max-w-sm overflow-hidden p-8 text-center"
             onClick={e => e.stopPropagation()}
@@ -223,6 +245,22 @@ export default function WorldFestPass() {
           >
             {/* Destello que cruza la ventana al aparecer */}
             <span className="lp-brillo" />
+            {/* Línea de escaneo, como una interfaz que se inicializa */}
+            <span className="lp-escaneo" />
+
+            {/* Partículas ascendentes: más y más rápidas en rango S */}
+            {Array.from({ length: esRangoMaximo ? 18 : 10 }, (_, i) => (
+              <span
+                key={i}
+                className="lp-particula"
+                style={{
+                  color: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8",
+                  left: `${6 + (i * 88) / (esRangoMaximo ? 18 : 10)}%`,
+                  animationDelay: `${0.4 + i * 0.13}s`,
+                  animationDuration: `${(esRangoMaximo ? 1.9 : 2.4) + (i % 3) * 0.35}s`,
+                }}
+              />
+            ))}
 
             <button
               onClick={() => setRangoAnunciado(null)}
@@ -240,7 +278,7 @@ export default function WorldFestPass() {
             {/* Sello del rango: gira al entrar y late después, con anillos
                 que se expanden desde el borde. */}
             <div
-              className="lp-sello relative mx-auto mb-7 flex h-28 w-28 items-center justify-center rounded-full border-2"
+              className={`lp-sello relative mx-auto mb-7 flex items-center justify-center rounded-full border-2 ${esRangoMaximo ? "h-36 w-36" : "h-28 w-28"}`}
               style={{
                 borderColor: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8",
                 color: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8",
@@ -248,16 +286,31 @@ export default function WorldFestPass() {
             >
               <span className="lp-anillo lp-anillo-1" />
               <span className="lp-anillo lp-anillo-2" />
-              <span className="font-mono text-6xl font-black" style={{ color: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8" }}>
+              {esRangoMaximo && <span className="lp-aura" />}
+
+              {/* La letra se desdobla en cian y magenta antes de asentarse */}
+              <span className="lp-glitch font-mono text-6xl font-black" style={{ color: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8" }}>
+                <span className="lp-glitch-capa lp-glitch-cian font-mono text-6xl font-black" aria-hidden="true">
+                  {rangoAnunciado}
+                </span>
+                <span className="lp-glitch-capa lp-glitch-magenta font-mono text-6xl font-black" aria-hidden="true">
+                  {rangoAnunciado}
+                </span>
                 {rangoAnunciado}
               </span>
             </div>
 
             <p className="lp-linea-3 text-lg font-black text-white">RANGO {rangoAnunciado}</p>
-            {rangoAnunciado === "S" && (
-              <p className="lp-linea-3 mt-3 text-sm leading-relaxed text-[#7dd8ff]">
-                Alcanzaste el rango máximo. Ya estás dentro del sorteo especial.
-              </p>
+            {esRangoMaximo && (
+              <div className="lp-linea-4 mt-4 rounded-lg border border-[#f43f5e]/40 bg-[#f43f5e]/10 p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#f43f5e]">
+                  Rango máximo
+                </p>
+                <p className="mt-1.5 text-sm leading-relaxed text-[#ffd0d8]">
+                  Ya estás dentro del <strong className="text-white">sorteo especial</strong> del
+                  cierre del evento.
+                </p>
+              </div>
             )}
 
             <button
@@ -353,9 +406,9 @@ export default function WorldFestPass() {
 
               <div className="h-3 w-full overflow-hidden rounded-full bg-[#0d1c2b]">
                 <div
-                  className="h-full rounded-full transition-all duration-700"
+                  className="h-full rounded-full transition-all duration-[1100ms] ease-out"
                   style={{
-                    width: `${data.siguiente?.progreso ?? 100}%`,
+                    width: `${anchoBarra}%`,
                     background: `linear-gradient(90deg, ${color}, #7dd8ff)`,
                     boxShadow: `0 0 14px ${color}88`,
                   }}
