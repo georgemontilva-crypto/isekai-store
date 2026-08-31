@@ -2588,13 +2588,6 @@ function TasaSection() {
   const fuente = settings?.['bs_rate_source'];
   const autoActivo = settings?.['bs_rate_auto'] !== 'false';
 
-  /** Muestra las ofertas que ve el servidor, para compararlas con Binance */
-  const [ofertasVistas, setOfertasVistas] = useState<number[] | null>(null);
-  const verOfertas = trpc.tasa.consultar.useQuery(
-    { montoBs: parseFloat(settings?.['bs_rate_amount'] ?? '0') || undefined },
-    { enabled: false },
-  );
-
   const actualizarAhora = trpc.tasa.actualizarAhora.useMutation({
     onSuccess: (r) => { utils.settings.getAll.invalidate(); toast.success(`Tasa actualizada: Bs ${r.tasa}`); },
     onError: (e) => toast.error(e.message),
@@ -2681,43 +2674,6 @@ function TasaSection() {
             </button>
           </div>
 
-          {autoActivo && (
-            <div className="mt-3">
-              <label className="mb-1 block text-[11px] font-semibold text-[var(--iw-text-muted)]">
-                Monto de referencia en bolívares
-              </label>
-              <input
-                type="text"
-                inputMode="numeric"
-                defaultValue={settings?.['bs_rate_amount'] ?? ''}
-                onBlur={e => aplicarAjuste('bs_rate_amount', e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="40000 (por defecto)"
-                className="mb-1 w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-sm text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
-                style={{ minHeight: 44 }}
-              />
-              <p className="mb-3 text-[11px] leading-relaxed text-[var(--iw-text-muted)]">
-                Ya viene configurado en 40.000 Bs, que es lo habitual. Solo cámbialo si
-                sueles cambiar cantidades muy distintas.
-              </p>
-
-              <label className="mb-1 block text-[11px] font-semibold text-[var(--iw-text-muted)]">
-                Ajuste sobre la tasa de Binance (%)
-              </label>
-              <input
-                type="text"
-                inputMode="decimal"
-                defaultValue={settings?.['bs_rate_margin'] ?? '0'}
-                onBlur={e => aplicarAjuste('bs_rate_margin', e.target.value.replace(/[^0-9.\-]/g, '') || '0')}
-                placeholder="0"
-                className="w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-sm text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
-                style={{ minHeight: 44 }}
-              />
-              <p className="mt-1 text-[11px] leading-relaxed text-[var(--iw-text-muted)]">
-                Si Binance te marca más alto que lo que guarda el sistema, sube este número.
-                Ejemplo: 1 suma un 1%.
-              </p>
-            </div>
-          )}
 
           {autoActivo && (
             <button
@@ -2730,33 +2686,7 @@ function TasaSection() {
             </button>
           )}
 
-          {autoActivo && (
-            <button
-              onClick={async () => {
-                const r = await verOfertas.refetch();
-                setOfertasVistas(r.data?.precios ?? []);
-              }}
-              className="mt-2 w-full rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
-              style={{ minHeight: 42 }}
-            >
-              Ver las ofertas que lee el sistema
-            </button>
-          )}
 
-          {ofertasVistas && (
-            <div className="mt-3 rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] p-3">
-              <p className="mb-2 text-[11px] font-bold text-[var(--iw-text)]">
-                {ofertasVistas.length} ofertas leídas de Binance
-              </p>
-              <p className="text-[11px] leading-relaxed text-[var(--iw-text-muted)]" style={{ overflowWrap: 'anywhere' }}>
-                {ofertasVistas.join(' · ')}
-              </p>
-              <p className="mt-2 text-[11px] text-[var(--iw-text-muted)]">
-                Compara con lo que ves en la app de Binance. Si estos números son más
-                bajos, es que allí estás mirando con algún filtro distinto.
-              </p>
-            </div>
-          )}
 
           {fuente && (
             <p className="mt-2 text-[11px] text-[var(--iw-text-muted)]">Origen: {fuente}</p>
