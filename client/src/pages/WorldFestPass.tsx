@@ -140,10 +140,14 @@ export default function WorldFestPass() {
   // ── Entrada: sin boleto todavía ──
   if (!data) {
     return (
-      <div className="wf-zona flex min-h-screen flex-col items-center justify-center px-6 py-16">
+      <div
+        className="wf-zona flex min-h-screen flex-col items-center justify-center px-6 py-16"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 5rem)" }}
+      >
         <Link
           href="/world-fest"
-          className="absolute left-5 top-6 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-[#5f7f96] transition-colors hover:text-[#7dd8ff]"
+          className="absolute left-5 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-[#5f7f96] transition-colors hover:text-[#7dd8ff]"
+          style={{ top: "calc(env(safe-area-inset-top) + 1.25rem)" }}
         >
           <ChevronLeft size={13} /> Salir
         </Link>
@@ -268,7 +272,10 @@ export default function WorldFestPass() {
       )}
 
       {/* ── Cabecera propia ── */}
-      <header className="sticky top-0 z-40 border-b border-[#38bdf8]/15 bg-[#040a12]/95 backdrop-blur">
+      <header
+        className="sticky top-0 z-40 border-b border-[#38bdf8]/15 bg-[#040a12]/95 backdrop-blur"
+        style={{ paddingTop: "env(safe-area-inset-top)" }}
+      >
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-5 py-4">
           <div className="min-w-0">
             <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-[#7dd8ff]">
