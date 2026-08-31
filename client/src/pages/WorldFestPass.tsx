@@ -63,6 +63,9 @@ export default function WorldFestPass() {
     if (!data?.rango) return;
     if (rangoPrevio.current && rangoPrevio.current !== data.rango) {
       setRangoAnunciado(data.rango);
+      // Vibración corta: en el teléfono refuerza el momento sin depender
+      // de que el asistente esté mirando la pantalla.
+      try { navigator.vibrate?.([40, 60, 120]); } catch { /* no soportado */ }
     }
     rangoPrevio.current = data.rango;
   }, [data?.rango]);
@@ -144,45 +147,59 @@ export default function WorldFestPass() {
       {/* ── Anuncio de ascenso ── */}
       {rangoAnunciado && (
         <div
-          className="fixed inset-0 z-[200] flex items-center justify-center bg-black/85 px-6"
+          className="lp-overlay fixed inset-0 z-[200] flex items-center justify-center bg-black/88 px-6"
           onClick={() => setRangoAnunciado(null)}
         >
-          <div className="lp-ventana relative w-full max-w-sm p-8 text-center" onClick={e => e.stopPropagation()}>
+          <div
+            className="lp-ventana lp-anuncio relative w-full max-w-sm overflow-hidden p-8 text-center"
+            onClick={e => e.stopPropagation()}
+            style={{
+              ["--lp-glow" as string]: `${COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"}66`,
+              ["--lp-glow-soft" as string]: `${COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"}22`,
+            }}
+          >
+            {/* Destello que cruza la ventana al aparecer */}
+            <span className="lp-brillo" />
+
             <button
               onClick={() => setRangoAnunciado(null)}
-              className="absolute right-3 top-3 p-2 text-[#7dd8ff]/60 hover:text-white"
+              className="absolute right-3 top-3 z-10 p-2 text-[#7dd8ff]/60 hover:text-white"
               aria-label="Cerrar"
             >
               <X size={18} />
             </button>
 
-            <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
+            <p className="lp-linea-1 mb-2 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
               Notificación
             </p>
-            <p className="mb-6 text-sm text-[#b8e6ff]">Has subido de rango</p>
+            <p className="lp-linea-2 mb-7 text-sm text-[#b8e6ff]">Has subido de rango</p>
 
+            {/* Sello del rango: gira al entrar y late después, con anillos
+                que se expanden desde el borde. */}
             <div
-              className="mx-auto mb-6 flex h-28 w-28 items-center justify-center rounded-full border-2"
+              className="lp-sello relative mx-auto mb-7 flex h-28 w-28 items-center justify-center rounded-full border-2"
               style={{
                 borderColor: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8",
-                boxShadow: `0 0 44px ${COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"}66, inset 0 0 30px ${COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"}22`,
+                color: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8",
               }}
             >
+              <span className="lp-anillo lp-anillo-1" />
+              <span className="lp-anillo lp-anillo-2" />
               <span className="font-mono text-6xl font-black" style={{ color: COLOR_RANGO[rangoAnunciado] ?? "#38bdf8" }}>
                 {rangoAnunciado}
               </span>
             </div>
 
-            <p className="text-lg font-black text-white">RANGO {rangoAnunciado}</p>
+            <p className="lp-linea-3 text-lg font-black text-white">RANGO {rangoAnunciado}</p>
             {rangoAnunciado === "S" && (
-              <p className="mt-3 text-sm leading-relaxed text-[#7dd8ff]">
+              <p className="lp-linea-3 mt-3 text-sm leading-relaxed text-[#7dd8ff]">
                 Alcanzaste el rango máximo. Ya estás dentro del sorteo especial.
               </p>
             )}
 
             <button
               onClick={() => setRangoAnunciado(null)}
-              className="mt-7 w-full rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20"
+              className="lp-linea-4 mt-7 w-full rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20"
               style={{ minHeight: 48 }}
             >
               Aceptar

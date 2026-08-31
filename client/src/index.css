@@ -2698,3 +2698,76 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
     #040a12;
   color: #e8f4ff;
 }
+
+/* ── Ascenso de rango: secuencia estilo ventana de sistema ─────────────────
+   La ventana se materializa, el sello gira apareciendo, y un pulso de luz
+   recorre el borde. Cada pieza entra escalonada para que se lea como un
+   anuncio y no como un cartel que aparece de golpe. */
+@keyframes lp-fondo-entra {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes lp-ventana-entra {
+  0%   { opacity: 0; transform: scale(0.86) translateY(18px); filter: blur(6px); }
+  55%  { opacity: 1; transform: scale(1.02) translateY(0);    filter: blur(0); }
+  100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes lp-sello-entra {
+  0%   { opacity: 0; transform: scale(0.3) rotate(-90deg); }
+  60%  { opacity: 1; transform: scale(1.12) rotate(6deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes lp-texto-entra {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lp-anillo {
+  0%   { opacity: 0.9; transform: scale(1); }
+  100% { opacity: 0;   transform: scale(1.9); }
+}
+@keyframes lp-latido {
+  0%, 100% { box-shadow: 0 0 34px var(--lp-glow), inset 0 0 26px var(--lp-glow-soft); }
+  50%      { box-shadow: 0 0 58px var(--lp-glow), inset 0 0 34px var(--lp-glow-soft); }
+}
+@keyframes lp-destello {
+  0%   { transform: translateX(-120%); }
+  100% { transform: translateX(220%); }
+}
+
+.lp-overlay      { animation: lp-fondo-entra .25s ease-out both; }
+.lp-anuncio      { animation: lp-ventana-entra .55s cubic-bezier(.2,.9,.3,1.2) both; }
+.lp-sello        { animation: lp-sello-entra .6s cubic-bezier(.2,.9,.3,1.3) .18s both,
+                              lp-latido 2.4s ease-in-out .9s infinite; }
+.lp-linea-1      { animation: lp-texto-entra .4s ease-out .38s both; }
+.lp-linea-2      { animation: lp-texto-entra .4s ease-out .52s both; }
+.lp-linea-3      { animation: lp-texto-entra .4s ease-out .66s both; }
+.lp-linea-4      { animation: lp-texto-entra .4s ease-out .8s both; }
+
+/* Anillos que se expanden desde el sello */
+.lp-anillo {
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 2px solid currentColor;
+  pointer-events: none;
+}
+.lp-anillo-1 { animation: lp-anillo 1.6s ease-out .35s infinite; }
+.lp-anillo-2 { animation: lp-anillo 1.6s ease-out .95s infinite; }
+
+/* Destello que cruza la ventana una vez */
+.lp-brillo {
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(125,216,255,0.14), transparent);
+  animation: lp-destello 1.1s ease-in-out .5s both;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-anuncio, .lp-sello, .lp-linea-1, .lp-linea-2, .lp-linea-3, .lp-linea-4 {
+    animation-duration: .01ms;
+    animation-iteration-count: 1;
+  }
+  .lp-anillo, .lp-brillo { display: none; }
+}
