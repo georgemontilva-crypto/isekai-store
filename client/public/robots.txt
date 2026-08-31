@@ -6,5 +6,6 @@ Disallow: /invitacion
 Disallow: /cotizacion
 Disallow: /vender
 Disallow: /acceso
+Disallow: /guild/mejoras
 
 Sitemap: https://isekaiworld.co/sitemap.xml

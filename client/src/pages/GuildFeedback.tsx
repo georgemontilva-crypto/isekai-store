@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
-import { Loader2, Check, MessageSquare, Star, ShieldCheck, ArrowLeft } from "lucide-react";
+import { Loader2, Check, MessageSquare, Star, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -76,13 +75,7 @@ export default function GuildFeedback() {
             >
               Escribir otra cosa
             </button>
-            <Link
-              href="/cosplay/dashboard"
-              className="flex w-full items-center justify-center rounded-xl bg-[#e5007d] font-bold text-white"
-              style={{ minHeight: 50 }}
-            >
-              Volver a mi panel
-            </Link>
+
           </div>
         </div>
       </div>
@@ -117,13 +110,6 @@ export default function GuildFeedback() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] pb-20 text-white">
       <div className="mx-auto max-w-2xl px-5 py-10 sm:px-6">
-
-        <Link
-          href="/cosplay/dashboard"
-          className="mb-8 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#8a8a9c] transition-colors hover:text-white"
-        >
-          <ArrowLeft size={13} /> Mi panel
-        </Link>
 
         <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.3em] text-[#e5007d]">
           Cosplay Guild

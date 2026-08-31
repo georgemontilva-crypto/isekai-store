@@ -166,7 +166,8 @@ function Layout() {
     location.startsWith("/cotizacion/") ||
     location.startsWith("/invitacion") ||
     location.startsWith("/vender") ||
-    location.startsWith("/acceso");
+    location.startsWith("/acceso") ||
+    location.startsWith("/guild/mejoras");
 
   return (
     <>
