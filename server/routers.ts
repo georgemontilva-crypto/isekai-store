@@ -2222,6 +2222,8 @@ export const appRouter = router({
 
     updateMyProfile: protectedProcedure
       .input(z.object({
+        /** Nombre artístico: el cosplayer puede cambiarlo cuando quiera */
+        artisticName: z.string().min(2).max(100).optional(),
         bio: z.string().max(1000).optional(),
         photo: z.string().optional(),
         bannerImage: z.string().optional(),

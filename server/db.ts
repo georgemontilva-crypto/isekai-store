@@ -1361,6 +1361,7 @@ export async function rejectCosplayApplication(input: { applicationId: number; r
 }
 
 export async function updateCosplayerProfile(userId: number, data: {
+  artisticName?: string;
   bio?: string; photo?: string; bannerImage?: string; gallery?: string[];
   instagram?: string; tiktok?: string; youtube?: string; facebook?: string; twitter?: string;
 }) {
@@ -1368,7 +1369,22 @@ export async function updateCosplayerProfile(userId: number, data: {
   if (!db) throw new Error("DB not available");
   const cosplayer = await getCosplayerByUserId(userId);
   if (!cosplayer) throw new Error('Not a cosplayer');
-  await db.update(cosplayers).set(data as any).where(eq(cosplayers.id, cosplayer.id));
+
+  const cambios: any = { ...data };
+
+  // El nombre artístico no puede repetirse: es lo que identifica al cosplayer
+  // en el directorio y en su enlace público.
+  if (data.artisticName) {
+    const nombre = data.artisticName.trim();
+    const todos = await db.select().from(cosplayers);
+    const repetido = todos.some(
+      c => c.id !== cosplayer.id && c.artisticName.trim().toLowerCase() === nombre.toLowerCase(),
+    );
+    if (repetido) throw new Error("Ya hay otro cosplayer con ese nombre");
+    cambios.artisticName = nombre;
+  }
+
+  await db.update(cosplayers).set(cambios).where(eq(cosplayers.id, cosplayer.id));
 }
 
 /** Normaliza un enlace para comparar: sin protocolo, sin www, sin barra final

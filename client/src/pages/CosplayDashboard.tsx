@@ -205,6 +205,7 @@ export default function CosplayDashboard() {
 
   const handleSaveProfile = () =>
     updateProfile.mutate({
+      artisticName: profileForm.artisticName?.trim() || undefined,
       bio: profileForm.bio || undefined,
       photo: profileForm.photo || undefined,
       bannerImage: profileForm.bannerImage || undefined,
@@ -413,6 +414,21 @@ export default function CosplayDashboard() {
 
                 {/* Campos de edición */}
                 <div className="flex flex-col gap-4">
+
+                  {/* Nombre artístico */}
+                  <div>
+                    <label className="block text-[#ccc] text-sm font-medium mb-2">Nombre artístico</label>
+                    <input
+                      value={profileForm.artisticName}
+                      onChange={e => setProfileForm(f => ({ ...f, artisticName: e.target.value }))}
+                      placeholder="Cómo quieres que te conozcan"
+                      maxLength={100}
+                      className="w-full px-4 py-3 bg-[#16191f] border border-white/10 rounded-xl text-white text-sm placeholder-[#555] outline-none focus:border-[#e5007d] transition-colors"
+                    />
+                    <p className="mt-1.5 text-[11px] text-[#777]">
+                      Es el nombre con el que apareces en el directorio y en tu enlace público.
+                    </p>
+                  </div>
 
                   {/* Biografía */}
                   <div>
