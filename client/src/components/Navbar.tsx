@@ -530,8 +530,8 @@ export default function Navbar() {
           </button>
         </div>
 
-        <nav className="iw-menu-body flex flex-col px-6 py-8">
-          <form onSubmit={handleSearch} className="iw-menu-item mb-10 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
+        <nav className="iw-menu-body flex flex-col px-6 pb-8 pt-7">
+          <form onSubmit={handleSearch} className="iw-menu-item mb-12 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
             <input
               type="text"
               value={searchQuery}
@@ -547,7 +547,7 @@ export default function Navbar() {
           {/* Navegación en rejilla de tarjetas: se recorre de un vistazo y cada
               destino tiene un área de toque amplia, en vez de una lista larga
               de enlaces de texto. */}
-          <p className="iw-menu-item mb-2.5 text-[10px] font-bold uppercase tracking-[0.25em] text-white/40"
+          <p className="iw-menu-item mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-white/40"
              style={{ transitionDelay: mobileOpen ? "80ms" : "0ms" }}>
             Navegación
           </p>
@@ -604,22 +604,6 @@ export default function Navbar() {
 
           {/* Cuenta */}
           <div className="iw-menu-item mt-9 flex flex-col gap-3 border-t border-white/[0.08] pt-7" style={{ transitionDelay: mobileOpen ? `${160 + mobileLinks.length * 55}ms` : "0ms" }}>
-            {isRegularUser && (
-              <Link
-                href="/account"
-                onClick={() => setMobileOpen(false)}
-                tabIndex={mobileOpen ? 0 : -1}
-                className="flex items-center gap-3 text-[15px] font-semibold transition-opacity hover:opacity-60"
-              >
-                <Bell size={18} strokeWidth={1.8} />
-                Notificaciones
-                {notifUnread != null && notifUnread > 0 && (
-                  <span className="ml-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-                    {notifUnread > 9 ? "9+" : notifUnread}
-                  </span>
-                )}
-              </Link>
-            )}
             {/* "Mi cuenta" ya está en la rejilla de arriba: repetirlo aquí
                 sobraba. Se conserva solo el acceso para quien no ha entrado. */}
             {!isAuthenticated && (
