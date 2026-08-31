@@ -2654,3 +2654,37 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 .iw-vitrina-col { width: 100%; }
 @media (min-width: 640px) { .iw-vitrina-col { width: calc((100% - 1.25rem) / 2); } }
 @media (min-width: 1024px) { .iw-vitrina-col { width: calc((100% - 2.5rem) / 3); } }
+
+/* ── Level Pass: ventanas de sistema estilo Solo Leveling ──────────────────
+   Marco fino luminoso sobre azul muy oscuro, con esquinas recortadas y un
+   resplandor cian. */
+.lp-ventana {
+  position: relative;
+  background: linear-gradient(160deg, rgba(8, 20, 34, 0.96), rgba(4, 10, 18, 0.98));
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  border-radius: 8px;
+  box-shadow:
+    0 0 28px rgba(56, 189, 248, 0.12),
+    inset 0 0 40px rgba(56, 189, 248, 0.05);
+}
+.lp-ventana::before,
+.lp-ventana::after {
+  content: "";
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: #38bdf8;
+  pointer-events: none;
+}
+.lp-ventana::before {
+  top: -1px; left: -1px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+  border-top-left-radius: 8px;
+}
+.lp-ventana::after {
+  bottom: -1px; right: -1px;
+  border-bottom: 2px solid;
+  border-right: 2px solid;
+  border-bottom-right-radius: 8px;
+}

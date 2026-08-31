@@ -18,7 +18,7 @@ export const users = mysqlTable("users", {
   name: text("name"),
   email: varchar("email", { length: 320 }),
   loginMethod: varchar("loginMethod", { length: 64 }),
-  role: mysqlEnum("role", ["user", "admin", "store", "gate"]).default("user").notNull(),
+  role: mysqlEnum("role", ["user", "admin", "store", "gate", "staff"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
@@ -164,6 +164,76 @@ export const orders = mysqlTable("orders", {
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 
+// ─── Level Pass: experiencia y rangos durante el evento ───────────────────────
+
+/** Actividades que otorgan experiencia dentro del evento */
+export const levelActivities = mysqlTable("levelActivities", {
+  id: int("id").autoincrement().primaryKey(),
+  eventId: int("eventId").notNull(),
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description"),
+  /** Puntos que otorga */
+  xp: int("xp").notNull().default(10),
+  /** Dónde se hace: stand, tarima, zona de juegos… */
+  ubicacion: varchar("ubicacion", { length: 200 }),
+  /** Si es false, solo se puede completar una vez por boleto */
+  repetible: boolean("repetible").notNull().default(false),
+  /** Cuántas veces como máximo, si es repetible */
+  maxVeces: int("maxVeces").notNull().default(1),
+  active: boolean("active").notNull().default(true),
+  sortOrder: int("sortOrder").notNull().default(0),
+});
+
+/** Cada vez que alguien completa una actividad */
+export const levelGrants = mysqlTable("levelGrants", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketId: int("ticketId").notNull(),
+  activityId: int("activityId").notNull(),
+  xp: int("xp").notNull(),
+  /** Quién la otorgó: tienda o persona autorizada */
+  otorgadoPorUserId: int("otorgadoPorUserId"),
+  storeId: int("storeId"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Progreso acumulado de cada boleto */
+export const levelProgress = mysqlTable("levelProgress", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketId: int("ticketId").notNull().unique(),
+  eventId: int("eventId").notNull(),
+  xpTotal: int("xpTotal").notNull().default(0),
+  /** E, D, C, B, A, S */
+  rango: varchar("rango", { length: 2 }).notNull().default("E"),
+  /** Momento en que alcanzó cada rango, para el historial */
+  ultimoAscenso: timestamp("ultimoAscenso"),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+
+/** Historial de ascensos, para que el admin vea quién subió y cuándo */
+export const levelRankUps = mysqlTable("levelRankUps", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketId: int("ticketId").notNull(),
+  rangoAnterior: varchar("rangoAnterior", { length: 2 }).notNull(),
+  rangoNuevo: varchar("rangoNuevo", { length: 2 }).notNull(),
+  xpTotal: int("xpTotal").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+/** Personas autorizadas a otorgar experiencia (además de las tiendas) */
+export const levelStaff = mysqlTable("levelStaff", {
+  id: int("id").autoincrement().primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  email: varchar("email", { length: 320 }),
+  userId: int("userId"),
+  /** Puesto o zona donde trabaja */
+  puesto: varchar("puesto", { length: 200 }),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type LevelActivity = typeof levelActivities.$inferSelect;
+export type LevelProgress = typeof levelProgress.$inferSelect;
+
 // ─── Buzón de mejoras del Guild ───────────────────────────────────────────────
 // Los cosplayers envían sugerencias sin que su nombre se muestre a nadie más.
 // El admin sí ve quién escribió, salvo que el autor marque envío anónimo.
@@ -223,6 +293,8 @@ export const stores = mysqlTable("stores", {
   phone: varchar("phone", { length: 50 }),
   email: varchar("email", { length: 320 }),
   active: boolean("active").notNull().default(true),
+  /** Autorizada a otorgar experiencia del Level Pass durante el evento */
+  puedeOtorgarXp: boolean("puedeOtorgarXp").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 

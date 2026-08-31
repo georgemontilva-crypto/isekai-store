@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
+import LevelPass from "@/components/LevelPass";
 import { ArrowLeft, Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -497,6 +498,21 @@ export default function WorldFest() {
             <span className="font-mono text-xs font-bold uppercase tracking-[0.2em] text-[#7dd8ff]">{dateLabel}</span>
           </motion.div>
         </div>
+      </section>
+
+      {/* ─── Level Pass ───────────────────────────────────────────────────
+          Quien tenga boleto consulta aquí su rango con el código impreso. */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 py-16 sm:py-20">
+        <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
+          [ Sistema ]
+        </p>
+        <h2 className="mb-3 text-3xl font-black text-white sm:text-4xl">Level Pass</h2>
+        <p className="mb-8 max-w-2xl text-[15px] leading-relaxed text-[#9db8d4]">
+          Todos empiezan en rango E. Completa misiones durante el evento para subir de
+          rango: solo quienes lleguen a <strong className="text-white">rango S</strong> entran
+          en el sorteo especial.
+        </p>
+        <LevelPass />
       </section>
 
       {/* ─── Misiones ─────────────────────────────────────────────────────── */}

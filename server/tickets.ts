@@ -163,7 +163,7 @@ export async function listarTiendas() {
   return db.select().from(stores).orderBy(desc(stores.id));
 }
 
-export async function editarTienda(id: number, data: Partial<{ name: string; phone: string; contactName: string; active: boolean }>) {
+export async function editarTienda(id: number, data: Partial<{ name: string; phone: string; contactName: string; active: boolean; puedeOtorgarXp: boolean }>) {
   const db = await getDb();
   if (!db) return;
   await db.update(stores).set(data as any).where(eq(stores.id, id));

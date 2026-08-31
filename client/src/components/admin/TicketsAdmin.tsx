@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { Plus, Download, Store, Ticket, Trash2, RefreshCw, Mail } from "lucide-react";
+import { Plus, Download, Store, Ticket, Trash2, RefreshCw, Mail, Check } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -15,14 +15,14 @@ import { useAuth } from "@/_core/hooks/useAuth";
 export default function TicketsAdmin({ compact = false, vistaFija }: {
   compact?: boolean;
   /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
-  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso";
+  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass";
 }) {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
   const habilitado = isAuthenticated && user?.role === "admin";
 
   const [eventoId, setEventoId] = useState<number | null>(null);
-  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso">("resumen");
+  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass">("resumen");
   const vista = vistaFija ?? vistaLocal;
   const setVista = setVistaLocal;
 
@@ -43,6 +43,47 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
   const { data: ventasDia = [] } = trpc.tickets.ventasPorDia.useQuery(
     { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento && vista === "resumen", refetchInterval: 30000 },
   );
+  // ── Level Pass ──
+  const { data: lpActividades = [] } = trpc.levelPass.actividades.useQuery(
+    { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento && vista === "levelpass" },
+  );
+  const { data: lpResumen } = trpc.levelPass.resumen.useQuery(
+    { eventId: evento?.id ?? 0 },
+    { enabled: habilitado && !!evento && vista === "levelpass", refetchInterval: 20000 },
+  );
+  const { data: lpStaff = [] } = trpc.levelPass.staff.useQuery(undefined, {
+    enabled: habilitado && vista === "levelpass",
+  });
+
+  const [nuevaAct, setNuevaAct] = useState({ name: "", xp: "25", ubicacion: "", repetible: false, maxVeces: 3 });
+  const crearAct = trpc.levelPass.crearActividad.useMutation({
+    onSuccess: () => {
+      utils.levelPass.actividades.invalidate();
+      setNuevaAct({ name: "", xp: "25", ubicacion: "", repetible: false, maxVeces: 3 });
+      toast.success("Actividad creada");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const borrarAct = trpc.levelPass.borrarActividad.useMutation({
+    onSuccess: (r: any) => {
+      utils.levelPass.actividades.invalidate();
+      toast.success(r?.desactivada ? "Actividad desactivada (ya tiene registros)" : "Actividad eliminada");
+    },
+  });
+
+  const [nuevoStaff, setNuevoStaff] = useState({ name: "", email: "", puesto: "" });
+  const crearStaff = trpc.levelPass.crearStaff.useMutation({
+    onSuccess: () => {
+      utils.levelPass.staff.invalidate();
+      setNuevoStaff({ name: "", email: "", puesto: "" });
+      toast.success("Personal autorizado");
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const borrarStaff = trpc.levelPass.borrarStaff.useMutation({
+    onSuccess: () => { utils.levelPass.staff.invalidate(); toast.success("Eliminado"); },
+  });
+
   const { data: porteros = [] } = trpc.tickets.porteros.useQuery(undefined, {
     enabled: habilitado && vista === "acceso",
   });
@@ -251,7 +292,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* Pestañas */}
       {!vistaFija && (
       <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
-        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"], ["acceso", "Acceso"]] as const).map(([id, label]) => (
+        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"], ["acceso", "Acceso"], ["levelpass", "Level Pass"]] as const).map(([id, label]) => (
           <button
             key={id}
             onClick={() => setVista(id)}
@@ -499,6 +540,226 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         </>
       )}
 
+      {/* ── Level Pass ── */}
+      {vista === "levelpass" && (
+        <>
+          {lpResumen && (
+            <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+              {[
+                { l: "Participantes", v: String(lpResumen.participantes), c: "text-[var(--iw-text)]" },
+                { l: "En rango S", v: String(lpResumen.rangoS), c: "text-[#e5007d]" },
+                { l: "Boletos vendidos", v: String(lpResumen.boletosVendidos), c: "text-[var(--iw-text-muted)]" },
+                { l: "Ascensos", v: String(lpResumen.ascensos.length), c: "text-green-500" },
+              ].map(c => (
+                <div key={c.l} className={tarjeta}>
+                  <p className="text-[11px] text-[var(--iw-text-muted)]">{c.l}</p>
+                  <p className={`mt-1 text-base font-black tabular-nums ${c.c}`}>{c.v}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Distribución por rango */}
+          {lpResumen && lpResumen.participantes > 0 && (
+            <div className={tarjeta}>
+              <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Cazadores por rango</p>
+              <div className="flex flex-col gap-2">
+                {lpResumen.porRango.map((r: any) => (
+                  <div key={r.rango} className="flex items-center gap-3">
+                    <span className="w-6 font-mono text-sm font-black text-[var(--iw-text)]">{r.rango}</span>
+                    <div className="h-2 flex-1 overflow-hidden rounded-full bg-[var(--iw-border)]">
+                      <div
+                        className="h-full rounded-full bg-[#e5007d]"
+                        style={{ width: `${Math.max(2, (r.cantidad / Math.max(1, lpResumen.participantes)) * 100)}%` }}
+                      />
+                    </div>
+                    <span className="w-8 text-right text-xs text-[var(--iw-text-muted)]">{r.cantidad}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Nueva actividad */}
+          <div className={tarjeta}>
+            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Nueva actividad</p>
+            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
+              Las compras en tiendas aliadas son las que más experiencia deberían dar.
+            </p>
+            <div className="flex flex-col gap-3">
+              <input placeholder="Ej: Compra en tienda aliada" value={nuevaAct.name}
+                onChange={e => setNuevaAct(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
+              <div className="grid grid-cols-2 gap-2">
+                <input placeholder="XP" inputMode="numeric" value={nuevaAct.xp}
+                  onChange={e => setNuevaAct(f => ({ ...f, xp: e.target.value.replace(/[^0-9]/g, "") }))}
+                  className={campo} style={altoCampo} />
+                <input placeholder="Ubicación" value={nuevaAct.ubicacion}
+                  onChange={e => setNuevaAct(f => ({ ...f, ubicacion: e.target.value }))}
+                  className={campo} style={altoCampo} />
+              </div>
+              <button
+                onClick={() => setNuevaAct(f => ({ ...f, repetible: !f.repetible }))}
+                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left ${
+                  nuevaAct.repetible ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[var(--iw-border)]"
+                }`}
+              >
+                <span className={`flex h-5 w-5 items-center justify-center rounded border-2 ${
+                  nuevaAct.repetible ? "border-[#e5007d] bg-[#e5007d]" : "border-[var(--iw-border)]"
+                }`}>
+                  {nuevaAct.repetible && <Check size={12} className="text-white" />}
+                </span>
+                <span className="text-sm text-[var(--iw-text)]">
+                  Se puede repetir
+                  <span className="ml-1 text-xs text-[var(--iw-text-muted)]">
+                    (hasta {nuevaAct.maxVeces} veces)
+                  </span>
+                </span>
+              </button>
+              {nuevaAct.repetible && (
+                <input type="number" min={1} max={20} value={nuevaAct.maxVeces}
+                  onChange={e => setNuevaAct(f => ({ ...f, maxVeces: Math.min(20, Math.max(1, parseInt(e.target.value) || 1)) }))}
+                  className={campo} style={altoCampo} />
+              )}
+            </div>
+            <button
+              onClick={() => evento && crearAct.mutate({
+                eventId: evento.id,
+                name: nuevaAct.name,
+                xp: parseInt(nuevaAct.xp) || 25,
+                ubicacion: nuevaAct.ubicacion || undefined,
+                repetible: nuevaAct.repetible,
+                maxVeces: nuevaAct.repetible ? nuevaAct.maxVeces : undefined,
+              })}
+              disabled={!nuevaAct.name || crearAct.isPending}
+              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              style={{ minHeight: 52 }}
+            >
+              Añadir actividad
+            </button>
+          </div>
+
+          {/* Actividades */}
+          <div className="flex flex-col gap-2">
+            {(lpActividades as any[]).map((a: any) => (
+              <div key={a.id} className={`${tarjeta} ${a.active ? "" : "opacity-50"}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[var(--iw-text)]">{a.name}</p>
+                    <p className="text-xs text-[var(--iw-text-muted)]">
+                      {a.ubicacion ? `${a.ubicacion} · ` : ""}
+                      {a.repetible ? `hasta ${a.maxVeces} veces` : "una sola vez"}
+                      {a.active ? "" : " · desactivada"}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="font-mono text-sm font-black text-[#e5007d]">+{a.xp}</span>
+                    <button onClick={() => { if (confirm(`¿Eliminar "${a.name}"?`)) borrarAct.mutate({ id: a.id }); }}
+                      className="p-2 text-[var(--iw-text-muted)] hover:text-red-500">
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+            {(lpActividades as any[]).length === 0 && (
+              <p className="py-6 text-center text-sm text-[var(--iw-text-muted)]">
+                Aún no hay actividades creadas.
+              </p>
+            )}
+          </div>
+
+          {/* Personal autorizado */}
+          <div className={tarjeta}>
+            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Personal que otorga experiencia</p>
+            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
+              Además de las tiendas que marques en la pestaña Tiendas. Entran desde
+              isekaiworld.co/vender con su correo.
+            </p>
+            <div className="flex flex-col gap-3">
+              <input placeholder="Nombre" value={nuevoStaff.name}
+                onChange={e => setNuevoStaff(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
+              <input placeholder="Correo de acceso" type="email" inputMode="email" value={nuevoStaff.email}
+                onChange={e => setNuevoStaff(f => ({ ...f, email: e.target.value }))} className={campo} style={altoCampo} />
+              <input placeholder="Puesto o zona" value={nuevoStaff.puesto}
+                onChange={e => setNuevoStaff(f => ({ ...f, puesto: e.target.value }))} className={campo} style={altoCampo} />
+            </div>
+            <button
+              onClick={() => crearStaff.mutate({
+                name: nuevoStaff.name,
+                email: nuevoStaff.email || undefined,
+                puesto: nuevoStaff.puesto || undefined,
+              })}
+              disabled={!nuevoStaff.name || crearStaff.isPending}
+              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              style={{ minHeight: 52 }}
+            >
+              Autorizar
+            </button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            {(lpStaff as any[]).map((g: any) => (
+              <div key={g.id} className={tarjeta}>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[var(--iw-text)]">{g.name}</p>
+                    <p className="truncate text-xs text-[var(--iw-text-muted)]" style={{ overflowWrap: "anywhere" }}>
+                      {g.puesto ? `${g.puesto} · ` : ""}{g.email ?? "sin correo"}
+                    </p>
+                  </div>
+                  <button onClick={() => { if (confirm(`¿Eliminar a ${g.name}?`)) borrarStaff.mutate({ id: g.id }); }}
+                    className="shrink-0 p-2 text-[var(--iw-text-muted)] hover:text-red-500">
+                    <Trash2 size={15} />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Ranking */}
+          {lpResumen && lpResumen.ranking.length > 0 && (
+            <div className={tarjeta}>
+              <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Ranking</p>
+              <div className="flex flex-col gap-2">
+                {lpResumen.ranking.map((r: any, i: number) => (
+                  <div key={r.ticketId} className="flex items-center gap-3 border-b border-[var(--iw-border)] pb-2 last:border-0">
+                    <span className="w-5 text-xs font-black text-[var(--iw-text-muted)]">{i + 1}</span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-semibold text-[var(--iw-text)]">{r.nombre}</p>
+                      <p className="font-mono text-[11px] text-[var(--iw-text-muted)]">{r.codigo}</p>
+                    </div>
+                    <span className="font-mono text-xs font-black text-[#e5007d]">{r.rango}</span>
+                    <span className="w-14 text-right text-xs text-[var(--iw-text-muted)]">{r.xpTotal} XP</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Ascensos recientes */}
+          {lpResumen && lpResumen.ascensos.length > 0 && (
+            <div className={tarjeta}>
+              <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Ascensos recientes</p>
+              <div className="flex flex-col gap-2">
+                {lpResumen.ascensos.slice(0, 20).map((a: any) => (
+                  <div key={a.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-2 last:border-0">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm text-[var(--iw-text)]">{a.nombre}</p>
+                      <p className="text-[11px] text-[var(--iw-text-muted)]">
+                        {new Date(a.createdAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}
+                      </p>
+                    </div>
+                    <span className="shrink-0 font-mono text-xs font-bold text-[#e5007d]">
+                      {a.rangoAnterior} → {a.rangoNuevo}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
       {/* ── Control de acceso ── */}
       {vista === "acceso" && (
         <>
@@ -684,6 +945,19 @@ Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra 
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-2">
+                    {/* Autorización para dar experiencia del Level Pass */}
+                    <button
+                      onClick={() => editarTienda.mutate({ id: s.id, puedeOtorgarXp: !s.puedeOtorgarXp })}
+                      className={`rounded-full px-3 text-[11px] font-bold ${
+                        s.puedeOtorgarXp
+                          ? "bg-[#38bdf8]/15 text-[#38bdf8]"
+                          : "border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                      }`}
+                      style={{ minHeight: 40 }}
+                      title="Puede otorgar experiencia del Level Pass"
+                    >
+                      XP
+                    </button>
                     {s.email && (
                       <button
                         onClick={() => reenviarAcceso.mutate({ id: s.id })}

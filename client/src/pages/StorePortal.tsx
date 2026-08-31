@@ -68,6 +68,22 @@ export default function StorePortal() {
   const esTienda = user?.role === "store" || user?.role === "admin";
 
   const { data: tienda } = trpc.tickets.miTienda.useQuery(undefined, { enabled: esTienda });
+  /** Modo del portal: vender boletos o dar experiencia del Level Pass */
+  const [modo, setModo] = useState<"vender" | "xp">("vender");
+  const [actividadXp, setActividadXp] = useState<number | null>(null);
+  const [resultadoXp, setResultadoXp] = useState<any>(null);
+
+  const { data: accesoXp } = trpc.levelPass.miAcceso.useQuery(undefined, { enabled: esTienda });
+  const { data: actividadesXp = [] } = trpc.levelPass.actividadesPublicas.useQuery(
+    { eventId: accesoXp?.eventId ?? 0 },
+    { enabled: Boolean(accesoXp?.puede && accesoXp?.eventId) },
+  );
+
+  const otorgarXp = trpc.levelPass.otorgar.useMutation({
+    onSuccess: (r) => { setResultadoXp(r); toast.success(`+${r.xpGanada} XP`); },
+    onError: (e) => toast.error(e.message),
+  });
+
   const { data: eventos = [] } = trpc.tickets.eventosActivos.useQuery(undefined, { enabled: esTienda });
   const evento = eventos[0];
 
@@ -148,7 +164,16 @@ export default function StorePortal() {
           toast.error("La cámara no funcionó. Escribe el código del boleto.");
         }}>
           <QrScanner
-            onDetectado={(t) => { setEscaneando2(false); setUltimoEscaneo(t); setToken(t); }}
+            onDetectado={(t) => {
+            setEscaneando2(false);
+            setUltimoEscaneo(t);
+            // Según el modo: cargar el boleto para venderlo, o dar experiencia
+            if (modo === 'xp' && actividadXp) {
+              otorgarXp.mutate({ token: t, activityId: actividadXp });
+            } else {
+              setToken(t);
+            }
+          }}
             onCerrar={() => setEscaneando2(false)}
           />
         </EscanerSeguro>
@@ -165,8 +190,128 @@ export default function StorePortal() {
           </div>
         </div>
 
+        {/* Cambio de modo: solo aparece si esta tienda está autorizada a dar
+            experiencia y el evento está en curso. */}
+        {accesoXp?.puede && accesoXp?.enCurso && (
+          <div className="mb-5 grid grid-cols-2 gap-2">
+            {([["vender", "Vender boletos"], ["xp", "Dar experiencia"]] as const).map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => { setModo(id); setResultadoXp(null); limpiar(); }}
+                className={`rounded-xl text-xs font-bold transition-colors ${
+                  modo === id ? "bg-[#e5007d] text-white" : "border border-[#2e2e3a] text-[#b4b4c2]"
+                }`}
+                style={{ minHeight: 46 }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {/* ── Otorgar experiencia ── */}
+        {modo === "xp" && (
+          <>
+            {resultadoXp ? (
+              <div className={`rounded-2xl border p-6 text-center ${
+                resultadoXp.subioDeRango
+                  ? "border-[#38bdf8]/50 bg-[#38bdf8]/10"
+                  : "border-green-500/40 bg-green-500/10"
+              }`}>
+                <Check className={`mx-auto mb-3 h-9 w-9 ${resultadoXp.subioDeRango ? "text-[#7dd8ff]" : "text-green-400"}`} />
+                <p className="text-lg font-black">+{resultadoXp.xpGanada} XP</p>
+                <p className="mt-1 font-bold text-white">{resultadoXp.nombre}</p>
+                <p className="text-sm text-[#b4b4c2]">{resultadoXp.actividad}</p>
+
+                {resultadoXp.subioDeRango && (
+                  <p className="mt-4 rounded-xl border border-[#38bdf8]/40 bg-[#38bdf8]/10 px-4 py-3 text-sm font-black text-[#7dd8ff]">
+                    ¡Subió a rango {resultadoXp.rango}!
+                  </p>
+                )}
+
+                <p className="mt-3 text-xs text-[#8a8a9c]">
+                  Total: {resultadoXp.xpTotal} XP · Rango {resultadoXp.rango}
+                </p>
+
+                <button
+                  onClick={() => { setResultadoXp(null); limpiar(); setActividadXp(null); }}
+                  className="mt-6 w-full rounded-full bg-[#e5007d] font-bold text-white"
+                  style={{ minHeight: 52 }}
+                >
+                  Siguiente persona
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="mb-3 text-sm font-bold">1. Elige la actividad</p>
+                <div className="mb-6 flex flex-col gap-2">
+                  {(actividadesXp as any[]).map((a: any) => (
+                    <button
+                      key={a.id}
+                      onClick={() => setActividadXp(a.id)}
+                      className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+                        actividadXp === a.id ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[#2e2e3a]"
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className={`text-sm font-bold ${actividadXp === a.id ? "text-[#ff45a0]" : "text-white"}`}>
+                            {a.name}
+                          </p>
+                          {a.ubicacion && (
+                            <p className="mt-0.5 text-[11px] text-[#8a8a9c]">{a.ubicacion}</p>
+                          )}
+                        </div>
+                        <span className="shrink-0 font-mono text-sm font-black text-[#7dd8ff]">
+                          +{a.xp}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                  {(actividadesXp as any[]).length === 0 && (
+                    <p className="py-6 text-center text-sm text-[#8a8a9c]">
+                      No hay actividades publicadas para este evento.
+                    </p>
+                  )}
+                </div>
+
+                <p className="mb-3 text-sm font-bold">2. Escanea el boleto</p>
+                <button
+                  onClick={() => setEscaneando2(true)}
+                  disabled={!actividadXp}
+                  className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#e5007d] font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                  style={{ minHeight: 56 }}
+                >
+                  <Camera size={20} /> Escanear con la cámara
+                </button>
+
+                <p className="mb-2 text-center text-[11px] uppercase tracking-wider text-[#6a6a7c]">
+                  o escribe el código
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    value={codigoManual}
+                    onChange={e => setCodigoManual(e.target.value.toUpperCase())}
+                    placeholder="IW-XXXXXX"
+                    className={`${campo} font-mono uppercase`}
+                    style={{ minHeight: 50 }}
+                  />
+                  <button
+                    onClick={() => otorgarXp.mutate({ token: codigoManual.trim(), activityId: actividadXp! })}
+                    disabled={!actividadXp || codigoManual.trim().length < 4 || otorgarXp.isPending}
+                    className="shrink-0 rounded-xl bg-[#e5007d] px-5 font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                    style={{ minHeight: 50 }}
+                  >
+                    {otorgarXp.isPending ? <Loader2 size={18} className="animate-spin" /> : "Dar"}
+                  </button>
+                </div>
+              </>
+            )}
+          </>
+        )}
+
         {/* Resumen de la tienda */}
-        {misVentas && (
+        {modo === "vender" && misVentas && (
           <div className="mb-6 grid grid-cols-3 gap-2">
             <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Vendidos</p>
@@ -184,7 +329,7 @@ export default function StorePortal() {
         )}
 
         {/* ── Venta completada ── */}
-        {vendido ? (
+        {modo === "vender" && (vendido ? (
           <div className="rounded-2xl border border-green-500/40 bg-green-500/10 p-6 text-center">
             <Check className="mx-auto mb-3 h-9 w-9 text-green-400" />
             <p className="text-lg font-black">Boleto vendido</p>
@@ -361,7 +506,7 @@ export default function StorePortal() {
               </button>
             </div>
           </div>
-        )}
+        ))}
 
         {/* Últimas ventas de esta tienda */}
         {!vendido && !token && (misVentas?.boletos.length ?? 0) > 0 && (

@@ -23,6 +23,12 @@ import {
   paqueteAcceso, registrarIngreso, resumenAsistencia,
   crearPortero, listarPorteros, editarPortero, borrarPortero, esPorteroPorCorreo,
 } from "./tickets";
+import {
+  crearActividad, listarActividades, editarActividad, borrarActividad,
+  otorgarExperiencia, estadoPublico, resumenLevelPass,
+  crearStaff, listarStaff, borrarStaff, esStaffPorCorreo, puedeOtorgar,
+  levelPassActivo,
+} from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
@@ -1106,6 +1112,114 @@ export const appRouter = router({
       }),
   }),
 
+  // ─── Level Pass ──────────────────────────────────────────────────────────────
+  levelPass: router({
+    /** Estado público: el asistente consulta con su número de boleto */
+    estado: publicProcedure
+      .input(z.object({ codigo: z.string().min(4).max(64) }))
+      .query(async ({ input }) => {
+        const r = await estadoPublico(input.codigo);
+        if (!r) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "No encontramos ese boleto. Revisa el código impreso.",
+          });
+        }
+        return r;
+      }),
+
+    /** Actividades visibles del evento activo, para la página pública */
+    actividadesPublicas: publicProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => listarActividades(input.eventId, true)),
+
+    /** ¿Puede este usuario otorgar experiencia, y está el evento en curso? */
+    miAcceso: protectedProcedure.query(async ({ ctx }) => {
+      const acceso = await puedeOtorgar(ctx.user.id, ctx.user.role);
+      const eventos = (await listarEventos()).filter(e => e.active);
+      const evento = eventos[0];
+      const activo = evento ? await levelPassActivo(evento.id) : false;
+      return {
+        puede: acceso.puede,
+        storeId: acceso.storeId,
+        eventId: evento?.id ?? null,
+        eventName: evento?.name ?? null,
+        // El Level Pass se abre solo durante los días del evento
+        enCurso: activo,
+      };
+    }),
+
+    /** Otorgar experiencia escaneando el QR del boleto */
+    otorgar: protectedProcedure
+      .input(z.object({ token: z.string().min(4).max(64), activityId: z.number() }))
+      .mutation(async ({ ctx, input }) => {
+        const acceso = await puedeOtorgar(ctx.user.id, ctx.user.role);
+        if (!acceso.puede) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permiso para otorgar experiencia" });
+        }
+        if (!limitarPorUsuario(`xp:${ctx.user.id}`, 300, 10 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados registros seguidos" });
+        }
+        return otorgarExperiencia({
+          token: input.token,
+          activityId: input.activityId,
+          userId: ctx.user.id,
+          storeId: acceso.storeId,
+        });
+      }),
+
+    // ── Admin ──
+    actividades: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => listarActividades(input.eventId)),
+
+    crearActividad: adminProcedure
+      .input(z.object({
+        eventId: z.number(),
+        name: z.string().min(1).max(200),
+        description: z.string().max(1000).optional(),
+        xp: z.number().int().min(1).max(1000),
+        ubicacion: z.string().max(200).optional(),
+        repetible: z.boolean().optional(),
+        maxVeces: z.number().int().min(1).max(20).optional(),
+      }))
+      .mutation(({ input }) => crearActividad(input)),
+
+    editarActividad: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        name: z.string().max(200).optional(),
+        description: z.string().max(1000).optional(),
+        xp: z.number().int().min(1).max(1000).optional(),
+        ubicacion: z.string().max(200).optional(),
+        repetible: z.boolean().optional(),
+        maxVeces: z.number().int().min(1).max(20).optional(),
+        active: z.boolean().optional(),
+      }))
+      .mutation(({ input }) => { const { id, ...d } = input; return editarActividad(id, d); }),
+
+    borrarActividad: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => borrarActividad(input.id)),
+
+    resumen: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => resumenLevelPass(input.eventId)),
+
+    // ── Personal autorizado ──
+    staff: adminProcedure.query(() => listarStaff()),
+    crearStaff: adminProcedure
+      .input(z.object({
+        name: z.string().min(1).max(200),
+        email: z.string().email().max(320).optional(),
+        puesto: z.string().max(200).optional(),
+      }))
+      .mutation(({ input }) => crearStaff(input)),
+    borrarStaff: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => borrarStaff(input.id)),
+  }),
+
   // ─── Buzón de mejoras del Guild ──────────────────────────────────────────────
   feedback: router({
     /**
@@ -1281,6 +1395,8 @@ export const appRouter = router({
         contactName: z.string().max(200).optional(),
         phone: z.string().max(50).optional(),
         active: z.boolean().optional(),
+        /** Autorizada a otorgar experiencia del Level Pass */
+        puedeOtorgarXp: z.boolean().optional(),
       }))
       .mutation(({ input }) => { const { id, ...d } = input; return editarTienda(id, d); }),
 
