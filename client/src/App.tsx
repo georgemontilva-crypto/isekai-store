@@ -22,6 +22,7 @@ const Invitacion = lazy(() => import("./pages/Invitacion"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
 const GuildFeedback = lazy(() => import("./pages/GuildFeedback"));
+const WorldFestPass = lazy(() => import("./pages/WorldFestPass"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Account = lazy(() => import("./pages/Account"));
@@ -127,6 +128,8 @@ function Router() {
         <Route path="/acceso" component={GateControl} />
         {/* Buzón de mejoras del Guild */}
         <Route path="/guild/mejoras" component={GuildFeedback} />
+        {/* Zona del evento: espacio propio, fuera de la tienda */}
+        <Route path="/worldfest/pass" component={WorldFestPass} />
         <Route path="/cosplay" component={CosplayLanding} />
         <Route path="/cosplay/apply" component={CosplayApply} />
         <Route path="/cosplay/guild" component={CosplayGuild} />
@@ -156,6 +159,7 @@ function Layout() {
   const esPaginaSola =
     location.startsWith("/invitacion") ||
     location.startsWith("/guild/mejoras") ||
+    location.startsWith("/worldfest/pass") ||
     location.startsWith("/vender") ||
     location.startsWith("/acceso");
 
@@ -172,7 +176,8 @@ function Layout() {
     location.startsWith("/invitacion") ||
     location.startsWith("/vender") ||
     location.startsWith("/acceso") ||
-    location.startsWith("/guild/mejoras");
+    location.startsWith("/guild/mejoras") ||
+    location.startsWith("/worldfest/pass");
 
   return (
     <>

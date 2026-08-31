@@ -7,5 +7,6 @@ Disallow: /cotizacion
 Disallow: /vender
 Disallow: /acceso
 Disallow: /guild/mejoras
+Disallow: /worldfest/pass
 
 Sitemap: https://isekaiworld.co/sitemap.xml

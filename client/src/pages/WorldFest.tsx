@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
-import LevelPass from "@/components/LevelPass";
 import { ArrowLeft, Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -500,19 +499,40 @@ export default function WorldFest() {
         </div>
       </section>
 
-      {/* ─── Level Pass ───────────────────────────────────────────────────
-          Quien tenga boleto consulta aquí su rango con el código impreso. */}
+      {/* ─── Puerta al sistema ───────────────────────────────────────────
+          El Level Pass vive en su propia zona: aquí solo está la entrada. */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 py-16 sm:py-20">
-        <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
-          [ Sistema ]
-        </p>
-        <h2 className="mb-3 text-3xl font-black text-white sm:text-4xl">Level Pass</h2>
-        <p className="mb-8 max-w-2xl text-[15px] leading-relaxed text-[#9db8d4]">
-          Todos empiezan en rango E. Completa misiones durante el evento para subir de
-          rango: solo quienes lleguen a <strong className="text-white">rango S</strong> entran
-          en el sorteo especial.
-        </p>
-        <LevelPass />
+        <div
+          className="relative overflow-hidden rounded-2xl border p-8 text-center sm:p-14"
+          style={{
+            borderColor: "rgba(93,180,255,0.3)",
+            background: "linear-gradient(160deg, rgba(8,22,40,0.95), rgba(4,10,20,0.98))",
+            boxShadow: "0 0 40px rgba(93,180,255,0.12), inset 0 0 60px rgba(93,180,255,0.05)",
+          }}
+        >
+          <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
+            [ Level Pass ]
+          </p>
+          <h2 className="mb-4 text-3xl font-black text-white sm:text-5xl">
+            Todos empiezan en rango E
+          </h2>
+          <p className="mx-auto mb-9 max-w-xl text-[15px] leading-relaxed text-[#9db8d4]">
+            Completa misiones durante el evento para subir de rango. Solo quienes
+            lleguen a <strong className="text-white">rango S</strong> entran en el
+            sorteo especial del cierre.
+          </p>
+
+          <Link
+            href="/worldfest/pass"
+            className="inline-flex items-center gap-2.5 rounded-xl border border-[#5db4ff]/50 bg-[#5db4ff]/10 px-9 py-4 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-all hover:bg-[#5db4ff]/20 hover:shadow-[0_0_28px_rgba(93,180,255,0.3)]"
+          >
+            Entrar al sistema
+          </Link>
+
+          <p className="mt-5 text-xs text-[#5f7f96]">
+            Necesitas el código de tu boleto
+          </p>
+        </div>
       </section>
 
       {/* ─── Misiones ─────────────────────────────────────────────────────── */}
