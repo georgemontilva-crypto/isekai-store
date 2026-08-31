@@ -152,7 +152,12 @@ function Layout() {
    * Quien llega ahí fue invitado a leer algo concreto, y cualquier elemento
    * del sitio alrededor le resta fuerza y lo saca del momento.
    */
-  const esPaginaSola = location.startsWith("/invitacion");
+  /** Páginas sin navbar: viven solas, se llega a ellas por enlace directo */
+  const esPaginaSola =
+    location.startsWith("/invitacion") ||
+    location.startsWith("/guild/mejoras") ||
+    location.startsWith("/vender") ||
+    location.startsWith("/acceso");
 
   /**
    * Pantallas que funcionan como app (paneles con su propia barra inferior):
