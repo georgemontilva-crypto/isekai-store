@@ -5,7 +5,7 @@ import { REFERRAL_TIERS } from "@shared/referral";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "wouter";
-import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle } from "lucide-react";
+import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle, ChevronRight } from "lucide-react";
 import { getLoginUrl } from "@/const";
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
 
@@ -348,6 +348,21 @@ export default function CosplayDashboard() {
             {/* ── MI PERFIL ── */}
             {activeTab === "profile" && (
               <div className="max-w-2xl mx-auto">
+
+                {/* Buzón de mejoras: se pone arriba del perfil para que se
+                    vea, no escondido al final donde nadie llega. */}
+                <Link
+                  href="/guild/mejoras"
+                  className="mb-5 flex items-center justify-between gap-3 rounded-2xl border border-[#e5007d]/30 bg-[#e5007d]/[0.07] px-5 py-4 transition-colors hover:bg-[#e5007d]/[0.12]"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-white">¿Qué podemos hacer mejor?</p>
+                    <p className="mt-0.5 text-xs text-[#b4b4c2]">
+                      Cuéntanos sin filtros. Tu nombre no se muestra a nadie.
+                    </p>
+                  </div>
+                  <ChevronRight size={18} className="shrink-0 text-[#e5007d]" />
+                </Link>
 
                 {/* Banner editable */}
                 <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-0 bg-[#16191f] border-2 border-dashed border-white/10">

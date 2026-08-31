@@ -44,6 +44,7 @@ import {
   insertSubscriber, getSubscribers, deleteSubscriber,
   createQuote, getQuoteByToken, getAllQuotes, updateQuote, deleteQuote, editQuote, vincularCuentaPorCorreo,
   getTransactions, getFinanceSummary,
+  crearFeedback, listarFeedback, actualizarFeedback, borrarFeedback, resumenFeedback,
   ensureOwnCosplayerProfile, setOwnCosplayerVisibility, getOwnCosplayerVisibility,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
   insertAdminNotification, getAdminNotifications, getAdminUnreadCount,
@@ -1103,6 +1104,84 @@ export const appRouter = router({
         }
         return { success: true, mailchimp: true };
       }),
+  }),
+
+  // ─── Buzón de mejoras del Guild ──────────────────────────────────────────────
+  feedback: router({
+    /**
+     * Enviar una sugerencia. Requiere sesión para evitar spam, pero el nombre
+     * no se muestra a nadie salvo al dueño — y si el autor marca anónimo, no
+     * se guarda ni siquiera para él.
+     */
+    enviar: protectedProcedure
+      .input(z.object({
+        categoria: z.enum(["experiencia", "actividades", "comunicacion", "pagos", "eventos", "otro"]),
+        valoracion: z.number().int().min(1).max(5).optional(),
+        mensaje: z.string().min(10).max(4000),
+        anonimo: z.boolean().default(false),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!limitarPorUsuario(`feedback:${ctx.user.id}`, 5, 60 * 60 * 1000)) {
+          throw new TRPCError({
+            code: "TOO_MANY_REQUESTS",
+            message: "Ya enviaste varias sugerencias. Espera un rato antes de mandar otra.",
+          });
+        }
+
+        const cosplayer = await getCosplayerByUserId(ctx.user.id);
+
+        await crearFeedback({
+          userId: ctx.user.id,
+          cosplayerId: cosplayer?.id,
+          anonimo: input.anonimo,
+          categoria: input.categoria,
+          valoracion: input.valoracion,
+          mensaje: input.mensaje,
+        });
+
+        // Aviso al dueño, sin revelar el autor si pidió anonimato
+        try {
+          const quien = input.anonimo ? "Alguien" : (cosplayer?.artisticName ?? "Un cosplayer");
+          await insertAdminNotification({
+            type: "new_user",
+            title: `${quien} dejó una sugerencia`,
+            body: input.mensaje.length > 120 ? input.mensaje.slice(0, 120) + "…" : input.mensaje,
+          });
+          await notifyOwner({
+            title: `Nueva sugerencia del Guild — ${input.categoria}`,
+            content: `
+              <p><strong>De:</strong> ${quien}${input.anonimo ? " (envío anónimo)" : ""}</p>
+              ${input.valoracion ? `<p><strong>Valoración:</strong> ${input.valoracion} de 5</p>` : ""}
+              <p><strong>Mensaje:</strong></p>
+              <blockquote>${input.mensaje}</blockquote>
+              <p style="margin-top:16px"><a href="https://isekaiworld.co/admin?tab=feedback">Ver en el panel</a></p>
+            `,
+          });
+          const admins = await getAdminUsers();
+          for (const a of admins) io.to(`user:${a.id}`).emit("notification:new");
+        } catch (e) { console.error("[Feedback] Aviso fallido:", e); }
+
+        return { ok: true };
+      }),
+
+    // ── Admin ──
+    listar: adminProcedure
+      .input(z.object({ estado: z.string().optional() }).optional())
+      .query(({ input }) => listarFeedback(input?.estado)),
+
+    resumen: adminProcedure.query(() => resumenFeedback()),
+
+    actualizar: adminProcedure
+      .input(z.object({
+        id: z.number(),
+        estado: z.enum(["nuevo", "leido", "resuelto"]).optional(),
+        notaInterna: z.string().max(2000).optional(),
+      }))
+      .mutation(({ input }) => { const { id, ...d } = input; return actualizarFeedback(id, d); }),
+
+    borrar: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(({ input }) => borrarFeedback(input.id)),
   }),
 
   // ─── Boletería de eventos ────────────────────────────────────────────────────

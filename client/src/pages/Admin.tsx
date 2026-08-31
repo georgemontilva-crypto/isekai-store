@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
+import FeedbackSection from "@/components/admin/FeedbackSection";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { descargarTarjeta } from "@/lib/giftCardImage";
 import {
@@ -22,7 +23,7 @@ import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -1186,6 +1187,7 @@ export default function Admin() {
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
     { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
     { id: "finanzas" as AdminTab, label: "Finanzas",     icon: DollarSign },
+    { id: "feedback" as AdminTab, label: "Sugerencias",  icon: MessageCircle },
     { id: "boleteria" as AdminTab, label: "Boletería",    icon: Ticket },
     { id: "quotes" as AdminTab,   label: "Cotizaciones", icon: FileText },
     { id: "subscribers" as AdminTab, label: "Suscriptores", icon: Mail },
@@ -2588,6 +2590,18 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
+              </motion.div>
+            )}
+
+          {/* ─── Sugerencias del Guild ────────────────────────────────────────── */}
+            {tab === "feedback" && (
+              <motion.div key="feedback" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <h1 className="mb-1 text-2xl font-bold">Sugerencias del Guild</h1>
+                <p className="mb-6 text-sm text-[#666]">
+                  Lo que los cosplayers proponen para mejorar. Comparte el enlace{" "}
+                  <strong className="text-[#111]">isekaiworld.co/guild/mejoras</strong> con ellos.
+                </p>
+                <FeedbackSection />
               </motion.div>
             )}
 

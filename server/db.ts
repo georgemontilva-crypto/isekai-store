@@ -21,6 +21,7 @@ import {
   subscribers,
   quotes,
   orderPayments,
+  guildFeedback,
   authTokens,
   adminNotifications,
   AdminNotification,
@@ -2968,4 +2969,80 @@ export async function getAbonosPendientes() {
     .leftJoin(orders, eq(orderPayments.orderId, orders.id))
     .where(eq(orderPayments.status, "pending"))
     .orderBy(desc(orderPayments.id));
+}
+
+// ─── Buzón de mejoras del Guild ───────────────────────────────────────────────
+
+export async function crearFeedback(data: {
+  userId?: number;
+  cosplayerId?: number;
+  anonimo: boolean;
+  categoria: string;
+  valoracion?: number;
+  mensaje: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+
+  // Si el autor pidió anonimato, NO se guarda ninguna referencia a él: no
+  // basta con ocultarlo en pantalla, no debe existir el dato.
+  await db.insert(guildFeedback).values({
+    userId: data.anonimo ? null : data.userId,
+    cosplayerId: data.anonimo ? null : data.cosplayerId,
+    anonimo: data.anonimo,
+    categoria: data.categoria,
+    valoracion: data.valoracion,
+    mensaje: data.mensaje.trim(),
+  });
+}
+
+export async function listarFeedback(estado?: string) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const filas = await db.select().from(guildFeedback)
+    .where(estado && estado !== "all" ? eq(guildFeedback.estado, estado) : undefined)
+    .orderBy(desc(guildFeedback.id))
+    .limit(300);
+
+  const cosplayersTodos = await db.select().from(cosplayers);
+
+  return filas.map(f => {
+    const autor = f.cosplayerId ? cosplayersTodos.find(c => c.id === f.cosplayerId) : undefined;
+    return {
+      ...f,
+      autorNombre: f.anonimo ? null : (autor?.artisticName ?? null),
+      autorFoto: f.anonimo ? null : (autor?.avatarUrl ?? null),
+    };
+  });
+}
+
+export async function actualizarFeedback(id: number, data: { estado?: string; notaInterna?: string }) {
+  const db = await getDb();
+  if (!db) return;
+  await db.update(guildFeedback).set(data as any).where(eq(guildFeedback.id, id));
+}
+
+export async function borrarFeedback(id: number) {
+  const db = await getDb();
+  if (!db) return;
+  await db.delete(guildFeedback).where(eq(guildFeedback.id, id));
+}
+
+/** Resumen para el panel: cuántos hay sin leer y la valoración media */
+export async function resumenFeedback() {
+  const db = await getDb();
+  if (!db) return { total: 0, nuevos: 0, media: 0, anonimos: 0 };
+
+  const filas = await db.select().from(guildFeedback);
+  const conNota = filas.filter(f => f.valoracion != null);
+
+  return {
+    total: filas.length,
+    nuevos: filas.filter(f => f.estado === "nuevo").length,
+    media: conNota.length
+      ? Math.round((conNota.reduce((a, f) => a + (f.valoracion ?? 0), 0) / conNota.length) * 10) / 10
+      : 0,
+    anonimos: filas.filter(f => f.anonimo).length,
+  };
 }

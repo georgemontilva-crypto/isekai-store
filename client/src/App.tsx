@@ -21,6 +21,7 @@ const QuoteView = lazy(() => import("./pages/QuoteView"));
 const Invitacion = lazy(() => import("./pages/Invitacion"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
+const GuildFeedback = lazy(() => import("./pages/GuildFeedback"));
 const ProductDetail = lazy(() => import("./pages/ProductDetail"));
 const Checkout = lazy(() => import("./pages/Checkout"));
 const Account = lazy(() => import("./pages/Account"));
@@ -124,6 +125,8 @@ function Router() {
         <Route path="/vender" component={StorePortal} />
         {/* Control de acceso: pantalla del portero */}
         <Route path="/acceso" component={GateControl} />
+        {/* Buzón de mejoras del Guild */}
+        <Route path="/guild/mejoras" component={GuildFeedback} />
         <Route path="/cosplay" component={CosplayLanding} />
         <Route path="/cosplay/apply" component={CosplayApply} />
         <Route path="/cosplay/guild" component={CosplayGuild} />

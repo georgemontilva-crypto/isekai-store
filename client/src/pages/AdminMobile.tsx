@@ -12,11 +12,12 @@ import {
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
 import GiftCardsSection from '@/components/admin/GiftCardsSection';
+import FeedbackSection from '@/components/admin/FeedbackSection';
 import TicketsAdmin from '@/components/admin/TicketsAdmin';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'giftcards' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -1907,6 +1908,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
         { label: 'Tasa del día', tab: 'tasa'        as MobileTab, icon: DollarSign },
+        { label: 'Sugerencias',  tab: 'feedback'    as MobileTab, icon: MessageCircle },
         { label: 'Tarjetas',     tab: 'giftcards'   as MobileTab, icon: Gift },
         { label: 'Boletería',    tab: 'boleteria'   as MobileTab, icon: Ticket },
         { label: 'Cotizaciones', tab: 'quotes'      as MobileTab, icon: FileText },
@@ -2969,13 +2971,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', giftcards: 'Tarjetas de regalo', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', giftcards: 'Tarjetas de regalo', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -3034,6 +3036,7 @@ export default function AdminMobile() {
         {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'quotes'      && <QuotesSection />}
         {activeTab === 'giftcards'   && <GiftCardsSection />}
+        {activeTab === 'feedback'    && <FeedbackSection compact />}
         {enBoleteria && (
           <TicketsAdmin
             compact

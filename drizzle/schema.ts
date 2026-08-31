@@ -164,6 +164,29 @@ export const orders = mysqlTable("orders", {
 export type Order = typeof orders.$inferSelect;
 export type InsertOrder = typeof orders.$inferInsert;
 
+// ─── Buzón de mejoras del Guild ───────────────────────────────────────────────
+// Los cosplayers envían sugerencias sin que su nombre se muestre a nadie más.
+// El admin sí ve quién escribió, salvo que el autor marque envío anónimo.
+export const guildFeedback = mysqlTable("guildFeedback", {
+  id: int("id").autoincrement().primaryKey(),
+  /** Autor: null si eligió enviarlo de forma realmente anónima */
+  cosplayerId: int("cosplayerId"),
+  userId: int("userId"),
+  /** El propio autor decidió no identificarse */
+  anonimo: boolean("anonimo").notNull().default(false),
+  /** experiencia | actividades | comunicacion | pagos | eventos | otro */
+  categoria: varchar("categoria", { length: 40 }).notNull().default("otro"),
+  /** 1 a 5: cómo valora su experiencia en el Guild */
+  valoracion: int("valoracion"),
+  mensaje: text("mensaje").notNull(),
+  /** nuevo | leido | resuelto */
+  estado: varchar("estado", { length: 20 }).notNull().default("nuevo"),
+  notaInterna: text("notaInterna"),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type GuildFeedback = typeof guildFeedback.$inferSelect;
+
 // ─── Eventos y boletería ──────────────────────────────────────────────────────
 // Todo queda agrupado por evento para conservar el historial de cada edición.
 export const events = mysqlTable("events", {
