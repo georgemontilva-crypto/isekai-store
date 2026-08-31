@@ -35,7 +35,10 @@ export default function GuildFeedback() {
   const [enviado, setEnviado] = useState(false);
 
   const enviar = trpc.feedback.enviar.useMutation({
-    onSuccess: () => setEnviado(true),
+    onSuccess: () => {
+      setEnviado(true);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    },
     onError: (e) => toast.error(e.message),
   });
 
@@ -64,7 +67,10 @@ export default function GuildFeedback() {
           </p>
           <div className="flex flex-col gap-2">
             <button
-              onClick={() => { setEnviado(false); setCategoria(""); setMensaje(""); setValoracion(0); }}
+              onClick={() => {
+                setEnviado(false); setCategoria(""); setMensaje(""); setValoracion(0);
+                window.scrollTo({ top: 0 });
+              }}
               className="w-full rounded-xl border border-white/10 font-bold text-white"
               style={{ minHeight: 50 }}
             >
