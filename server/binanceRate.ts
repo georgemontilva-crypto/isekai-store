@@ -28,9 +28,10 @@ export interface ResultadoTasa {
 /**
  * Consulta el precio al que se COMPRA USDT pagando en bolívares.
  *
- * En el P2P de Binance eso corresponde a los anuncios de venta ("SELL" desde
- * la perspectiva del anunciante): son las personas que venden USDT y a las que
- * tú les pagas en bolívares.
+ * En la API de Binance, `tradeType` va desde la perspectiva de QUIEN CONSULTA:
+ * "BUY" devuelve los anuncios de quienes venden USDT — que es a quienes tú les
+ * pagas en bolívares para comprarlo. Con "SELL" salían los del lado contrario,
+ * con precios más bajos, y la tasa quedaba corta.
  */
 export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
   try {
@@ -45,7 +46,7 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
       body: JSON.stringify({
         asset: "USDT",
         fiat: "VES",
-        tradeType: "SELL",
+        tradeType: "BUY",
         page: 1,
         rows: 20,
         payTypes: [],
