@@ -203,6 +203,7 @@ export async function otorgarExperiencia(data: {
 
   return {
     ok: true,
+    codigo: ticket.code,
     nombre: `${ticket.buyerName ?? ""} ${ticket.buyerLastName ?? ""}`.trim(),
     actividad: actividad.name,
     xpGanada: actividad.xp,
@@ -397,4 +398,109 @@ export async function resumenLevelPass(eventId: number) {
       };
     }),
   };
+}
+
+// ─── Entorno de prueba ────────────────────────────────────────────────────────
+
+/**
+ * Crea un evento completo para ensayar: fechas de hoy y mañana, un tipo de
+ * boleto, actividades y boletos ya vendidos a nombres de ejemplo.
+ *
+ * TEMPORAL: sirve para probar el circuito completo antes del evento real.
+ * Todo lo creado lleva la marca "[PRUEBA]" para poder borrarlo de una vez.
+ */
+export async function crearEntornoPrueba() {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+
+  const hoy = new Date();
+  const manana = new Date(Date.now() + 86400000);
+
+  await db.insert(events).values({
+    name: "[PRUEBA] Ensayo Level Pass",
+    startDate: hoy,
+    endDate: manana,
+    location: "Entorno de pruebas",
+    active: true,
+  });
+  const [evento] = await db.select().from(events).orderBy(desc(events.id)).limit(1);
+
+  await db.insert(ticketTypes).values([
+    { eventId: evento.id, name: "General 1 día", priceUsd: "15.00", days: 1, sortOrder: 1 },
+    { eventId: evento.id, name: "Pase completo 2 días", priceUsd: "25.00", days: 2, sortOrder: 2 },
+  ]);
+  const tipos = await db.select().from(ticketTypes).where(eq(ticketTypes.eventId, evento.id));
+
+  await db.insert(levelActivities).values([
+    { eventId: evento.id, name: "Compra en tienda aliada", description: "Cualquier compra en los stands autorizados", xp: 60, ubicacion: "Zona de tiendas", repetible: true, maxVeces: 5, sortOrder: 1 },
+    { eventId: evento.id, name: "Foto en el photocall", description: "Súbela con la etiqueta del evento", xp: 40, ubicacion: "Entrada principal", sortOrder: 2 },
+    { eventId: evento.id, name: "Torneo de cartas", description: "Participa en una partida completa", xp: 80, ubicacion: "Tarima 2", sortOrder: 3 },
+    { eventId: evento.id, name: "Desfile de cosplay", description: "Preséntate en la pasarela", xp: 120, ubicacion: "Escenario principal", sortOrder: 4 },
+    { eventId: evento.id, name: "Compra en food trucks", description: "Se puede repetir", xp: 30, ubicacion: "Zona de comida", repetible: true, maxVeces: 3, sortOrder: 5 },
+  ]);
+
+  // Boletos ya vendidos, para probar sin tener que venderlos primero
+  const nombres = [
+    ["Ana", "Prueba"],
+    ["Luis", "Ensayo"],
+    ["María", "Demo"],
+  ];
+  const lote = `PRUEBA${Date.now().toString().slice(-6)}`;
+
+  const filas = nombres.map((n, i) => ({
+    eventId: evento.id,
+    token: nanoid(32).replace(/[^a-zA-Z0-9]/g, "x"),
+    code: `IW-TEST0${i + 1}`,
+    status: "sold",
+    ticketTypeId: tipos[i % tipos.length].id,
+    buyerName: n[0],
+    buyerLastName: n[1],
+    buyerPhone: "0400-0000000",
+    priceUsd: tipos[i % tipos.length].priceUsd,
+    soldAt: new Date(),
+    batch: lote,
+  }));
+
+  // Dos boletos más sin vender, para ensayar la venta
+  filas.push(
+    ...[1, 2].map(i => ({
+      eventId: evento.id,
+      token: nanoid(32).replace(/[^a-zA-Z0-9]/g, "x"),
+      code: `IW-LIBRE${i}`,
+      status: "blank",
+      batch: lote,
+    })) as any,
+  );
+
+  await db.insert(eventTickets).values(filas as any);
+
+  return {
+    eventId: evento.id,
+    codigosVendidos: ["IW-TEST01", "IW-TEST02", "IW-TEST03"],
+    codigosLibres: ["IW-LIBRE1", "IW-LIBRE2"],
+  };
+}
+
+/** Borra todo lo creado por el entorno de prueba */
+export async function borrarEntornoPrueba() {
+  const db = await getDb();
+  if (!db) return { borrados: 0 };
+
+  const pruebas = (await db.select().from(events))
+    .filter(e => e.name.startsWith("[PRUEBA]"));
+
+  for (const ev of pruebas) {
+    const boletos = await db.select().from(eventTickets).where(eq(eventTickets.eventId, ev.id));
+    for (const b of boletos) {
+      await db.delete(levelGrants).where(eq(levelGrants.ticketId, b.id));
+      await db.delete(levelProgress).where(eq(levelProgress.ticketId, b.id));
+      await db.delete(levelRankUps).where(eq(levelRankUps.ticketId, b.id));
+    }
+    await db.delete(eventTickets).where(eq(eventTickets.eventId, ev.id));
+    await db.delete(levelActivities).where(eq(levelActivities.eventId, ev.id));
+    await db.delete(ticketTypes).where(eq(ticketTypes.eventId, ev.id));
+    await db.delete(events).where(eq(events.id, ev.id));
+  }
+
+  return { borrados: pruebas.length };
 }

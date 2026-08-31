@@ -55,6 +55,22 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     enabled: habilitado && vista === "levelpass",
   });
 
+  const crearPrueba = trpc.levelPass.crearPrueba.useMutation({
+    onSuccess: (r: any) => {
+      utils.tickets.eventos.invalidate();
+      utils.levelPass.actividades.invalidate();
+      toast.success(`Listo. Boletos vendidos: ${r.codigosVendidos.join(", ")}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const borrarPrueba = trpc.levelPass.borrarPrueba.useMutation({
+    onSuccess: () => {
+      utils.tickets.eventos.invalidate();
+      utils.levelPass.actividades.invalidate();
+      toast.success("Datos de prueba eliminados");
+    },
+  });
+
   const [nuevaAct, setNuevaAct] = useState({ name: "", xp: "25", ubicacion: "", repetible: false, maxVeces: 3 });
   const crearAct = trpc.levelPass.crearActividad.useMutation({
     onSuccess: () => {
@@ -543,6 +559,32 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Level Pass ── */}
       {vista === "levelpass" && (
         <>
+          {/* TEMPORAL: entorno de ensayo */}
+          <div className="rounded-2xl border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
+            <p className="text-sm font-bold text-[var(--iw-text)]">Entorno de prueba</p>
+            <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--iw-text-muted)]">
+              Crea un evento con fechas de hoy, cinco actividades y boletos listos:
+              tres vendidos (IW-TEST01 a 03) y dos sin vender (IW-LIBRE1 y 2).
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => crearPrueba.mutate()}
+                disabled={crearPrueba.isPending}
+                className="rounded-xl bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
+                style={{ minHeight: 44 }}
+              >
+                {crearPrueba.isPending ? "Creando..." : "Crear entorno de prueba"}
+              </button>
+              <button
+                onClick={() => { if (confirm("¿Borrar todos los datos de prueba?")) borrarPrueba.mutate(); }}
+                className="rounded-xl border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)]"
+                style={{ minHeight: 44 }}
+              >
+                Borrar pruebas
+              </button>
+            </div>
+          </div>
+
           {lpResumen && (
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
               {[

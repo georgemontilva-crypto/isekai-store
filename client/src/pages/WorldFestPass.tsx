@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useBoletoSocket } from "@/hooks/useBoletoSocket";
 
 /**
  * Zona del evento — Isekai World Fest.
@@ -117,6 +118,16 @@ export default function WorldFestPass() {
   })();
 
   const data: any = esPrueba ? demo : real;
+
+  const utils = trpc.useUtils();
+
+  /**
+   * Los puntos llegan al instante por conexión en vivo. La consulta cada 15
+   * segundos se mantiene como respaldo por si la conexión se cae.
+   */
+  useBoletoSocket(esPrueba ? "" : consultado, () => {
+    utils.levelPass.estado.invalidate({ codigo: consultado });
+  });
 
   useEffect(() => {
     if (!data?.rango) return;

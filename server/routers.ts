@@ -27,7 +27,7 @@ import {
   crearActividad, listarActividades, editarActividad, borrarActividad,
   otorgarExperiencia, estadoPublico, resumenLevelPass,
   crearStaff, listarStaff, borrarStaff, esStaffPorCorreo, puedeOtorgar,
-  levelPassActivo,
+  levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba,
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
@@ -1173,12 +1173,25 @@ export const appRouter = router({
         if (!limitarPorUsuario(`xp:${ctx.user.id}`, 300, 10 * 60 * 1000)) {
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados registros seguidos" });
         }
-        return otorgarExperiencia({
+        const r = await otorgarExperiencia({
           token: input.token,
           activityId: input.activityId,
           userId: ctx.user.id,
           storeId: acceso.storeId,
         });
+
+        // Aviso instantáneo a la pantalla del asistente: sin esto tendría que
+        // esperar a que su pantalla volviera a consultar.
+        try {
+          io.to(`boleto:${r.codigo?.toUpperCase() ?? ""}`).emit("levelpass:xp", {
+            xpGanada: r.xpGanada,
+            xpTotal: r.xpTotal,
+            rango: r.rango,
+            subioDeRango: r.subioDeRango,
+          });
+        } catch (e) { console.warn("[LevelPass] No se pudo avisar al asistente:", e); }
+
+        return r;
       }),
 
     // ── Admin ──
@@ -1218,6 +1231,10 @@ export const appRouter = router({
     resumen: adminProcedure
       .input(z.object({ eventId: z.number() }))
       .query(({ input }) => resumenLevelPass(input.eventId)),
+
+    /** TEMPORAL: monta un evento completo para ensayar */
+    crearPrueba: adminProcedure.mutation(() => crearEntornoPrueba()),
+    borrarPrueba: adminProcedure.mutation(() => borrarEntornoPrueba()),
 
     // ── Personal autorizado ──
     staff: adminProcedure.query(() => listarStaff()),

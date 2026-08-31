@@ -22,6 +22,18 @@ export function initSocket(httpServer: HttpServer): Server {
       const cookieHeader = socket.handshake.headers.cookie ?? "";
       const cookies = parseCookie(cookieHeader);
       const token = cookies[COOKIE_NAME];
+      /**
+       * El asistente del evento no tiene cuenta: se conecta solo con el
+       * código de su boleto para recibir sus puntos al instante. Esa
+       * conexión no da acceso a nada más, solo a su propia sala.
+       */
+      const boleto = String(socket.handshake.auth?.boleto ?? "").trim();
+      if (!token && boleto) {
+        socket.data.boleto = boleto.toUpperCase();
+        socket.join(`boleto:${boleto.toUpperCase()}`);
+        return next();
+      }
+
       if (!token) return next(new Error("No autenticado"));
 
       const session = await verifySession(token);
