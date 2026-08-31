@@ -19,6 +19,23 @@ import { trpc } from "@/lib/trpc";
 
 const CLAVE_BOLETO = "iw_worldfest_boleto";
 
+/**
+ * Código de prueba. Escribiéndolo se entra con datos inventados y aparece un
+ * botón para simular ascensos, sin tocar la base de datos ni necesitar un
+ * evento en curso. Sirve para revisar la animación antes del evento real.
+ *
+ * TEMPORAL: quitar cuando ya no haga falta probar.
+ */
+const CODIGO_PRUEBA = "IW-DEMO";
+
+const DEMO_ACTIVIDADES = [
+  { id: 1, name: "Compra en tienda aliada", description: "Cualquier compra en los stands autorizados", xp: 60, ubicacion: "Zona de tiendas", completada: true, veces: 1, tope: 1 },
+  { id: 2, name: "Foto en el photocall", description: "Sube la foto con la etiqueta del evento", xp: 40, ubicacion: "Entrada principal", completada: true, veces: 1, tope: 1 },
+  { id: 3, name: "Torneo de cartas", description: "Participa en una partida completa", xp: 80, ubicacion: "Tarima 2", completada: false, veces: 0, tope: 1 },
+  { id: 4, name: "Desfile de cosplay", description: "Preséntate en la pasarela", xp: 120, ubicacion: "Escenario principal", completada: false, veces: 0, tope: 1 },
+  { id: 5, name: "Compra en food trucks", description: "Se puede repetir", xp: 30, ubicacion: "Zona de comida", completada: false, veces: 0, tope: 3 },
+];
+
 const COLOR_RANGO: Record<string, string> = {
   E: "#8a8a9c",
   D: "#4ade80",
@@ -54,10 +71,44 @@ export default function WorldFestPass() {
     } catch { /* almacenamiento no disponible */ }
   }, []);
 
-  const { data, isLoading, error } = trpc.levelPass.estado.useQuery(
+  // ── Modo de prueba ──
+  const esPrueba = consultado.toUpperCase() === CODIGO_PRUEBA;
+  const [xpPrueba, setXpPrueba] = useState(100);
+
+  const { data: real, isLoading, error } = trpc.levelPass.estado.useQuery(
     { codigo: consultado },
-    { enabled: consultado.length >= 4, retry: false, refetchInterval: 15000 },
+    { enabled: consultado.length >= 4 && !esPrueba, retry: false, refetchInterval: 15000 },
   );
+
+  /** Datos inventados que imitan la respuesta del servidor */
+  const demo = (() => {
+    if (!esPrueba) return null;
+    const rango = [...RANGOS_INFO].reverse().find(r => xpPrueba >= r.desde)?.rango ?? "E";
+    const proximo = RANGOS_INFO.find(r => xpPrueba < r.desde);
+    const actual = [...RANGOS_INFO].reverse().find(r => xpPrueba >= r.desde) ?? RANGOS_INFO[0];
+    const tramo = proximo ? proximo.desde - actual.desde : 0;
+    return {
+      codigo: CODIGO_PRUEBA,
+      nombre: "Cazador de prueba",
+      xpTotal: xpPrueba,
+      rango,
+      esRangoS: rango === "S",
+      siguiente: proximo
+        ? {
+            rango: proximo.rango,
+            faltan: proximo.desde - xpPrueba,
+            progreso: tramo > 0 ? Math.round(((xpPrueba - actual.desde) / tramo) * 100) : 100,
+          }
+        : null,
+      actividades: DEMO_ACTIVIDADES,
+      historial: [
+        { actividad: "Compra en tienda aliada", xp: 60, fecha: new Date().toISOString() },
+        { actividad: "Foto en el photocall", xp: 40, fecha: new Date().toISOString() },
+      ],
+    };
+  })();
+
+  const data: any = esPrueba ? demo : real;
 
   useEffect(() => {
     if (!data?.rango) return;
@@ -136,6 +187,14 @@ export default function WorldFestPass() {
           <p className="mt-6 text-center text-[11px] leading-relaxed text-[#5f7f96]">
             El código está debajo del QR de tu boleto.
           </p>
+
+          {/* TEMPORAL: acceso de prueba */}
+          <button
+            onClick={() => entrar(CODIGO_PRUEBA)}
+            className="mt-4 w-full rounded-lg border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] py-3 font-mono text-[11px] uppercase tracking-widest text-[#fbbf24]"
+          >
+            Entrar en modo prueba
+          </button>
         </div>
       </div>
     );
@@ -230,6 +289,35 @@ export default function WorldFestPass() {
           </div>
         </div>
       </header>
+
+      {/* Barra de prueba: solo con el código de demostración */}
+      {esPrueba && (
+        <div className="border-b border-[#fbbf24]/25 bg-[#fbbf24]/[0.07] px-5 py-3">
+          <div className="mx-auto flex max-w-2xl flex-wrap items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#fbbf24]">
+              Modo prueba
+            </span>
+            <button
+              onClick={() => setXpPrueba(x => x + 80)}
+              className="rounded-lg border border-[#fbbf24]/40 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24]"
+            >
+              +80 XP
+            </button>
+            <button
+              onClick={() => setXpPrueba(500)}
+              className="rounded-lg border border-[#f43f5e]/40 bg-[#f43f5e]/10 px-3 py-2 text-xs font-bold text-[#f43f5e]"
+            >
+              Saltar a rango S
+            </button>
+            <button
+              onClick={() => { setXpPrueba(0); rangoPrevio.current = "E"; }}
+              className="rounded-lg border border-[#38bdf8]/30 px-3 py-2 text-xs font-bold text-[#7dd8ff]"
+            >
+              Reiniciar
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-2xl px-5 py-6">
 
