@@ -2588,6 +2588,10 @@ function TasaSection() {
   const fuente = settings?.['bs_rate_source'];
   const autoActivo = settings?.['bs_rate_auto'] !== 'false';
 
+  /** Muestra las ofertas que ve el servidor, para compararlas con Binance */
+  const [ofertasVistas, setOfertasVistas] = useState<number[] | null>(null);
+  const verOfertas = trpc.tasa.consultar.useQuery(undefined, { enabled: false });
+
   const actualizarAhora = trpc.tasa.actualizarAhora.useMutation({
     onSuccess: (r) => { utils.settings.getAll.invalidate(); toast.success(`Tasa actualizada: Bs ${r.tasa}`); },
     onError: (e) => toast.error(e.message),
@@ -2704,6 +2708,34 @@ function TasaSection() {
             >
               {actualizarAhora.isPending ? 'Consultando Binance...' : 'Actualizar ahora'}
             </button>
+          )}
+
+          {autoActivo && (
+            <button
+              onClick={async () => {
+                const r = await verOfertas.refetch();
+                setOfertasVistas(r.data?.precios ?? []);
+              }}
+              className="mt-2 w-full rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
+              style={{ minHeight: 42 }}
+            >
+              Ver las ofertas que lee el sistema
+            </button>
+          )}
+
+          {ofertasVistas && (
+            <div className="mt-3 rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] p-3">
+              <p className="mb-2 text-[11px] font-bold text-[var(--iw-text)]">
+                {ofertasVistas.length} ofertas leídas de Binance
+              </p>
+              <p className="text-[11px] leading-relaxed text-[var(--iw-text-muted)]" style={{ overflowWrap: 'anywhere' }}>
+                {ofertasVistas.join(' · ')}
+              </p>
+              <p className="mt-2 text-[11px] text-[var(--iw-text-muted)]">
+                Compara con lo que ves en la app de Binance. Si estos números son más
+                bajos, es que allí estás mirando con algún filtro distinto.
+              </p>
+            </div>
           )}
 
           {fuente && (

@@ -17,12 +17,14 @@ import { eq } from "drizzle-orm";
 const URL_P2P = "https://p2p.binance.com/bapi/c2c/v2/friendly/c2c/adv/search";
 
 /** Cuántas ofertas se consultan para buscar la más alta */
-const OFERTAS_A_REVISAR = 15;
+const OFERTAS_A_REVISAR = 20;
 
 export interface ResultadoTasa {
   tasa: number;
   ofertas: number;
   consultadoEn: string;
+  /** Precios devueltos, para poder comparar con lo que se ve en la app */
+  precios?: number[];
 }
 
 /**
@@ -49,6 +51,7 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
         tradeType: "BUY",
         page: 1,
         rows: 20,
+        // Sin filtro de método de pago ni de anunciante: se ve toda la oferta
         payTypes: [],
         publisherType: null,
       }),
@@ -82,6 +85,7 @@ export async function consultarTasaBinance(): Promise<ResultadoTasa | null> {
       tasa: Math.round(masAlta * 100) / 100,
       ofertas: precios.length,
       consultadoEn: new Date().toISOString(),
+      precios,
     };
   } catch (e) {
     console.warn("[Tasa] No se pudo consultar Binance:", (e as Error)?.message ?? e);
