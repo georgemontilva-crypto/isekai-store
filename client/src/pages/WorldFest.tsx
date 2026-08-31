@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useLocation } from "wouter";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { ArrowLeft, Loader2, Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -43,6 +44,10 @@ const ALERTA = "Se abrió un portal en Maracaibo. Ubicación desconocida.";
 type GateState = "boot" | "ask" | "loading" | "denied" | "open";
 
 export default function WorldFest() {
+  // TEMPORAL: la puerta al Level Pass solo la ve el dueño por ahora
+  const { user: usuarioWF, isAuthenticated: sesionWF } = useAuth();
+  const esAdminWF = sesionWF && usuarioWF?.role === "admin";
+
   const { data: settings } = trpc.settings.getAll.useQuery();
   const [, navigate] = useLocation();
 
@@ -500,7 +505,9 @@ export default function WorldFest() {
       </section>
 
       {/* ─── Puerta al sistema ───────────────────────────────────────────
-          El Level Pass vive en su propia zona: aquí solo está la entrada. */}
+          El Level Pass vive en su propia zona: aquí solo está la entrada.
+          TEMPORAL: solo visible para el dueño hasta que se abra al público. */}
+      {esAdminWF && (
       <section className="relative z-10 mx-auto max-w-6xl px-6 py-16 sm:py-20">
         <div
           className="relative overflow-hidden rounded-2xl border p-8 text-center sm:p-14"
@@ -534,6 +541,7 @@ export default function WorldFest() {
           </p>
         </div>
       </section>
+      )}
 
       {/* ─── Misiones ─────────────────────────────────────────────────────── */}
       <section className="relative z-10 mx-auto max-w-6xl px-6 py-16 sm:py-20">

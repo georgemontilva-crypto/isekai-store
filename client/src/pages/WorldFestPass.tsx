@@ -5,6 +5,7 @@ import {
   Swords, User, ScrollText, ChevronLeft,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 /**
  * Zona del evento — Isekai World Fest.
@@ -57,6 +58,13 @@ const RANGOS_INFO = [
 type Pestana = "rango" | "misiones" | "perfil";
 
 export default function WorldFestPass() {
+  /**
+   * TEMPORAL: la zona del evento todavía no es pública. Mientras se prepara,
+   * solo entra el dueño. Quitar esta restricción antes del evento.
+   */
+  const { user, isAuthenticated, loading: cargandoSesion } = useAuth();
+  const esAdmin = isAuthenticated && user?.role === "admin";
+
   const [codigo, setCodigo] = useState("");
   const [consultado, setConsultado] = useState("");
   const [pestana, setPestana] = useState<Pestana>("rango");
@@ -151,6 +159,37 @@ export default function WorldFestPass() {
     const id = setTimeout(() => setAnchoBarra(destino), 120);
     return () => clearTimeout(id);
   }, [data?.xpTotal, data?.rango]);
+
+  if (cargandoSesion) {
+    return (
+      <div className="wf-zona flex min-h-screen items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[#38bdf8]" />
+      </div>
+    );
+  }
+
+  // ── Todavía no es pública ──
+  if (!esAdmin) {
+    return (
+      <div className="wf-zona flex min-h-screen flex-col items-center justify-center px-6 text-center">
+        <div className="lp-ventana w-full max-w-sm p-8">
+          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
+            Isekai World Fest
+          </p>
+          <h1 className="mb-3 text-2xl font-black text-white">Sistema en preparación</h1>
+          <p className="mb-7 text-sm leading-relaxed text-[#8fa8bd]">
+            El Level Pass se activará antes del evento. Vuelve pronto.
+          </p>
+          <Link
+            href="/world-fest"
+            className="block w-full rounded-lg border border-[#38bdf8]/40 bg-[#38bdf8]/10 py-3.5 font-mono text-xs uppercase tracking-widest text-[#7dd8ff]"
+          >
+            Volver
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   // ── Entrada: sin boleto todavía ──
   if (!data) {

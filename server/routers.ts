@@ -1114,10 +1114,22 @@ export const appRouter = router({
 
   // ─── Level Pass ──────────────────────────────────────────────────────────────
   levelPass: router({
-    /** Estado público: el asistente consulta con su número de boleto */
+    /**
+     * Estado del boleto: el asistente consulta con su número.
+     *
+     * TEMPORAL: mientras el Level Pass no sea público, solo responde al
+     * dueño. Ocultarlo únicamente en la interfaz no bastaría: cualquiera
+     * con un código podría consultarlo directamente.
+     */
     estado: publicProcedure
       .input(z.object({ codigo: z.string().min(4).max(64) }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
+        if (ctx.user?.role !== "admin") {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "El Level Pass todavía no está disponible.",
+          });
+        }
         const r = await estadoPublico(input.codigo);
         if (!r) {
           throw new TRPCError({
@@ -1129,7 +1141,8 @@ export const appRouter = router({
       }),
 
     /** Actividades visibles del evento activo, para la página pública */
-    actividadesPublicas: publicProcedure
+    /** TEMPORAL: cerrado al público hasta que se abra el Level Pass */
+    actividadesPublicas: protectedProcedure
       .input(z.object({ eventId: z.number() }))
       .query(({ input }) => listarActividades(input.eventId, true)),
 
