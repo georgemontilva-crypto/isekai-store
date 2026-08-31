@@ -530,7 +530,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        <nav className="iw-menu-body flex flex-col px-6 pb-8 pt-7">
+        <nav className="iw-menu-body flex flex-col px-6 pb-8 pt-[20px]">
           <form onSubmit={handleSearch} className="iw-menu-item mb-12 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
             <input
               type="text"
