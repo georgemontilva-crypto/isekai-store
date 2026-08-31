@@ -2651,7 +2651,7 @@ function TasaSection() {
               <p className="text-xs font-bold text-[var(--iw-text)]">Tasa automática</p>
               <p className="text-[11px] text-[var(--iw-text-muted)]">
                 {autoActivo
-                  ? 'Se consulta Binance P2P cada hora'
+                  ? 'Se consulta Binance P2P cada 30 minutos'
                   : 'Desactivada: usas la tasa que escribas'}
               </p>
             </div>
@@ -2691,13 +2691,13 @@ function TasaSection() {
                 inputMode="numeric"
                 defaultValue={settings?.['bs_rate_amount'] ?? ''}
                 onBlur={e => aplicarAjuste('bs_rate_amount', e.target.value.replace(/[^0-9]/g, ''))}
-                placeholder="Ej: 40000"
+                placeholder="40000 (por defecto)"
                 className="mb-1 w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-sm text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
                 style={{ minHeight: 44 }}
               />
               <p className="mb-3 text-[11px] leading-relaxed text-[var(--iw-text-muted)]">
-                El sistema buscará ofertas que acepten esa cantidad, igual que cuando
-                lo consultas a mano en Binance. Déjalo vacío para ver todas.
+                Ya viene configurado en 40.000 Bs, que es lo habitual. Solo cámbialo si
+                sueles cambiar cantidades muy distintas.
               </p>
 
               <label className="mb-1 block text-[11px] font-semibold text-[var(--iw-text-muted)]">
