@@ -1379,6 +1379,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
 // ============ SECCIÓN: PRODUCTOS ============
 function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
   const { user, isAuthenticated } = useAuth();
+  const { data: categorias = [] } = trpc.categories.list.useQuery();
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'admin',
   });
@@ -1539,6 +1540,25 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                   onChange={e => setEditProduct({ ...editProduct, stock: parseInt(e.target.value) || 0 })}
                   className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
+              {/* Colección: sin esto había que ir al panel de escritorio solo
+                  para asignarla. */}
+              <div>
+                <label className="text-sm font-medium block mb-1">Colección</label>
+                <select
+                  value={editProduct.categoryId ?? ''}
+                  onChange={e => setEditProduct({
+                    ...editProduct,
+                    categoryId: e.target.value ? parseInt(e.target.value) : null,
+                  })}
+                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none bg-white"
+                >
+                  <option value="">— Sin colección —</option>
+                  {(categorias ?? []).map((c: any) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="text-sm font-medium block mb-1">Estado</label>
                 <select value={editProduct.status}
@@ -1558,7 +1578,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                 <button onClick={() => setEditProduct(null)}
                   className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
                 <button
-                  onClick={() => updateProduct.mutate({ id: editProduct.id, name: editProduct.name, price: editProduct.price, status: editProduct.status, description: editProduct.description, stock: editProduct.stock })}
+                  onClick={() => updateProduct.mutate({ id: editProduct.id, name: editProduct.name, price: editProduct.price, status: editProduct.status, description: editProduct.description, stock: editProduct.stock, categoryId: editProduct.categoryId ?? null })}
                   disabled={updateProduct.isPending}
                   className="flex-1 bg-[#111] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
                   {updateProduct.isPending ? 'Guardando...' : 'Guardar cambios'}
