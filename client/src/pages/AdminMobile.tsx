@@ -2648,14 +2648,29 @@ function TasaSection() {
                   : 'Desactivada: usas la tasa que escribas'}
               </p>
             </div>
+            {/* Interruptor: verde encendido, gris apagado */}
             <button
               onClick={() => aplicarAjuste('bs_rate_auto', autoActivo ? 'false' : 'true')}
-              className={`shrink-0 rounded-full px-4 text-xs font-bold ${
-                autoActivo ? 'bg-[#e5007d] text-white' : 'border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
-              }`}
-              style={{ minHeight: 40 }}
+              role="switch"
+              aria-checked={autoActivo}
+              aria-label="Tasa automática"
+              className="relative shrink-0 rounded-full transition-colors duration-200"
+              style={{
+                width: 52,
+                height: 30,
+                background: autoActivo ? '#22c55e' : 'var(--iw-border)',
+                WebkitTapHighlightColor: 'transparent',
+              }}
             >
-              {autoActivo ? 'Activa' : 'Activar'}
+              <span
+                className="absolute rounded-full bg-white shadow transition-all duration-200"
+                style={{
+                  width: 24,
+                  height: 24,
+                  top: 3,
+                  left: autoActivo ? 25 : 3,
+                }}
+              />
             </button>
           </div>
 
