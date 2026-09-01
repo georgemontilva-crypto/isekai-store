@@ -447,32 +447,47 @@ export async function crearEntornoPrueba() {
   ];
   const lote = `PRUEBA${Date.now().toString().slice(-6)}`;
 
-  const filas = nombres.map((n, i) => ({
-    eventId: evento.id,
-    token: nanoid(32).replace(/[^a-zA-Z0-9]/g, "x"),
-    code: `IW-TEST0${i + 1}`,
-    status: "sold",
-    ticketTypeId: tipos[i % tipos.length].id,
-    buyerName: n[0],
-    buyerLastName: n[1],
-    buyerPhone: "0400-0000000",
-    priceUsd: tipos[i % tipos.length].priceUsd,
-    soldAt: new Date(),
-    batch: lote,
-  }));
-
-  // Dos boletos más sin vender, para ensayar la venta
-  filas.push(
-    ...[1, 2].map(i => ({
+  // Los vendidos y los vacíos se insertan por separado: al mezclarlos en una
+  // sola operación las filas tenían distinta forma y la consulta fallaba.
+  await db.insert(eventTickets).values(
+    nombres.map((n, i) => ({
       eventId: evento.id,
       token: nanoid(32).replace(/[^a-zA-Z0-9]/g, "x"),
-      code: `IW-LIBRE${i}`,
-      status: "blank",
+      code: `IW-TEST0${i + 1}`,
+      status: "sold",
+      ticketTypeId: tipos[i % tipos.length].id,
+      storeId: null,
+      buyerName: n[0],
+      buyerLastName: n[1],
+      buyerPhone: "0400-0000000",
+      priceUsd: tipos[i % tipos.length].priceUsd,
+      rateBs: null,
+      priceBs: null,
+      soldAt: new Date(),
+      soldByUserId: null,
       batch: lote,
     })) as any,
   );
 
-  await db.insert(eventTickets).values(filas as any);
+  await db.insert(eventTickets).values(
+    [1, 2].map(i => ({
+      eventId: evento.id,
+      token: nanoid(32).replace(/[^a-zA-Z0-9]/g, "x"),
+      code: `IW-LIBRE${i}`,
+      status: "blank",
+      ticketTypeId: null,
+      storeId: null,
+      buyerName: null,
+      buyerLastName: null,
+      buyerPhone: null,
+      priceUsd: null,
+      rateBs: null,
+      priceBs: null,
+      soldAt: null,
+      soldByUserId: null,
+      batch: lote,
+    })) as any,
+  );
 
   return {
     eventId: evento.id,
