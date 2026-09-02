@@ -23,15 +23,17 @@ export function initSocket(httpServer: HttpServer): Server {
       const cookies = parseCookie(cookieHeader);
       const token = cookies[COOKIE_NAME];
       /**
-       * El asistente del evento no tiene cuenta: se conecta solo con el
-       * código de su boleto para recibir sus puntos al instante. Esa
-       * conexión no da acceso a nada más, solo a su propia sala.
+       * Sala del boleto: quien mira su Level Pass recibe ahí sus puntos al
+       * instante. Se entra SIEMPRE que venga un código, tenga sesión o no —
+       * antes solo se hacía sin sesión, así que al probarlo desde una cuenta
+       * iniciada el aviso nunca llegaba.
        */
       const boleto = String(socket.handshake.auth?.boleto ?? "").trim();
-      if (!token && boleto) {
+      if (boleto) {
         socket.data.boleto = boleto.toUpperCase();
         socket.join(`boleto:${boleto.toUpperCase()}`);
-        return next();
+        // Sin sesión, la conexión se queda solo con esa sala
+        if (!token) return next();
       }
 
       if (!token) return next(new Error("No autenticado"));
