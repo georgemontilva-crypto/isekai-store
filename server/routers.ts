@@ -1134,7 +1134,7 @@ export const appRouter = router({
         if (!r) {
           throw new TRPCError({
             code: "NOT_FOUND",
-            message: "No encontramos ese boleto. Revisa el código impreso.",
+            message: `No encontramos el boleto ${input.codigo.toUpperCase()}. Revisa el código impreso, incluidos los ceros.`,
           });
         }
         return r;

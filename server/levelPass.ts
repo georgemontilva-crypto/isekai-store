@@ -224,6 +224,7 @@ export async function estadoPublico(codigoOToken: string) {
   if (!db) return null;
 
   const valor = codigoOToken.trim();
+
   let [ticket] = await db.select().from(eventTickets)
     .where(eq(eventTickets.token, valor)).limit(1);
 
@@ -232,6 +233,21 @@ export async function estadoPublico(codigoOToken: string) {
     const conPrefijo = codigo.startsWith("IW-") ? codigo : `IW-${codigo}`;
     [ticket] = await db.select().from(eventTickets)
       .where(eq(eventTickets.code, conPrefijo)).limit(1);
+  }
+
+  /**
+   * Búsqueda tolerante: los códigos se dictan de viva voz o se leen de un
+   * papel, así que llegan con guiones de más o de menos, espacios, o ceros
+   * confundidos con la letra O. Se compara solo por letras y números.
+   */
+  if (!ticket) {
+    const normalizar = (t: string) =>
+      t.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^IW/, "");
+    const buscado = normalizar(valor);
+    if (buscado.length >= 3) {
+      const todos = await db.select().from(eventTickets);
+      ticket = todos.find(t => normalizar(t.code) === buscado) as any;
+    }
   }
 
   if (!ticket || ticket.status !== "sold") return null;
