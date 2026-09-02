@@ -250,7 +250,16 @@ export async function estadoPublico(codigoOToken: string) {
     }
   }
 
-  if (!ticket || ticket.status !== "sold") return null;
+  // Se distingue entre no encontrarlo y encontrarlo sin vender: son dos
+  // problemas distintos y el mensaje debe decir cuál es.
+  if (!ticket) return null;
+  if (ticket.status !== "sold") {
+    throw new Error(
+      ticket.status === "void"
+        ? `El boleto ${ticket.code} está anulado`
+        : `El boleto ${ticket.code} existe pero todavía no se ha vendido`,
+    );
+  }
 
   const progreso = await progresoDeBoleto(ticket.id, ticket.eventId);
   const xp = progreso?.xpTotal ?? 0;
