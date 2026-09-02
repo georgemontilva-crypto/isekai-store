@@ -76,7 +76,19 @@ export default function WorldFestPass() {
    * Los puntos llegan al instante por conexión en vivo. La consulta cada 15
    * segundos se mantiene como respaldo por si la conexión se cae.
    */
-  useBoletoSocket(consultado, () => {
+  useBoletoSocket(consultado, (aviso) => {
+    /**
+     * El aviso ya trae los puntos y el rango, así que se aplican de inmediato
+     * sobre lo que hay en pantalla. Antes se pedían de nuevo al servidor, y
+     * esa vuelta se notaba como un retraso de varios segundos.
+     */
+    utils.levelPass.estado.setData({ codigo: consultado }, (previo: any) => {
+      if (!previo) return previo;
+      return { ...previo, xpTotal: aviso.xpTotal, rango: aviso.rango, esRangoS: aviso.rango === "S" };
+    });
+
+    // En segundo plano se traen los datos completos: qué misiones quedaron
+    // marcadas, el historial y cuánto falta para el siguiente rango.
     utils.levelPass.estado.invalidate({ codigo: consultado });
   });
 

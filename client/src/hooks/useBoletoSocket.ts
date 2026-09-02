@@ -18,6 +18,11 @@ export function useBoletoSocket(codigo: string, onXp: (datos: any) => void) {
     const socket: Socket = io(window.location.origin, {
       transports: ["websocket", "polling"],
       auth: { boleto: codigo.toUpperCase() },
+      // Reconexión rápida: en un evento la señal va y viene, y esperar varios
+      // segundos a que vuelva la conexión se nota como si nada funcionara.
+      reconnectionDelay: 400,
+      reconnectionDelayMax: 2000,
+      timeout: 6000,
     });
 
     socket.on("levelpass:xp", (datos: any) => alRecibir.current(datos));
