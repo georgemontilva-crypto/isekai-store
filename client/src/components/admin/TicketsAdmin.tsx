@@ -318,20 +318,60 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       )}
 
       {/* Pestañas */}
-      <div className="grid grid-cols-3 gap-2 sm:grid-cols-7">
-        {([["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"], ["tipos", "Tipos"], ["tiendas", "Tiendas"], ["acceso", "Acceso"], ["levelpass", "Level Pass"]] as const).map(([id, label]) => (
-          <button
-            key={id}
-            onClick={() => setVista(id)}
-            className={`rounded-xl text-xs font-bold transition-colors ${
-              vista === id ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
-            }`}
-            style={{ minHeight: 44, WebkitTapHighlightColor: "transparent" }}
-          >
-            {label}
-          </button>
+      {/* Las secciones se agrupan por lo que se hace en cada una: primero lo
+          que se consulta a diario, luego lo que se configura una vez, y
+          aparte lo que pasa durante el evento. Antes eran siete pestañas
+          seguidas sin distinción y costaba encontrar nada. */}
+      <div className="flex flex-col gap-3">
+        {([
+          ["Día a día", [["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"]]],
+          ["Configuración", [["tipos", "Tipos de boleto"], ["tiendas", "Tiendas"]]],
+          ["Durante el evento", [["acceso", "Control de acceso"], ["levelpass", "Level Pass"]]],
+        ] as const).map(([grupo, opciones]) => (
+          <div key={grupo}>
+            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--iw-text-muted)]">
+              {grupo}
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {opciones.map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => setVista(id as any)}
+                  className={`flex-1 rounded-xl px-3 text-xs font-bold transition-colors ${
+                    vista === id
+                      ? "bg-[#e5007d] text-white"
+                      : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                  }`}
+                  style={{ minHeight: 44, minWidth: 100, WebkitTapHighlightColor: "transparent" }}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
+
+      {/* Título de la sección: sin esto, al entrar en una pestaña costaba
+          saber qué se estaba viendo. */}
+      {(() => {
+        const titulos: Record<string, [string, string]> = {
+          resumen:   ["Resumen", "Ventas del evento y generación de boletos"],
+          boletos:   ["Boletos vendidos", "Quién compró cada boleto y en qué tienda"],
+          codigos:   ["Códigos generados", "Lotes creados y reimpresión de sus QR"],
+          tipos:     ["Tipos de boleto", "Qué se vende, a qué precio y para cuántos días"],
+          tiendas:   ["Tiendas autorizadas", "Quién puede vender y quién puede dar experiencia"],
+          acceso:    ["Control de acceso", "Personal de puerta y asistencia por día"],
+          levelpass: ["Level Pass", "Actividades, colaboradores y progreso de los asistentes"],
+        };
+        const [titulo, descripcion] = titulos[vista] ?? ["", ""];
+        return (
+          <div>
+            <h2 className="text-lg font-black text-[var(--iw-text)]">{titulo}</h2>
+            <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">{descripcion}</p>
+          </div>
+        );
+      })()}
 
       {/* ── Resumen ── */}
       {vista === "resumen" && resumen && (
