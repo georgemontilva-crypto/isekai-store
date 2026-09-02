@@ -114,6 +114,39 @@ export async function borrarActividad(id: number) {
   return { desactivada: false };
 }
 
+/**
+ * Busca un boleto por el token del QR o por su código impreso.
+ *
+ * Se usa tanto al consultar el rango como al otorgar experiencia: en el
+ * evento unos escanean y otros teclean, y ambas vías deben funcionar.
+ */
+export async function buscarBoleto(valorCrudo: string) {
+  const db = await getDb();
+  if (!db) return undefined;
+
+  const valor = valorCrudo.trim();
+
+  let [ticket] = await db.select().from(eventTickets)
+    .where(eq(eventTickets.token, valor)).limit(1);
+  if (ticket) return ticket;
+
+  const codigo = valor.toUpperCase();
+  const conPrefijo = codigo.startsWith("IW-") ? codigo : `IW-${codigo}`;
+  [ticket] = await db.select().from(eventTickets)
+    .where(eq(eventTickets.code, conPrefijo)).limit(1);
+  if (ticket) return ticket;
+
+  // Tolerante: se comparan solo letras y números, por si llega con guiones
+  // de más, espacios o sin el prefijo.
+  const normalizar = (t: string) =>
+    t.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^IW/, "");
+  const buscado = normalizar(valor);
+  if (buscado.length < 3) return undefined;
+
+  const todos = await db.select().from(eventTickets);
+  return todos.find(t => normalizar(t.code) === buscado);
+}
+
 // ─── Progreso ─────────────────────────────────────────────────────────────────
 
 /** Progreso de un boleto, creándolo si es la primera vez */
@@ -147,9 +180,8 @@ export async function otorgarExperiencia(data: {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
 
-  const [ticket] = await db.select().from(eventTickets)
-    .where(eq(eventTickets.token, data.token)).limit(1);
-  if (!ticket) throw new Error("Ese boleto no existe");
+  const ticket = await buscarBoleto(data.token);
+  if (!ticket) throw new Error(`No encontramos el boleto ${data.token.toUpperCase()}`);
   if (ticket.status !== "sold") throw new Error("Ese boleto no fue vendido");
 
   const [actividad] = await db.select().from(levelActivities)
@@ -223,35 +255,7 @@ export async function estadoPublico(codigoOToken: string) {
   const db = await getDb();
   if (!db) return null;
 
-  const valor = codigoOToken.trim();
-
-  let [ticket] = await db.select().from(eventTickets)
-    .where(eq(eventTickets.token, valor)).limit(1);
-
-  if (!ticket) {
-    const codigo = valor.toUpperCase();
-    const conPrefijo = codigo.startsWith("IW-") ? codigo : `IW-${codigo}`;
-    [ticket] = await db.select().from(eventTickets)
-      .where(eq(eventTickets.code, conPrefijo)).limit(1);
-  }
-
-  /**
-   * Búsqueda tolerante: los códigos se dictan de viva voz o se leen de un
-   * papel, así que llegan con guiones de más o de menos, espacios, o ceros
-   * confundidos con la letra O. Se compara solo por letras y números.
-   */
-  if (!ticket) {
-    const normalizar = (t: string) =>
-      t.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^IW/, "");
-    const buscado = normalizar(valor);
-    if (buscado.length >= 3) {
-      const todos = await db.select().from(eventTickets);
-      ticket = todos.find(t => normalizar(t.code) === buscado) as any;
-    }
-  }
-
-  // Se distingue entre no encontrarlo y encontrarlo sin vender: son dos
-  // problemas distintos y el mensaje debe decir cuál es.
+  const ticket = await buscarBoleto(codigoOToken);
   if (!ticket) return null;
   if (ticket.status !== "sold") {
     throw new Error(
