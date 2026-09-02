@@ -402,6 +402,7 @@ export async function resumenLevelPass(eventId: number) {
 
 // ─── Entorno de prueba ────────────────────────────────────────────────────────
 
+
 /**
  * Crea un evento completo para ensayar: fechas de hoy y mañana, un tipo de
  * boleto, actividades y boletos ya vendidos a nombres de ejemplo.
@@ -412,6 +413,21 @@ export async function resumenLevelPass(eventId: number) {
 export async function crearEntornoPrueba() {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
+
+  // Se limpia lo que hubiera quedado de intentos anteriores: los códigos son
+  // únicos, así que un evento a medias impide volver a crearlos.
+  await borrarEntornoPrueba();
+
+  const sueltos = await db.select().from(eventTickets);
+  const restos = sueltos.filter(t =>
+    t.code.startsWith("IW-TEST") || t.code.startsWith("IW-LIBRE"),
+  );
+  for (const t of restos) {
+    await db.delete(levelGrants).where(eq(levelGrants.ticketId, t.id));
+    await db.delete(levelProgress).where(eq(levelProgress.ticketId, t.id));
+    await db.delete(levelRankUps).where(eq(levelRankUps.ticketId, t.id));
+    await db.delete(eventTickets).where(eq(eventTickets.id, t.id));
+  }
 
   const hoy = new Date();
   const manana = new Date(Date.now() + 86400000);
