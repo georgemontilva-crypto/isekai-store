@@ -42,8 +42,14 @@ function destinoNotificacion(n: { type: string; body: string; title?: string }, 
         label: "Ver el pedido",
       };
     }
-    case "new_subscriber":
+    case "new_subscriber": {
+      // Las solicitudes del Guild reutilizan este tipo: se reconocen por el
+      // título, y deben llevar a Cosplay, no a Suscriptores.
+      if (/solicitud cosplay guild/i.test((n as any).title ?? "")) {
+        return { href: "/admin?tab=cosplay&sub=applications", label: "Ver la solicitud" };
+      }
       return { href: "/admin?tab=subscribers", label: "Ver suscriptores" };
+    }
     case "new_user": {
       // Las entregas de misiones reutilizan este tipo: se reconocen porque el
       // cuerpo trae el enlace de la publicación.
