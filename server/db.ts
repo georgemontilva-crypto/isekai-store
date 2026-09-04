@@ -1841,16 +1841,45 @@ export async function addEvidenceToSubmission(submissionId: number, additionalUr
 export async function getCosplayerByReferralCode(code: string) {
   const db = await getDb();
   if (!db) return null;
+
+  const limpio = (code ?? "").trim();
+  if (!limpio) return null;
+
   const result = await db.select({
     id: cosplayers.id,
     artisticName: cosplayers.artisticName,
     tier: cosplayers.tier,
   }).from(cosplayers)
     .where(and(
-      eq(cosplayers.referralCode, code),
+      eq(cosplayers.referralCode, limpio),
       eq(cosplayers.isActive, true)
     ));
-  return result[0] ?? null;
+  if (result[0]) return result[0];
+
+  /**
+   * Búsqueda tolerante.
+   *
+   * El código se dicta de viva voz o se copia a mano, así que llega en
+   * minúsculas, con espacios o con guiones de más. Antes la comparación era
+   * exacta: cualquier diferencia hacía que la compra se guardara sin
+   * cosplayer y su comisión se perdiera sin aviso.
+   */
+  const normalizar = (t: string) => t.toUpperCase().replace(/[^A-Z0-9]/g, "");
+  const buscado = normalizar(limpio);
+  if (buscado.length < 3) return null;
+
+  const todos = await db.select({
+    id: cosplayers.id,
+    artisticName: cosplayers.artisticName,
+    tier: cosplayers.tier,
+    referralCode: cosplayers.referralCode,
+    isActive: cosplayers.isActive,
+  }).from(cosplayers);
+
+  const hallado = todos.find(
+    c => c.isActive && normalizar(c.referralCode ?? "") === buscado,
+  );
+  return hallado ? { id: hallado.id, artisticName: hallado.artisticName, tier: hallado.tier } : null;
 }
 
 /**
