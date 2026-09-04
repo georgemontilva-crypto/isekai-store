@@ -9,6 +9,7 @@ import compression from "compression";
 import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { iniciarTasaAutomatica } from "../binanceRate";
+import { iniciarRevisionComisiones } from "../db";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -163,8 +164,10 @@ async function startServer() {
 
   server.listen(port, () => {
     console.log(`Server running on http://localhost:${port}/`);
-    // Tasa Bs/USD desde Binance P2P, actualizada cada hora
+    // Tasa Bs/USD desde Binance P2P
     iniciarTasaAutomatica();
+    // Comisiones de referido: se acreditan las que hayan quedado sin pagar
+    iniciarRevisionComisiones();
   });
 }
 

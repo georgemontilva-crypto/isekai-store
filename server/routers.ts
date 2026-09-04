@@ -644,6 +644,10 @@ export const appRouter = router({
           } catch (e) { console.error("[Referral] Failed to credit referral cash:", e); }
         }
 
+        // Red de seguridad: si por cualquier motivo el pago anterior no llegó
+        // a acreditarse, esto lo detecta y lo salda en el momento.
+        try { await revisarComisiones(false); } catch { /* la revisión periódica lo cogerá */ }
+
         return { success: true };
       }),
 

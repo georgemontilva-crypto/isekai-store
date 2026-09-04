@@ -3156,3 +3156,35 @@ export async function revisarComisiones(soloMirar = true) {
     total: Math.round(detalle.reduce((a, d) => a + d.comision, 0) * 100) / 100,
   };
 }
+
+/**
+ * Revisión periódica de comisiones.
+ *
+ * Un pedido puede quedar aprobado por varias vías —verificar el pago,
+ * registrar un abono, confirmarlo desde finanzas— y basta con que una de
+ * ellas olvide acreditar la comisión para que el cosplayer se quede sin su
+ * dinero sin que nadie lo note. En lugar de confiar en que todas lo hagan
+ * bien, aquí se comprueba cada pocos minutos y se salda lo que falte.
+ *
+ * Es seguro repetirla: solo paga lo que no tiene apunte en el libro.
+ */
+export function iniciarRevisionComisiones() {
+  const CADA = 5 * 60 * 1000;
+
+  const revisar = async () => {
+    try {
+      const r = await revisarComisiones(false);
+      if (r.pagadas > 0) {
+        console.log(`[Comisiones] Acreditadas ${r.pagadas} comisiones pendientes ($${r.total})`);
+      }
+    } catch (e) {
+      console.error("[Comisiones] Fallo en la revisión periódica:", e);
+    }
+  };
+
+  // Al arrancar, con margen para que la base esté lista
+  setTimeout(() => { void revisar(); }, 25_000);
+  setInterval(() => { void revisar(); }, CADA);
+
+  console.log("[Comisiones] Revisión automática activada (cada 5 minutos)");
+}
