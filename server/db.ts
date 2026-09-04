@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gt, gte, ilike, inArray, isNull, like, lt, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getReferralCash, getReferralTickets } from "@shared/referral";
-import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail } from "./_core/notification";
+import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail, notifyCosplayReferralEarned } from "./_core/notification";
 import { io } from "./_core/socket";
 import { storageDelete } from "./storage";
 import { drizzle } from "drizzle-orm/mysql2";
@@ -810,16 +810,10 @@ export async function verifyOrderPayment(
   const [pedido] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
   if (!pedido) throw new Error("El pedido no existe");
 
-  const total = parseFloat(pedido.total as any) || 0;
-  const pagado = parseFloat((pedido.amountPaid as any) ?? "0") || 0;
-  const completo = pagado <= 0 || pagado >= total - 0.01;
-
-  await db.update(orders).set({
-    paymentStatus: completo ? "approved" : "partial",
-    status: "preparing",
-  }).where(eq(orders.id, orderId));
-
-  return { completo, pagado, total, saldo: Math.max(0, Math.round((total - pagado) * 100) / 100) };
+  // Todo pasa por el punto único, que además acredita la comisión
+  const r = await marcarPedidoPagado(orderId);
+  await db.update(orders).set({ status: "preparing" }).where(eq(orders.id, orderId));
+  return r;
 }
 
 export async function updateOrderPaymentStatus(orderNumber: string, paymentStatus: string) {
@@ -2863,11 +2857,13 @@ export async function registrarAbono(orderId: number, monto: number, nota?: stri
 
   await db.update(orders).set({
     amountPaid: nuevoPagado.toFixed(2),
-    paymentStatus: completo ? "approved" : "partial",
     notes: nota
       ? `${pedido.notes ? pedido.notes + " · " : ""}Abono $${monto.toFixed(2)}: ${nota}`
       : pedido.notes,
   }).where(eq(orders.id, orderId));
+
+  // El estado y la comisión los fija el punto único
+  await marcarPedidoPagado(orderId, { montoPagado: nuevoPagado });
 
   return {
     pagado: nuevoPagado,
@@ -2945,8 +2941,9 @@ export async function aplicarAbono(orderId: number, monto: number) {
 
   await db.update(orders).set({
     amountPaid: nuevoPagado.toFixed(2),
-    paymentStatus: completo ? "approved" : "partial",
   }).where(eq(orders.id, orderId));
+
+  await marcarPedidoPagado(orderId, { montoPagado: nuevoPagado });
 
   // La cotización asociada sigue el mismo destino que su pedido
   if (completo) {
@@ -3094,6 +3091,80 @@ export async function resumenFeedback() {
 }
 
 /**
+ * ÚNICO punto por el que un pedido pasa a estar pagado.
+ *
+ * Antes había cinco sitios distintos que ponían un pedido en "approved", y
+ * cada uno tenía que acordarse de acreditar la comisión del cosplayer. Bastaba
+ * con que uno lo olvidara para que alguien se quedara sin su dinero sin que
+ * nadie lo notara — que es justo lo que pasó.
+ *
+ * Ahora todos pasan por aquí: se fija el estado y, si el pedido queda
+ * cubierto, se paga la comisión en el mismo acto. Es seguro llamarla dos
+ * veces: la comisión solo se acredita si no estaba ya en el libro.
+ */
+export async function marcarPedidoPagado(
+  orderId: number,
+  opciones: { montoPagado?: number; forzarCompleto?: boolean } = {},
+) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+
+  const [pedido] = await db.select().from(orders).where(eq(orders.id, orderId)).limit(1);
+  if (!pedido) throw new Error("El pedido no existe");
+
+  const total = parseFloat(pedido.total as any) || 0;
+  const pagado = opciones.montoPagado ?? (parseFloat((pedido.amountPaid as any) ?? "0") || 0);
+
+  // Sin abonos registrados se entiende que se pagó de una vez
+  const completo = opciones.forzarCompleto || pagado <= 0 || pagado >= total - 0.01;
+
+  await db.update(orders).set({
+    paymentStatus: completo ? "approved" : "partial",
+  }).where(eq(orders.id, orderId));
+
+  let comisionPagada = 0;
+
+  if (completo && (pedido as any).referralCosplayerId) {
+    // Se comprueba en el libro para no pagar dos veces el mismo pedido
+    const libro = await db.select().from(cosplayTicketLedger);
+    const yaPagado = libro.some(
+      l => l.type === "earned" &&
+           (l.description ?? "").toUpperCase().includes(pedido.orderNumber.toUpperCase()),
+    );
+
+    if (!yaPagado) {
+      const comision = getReferralCash(total);
+      const tickets = getReferralTickets(total);
+      try {
+        await creditCashToReferrer((pedido as any).referralCosplayerId, comision, pedido.orderNumber, tickets);
+        comisionPagada = comision;
+
+        const cosplayer = await getCosplayerById((pedido as any).referralCosplayerId);
+        if (cosplayer?.userId) {
+          try {
+            io?.to(`user:${cosplayer.userId}`).emit("notification:new");
+            const usuario = await getUserById(cosplayer.userId);
+            if (usuario?.email) {
+              await notifyCosplayReferralEarned(usuario.email, cosplayer.artisticName, comision, pedido.orderNumber);
+            }
+          } catch { /* el aviso no es crítico */ }
+        }
+      } catch (e) {
+        console.error(`[Comisiones] No se pudo acreditar ${pedido.orderNumber}:`, e);
+      }
+    }
+  }
+
+  return {
+    completo,
+    pagado,
+    total,
+    saldo: Math.max(0, Math.round((total - pagado) * 100) / 100),
+    comisionPagada,
+  };
+}
+
+/**
  * Revisa las comisiones de referido y paga las que falten.
  *
  * Un pedido genera comisión cuando está aprobado y tiene cosplayer asignado.
@@ -3143,8 +3214,10 @@ export async function revisarComisiones(soloMirar = true) {
   let pagadas = 0;
   for (const d of detalle) {
     try {
-      await creditCashToReferrer(d.cosplayerId, d.comision, d.orderNumber, d.tickets);
-      pagadas++;
+      const pedido = aprobados.find(o => o.orderNumber === d.orderNumber);
+      if (!pedido) continue;
+      const r = await marcarPedidoPagado(pedido.id, { forzarCompleto: true });
+      if (r.comisionPagada > 0) pagadas++;
     } catch (e) {
       console.error(`[Comisiones] No se pudo pagar ${d.orderNumber}:`, e);
     }
