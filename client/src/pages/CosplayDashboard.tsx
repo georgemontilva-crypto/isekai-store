@@ -96,6 +96,7 @@ export default function CosplayDashboard() {
 
   const { data: activities = [] } = trpc.cosplay.getActivities.useQuery();
   const { data: submissions = [], refetch: refetchSubmissions } = trpc.cosplay.getMySubmissions.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
+  const { data: historialCodigo = [] } = trpc.cosplay.miHistorialCodigo.useQuery(undefined, { enabled: isAuthenticated && !!cosplayer });
 
   /** Misiones que todavía puede completar: alimentan el contador de la pestaña */
   const actividadesPendientes = (activities as any[]).filter((act: any) => {
@@ -798,6 +799,47 @@ export default function CosplayDashboard() {
             {/* ── BILLETERA ── */}
             {activeTab === "wallet" && (
               <div className="max-w-2xl mx-auto">
+
+                {/* Historial del código: comprueba que se está usando, sin
+                    exponer quién compró. */}
+                {(historialCodigo as any[]).length > 0 && (
+                  <div className="mb-8 rounded-2xl border border-white/10 bg-[#16191f] p-5">
+                    <p className="mb-1 text-sm font-bold text-white">Usos de tu código</p>
+                    <p className="mb-4 text-xs text-[#888]">
+                      Cada vez que alguien compra con tu código y el pedido queda pagado.
+                    </p>
+
+                    <div className="flex flex-col gap-2">
+                      {(historialCodigo as any[]).map((h: any) => (
+                        <div
+                          key={h.id}
+                          className="flex items-center justify-between gap-3 border-b border-white/[0.06] pb-2 last:border-0"
+                        >
+                          <div className="min-w-0">
+                            <p className="text-sm text-white">Uso de código</p>
+                            <p className="font-mono text-[11px] text-[#777]">
+                              {h.referencia} ·{" "}
+                              {new Date(h.fecha).toLocaleDateString("es-VE", {
+                                day: "2-digit", month: "short", year: "numeric",
+                              })}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            {h.dinero > 0 && (
+                              <p className="text-sm font-black text-[#e5007d]">
+                                +${h.dinero.toFixed(2)}
+                              </p>
+                            )}
+                            {h.tickets > 0 && (
+                              <p className="text-[11px] text-[#888]">+{h.tickets} tickets</p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
 
                 {/* Balance cards */}
                 <div className="grid grid-cols-2 gap-4 mb-8">

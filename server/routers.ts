@@ -74,7 +74,7 @@ import {
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
   deleteCosplayActivity, updateCosplayActivity,
   evaluateCosplaySubmission, getAllCosplaySubmissions, addEvidenceToSubmission, getAdminUsers,
-  getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals, revisarComisiones,
+  getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals, revisarComisiones, historialDeCodigo,
   checkReferralEligibility, isCosplayerEmail, getMyActivityProgress,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
   deleteCosplayer, grantTicketsManually, findUserByEmail, getDb,
@@ -2228,6 +2228,13 @@ export const appRouter = router({
       const result = await getCosplayerByUserId(ctx.user.id);
       console.log('[getMyProfile] userId:', ctx.user.id, 'cashBalance:', result?.cashBalance);
       return result;
+    }),
+
+    /** Historial de usos del código, sin datos de los compradores */
+    miHistorialCodigo: protectedProcedure.query(async ({ ctx }) => {
+      const cosplayer = await getCosplayerByUserId(ctx.user.id);
+      if (!cosplayer) return [];
+      return historialDeCodigo(cosplayer.id);
     }),
 
     updateMyProfile: protectedProcedure

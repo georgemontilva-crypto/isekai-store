@@ -3295,3 +3295,36 @@ export function iniciarRevisionComisiones() {
 
   console.log("[Comisiones] Revisión automática activada (cada 5 minutos)");
 }
+
+/**
+ * Historial de usos del código de referido, para el propio cosplayer.
+ *
+ * Se omite deliberadamente quién compró: el cosplayer necesita comprobar que
+ * su código se está usando y cuánto ha ganado, no saber quiénes son los
+ * clientes de la tienda. Del pedido solo se muestran los últimos caracteres,
+ * suficiente para identificarlo si hay que reclamar algo.
+ */
+export async function historialDeCodigo(cosplayerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const libro = await db.select().from(cosplayTicketLedger)
+    .where(and(
+      eq(cosplayTicketLedger.cosplayerId, cosplayerId),
+      eq(cosplayTicketLedger.type, "earned"),
+    ))
+    .orderBy(desc(cosplayTicketLedger.id))
+    .limit(100);
+
+  return libro.map(l => {
+    const orden = (l.description ?? "").match(/(?:ISK|IW)-[A-Z0-9-]+/i)?.[0] ?? "";
+    return {
+      id: l.id,
+      // Solo la cola del número: identifica el pedido sin exponer nada más
+      referencia: orden ? `···${orden.slice(-4).toUpperCase()}` : "···",
+      tickets: l.amount ?? 0,
+      dinero: parseFloat((l.cashAmount as any) ?? "0") || 0,
+      fecha: l.createdAt,
+    };
+  });
+}
