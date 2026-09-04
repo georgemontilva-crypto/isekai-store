@@ -74,7 +74,7 @@ import {
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
   deleteCosplayActivity, updateCosplayActivity,
   evaluateCosplaySubmission, getAllCosplaySubmissions, addEvidenceToSubmission, getAdminUsers,
-  getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals,
+  getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals, revisarComisiones,
   checkReferralEligibility, isCosplayerEmail, getMyActivityProgress,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
   deleteCosplayer, grantTicketsManually, findUserByEmail, getDb,
@@ -1110,6 +1110,12 @@ export const appRouter = router({
         }
         return { success: true, mailchimp: true };
       }),
+  }),
+
+  /** Revisión de comisiones de referido: detecta y paga las que falten */
+  comisiones: router({
+    revisar: adminProcedure.query(() => revisarComisiones(true)),
+    pagar: adminProcedure.mutation(() => revisarComisiones(false)),
   }),
 
   // ─── Level Pass ──────────────────────────────────────────────────────────────

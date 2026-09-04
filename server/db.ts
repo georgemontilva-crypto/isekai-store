@@ -1,5 +1,6 @@
 import { and, count, desc, eq, gt, gte, ilike, inArray, isNull, like, lt, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
+import { getReferralCash, getReferralTickets } from "@shared/referral";
 import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail } from "./_core/notification";
 import { io } from "./_core/socket";
 import { storageDelete } from "./storage";
@@ -3089,5 +3090,69 @@ export async function resumenFeedback() {
       ? Math.round((conNota.reduce((a, f) => a + (f.valoracion ?? 0), 0) / conNota.length) * 10) / 10
       : 0,
     anonimos: filas.filter(f => f.anonimo).length,
+  };
+}
+
+/**
+ * Revisa las comisiones de referido y paga las que falten.
+ *
+ * Un pedido genera comisión cuando está aprobado y tiene cosplayer asignado.
+ * Si por cualquier motivo el pago no llegó a acreditarse —un fallo al
+ * aprobar, una aprobación por otra vía, un error puntual— el dinero queda
+ * debiéndose sin que nadie lo note. Esto compara los pedidos con el libro de
+ * movimientos y salda la diferencia.
+ */
+export async function revisarComisiones(soloMirar = true) {
+  const db = await getDb();
+  if (!db) return { pendientes: [], pagadas: 0, total: 0 };
+
+  const aprobados = (await db.select().from(orders))
+    .filter(o => o.paymentStatus === "approved" && (o as any).referralCosplayerId);
+
+  const libro = await db.select().from(cosplayTicketLedger);
+  // El número de pedido va dentro de la descripción, no en columna propia
+  const yaPagados = new Set(
+    libro
+      .filter(l => l.type === "earned")
+      .map(l => (l.description ?? "").match(/(?:ISK|IW)-[A-Z0-9-]+/i)?.[0]?.toUpperCase())
+      .filter(Boolean) as string[],
+  );
+
+  const pendientes = aprobados.filter(o => !yaPagados.has(o.orderNumber.toUpperCase()));
+
+  const detalle = pendientes.map(o => {
+    const total = parseFloat(o.total as any) || 0;
+    return {
+      orderNumber: o.orderNumber,
+      cliente: o.customerName,
+      total,
+      cosplayerId: (o as any).referralCosplayerId as number,
+      comision: getReferralCash(total),
+      tickets: getReferralTickets(total),
+    };
+  });
+
+  if (soloMirar) {
+    return {
+      pendientes: detalle,
+      pagadas: 0,
+      total: Math.round(detalle.reduce((a, d) => a + d.comision, 0) * 100) / 100,
+    };
+  }
+
+  let pagadas = 0;
+  for (const d of detalle) {
+    try {
+      await creditCashToReferrer(d.cosplayerId, d.comision, d.orderNumber, d.tickets);
+      pagadas++;
+    } catch (e) {
+      console.error(`[Comisiones] No se pudo pagar ${d.orderNumber}:`, e);
+    }
+  }
+
+  return {
+    pendientes: detalle,
+    pagadas,
+    total: Math.round(detalle.reduce((a, d) => a + d.comision, 0) * 100) / 100,
   };
 }

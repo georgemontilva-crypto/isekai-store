@@ -2299,6 +2299,16 @@ function FinanzasSection() {
     onSuccess: () => { utils.orders.abonosPendientes.invalidate(); toast.success('Abono rechazado'); },
   });
 
+  /** Comisiones de referido que quedaron sin pagar */
+  const { data: comisiones } = trpc.comisiones.revisar.useQuery(undefined);
+  const pagarComisiones = trpc.comisiones.pagar.useMutation({
+    onSuccess: (r: any) => {
+      utils.comisiones.revisar.invalidate();
+      toast.success(`${r.pagadas} comisiones pagadas`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const borrarTx = trpc.orders.delete.useMutation({
     onSuccess: () => {
       utils.finance.summary.invalidate();
@@ -2347,6 +2357,46 @@ function FinanzasSection() {
           </div>
         ))}
       </div>
+
+      {/* Comisiones de referido sin acreditar: es dinero que se le debe a un
+          cosplayer, así que conviene verlo junto al resto de las cuentas. */}
+      {comisiones && comisiones.pendientes.length > 0 && (
+        <div className="rounded-2xl border border-[#e5007d]/40 bg-[#e5007d]/[0.07] p-4">
+          <p className="text-sm font-bold text-[var(--iw-text)]">
+            {comisiones.pendientes.length} comisión(es) sin pagar
+          </p>
+          <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--iw-text-muted)]">
+            Pedidos aprobados con código de cosplayer cuya comisión no llegó a
+            acreditarse. Suman ${comisiones.total.toFixed(2)} USD.
+          </p>
+
+          <div className="mb-3 flex flex-col gap-1.5">
+            {comisiones.pendientes.slice(0, 6).map((c: any) => (
+              <div key={c.orderNumber} className="flex items-center justify-between gap-3 text-xs">
+                <span className="min-w-0 truncate text-[var(--iw-text-muted)]">
+                  {c.orderNumber} · {c.cliente}
+                </span>
+                <span className="shrink-0 font-bold text-[#e5007d]">
+                  ${c.comision.toFixed(2)}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <button
+            onClick={() => {
+              if (confirm(`¿Pagar ${comisiones.pendientes.length} comisiones por $${comisiones.total.toFixed(2)}?`)) {
+                pagarComisiones.mutate();
+              }
+            }}
+            disabled={pagarComisiones.isPending}
+            className="w-full rounded-xl bg-[#e5007d] text-xs font-bold text-white disabled:opacity-50"
+            style={{ minHeight: 44 }}
+          >
+            {pagarComisiones.isPending ? "Pagando..." : "Pagar ahora"}
+          </button>
+        </div>
+      )}
 
       {/* Abonos que subió el cliente */}
       {(abonosPend as any[]).length > 0 && (
