@@ -2531,16 +2531,33 @@ export async function checkReferralEligibility(userId: number | null | undefined
 }
 
 /** ¿El correo pertenece a un cosplayer del Guild? Se usa en compras de invitado. */
+/**
+ * ¿Este correo pertenece a un cosplayer del Guild?
+ *
+ * Se comprueba por dos vías porque no siempre coinciden: el correo de la
+ * cuenta con la que inicia sesión, y el que dejó al postularse. Un cosplayer
+ * que compre con el segundo pasaba desapercibido y podía usar códigos.
+ */
 export async function isCosplayerEmail(email: string) {
   const db = await getDb();
   if (!db || !email) return false;
   const correo = email.trim().toLowerCase();
 
+  // Vía 1: la cuenta con la que entra
   const [usuario] = await db.select().from(users).where(eq(users.email, correo)).limit(1);
-  if (!usuario) return false;
+  if (usuario) {
+    const [perfil] = await db.select().from(cosplayers).where(eq(cosplayers.userId, usuario.id)).limit(1);
+    if (perfil) return true;
+  }
 
-  const [perfil] = await db.select().from(cosplayers).where(eq(cosplayers.userId, usuario.id)).limit(1);
-  return Boolean(perfil);
+  // Vía 2: el correo con el que se postuló
+  const solicitudes = await db.select().from(cosplayApplications);
+  const suya = solicitudes.find(a => (a.email ?? "").trim().toLowerCase() === correo);
+  if (!suya) return false;
+
+  // Solo cuenta si esa solicitud llegó a convertirse en cosplayer
+  const perfiles = await db.select().from(cosplayers);
+  return perfiles.some(c => c.applicationId === suya.id || (suya.userId && c.userId === suya.userId));
 }
 
 // ─── Cotizaciones ─────────────────────────────────────────────────────────────
@@ -3125,6 +3142,23 @@ export async function marcarPedidoPagado(
   let comisionPagada = 0;
 
   if (completo && (pedido as any).referralCosplayerId) {
+    /**
+     * Última barrera: aunque el pedido llegue con cosplayer asignado, no se
+     * paga si quien compró es del Guild. Entre ellos no se dan comisiones, ni
+     * pueden usar su propio código. La comprobación se repite aquí porque el
+     * pedido pudo crearse por una vía que no la hiciera.
+     */
+    if (pedido.customerEmail && await isCosplayerEmail(pedido.customerEmail)) {
+      console.warn(`[Comisiones] ${pedido.orderNumber}: el comprador es del Guild, no se paga comisión`);
+      return {
+        completo,
+        pagado,
+        total,
+        saldo: Math.max(0, Math.round((total - pagado) * 100) / 100),
+        comisionPagada: 0,
+      };
+    }
+
     // Se comprueba en el libro para no pagar dos veces el mismo pedido
     const libro = await db.select().from(cosplayTicketLedger);
     const yaPagado = libro.some(
