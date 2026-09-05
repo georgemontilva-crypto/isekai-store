@@ -49,7 +49,7 @@ import {
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
   createQuote, getQuoteByToken, getAllQuotes, updateQuote, deleteQuote, editQuote, vincularCuentaPorCorreo,
-  getTransactions, getFinanceSummary,
+  getTransactions, getFinanceSummary, ventasPorMes,
   crearFeedback, listarFeedback, actualizarFeedback, borrarFeedback, resumenFeedback,
   ensureOwnCosplayerProfile, setOwnCosplayerVisibility, getOwnCosplayerVisibility,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
@@ -1661,6 +1661,11 @@ export const appRouter = router({
   // ─── Finanzas ────────────────────────────────────────────────────────────────
   finance: router({
     summary: adminProcedure.query(() => getFinanceSummary()),
+    /** Ventas mes a mes, contando el dinero recibido */
+    porMes: adminProcedure
+      .input(z.object({ meses: z.number().int().min(1).max(36).optional() }).optional())
+      .query(({ input }) => ventasPorMes(input?.meses ?? 12)),
+
     transactions: adminProcedure
       .input(z.object({ estado: z.string().optional() }).optional())
       .query(({ input }) => getTransactions({ estado: input?.estado })),

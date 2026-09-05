@@ -3328,3 +3328,76 @@ export async function historialDeCodigo(cosplayerId: number) {
     };
   });
 }
+
+/**
+ * Ventas agrupadas por mes.
+ *
+ * Cuenta el dinero REALMENTE recibido, igual que el panel de finanzas: si un
+ * pedido tiene abonos, manda lo abonado; si se pagó de una vez, el total.
+ * Los kits de cosplayer se separan porque valen cero y desvirtúan la media.
+ */
+export async function ventasPorMes(meses = 12) {
+  const db = await getDb();
+  if (!db) return [];
+
+  const desde = new Date();
+  desde.setMonth(desde.getMonth() - meses);
+  desde.setDate(1);
+  desde.setHours(0, 0, 0, 0);
+
+  const pedidos = (await db.select().from(orders))
+    .filter(o => o.createdAt && new Date(o.createdAt) >= desde);
+
+  const porMes = new Map<string, {
+    mes: string; pedidos: number; ingresos: number;
+    kits: number; pendiente: number; cancelados: number;
+  }>();
+
+  for (const o of pedidos) {
+    const f = new Date(o.createdAt!);
+    const clave = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, "0")}`;
+
+    const actual = porMes.get(clave) ?? {
+      mes: clave, pedidos: 0, ingresos: 0, kits: 0, pendiente: 0, cancelados: 0,
+    };
+
+    const esKit = o.orderNumber.startsWith("IW-KIT-");
+    const total = parseFloat(o.total as any) || 0;
+    const pagado = parseFloat((o.amountPaid as any) ?? "0") || 0;
+
+    if (esKit) {
+      actual.kits++;
+    } else if (o.status === "cancelled") {
+      actual.cancelados++;
+    } else {
+      actual.pedidos++;
+      // Dinero recibido, no facturado
+      if (o.paymentStatus === "approved") {
+        actual.ingresos += pagado > 0 ? pagado : total;
+      } else if (o.paymentStatus === "partial") {
+        actual.ingresos += pagado;
+        actual.pendiente += Math.max(0, total - pagado);
+      } else {
+        actual.pendiente += total;
+      }
+    }
+
+    porMes.set(clave, actual);
+  }
+
+  const nombres = ["enero", "febrero", "marzo", "abril", "mayo", "junio",
+                   "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
+
+  return Array.from(porMes.values())
+    .map(m => {
+      const [anio, mes] = m.mes.split("-");
+      return {
+        ...m,
+        etiqueta: `${nombres[parseInt(mes) - 1]} ${anio}`,
+        ingresos: Math.round(m.ingresos * 100) / 100,
+        pendiente: Math.round(m.pendiente * 100) / 100,
+        promedio: m.pedidos > 0 ? Math.round((m.ingresos / m.pedidos) * 100) / 100 : 0,
+      };
+    })
+    .sort((a, b) => b.mes.localeCompare(a.mes));
+}

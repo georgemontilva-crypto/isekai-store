@@ -2299,6 +2299,10 @@ function FinanzasSection() {
     onSuccess: () => { utils.orders.abonosPendientes.invalidate(); toast.success('Abono rechazado'); },
   });
 
+  /** Historial de ventas por mes */
+  const { data: porMes = [] } = trpc.finance.porMes.useQuery({ meses: 12 });
+  const [mesesAbierto, setMesesAbierto] = useState(false);
+
   /** Comisiones de referido que quedaron sin pagar */
   const { data: comisiones } = trpc.comisiones.revisar.useQuery(undefined);
   const pagarComisiones = trpc.comisiones.pagar.useMutation({
@@ -2357,6 +2361,67 @@ function FinanzasSection() {
           </div>
         ))}
       </div>
+
+      {/* Ventas mes a mes */}
+      {(porMes as any[]).length > 0 && (
+        <div className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+          <button
+            onClick={() => setMesesAbierto(!mesesAbierto)}
+            className="flex w-full items-center justify-between gap-3 text-left"
+          >
+            <div>
+              <p className="text-sm font-bold text-[var(--iw-text)]">Ventas por mes</p>
+              <p className="text-xs text-[var(--iw-text-muted)]">
+                Últimos {(porMes as any[]).length} meses con actividad
+              </p>
+            </div>
+            <ChevronRight
+              size={18}
+              className="shrink-0 text-[var(--iw-text-muted)] transition-transform"
+              style={{ transform: mesesAbierto ? "rotate(90deg)" : "none" }}
+            />
+          </button>
+
+          {mesesAbierto && (
+            <div className="mt-4 flex flex-col gap-3">
+              {(porMes as any[]).map((m: any) => {
+                const mayor = Math.max(...(porMes as any[]).map((x: any) => x.ingresos), 1);
+                return (
+                  <div key={m.mes}>
+                    <div className="mb-1 flex items-end justify-between gap-3">
+                      <span className="text-sm font-semibold capitalize text-[var(--iw-text)]">
+                        {m.etiqueta}
+                      </span>
+                      <div className="text-right">
+                        <span className="text-sm font-black text-green-500">
+                          ${m.ingresos.toFixed(2)}
+                        </span>
+                        <span className="ml-2 text-[11px] text-[var(--iw-text-muted)]">
+                          {m.pedidos} pedido{m.pedidos === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--iw-border)]">
+                      <div
+                        className="h-full rounded-full bg-green-500 transition-all duration-500"
+                        style={{ width: `${Math.max(2, (m.ingresos / mayor) * 100)}%` }}
+                      />
+                    </div>
+
+                    <p className="mt-1 text-[11px] text-[var(--iw-text-muted)]">
+                      Promedio ${m.promedio.toFixed(2)}
+                      {m.pendiente > 0 && ` · pendiente $${m.pendiente.toFixed(2)}`}
+                      {m.kits > 0 && ` · ${m.kits} kit(s)`}
+                      {m.cancelados > 0 && ` · ${m.cancelados} cancelado(s)`}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Comisiones de referido sin acreditar: es dinero que se le debe a un
           cosplayer, así que conviene verlo junto al resto de las cuentas. */}
