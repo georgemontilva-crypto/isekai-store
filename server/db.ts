@@ -3401,3 +3401,78 @@ export async function ventasPorMes(meses = 12) {
     })
     .sort((a, b) => b.mes.localeCompare(a.mes));
 }
+
+/**
+ * Movimientos de un mes, uno por uno, para llevar la contabilidad.
+ *
+ * A diferencia del resumen, aquí cada línea es un cobro real con su fecha,
+ * concepto e importe. Se listan tanto los pedidos pagados de una vez como
+ * cada abono por separado, porque para cuadrar cuentas importa cuándo entró
+ * el dinero, no cuándo se hizo el pedido.
+ */
+export async function movimientosDelMes(mes: string) {
+  const db = await getDb();
+  if (!db) return { movimientos: [], total: 0, cantidad: 0 };
+
+  const [anio, num] = mes.split("-").map(Number);
+  const desde = new Date(anio, num - 1, 1, 0, 0, 0, 0);
+  const hasta = new Date(anio, num, 1, 0, 0, 0, 0);
+
+  const dentro = (f: Date | null | undefined) =>
+    f ? new Date(f) >= desde && new Date(f) < hasta : false;
+
+  const todosPedidos = await db.select().from(orders);
+  const abonos = await db.select().from(orderPayments);
+
+  const movimientos: Array<{
+    fecha: Date; concepto: string; referencia: string; cliente: string;
+    metodo: string; importe: number; tipo: string;
+  }> = [];
+
+  // Abonos verificados: cada uno es una entrada de dinero con su fecha
+  for (const a of abonos) {
+    if (a.status !== "approved" || !dentro(a.createdAt)) continue;
+    const pedido = todosPedidos.find(o => o.id === a.orderId);
+    movimientos.push({
+      fecha: a.createdAt!,
+      concepto: "Abono",
+      referencia: pedido?.orderNumber ?? `#${a.orderId}`,
+      cliente: pedido?.customerName ?? "—",
+      metodo: a.method ?? "—",
+      importe: parseFloat(a.amount as any) || 0,
+      tipo: "abono",
+    });
+  }
+
+  const conAbono = new Set(
+    abonos.filter(a => a.status === "approved").map(a => a.orderId),
+  );
+
+  // Pedidos cobrados de una vez, sin abonos registrados
+  for (const o of todosPedidos) {
+    if (o.paymentStatus !== "approved") continue;
+    if (conAbono.has(o.id)) continue;              // sus abonos ya están arriba
+    if (o.orderNumber.startsWith("IW-KIT-")) continue;
+    if (!dentro(o.createdAt)) continue;
+
+    const total = parseFloat(o.total as any) || 0;
+    const pagado = parseFloat((o.amountPaid as any) ?? "0") || 0;
+    movimientos.push({
+      fecha: o.createdAt!,
+      concepto: "Venta",
+      referencia: o.orderNumber,
+      cliente: o.customerName,
+      metodo: o.paymentMethod ?? "—",
+      importe: pagado > 0 ? pagado : total,
+      tipo: "venta",
+    });
+  }
+
+  movimientos.sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime());
+
+  return {
+    movimientos: movimientos.map(m => ({ ...m, importe: Math.round(m.importe * 100) / 100 })),
+    total: Math.round(movimientos.reduce((a, m) => a + m.importe, 0) * 100) / 100,
+    cantidad: movimientos.length,
+  };
+}

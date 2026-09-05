@@ -2302,6 +2302,12 @@ function FinanzasSection() {
   /** Historial de ventas por mes */
   const { data: porMes = [] } = trpc.finance.porMes.useQuery({ meses: 12 });
   const [mesesAbierto, setMesesAbierto] = useState(false);
+  /** Mes cuyo detalle se está viendo */
+  const [mesDetalle, setMesDetalle] = useState<string | null>(null);
+  const { data: detalleMes } = trpc.finance.movimientosMes.useQuery(
+    { mes: mesDetalle ?? "" },
+    { enabled: !!mesDetalle },
+  );
 
   /** Comisiones de referido que quedaron sin pagar */
   const { data: comisiones } = trpc.comisiones.revisar.useQuery(undefined);
@@ -2362,6 +2368,76 @@ function FinanzasSection() {
         ))}
       </div>
 
+      {/* Detalle contable de un mes: cada cobro con su fecha e importe */}
+      {mesDetalle && (
+        <div className="fixed inset-0 z-[200] flex flex-col bg-[var(--iw-bg)]">
+          <div
+            className="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--iw-border)] px-5 py-4"
+            style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)" }}
+          >
+            <div className="min-w-0">
+              <p className="truncate text-sm font-black capitalize text-[var(--iw-text)]">
+                {(porMes as any[]).find((m: any) => m.mes === mesDetalle)?.etiqueta ?? mesDetalle}
+              </p>
+              <p className="text-xs text-[var(--iw-text-muted)]">
+                {detalleMes?.cantidad ?? 0} movimiento(s) · ${(detalleMes?.total ?? 0).toFixed(2)}
+              </p>
+            </div>
+            <button
+              onClick={() => setMesDetalle(null)}
+              className="shrink-0 p-2 text-[var(--iw-text-muted)]"
+              aria-label="Cerrar"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          <div
+            className="flex-1 overflow-y-auto px-5 py-4"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)" }}
+          >
+            {(detalleMes?.movimientos ?? []).length === 0 ? (
+              <p className="py-12 text-center text-sm text-[var(--iw-text-muted)]">
+                No hay cobros registrados en este mes.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {(detalleMes?.movimientos ?? []).map((mv: any, i: number) => (
+                  <div
+                    key={i}
+                    className="flex items-start justify-between gap-3 rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3.5"
+                  >
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
+                          mv.tipo === "abono"
+                            ? "bg-[#ffd700]/15 text-[#d9a400]"
+                            : "bg-green-500/15 text-green-500"
+                        }`}>
+                          {mv.concepto}
+                        </span>
+                        <span className="font-mono text-[11px] text-[var(--iw-text-muted)]">
+                          {new Date(mv.fecha).toLocaleDateString("es-VE", { day: "2-digit", month: "2-digit" })}
+                        </span>
+                      </div>
+                      <p className="mt-1.5 truncate text-sm font-semibold text-[var(--iw-text)]">
+                        {mv.cliente}
+                      </p>
+                      <p className="truncate font-mono text-[11px] text-[var(--iw-text-muted)]">
+                        {mv.referencia}{mv.metodo !== "—" ? ` · ${mv.metodo}` : ""}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-base font-black text-green-500">
+                      ${mv.importe.toFixed(2)}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Ventas mes a mes */}
       {(porMes as any[]).length > 0 && (
         <div className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
@@ -2387,7 +2463,11 @@ function FinanzasSection() {
               {(porMes as any[]).map((m: any) => {
                 const mayor = Math.max(...(porMes as any[]).map((x: any) => x.ingresos), 1);
                 return (
-                  <div key={m.mes}>
+                  <button
+                    key={m.mes}
+                    onClick={() => setMesDetalle(m.mes)}
+                    className="w-full text-left"
+                  >
                     <div className="mb-1 flex items-end justify-between gap-3">
                       <span className="text-sm font-semibold capitalize text-[var(--iw-text)]">
                         {m.etiqueta}
@@ -2415,7 +2495,7 @@ function FinanzasSection() {
                       {m.kits > 0 && ` · ${m.kits} kit(s)`}
                       {m.cancelados > 0 && ` · ${m.cancelados} cancelado(s)`}
                     </p>
-                  </div>
+                  </button>
                 );
               })}
             </div>
