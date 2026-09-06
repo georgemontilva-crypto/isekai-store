@@ -49,7 +49,7 @@ import {
   deleteGiftCards,
   insertSubscriber, getSubscribers, deleteSubscriber,
   createQuote, getQuoteByToken, getAllQuotes, updateQuote, deleteQuote, editQuote, vincularCuentaPorCorreo,
-  getTransactions, getFinanceSummary, ventasPorMes, movimientosDelMes,
+  getTransactions, getFinanceSummary, ventasPorMes, movimientosDelMes, aplicarCuponACotizacion,
   crearFeedback, listarFeedback, actualizarFeedback, borrarFeedback, resumenFeedback,
   ensureOwnCosplayerProfile, setOwnCosplayerVisibility, getOwnCosplayerVisibility,
   getDashboardMetrics, getAllSettings, upsertSetting, getSetting, getCartItem,
@@ -1666,6 +1666,20 @@ export const appRouter = router({
       .input(z.object({ meses: z.number().int().min(1).max(36).optional() }).optional())
       .query(({ input }) => ventasPorMes(input?.meses ?? 12)),
 
+    /** El cliente aplica su cupón sobre el enlace de pago */
+    aplicarCupon: publicProcedure
+      .input(z.object({
+        token: z.string().min(10).max(64),
+        codigo: z.string().min(3).max(64),
+      }))
+      .mutation(async ({ input }) => {
+        try {
+          return await aplicarCuponACotizacion(input.token, input.codigo);
+        } catch (e: any) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: e?.message ?? "No se pudo aplicar el cupón" });
+        }
+      }),
+
     /** Detalle contable de un mes concreto */
     movimientosMes: adminProcedure
       .input(z.object({ mes: z.string().regex(/^\d{4}-\d{2}$/) }))
@@ -1712,6 +1726,9 @@ export const appRouter = router({
           total: q.total,
           notes: q.notes,
           depositAmount: q.depositAmount,
+          depositPercent: q.depositPercent ?? 100,
+          couponCode: q.couponCode,
+          couponPercent: q.couponPercent,
           status: q.status,
           customerName: q.customerName,
           customerEmail: q.customerEmail,
@@ -1779,8 +1796,9 @@ export const appRouter = router({
         // permite. El pedido queda como pago parcial con el saldo pendiente.
         const totalCot = parseFloat(String(q.total));
         // El mínimo es el abono que fijó el admin; si no hay, se cobra todo
-        const minimo = q.depositAmount
-          ? Math.min(parseFloat(String(q.depositAmount)), totalCot)
+        const pct = q.depositPercent ?? 100;
+        const minimo = pct < 100
+          ? Math.min(Math.round(totalCot * (pct / 100) * 100) / 100, totalCot)
           : totalCot;
         const abonado = input.amountPaid != null
           ? Math.min(Math.max(parseFloat(input.amountPaid), 0), totalCot)
@@ -1934,6 +1952,8 @@ export const appRouter = router({
         expiresInDays: z.number().int().min(1).max(365).optional(),
         /** Monto del abono en USD. Vacío = se cobra el total. */
         depositAmount: z.string().regex(/^\d+(\.\d{1,2})?$/).optional(),
+        /** Porcentaje que se cobra por adelantado; 100 = todo */
+        depositPercent: z.number().int().min(1).max(100).optional(),
       }))
       .mutation(({ input }) => createQuote(input)),
 
@@ -1953,6 +1973,7 @@ export const appRouter = router({
         })).min(1).max(50).optional(),
         notes: z.string().max(2000).optional(),
         depositAmount: z.string().regex(/^\d+(\.\d{1,2})?$/).optional().or(z.literal("")),
+        depositPercent: z.number().int().min(1).max(100).optional(),
         expiresInDays: z.number().int().min(1).max(365).optional(),
       }))
       .mutation(({ input }) => {

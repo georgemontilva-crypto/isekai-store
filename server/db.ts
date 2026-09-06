@@ -2581,6 +2581,7 @@ export async function createQuote(data: {
   depositPercent?: number;
   /** Monto fijo del abono en USD. Vacío = se cobra el total. */
   depositAmount?: string | null;
+  depositPercent?: number;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
@@ -2825,6 +2826,7 @@ export async function editQuote(id: number, data: {
   if (data.description !== undefined) cambios.description = data.description;
   if (data.notes !== undefined) cambios.notes = data.notes;
   if (data.depositAmount !== undefined) cambios.depositAmount = data.depositAmount || null;
+  if (data.depositPercent !== undefined) cambios.depositPercent = data.depositPercent;
 
   if (data.items) {
     const subtotal = data.items.reduce(
@@ -3474,5 +3476,75 @@ export async function movimientosDelMes(mes: string) {
     movimientos: movimientos.map(m => ({ ...m, importe: Math.round(m.importe * 100) / 100 })),
     total: Math.round(movimientos.reduce((a, m) => a + m.importe, 0) * 100) / 100,
     cantidad: movimientos.length,
+  };
+}
+
+/**
+ * Aplica un cupón de descuento a un enlace de pago.
+ *
+ * El descuento se calcula sobre el total que fijaste, y el abono —que va por
+ * porcentaje— escala solo con él: si pides el 40% de 100 son 40, y con un
+ * cupón del 20% el total baja a 80 y el abono pasa a 32. Así nunca puede
+ * ocurrir que el abono acabe siendo mayor que lo que se debe.
+ *
+ * El cupón se consume al aplicarlo: si no, la misma persona podría usar el
+ * mismo código en varios enlaces a la vez.
+ */
+export async function aplicarCuponACotizacion(token: string, codigo: string) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+
+  const [cot] = await db.select().from(quotes).where(eq(quotes.token, token)).limit(1);
+  if (!cot) throw new Error("Ese enlace no existe");
+  if (cot.status === "paid") throw new Error("Este pedido ya está pagado");
+  if (cot.couponCode) throw new Error("Ya se aplicó un cupón a este pedido");
+
+  const limpio = codigo.trim().toUpperCase();
+  const [card] = await db.select().from(giftCards)
+    .where(eq(giftCards.code, limpio)).limit(1);
+
+  if (!card) throw new Error("Ese cupón no existe");
+  if (card.status !== "active") throw new Error("Ese cupón ya no está disponible");
+  if (card.expiresAt && new Date(card.expiresAt) < new Date()) {
+    throw new Error("Ese cupón está vencido");
+  }
+  if ((card.currentUses ?? 0) >= (card.maxUses ?? 1)) {
+    throw new Error("Ese cupón ya se usó");
+  }
+
+  const total = parseFloat(cot.total as any) || 0;
+
+  if (card.minOrderAmount && total < parseFloat(card.minOrderAmount as any)) {
+    throw new Error(`Este cupón requiere un mínimo de $${parseFloat(card.minOrderAmount as any).toFixed(2)}`);
+  }
+
+  // Solo cupones por porcentaje: los de monto fijo se usan en la tienda
+  if (card.discountType !== "percent" || !card.discountPercent) {
+    throw new Error("Ese cupón no se puede usar en enlaces de pago");
+  }
+
+  const porcentaje = parseFloat(card.discountPercent as any) || 0;
+  const nuevoTotal = Math.round(total * (1 - porcentaje / 100) * 100) / 100;
+
+  await db.update(quotes).set({
+    couponCode: limpio,
+    couponPercent: Math.round(porcentaje),
+    total: nuevoTotal.toFixed(2),
+  }).where(eq(quotes.id, cot.id));
+
+  // Se consume el uso
+  await db.update(giftCards).set({
+    currentUses: (card.currentUses ?? 0) + 1,
+    status: (card.currentUses ?? 0) + 1 >= (card.maxUses ?? 1) ? "used" : "active",
+  }).where(eq(giftCards.id, card.id));
+
+  const abono = Math.round(nuevoTotal * ((cot.depositPercent ?? 100) / 100) * 100) / 100;
+
+  return {
+    totalAnterior: total,
+    total: nuevoTotal,
+    descuento: Math.round((total - nuevoTotal) * 100) / 100,
+    porcentaje: Math.round(porcentaje),
+    abono,
   };
 }

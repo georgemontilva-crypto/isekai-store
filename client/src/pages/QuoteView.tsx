@@ -55,6 +55,16 @@ export default function QuoteView() {
   const [subiendo, setSubiendo] = useState(false);
   const [listo, setListo] = useState<{ orderNumber: string; cuentaCreada: boolean } | null>(null);
   const [abonoEnviado, setAbonoEnviado] = useState(false);
+  const [cupon, setCupon] = useState("");
+  const utilsQ = trpc.useUtils();
+  const aplicarCupon = trpc.finance.aplicarCupon.useMutation({
+    onSuccess: (r) => {
+      utilsQ.quotes.byToken.invalidate();
+      setCupon("");
+      toast.success(`Descuento del ${r.porcentaje}% aplicado`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
   const [montoAbono, setMontoAbono] = useState("");
   // Cuánto va a pagar ahora: el total o solo el abono mínimo
   // null hasta que se conoce la cotización: si tiene abono configurado, la
@@ -170,8 +180,14 @@ export default function QuoteView() {
   // "Pagada" solo cuando no queda saldo. Con un abono el estado es "partial"
   // y la página debe ofrecer pagar lo que falta.
   const yaPagada = cotizacion.status === "paid" || cotizacion.status === "partial";
-  const hayAbono = Boolean(cotizacion.depositAmount) &&
-    parseFloat(cotizacion.depositAmount!) < parseFloat(cotizacion.total);
+  /**
+   * El abono es un porcentaje del total, así que al aplicar un cupón baja
+   * solo. Antes era un monto fijo y podía acabar siendo mayor que lo que
+   * quedaba por pagar.
+   */
+  const porcentajeAbono = (cotizacion as any).depositPercent ?? 100;
+  const abonoRequerido = Math.round(parseFloat(cotizacion.total) * (porcentajeAbono / 100) * 100) / 100;
+  const hayAbono = porcentajeAbono < 100 && abonoRequerido > 0;
   const pagaTodo = pagaTodoManual ?? !hayAbono;
   const setPagaTodo = setPagaTodoManual;
   const items = (cotizacion.items as any[]) ?? [];
@@ -206,6 +222,41 @@ export default function QuoteView() {
               </p>
             </div>
           ))}
+          {/* Cupón: el cliente lo aplica y el total baja al momento */}
+          {!yaPagada && !(cotizacion as any).couponCode && (
+            <div className="border-t border-white/10 px-5 py-4">
+              <p className="mb-2 text-xs font-semibold text-[#b4b4c2]">¿Tienes un cupón?</p>
+              <div className="flex gap-2">
+                <input
+                  value={cupon}
+                  onChange={e => setCupon(e.target.value.toUpperCase())}
+                  placeholder="Código del cupón"
+                  className="flex-1 rounded-xl border border-[#2e2e3a] bg-[#101319] px-4 font-mono text-sm uppercase text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]"
+                  style={{ minHeight: 46 }}
+                />
+                <button
+                  onClick={() => aplicarCupon.mutate({ token: token!, codigo: cupon.trim() })}
+                  disabled={cupon.trim().length < 3 || aplicarCupon.isPending}
+                  className="shrink-0 rounded-xl bg-[#e5007d] px-5 text-sm font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                  style={{ minHeight: 46 }}
+                >
+                  {aplicarCupon.isPending ? "..." : "Aplicar"}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {(cotizacion as any).couponCode && (
+            <div className="flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3">
+              <span className="text-sm text-[#b4b4c2]">
+                Cupón <strong className="font-mono text-white">{(cotizacion as any).couponCode}</strong>
+              </span>
+              <span className="text-sm font-bold text-green-400">
+                −{(cotizacion as any).couponPercent}%
+              </span>
+            </div>
+          )}
+
           {/* Desglose. Cuando ya hay abonos, mostrar solo el total en
               bolívares confundía: parecía el monto a transferir cuando en
               realidad lo pendiente es menos. */}
@@ -375,8 +426,8 @@ export default function QuoteView() {
         ) : (
           <>
             {/* Abono: solo si el admin fijó un monto adelantado */}
-            {cotizacion.depositAmount && parseFloat(cotizacion.depositAmount) < parseFloat(cotizacion.total) && (() => {
-              const minimo = parseFloat(cotizacion.depositAmount!);
+            {hayAbono && (() => {
+              const minimo = abonoRequerido;
               const resto = parseFloat(cotizacion.total) - minimo;
               return (
                 <>

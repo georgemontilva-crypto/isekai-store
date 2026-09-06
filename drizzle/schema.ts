@@ -405,6 +405,9 @@ export const quotes = mysqlTable("quotes", {
   depositPercent: int("depositPercent").notNull().default(100),
   /** Monto fijo del abono en USD. Si es null, se cobra el total. */
   depositAmount: decimal("depositAmount", { precision: 10, scale: 2 }),
+  /** Cupón que aplicó el cliente sobre este enlace de pago */
+  couponCode: varchar("couponCode", { length: 64 }),
+  couponPercent: int("couponPercent"),
   /** draft | sent | paid | cancelled | expired */
   status: varchar("status", { length: 20 }).notNull().default("draft"),
   /** Pedido generado cuando el cliente paga */
