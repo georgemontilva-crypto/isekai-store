@@ -2581,7 +2581,6 @@ export async function createQuote(data: {
   depositPercent?: number;
   /** Monto fijo del abono en USD. Vacío = se cobra el total. */
   depositAmount?: string | null;
-  depositPercent?: number;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
@@ -2809,6 +2808,7 @@ export async function editQuote(id: number, data: {
   items?: Array<{ concepto: string; cantidad: number; precio: string }>;
   notes?: string;
   depositAmount?: string | null;
+  depositPercent?: number;
   expiresInDays?: number;
 }) {
   const db = await getDb();
