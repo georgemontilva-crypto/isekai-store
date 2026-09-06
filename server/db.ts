@@ -2172,8 +2172,27 @@ export async function validateGiftCard(code: string, userId?: number, orderTotal
   const db = await getDb();
   if (!db) return null;
 
+  const limpio = code.trim().toUpperCase();
+
+  // Descuentos canjeados por los cosplayers con sus tickets: viven en otra
+  // tabla y hasta ahora no se aceptaban en ninguna pantalla.
+  const [dcto] = await db.select().from(cosplayDiscountCodes)
+    .where(eq(cosplayDiscountCodes.code, limpio)).limit(1);
+
+  if (dcto) {
+    if (dcto.used) return { valid: false, reason: 'Ese descuento ya se usó' };
+    return {
+      valid: true,
+      discountType: 'percent' as const,
+      discountPercent: dcto.discountPercent,
+      amount: '0.00',
+      code: limpio,
+      esDescuentoCosplayer: true,
+    };
+  }
+
   const result = await db.select().from(giftCards)
-    .where(and(eq(giftCards.code, code.toUpperCase()), eq(giftCards.status, 'active')));
+    .where(and(eq(giftCards.code, limpio), eq(giftCards.status, 'active')));
   const card = result[0];
   if (!card) return { valid: false, reason: 'Código no válido' };
 
@@ -2230,7 +2249,20 @@ export async function redeemGiftCard(code: string, userId: number | null, orderI
   const db = await getDb();
   if (!db) return false;
 
-  const rows = await db.select().from(giftCards).where(eq(giftCards.code, code.toUpperCase()));
+  const limpio = code.trim().toUpperCase();
+
+  // Si es un descuento de cosplayer, se marca ahí y se termina
+  const [dcto] = await db.select().from(cosplayDiscountCodes)
+    .where(eq(cosplayDiscountCodes.code, limpio)).limit(1);
+  if (dcto) {
+    if (dcto.used) return;
+    await db.update(cosplayDiscountCodes)
+      .set({ used: true, usedAt: new Date() })
+      .where(eq(cosplayDiscountCodes.id, dcto.id));
+    return;
+  }
+
+  const rows = await db.select().from(giftCards).where(eq(giftCards.code, limpio));
   const card = rows[0];
   if (!card) return false;
 
@@ -3517,6 +3549,41 @@ export async function aplicarCuponACotizacion(token: string, codigo: string) {
   if (cot.couponCode) throw new Error("Ya se aplicó un cupón a este pedido");
 
   const limpio = codigo.trim().toUpperCase();
+  const total = parseFloat(cot.total as any) || 0;
+
+  /**
+   * Los descuentos que los cosplayers canjean con sus tickets viven en su
+   * propia tabla, no en las tarjetas de regalo. Se comprueban primero: antes
+   * solo se buscaba en giftCards y por eso decía que no existían.
+   */
+  const [dcto] = await db.select().from(cosplayDiscountCodes)
+    .where(eq(cosplayDiscountCodes.code, limpio)).limit(1);
+
+  if (dcto) {
+    if (dcto.used) throw new Error("Ese descuento ya se usó");
+
+    const pct = dcto.discountPercent;
+    const nuevo = Math.round(total * (1 - pct / 100) * 100) / 100;
+
+    await db.update(quotes).set({
+      couponCode: limpio,
+      couponPercent: pct,
+      total: nuevo.toFixed(2),
+    }).where(eq(quotes.id, cot.id));
+
+    await db.update(cosplayDiscountCodes)
+      .set({ used: true, usedAt: new Date() })
+      .where(eq(cosplayDiscountCodes.id, dcto.id));
+
+    return {
+      totalAnterior: total,
+      total: nuevo,
+      descuento: Math.round((total - nuevo) * 100) / 100,
+      porcentaje: pct,
+      abono: Math.round(nuevo * ((cot.depositPercent ?? 100) / 100) * 100) / 100,
+    };
+  }
+
   const [card] = await db.select().from(giftCards)
     .where(eq(giftCards.code, limpio)).limit(1);
 
@@ -3528,8 +3595,6 @@ export async function aplicarCuponACotizacion(token: string, codigo: string) {
   if ((card.currentUses ?? 0) >= (card.maxUses ?? 1)) {
     throw new Error("Ese cupón ya se usó");
   }
-
-  const total = parseFloat(cot.total as any) || 0;
 
   if (card.minOrderAmount && total < parseFloat(card.minOrderAmount as any)) {
     throw new Error(`Este cupón requiere un mínimo de $${parseFloat(card.minOrderAmount as any).toFixed(2)}`);
