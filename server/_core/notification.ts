@@ -425,3 +425,65 @@ export async function notifyStoreActivated(
     "Ya estás autorizada como punto de venta. Entra con este correo.",
   );
 }
+
+/**
+ * Enlace de pago para el cliente.
+ *
+ * Se envía al crear el pedido a medida: lleva el resumen, el importe y el
+ * botón para pagar. Si hay abono configurado, se dice claramente cuánto se
+ * paga ahora y cuánto queda.
+ */
+export async function notifyQuoteReady(
+  email: string,
+  nombre: string,
+  datos: {
+    quoteNumber: string;
+    title: string;
+    total: string;
+    token: string;
+    depositPercent?: number;
+    expiresAt?: Date | string | null;
+  },
+): Promise<boolean> {
+  const url = `https://isekaiworld.co/cotizacion/${datos.token}`;
+  const total = parseFloat(datos.total) || 0;
+  const pct = datos.depositPercent ?? 100;
+  const abono = pct < 100 ? Math.round(total * (pct / 100) * 100) / 100 : null;
+
+  const vence = datos.expiresAt ? new Date(datos.expiresAt) : null;
+
+  const content = `
+    <h1>Tu pedido está listo para pagar</h1>
+    <p>Hola <strong>${nombre || "de nuevo"}</strong>, preparamos tu pedido:</p>
+
+    <div class="order-box">
+      <p><strong>${datos.title}</strong></p>
+      <p style="margin-top:8px"><strong>N° de pedido:</strong> <span class="highlight">${datos.quoteNumber}</span></p>
+      <p style="margin-top:8px"><strong>Total:</strong> $${total.toFixed(2)} USD</p>
+      ${abono != null ? `
+        <p style="margin-top:8px">
+          <strong>Para empezar:</strong> $${abono.toFixed(2)} USD (${pct}%)<br>
+          <span style="color:#888; font-size:13px">
+            El resto, $${(total - abono).toFixed(2)}, lo pagas antes de la entrega.
+          </span>
+        </p>` : ""}
+    </div>
+
+    <p style="margin-top:20px">
+      <a href="${url}" class="btn">Ver y pagar mi pedido</a>
+    </p>
+
+    <p style="color:#888; font-size:13px; margin-top:16px">
+      En ese enlace verás los datos para pagar y podrás subir tu comprobante.
+      Si tienes un cupón, ahí mismo puedes aplicarlo.
+      ${vence ? `<br>El enlace está disponible hasta el ${vence.toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" })}.` : ""}
+    </p>
+  `;
+
+  return sendEmail(
+    email,
+    `Tu pedido ${datos.quoteNumber} está listo — Isekai World`,
+    content,
+    "Ya puedes pagar tu pedido desde este enlace.",
+  );
+}

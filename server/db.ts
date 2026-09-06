@@ -1,7 +1,7 @@
 import { and, count, desc, eq, gt, gte, ilike, inArray, isNull, like, lt, lte, or, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getReferralCash, getReferralTickets } from "@shared/referral";
-import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail, notifyCosplayReferralEarned } from "./_core/notification";
+import { notifyOwner, notifyCosplayApproved, notifyCosplayRejected, notifyCosplayActivity, sendEmail, notifyCosplayReferralEarned, notifyQuoteReady } from "./_core/notification";
 import { io } from "./_core/socket";
 import { storageDelete } from "./storage";
 import { drizzle } from "drizzle-orm/mysql2";
@@ -2616,6 +2616,23 @@ export async function createQuote(data: {
   });
 
   const [row] = await db.select().from(quotes).where(eq(quotes.token, token)).limit(1);
+
+  // El enlace se envía solo: al crear el pedido ya se quiere cobrar
+  if (data.customerEmail && row) {
+    try {
+      await notifyQuoteReady(data.customerEmail, data.customerName ?? "", {
+        quoteNumber: row.quoteNumber,
+        title: row.title,
+        total: String(row.total),
+        token: row.token,
+        depositPercent: row.depositPercent ?? 100,
+        expiresAt: row.expiresAt,
+      });
+    } catch (e) {
+      console.error('[Cotización] No se pudo enviar el enlace:', e);
+    }
+  }
+
   return row;
 }
 

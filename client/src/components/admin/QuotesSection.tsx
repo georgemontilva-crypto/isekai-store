@@ -39,11 +39,15 @@ export default function QuotesSection() {
       vacio();
       // Se copia el enlace de una vez: es lo primero que vas a querer hacer
       const enlace = `${window.location.origin}/cotizacion/${q?.token}`;
+      // Si hay correo, el enlace ya salió solo hacia el cliente
+      const enviado = Boolean(q?.customerEmail);
       try {
         await navigator.clipboard.writeText(enlace);
-        toast.success('Cotización creada y enlace copiado');
+        toast.success(enviado
+          ? 'Creada · enlace enviado por correo y copiado'
+          : 'Cotización creada y enlace copiado');
       } catch {
-        toast.success('Cotización creada');
+        toast.success(enviado ? 'Creada y enviada por correo' : 'Cotización creada');
       }
     },
     onError: (e) => toast.error(e.message),
