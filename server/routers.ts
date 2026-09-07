@@ -39,7 +39,7 @@ const MOTIVO_REFERIDO: Record<string, string> = {
 };
 
 import {
-  getAllCategories, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
+  getAllCategories, moverCategoria, getCategoryBySlug, createCategory, updateCategory, deleteCategory,
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
@@ -158,6 +158,11 @@ export const appRouter = router({
     bySlug: publicProcedure
       .input(z.object({ slug: z.string() }))
       .query(({ input }) => getCategoryBySlug(input.slug)),
+
+    /** Cambia el orden en el carrusel del inicio */
+    mover: adminProcedure
+      .input(z.object({ id: z.number(), direccion: z.enum(["arriba", "abajo"]) }))
+      .mutation(({ input }) => moverCategoria(input.id, input.direccion)),
 
     create: adminProcedure
       .input(z.object({ name: z.string().min(1).max(256), slug: z.string().min(1).max(256), description: z.string().max(2000).optional(), imageUrl: z.string().url().optional(), featured: z.boolean().optional() }))

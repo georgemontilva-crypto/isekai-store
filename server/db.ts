@@ -104,7 +104,7 @@ export async function getUserByOpenId(openId: string) {
 export async function getAllCategories() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(categories).orderBy(categories.name);
+  return db.select().from(categories).orderBy(categories.sortOrder, categories.name);
 }
 
 export async function getCategoryBySlug(slug: string) {
@@ -3629,4 +3629,37 @@ export async function aplicarCuponACotizacion(token: string, codigo: string) {
     porcentaje: Math.round(porcentaje),
     abono,
   };
+}
+
+/**
+ * Cambia el orden de una colección en el carrusel del inicio.
+ *
+ * Se intercambia la posición con su vecina en lugar de renumerarlo todo: así
+ * el resto de colecciones no se mueve de sitio.
+ */
+export async function moverCategoria(id: number, direccion: "arriba" | "abajo") {
+  const db = await getDb();
+  if (!db) return;
+
+  const todas = await db.select().from(categories)
+    .orderBy(categories.sortOrder, categories.name);
+
+  const i = todas.findIndex(c => c.id === id);
+  if (i === -1) return;
+
+  const j = direccion === "arriba" ? i - 1 : i + 1;
+  if (j < 0 || j >= todas.length) return;
+
+  // Si nunca se ordenaron, se numeran ahora según el orden actual
+  const necesitaNumerar = todas.every(c => (c.sortOrder ?? 0) === 0);
+  if (necesitaNumerar) {
+    for (let k = 0; k < todas.length; k++) {
+      await db.update(categories).set({ sortOrder: k + 1 }).where(eq(categories.id, todas[k].id));
+    }
+    todas.forEach((c, k) => { (c as any).sortOrder = k + 1; });
+  }
+
+  const a = todas[i], b = todas[j];
+  await db.update(categories).set({ sortOrder: b.sortOrder ?? j + 1 }).where(eq(categories.id, a.id));
+  await db.update(categories).set({ sortOrder: a.sortOrder ?? i + 1 }).where(eq(categories.id, b.id));
 }

@@ -35,6 +35,8 @@ export const categories = mysqlTable("categories", {
   description: text("description"),
   imageUrl: text("imageUrl"),
   featured: boolean("featured").default(false).notNull(),
+  /** Orden en el carrusel del inicio: menor número aparece antes */
+  sortOrder: int("sortOrder").default(0).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

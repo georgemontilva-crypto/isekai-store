@@ -6,7 +6,7 @@ import {
   ShoppingBag, CreditCard, Sparkles, Package,
   BarChart3, Bell, ChevronRight, Check, Trash2, FileText,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus, SlidersHorizontal,
-  LogOut, Settings, Menu, ChevronDown, Eye, ArrowLeft,
+  LogOut, Settings, Menu, ChevronDown, ChevronUp, Eye, ArrowLeft,
   Tag, Store, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
@@ -1380,6 +1380,10 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
 function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
   const { user, isAuthenticated } = useAuth();
   const { data: categorias = [] } = trpc.categories.list.useQuery();
+  const moverCategoria = trpc.categories.mover.useMutation({
+    onSuccess: () => utils.categories.list.invalidate(),
+    onError: (e) => toast.error(e.message),
+  });
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'admin',
   });
@@ -1711,8 +1715,28 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
             {(categories as any[]).length === 0 && (
               <p className="text-center text-[#999] text-sm py-8">No hay categorías aún</p>
             )}
-            {(categories as any[]).map((cat: any) => (
-              <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm flex items-center justify-between">
+            {(categories as any[]).map((cat: any, idx: number) => (
+              <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm flex items-center justify-between gap-2">
+                {/* Orden en el carrusel del inicio */}
+                <div className="flex shrink-0 flex-col gap-1">
+                  <button
+                    onClick={() => moverCategoria.mutate({ id: cat.id, direccion: 'arriba' })}
+                    disabled={idx === 0}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e5e5e5] text-[#666] disabled:opacity-30"
+                    aria-label="Subir"
+                  >
+                    <ChevronUp size={14} />
+                  </button>
+                  <button
+                    onClick={() => moverCategoria.mutate({ id: cat.id, direccion: 'abajo' })}
+                    disabled={idx === (categories as any[]).length - 1}
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e5e5e5] text-[#666] disabled:opacity-30"
+                    aria-label="Bajar"
+                  >
+                    <ChevronDown size={14} />
+                  </button>
+                </div>
+
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-sm text-[#111]">{cat.name}</p>
                   {cat.description && <p className="text-xs text-[#999] mt-0.5">{cat.description}</p>}
