@@ -260,6 +260,8 @@ export default function CosplayLanding() {
 
           <div className="flex flex-col gap-3">
             {TIERS.map((tier, i) => {
+              // El ancho progresivo solo en escritorio
+              const esAncha = typeof window !== "undefined" && window.innerWidth >= 1024;
               const Icon = tier.icon;
               return (
                 <motion.div
@@ -271,10 +273,10 @@ export default function CosplayLanding() {
                   className="group flex items-center gap-4"
                 >
                   <div
-                    className="relative h-16 lg:h-20 rounded-2xl flex items-center px-6 transition-all duration-500 group-hover:brightness-110 flex-shrink-0"
+                    className="relative h-16 lg:h-20 rounded-2xl flex items-center px-4 sm:px-6 transition-all duration-500 group-hover:brightness-110 flex-1 lg:flex-none min-w-0"
                     style={{
-                      width: tier.width,
-                      minWidth: "200px",
+                      width: esAncha ? tier.width : undefined,
+                      minWidth: esAncha ? "200px" : undefined,
                       background: `linear-gradient(135deg, ${tier.color}22, ${tier.color}44)`,
                       border: `1px solid ${tier.color}66`,
                     }}
@@ -287,8 +289,8 @@ export default function CosplayLanding() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    <span className="text-2xl lg:text-3xl font-black" style={{ color: tier.color }}>{tier.mult}</span>
+                  <div className="flex flex-shrink-0 items-center gap-2">
+                    <span className="text-xl sm:text-2xl lg:text-3xl font-black" style={{ color: tier.color }}>{tier.mult}</span>
                     <span className="text-[#555] text-xs hidden lg:block leading-tight">tickets<br />por actividad</span>
                   </div>
                 </motion.div>

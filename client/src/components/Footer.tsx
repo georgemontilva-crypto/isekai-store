@@ -63,9 +63,10 @@ export default function Footer() {
       {/* Main Footer */}
       <div className="bg-[#1a1a1a] text-white">
         <div className="container py-14">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-            {/* Brand */}
-            <div>
+          <div className="grid grid-cols-2 gap-x-6 gap-y-9 md:grid-cols-2 lg:grid-cols-4 lg:gap-10">
+            {/* Brand: a lo ancho en teléfono, el logo y las redes no caben
+                en media columna. */}
+            <div className="col-span-2 lg:col-span-1">
               <div className="flex items-center gap-2 mb-5">
                 {logoUrl ? (
                   <img src={logoUrl} alt={storeName} style={{ height: logoHeightFooter, width: 'auto' }} className="object-contain" />

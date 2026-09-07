@@ -147,6 +147,11 @@ const WORLD_FEST_GLOW = `
     50%      { box-shadow: 0 0 0 4px rgba(93,180,255,0.00), 0 0 24px 4px rgba(125,216,255,0.55); }
   }
   .wf-pill { animation: wf-pulse 2.8s ease-in-out infinite; }
+  /* Sin destello dentro del menú de teléfono: sobre fondo oscuro parecía
+     una línea rara cruzando el botón. */
+  .iw-menu .wf-pill::after { display: none; }
+  .iw-menu .wf-pill { animation: none; }
+
   .wf-pill::after {
     content: "";
     position: absolute;
@@ -158,7 +163,12 @@ const WORLD_FEST_GLOW = `
   }
   @media (prefers-reduced-motion: reduce) {
     .wf-pill { animation: none; }
-    .wf-pill::after { animation: none; opacity: 0; }
+    /* Sin destello dentro del menú de teléfono: sobre fondo oscuro parecía
+     una línea rara cruzando el botón. */
+  .iw-menu .wf-pill::after { display: none; }
+  .iw-menu .wf-pill { animation: none; }
+
+  .wf-pill::after { animation: none; opacity: 0; }
   }
 `;
 
