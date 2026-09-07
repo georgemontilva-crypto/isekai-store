@@ -86,8 +86,13 @@ export default function PantallaCarga() {
           <div className="iw-carga-relleno" style={{ width: `${progreso}%` }} />
         </div>
 
+        {/* El texto acompaña al progreso con el lenguaje de la marca: se
+            cruza a otro mundo, se abre el portal, se llega. */}
         <p className="iw-carga-texto">
-          {progreso < 40 ? "Cargando" : progreso < 80 ? "Preparando" : "Casi listo"}
+          {progreso < 25 ? "Abriendo el portal"
+            : progreso < 55 ? "Cargando universos"
+            : progreso < 85 ? "Invocando figuras"
+            : "Bienvenido a Isekai"}
         </p>
       </div>
     </div>
