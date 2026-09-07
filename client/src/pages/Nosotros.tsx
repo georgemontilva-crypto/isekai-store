@@ -278,8 +278,10 @@ export default function Nosotros() {
 
       {/* ── 8. Aviso legal ────────────────────────────────────────────── */}
       <section className="border-t border-[#e5e5e5] bg-white py-12">
-        <div className="px-6 lg:px-20 max-w-4xl flex gap-5 items-start">
-          <AlertTriangle size={16} className="text-yellow-500 shrink-0 mt-0.5" strokeWidth={1.5} />
+        {/* Centrado: el contenedor no tenía margen automático y el aviso
+            quedaba pegado a la izquierda en pantallas anchas. */}
+        <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-6 text-center">
+          <AlertTriangle size={18} className="text-yellow-500 shrink-0" strokeWidth={1.5} />
           <div>
             <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-2">
               Aviso sobre propiedad intelectual
