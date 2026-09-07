@@ -19,6 +19,7 @@ const Catalog = lazy(() => import("./pages/Catalog"));
 const WorldFest = lazy(() => import("./pages/WorldFest"));
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const Invitacion = lazy(() => import("./pages/Invitacion"));
+import PantallaCarga from "@/components/PantallaCarga";
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
 const GuildFeedback = lazy(() => import("./pages/GuildFeedback"));
@@ -181,6 +182,7 @@ function Layout() {
 
   return (
     <>
+      <PantallaCarga />
       <ScrollToTop />
       <WelcomeToastHandler />
       {!esPaginaSola && <Navbar />}

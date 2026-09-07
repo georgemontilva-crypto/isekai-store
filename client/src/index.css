@@ -2923,3 +2923,87 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 @media (prefers-reduced-motion: reduce) {
   .iw-aliados-carril { animation: none; }
 }
+
+/* ── Pantalla de carga inicial ────────────────────────────────────────────
+   Contador sobre magenta, al estilo de las cargas de videojuegos. Sale con
+   un desvanecido hacia arriba para dar paso a la web. */
+@keyframes iw-carga-entra {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes iw-carga-latido {
+  0%, 100% { opacity: 0.9; }
+  50%      { opacity: 1; }
+}
+.iw-carga {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse at 50% 40%, #ff1f96, #e5007d 45%, #a30058);
+  transition: opacity .55s ease, transform .55s ease;
+}
+.iw-carga-sale {
+  opacity: 0;
+  transform: translateY(-3%);
+  pointer-events: none;
+}
+.iw-carga-centro {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  padding: 2rem;
+  animation: iw-carga-entra .5s ease-out both;
+}
+.iw-carga-logo {
+  height: 64px;
+  width: auto;
+  max-width: 220px;
+  object-fit: contain;
+  animation: iw-carga-latido 2s ease-in-out infinite;
+}
+.iw-carga-numero {
+  display: flex;
+  align-items: baseline;
+  gap: 0.15rem;
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-weight: 900;
+  color: #fff;
+  font-size: clamp(3.5rem, 16vw, 6rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.25);
+  font-variant-numeric: tabular-nums;
+}
+.iw-carga-pct {
+  font-size: 0.3em;
+  opacity: 0.7;
+  letter-spacing: 0;
+}
+.iw-carga-barra {
+  width: min(260px, 70vw);
+  height: 3px;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+.iw-carga-relleno {
+  height: 100%;
+  background: #fff;
+  border-radius: 9999px;
+  transition: width .15s ease-out;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.8);
+}
+.iw-carga-texto {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.75);
+}
+@media (max-width: 640px) {
+  .iw-carga-logo { height: 48px; }
+}

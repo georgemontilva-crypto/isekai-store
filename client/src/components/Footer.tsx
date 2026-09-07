@@ -142,13 +142,13 @@ export default function Footer() {
                 columna en teléfono. */}
             <div className="col-span-2 lg:col-span-1">
               {/* CTA */}
-              <h3 className="text-2xl font-black text-[#e5007d] mb-2">
+              <h3 className="text-2xl font-black text-[#e5007d] mb-2 text-center lg:text-left">
                 ¡No te pierdas nada!
               </h3>
-              <p className="text-[#aaa] text-sm leading-relaxed mb-5">
+              <p className="text-[#aaa] text-sm leading-relaxed mb-5 text-center lg:text-left">
                 Drops exclusivos, preventa anticipada y descuentos solo para suscriptores.
               </p>
-              <form onSubmit={handleNewsletter} className="flex flex-col sm:flex-row gap-2">
+              <form onSubmit={handleNewsletter} className="flex gap-2">
                 <antiSpam.HoneyPot />
                 <input
                   type="email"
@@ -157,13 +157,13 @@ export default function Footer() {
                   placeholder={t.footer.newsletterPlaceholder}
                   required
                   disabled={subscribe.isPending}
-                  className="w-full sm:flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/50 transition-colors disabled:opacity-50"
+                  className="min-w-0 flex-1 bg-white/10 border border-white/20 rounded-full px-4 py-2.5 text-[13px] text-white placeholder:text-white/40 outline-none focus:border-white/50 transition-colors disabled:opacity-50"
                 />
                 <button
                   type="submit"
                   aria-label="Suscribirse"
                   disabled={subscribe.isPending}
-                  className="w-full sm:w-10 h-10 bg-white rounded-full flex items-center justify-center text-[#1a1a1a] hover:bg-white/90 transition-colors disabled:opacity-50"
+                  className="h-10 w-10 shrink-0 bg-white rounded-full flex items-center justify-center text-[#1a1a1a] hover:bg-white/90 transition-colors disabled:opacity-50"
                 >
                   <ArrowRight size={15}/>
                 </button>
