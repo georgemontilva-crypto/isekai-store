@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList, Gamepad2 } from "lucide-react";
+import { Search, SlidersHorizontal, X, ChevronDown, Grid3X3, LayoutList, Gamepad2, ChevronLeft, ChevronRight } from "lucide-react";
 import { useSearch } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { PriceDisplay } from "@/components/PriceDisplay";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { useSEO } from "@/hooks/useSEO";
 
 export default function Catalog() {
+  const carrilCats = useRef<HTMLDivElement>(null);
   const { t } = useLang();
 
   useSEO({
@@ -250,7 +251,29 @@ export default function Catalog() {
 
         {/* ── Category quick-nav (always visible) ── */}
         {!showFilters && categories && categories.length > 0 && (
-          <div className="flex gap-2 mb-8 overflow-x-auto pb-1 scrollbar-hide">
+          {/* Carril con flechas: sin ellas no había forma de saber que
+              quedaban categorías fuera de la vista, y las últimas se cortaban
+              sin pista de que se podía desplazar. */}
+          <div className="relative mb-8">
+            <button
+              onClick={() => carrilCats.current?.scrollBy({ left: -240, behavior: "smooth" })}
+              aria-label="Anterior"
+              className="absolute left-0 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--iw-border)] bg-[var(--iw-surface)] text-[var(--iw-text-muted)] shadow-lg transition-colors hover:text-[#e5007d] sm:flex"
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <button
+              onClick={() => carrilCats.current?.scrollBy({ left: 240, behavior: "smooth" })}
+              aria-label="Siguiente"
+              className="absolute right-0 top-1/2 z-10 hidden h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--iw-border)] bg-[var(--iw-surface)] text-[var(--iw-text-muted)] shadow-lg transition-colors hover:text-[#e5007d] sm:flex"
+            >
+              <ChevronRight size={16} />
+            </button>
+
+            <div
+              ref={carrilCats}
+              className="iw-carril-cats flex gap-2 overflow-x-auto pb-1 scrollbar-hide sm:px-10"
+            >
             <button
               onClick={() => setSelectedCategory(undefined)}
               className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
@@ -274,6 +297,7 @@ export default function Catalog() {
                 {cat.name}
               </button>
             ))}
+            </div>
           </div>
         )}
 

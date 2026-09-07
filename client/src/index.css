@@ -3001,3 +3001,17 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 }
 @media (max-width: 640px) {
 }
+
+/* Carril de categorías del catálogo: los bordes se desvanecen para que se
+   note que hay más contenido fuera de la vista. */
+.iw-carril-cats {
+  mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 3%, #000 97%, transparent);
+  scroll-behavior: smooth;
+}
+@media (max-width: 639px) {
+  .iw-carril-cats {
+    mask-image: linear-gradient(90deg, #000 88%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
+  }
+}
