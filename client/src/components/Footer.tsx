@@ -80,11 +80,30 @@ export default function Footer() {
               </div>
               <p className="text-[13px] text-white/55 leading-relaxed mb-5">{t.footer.tagline}</p>
               <div className="flex items-center gap-2.5 mb-5">
-                {([["Facebook", Facebook], ["Twitter", Twitter], ["Instagram", Instagram], ["YouTube", Youtube]] as const).map(([name, Icon]) => (
-                  <a key={name} href="#" aria-label={name} className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/55 hover:text-white hover:border-white/60 transition-all">
-                    <Icon size={13}/>
-                  </a>
-                ))}
+                {/* Los enlaces salen de Configuración: antes todos apuntaban
+                    a "#" y no llevaban a ninguna parte. Solo se muestra la red
+                    que tenga dirección puesta. */}
+                {([
+                  ["Facebook", Facebook, "social_facebook"],
+                  ["Twitter", Twitter, "social_twitter"],
+                  ["Instagram", Instagram, "social_instagram"],
+                  ["YouTube", Youtube, "social_youtube"],
+                ] as const).map(([name, Icon, clave]) => {
+                  const url = siteSettings?.[clave];
+                  if (!url) return null;
+                  return (
+                    <a
+                      key={name}
+                      href={url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={name}
+                      className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center text-white/55 hover:text-white hover:border-white/60 transition-all"
+                    >
+                      <Icon size={13}/>
+                    </a>
+                  );
+                })}
               </div>
               <div className="text-[12px] text-white/40 space-y-1">
                 <p>hola@isekaiworld.co</p>

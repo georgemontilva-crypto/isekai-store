@@ -2870,3 +2870,56 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .lp-glitch, .lp-glitch-capa { animation: none; }
   .lp-glitch-capa { opacity: 0; }
 }
+
+/* ── Aliados comerciales: carril infinito ─────────────────────────────────
+   Los logos se desplazan en bucle continuo. La lista va duplicada en el
+   marcado, así que al recorrer la mitad se vuelve al inicio sin salto. */
+@keyframes iw-aliados-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.iw-aliados-marco {
+  position: relative;
+  overflow: hidden;
+  /* Los bordes se desvanecen para que los logos no aparezcan de golpe */
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.iw-aliados-carril {
+  display: flex;
+  align-items: center;
+  gap: 3.5rem;
+  width: max-content;
+  animation: iw-aliados-scroll 32s linear infinite;
+}
+.iw-aliados-marco:hover .iw-aliados-carril {
+  animation-play-state: paused;
+}
+.iw-aliado-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 68px;
+  width: 132px;
+  flex-shrink: 0;
+}
+.iw-aliado-logo img {
+  max-height: 100%;
+  max-width: 100%;
+  object-fit: contain;
+  /* En gris hasta que se pasa por encima: unifica logos de estilos dispares */
+  filter: grayscale(1) brightness(1.7);
+  opacity: 0.65;
+  transition: filter .3s ease, opacity .3s ease;
+}
+.iw-aliado-logo:hover img {
+  filter: none;
+  opacity: 1;
+}
+@media (max-width: 640px) {
+  .iw-aliados-carril { gap: 2.25rem; animation-duration: 24s; }
+  .iw-aliado-logo { height: 52px; width: 100px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .iw-aliados-carril { animation: none; }
+}

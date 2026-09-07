@@ -138,64 +138,53 @@ function SaleSlider() {
   );
 }
 
-/* ─── Instagram Feed Section ─────────────────────────────────────────────────────────────────────────────────── */
-function InstagramFeedSection() {
-  const { t } = useLang();
+/* ─── Aliados comerciales ────────────────────────────────────────────────────
+   Carril infinito con los logos de las marcas aliadas. Se duplica la lista y
+   se desplaza en bucle, así el movimiento no tiene principio ni final visible.
+   Se pausa al pasar por encima para poder leer un logo concreto. */
+function AliadosSection() {
   const { data: settings } = trpc.settings.getAll.useQuery();
 
-  const username = settings?.["instagram_username"] || "@isekaistore";
-  const ctaText = settings?.["instagram_cta_text"] || "Síguenos en Instagram para contenido exclusivo, novedades y ofertas especiales.";
-  const instagramUrl = `https://www.instagram.com/${username.replace("@", "")}`;
+  // Hasta ocho aliados, configurables desde el panel
+  const logos = [1, 2, 3, 4, 5, 6, 7, 8]
+    .map(n => ({
+      imagen: settings?.[`aliado_${n}_logo`],
+      nombre: settings?.[`aliado_${n}_nombre`] ?? "",
+      url: settings?.[`aliado_${n}_url`] ?? "",
+    }))
+    .filter(a => a.imagen);
+
+  if (logos.length === 0) return null;
+
+  // Se repite la lista para que el bucle sea continuo
+  const carril = [...logos, ...logos];
 
   return (
-    <section className="py-20 border-b border-[#ebebeb]">
-      <div className="container">
-        <motion.a
-          href={instagramUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="relative flex flex-col md:flex-row md:items-center justify-between gap-6 rounded-3xl overflow-hidden px-6 py-10 md:px-10 md:py-16 group cursor-pointer"
-          style={{
-            // Base oscura: el humo magenta se mueve encima de ella
-            background: "linear-gradient(135deg, #120610 0%, #1c0714 45%, #0a0509 100%)",
-          }}
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
-          whileHover={{ scale: 1.005 }}
-        >
-          {/* Humo animado en magenta y negro. Son tres manchas difusas que se
-              desplazan muy lento: solo se anima `transform`, que corre en la
-              tarjeta gráfica y no repinta la página. Se apaga si el sistema
-              pide menos movimiento. */}
-          <div className="iw-humo pointer-events-none absolute inset-0 overflow-hidden">
-            <span className="iw-humo-1" />
-            <span className="iw-humo-2" />
-            <span className="iw-humo-3" />
-          </div>
+    <section className="px-4 py-14 sm:px-6 sm:py-16 lg:px-16 xl:px-24 2xl:px-[233px]">
+      <p className="mb-1 text-center font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff45a0]">
+        Confían en nosotros
+      </p>
+      <h2 className="mb-8 text-center text-2xl font-black text-white sm:text-3xl">
+        Nuestros aliados comerciales
+      </h2>
 
-          {/* Left: text */}
-          <div className="relative z-10 flex-1 max-w-xl">
-            <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #f09433, #e1306c, #833ab4)" }}>
-                <Instagram className="w-4 h-4 text-white" strokeWidth={2} />
+      <div className="iw-aliados-marco">
+        <div className="iw-aliados-carril">
+          {carril.map((a, i) => {
+            const contenido = (
+              <div className="iw-aliado-logo">
+                <img src={a.imagen} alt={a.nombre || "Aliado"} loading="lazy" />
               </div>
-              <span className="text-white/70 text-sm font-medium">{username}</span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-black text-white mb-3" style={{ fontFamily: "'Orbitron', sans-serif" }}>{t.home.instagram.title}</h2>
-            <p className="text-white/70 text-[15px] leading-relaxed max-w-md">{ctaText}</p>
-          </div>
-
-          {/* Right: CTA button */}
-          <div className="relative z-10 shrink-0">
-            <span className="inline-flex items-center gap-2.5 px-7 py-3.5 rounded-full bg-white text-[#1a1a1a] text-[14px] font-bold shadow-xl group-hover:shadow-2xl group-hover:scale-105 transition-all duration-300">
-              <Instagram className="w-4 h-4" strokeWidth={2} />
-              Seguirnos en Instagram
-              <ExternalLink className="w-3.5 h-3.5 opacity-50" strokeWidth={2} />
-            </span>
-          </div>
-        </motion.a>
+            );
+            return a.url ? (
+              <a key={i} href={a.url} target="_blank" rel="noopener noreferrer" aria-label={a.nombre}>
+                {contenido}
+              </a>
+            ) : (
+              <div key={i}>{contenido}</div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
@@ -635,7 +624,7 @@ export default function Home() {
         {/* ════════════════════════════════════════════
           11. SHOP THE FEED (Instagram)
       ════════════════════════════════════════════ */}
-      <InstagramFeedSection />
+      <AliadosSection />
 
     </div>
   );

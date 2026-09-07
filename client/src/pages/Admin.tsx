@@ -2935,6 +2935,33 @@ export default function Admin() {
                 className="p-8"
               >
                 <h2 className="text-2xl font-bold mb-1">Configuración</h2>
+                {/* Nombre y enlace de cada aliado. El logo se sube en Medios. */}
+                <div className="mt-6 mb-8 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-5">
+                  <p className="text-sm font-bold text-[var(--iw-text)]">Aliados comerciales</p>
+                  <p className="mt-1 mb-4 text-xs text-[var(--iw-text-muted)]">
+                    Los logos se suben en Medios. Aquí pones a quién pertenece cada uno y
+                    a dónde lleva al tocarlo.
+                  </p>
+                  <div className="flex flex-col gap-3">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+                      <div key={n} className="grid gap-2 sm:grid-cols-[80px_1fr_1fr] sm:items-center">
+                        <span className="text-xs font-bold text-[var(--iw-text-muted)]">Aliado {n}</span>
+                        <Input
+                          defaultValue={siteSettings?.[`aliado_${n}_nombre`] ?? ""}
+                          placeholder="Nombre"
+                          onBlur={e => upsertSetting.mutate({ key: `aliado_${n}_nombre`, value: e.target.value })}
+                          className="bg-muted text-sm"
+                        />
+                        <Input
+                          defaultValue={siteSettings?.[`aliado_${n}_url`] ?? ""}
+                          placeholder="https://instagram.com/…"
+                          onBlur={e => upsertSetting.mutate({ key: `aliado_${n}_url`, value: e.target.value })}
+                          className="bg-muted text-sm"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
                 {/* Se define aquí y no en Medios porque además de la imagen
                     hace falta elegir la categoría y el texto del botón. */}
                 <div className="mt-6 mb-8 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-5">
