@@ -7,17 +7,18 @@ import {
   BarChart3, Bell, ChevronRight, Check, Trash2, FileText,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus, SlidersHorizontal,
   LogOut, Settings, Menu, ChevronDown, ChevronUp, Eye, ArrowLeft,
-  Tag, Store, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
+  Tag, Store, Layers, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
 import GiftCardsSection from '@/components/admin/GiftCardsSection';
+import CollectionsSection from '@/components/admin/CollectionsSection';
 import FeedbackSection from '@/components/admin/FeedbackSection';
 import TicketsAdmin from '@/components/admin/TicketsAdmin';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'colecciones' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -1380,10 +1381,6 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
 function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => void }) {
   const { user, isAuthenticated } = useAuth();
   const { data: categorias = [] } = trpc.categories.list.useQuery();
-  const moverCategoria = trpc.categories.mover.useMutation({
-    onSuccess: () => utils.categories.list.invalidate(),
-    onError: (e) => toast.error(e.message),
-  });
   const { data: productsData, refetch: refetchProducts } = trpc.products.adminList.useQuery(undefined, {
     enabled: isAuthenticated && user?.role === 'admin',
   });
@@ -1715,28 +1712,8 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
             {(categories as any[]).length === 0 && (
               <p className="text-center text-[#999] text-sm py-8">No hay categorías aún</p>
             )}
-            {(categories as any[]).map((cat: any, idx: number) => (
-              <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm flex items-center justify-between gap-2">
-                {/* Orden en el carrusel del inicio */}
-                <div className="flex shrink-0 flex-col gap-1">
-                  <button
-                    onClick={() => moverCategoria.mutate({ id: cat.id, direccion: 'arriba' })}
-                    disabled={idx === 0}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e5e5e5] text-[#666] disabled:opacity-30"
-                    aria-label="Subir"
-                  >
-                    <ChevronUp size={14} />
-                  </button>
-                  <button
-                    onClick={() => moverCategoria.mutate({ id: cat.id, direccion: 'abajo' })}
-                    disabled={idx === (categories as any[]).length - 1}
-                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-[#e5e5e5] text-[#666] disabled:opacity-30"
-                    aria-label="Bajar"
-                  >
-                    <ChevronDown size={14} />
-                  </button>
-                </div>
-
+            {(categories as any[]).map((cat: any) => (
+              <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-sm text-[#111]">{cat.name}</p>
                   {cat.description && <p className="text-xs text-[#999] mt-0.5">{cat.description}</p>}
@@ -1952,6 +1929,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
         { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
         { label: 'Tasa del día', tab: 'tasa'        as MobileTab, icon: DollarSign },
+        { label: 'Colecciones',  tab: 'colecciones' as MobileTab, icon: Layers },
         { label: 'Sugerencias',  tab: 'feedback'    as MobileTab, icon: MessageCircle },
         { label: 'Tarjetas',     tab: 'giftcards'   as MobileTab, icon: Gift },
         { label: 'Boletería',    tab: 'boleteria'   as MobileTab, icon: Ticket },
@@ -3227,13 +3205,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -3291,6 +3269,7 @@ export default function AdminMobile() {
         {activeTab === 'subscribers' && <SubscribersSection />}
         {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'quotes'      && <QuotesSection />}
+        {activeTab === 'colecciones' && <CollectionsSection />}
         {activeTab === 'giftcards'   && <GiftCardsSection />}
         {activeTab === 'feedback'    && <FeedbackSection compact />}
         {enBoleteria && (
