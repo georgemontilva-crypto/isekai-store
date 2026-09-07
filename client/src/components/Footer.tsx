@@ -138,8 +138,9 @@ export default function Footer() {
               </ul>
             </div>
 
-            {/* Newsletter */}
-            <div>
+            {/* Newsletter: a lo ancho, el campo de correo no cabe en media
+                columna en teléfono. */}
+            <div className="col-span-2 lg:col-span-1">
               {/* CTA */}
               <h3 className="text-2xl font-black text-[#e5007d] mb-2">
                 ¡No te pierdas nada!
