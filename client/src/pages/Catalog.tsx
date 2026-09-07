@@ -250,10 +250,10 @@ export default function Catalog() {
         </AnimatePresence>
 
         {/* ── Category quick-nav (always visible) ── */}
+        {/* Carril con flechas: sin ellas no había forma de saber que quedaban
+            categorías fuera de la vista, y las últimas se cortaban sin pista
+            de que se podía desplazar. */}
         {!showFilters && categories && categories.length > 0 && (
-          {/* Carril con flechas: sin ellas no había forma de saber que
-              quedaban categorías fuera de la vista, y las últimas se cortaban
-              sin pista de que se podía desplazar. */}
           <div className="relative mb-8">
             <button
               onClick={() => carrilCats.current?.scrollBy({ left: -240, behavior: "smooth" })}
