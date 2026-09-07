@@ -1801,10 +1801,18 @@ export const appRouter = router({
         // permite. El pedido queda como pago parcial con el saldo pendiente.
         const totalCot = parseFloat(String(q.total));
         // El mínimo es el abono que fijó el admin; si no hay, se cobra todo
+        /**
+         * El abono mínimo puede fijarse de dos formas: un monto exacto o un
+         * porcentaje. El monto manda si está puesto, y siempre se limita al
+         * total: con un cupón el total baja y el abono no puede superarlo.
+         */
+        const fijo = q.depositAmount ? parseFloat(String(q.depositAmount)) : 0;
         const pct = q.depositPercent ?? 100;
-        const minimo = pct < 100
-          ? Math.min(Math.round(totalCot * (pct / 100) * 100) / 100, totalCot)
-          : totalCot;
+        const minimo = fijo > 0
+          ? Math.min(fijo, totalCot)
+          : pct < 100
+            ? Math.min(Math.round(totalCot * (pct / 100) * 100) / 100, totalCot)
+            : totalCot;
         const abonado = input.amountPaid != null
           ? Math.min(Math.max(parseFloat(input.amountPaid), 0), totalCot)
           : totalCot;

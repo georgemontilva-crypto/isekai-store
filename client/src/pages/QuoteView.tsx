@@ -186,8 +186,13 @@ export default function QuoteView() {
    * quedaba por pagar.
    */
   const porcentajeAbono = (cotizacion as any).depositPercent ?? 100;
-  const abonoRequerido = Math.round(parseFloat(cotizacion.total) * (porcentajeAbono / 100) * 100) / 100;
-  const hayAbono = porcentajeAbono < 100 && abonoRequerido > 0;
+  const abonoFijo = cotizacion.depositAmount ? parseFloat(cotizacion.depositAmount) : 0;
+  const totalNum = parseFloat(cotizacion.total);
+  // El monto fijo manda sobre el porcentaje, y nunca supera el total
+  const abonoRequerido = abonoFijo > 0
+    ? Math.min(abonoFijo, totalNum)
+    : Math.round(totalNum * (porcentajeAbono / 100) * 100) / 100;
+  const hayAbono = abonoRequerido > 0 && abonoRequerido < totalNum - 0.01;
   const pagaTodo = pagaTodoManual ?? !hayAbono;
   const setPagaTodo = setPagaTodoManual;
   const items = (cotizacion.items as any[]) ?? [];

@@ -23,13 +23,13 @@ export default function QuotesSection() {
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [form, setForm] = useState({
     customerName: '', customerEmail: '', title: '', description: '',
-    expiresInDays: 15, depositPercent: 100,
+    expiresInDays: 15, depositPercent: 100, depositAmount: '', modoAbono: 'pct' as 'pct' | 'fijo',
     items: [{ concepto: '', cantidad: 1, precio: '' }],
   });
 
   const vacio = () => setForm({
     customerName: '', customerEmail: '', title: '', description: '',
-    expiresInDays: 15, depositPercent: 100, items: [{ concepto: '', cantidad: 1, precio: '' }],
+    expiresInDays: 15, depositPercent: 100, depositAmount: '', modoAbono: 'pct' as 'pct' | 'fijo', items: [{ concepto: '', cantidad: 1, precio: '' }],
   });
 
   const crear = trpc.quotes.create.useMutation({
@@ -78,6 +78,8 @@ export default function QuotesSection() {
       description: q.description ?? '',
       expiresInDays: 15,
       depositPercent: q.depositPercent ?? 100,
+      depositAmount: q.depositAmount ? String(q.depositAmount) : '',
+      modoAbono: (q.depositAmount ? 'fijo' : 'pct') as 'pct' | 'fijo',
       items: (q.items ?? []).length ? q.items : [{ concepto: '', cantidad: 1, precio: '' }],
     });
     setAbierto(true);
@@ -209,27 +211,73 @@ export default function QuotesSection() {
               Porcentaje que cobras por adelantado. Si el cliente aplica un cupón,
               el abono baja en la misma proporción.
             </p>
-            <div className="grid grid-cols-4 gap-2">
-              {[100, 50, 40, 30].map(pct => (
+            {/* Dos formas de pedir el abono: un monto exacto o un porcentaje.
+                El monto sirve cuando acuerdas una cifra concreta con el
+                cliente; el porcentaje escala solo si aplica un cupón. */}
+            <div className="mb-2 grid grid-cols-2 gap-2">
+              {([['pct', 'Por porcentaje'], ['fijo', 'Monto exacto']] as const).map(([id, label]) => (
                 <button
-                  key={pct}
-                  onClick={() => setForm(f => ({ ...f, depositPercent: pct }))}
+                  key={id}
+                  onClick={() => setForm(f => ({
+                    ...f,
+                    modoAbono: id,
+                    depositAmount: id === 'pct' ? '' : f.depositAmount,
+                    depositPercent: id === 'fijo' ? 100 : f.depositPercent,
+                  }))}
                   className={`rounded-xl text-xs font-bold transition-colors ${
-                    (form.depositPercent ?? 100) === pct
+                    (form.modoAbono ?? 'pct') === id
                       ? 'bg-[#e5007d] text-white'
                       : 'border border-[var(--iw-border)] bg-[var(--iw-input-bg)] text-[var(--iw-text-muted)]'
                   }`}
                   style={{ minHeight: 44 }}
                 >
-                  {pct === 100 ? 'Todo' : `${pct}%`}
+                  {label}
                 </button>
               ))}
             </div>
-            {(form.depositPercent ?? 100) < 100 && total > 0 && (
-              <p className="mt-2 text-xs text-[var(--iw-text-muted)]">
-                Abona ${(total * (form.depositPercent ?? 100) / 100).toFixed(2)} ·
-                Queda debiendo ${(total - total * (form.depositPercent ?? 100) / 100).toFixed(2)}
-              </p>
+
+            {(form.modoAbono ?? 'pct') === 'fijo' ? (
+              <>
+                <input
+                  inputMode="decimal"
+                  value={form.depositAmount ?? ''}
+                  onChange={e => setForm(f => ({ ...f, depositAmount: e.target.value.replace(/[^0-9.]/g, '') }))}
+                  placeholder="Ej: 20.00"
+                  className="w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-sm text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+                  style={{ minHeight: 48 }}
+                />
+                {parseFloat(form.depositAmount || '0') > 0 && total > 0 && (
+                  <p className="mt-2 text-xs text-[var(--iw-text-muted)]">
+                    Abona ${Math.min(parseFloat(form.depositAmount), total).toFixed(2)} ·
+                    Queda debiendo ${Math.max(0, total - parseFloat(form.depositAmount)).toFixed(2)}
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <div className="grid grid-cols-4 gap-2">
+                  {[100, 50, 40, 30].map(pct => (
+                    <button
+                      key={pct}
+                      onClick={() => setForm(f => ({ ...f, depositPercent: pct }))}
+                      className={`rounded-xl text-xs font-bold transition-colors ${
+                        (form.depositPercent ?? 100) === pct
+                          ? 'bg-[#e5007d] text-white'
+                          : 'border border-[var(--iw-border)] bg-[var(--iw-input-bg)] text-[var(--iw-text-muted)]'
+                      }`}
+                      style={{ minHeight: 44 }}
+                    >
+                      {pct === 100 ? 'Todo' : `${pct}%`}
+                    </button>
+                  ))}
+                </div>
+                {(form.depositPercent ?? 100) < 100 && total > 0 && (
+                  <p className="mt-2 text-xs text-[var(--iw-text-muted)]">
+                    Abona ${(total * (form.depositPercent ?? 100) / 100).toFixed(2)} ·
+                    Queda debiendo ${(total - total * (form.depositPercent ?? 100) / 100).toFixed(2)}
+                  </p>
+                )}
+              </>
             )}
           </div>
 
@@ -246,7 +294,8 @@ export default function QuotesSection() {
                 customerName: form.customerName || undefined,
                 customerEmail: form.customerEmail || undefined,
                 expiresInDays: form.expiresInDays,
-      depositPercent: form.depositPercent ?? 100,
+      depositPercent: form.modoAbono === 'fijo' ? 100 : (form.depositPercent ?? 100),
+      depositAmount: form.modoAbono === 'fijo' ? (form.depositAmount || undefined) : undefined,
                 items: form.items.filter(i => i.concepto && i.precio),
               };
               if (editandoId) editar.mutate({ id: editandoId, ...datos });
