@@ -161,6 +161,14 @@ const PAGES: PageGroup[] = [
     ],
   },
   {
+    page: "Pantalla de carga",
+    slots: [
+      { kind: "site", key: "carga_textura", label: "Textura de fondo",
+        where: "Fondo de la pantalla de carga que se ve al entrar desde el teléfono.",
+        spec: "Vertical, ~1080 × 1920 px. Se le aplica un velo oscuro encima para que el contador se lea. Si lo dejas vacío, el fondo es negro." },
+    ],
+  },
+  {
     page: "Aliados comerciales",
     slots: [
       { kind: "site", key: "aliado_1_logo", label: "Aliado 1 — logo",

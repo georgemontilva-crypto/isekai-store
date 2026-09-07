@@ -2931,19 +2931,6 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   from { opacity: 0; transform: scale(0.94); }
   to   { opacity: 1; transform: scale(1); }
 }
-@keyframes iw-carga-latido {
-  0%, 100% { opacity: 0.85; }
-  50%      { opacity: 1; }
-}
-/* Los píxeles se desplazan en horizontal, como una señal recorriendo el borde */
-@keyframes iw-pixeles {
-  from { background-position: 0 0; }
-  to   { background-position: 96px 0; }
-}
-@keyframes iw-pixeles-inv {
-  from { background-position: 96px 0; }
-  to   { background-position: 0 0; }
-}
 
 .iw-carga {
   position: fixed;
@@ -2962,36 +2949,6 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 }
 
 /* Franjas de píxeles: cuadros magenta de tamaños alternos sobre el negro */
-.iw-carga::before,
-.iw-carga::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 88px;
-  pointer-events: none;
-  background-image:
-    linear-gradient(90deg, #e5007d 25%, transparent 25%),
-    linear-gradient(90deg, #ff45a0 25%, transparent 25%),
-    linear-gradient(90deg, #8a0049 25%, transparent 25%);
-  background-size: 24px 12px, 32px 8px, 48px 16px;
-  background-repeat: repeat-x;
-  opacity: 0.75;
-}
-.iw-carga::before {
-  top: 0;
-  background-position: 0 8px, 12px 26px, 30px 46px;
-  animation: iw-pixeles 3.2s linear infinite;
-  mask-image: linear-gradient(#000, transparent);
-  -webkit-mask-image: linear-gradient(#000, transparent);
-}
-.iw-carga::after {
-  bottom: 0;
-  background-position: 0 64px, 16px 44px, 36px 22px;
-  animation: iw-pixeles-inv 3.8s linear infinite;
-  mask-image: linear-gradient(transparent, #000);
-  -webkit-mask-image: linear-gradient(transparent, #000);
-}
 
 .iw-carga-centro {
   position: relative;
@@ -3002,13 +2959,6 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   gap: 1.5rem;
   padding: 2rem;
   animation: iw-carga-entra .5s ease-out both;
-}
-.iw-carga-logo {
-  height: 64px;
-  width: auto;
-  max-width: 220px;
-  object-fit: contain;
-  animation: iw-carga-latido 2s ease-in-out infinite;
 }
 .iw-carga-numero {
   display: flex;
@@ -3050,6 +3000,4 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   color: rgba(255, 255, 255, 0.5);
 }
 @media (max-width: 640px) {
-  .iw-carga-logo { height: 48px; }
-  .iw-carga::before, .iw-carga::after { height: 64px; }
 }

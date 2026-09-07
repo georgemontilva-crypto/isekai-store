@@ -12,10 +12,17 @@ const CLAVE_VISTA = "iw_carga_vista";
 
 export default function PantallaCarga() {
   const { data: settings } = trpc.settings.getAll.useQuery();
-  const logo = settings?.["store_logo_dark_url"] ?? settings?.["store_logo_url"] ?? null;
+  /** Textura de fondo, opcional: se sube desde Medios */
+  const textura = settings?.["carga_textura"] ?? null;
 
   const [progreso, setProgreso] = useState(0);
+  /**
+   * Solo en teléfono: en escritorio la web carga rápido y una pantalla de
+   * espera ahí estorba más de lo que aporta.
+   */
   const [visible, setVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (window.innerWidth >= 768) return false;
     try { return !sessionStorage.getItem(CLAVE_VISTA); } catch { return true; }
   });
   const [saliendo, setSaliendo] = useState(false);
@@ -58,10 +65,18 @@ export default function PantallaCarga() {
   if (!visible) return null;
 
   return (
-    <div className={`iw-carga ${saliendo ? "iw-carga-sale" : ""}`}>
-      <div className="iw-carga-centro">
-        {logo && <img src={logo} alt="" className="iw-carga-logo" />}
+    <div
+      className={`iw-carga ${saliendo ? "iw-carga-sale" : ""}`}
+      style={textura ? {
+        backgroundImage: `url(${textura})`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      } : undefined}
+    >
+      {/* Velo oscuro sobre la textura, para que el contador se lea siempre */}
+      {textura && <div className="iw-carga-velo" />}
 
+      <div className="iw-carga-centro">
         <div className="iw-carga-numero">
           <span>{String(progreso).padStart(3, "0")}</span>
           <span className="iw-carga-pct">%</span>
