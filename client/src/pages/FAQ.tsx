@@ -1,3 +1,4 @@
+import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -131,6 +132,9 @@ export default function FAQ() {
 
         </div>
       </div>
+
+      {/* Aviso legal, también aquí: es donde se resuelven dudas */}
+      <AvisoPropiedadIntelectual />
     </div>
   );
 }

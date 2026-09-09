@@ -1,3 +1,4 @@
+import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { AlertTriangle } from "lucide-react";
@@ -277,27 +278,7 @@ export default function Nosotros() {
       </section>
 
       {/* ── 8. Aviso legal ────────────────────────────────────────────── */}
-      <section className="border-t border-[#e5e5e5] bg-white py-12">
-        {/* Centrado: el contenedor no tenía margen automático y el aviso
-            quedaba pegado a la izquierda en pantallas anchas. */}
-        <div className="mx-auto flex max-w-3xl flex-col items-center gap-3 px-6 text-center">
-          <AlertTriangle size={18} className="text-yellow-500 shrink-0" strokeWidth={1.5} />
-          <div>
-            <p className="text-xs font-semibold text-[#999] uppercase tracking-widest mb-2">
-              Aviso sobre propiedad intelectual
-            </p>
-            <p className="text-[13px] text-[#aaa] leading-relaxed">
-              Los nombres, personajes e imágenes de anime y videojuegos son propiedad de sus respectivos titulares
-              (Toei Animation, Bandai Namco, Shueisha, Nintendo, etc.). Isekai World no está afiliada a ninguna de
-              estas marcas. Los productos fan-made que comercializamos son creaciones originales inspiradas en estas
-              obras y no representan mercancía oficial licenciada, salvo que se indique expresamente. Consultas:{" "}
-              <a href="mailto:hola@isekaiworld.co" className="text-[#e5007d] underline underline-offset-2">
-                hola@isekaiworld.co
-              </a>.
-            </p>
-          </div>
-        </div>
-      </section>
+      <AvisoPropiedadIntelectual />
 
     </div>
   );

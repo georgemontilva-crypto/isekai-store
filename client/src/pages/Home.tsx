@@ -11,6 +11,7 @@ function useWindowWidth() {
 }
 import { Link, useLocation } from "wouter";
 import CategoryShowcase from "@/components/CategoryShowcase";
+import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 import { ArrowRight, ChevronLeft, ChevronRight, ShoppingBag, Instagram, ExternalLink, Layers } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { PriceDisplay } from "@/components/PriceDisplay";
@@ -622,9 +623,12 @@ export default function Home() {
 
 
         {/* ════════════════════════════════════════════
-          11. SHOP THE FEED (Instagram)
+          11. ALIADOS COMERCIALES
       ════════════════════════════════════════════ */}
       <AliadosSection />
+
+      {/* Aviso legal antes del footer */}
+      <AvisoPropiedadIntelectual />
 
     </div>
   );
