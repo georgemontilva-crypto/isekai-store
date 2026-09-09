@@ -61,6 +61,7 @@ export default function StorePortal() {
   const [nombre, setNombre] = useState("");
   const [apellido, setApellido] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [correo, setCorreo] = useState("");
   const [vendido, setVendido] = useState<any>(null);
   const [escaneando2, setEscaneando2] = useState(false);
   const nombreRef = useRef<HTMLInputElement>(null);
@@ -125,7 +126,7 @@ export default function StorePortal() {
   const limpiar = () => {
     try { localStorage.removeItem("iw_boleto_pendiente"); } catch { /* modo privado */ }
     setToken(""); setCodigoManual(""); setTipoElegido(null); setUltimoEscaneo("");
-    setNombre(""); setApellido(""); setTelefono(""); setVendido(null);
+    setNombre(""); setApellido(""); setTelefono(""); setCorreo(""); setVendido(null);
   };
 
   const campo = "w-full rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
@@ -488,8 +489,12 @@ export default function StorePortal() {
                   placeholder="Apellido" className={campo} style={{ minHeight: 50 }} />
                 <input value={telefono} onChange={e => setTelefono(e.target.value)}
                   inputMode="tel" placeholder="Teléfono" className={campo} style={{ minHeight: 50 }} />
+                <input value={correo} onChange={e => setCorreo(e.target.value)}
+                  inputMode="email" type="email" placeholder="Correo (para ver su Level Pass)"
+                  className={campo} style={{ minHeight: 50 }} />
               </div>
               <p className="mt-2 text-[11px] leading-relaxed text-[#8a8a9c]">
+                Con el correo el asistente podrá entrar a ver su rango y sus misiones.
                 Revisa bien los datos: una vez registrado el boleto no se puede editar.
               </p>
             </div>
@@ -505,6 +510,7 @@ export default function StorePortal() {
                   buyerName: nombre.trim(),
                   buyerLastName: apellido.trim(),
                   buyerPhone: telefono.trim(),
+                  buyerEmail: correo.trim() || undefined,
                 })}
                 disabled={!tipoElegido || !nombre.trim() || !apellido.trim() || telefono.trim().length < 4 || vender.isPending}
                 className="flex flex-[2] items-center justify-center gap-2 rounded-full bg-[#e5007d] font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"

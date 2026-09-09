@@ -275,6 +275,7 @@ export async function venderBoleto(data: {
   buyerName: string;
   buyerLastName: string;
   buyerPhone: string;
+  buyerEmail?: string;
   storeId: number;
   userId: number;
 }) {
@@ -308,6 +309,7 @@ export async function venderBoleto(data: {
     buyerName: data.buyerName.trim().slice(0, 200),
     buyerLastName: data.buyerLastName.trim().slice(0, 200),
     buyerPhone: data.buyerPhone.trim().slice(0, 50),
+    buyerEmail: data.buyerEmail?.trim().toLowerCase().slice(0, 320) || null,
     priceUsd: precioUsd.toFixed(2),
     rateBs: tasa > 0 ? tasa.toFixed(2) : null,
     priceBs: precioBs != null ? precioBs.toFixed(2) : null,

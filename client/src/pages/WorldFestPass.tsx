@@ -7,6 +7,7 @@ import {
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useBoletoSocket } from "@/hooks/useBoletoSocket";
+import { openLoginModal } from "@/const";
 
 /**
  * Zona del evento — Isekai World Fest.
@@ -48,9 +49,12 @@ export default function WorldFestPass() {
    * solo entra el dueño. Quitar esta restricción antes del evento.
    */
   const { user, isAuthenticated, loading: cargandoSesion } = useAuth();
-  // TEMPORAL: además del dueño, el personal del evento para poder probarlo
-  const esAdmin = isAuthenticated &&
-    ["admin", "store", "staff", "gate"].includes(user?.role ?? "");
+  /**
+   * Entra quien tenga cuenta: el sistema comprueba que el boleto esté a su
+   * nombre comparando el correo. El personal del evento puede ver cualquiera
+   * para resolver incidencias.
+   */
+  const esAdmin = isAuthenticated;
 
   const [codigo, setCodigo] = useState("");
   const [consultado, setConsultado] = useState("");
@@ -144,7 +148,7 @@ export default function WorldFestPass() {
     );
   }
 
-  // ── Todavía no es pública ──
+  // ── Sin sesión: el boleto se reclama con el correo con el que se compró ──
   if (!esAdmin) {
     return (
       <div className="wf-zona flex min-h-screen flex-col items-center justify-center px-6 text-center">
@@ -152,13 +156,20 @@ export default function WorldFestPass() {
           <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
             Isekai World Fest
           </p>
-          <h1 className="mb-3 text-2xl font-black text-white">Sistema en preparación</h1>
+          <h1 className="mb-3 text-2xl font-black text-white">Entra a tu Level Pass</h1>
           <p className="mb-7 text-sm leading-relaxed text-[#8fa8bd]">
-            El Level Pass se activará antes del evento. Vuelve pronto.
+            Inicia sesión con el <strong className="text-white">mismo correo</strong> que
+            diste al comprar tu boleto. Así nadie más puede ver tu progreso.
           </p>
+          <button
+            onClick={openLoginModal}
+            className="mb-3 block w-full rounded-lg bg-[#38bdf8]/15 border border-[#38bdf8]/50 py-3.5 font-mono text-xs uppercase tracking-widest text-[#7dd8ff]"
+          >
+            Iniciar sesión
+          </button>
           <Link
             href="/world-fest"
-            className="block w-full rounded-lg border border-[#38bdf8]/40 bg-[#38bdf8]/10 py-3.5 font-mono text-xs uppercase tracking-widest text-[#7dd8ff]"
+            className="block w-full py-2 font-mono text-[11px] uppercase tracking-widest text-[#5f7f96]"
           >
             Volver
           </Link>

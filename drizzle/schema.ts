@@ -323,6 +323,8 @@ export const eventTickets = mysqlTable("eventTickets", {
   buyerName: varchar("buyerName", { length: 200 }),
   buyerLastName: varchar("buyerLastName", { length: 200 }),
   buyerPhone: varchar("buyerPhone", { length: 50 }),
+  /** Correo del asistente: con él reclama su boleto en el Level Pass */
+  buyerEmail: varchar("buyerEmail", { length: 320 }),
   /** Precio y tasa congelados en el momento de la venta */
   priceUsd: decimal("priceUsd", { precision: 10, scale: 2 }),
   rateBs: decimal("rateBs", { precision: 12, scale: 2 }),

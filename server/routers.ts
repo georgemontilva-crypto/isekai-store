@@ -27,7 +27,7 @@ import {
   crearActividad, listarActividades, editarActividad, borrarActividad,
   otorgarExperiencia, estadoPublico, resumenLevelPass,
   crearStaff, listarStaff, borrarStaff, esStaffPorCorreo, puedeOtorgar,
-  levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba,
+  levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba, buscarBoleto,
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
@@ -1142,14 +1142,38 @@ export const appRouter = router({
     estado: publicProcedure
       .input(z.object({ codigo: z.string().min(4).max(64) }))
       .query(async ({ ctx, input }) => {
-        // TEMPORAL: mientras no se abre al público, entran el dueño y el
-        // personal del evento, para poder probar el circuito completo.
-        const rolesPermitidos = ["admin", "store", "staff", "gate"];
-        if (!ctx.user || !rolesPermitidos.includes(ctx.user.role)) {
+        if (!ctx.user) {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "El Level Pass todavía no está disponible.",
+            code: "UNAUTHORIZED",
+            message: "Entra con tu cuenta para ver tu Level Pass.",
           });
+        }
+
+        /**
+         * Un boleto solo lo consulta su dueño: se compara el correo de la
+         * sesión con el que registró la tienda al venderlo. El personal del
+         * evento y el dueño pueden ver cualquiera, porque lo necesitan para
+         * resolver incidencias.
+         */
+        const delEquipo = ["admin", "store", "staff", "gate"].includes(ctx.user.role);
+
+        if (!delEquipo) {
+          const boleto = await buscarBoleto(input.codigo);
+          const correoBoleto = (boleto?.buyerEmail ?? "").trim().toLowerCase();
+          const correoSesion = (ctx.user.email ?? "").trim().toLowerCase();
+
+          if (!correoBoleto) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Este boleto no tiene un correo asociado. Pídele al punto de venta que lo registre.",
+            });
+          }
+          if (correoBoleto !== correoSesion) {
+            throw new TRPCError({
+              code: "FORBIDDEN",
+              message: "Ese boleto está a nombre de otra persona. Entra con el correo con el que lo compraste.",
+            });
+          }
         }
         const r = await estadoPublico(input.codigo);
         if (!r) {
@@ -1539,6 +1563,8 @@ export const appRouter = router({
         buyerName: z.string().min(1).max(200),
         buyerLastName: z.string().min(1).max(200),
         buyerPhone: z.string().min(4).max(50),
+        /** Con este correo el asistente entra luego a ver su rango */
+        buyerEmail: z.string().email().max(320).optional().or(z.literal("")),
       }))
       .mutation(async ({ ctx, input }) => {
         if (!limitarPorUsuario(`venta:${ctx.user.id}`, 40, 10 * 60 * 1000)) {
