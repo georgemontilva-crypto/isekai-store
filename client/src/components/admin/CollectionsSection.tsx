@@ -17,7 +17,7 @@ export default function CollectionsSection() {
   const utils = trpc.useUtils();
   const habilitado = isAuthenticated && user?.role === 'admin';
 
-  const { data: colecciones = [] } = trpc.categories.list.useQuery();
+  const { data: colecciones = [] } = trpc.categories.listAdmin.useQuery();
 
   const [abierto, setAbierto] = useState(false);
   const [form, setForm] = useState({ name: '', description: '', imageUrl: '' });
@@ -26,6 +26,7 @@ export default function CollectionsSection() {
 
   const crear = trpc.categories.create.useMutation({
     onSuccess: () => {
+      utils.categories.listAdmin.invalidate();
       utils.categories.list.invalidate();
       setForm({ name: '', description: '', imageUrl: '' });
       setAbierto(false);
@@ -36,6 +37,7 @@ export default function CollectionsSection() {
 
   const actualizar = trpc.categories.update.useMutation({
     onSuccess: () => {
+      utils.categories.listAdmin.invalidate();
       utils.categories.list.invalidate();
       setEditando(null);
       toast.success('Colección actualizada');
@@ -44,12 +46,13 @@ export default function CollectionsSection() {
   });
 
   const borrar = trpc.categories.delete.useMutation({
-    onSuccess: () => { utils.categories.list.invalidate(); toast.success('Colección eliminada'); },
+    onSuccess: () => { utils.categories.listAdmin.invalidate();
+      utils.categories.list.invalidate(); toast.success('Colección eliminada'); },
     onError: (e) => toast.error(e.message),
   });
 
   const mover = trpc.categories.mover.useMutation({
-    onSuccess: () => utils.categories.list.invalidate(),
+    onSuccess: () => { utils.categories.listAdmin.invalidate(); utils.categories.list.invalidate(); },
     onError: (e) => toast.error(e.message),
   });
 
@@ -149,7 +152,7 @@ export default function CollectionsSection() {
           </p>
 
           {(colecciones as any[]).map((c: any, i: number) => (
-            <div key={c.id} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3.5">
+            <div key={c.id} className={`rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3.5 ${c.isActive === false ? "opacity-55" : ""}`}>
               <div className="flex items-center gap-3">
                 {/* Orden en el carrusel */}
                 <div className="flex shrink-0 flex-col gap-1">
@@ -184,10 +187,32 @@ export default function CollectionsSection() {
 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-[var(--iw-text)]">{c.name}</p>
-                  <p className="truncate text-[11px] text-[var(--iw-text-muted)]">/{c.slug}</p>
+                  <p className="truncate text-[11px] text-[var(--iw-text-muted)]">
+                    /{c.slug}{c.isActive === false ? " · oculta" : ""}
+                  </p>
                 </div>
 
                 <div className="flex shrink-0 items-center gap-1">
+                  {/* Visible en la tienda: verde encendido, gris apagado */}
+                  <button
+                    onClick={() => actualizar.mutate({ id: c.id, isActive: !c.isActive })}
+                    role="switch"
+                    aria-checked={c.isActive !== false}
+                    aria-label="Visible en la tienda"
+                    className="relative mr-1 shrink-0 rounded-full transition-colors"
+                    style={{
+                      width: 42,
+                      height: 24,
+                      background: c.isActive !== false ? '#22c55e' : 'var(--iw-border)',
+                      WebkitTapHighlightColor: 'transparent',
+                    }}
+                  >
+                    <span
+                      className="absolute rounded-full bg-white shadow transition-all"
+                      style={{ width: 18, height: 18, top: 3, left: c.isActive !== false ? 21 : 3 }}
+                    />
+                  </button>
+
                   <button
                     onClick={() => setEditando({ ...c })}
                     className="p-2 text-[var(--iw-text-muted)]"

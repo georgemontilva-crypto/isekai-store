@@ -101,10 +101,20 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // ─── Categories ───────────────────────────────────────────────────────────────
-export async function getAllCategories() {
+/**
+ * Colecciones visibles en la tienda.
+ *
+ * Las desactivadas se ocultan del catálogo y del carrusel, pero conservan sus
+ * productos: desactivar no es borrar.
+ */
+export async function getAllCategories(incluirOcultas = false) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(categories).orderBy(categories.sortOrder, categories.name);
+  const q = db.select().from(categories);
+  const filas = await (incluirOcultas
+    ? q.orderBy(categories.sortOrder, categories.name)
+    : q.where(eq(categories.isActive, true)).orderBy(categories.sortOrder, categories.name));
+  return filas;
 }
 
 export async function getCategoryBySlug(slug: string) {
@@ -122,7 +132,7 @@ export async function createCategory(data: { name: string; slug: string; descrip
   return result[0];
 }
 
-export async function updateCategory(id: number, data: Partial<{ name: string; slug: string; description: string; imageUrl: string; featured: boolean }>) {
+export async function updateCategory(id: number, data: Partial<{ name: string; slug: string; description: string; imageUrl: string; featured: boolean; isActive: boolean }>) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
   await db.update(categories).set(data).where(eq(categories.id, id));

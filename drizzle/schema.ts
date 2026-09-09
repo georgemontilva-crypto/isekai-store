@@ -37,6 +37,8 @@ export const categories = mysqlTable("categories", {
   featured: boolean("featured").default(false).notNull(),
   /** Orden en el carrusel del inicio: menor número aparece antes */
   sortOrder: int("sortOrder").default(0).notNull(),
+  /** Si está desactivada no se muestra en la tienda, pero no se pierde */
+  isActive: boolean("isActive").default(true).notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });

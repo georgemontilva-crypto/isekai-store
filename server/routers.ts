@@ -155,6 +155,9 @@ export const appRouter = router({
   categories: router({
     list: publicProcedure.query(() => getAllCategories()),
 
+    /** Para el panel: incluye también las desactivadas */
+    listAdmin: adminProcedure.query(() => getAllCategories(true)),
+
     bySlug: publicProcedure
       .input(z.object({ slug: z.string() }))
       .query(({ input }) => getCategoryBySlug(input.slug)),
