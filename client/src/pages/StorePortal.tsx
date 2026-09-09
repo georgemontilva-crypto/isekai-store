@@ -65,15 +65,22 @@ export default function StorePortal() {
   const [escaneando2, setEscaneando2] = useState(false);
   const nombreRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * Al portal entran tres perfiles: las tiendas que venden boletos, el
+   * personal que solo otorga experiencia, y el admin. Antes el personal
+   * quedaba fuera y no podía dar puntos.
+   */
   const esTienda = user?.role === "store" || user?.role === "admin";
+  const esStaff = user?.role === "staff";
+  const puedeEntrar = esTienda || esStaff;
 
-  const { data: tienda } = trpc.tickets.miTienda.useQuery(undefined, { enabled: esTienda });
+  const { data: tienda } = trpc.tickets.miTienda.useQuery(undefined, { enabled: puedeEntrar });
   /** Modo del portal: vender boletos o dar experiencia del Level Pass */
-  const [modo, setModo] = useState<"vender" | "xp">("vender");
+  const [modo, setModo] = useState<"vender" | "xp">(esStaff ? "xp" : "vender");
   const [actividadXp, setActividadXp] = useState<number | null>(null);
   const [resultadoXp, setResultadoXp] = useState<any>(null);
 
-  const { data: accesoXp } = trpc.levelPass.miAcceso.useQuery(undefined, { enabled: esTienda });
+  const { data: accesoXp } = trpc.levelPass.miAcceso.useQuery(undefined, { enabled: puedeEntrar });
   const { data: actividadesXp = [] } = trpc.levelPass.actividadesPublicas.useQuery(
     { eventId: accesoXp?.eventId ?? 0 },
     { enabled: Boolean(accesoXp?.puede && accesoXp?.eventId) },
@@ -84,7 +91,7 @@ export default function StorePortal() {
     onError: (e) => toast.error(e.message),
   });
 
-  const { data: eventos = [] } = trpc.tickets.eventosActivos.useQuery(undefined, { enabled: esTienda });
+  const { data: eventos = [] } = trpc.tickets.eventosActivos.useQuery(undefined, { enabled: puedeEntrar });
   const evento = eventos[0];
 
   const { data: tipos = [] } = trpc.tickets.tipos.useQuery(
@@ -131,7 +138,7 @@ export default function StorePortal() {
     );
   }
 
-  if (!isAuthenticated || !esTienda) {
+  if (!isAuthenticated || !puedeEntrar) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-6">
         <div className="max-w-sm text-center">
@@ -186,13 +193,15 @@ export default function StorePortal() {
           </div>
           <div className="min-w-0">
             <p className="truncate text-sm font-black">{tienda?.name ?? "Tienda"}</p>
-            <p className="truncate text-xs text-[#8a8a9c]">{evento?.name ?? "Sin evento activo"}</p>
+            <p className="truncate text-xs text-[#8a8a9c]">
+              {esStaff ? "Personal de actividades" : (evento?.name ?? "Sin evento activo")}
+            </p>
           </div>
         </div>
 
         {/* Cambio de modo: solo aparece si esta tienda está autorizada a dar
             experiencia y el evento está en curso. */}
-        {accesoXp?.puede && accesoXp?.enCurso && (
+        {esTienda && accesoXp?.puede && accesoXp?.enCurso && (
           <div className="mb-5 grid grid-cols-2 gap-2">
             {([["vender", "Vender boletos"], ["xp", "Dar experiencia"]] as const).map(([id, label]) => (
               <button
@@ -311,7 +320,7 @@ export default function StorePortal() {
         )}
 
         {/* Resumen de la tienda */}
-        {modo === "vender" && misVentas && (
+        {esTienda && modo === "vender" && misVentas && (
           <div className="mb-6 grid grid-cols-3 gap-2">
             <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Vendidos</p>

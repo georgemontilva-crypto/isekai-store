@@ -487,3 +487,65 @@ export async function notifyQuoteReady(
     "Ya puedes pagar tu pedido desde este enlace.",
   );
 }
+
+/**
+ * Acceso para el personal del evento.
+ *
+ * Sirve tanto para quien otorga experiencia como para quien controla la
+ * puerta: cambian el enlace y las instrucciones, no el formato.
+ */
+export async function notifyStaffActivated(
+  email: string,
+  nombre: string,
+  tipo: "xp" | "puerta",
+  eventName?: string,
+): Promise<boolean> {
+  const esPuerta = tipo === "puerta";
+  const url = esPuerta ? "https://isekaiworld.co/acceso" : "https://isekaiworld.co/vender";
+
+  const pasos = esPuerta
+    ? `1. Antes de que abra el evento, entra y pulsa <strong>Descargar</strong> para tener la lista de boletos.<br>
+       2. Escanea el QR de cada asistente con la cámara.<br>
+       3. La pantalla te dirá <strong>ADELANTE</strong>, <strong>YA ENTRÓ</strong> o <strong>NO PASA</strong>.<br>
+       4. Funciona sin señal: los ingresos se envían solos cuando vuelva la conexión.`
+    : `1. Elige la actividad que acaba de completar la persona.<br>
+       2. Escanea el QR de su boleto con la cámara.<br>
+       3. Listo. Verás sus puntos y si subió de rango.<br>
+       4. La actividad se queda elegida, así puedes atender a varias personas seguidas.`;
+
+  const content = `
+    <h1>Ya tienes acceso${eventName ? ` a ${eventName}` : ""}</h1>
+    <p>Hola <strong>${nombre}</strong>, te sumamos al equipo del evento como
+    ${esPuerta ? "<strong>control de acceso</strong>" : "<strong>personal de actividades</strong>"}.</p>
+
+    <div class="order-box">
+      <p><strong>Cómo entrar</strong></p>
+      <p style="margin-top:8px">
+        Entra en <a href="${url}">${url.replace("https://", "")}</a> con
+        <strong>este mismo correo</strong> (${email}). No necesitas contraseña:
+        recibirás un enlace de acceso en tu buzón.
+      </p>
+    </div>
+
+    <div class="order-box">
+      <p><strong>Cómo funciona</strong></p>
+      <p style="margin-top:8px">${pasos}</p>
+    </div>
+
+    <p style="margin-top:20px">
+      <a href="${url}" class="btn">Entrar</a>
+    </p>
+
+    <p style="color:#888; font-size:13px; margin-top:16px">
+      El acceso se activa durante los días del evento. Si entras antes y no ves nada,
+      es normal.
+    </p>
+  `;
+
+  return sendEmail(
+    email,
+    `Tu acceso al evento — Isekai World`,
+    content,
+    "Ya tienes acceso al sistema del evento.",
+  );
+}

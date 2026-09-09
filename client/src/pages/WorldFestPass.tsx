@@ -48,7 +48,9 @@ export default function WorldFestPass() {
    * solo entra el dueño. Quitar esta restricción antes del evento.
    */
   const { user, isAuthenticated, loading: cargandoSesion } = useAuth();
-  const esAdmin = isAuthenticated && user?.role === "admin";
+  // TEMPORAL: además del dueño, el personal del evento para poder probarlo
+  const esAdmin = isAuthenticated &&
+    ["admin", "store", "staff", "gate"].includes(user?.role ?? "");
 
   const [codigo, setCodigo] = useState("");
   const [consultado, setConsultado] = useState("");

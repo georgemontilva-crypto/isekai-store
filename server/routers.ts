@@ -5,7 +5,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { notifyStoreActivated, notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
+import { notifyStaffActivated, notifyStoreActivated, notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
 import { orders, orderItems, users } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
@@ -1142,7 +1142,10 @@ export const appRouter = router({
     estado: publicProcedure
       .input(z.object({ codigo: z.string().min(4).max(64) }))
       .query(async ({ ctx, input }) => {
-        if (ctx.user?.role !== "admin") {
+        // TEMPORAL: mientras no se abre al público, entran el dueño y el
+        // personal del evento, para poder probar el circuito completo.
+        const rolesPermitidos = ["admin", "store", "staff", "gate"];
+        if (!ctx.user || !rolesPermitidos.includes(ctx.user.role)) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "El Level Pass todavía no está disponible.",
@@ -1262,7 +1265,17 @@ export const appRouter = router({
         email: z.string().email().max(320).optional(),
         puesto: z.string().max(200).optional(),
       }))
-      .mutation(({ input }) => crearStaff(input)),
+      .mutation(async ({ input }) => {
+        const r = await crearStaff(input);
+        // Aviso con su enlace: sin esto habría que explicárselo a mano
+        if (input.email) {
+          try {
+            const activos = (await listarEventos()).filter(e => e.active);
+            await notifyStaffActivated(input.email, input.name, "xp", activos[0]?.name);
+          } catch (e) { console.error("[Staff] Aviso fallido:", e); }
+        }
+        return r;
+      }),
     borrarStaff: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => borrarStaff(input.id)),
@@ -1627,7 +1640,16 @@ export const appRouter = router({
     porteros: adminProcedure.query(() => listarPorteros()),
     crearPortero: adminProcedure
       .input(z.object({ name: z.string().min(1).max(200), email: z.string().email().max(320).optional() }))
-      .mutation(({ input }) => crearPortero(input)),
+      .mutation(async ({ input }) => {
+        const r = await crearPortero(input);
+        if (input.email) {
+          try {
+            const activos = (await listarEventos()).filter(e => e.active);
+            await notifyStaffActivated(input.email, input.name, "puerta", activos[0]?.name);
+          } catch (e) { console.error("[Portero] Aviso fallido:", e); }
+        }
+        return r;
+      }),
     editarPortero: adminProcedure
       .input(z.object({ id: z.number(), name: z.string().max(200).optional(), active: z.boolean().optional() }))
       .mutation(({ input }) => { const { id, ...d } = input; return editarPortero(id, d); }),
