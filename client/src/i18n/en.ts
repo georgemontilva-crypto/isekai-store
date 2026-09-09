@@ -203,7 +203,7 @@ export const en: Translations = {
   },
 
   footer: {
-    tagline: "Your destination for premium anime & gaming merch. Quality gear for true fans.",
+    tagline: "Custom-made cosplay props and pieces. We work alongside cosplayers so their character looks exactly as they imagined.",
     trust: [
       { title: "Customer Service", desc: "We're here to help with any questions" },
       { title: "Free Shipping",    desc: "On orders over $150" },

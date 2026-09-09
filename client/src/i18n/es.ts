@@ -209,15 +209,15 @@ export const es = {
 
   // ── Footer ──────────────────────────────────────────────────────────────
   footer: {
-    tagline: "Tu destino para merch premium de anime y gaming. Calidad para verdaderos fans.",
+    tagline: "Props y piezas de cosplay hechas a medida. Trabajamos junto a los cosplayers para que su personaje se vea como lo imaginaron.",
     trust: [
-      { title: "Atención al Cliente", desc: "Estamos aquí para ayudarte con cualquier pregunta" },
+      { title: "Piezas a medida", desc: "Diseñamos y fabricamos el prop que necesitas" },
       { title: "Envío Gratis", desc: "Desde $50 USD en San Francisco" },
-      { title: "Referidos", desc: "Refiere un amigo y ambos ganan 15% off" },
+      { title: "Cosplay Guild", desc: "Beneficios y comisiones para cosplayers aliados" },
       { title: "Pago Seguro", desc: "Tu información está protegida al 100%" },
     ],
     collections: "Colecciones",
-    collectionsLinks: ["Todos los Productos", "Audifonos", "Auriculares", "Parlantes", "Accesorios"],
+    collectionsLinks: ["Todos los Productos"],
     info: "Legal / Info",
     infoLinks: [
       { label: "Sobre Nosotros", href: "/nosotros" },
