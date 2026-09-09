@@ -13,13 +13,21 @@ const SERVICES = [
   { name: "Ediciones Especiales",      desc: "Producimos series limitadas y colecciones exclusivas de figuras y coleccionables. Piezas numeradas, certificadas y pensadas para el coleccionista más exigente." },
 ];
 
+/**
+ * Lo que nos define.
+ *
+ * El lenguaje evita hablar de autenticidad o de producto oficial: no somos
+ * distribuidores de ninguna marca, fabricamos piezas propias inspiradas en
+ * obras que amamos. Prometer "sin imitaciones" sería contradictorio y además
+ * choca con el aviso de propiedad intelectual del pie de página.
+ */
 const VALUES = [
-  { title: "Pasión",        desc: "Todo lo que hacemos nace del amor genuino por el anime y la cultura pop." },
-  { title: "Autenticidad",  desc: "Productos cuidadosamente seleccionados. Sin imitaciones, sin compromisos." },
-  { title: "Confianza",     desc: "Comprás con seguridad. Envíos rastreables y atención real siempre." },
-  { title: "Comunidad",     desc: "Somos fans antes que vendedores. Tu experiencia importa más que la venta." },
-  { title: "Innovación",    desc: "Nuevos drops, colaboraciones y ediciones especiales que sorprenden." },
-  { title: "Cultura",       desc: "Promovemos el anime y el gaming como formas legítimas de arte y expresión." },
+  { title: "Hecho a medida",   desc: "Cada prop se diseña y fabrica para un personaje concreto. Nada sale de un molde genérico." },
+  { title: "Junto al cosplayer", desc: "Trabajamos contigo desde la referencia hasta la pieza terminada. Tu criterio manda." },
+  { title: "Oficio",           desc: "Modelado, impresión y acabado propios. Lo que entregamos lo hicimos nosotros." },
+  { title: "Comunidad",        desc: "El Cosplay Guild existe para que el trabajo de los creadores se vea y se reconozca." },
+  { title: "Cercanía",         desc: "Hablas con quien fabrica tu pieza, no con un intermediario." },
+  { title: "Cultura",          desc: "Promovemos el cosplay y el arte fan como formas legítimas de expresión." },
 ];
 
 export default function Nosotros() {
@@ -99,7 +107,10 @@ export default function Nosotros() {
             Isekai World es un estudio creativo especializado en impresión y diseño 3D inspirado en universos cinematográficos, anime y videojuegos donde cada pieza nace para traer un mundo ficticio a la realidad. Con cobertura en toda Venezuela, creamos experiencias de fan para fan.
           </h2>
           <p className="text-[#555] leading-relaxed text-[15px]">
-            Nacimos de la pasión genuina por el anime y los videojuegos. Somos fans antes que vendedores, y eso se nota en cada decisión: desde la curaduría de productos hasta el packaging de cada pedido.
+            Nacimos de la pasión por el anime y los videojuegos, y de algo más concreto:
+            ver a cosplayers pelearse con props que no existían en ninguna tienda. Así que
+            los empezamos a fabricar. Hoy diseñamos e imprimimos piezas a medida para que
+            cada personaje se vea como quien lo interpreta lo imaginó.
           </p>
           <p className="text-[#555] leading-relaxed text-[15px]">
             Más que una tienda, somos una comunidad. Queremos que cada pieza que llegue a tus manos sea una conexión real con el universo que amás.
