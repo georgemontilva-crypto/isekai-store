@@ -262,6 +262,7 @@ export const es = {
       { id: "devoluciones", label: "Devoluciones" },
       { id: "privacidad",   label: "Privacidad" },
       { id: "cookies",      label: "Cookies" },
+      { id: "propiedad",    label: "Propiedad intelectual" },
     ],
     viewMore: "Ver",
   },

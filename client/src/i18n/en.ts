@@ -255,6 +255,7 @@ export const en: Translations = {
       { id: "devoluciones", label: "Returns" },
       { id: "privacidad",   label: "Privacy" },
       { id: "cookies",      label: "Cookies" },
+      { id: "propiedad",    label: "Intellectual Property" },
     ],
     viewMore: "View",
   },

@@ -3,7 +3,7 @@ import { useLang } from "@/i18n/LangContext";
 import { motion } from "framer-motion";
 import { Link } from "wouter";
 
-type Section = "terminos" | "encargos" | "envios" | "boletos" | "devoluciones" | "privacidad" | "cookies";
+type Section = "terminos" | "encargos" | "envios" | "boletos" | "devoluciones" | "privacidad" | "cookies" | "propiedad";
 
 const sections: { id: Section; label: string }[] = [
   { id: "terminos",     label: "Términos de venta" },
@@ -19,6 +19,88 @@ const sections: { id: Section; label: string }[] = [
 const H2 = "text-xl font-black text-[#1a1a1a] mb-3";
 const H3 = "font-bold text-[#1a1a1a] mt-6 mb-2";
 const FECHA = "text-xs text-[#888] mb-4";
+
+function Propiedad() {
+  return (
+    <div className="space-y-8 text-[15px] text-[#555] leading-relaxed">
+      <section>
+        <h2 className={H2}>Propiedad Intelectual</h2>
+        <p className={FECHA}>Última actualización: Septiembre 2026</p>
+
+        <h3 className={H3}>Las obras pertenecen a sus autores</h3>
+        <p>
+          Los personajes, nombres, logotipos, diseños y demás elementos de las obras de
+          anime, manga, cómic y videojuegos son{" "}
+          <strong className="text-[#1a1a1a]">
+            propiedad exclusiva de sus respectivos titulares
+          </strong>{" "}
+          — entre otros, Toei Animation, Shueisha, Bandai Namco, Nintendo, Marvel o
+          Disney. Isekai World no ostenta derechos sobre ninguna de esas obras.
+        </p>
+
+        <h3 className={H3}>No somos distribuidores oficiales</h3>
+        <p>
+          Isekai World{" "}
+          <strong className="text-[#1a1a1a]">
+            no está afiliada, asociada, autorizada ni respaldada
+          </strong>{" "}
+          por ninguna de las marcas mencionadas, ni por sus filiales. No comercializamos
+          mercancía oficial licenciada ni nos presentamos como tal.
+        </p>
+
+        <h3 className={H3}>Qué fabricamos</h3>
+        <p>
+          Nuestro trabajo consiste en{" "}
+          <strong className="text-[#1a1a1a]">
+            piezas y accesorios originales, diseñados y fabricados por nosotros
+          </strong>
+          , concebidos como complementos para cosplay y para la interpretación de
+          personajes. Son representaciones artísticas realizadas por encargo, inspiradas
+          en obras existentes, y su finalidad es permitir que quien las use pueda
+          caracterizar al personaje que ha elegido.
+        </p>
+        <p className="mt-3">
+          Cada pieza es modelada y producida en nuestro taller. No reproducimos ni
+          revendemos productos de terceros.
+        </p>
+
+        <h3 className={H3}>Sobre las imágenes y referencias</h3>
+        <p>
+          Las imágenes de personajes que aparezcan en nuestro sitio o en nuestras redes se
+          emplean únicamente con fines descriptivos, para indicar a qué personaje
+          corresponde una pieza. Su uso no implica ningún derecho sobre ellas ni sugiere
+          vínculo alguno con sus titulares.
+        </p>
+
+        <h3 className={H3}>Trabajos por encargo</h3>
+        <p>
+          Al solicitar una pieza personalizada, el cliente declara que la encarga para uso
+          personal, artístico o de caracterización. Isekai World se reserva el derecho de
+          rechazar encargos cuya finalidad sea la reventa, la producción en serie o
+          cualquier uso que pueda vulnerar derechos de terceros.
+        </p>
+
+        <h3 className={H3}>Reclamaciones</h3>
+        <p>
+          Si eres titular de derechos y consideras que alguno de nuestros contenidos o
+          productos los vulnera, escríbenos a{" "}
+          <a href="mailto:hola@isekaiworld.co" className="text-[#e5007d] hover:underline">
+            hola@isekaiworld.co
+          </a>{" "}
+          indicando la obra afectada y tu relación con ella. Revisaremos cada aviso y, si
+          procede, retiraremos el contenido o el producto.
+        </p>
+
+        <h3 className={H3}>Nuestro propio trabajo</h3>
+        <p>
+          El nombre Isekai World, su logotipo, sus textos, fotografías y los diseños
+          originales que desarrollamos sí son de nuestra propiedad y no pueden reproducirse
+          sin autorización.
+        </p>
+      </section>
+    </div>
+  );
+}
 
 function Terminos() {
   return (
@@ -467,41 +549,59 @@ export default function Politicas() {
     devoluciones: <Devoluciones />,
     privacidad: <Privacidad />,
     cookies: <Cookies />,
+    propiedad: <Propiedad />,
   };
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero */}
-      <div className="bg-[#111] text-white py-20">
-        <div className="container max-w-4xl text-center">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-            <p className="text-xs font-bold tracking-[0.2em] uppercase text-white/50 mb-3">
-              Legal
-            </p>
-            <h1 className="text-4xl md:text-5xl font-black" style={{ fontFamily: "'Orbitron', sans-serif" }}>
-              Políticas
-            </h1>
-          </motion.div>
+      {/* Menú lateral con las secciones agrupadas. Antes había un banner
+          grande vacío y siete botones sueltos: costaba encontrar nada. */}
+      <div className="container max-w-6xl py-10 lg:py-14">
+        <div className="mb-8">
+          <p className="mb-2 text-xs font-bold uppercase tracking-[0.2em] text-[#999]">Legal</p>
+          <h1 className="text-3xl font-black text-[#111] sm:text-4xl">Políticas y condiciones</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#666]">
+            Todo lo que rige nuestras ventas, encargos y eventos. Si algo no queda claro,
+            escríbenos a <a href="mailto:hola@isekaiworld.co" className="text-[#e5007d] hover:underline">hola@isekaiworld.co</a>.
+          </p>
         </div>
-      </div>
 
-      <div className="container max-w-4xl py-10">
-        {/* Tab nav */}
-        <div className="flex gap-2 flex-wrap mb-10">
-          {(t.policies.tabs as {id:string;label:string}[]).map(({ id, label }) => (
-            <button
-              key={id}
-              onClick={() => setActive(id)}
-              className="px-5 py-2.5 rounded-full text-[13px] font-semibold transition-all"
-              style={{
-                background: active === id ? "#1a1a1a" : "#f0f0f0",
-                color: active === id ? "#fff" : "#555",
-              }}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <div className="lg:grid lg:grid-cols-[240px_1fr] lg:gap-10">
+          {/* Menú */}
+          <nav className="mb-8 lg:mb-0">
+            {([
+              ["Comprar", ["terminos", "envios", "devoluciones"]],
+              ["Encargos y eventos", ["encargos", "boletos"]],
+              ["Tus datos", ["privacidad", "cookies"]],
+              ["Propiedad intelectual", ["propiedad"]],
+            ] as const).map(([grupo, ids]) => (
+              <div key={grupo} className="mb-5">
+                <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[#aaa]">
+                  {grupo}
+                </p>
+                <div className="flex flex-wrap gap-1.5 lg:flex-col">
+                  {ids.map(id => {
+                    const opcion = (t.policies.tabs as { id: string; label: string }[])
+                      .find(x => x.id === id);
+                    if (!opcion) return null;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => setActive(id as Section)}
+                        className={`rounded-lg px-3.5 py-2.5 text-left text-[13px] font-semibold transition-colors ${
+                          active === id
+                            ? "bg-[#111] text-white"
+                            : "bg-[#f5f5f5] text-[#555] hover:bg-[#ebebeb]"
+                        }`}
+                      >
+                        {opcion.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </nav>
 
         {/* Content */}
         <motion.div
@@ -518,12 +618,13 @@ export default function Politicas() {
           {(t.policies.tabs as {id:string;label:string}[]).filter(s => s.id !== active).map(({ id, label }) => (
             <button
               key={id}
-              onClick={() => { setActive(id); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+              onClick={() => { setActive(id as Section); window.scrollTo({ top: 0, behavior: "smooth" }); }}
               className="text-[13px] text-[#7c3aed] hover:underline font-medium"
             >
               Ver {label} →
             </button>
           ))}
+        </div>
         </div>
       </div>
     </div>
