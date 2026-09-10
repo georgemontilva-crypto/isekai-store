@@ -67,6 +67,17 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     enabled: habilitado && vista === "levelpass",
   });
 
+  const [codigoXp, setCodigoXp] = useState("IW-TEST01");
+  const darXp = trpc.levelPass.darXpPrueba.useMutation({
+    onSuccess: (r: any) => {
+      utils.levelPass.resumen.invalidate();
+      toast.success(r.subioDeRango
+        ? `${r.nombre}: ¡subió a rango ${r.rango}! (${r.xpTotal} XP)`
+        : `${r.nombre}: ${r.xpTotal} XP · rango ${r.rango}`);
+    },
+    onError: (e) => toast.error(e.message),
+  });
+
   const crearPrueba = trpc.levelPass.crearPrueba.useMutation({
     onSuccess: (r: any) => {
       utils.tickets.eventos.invalidate();
@@ -616,6 +627,36 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               Crea un evento con fechas de hoy, cinco actividades y boletos listos:
               tres vendidos (IW-TEST01 a 03) y dos sin vender (IW-LIBRE1 y 2).
             </p>
+            {/* Dar puntos a mano para ensayar el ascenso de rango */}
+            <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-[#fbbf24]/20 pb-3">
+              <input
+                value={codigoXp}
+                onChange={e => setCodigoXp(e.target.value.toUpperCase())}
+                placeholder="IW-TEST01"
+                className="w-36 rounded-lg border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-3 font-mono text-xs uppercase text-[var(--iw-text)] outline-none"
+                style={{ minHeight: 40 }}
+              />
+              {[40, 80, 200].map(n => (
+                <button
+                  key={n}
+                  onClick={() => darXp.mutate({ codigo: codigoXp.trim(), xp: n })}
+                  disabled={codigoXp.trim().length < 3 || darXp.isPending}
+                  className="rounded-lg border border-[#fbbf24]/40 px-3 text-xs font-bold text-[#fbbf24] disabled:opacity-40"
+                  style={{ minHeight: 40 }}
+                >
+                  +{n} XP
+                </button>
+              ))}
+              <button
+                onClick={() => darXp.mutate({ codigo: codigoXp.trim(), xp: -2000 })}
+                disabled={codigoXp.trim().length < 3}
+                className="rounded-lg border border-[var(--iw-border)] px-3 text-xs font-bold text-[var(--iw-text-muted)] disabled:opacity-40"
+                style={{ minHeight: 40 }}
+              >
+                Reiniciar
+              </button>
+            </div>
+
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => crearPrueba.mutate()}

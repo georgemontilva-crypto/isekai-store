@@ -510,7 +510,7 @@ export async function crearEntornoPrueba(correoDueno?: string) {
       buyerName: n[0],
       buyerLastName: n[1],
       buyerPhone: "0400-0000000",
-      buyerEmail: n[2],
+      buyerEmail: correoDueno ?? null,
       priceUsd: tipos[i % tipos.length].priceUsd,
       rateBs: null,
       priceBs: null,
@@ -569,4 +569,51 @@ export async function borrarEntornoPrueba() {
   }
 
   return { borrados: pruebas.length };
+}
+
+/**
+ * Suma experiencia a un boleto directamente, sin pasar por una actividad.
+ *
+ * TEMPORAL: sirve para ensayar la subida de rango sin tener que crear
+ * actividades ni escanear. Devuelve si hubo ascenso, igual que el flujo real.
+ */
+export async function darXpDePrueba(codigo: string, xp: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+
+  const ticket = await buscarBoleto(codigo);
+  if (!ticket) throw new Error(`No encontramos el boleto ${codigo.toUpperCase()}`);
+
+  const progreso = await progresoDeBoleto(ticket.id, ticket.eventId);
+  const xpAntes = progreso?.xpTotal ?? 0;
+  const rangoAntes = progreso?.rango ?? "E";
+
+  const xpDespues = Math.max(0, xpAntes + xp);
+  const rangoDespues = rangoPara(xpDespues);
+  const subio = rangoDespues !== rangoAntes;
+
+  await db.update(levelProgress).set({
+    xpTotal: xpDespues,
+    rango: rangoDespues,
+    ...(subio ? { ultimoAscenso: new Date() } : {}),
+  }).where(eq(levelProgress.ticketId, ticket.id));
+
+  if (subio) {
+    await db.insert(levelRankUps).values({
+      ticketId: ticket.id,
+      rangoAnterior: rangoAntes,
+      rangoNuevo: rangoDespues,
+      xpTotal: xpDespues,
+    });
+  }
+
+  return {
+    codigo: ticket.code,
+    nombre: `${ticket.buyerName ?? ""} ${ticket.buyerLastName ?? ""}`.trim(),
+    xpGanada: xp,
+    xpTotal: xpDespues,
+    rango: rangoDespues,
+    rangoAnterior: rangoAntes,
+    subioDeRango: subio,
+  };
 }

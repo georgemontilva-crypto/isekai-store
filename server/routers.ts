@@ -27,7 +27,7 @@ import {
   crearActividad, listarActividades, editarActividad, borrarActividad,
   otorgarExperiencia, estadoPublico, resumenLevelPass,
   crearStaff, listarStaff, borrarStaff, esStaffPorCorreo, puedeOtorgar,
-  levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba, buscarBoleto,
+  levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba, buscarBoleto, darXpDePrueba,
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
