@@ -79,6 +79,16 @@ export default function WorldFestPass() {
   const utils = trpc.useUtils();
 
   /**
+   * TEMPORAL: barra de ensayo para el dueño. Permite sumar puntos sin salir
+   * de esta pantalla, para ver el ascenso de rango al momento.
+   */
+  const esDueno = user?.role === "admin";
+  const darXp = trpc.levelPass.darXpPrueba.useMutation({
+    onSuccess: () => utils.levelPass.estado.invalidate({ codigo: consultado }),
+    onError: (e: any) => alert(e.message),
+  });
+
+  /**
    * Los puntos llegan al instante por conexión en vivo. La consulta cada 15
    * segundos se mantiene como respaldo por si la conexión se cae.
    */
@@ -386,6 +396,33 @@ export default function WorldFestPass() {
           </div>
         </div>
       </header>
+
+      {/* TEMPORAL: solo el dueño la ve */}
+      {esDueno && (
+        <div className="border-b border-[#fbbf24]/25 bg-[#fbbf24]/[0.07] px-5 py-3">
+          <div className="mx-auto flex max-w-2xl flex-wrap items-center gap-2">
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#fbbf24]">
+              Ensayo
+            </span>
+            {[40, 80, 200].map(n => (
+              <button
+                key={n}
+                onClick={() => darXp.mutate({ codigo: consultado, xp: n })}
+                disabled={darXp.isPending}
+                className="rounded-lg border border-[#fbbf24]/40 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24] disabled:opacity-40"
+              >
+                +{n} XP
+              </button>
+            ))}
+            <button
+              onClick={() => darXp.mutate({ codigo: consultado, xp: -5000 })}
+              className="rounded-lg border border-[#38bdf8]/30 px-3 py-2 text-xs font-bold text-[#7dd8ff]"
+            >
+              Reiniciar
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="mx-auto max-w-2xl px-5 py-6">
 
