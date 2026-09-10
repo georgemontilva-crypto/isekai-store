@@ -1278,7 +1278,7 @@ export const appRouter = router({
       .query(({ input }) => resumenLevelPass(input.eventId)),
 
     /** TEMPORAL: monta un evento completo para ensayar */
-    crearPrueba: adminProcedure.mutation(() => crearEntornoPrueba()),
+    crearPrueba: adminProcedure.mutation(({ ctx }) => crearEntornoPrueba(ctx.user.email ?? undefined)),
     borrarPrueba: adminProcedure.mutation(() => borrarEntornoPrueba()),
 
     // ── Personal autorizado ──

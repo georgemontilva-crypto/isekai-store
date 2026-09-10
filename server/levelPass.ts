@@ -439,7 +439,7 @@ export async function resumenLevelPass(eventId: number) {
  * TEMPORAL: sirve para probar el circuito completo antes del evento real.
  * Todo lo creado lleva la marca "[PRUEBA]" para poder borrarlo de una vez.
  */
-export async function crearEntornoPrueba() {
+export async function crearEntornoPrueba(correoDueno?: string) {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
 
@@ -485,10 +485,15 @@ export async function crearEntornoPrueba() {
   ]);
 
   // Boletos ya vendidos, para probar sin tener que venderlos primero
-  const nombres = [
-    ["Ana", "Prueba"],
-    ["Luis", "Ensayo"],
-    ["María", "Demo"],
+  /**
+   * El primer boleto se registra con el correo de quien crea el entorno: así
+   * puede entrar a su Level Pass sin tener que vender uno a mano, ya que el
+   * sistema exige que el boleto esté a nombre de quien lo consulta.
+   */
+  const nombres: Array<[string, string, string | null]> = [
+    ["Ana", "Prueba", correoDueno ?? null],
+    ["Luis", "Ensayo", null],
+    ["María", "Demo", null],
   ];
   const lote = `PRUEBA${Date.now().toString().slice(-6)}`;
 
@@ -505,6 +510,7 @@ export async function crearEntornoPrueba() {
       buyerName: n[0],
       buyerLastName: n[1],
       buyerPhone: "0400-0000000",
+      buyerEmail: n[2],
       priceUsd: tipos[i % tipos.length].priceUsd,
       rateBs: null,
       priceBs: null,
