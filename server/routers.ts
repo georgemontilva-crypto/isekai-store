@@ -1279,6 +1279,23 @@ export const appRouter = router({
 
     /** TEMPORAL: monta un evento completo para ensayar */
     crearPrueba: adminProcedure.mutation(({ ctx }) => crearEntornoPrueba(ctx.user.email ?? undefined)),
+
+    /** TEMPORAL: sumar puntos a mano para ensayar la subida de rango */
+    darXpPrueba: adminProcedure
+      .input(z.object({ codigo: z.string().min(3).max(64), xp: z.number().int().min(-5000).max(5000) }))
+      .mutation(async ({ input }) => {
+        const r = await darXpDePrueba(input.codigo, input.xp);
+        // Aviso en vivo, igual que en el flujo real
+        try {
+          io.to(`boleto:${r.codigo.toUpperCase()}`).emit("levelpass:xp", {
+            xpGanada: r.xpGanada,
+            xpTotal: r.xpTotal,
+            rango: r.rango,
+            subioDeRango: r.subioDeRango,
+          });
+        } catch { /* no crítico */ }
+        return r;
+      }),
     borrarPrueba: adminProcedure.mutation(() => borrarEntornoPrueba()),
 
     // ── Personal autorizado ──

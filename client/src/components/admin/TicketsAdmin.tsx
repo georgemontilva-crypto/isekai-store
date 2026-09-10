@@ -75,7 +75,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         ? `${r.nombre}: ¡subió a rango ${r.rango}! (${r.xpTotal} XP)`
         : `${r.nombre}: ${r.xpTotal} XP · rango ${r.rango}`);
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e: any) => toast.error(e.message),
   });
 
   const crearPrueba = trpc.levelPass.crearPrueba.useMutation({
