@@ -20,6 +20,7 @@ const WorldFest = lazy(() => import("./pages/WorldFest"));
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const Invitacion = lazy(() => import("./pages/Invitacion"));
 import PantallaCarga from "@/components/PantallaCarga";
+const HomeEvento = lazy(() => import("./pages/HomeEvento"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
 const GuildFeedback = lazy(() => import("./pages/GuildFeedback"));
@@ -108,7 +109,9 @@ function Router() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-white" />}>
       <Switch>
-        <Route path="/" component={Home} />
+        {/* La portada es el evento; la tienda vive en su propia dirección */}
+        <Route path="/" component={HomeEvento} />
+        <Route path="/tienda" component={Home} />
         <Route path="/catalog" component={Catalog} />
         <Route path="/product/:slug" component={ProductDetail} />
         <Route path="/checkout" component={Checkout} />

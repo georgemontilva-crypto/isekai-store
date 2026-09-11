@@ -317,8 +317,9 @@ export default function Navbar() {
   /** Icono de cada destino del menú, buscado por su dirección */
   const iconoDe = (href: string) => {
     if (href === "/") return Home;
-    if (href.startsWith("/catalog")) return ShoppingBag;
-    if (href.startsWith("/universos") || href.startsWith("/colecciones")) return Globe;
+    if (href === "/tienda") return ShoppingBag;
+    if (href.startsWith("/catalog")) return Layers;
+    if (href.startsWith("/universos") || href.startsWith("/collections") || href.startsWith("/colecciones")) return Globe;
     if (href.startsWith("/nosotros")) return Users;
     if (href.startsWith("/faq")) return HelpCircle;
     if (href.startsWith("/politicas")) return FileText;
