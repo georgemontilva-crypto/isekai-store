@@ -169,6 +169,20 @@ const PAGES: PageGroup[] = [
     ],
   },
   {
+    page: "Portada del evento",
+    slots: [
+      { kind: "site", key: "wf_slide_1_image", label: "Portada evento — slide 1",
+        where: "Carrusel de la página de inicio, debajo del hero.",
+        spec: "Horizontal, ~1920 × 1080 px. El texto va sobre un degradado a la izquierda." },
+      { kind: "site", key: "wf_slide_2_image", label: "Portada evento — slide 2",
+        where: "Carrusel de la página de inicio, debajo del hero.",
+        spec: "Horizontal, ~1920 × 1080 px. El texto va sobre un degradado a la izquierda." },
+      { kind: "site", key: "wf_slide_3_image", label: "Portada evento — slide 3",
+        where: "Carrusel de la página de inicio, debajo del hero.",
+        spec: "Horizontal, ~1920 × 1080 px. El texto va sobre un degradado a la izquierda." },
+    ],
+  },
+  {
     page: "Aliados comerciales",
     slots: [
       { kind: "site", key: "aliado_1_logo", label: "Aliado 1 — logo",

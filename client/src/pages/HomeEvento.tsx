@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
+import HeroCarousel from "@/components/HeroCarousel";
 import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
 
@@ -56,6 +57,20 @@ export default function HomeEvento() {
   const { data: settings } = trpc.settings.getAll.useQuery();
   const heroImg = settings?.["worldfest_hero_image"] ?? "";
   const teaserImg = settings?.["worldfest_teaser_image"] ?? "";
+
+  /**
+   * Carrusel propio del evento: sus slides se configuran aparte de los de la
+   * tienda, para poder anunciar cosas distintas en cada portada.
+   */
+  const slidesEvento = [1, 2, 3]
+    .map(n => ({
+      image:      settings?.[`wf_slide_${n}_image`]    ?? "",
+      title:      settings?.[`wf_slide_${n}_title`]    ?? "",
+      subtitle:   settings?.[`wf_slide_${n}_subtitle`] ?? "",
+      buttonText: settings?.[`wf_slide_${n}_cta`]      ?? "",
+      buttonUrl:  settings?.[`wf_slide_${n}_cta_url`]  ?? "/world-fest",
+    }))
+    .filter(s => s.image);
 
   const [suscrito, setSuscrito] = useState(false);
   const [email, setEmail] = useState("");
@@ -123,6 +138,13 @@ export default function HomeEvento() {
           </motion.div>
         </div>
       </section>
+
+      {/* Carrusel del evento, debajo de la portada */}
+      {slidesEvento.length > 0 && (
+        <div className="pt-4">
+          <HeroCarousel slides={slidesEvento} />
+        </div>
+      )}
 
       {/* ── Qué habrá ── */}
       <section className="mx-auto max-w-6xl px-6 py-20 lg:px-16 lg:py-28">

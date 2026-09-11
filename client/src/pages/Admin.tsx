@@ -2935,6 +2935,49 @@ export default function Admin() {
                 className="p-8"
               >
                 <h2 className="text-2xl font-bold mb-1">Configuración</h2>
+                {/* Textos del carrusel de la portada del evento */}
+                <div className="mt-6 mb-8 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-5">
+                  <p className="text-sm font-bold text-[var(--iw-text)]">Carrusel de la portada</p>
+                  <p className="mt-1 mb-4 text-xs text-[var(--iw-text-muted)]">
+                    Las imágenes se suben en Medios → Portada del evento. Aquí van los textos.
+                  </p>
+                  <div className="flex flex-col gap-4">
+                    {[1, 2, 3].map(n => (
+                      <div key={n} className="rounded-xl border border-[var(--iw-border)] p-3">
+                        <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--iw-text-muted)]">
+                          Slide {n}
+                        </p>
+                        <div className="grid gap-2 sm:grid-cols-2">
+                          <Input
+                            defaultValue={siteSettings?.[`wf_slide_${n}_subtitle`] ?? ""}
+                            placeholder="Etiqueta (ej: Zona Gamer)"
+                            onBlur={e => upsertSetting.mutate({ key: `wf_slide_${n}_subtitle`, value: e.target.value })}
+                            className="bg-muted text-sm"
+                          />
+                          <Input
+                            defaultValue={siteSettings?.[`wf_slide_${n}_title`] ?? ""}
+                            placeholder="Titular"
+                            onBlur={e => upsertSetting.mutate({ key: `wf_slide_${n}_title`, value: e.target.value })}
+                            className="bg-muted text-sm"
+                          />
+                          <Input
+                            defaultValue={siteSettings?.[`wf_slide_${n}_cta`] ?? ""}
+                            placeholder="Texto del botón"
+                            onBlur={e => upsertSetting.mutate({ key: `wf_slide_${n}_cta`, value: e.target.value })}
+                            className="bg-muted text-sm"
+                          />
+                          <Input
+                            defaultValue={siteSettings?.[`wf_slide_${n}_cta_url`] ?? ""}
+                            placeholder="/world-fest"
+                            onBlur={e => upsertSetting.mutate({ key: `wf_slide_${n}_cta_url`, value: e.target.value })}
+                            className="bg-muted text-sm"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
                 {/* Nombre y enlace de cada aliado. El logo se sube en Medios. */}
                 <div className="mt-6 mb-8 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-5">
                   <p className="text-sm font-bold text-[var(--iw-text)]">Aliados comerciales</p>
