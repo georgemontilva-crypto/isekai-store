@@ -75,9 +75,6 @@ const RANGOS = [
   { r: "S", nombre: "El Despertado",  desc: "El rango máximo.",                            color: "#f43f5e" },
 ];
 
-/** Etiquetas de la galería conceptual */
-const GALERIA = ["GATE 01", "DUNGEON", "HUNTER AREA", "SYSTEM", "UNKNOWN", "PORTAL"];
-
 /**
  * Flechas de un carril. Solo en escritorio: en teléfono se desliza con el
  * dedo y unos botones ahí estorbarían.
@@ -716,49 +713,6 @@ export default function HomeEvento() {
           >
             Quiero subir de rango
           </button>
-        </div>
-      </section>
-
-      {/* ═══ 9. EXPERIENCIA VISUAL ═══ */}
-      <section className="px-6 py-20 lg:px-16 lg:py-24">
-        <div className="mx-auto max-w-6xl">
-          <h2 className="mb-3 text-3xl font-black sm:text-5xl">
-            NO TE IMAGINES EL MUNDO.
-            <br />
-            <span className="text-[#a78bfa]">MÍRALO.</span>
-          </h2>
-          <p className="mb-10 text-[15px] text-[#a99fc4]">
-            Primeras imágenes conceptuales de lo que estamos construyendo.
-          </p>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {GALERIA.map((etiqueta, i) => {
-              const img = settings?.[`wf_galeria_${i + 1}`];
-              return (
-                <div
-                  key={etiqueta}
-                  className="group relative overflow-hidden rounded-xl border border-white/[0.07] bg-[#0d0620]"
-                  style={{ aspectRatio: "4/5" }}
-                >
-                  {img ? (
-                    <img
-                      src={img}
-                      alt=""
-                      className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="flex h-full items-center justify-center">
-                      <Lock size={22} className="text-white/10" />
-                    </div>
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#06040d] via-transparent to-transparent" />
-                  <span className="absolute bottom-3 left-3 font-mono text-[10px] uppercase tracking-[0.25em] text-white/55">
-                    {etiqueta}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
         </div>
       </section>
 
