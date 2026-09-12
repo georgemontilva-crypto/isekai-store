@@ -109,9 +109,11 @@ function Router() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-white" />}>
       <Switch>
-        {/* La portada es el evento; la tienda vive en su propia dirección */}
-        <Route path="/" component={HomeEvento} />
+        {/* La tienda vuelve a ser la portada mientras se prepara la landing
+            del evento, que se trabaja en /evento sin estar publicada. */}
+        <Route path="/" component={Home} />
         <Route path="/tienda" component={Home} />
+        <Route path="/evento" component={HomeEvento} />
         <Route path="/catalog" component={Catalog} />
         <Route path="/product/:slug" component={ProductDetail} />
         <Route path="/checkout" component={Checkout} />
