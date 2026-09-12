@@ -2935,6 +2935,21 @@ export default function Admin() {
                 className="p-8"
               >
                 <h2 className="text-2xl font-bold mb-1">Configuración</h2>
+                {/* Video de fondo del hero del evento */}
+                <div className="mt-6 mb-8 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-5">
+                  <p className="text-sm font-bold text-[var(--iw-text)]">Video de fondo — landing del evento</p>
+                  <p className="mt-1 mb-3 text-xs leading-relaxed text-[var(--iw-text-muted)]">
+                    Se ve muy tenue detrás del titular, como textura. Pega aquí la dirección
+                    del archivo .mp4. Si lo dejas vacío se usa solo la imagen.
+                  </p>
+                  <Input
+                    defaultValue={siteSettings?.["wf_hero_video"] ?? ""}
+                    placeholder="https://…/video.mp4"
+                    onBlur={e => upsertSetting.mutate({ key: "wf_hero_video", value: e.target.value })}
+                    className="bg-muted text-sm"
+                  />
+                </div>
+
                 {/* Textos del carrusel de la portada del evento */}
                 <div className="mt-6 mb-8 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-5">
                   <p className="text-sm font-bold text-[var(--iw-text)]">Carrusel de la portada</p>

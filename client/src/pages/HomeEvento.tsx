@@ -43,7 +43,7 @@ const TRANSFORMACION = [
   {
     icono: Lock,
     titulo: "Portales y dungeons",
-    texto: "Lugares ocultos, desafíos y experiencias que irán revelándose progresivamente.",
+    texto: "Actividades y misiones repartidas por el recinto con las que ganarás EXP. Algunas se revelarán solo durante el evento.",
     color: "#f43f5e",
   },
   {
@@ -81,6 +81,8 @@ const GALERIA = ["GATE 01", "DUNGEON", "HUNTER AREA", "SYSTEM", "UNKNOWN", "PORT
 export default function HomeEvento() {
   const { data: settings } = trpc.settings.getAll.useQuery();
   const heroBg = settings?.["wf_hero_bg"] ?? settings?.["worldfest_hero_image"] ?? "";
+  /** Video de fondo opcional: queda como textura, apenas perceptible */
+  const heroVideo = settings?.["wf_hero_video"] ?? "";
   const premioImg = settings?.["wf_premio_image"] ?? "";
 
   const [email, setEmail] = useState("");
@@ -105,8 +107,22 @@ export default function HomeEvento() {
 
       {/* ═══ 1. EL SISTEMA HA DESPERTADO ═══ */}
       <section className="relative flex min-h-[92svh] items-center overflow-hidden">
+        {/* El video manda si está puesto; la imagen queda de respaldo mientras
+            carga o si el navegador no puede reproducirlo. */}
         {heroBg && (
           <img src={heroBg} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        {heroVideo && (
+          <video
+            src={heroVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={heroBg || undefined}
+            className="absolute inset-0 h-full w-full object-cover"
+            style={{ opacity: 0.45 }}
+          />
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-[#06040d]/75 via-[#0d0620]/70 to-[#06040d]" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#06040d] via-[#06040d]/40 to-transparent" />
@@ -392,11 +408,18 @@ export default function HomeEvento() {
                 una recompensa única.
               </p>
 
+              {/* El premio es la pieza, no el dinero: se nombra primero para
+                  que no se lea como un premio en efectivo. */}
               <div className="mb-7 rounded-xl border border-[#f43f5e]/30 bg-[#f43f5e]/[0.07] p-5">
-                <p className="text-2xl font-black text-[#f43f5e] sm:text-3xl">+$1.500 USD</p>
+                <p className="text-lg font-black leading-tight text-white sm:text-xl">
+                  Una pieza decorativa a tamaño real
+                </p>
                 <p className="mt-2 text-sm leading-relaxed text-[#c9a8b8]">
-                  Una pieza tamaño real de nuestra decoración, creada especialmente para el
-                  Isekai World Fest.
+                  Creada especialmente para el Isekai World Fest y parte de la decoración
+                  del evento.
+                </p>
+                <p className="mt-4 font-mono text-sm uppercase tracking-wider text-[#f43f5e]">
+                  Avaluada en más de $1.500 USD
                 </p>
               </div>
 
