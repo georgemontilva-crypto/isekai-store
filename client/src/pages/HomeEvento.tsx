@@ -624,7 +624,7 @@ export default function HomeEvento() {
           </div>
 
           <p className="mt-14 text-center text-2xl font-black sm:text-4xl">
-            ¿SERÁS CAPAZ DE <span className="text-[#f43f5e]">LLEGAR A S</span>?
+            ¿SERÁS CAPAZ DE LLEGAR A <span className="text-[#f43f5e]">RANGO S</span>?
           </p>
         </div>
       </section>
@@ -700,32 +700,6 @@ export default function HomeEvento() {
         </div>
       </section>
 
-      {/* ═══ 8. LAS MISIONES NO HAN SIDO REVELADAS ═══ */}
-      <section className="border-y border-white/[0.06] bg-white/[0.015] px-6 py-20 text-center lg:py-24">
-        <div className="mx-auto max-w-2xl">
-          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            [ Misiones ]
-          </p>
-          <h2 className="ev-display mb-8 text-[25px] leading-[1.08] sm:text-4xl">
-            EL SISTEMA NO TE LO CONTARÁ TODO.
-          </h2>
-
-          <div className="mb-10 space-y-3 text-[15px] leading-relaxed text-[#b9b0d4]">
-            <p>Algunas misiones estarán disponibles desde el momento en que entres.</p>
-            <p>Otras aparecerán durante el evento.</p>
-            <p>Algunas dependerán de lo que hagas.</p>
-            <p className="text-[#a78bfa]">Y algunas… tendrás que descubrirlas tú mismo.</p>
-          </div>
-
-          <button
-            onClick={irALista}
-            className="ev-notch ev-press border border-[#a78bfa]/50 bg-[#a78bfa]/10 px-8 py-4 text-sm font-bold uppercase tracking-wider text-[#c4b5fd] hover:bg-[#a78bfa]/20"
-          >
-            Quiero subir de rango
-          </button>
-        </div>
-      </section>
-
       {/* ═══ 10. INVITADOS ═══ */}
       <section className="px-6 pb-20 lg:px-16 lg:pb-24">
         <div className="mx-auto max-w-5xl">
@@ -738,12 +712,14 @@ export default function HomeEvento() {
             serán parte del Isekai World Fest.
           </p>
 
-          <div className="grid gap-4 sm:grid-cols-3">
+          <div className="relative">
+            <FlechasCarril id="carril-invitados" />
+            <div id="carril-invitados" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
             {[1, 2, 3].map(n => {
               const nombre = settings?.[`wf_invitado_${n}_nombre`];
               const foto = settings?.[`wf_invitado_${n}_foto`];
               return (
-                <div key={n} className="overflow-hidden rounded-2xl border border-white/[0.07] bg-[#0d0620]">
+                <div key={n} className="ev-notch iw-card-grande overflow-hidden border border-white/[0.07] bg-[#0d0620]">
                   <div className="relative" style={{ aspectRatio: "1/1" }}>
                     {foto ? (
                       <img src={foto} alt={nombre ?? ""} className="h-full w-full object-cover" />
@@ -762,6 +738,7 @@ export default function HomeEvento() {
                 </div>
               );
             })}
+            </div>
           </div>
         </div>
       </section>
