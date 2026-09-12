@@ -3121,10 +3121,27 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   border-radius: 0 !important;
 }
 
-/* Tipografía angular para titulares */
+/* Titulares en Montserrat ultrabold.
+   Se ajusta el interletrado y se permite partir palabras largas: en teléfono,
+   títulos como «EXPERIENCIAS INMERSIVAS» se salían del ancho y caían feo. */
 .ev-display {
-  font-family: "Chakra Petch", "Inter", system-ui, sans-serif;
-  letter-spacing: -0.01em;
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Títulos de tarjeta: se reducen en pantallas estrechas antes que partirse */
+.ev-card-title {
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  font-size: clamp(1rem, 4.2vw, 1.35rem);
+  line-height: 1.15;
+  text-wrap: balance;
+  overflow-wrap: break-word;
 }
 
 /* Filete degradado que separa secciones */

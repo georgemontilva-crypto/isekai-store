@@ -246,7 +246,7 @@ export default function HomeEvento() {
               </span>
             </div>
 
-            <p className="lp-linea-3 text-lg font-black text-white">
+            <p className="lp-linea-3 text-base font-black leading-tight text-white sm:text-lg">
               RANGO {ascensoDemo} · {rangoDe(xpDemo).nombre.toUpperCase()}
             </p>
 
@@ -323,7 +323,7 @@ export default function HomeEvento() {
               Isekai World Fest 2027
             </p>
 
-            <h1 className="ev-display mb-6 text-4xl font-black leading-[0.98] sm:text-6xl lg:text-7xl">
+            <h1 className="ev-display mb-6 text-[38px] leading-[0.95] sm:text-6xl lg:text-7xl">
               EL SISTEMA
               <br />
               <span className="iw-texto-sistema">HA DESPERTADO.</span>
@@ -374,7 +374,7 @@ export default function HomeEvento() {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="ev-display mb-8 text-3xl font-black leading-tight sm:text-5xl">
+          <h2 className="ev-display mb-8 text-[26px] leading-[1.08] sm:text-5xl">
             NO VIENES A VER EL MUNDO.
             <br />
             <span className="text-[#a78bfa]">VIENES A ENTRAR EN ÉL.</span>
@@ -406,7 +406,7 @@ export default function HomeEvento() {
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
             [ El mundo ha cambiado ]
           </p>
-          <h2 className="ev-display mb-12 text-3xl font-black sm:text-5xl">La escala de lo que viene</h2>
+          <h2 className="ev-display mb-12 text-[26px] leading-[1.05] sm:text-5xl">La escala de lo que viene</h2>
 
           {/* Carril horizontal: con tarjetas más grandes se lee mejor cada
               bloque que apretándolos en una rejilla. En escritorio se pasa con
@@ -435,7 +435,7 @@ export default function HomeEvento() {
                   >
                     <Icono size={26} style={{ color: x.color }} />
                   </div>
-                  <h3 className="mb-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
+                  <h3 className="ev-card-title mb-3 uppercase text-white">
                     {x.titulo}
                   </h3>
                   <p className="text-[15px] leading-relaxed text-[#a99fc4]">{x.texto}</p>
@@ -453,7 +453,7 @@ export default function HomeEvento() {
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
             [ Explora el Fest ]
           </p>
-          <h2 className="ev-display mb-3 text-3xl font-black sm:text-5xl">Las grandes áreas</h2>
+          <h2 className="ev-display mb-3 text-[26px] leading-[1.05] sm:text-5xl">Las grandes áreas</h2>
           <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
             Todavía no lo contamos todo. Algunas cosas es mejor descubrirlas allí.
           </p>
@@ -474,7 +474,7 @@ export default function HomeEvento() {
                   }}
                 >
                   <Icono size={28} style={{ color: a.color }} className="mb-6" />
-                  <h3 className="mb-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
+                  <h3 className="ev-card-title mb-3 uppercase text-white">
                     {a.titulo}
                   </h3>
                   <p className="mb-6 text-[15px] leading-relaxed text-[#a99fc4]">{a.texto}</p>
@@ -706,7 +706,7 @@ export default function HomeEvento() {
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
             [ Misiones ]
           </p>
-          <h2 className="ev-display mb-8 text-3xl font-black sm:text-4xl">
+          <h2 className="ev-display mb-8 text-[25px] leading-[1.08] sm:text-4xl">
             EL SISTEMA NO TE LO CONTARÁ TODO.
           </h2>
 
@@ -732,7 +732,7 @@ export default function HomeEvento() {
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
             [ Invitados ]
           </p>
-          <h2 className="ev-display mb-4 text-3xl font-black sm:text-5xl">LOS CAZADORES ESTÁN LLEGANDO</h2>
+          <h2 className="ev-display mb-4 text-[26px] leading-[1.05] sm:text-5xl">LOS CAZADORES ESTÁN LLEGANDO</h2>
           <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
             Creadores, cosplayers, artistas, invitados especiales y talentos internacionales
             serán parte del Isekai World Fest.
@@ -771,7 +771,7 @@ export default function HomeEvento() {
       {/* ═══ 11. FECHA Y LUGAR ═══ */}
       <section className="border-y border-[#a78bfa]/20 bg-gradient-to-b from-[#0d0620] to-[#06040d] px-6 py-20 text-center lg:py-28">
         <div className="mx-auto max-w-3xl">
-          <h2 className="ev-display mb-12 text-3xl font-black sm:text-5xl">¿CUÁNDO SE ABRE EL PORTAL?</h2>
+          <h2 className="ev-display mb-12 text-[26px] leading-[1.05] sm:text-5xl">¿CUÁNDO SE ABRE EL PORTAL?</h2>
 
           <div className="mb-10 grid gap-5 sm:grid-cols-2">
             <div className="rounded-2xl border border-[#a78bfa]/25 bg-[#a78bfa]/[0.06] p-7">
@@ -856,7 +856,7 @@ export default function HomeEvento() {
       <section className="relative overflow-hidden border-t border-white/[0.06] px-6 py-24 text-center lg:py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-[#06040d] via-[#0d0620] to-[#06040d]" />
         <div className="relative z-10 mx-auto max-w-3xl">
-          <p className="ev-display text-2xl font-black leading-tight sm:text-4xl lg:text-5xl">
+          <p className="ev-display text-[24px] leading-[1.12] sm:text-4xl lg:text-5xl">
             TODOS COMIENZAN EN <span className="text-[#8a8a9c]">RANGO E</span>.
             <br />
             PERO NO TODOS LLEGARÁN A <span className="text-[#f43f5e]">S</span>.
