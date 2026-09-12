@@ -59,30 +59,25 @@ createRoot(document.getElementById("root")!).render(
   </trpc.Provider>
 );
 
+/**
+ * Limpieza del service worker.
+ *
+ * Ya no se usa: guardaba versiones antiguas de la web y al recargar aparecía
+ * por un instante la interfaz original. Aquí se da de baja cualquier registro
+ * que quede y se vacían las cachés, para que nadie siga viendo contenido
+ * viejo. El archivo /sw.js sigue publicado, vacío, para limpiar a quienes
+ * tengan instalada una versión anterior.
+ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((reg) => {
-        // Se comprueba si hay una versión nueva al abrir y cada media hora:
-        // sin esto, una pestaña abierta podía quedarse con código viejo.
-        reg.update().catch(() => {});
-        setInterval(() => { reg.update().catch(() => {}); }, 30 * 60 * 1000);
+    navigator.serviceWorker.getRegistrations()
+      .then((regs) => regs.forEach((r) => { r.unregister().catch(() => {}); }))
+      .catch(() => {});
 
-        // No se recarga al cambiar de service worker: esa recarga mostraba la
-        // versión antigua un instante antes de saltar a la nueva. El nuevo se
-        // hace con el control por su cuenta y la siguiente navegación ya es
-        // correcta, sin parpadeo.
-
-        reg.addEventListener('updatefound', () => {
-          const nuevo = reg.installing;
-          if (!nuevo) return;
-          nuevo.addEventListener('statechange', () => {
-            if (nuevo.state === 'installed' && navigator.serviceWorker.controller) {
-              nuevo.postMessage('saltar-espera');
-            }
-          });
-        });
-      })
-      .catch((err) => console.warn('[SW] Error:', err));
+    if ('caches' in window) {
+      caches.keys()
+        .then((claves) => Promise.all(claves.map((k) => caches.delete(k))))
+        .catch(() => {});
+    }
   });
 }

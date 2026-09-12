@@ -1,106 +1,35 @@
 /**
- * Service worker de Isekai World.
+ * Service worker de despedida.
  *
- * PROBLEMA QUE RESUELVE: la versión anterior guardaba las páginas en una caché
- * de nombre fijo y las devolvía tal cual. Cuando se publicaba un cambio, el
- * navegador seguía mostrando la versión vieja indefinidamente — pasó con las
- * políticas y con el texto de envío gratis, que quedaron invisibles pese a
- * estar desplegados.
+ * POR QUÉ ESTÁ VACÍO: el guardado en caché venía provocando que apareciera
+ * durante un instante una versión antigua de la web —el marquee y el menú
+ * originales— al recargar. El problema se repitió con las políticas, con el
+ * texto de envío gratis y con el menú, y cada arreglo dejaba un resto.
  *
- * ESTRATEGIA:
- *  - Los documentos HTML se piden SIEMPRE a la red primero. Si no hay señal,
- *    se usa la copia guardada. Así una web actualizada se ve al instante y
- *    una sin conexión sigue abriendo.
- *  - Los archivos con huella en el nombre (imágenes, JS, CSS) sí se sirven
- *    desde la caché: su nombre cambia cuando cambia su contenido.
- *  - El nombre de la caché lleva versión: al subirlo se borran las anteriores.
+ * Este archivo ya no guarda nada: borra todas las cachés y se da de baja a sí
+ * mismo. Se mantiene publicado porque los navegadores que tengan instalada una
+ * versión anterior lo descargarán y así se limpiarán solos. No se puede
+ * eliminar el archivo hasta pasado un tiempo largo.
+ *
+ * La contrapartida: la web ya no abre sin conexión. A cambio, siempre se ve la
+ * versión actual, que para una tienda con precios y stock importa más.
  */
 
-const VERSION = 'v4';
-const CACHE_PAGINAS = `isekai-paginas-${VERSION}`;
-const CACHE_RECURSOS = `isekai-recursos-${VERSION}`;
-
-self.addEventListener('install', () => {
-  // Sin precarga: se guarda lo que el visitante realmente use
-  self.skipWaiting();
-});
+self.addEventListener('install', () => self.skipWaiting());
 
 self.addEventListener('activate', (event) => {
-  // clients.claim() evita el paso intermedio en el que la versión vieja sigue
-  // respondiendo: era lo que hacía aparecer la web antigua un instante.
   event.waitUntil(
-    Promise.all([
-      self.clients.claim(),
-      caches.keys().then((claves) =>
-        Promise.all(
-          claves
-            .filter((k) => k !== CACHE_PAGINAS && k !== CACHE_RECURSOS)
-            .map((k) => caches.delete(k)),
-        ),
-      ),
-    ]),
+    (async () => {
+      const claves = await caches.keys();
+      await Promise.all(claves.map((k) => caches.delete(k)));
+      await self.clients.claim();
+      await self.registration.unregister();
+
+      // Se recarga cada pestaña una última vez para soltar el control
+      const pestanas = await self.clients.matchAll({ type: 'window' });
+      pestanas.forEach((p) => p.navigate(p.url).catch(() => {}));
+    })(),
   );
 });
 
-/** Los archivos con huella en el nombre nunca cambian de contenido */
-function tieneHuella(ruta) {
-  return /\/assets\/.+-[A-Za-z0-9_-]{8,}\.(js|css|woff2?|png|jpg|jpeg|webp|svg)$/.test(ruta);
-}
-
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
-
-  const url = new URL(req.url);
-  if (url.pathname.startsWith('/api/')) return;
-  if (url.origin !== self.location.origin) return;
-
-  // ── Recursos con huella: primero la caché, que es más rápida ──
-  if (tieneHuella(url.pathname)) {
-    event.respondWith(
-      caches.match(req).then((guardado) => {
-        if (guardado) return guardado;
-        return fetch(req).then((resp) => {
-          if (resp.ok) {
-            const copia = resp.clone();
-            caches.open(CACHE_RECURSOS).then((c) => c.put(req, copia));
-          }
-          return resp;
-        });
-      }),
-    );
-    return;
-  }
-
-  // ── Páginas: SOLO de la red mientras haya conexión ──
-  // No se guardan en caché: una copia de HTML antigua apunta a archivos
-  // antiguos y hace reaparecer la web vieja durante un instante.
-  const esDocumento = req.mode === 'navigate' ||
-    (req.headers.get('accept') || '').includes('text/html');
-
-  if (esDocumento) {
-    event.respondWith(
-      fetch(req).catch(() =>
-        caches.match(req).then((guardado) => guardado || caches.match('/')),
-      ),
-    );
-    return;
-  }
-
-  // ── Lo demás: red con respaldo en caché ──
-  event.respondWith(
-    fetch(req)
-      .then((resp) => {
-        if (resp.ok) {
-          const copia = resp.clone();
-          caches.open(CACHE_RECURSOS).then((c) => c.put(req, copia));
-        }
-        return resp;
-      })
-      .catch(() => caches.match(req)),
-  );
-});
-
-self.addEventListener('message', (event) => {
-  if (event.data === 'saltar-espera') self.skipWaiting();
-});
+// Sin interceptar peticiones: todo va directo a la red
