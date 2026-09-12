@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import {
-  Gamepad2, Users, Sparkles, Store, ArrowRight, Lock, Star, Swords, Trophy,
+  Gamepad2, Users, Sparkles, Store, ArrowRight, Lock, Star, Swords, Trophy, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
@@ -17,6 +17,14 @@ import { useAntiSpam } from "@/hooks/useAntiSpam";
  * contenidos se cuentan como expectativa: se nombra lo que habrá sin revelar
  * detalles, para que la curiosidad haga el trabajo.
  */
+
+/** Misiones todavía no reveladas: el hueco es parte del mensaje */
+const MISIONES = Array.from({ length: 6 }, (_, i) => ({
+  rank: "?",
+  tier: i < 3 ? "azul" : "morado",
+  title: "Misión sin revelar",
+  body: "El Sistema todavía no libera esta información.",
+}));
 
 const ZONAS = [
   {
@@ -202,6 +210,89 @@ export default function HomeEvento() {
           <p className="mt-10 text-center text-sm text-[#5f7f96]">
             Habrá invitados especiales. Todavía no decimos quiénes.
           </p>
+        </div>
+      </section>
+
+      {/* ── Misiones sin revelar ──
+          Se traen de la página del evento: las tarjetas bloqueadas cuentan la
+          expectativa mejor que cualquier texto. */}
+      {/* ─── Misiones ─────────────────────────────────────────────────────── */}
+      <section className="relative z-10 mx-auto max-w-6xl px-6 py-16 sm:py-20">
+        <p className="mb-4 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
+          [ Misiones detectadas ]
+        </p>
+        <h2 className="max-w-2xl text-[clamp(1.8rem,4.5vw,3rem)] font-black uppercase leading-[0.95] tracking-tight text-white">
+          Lo que hay del otro lado
+        </h2>
+        <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-[#8fb0d6]">
+          Todavía no revelamos la fecha. Sí podemos decir a qué te vas a enfrentar cuando la puerta se abra del todo.
+        </p>
+
+        {/* Carril a ancho completo de pantalla: se sale del contenedor para que
+            las tarjetas lleguen hasta el borde y no parezca que se cortan.
+            El relleno izquierdo replica el margen del contenedor, así la
+            primera tarjeta queda alineada con el título de arriba. */}
+        <div className="wf-rail relative mt-9">
+          <button
+            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: -280, behavior: "smooth" })}
+            aria-label="Misiones anteriores"
+            className="wf-rail-arrow absolute -left-5 top-1/2 z-20 hidden -translate-y-1/2 lg:flex"
+          >
+            <ChevronLeft size={16} />
+          </button>
+          <button
+            onClick={() => document.getElementById("wf-misiones")?.scrollBy({ left: 280, behavior: "smooth" })}
+            aria-label="Más misiones"
+            className="wf-rail-arrow absolute -right-5 top-1/2 z-20 hidden -translate-y-1/2 lg:flex"
+          >
+            <ChevronRight size={16} />
+          </button>
+
+          <div
+            id="wf-misiones"
+            className="flex gap-4 overflow-x-auto pb-2"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
+            }}
+          >
+            {MISIONES.map((m, i) => {
+              const morada = m.tier === "morado";
+              return (
+                <div
+                  key={i}
+                  className={`wf-window wf-scan wf-locked wf-mision shrink-0 rounded-sm ${morada ? "wf-window-morado" : ""}`}
+                >
+                  <span className={`wf-corner -left-px -top-px border-l-2 border-t-2 ${morada ? "wf-corner-morado" : ""}`} />
+                  <span className={`wf-corner -right-px -top-px border-r-2 border-t-2 ${morada ? "wf-corner-morado" : ""}`} />
+                  <span className={`wf-corner -bottom-px -left-px border-b-2 border-l-2 ${morada ? "wf-corner-morado" : ""}`} />
+                  <span className={`wf-corner -bottom-px -right-px border-b-2 border-r-2 ${morada ? "wf-corner-morado" : ""}`} />
+
+                  <div className="flex items-center justify-between">
+                    <span className={`font-mono text-[10px] font-bold uppercase tracking-[0.28em] ${morada ? "text-[#b98cff]" : "text-[#5db4ff]"}`}>
+                      Bloqueada
+                    </span>
+                    <span
+                      className={`flex h-9 w-9 items-center justify-center rounded-sm border font-black ${
+                        morada
+                          ? "border-[#b98cff]/30 bg-[#b98cff]/10 text-[#b98cff]/70"
+                          : "border-[#5db4ff]/25 bg-[#5db4ff]/5 text-[#5db4ff]/60"
+                      }`}
+                    >
+                      {m.rank}
+                    </span>
+                  </div>
+                  <h3 className="mt-5 text-lg font-black uppercase leading-tight tracking-tight text-white/35">
+                    {m.title}
+                  </h3>
+                  <p className={`mt-3 text-sm leading-relaxed ${morada ? "text-[#b0a0d6]/45" : "text-[#8fb0d6]/45"}`}>
+                    {m.body}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
         </div>
       </section>
 
