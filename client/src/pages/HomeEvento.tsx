@@ -151,7 +151,7 @@ export default function HomeEvento() {
                 <Calendar size={15} className="text-[#a78bfa]" /> 14 — 15 AGOSTO 2027
               </span>
               <span className="flex items-center gap-2">
-                <MapPin size={15} className="text-[#a78bfa]" /> Palacio de Eventos · Maracaibo
+                <MapPin size={15} className="text-[#a78bfa]" /> Maracaibo, Venezuela
               </span>
             </div>
 
