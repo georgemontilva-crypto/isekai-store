@@ -2,7 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
-  Trophy, Lock, MapPin, Calendar, Star,
+  Trophy, Lock, MapPin, Calendar, Star, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useSEO } from "@/hooks/useSEO";
@@ -77,6 +77,37 @@ const RANGOS = [
 
 /** Etiquetas de la galería conceptual */
 const GALERIA = ["GATE 01", "DUNGEON", "HUNTER AREA", "SYSTEM", "UNKNOWN", "PORTAL"];
+
+/**
+ * Flechas de un carril. Solo en escritorio: en teléfono se desliza con el
+ * dedo y unos botones ahí estorbarían.
+ */
+function FlechasCarril({ id }: { id: string }) {
+  const mover = (dir: number) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
+  };
+
+  return (
+    <>
+      <button
+        onClick={() => mover(-1)}
+        aria-label="Anterior"
+        className="absolute -left-4 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#0d0620]/90 text-white/70 shadow-xl backdrop-blur transition-colors hover:border-[#a78bfa]/60 hover:text-white lg:flex"
+      >
+        <ChevronLeft size={19} />
+      </button>
+      <button
+        onClick={() => mover(1)}
+        aria-label="Siguiente"
+        className="absolute -right-4 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#0d0620]/90 text-white/70 shadow-xl backdrop-blur transition-colors hover:border-[#a78bfa]/60 hover:text-white lg:flex"
+      >
+        <ChevronRight size={19} />
+      </button>
+    </>
+  );
+}
 
 export default function HomeEvento() {
   const { data: settings } = trpc.settings.getAll.useQuery();
@@ -375,8 +406,11 @@ export default function HomeEvento() {
           <h2 className="mb-12 text-3xl font-black sm:text-5xl">La escala de lo que viene</h2>
 
           {/* Carril horizontal: con tarjetas más grandes se lee mejor cada
-              bloque que apretándolos en una rejilla. */}
-          <div className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
+              bloque que apretándolos en una rejilla. En escritorio se pasa con
+              flechas; en teléfono, deslizando. */}
+          <div className="relative">
+            <FlechasCarril id="carril-mundo" />
+            <div id="carril-mundo" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
             {TRANSFORMACION.map((x, i) => {
               const Icono = x.icono;
               return (
@@ -405,6 +439,7 @@ export default function HomeEvento() {
                 </motion.div>
               );
             })}
+            </div>
           </div>
         </div>
       </section>
@@ -421,7 +456,9 @@ export default function HomeEvento() {
           </p>
 
           {/* En teléfono se desliza: con siete áreas, apilarlas sería eterno */}
-          <div className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
+          <div className="relative">
+            <FlechasCarril id="carril-areas" />
+            <div id="carril-areas" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
             {AREAS.map(a => {
               const Icono = a.icono;
               return (
@@ -447,6 +484,7 @@ export default function HomeEvento() {
                 </div>
               );
             })}
+            </div>
           </div>
 
           <p className="mt-8 text-center font-mono text-sm leading-relaxed text-[#7c6fa0]">
