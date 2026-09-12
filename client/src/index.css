@@ -3056,11 +3056,14 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   text-shadow: 0 0 30px rgba(167, 139, 250, 0.55), 0 0 60px rgba(124, 58, 237, 0.3);
 }
 
-/* Áreas del festival: carril deslizable en teléfono, rejilla en escritorio */
-.iw-area-card { flex: 0 0 80%; min-width: 80%; }
-@media (min-width: 640px) {
-  .iw-area-card { flex: none; min-width: 0; }
+/* Tarjetas grandes en carril horizontal: se leen mejor que apretadas en
+   una rejilla, y el gesto de deslizar invita a recorrerlas todas. */
+.iw-card-grande {
+  flex: 0 0 82%;
+  min-width: 82%;
 }
+@media (min-width: 640px) { .iw-card-grande { flex: 0 0 48%; min-width: 48%; } }
+@media (min-width: 1024px) { .iw-card-grande { flex: 0 0 33%; min-width: 33%; } }
 .iw-areas-carril {
   scroll-snap-type: x mandatory;
   scrollbar-width: none;

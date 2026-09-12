@@ -99,11 +99,151 @@ export default function HomeEvento() {
     url: "https://isekaiworld.co/evento",
   });
 
+  /**
+   * Simulación de rango.
+   *
+   * Deja que el visitante se dé experiencia y vea el ascenso con la misma
+   * animación del evento. Vive solo en el navegador: no toca la base de datos
+   * ni requiere cuenta.
+   */
+  const [xpDemo, setXpDemo] = useState(0);
+  const [ascensoDemo, setAscensoDemo] = useState<string | null>(null);
+
+  const UMBRALES = [0, 60, 140, 240, 360, 500];
+  const rangoDe = (xp: number) => {
+    let i = 0;
+    UMBRALES.forEach((u, k) => { if (xp >= u) i = k; });
+    return RANGOS[i];
+  };
+
+  const rangoActualDemo = rangoDe(xpDemo);
+  const rangoDemo = rangoActualDemo.r;
+  const colorDemo = rangoActualDemo.color;
+
+  const siguienteDemo = (() => {
+    const i = UMBRALES.findIndex(u => xpDemo < u);
+    if (i === -1) return null;
+    const previo = UMBRALES[i - 1] ?? 0;
+    return {
+      rango: RANGOS[i].r,
+      faltan: UMBRALES[i] - xpDemo,
+      progreso: Math.round(((xpDemo - previo) / (UMBRALES[i] - previo)) * 100),
+    };
+  })();
+
+  const progresoDemo = siguienteDemo?.progreso ?? 100;
+
+  const sumarXp = (n: number) => {
+    const antes = rangoDe(xpDemo).r;
+    const nuevo = Math.min(500, xpDemo + n);
+    setXpDemo(nuevo);
+    const despues = rangoDe(nuevo).r;
+    if (despues !== antes) {
+      setAscensoDemo(despues);
+      try { navigator.vibrate?.([40, 60, 120]); } catch { /* no soportado */ }
+    }
+  };
+
   const irALista = () =>
     document.getElementById("lista-acceso")?.scrollIntoView({ behavior: "smooth" });
 
   return (
     <div className="min-h-screen bg-[#06040d] text-white">
+
+      {/* ── Anuncio de ascenso de la simulación ──
+          La misma secuencia que verán en el evento: la ventana se materializa,
+          el sello gira y late, y las partículas suben. */}
+      {ascensoDemo && (
+        <div
+          className="lp-overlay fixed inset-0 z-[200] flex items-center justify-center bg-black/88 px-6"
+          onClick={() => setAscensoDemo(null)}
+        >
+          <span
+            className="lp-fogonazo"
+            style={{
+              background: `radial-gradient(circle at 50% 45%, ${rangoDe(xpDemo).color}, transparent 65%)`,
+            }}
+          />
+
+          <div
+            className="lp-ventana lp-anuncio relative w-full max-w-sm overflow-hidden p-8 text-center"
+            onClick={e => e.stopPropagation()}
+            style={{
+              ["--lp-glow" as string]: `${rangoDe(xpDemo).color}66`,
+              ["--lp-glow-soft" as string]: `${rangoDe(xpDemo).color}22`,
+            }}
+          >
+            <span className="lp-brillo" />
+            <span className="lp-escaneo" />
+
+            {Array.from({ length: ascensoDemo === "S" ? 18 : 10 }, (_, i) => (
+              <span
+                key={i}
+                className="lp-particula"
+                style={{
+                  color: rangoDe(xpDemo).color,
+                  left: `${6 + (i * 88) / (ascensoDemo === "S" ? 18 : 10)}%`,
+                  animationDelay: `${0.4 + i * 0.13}s`,
+                  animationDuration: `${(ascensoDemo === "S" ? 1.9 : 2.4) + (i % 3) * 0.35}s`,
+                }}
+              />
+            ))}
+
+            <p className="lp-linea-1 mb-2 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
+              Notificación
+            </p>
+            <p className="lp-linea-2 mb-7 text-sm text-[#b8e6ff]">Has subido de rango</p>
+
+            <div
+              className={`lp-sello relative mx-auto mb-7 flex items-center justify-center rounded-full border-2 ${
+                ascensoDemo === "S" ? "h-36 w-36" : "h-28 w-28"
+              }`}
+              style={{ borderColor: rangoDe(xpDemo).color, color: rangoDe(xpDemo).color }}
+            >
+              <span className="lp-anillo lp-anillo-1" />
+              <span className="lp-anillo lp-anillo-2" />
+              {ascensoDemo === "S" && <span className="lp-aura" />}
+
+              <span
+                className="lp-glitch font-mono text-6xl font-black"
+                style={{ color: rangoDe(xpDemo).color }}
+              >
+                <span className="lp-glitch-capa lp-glitch-cian font-mono text-6xl font-black" aria-hidden="true">
+                  {ascensoDemo}
+                </span>
+                <span className="lp-glitch-capa lp-glitch-magenta font-mono text-6xl font-black" aria-hidden="true">
+                  {ascensoDemo}
+                </span>
+                {ascensoDemo}
+              </span>
+            </div>
+
+            <p className="lp-linea-3 text-lg font-black text-white">
+              RANGO {ascensoDemo} · {rangoDe(xpDemo).nombre.toUpperCase()}
+            </p>
+
+            {ascensoDemo === "S" && (
+              <div className="lp-linea-4 mt-4 rounded-lg border border-[#f43f5e]/40 bg-[#f43f5e]/10 p-4">
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#f43f5e]">
+                  Rango máximo
+                </p>
+                <p className="mt-1.5 text-sm leading-relaxed text-[#ffd0d8]">
+                  En el evento, llegar aquí te mete en la{" "}
+                  <strong className="text-white">batalla final</strong> por la pieza.
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={() => setAscensoDemo(null)}
+              className="lp-linea-4 mt-7 w-full rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20"
+              style={{ minHeight: 48 }}
+            >
+              Aceptar
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ═══ 1. EL SISTEMA HA DESPERTADO ═══ */}
       <section className="relative flex min-h-[92svh] items-center overflow-hidden">
@@ -234,7 +374,9 @@ export default function HomeEvento() {
           </p>
           <h2 className="mb-12 text-3xl font-black sm:text-5xl">La escala de lo que viene</h2>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {/* Carril horizontal: con tarjetas más grandes se lee mejor cada
+              bloque que apretándolos en una rejilla. */}
+          <div className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
             {TRANSFORMACION.map((x, i) => {
               const Icono = x.icono;
               return (
@@ -244,22 +386,22 @@ export default function HomeEvento() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, margin: "-60px" }}
                   transition={{ duration: 0.45, delay: i * 0.07 }}
-                  className="rounded-2xl border p-7"
+                  className="iw-card-grande rounded-2xl border p-8 sm:p-10"
                   style={{
                     borderColor: `${x.color}2e`,
                     background: `linear-gradient(150deg, ${x.color}0d, rgba(6,4,13,0.7))`,
                   }}
                 >
                   <div
-                    className="mb-5 flex h-11 w-11 items-center justify-center rounded-xl"
+                    className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl"
                     style={{ background: `${x.color}1f`, border: `1px solid ${x.color}44` }}
                   >
-                    <Icono size={20} style={{ color: x.color }} />
+                    <Icono size={26} style={{ color: x.color }} />
                   </div>
-                  <h3 className="mb-2.5 text-lg font-black uppercase tracking-tight text-white">
+                  <h3 className="mb-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
                     {x.titulo}
                   </h3>
-                  <p className="text-sm leading-relaxed text-[#a99fc4]">{x.texto}</p>
+                  <p className="text-[15px] leading-relaxed text-[#a99fc4]">{x.texto}</p>
                 </motion.div>
               );
             })}
@@ -279,23 +421,23 @@ export default function HomeEvento() {
           </p>
 
           {/* En teléfono se desliza: con siete áreas, apilarlas sería eterno */}
-          <div className="iw-areas-carril flex gap-4 overflow-x-auto pb-2 sm:grid sm:grid-cols-2 sm:overflow-visible lg:grid-cols-3">
+          <div className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
             {AREAS.map(a => {
               const Icono = a.icono;
               return (
                 <div
                   key={a.titulo}
-                  className="iw-area-card relative overflow-hidden rounded-2xl border p-7"
+                  className="iw-card-grande relative overflow-hidden rounded-2xl border p-8 sm:p-10"
                   style={{
                     borderColor: `${a.color}2a`,
                     background: `linear-gradient(160deg, ${a.color}0f, rgba(6,4,13,0.8))`,
                   }}
                 >
-                  <Icono size={24} style={{ color: a.color }} className="mb-5" />
-                  <h3 className="mb-2.5 text-lg font-black uppercase tracking-tight text-white">
+                  <Icono size={28} style={{ color: a.color }} className="mb-6" />
+                  <h3 className="mb-3 text-xl font-black uppercase tracking-tight text-white sm:text-2xl">
                     {a.titulo}
                   </h3>
-                  <p className="mb-5 text-sm leading-relaxed text-[#a99fc4]">{a.texto}</p>
+                  <p className="mb-6 text-[15px] leading-relaxed text-[#a99fc4]">{a.texto}</p>
                   <p
                     className="font-mono text-[10px] uppercase tracking-[0.25em]"
                     style={{ color: `${a.color}aa` }}
@@ -324,33 +466,88 @@ export default function HomeEvento() {
           <h2 className="mb-6 text-center text-3xl font-black sm:text-5xl">
             TU BOLETO ES EL COMIENZO.
           </h2>
-          <p className="mx-auto mb-14 max-w-2xl text-center text-[15px] leading-relaxed text-[#b9b0d4]">
-            Al entrar al Isekai World Fest, todos los visitantes comenzarán su aventura en
-            Rango E. Durante el evento podrás completar misiones, participar en actividades
-            y descubrir experiencias para conseguir EXP y aumentar tu rango.
+          <p className="mx-auto mb-12 max-w-2xl text-center text-[15px] leading-relaxed text-[#b9b0d4]">
+            Al entrar al Isekai World Fest, todos comenzarán su aventura en Rango E.
+            Completa misiones, participa en actividades y descubre experiencias para
+            conseguir EXP y subir de rango.
           </p>
 
-          {/* Escala visual */}
-          <div className="mb-14 flex flex-wrap items-center justify-center gap-2 sm:gap-4">
-            {RANGOS.map((x, i) => (
-              <div key={x.r} className="flex items-center gap-2 sm:gap-4">
+          {/* ── Simulación ──
+              Pruébalo aquí mismo: es más convincente ver el ascenso que leer
+              una explicación. Todo ocurre en el navegador, no se guarda nada. */}
+          <div className="mx-auto mb-16 max-w-lg">
+            <div className="lp-ventana p-7 sm:p-9">
+              <p className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">
+                Pruébalo ahora
+              </p>
+
+              <div className="mb-7 flex flex-col items-center">
                 <div
-                  className="flex h-11 w-11 items-center justify-center rounded-full border-2 font-mono text-lg font-black sm:h-16 sm:w-16 sm:text-2xl"
+                  className="mb-4 flex h-28 w-28 items-center justify-center rounded-full border-2 transition-all duration-500"
                   style={{
-                    borderColor: x.color,
-                    color: x.color,
-                    boxShadow: x.r === "S" ? `0 0 30px ${x.color}77` : `0 0 12px ${x.color}22`,
+                    borderColor: colorDemo,
+                    boxShadow: `0 0 30px ${colorDemo}55, inset 0 0 22px ${colorDemo}22`,
                   }}
                 >
-                  {x.r}
+                  <span
+                    className="font-mono text-5xl font-black transition-colors duration-500"
+                    style={{ color: colorDemo }}
+                  >
+                    {rangoDemo}
+                  </span>
                 </div>
-                {i < RANGOS.length - 1 && <span className="text-[#3a2f52]">›</span>}
+                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">
+                  Tu rango
+                </p>
               </div>
-            ))}
+
+              <div className="mb-2 flex items-end justify-between">
+                <span className="font-mono text-[11px] uppercase tracking-widest text-[#7dd8ff]">
+                  Experiencia
+                </span>
+                <span className="font-mono text-sm font-bold text-white">{xpDemo} EXP</span>
+              </div>
+
+              <div className="h-3 w-full overflow-hidden rounded-full bg-[#0d1c2b]">
+                <div
+                  className="h-full rounded-full transition-all duration-700"
+                  style={{
+                    width: `${progresoDemo}%`,
+                    background: `linear-gradient(90deg, ${colorDemo}, #7dd8ff)`,
+                    boxShadow: `0 0 14px ${colorDemo}88`,
+                  }}
+                />
+              </div>
+
+              <p className="mb-7 mt-3 text-center text-sm text-[#8fa8bd]">
+                {siguienteDemo
+                  ? <>Faltan <strong className="text-white">{siguienteDemo.faltan} EXP</strong> para el rango {siguienteDemo.rango}</>
+                  : "Has alcanzado el rango máximo"}
+              </p>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => sumarXp(80)}
+                  disabled={xpDemo >= 500}
+                  className="flex-1 rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-xs font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20 disabled:opacity-30"
+                  style={{ minHeight: 48 }}
+                >
+                  +80 EXP
+                </button>
+                <button
+                  onClick={() => { setXpDemo(0); setAscensoDemo(null); }}
+                  className="rounded-lg border border-white/15 px-5 font-mono text-xs font-bold uppercase tracking-widest text-[#5f7f96]"
+                  style={{ minHeight: 48 }}
+                >
+                  Reiniciar
+                </button>
+              </div>
+
+              <p className="mt-5 text-center text-[11px] leading-relaxed text-[#5f7f96]">
+                Así funcionará durante el evento. En el festival, cada EXP hay que ganarlo.
+              </p>
+            </div>
           </div>
-          <p className="mb-16 text-center font-mono text-sm text-[#7c6fa0]">
-            ¿Hasta dónde podrás llegar?
-          </p>
 
           {/* Detalle de cada rango */}
           <div className="flex flex-col gap-2.5">
