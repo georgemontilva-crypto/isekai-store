@@ -3028,3 +3028,47 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 }
 .iw-zonas-carril::-webkit-scrollbar { display: none; }
 .iw-zonas-carril > * { scroll-snap-align: start; }
+
+/* ── Landing del evento ───────────────────────────────────────────────────
+   Partículas de energía que ascienden en el hero, como el despertar del
+   Sistema. Se generan con CSS para no cargar nada. */
+@keyframes iw-particula-sube {
+  0%   { opacity: 0; transform: translateY(0) scale(0.5); }
+  12%  { opacity: 0.8; }
+  100% { opacity: 0; transform: translateY(-70vh) scale(1.2); }
+}
+.iw-particula-sistema {
+  position: absolute;
+  bottom: -10px;
+  width: 3px;
+  height: 3px;
+  border-radius: 9999px;
+  background: #a78bfa;
+  box-shadow: 0 0 10px #a78bfa, 0 0 20px #7c3aed;
+  animation: iw-particula-sube linear infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Titular con resplandor, al estilo de las ventanas de sistema */
+.iw-texto-sistema {
+  color: #c4b5fd;
+  text-shadow: 0 0 30px rgba(167, 139, 250, 0.55), 0 0 60px rgba(124, 58, 237, 0.3);
+}
+
+/* Áreas del festival: carril deslizable en teléfono, rejilla en escritorio */
+.iw-area-card { flex: 0 0 80%; min-width: 80%; }
+@media (min-width: 640px) {
+  .iw-area-card { flex: none; min-width: 0; }
+}
+.iw-areas-carril {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.iw-areas-carril::-webkit-scrollbar { display: none; }
+.iw-areas-carril > * { scroll-snap-align: start; }
+
+@media (prefers-reduced-motion: reduce) {
+  .iw-particula-sistema { display: none; }
+}
