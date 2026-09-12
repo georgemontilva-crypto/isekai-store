@@ -16,6 +16,8 @@ export default function Footer() {
   const { data: categories = [] } = trpc.categories.list.useQuery();
   const storeName = siteSettings?.["store_name"] ?? "Isekai World";
   const logoUrl = siteSettings?.["store_logo_dark_url"] ?? siteSettings?.["store_logo_url"] ?? null;
+  /** Igual que la cabecera: no se dibuja con valores de ejemplo */
+  const ajustesListos = siteSettings !== undefined;
   const logoHeightFooter = parseInt(siteSettings?.["store_logo_height_footer"] ?? "36");
 
   const antiSpam = useAntiSpam();
@@ -35,6 +37,11 @@ export default function Footer() {
   // Fuera de ahí (cosplay guild, perfiles de cosplayer, blog, etc.) no aplica.
   const [location] = useLocation();
   const showTrustBar = location === "/catalog" || location.startsWith("/product/");
+
+  // Sin datos todavía no se pinta: evita ver el nombre y los enlaces de la
+  // plantilla original durante un instante.
+  if (!ajustesListos) return null;
+
 
   return (
     <footer>

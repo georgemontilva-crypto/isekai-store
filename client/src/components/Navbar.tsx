@@ -341,6 +341,26 @@ export default function Navbar() {
 
   if (location.startsWith("/admin")) return null;
 
+  /**
+   * Mientras los ajustes viajan desde el servidor no se dibuja la cabecera.
+   *
+   * Antes se pintaba con los valores de la plantilla original —el nombre por
+   * defecto, sin logo, los anuncios de ejemplo— y al llegar los datos reales
+   * todo cambiaba de golpe. Ese salto se veía como si cargara la web vieja.
+   *
+   * Se reserva su altura para que el contenido de abajo no dé un brinco.
+   */
+  if (!ajustesListos) {
+    return (
+      <header
+        className="iw-header sticky top-0 z-50 bg-white"
+        style={{ paddingTop: "env(safe-area-inset-top)", height: 76 }}
+        aria-hidden="true"
+      />
+    );
+  }
+
+
   return (
     <>
       {/* TOP BAR */}
