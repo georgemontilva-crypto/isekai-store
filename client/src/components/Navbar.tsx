@@ -287,13 +287,22 @@ export default function Navbar() {
     .map(x => x.trim())
     .filter(Boolean)
     .slice(0, 12) || [];
-  if (topbarTexts.length === 0) topbarTexts.push(...announcements);
+  /**
+   * Sin textos propios no se muestra nada.
+   *
+   * Antes se caía a unos textos de ejemplo de la plantilla original, y como
+   * los ajustes tardan un instante en llegar, al recargar aparecían durante
+   * un momento anuncios que no eran los de la tienda.
+   */
+  const ajustesListos = siteSettings !== undefined;
   const storeName = siteSettings?.["store_name"] ?? "Isekai World";
   const logoHeight = parseInt(siteSettings?.["store_logo_height"] ?? "36");
 
   const { data: dbCategories } = trpc.categories.list.useQuery();
   const featuredCats = (dbCategories ?? []).filter(c => c.featured);
   const menuCategories = (featuredCats.length > 0 ? featuredCats : (dbCategories ?? [])).slice(0, 5);
+  // Igual con el menú: si las categorías aún no llegaron, no se dibuja nada
+  // en vez de mostrar las de la plantilla (Audífonos, Parlantes…).
   const collectionsMenu = menuCategories.map((cat, i) => ({
     label: cat.name,
     desc: "",
@@ -335,7 +344,10 @@ export default function Navbar() {
   return (
     <>
       {/* TOP BAR */}
-      {siteSettings?.["promo_bar_enabled"] !== "false" && (
+      {/* Solo cuando los ajustes ya llegaron y hay textos propios: antes se
+          mostraban los de ejemplo de la plantilla durante un instante. */}
+      {ajustesListos && topbarTexts.length > 0 &&
+       siteSettings?.["promo_bar_enabled"] !== "false" && (
       <div className="top-bar bg-[#111] text-white overflow-hidden">
         {/* Marquee infinito: la pista se duplica y se desplaza el 50 % de su
             ancho, así el bucle no tiene costura */}
