@@ -16,7 +16,7 @@
  *  - El nombre de la caché lleva versión: al subirlo se borran las anteriores.
  */
 
-const VERSION = 'v3';
+const VERSION = 'v4';
 const CACHE_PAGINAS = `isekai-paginas-${VERSION}`;
 const CACHE_RECURSOS = `isekai-recursos-${VERSION}`;
 
@@ -26,14 +26,19 @@ self.addEventListener('install', () => {
 });
 
 self.addEventListener('activate', (event) => {
+  // clients.claim() evita el paso intermedio en el que la versión vieja sigue
+  // respondiendo: era lo que hacía aparecer la web antigua un instante.
   event.waitUntil(
-    caches.keys().then((claves) =>
-      Promise.all(
-        claves
-          .filter((k) => k !== CACHE_PAGINAS && k !== CACHE_RECURSOS)
-          .map((k) => caches.delete(k)),
+    Promise.all([
+      self.clients.claim(),
+      caches.keys().then((claves) =>
+        Promise.all(
+          claves
+            .filter((k) => k !== CACHE_PAGINAS && k !== CACHE_RECURSOS)
+            .map((k) => caches.delete(k)),
+        ),
       ),
-    ).then(() => self.clients.claim()),
+    ]),
   );
 });
 
@@ -67,23 +72,17 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Páginas: primero la red, para no servir versiones viejas ──
+  // ── Páginas: SOLO de la red mientras haya conexión ──
+  // No se guardan en caché: una copia de HTML antigua apunta a archivos
+  // antiguos y hace reaparecer la web vieja durante un instante.
   const esDocumento = req.mode === 'navigate' ||
     (req.headers.get('accept') || '').includes('text/html');
 
   if (esDocumento) {
     event.respondWith(
-      fetch(req)
-        .then((resp) => {
-          if (resp.ok) {
-            const copia = resp.clone();
-            caches.open(CACHE_PAGINAS).then((c) => c.put(req, copia));
-          }
-          return resp;
-        })
-        .catch(() =>
-          caches.match(req).then((guardado) => guardado || caches.match('/')),
-        ),
+      fetch(req).catch(() =>
+        caches.match(req).then((guardado) => guardado || caches.match('/')),
+      ),
     );
     return;
   }

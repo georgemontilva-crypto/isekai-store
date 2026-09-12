@@ -68,14 +68,10 @@ if ('serviceWorker' in navigator) {
         reg.update().catch(() => {});
         setInterval(() => { reg.update().catch(() => {}); }, 30 * 60 * 1000);
 
-        // Cuando el nuevo service worker toma el control, se recarga una vez
-        // para que la pantalla muestre la versión actual.
-        let recargando = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (recargando) return;
-          recargando = true;
-          window.location.reload();
-        });
+        // No se recarga al cambiar de service worker: esa recarga mostraba la
+        // versión antigua un instante antes de saltar a la nueva. El nuevo se
+        // hace con el control por su cuenta y la siguiente navegación ya es
+        // correcta, sin parpadeo.
 
         reg.addEventListener('updatefound', () => {
           const nuevo = reg.installing;
