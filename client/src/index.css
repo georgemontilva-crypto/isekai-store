@@ -3015,3 +3015,16 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
     -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent);
   }
 }
+
+/* Zonas del evento: carril deslizable en teléfono, rejilla en escritorio */
+.iw-zona-card { flex: 0 0 78%; min-width: 78%; }
+@media (min-width: 640px) {
+  .iw-zona-card { flex: none; min-width: 0; }
+}
+.iw-zonas-carril {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.iw-zonas-carril::-webkit-scrollbar { display: none; }
+.iw-zonas-carril > * { scroll-snap-align: start; }

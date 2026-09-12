@@ -171,6 +171,9 @@ const PAGES: PageGroup[] = [
   {
     page: "Portada del evento",
     slots: [
+      { kind: "site", key: "wf_intro_bg", label: "Fondo de la presentación",
+        where: "Detrás del texto «Próximamente · Isekai World Fest» en la portada.",
+        spec: "Horizontal, ~1920 × 1080 px. Se le aplica un velo oscuro encima." },
       { kind: "site", key: "wf_slide_1_image", label: "Portada evento — slide 1",
         where: "Carrusel de la página de inicio, debajo del hero.",
         spec: "Horizontal, ~1920 × 1080 px. El texto va sobre un degradado a la izquierda." },

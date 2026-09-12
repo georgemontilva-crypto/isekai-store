@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { motion } from "framer-motion";
 import {
-  Gamepad2, Users, Sparkles, Store, ArrowRight, ShoppingBag, Ticket,
+  Gamepad2, Users, Sparkles, Store, ArrowRight, Lock, Star, Swords, Trophy,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
@@ -19,6 +19,15 @@ import { useAntiSpam } from "@/hooks/useAntiSpam";
  */
 
 const ZONAS = [
+  {
+    id: "redcarpet",
+    icono: Star,
+    titulo: "Red Carpet",
+    frase: "La alfombra roja de los cosplayers.",
+    detalle: "Desfile, fotógrafos y un espacio reservado para quienes llevan meses preparando su personaje.",
+    color: "#f43f5e",
+    destacada: true,
+  },
   {
     id: "gamer",
     icono: Gamepad2,
@@ -51,12 +60,17 @@ const ZONAS = [
     detalle: "Props, figuras, arte original y piezas que no vas a encontrar en otro sitio.",
     color: "#fbbf24",
   },
+  // Tres zonas por revelar: el hueco también cuenta la historia
+  { id: "x1", icono: Lock, titulo: "Por revelar", frase: "Zona clasificada.", detalle: "Se anunciará más cerca de la fecha.", color: "#5f7f96", oculta: true },
+  { id: "x2", icono: Lock, titulo: "Por revelar", frase: "Zona clasificada.", detalle: "Se anunciará más cerca de la fecha.", color: "#5f7f96", oculta: true },
+  { id: "x3", icono: Lock, titulo: "Por revelar", frase: "Zona clasificada.", detalle: "Se anunciará más cerca de la fecha.", color: "#5f7f96", oculta: true },
 ];
 
 export default function HomeEvento() {
   const { data: settings } = trpc.settings.getAll.useQuery();
   const heroImg = settings?.["worldfest_hero_image"] ?? "";
   const teaserImg = settings?.["worldfest_teaser_image"] ?? "";
+  const introBg = settings?.["wf_intro_bg"] ?? settings?.["worldfest_hero_image"] ?? "";
 
   /**
    * Carrusel propio del evento: sus slides se configuran aparte de los de la
@@ -89,108 +103,105 @@ export default function HomeEvento() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
 
-      {/* ── Portada ── */}
-      <section className="relative flex min-h-[88svh] items-center overflow-hidden">
-        {heroImg && (
-          <img
-            src={heroImg}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover"
-          />
+      {/* El carrusel abre la página: es lo primero que se ve. */}
+      <div className="pt-4">
+        <HeroCarousel slides={slidesEvento} />
+      </div>
+
+      {/* ── Presentación del evento ──
+          Con imagen de fondo propia: el texto necesita algo detrás para no
+          quedar flotando sobre negro. */}
+      <section className="relative overflow-hidden px-6 py-20 lg:px-16 lg:py-24">
+        {introBg && (
+          <>
+            <img src={introBg} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <div className="absolute inset-0 bg-[#0a0a0a]/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-transparent to-[#0a0a0a]" />
+          </>
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/70 via-[#0a0a0a]/60 to-[#0a0a0a]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0a0a0a] via-transparent to-transparent" />
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 lg:px-16">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-            className="max-w-2xl"
-          >
-            <p className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
-              [ Próximamente ]
-            </p>
-            <h1 className="mb-5 text-4xl font-black leading-[1.05] sm:text-6xl lg:text-7xl">
-              Isekai
-              <br />
-              World Fest
-            </h1>
-            <p className="mb-9 max-w-xl text-base leading-relaxed text-[#b4c6d8] sm:text-lg">
-              Dos días para cruzar a otro mundo. Torneos, cosplay, experiencias
-              que no vas a ver en otro sitio y las marcas que mueven esta cultura.
-            </p>
-
-            <div className="flex flex-wrap gap-3">
-              <Link
-                href="/world-fest"
-                className="inline-flex items-center gap-2 rounded-xl bg-[#e5007d] px-7 py-4 text-sm font-bold text-white transition-transform hover:scale-[1.03]"
-              >
-                <Ticket size={17} /> Ya tengo mi entrada
-              </Link>
-              <Link
-                href="/tienda"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/20 px-7 py-4 text-sm font-bold text-white transition-colors hover:bg-white/10"
-              >
-                <ShoppingBag size={17} /> Ver la tienda
-              </Link>
-            </div>
-          </motion.div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="relative z-10 mx-auto max-w-3xl text-center"
+        >
+          <p className="mb-4 font-mono text-[11px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
+            [ Próximamente ]
+          </p>
+          <h1 className="mb-5 text-4xl font-black leading-[1.05] sm:text-6xl">
+            Isekai World Fest
+          </h1>
+          <p className="mx-auto max-w-2xl text-base leading-relaxed text-[#b4c6d8] sm:text-lg">
+            Dos días para cruzar a otro mundo. Un evento tematizado de principio a fin,
+            donde no vienes a mirar: vienes a subir de rango.
+          </p>
+        </motion.div>
       </section>
 
-      {/* Carrusel del evento, debajo de la portada */}
-      {slidesEvento.length > 0 && (
-        <div className="pt-4">
-          <HeroCarousel slides={slidesEvento} />
-        </div>
-      )}
+      {/* ── El sistema ──
+          Es lo que diferencia al evento: no se viene a mirar, se viene a
+          subir de rango. Se cuenta con la estética de las ventanas de
+          sistema de Solo Leveling. */}
+      <section className="border-y border-[#38bdf8]/15 bg-gradient-to-b from-[#040a12] to-[#0a0a0a] px-6 py-20 lg:px-16 lg:py-24">
+        <div className="mx-auto max-w-4xl">
+          <p className="mb-3 text-center font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#7dd8ff]">
+            [ Sistema activo ]
+          </p>
+          <h2 className="mb-4 text-center text-3xl font-black sm:text-5xl">
+            Todos empiezan en <span className="text-[#8a8a9c]">rango E</span>
+          </h2>
+          <p className="mx-auto mb-12 max-w-2xl text-center text-[15px] leading-relaxed text-[#9db8d4]">
+            El festival funciona como un sistema de progresión. Completa actividades por
+            las zonas, acumula experiencia y sube de rango. Solo quienes lleguen a{" "}
+            <strong className="text-[#f43f5e]">rango S</strong> entran en el sorteo final.
+          </p>
 
-      {/* ── Qué habrá ── */}
-      <section className="mx-auto max-w-6xl px-6 py-20 lg:px-16 lg:py-28">
-        <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#5db4ff]">
-          [ Qué te vas a encontrar ]
-        </p>
-        <h2 className="mb-4 text-3xl font-black sm:text-5xl">
-          Cuatro zonas.
-          <br />
-          <span className="text-[#e5007d]">Un solo mundo.</span>
-        </h2>
-        <p className="mb-12 max-w-2xl text-[15px] leading-relaxed text-[#9db8d4]">
-          Todavía no lo contamos todo. Sí podemos adelantarte por dónde va a ir la cosa.
-        </p>
-
-        <div className="grid gap-4 sm:grid-cols-2">
-          {ZONAS.map((z, i) => {
-            const Icono = z.icono;
-            return (
-              <motion.div
-                key={z.id}
-                initial={{ opacity: 0, y: 18 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-60px" }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="group relative overflow-hidden rounded-2xl border p-7 transition-colors"
-                style={{
-                  borderColor: `${z.color}33`,
-                  background: `linear-gradient(150deg, ${z.color}0f, rgba(10,10,10,0.6))`,
-                }}
-              >
+          {/* Escala de rangos */}
+          <div className="mb-12 flex items-center justify-center gap-2 sm:gap-4">
+            {[
+              { r: "E", c: "#8a8a9c" }, { r: "D", c: "#4ade80" }, { r: "C", c: "#38bdf8" },
+              { r: "B", c: "#a78bfa" }, { r: "A", c: "#fbbf24" }, { r: "S", c: "#f43f5e" },
+            ].map((x, i, arr) => (
+              <div key={x.r} className="flex items-center gap-2 sm:gap-4">
                 <div
-                  className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
-                  style={{ background: `${z.color}1f`, border: `1px solid ${z.color}44` }}
+                  className="flex h-10 w-10 items-center justify-center rounded-full border-2 font-mono text-base font-black sm:h-14 sm:w-14 sm:text-xl"
+                  style={{
+                    borderColor: x.c,
+                    color: x.c,
+                    boxShadow: x.r === "S" ? `0 0 24px ${x.c}66` : "none",
+                  }}
                 >
-                  <Icono size={22} style={{ color: z.color }} />
+                  {x.r}
                 </div>
+                {i < arr.length - 1 && (
+                  <span className="text-[#2a3f52]">›</span>
+                )}
+              </div>
+            ))}
+          </div>
 
-                <h3 className="mb-2 text-xl font-black text-white">{z.titulo}</h3>
-                <p className="mb-3 text-sm font-semibold" style={{ color: z.color }}>
-                  {z.frase}
-                </p>
-                <p className="text-sm leading-relaxed text-[#9db8d4]">{z.detalle}</p>
-              </motion.div>
-            );
-          })}
+          <div className="grid gap-4 sm:grid-cols-3">
+            {[
+              { icono: Swords, t: "Farmea experiencia", d: "Cada actividad completada suma puntos a tu pase. Las compras en stands aliados dan más." },
+              { icono: Sparkles, t: "Zonas tematizadas", d: "El recinto entero está ambientado. No es un salón con stands: es otro mundo." },
+              { icono: Trophy, t: "Llega a rango S", d: "El sorteo final es solo para quienes lleguen arriba. No se rifa entre todos." },
+            ].map(x => {
+              const Icono = x.icono;
+              return (
+                <div key={x.t} className="rounded-2xl border border-[#38bdf8]/20 bg-[#38bdf8]/[0.04] p-6">
+                  <Icono size={22} className="mb-4 text-[#7dd8ff]" />
+                  <p className="mb-2 font-black text-white">{x.t}</p>
+                  <p className="text-sm leading-relaxed text-[#9db8d4]">{x.d}</p>
+                </div>
+              );
+            })}
+          </div>
+
+          <p className="mt-10 text-center text-sm text-[#5f7f96]">
+            Habrá invitados especiales. Todavía no decimos quiénes.
+          </p>
         </div>
       </section>
 
