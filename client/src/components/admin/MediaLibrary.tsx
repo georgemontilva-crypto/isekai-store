@@ -36,8 +36,11 @@ export default function MediaLibrary({ onGoToTab }: Props) {
     setError("");
     try {
       for (const file of Array.from(files)) {
-        if (file.size > 10 * 1024 * 1024) {
-          setError(`"${file.name}" supera los 10 MB y no se subió.`);
+        // Los videos pesan más por naturaleza, así que tienen su propio tope
+        const esVideo = /^video\//.test(file.type);
+        const tope = esVideo ? 20 : 10;
+        if (file.size > tope * 1024 * 1024) {
+          setError(`"${file.name}" supera los ${tope} MB y no se subió.`);
           continue;
         }
         const base64 = await new Promise<string>((resolve, reject) => {

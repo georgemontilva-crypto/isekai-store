@@ -29,8 +29,10 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
 
   const handleUpload = async (file: File | null) => {
     if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      setError("El archivo no puede superar 10 MB");
+    const esVideo = /^video\//.test(file.type);
+    const tope = esVideo ? 20 : 10;
+    if (file.size > tope * 1024 * 1024) {
+      setError(`El archivo no puede superar ${tope} MB`);
       return;
     }
     setUploading(true);
