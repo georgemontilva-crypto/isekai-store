@@ -439,7 +439,7 @@ export default function WorldFestPass() {
         {/* ── Mi rango ── */}
         {pestana === "rango" && (
           <>
-            <div className="lp-ventana mb-4 p-6 sm:p-8">
+            <div className="lp-ventana mb-4 p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
               <div className="mb-7 flex flex-col items-center text-center">
                 <div
                   className="mb-4 flex h-32 w-32 items-center justify-center rounded-full border-2"
@@ -487,7 +487,7 @@ export default function WorldFestPass() {
             </div>
 
             {/* Escala de rangos */}
-            <div className="lp-ventana p-6 sm:p-8">
+            <div className="lp-ventana p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
               <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
                 Escala
               </p>
@@ -530,7 +530,7 @@ export default function WorldFestPass() {
 
         {/* ── Misiones ── */}
         {pestana === "misiones" && (
-          <div className="lp-ventana p-6 sm:p-8">
+          <div className="lp-ventana p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
             <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
               Misiones disponibles
             </p>
@@ -594,7 +594,7 @@ export default function WorldFestPass() {
         {/* ── Perfil ── */}
         {pestana === "perfil" && (
           <>
-            <div className="lp-ventana mb-4 p-6 sm:p-8">
+            <div className="lp-ventana mb-4 p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
               <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
                 Cazador
               </p>
@@ -618,7 +618,7 @@ export default function WorldFestPass() {
             </div>
 
             {data.historial.length > 0 && (
-              <div className="lp-ventana p-6 sm:p-8">
+              <div className="lp-ventana p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
                 <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
                   Registro de actividad
                 </p>

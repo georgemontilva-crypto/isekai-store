@@ -575,8 +575,11 @@ export default function HomeEvento() {
               Pruébalo aquí mismo: es más convincente ver el ascenso que leer
               una explicación. Todo ocurre en el navegador, no se guarda nada. */}
           <div className="mx-auto mb-16 max-w-lg">
-            <div className="lp-ventana p-7 sm:p-9">
-              <p className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">
+            <div
+              className="lp-ventana p-7 sm:p-9"
+              style={{ ["--lp-rango" as string]: colorDemo }}
+            >
+              <p className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: colorDemo }}>
                 Pruébalo ahora
               </p>
 
@@ -601,7 +604,7 @@ export default function HomeEvento() {
               </div>
 
               <div className="mb-2 flex items-end justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-[#7dd8ff]">
+                <span className="font-mono text-[11px] uppercase tracking-widest" style={{ color: colorDemo }}>
                   Experiencia
                 </span>
                 <span className="font-mono text-sm font-bold text-white">{xpDemo} EXP</span>
@@ -628,8 +631,13 @@ export default function HomeEvento() {
                 <button
                   onClick={() => sumarXp(80)}
                   disabled={xpDemo >= 500}
-                  className="flex-1 rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-xs font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20 disabled:opacity-30"
-                  style={{ minHeight: 48 }}
+                  className="ev-notch ev-press flex-1 border font-mono text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-30"
+                  style={{
+                    minHeight: 48,
+                    borderColor: `${colorDemo}80`,
+                    background: `${colorDemo}1a`,
+                    color: colorDemo,
+                  }}
                 >
                   +80 EXP
                 </button>
