@@ -175,7 +175,7 @@ export default function Account() {
           <div className="w-full max-w-2xl mx-auto mb-6 px-4">
             <Link
               href="/cosplay/dashboard"
-              className="flex items-center justify-between w-full bg-[#0a0a0a] text-white px-5 py-4 rounded-2xl hover:bg-[#1e1e1e] transition-colors border border-white/10 group"
+              className="flex items-center justify-between w-full bg-[#0a0a0a] text-white px-5 py-4 ev-notch hover:bg-[#1e1e1e] transition-colors border border-white/10 group"
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#e5007d]/10 border border-[#e5007d]/30 flex items-center justify-center flex-shrink-0">
@@ -198,7 +198,7 @@ export default function Account() {
           <div className="w-full max-w-2xl mx-auto mb-6 px-4">
             <Link
               href="/vender"
-              className="flex items-center justify-between w-full bg-[#0a0a0a] text-white px-5 py-4 rounded-2xl hover:bg-[#1e1e1e] transition-colors border border-[#e5007d]/40 group"
+              className="flex items-center justify-between w-full bg-[#0a0a0a] text-white px-5 py-4 ev-notch hover:bg-[#1e1e1e] transition-colors border border-[#e5007d]/40 group"
             >
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 rounded-full bg-[#e5007d]/10 border border-[#e5007d]/30 flex items-center justify-center flex-shrink-0">
@@ -257,11 +257,11 @@ export default function Account() {
                 {ordersLoading ? (
                   <div className="space-y-3">
                     {[1, 2, 3].map(i => (
-                      <div key={i} className="h-20 rounded-2xl bg-[#f5f5f5] animate-pulse" />
+                      <div key={i} className="h-20 ev-notch bg-[#f5f5f5] animate-pulse" />
                     ))}
                   </div>
                 ) : orders.length === 0 ? (
-                  <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                  <div className="text-center py-16 ev-notch border border-[#ebebeb]">
                     <Package className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
                     <p className="font-medium text-[#1a1a1a]">{t.account.noOrders}</p>
                     <p className="text-sm text-[#888] mt-1 mb-6">Explora el catálogo y realiza tu primera compra</p>
@@ -281,7 +281,7 @@ export default function Account() {
                           initial={{ opacity: 0, y: 8 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.04 }}
-                          className="rounded-2xl border border-[#ebebeb] bg-white overflow-visible"
+                          className="ev-notch border border-[#ebebeb] bg-white overflow-visible"
                         >
                           {/* Header */}
                           <button
@@ -338,7 +338,7 @@ export default function Account() {
                               >
                                 <div className="px-4 pb-5 pt-4 border-t border-[#f0f0f0]">
                                   {isCancelled ? (
-                                    <div className="py-3 px-4 rounded-xl bg-red-50 text-sm font-medium text-red-600 text-center">
+                                    <div className="py-3 px-4 ev-notch bg-red-50 text-sm font-medium text-red-600 text-center">
                                       Este pedido fue cancelado.
                                     </div>
                                   ) : (
@@ -348,7 +348,7 @@ export default function Account() {
                                         <div className="sm:hidden mt-4 flex justify-center">
                                           <img
                                             src="https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/ya%20casi%20listo-11-11.png"
-                                            className="w-full max-w-[280px] object-contain rounded-xl"
+                                            className="w-full max-w-[280px] object-contain ev-notch"
                                             style={{ animation: "fadeInUp 0.5s ease-out" }}
                                             alt=""
                                           />
@@ -359,7 +359,7 @@ export default function Account() {
 
                                   {/* Tracking card — only when shipped/delivered and data exists */}
                                   {hasTracking && (
-                                    <div className="mt-4 flex items-start gap-3 p-3.5 rounded-xl border border-[#ebebeb] bg-[#fafafa]">
+                                    <div className="mt-4 flex items-start gap-3 p-3.5 ev-notch border border-[#ebebeb] bg-[#fafafa]">
                                       <div className="w-8 h-8 rounded-full bg-[#16191f] flex items-center justify-center shrink-0">
                                         <MapPin className="w-4 h-4 text-white" />
                                       </div>
@@ -376,7 +376,7 @@ export default function Account() {
                                   )}
                                   {/* Comprobante de pago */}
                                   {(order as any).receiptUrl && (
-                                    <div className="mt-4 p-3.5 rounded-xl border border-[#ebebeb] bg-[#fafafa]">
+                                    <div className="mt-4 p-3.5 ev-notch border border-[#ebebeb] bg-[#fafafa]">
                                       <div className="flex items-center justify-between gap-3 mb-2.5">
                                         <p className="font-semibold text-sm text-[#1a1a1a]">Comprobante de pago</p>
                                         <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${
@@ -406,7 +406,7 @@ export default function Account() {
                                         </a>
                                       ) : (
                                         <a href={(order as any).receiptUrl} target="_blank" rel="noreferrer">
-                                          <img src={(order as any).receiptUrl} alt="Comprobante de pago" className="max-h-56 rounded-xl border border-[#ebebeb] object-contain" />
+                                          <img src={(order as any).receiptUrl} alt="Comprobante de pago" className="max-h-56 ev-notch border border-[#ebebeb] object-contain" />
                                         </a>
                                       )}
                                     </div>
@@ -427,10 +427,10 @@ export default function Account() {
             {activeTab === "wishlist" && (
               wishlistLoading ? (
                 <div className="grid grid-cols-2 gap-3">
-                  {[1,2,3,4].map(i => <div key={i} className="h-48 rounded-2xl bg-[#f5f5f5] animate-pulse" />)}
+                  {[1,2,3,4].map(i => <div key={i} className="h-48 ev-notch bg-[#f5f5f5] animate-pulse" />)}
                 </div>
               ) : wishlistItems.length === 0 ? (
-                <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                <div className="text-center py-16 ev-notch border border-[#ebebeb]">
                   <Heart className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
                   <p className="font-medium text-[#1a1a1a]">No tienes productos guardados aún</p>
                   <p className="text-sm text-[#888] mt-1 mb-6">Guarda tus productos favoritos para encontrarlos fácilmente</p>
@@ -451,7 +451,7 @@ export default function Account() {
                       transition={{ delay: i * 0.04 }}
                     >
                       <Link href={`/product/${item.product.slug}`}>
-                        <div className="rounded-2xl border border-[#ebebeb] overflow-hidden hover:border-[#1a1a1a]/20 transition-colors bg-white">
+                        <div className="ev-notch border border-[#ebebeb] overflow-hidden hover:border-[#1a1a1a]/20 transition-colors bg-white">
                           <div className="aspect-square bg-[#f5f5f5] overflow-hidden">
                             {item.product.imageUrl
                               ? <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
@@ -472,7 +472,7 @@ export default function Account() {
 
             {/* COUPONS */}
             {activeTab === "coupons" && (
-              <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+              <div className="text-center py-16 ev-notch border border-[#ebebeb]">
                 <Ticket className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
                 <p className="font-medium text-[#1a1a1a]">No tienes cupones activos</p>
                 <p className="text-sm text-[#888] mt-1">Los cupones aparecerán aquí cuando los recibas</p>
@@ -488,7 +488,7 @@ export default function Account() {
                 </div>
 
                 {/* Disclaimer */}
-                <div className="flex gap-2.5 items-start bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3">
+                <div className="flex gap-2.5 items-start bg-amber-50 border border-amber-200 ev-notch px-4 py-3">
                   <span className="text-amber-500 text-base shrink-0 mt-0.5">⚠️</span>
                   <p className="text-xs text-amber-800 leading-relaxed">
                     <strong>Importante:</strong> El pedido solo será enviado una vez que se complete el pago total. Disponible únicamente para productos con valor superior a <strong>$150 USD</strong>.
@@ -496,7 +496,7 @@ export default function Account() {
                 </div>
 
                 {installmentPlans.length === 0 ? (
-                  <div className="text-center py-16 rounded-2xl border border-[#ebebeb]">
+                  <div className="text-center py-16 ev-notch border border-[#ebebeb]">
                     <Layers className="w-10 h-10 text-[#ccc] mx-auto mb-3" />
                     <p className="font-medium text-[#1a1a1a]">No tienes planes activos</p>
                     <p className="text-sm text-[#888] mt-1 mb-6">Reserva productos elegibles desde la página del producto</p>
@@ -521,7 +521,7 @@ export default function Account() {
                       const approvedCount = (plan.payments as any[]).filter((p: any) => p.status === "approved").length;
 
                       return (
-                        <div key={plan.id} className="rounded-2xl border border-[#ebebeb] overflow-hidden bg-white">
+                        <div key={plan.id} className="ev-notch border border-[#ebebeb] overflow-hidden bg-white">
                           <div className="p-4">
                             <div className="flex items-start justify-between gap-4">
                               <div className="flex-1 min-w-0">
@@ -593,7 +593,7 @@ export default function Account() {
                                     <select
                                       value={reserveMethod}
                                       onChange={e => setReserveMethod(e.target.value)}
-                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] rounded-xl px-3 py-2 focus:outline-none"
+                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] ev-notch px-3 py-2 focus:outline-none"
                                     >
                                       <option value="pago_movil">Pago Móvil</option>
                                       <option value="usdt">USDT (Tron / TRC20)</option>
@@ -608,7 +608,7 @@ export default function Account() {
                                     <input
                                       value={reserveRef}
                                       onChange={e => setReserveRef(e.target.value)}
-                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] rounded-xl px-3 py-2 focus:outline-none focus:border-[#1a1a1a]/30"
+                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] ev-notch px-3 py-2 focus:outline-none focus:border-[#1a1a1a]/30"
                                       placeholder="Número de referencia"
                                     />
                                   </div>
@@ -618,7 +618,7 @@ export default function Account() {
                                     <input
                                       value={reserveHolder}
                                       onChange={e => setReserveHolder(e.target.value)}
-                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] rounded-xl px-3 py-2 focus:outline-none focus:border-[#1a1a1a]/30"
+                                      className="mt-1 w-full text-sm bg-[#f5f5f5] border border-[#ebebeb] ev-notch px-3 py-2 focus:outline-none focus:border-[#1a1a1a]/30"
                                       placeholder="Nombre de quien pagó"
                                     />
                                   </div>
@@ -626,7 +626,7 @@ export default function Account() {
                                   <div>
                                     <label className="text-xs text-[#888]">Comprobante (JPG, PNG, PDF) *</label>
                                     <div
-                                      className="mt-1 border-2 border-dashed border-[#ebebeb] rounded-xl p-3 cursor-pointer hover:border-[#1a1a1a]/20 transition-colors flex items-center gap-2"
+                                      className="mt-1 border-2 border-dashed border-[#ebebeb] ev-notch p-3 cursor-pointer hover:border-[#1a1a1a]/20 transition-colors flex items-center gap-2"
                                       onClick={() => reserveFileRef.current?.click()}
                                     >
                                       <Upload className="w-4 h-4 text-[#888]" />
@@ -710,7 +710,7 @@ export default function Account() {
             {/* PROFILE */}
             {activeTab === "profile" && (
               <div className="space-y-4">
-                <div className="rounded-2xl border border-[#ebebeb] divide-y divide-[#ebebeb]">
+                <div className="ev-notch border border-[#ebebeb] divide-y divide-[#ebebeb]">
                   <div className="flex items-center gap-3 px-5 py-4">
                     <User className="w-4 h-4 text-[#888] shrink-0" />
                     <div className="flex-1 min-w-0">

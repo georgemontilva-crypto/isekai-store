@@ -82,8 +82,8 @@ function StatsSection() {
 
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat, i) => (
-          <div key={i} className="bg-white rounded-2xl p-4 border border-[#e5e5e5] shadow-sm">
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center mb-3"
+          <div key={i} className="bg-white ev-notch p-4 border border-[#e5e5e5] shadow-sm">
+            <div className="w-9 h-9 ev-notch flex items-center justify-center mb-3"
               style={{ background: stat.color + '15' }}>
               <stat.icon size={18} style={{ color: stat.color }} />
             </div>
@@ -93,7 +93,7 @@ function StatsSection() {
         ))}
       </div>
 
-      <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+      <div className="bg-white ev-notch border border-[#e5e5e5] overflow-hidden shadow-sm">
         <div className="px-4 py-3 border-b border-[#e5e5e5]">
           <p className="font-bold text-sm text-[#111]">Pedidos recientes</p>
         </div>
@@ -170,7 +170,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
       <div className="flex items-center gap-3 border-b border-[var(--iw-border)] bg-[var(--iw-surface)] px-4 py-3">
         <button
           onClick={() => setFiltrosAbiertos(true)}
-          className="flex items-center gap-2 rounded-xl border border-[var(--iw-border)] px-3.5 text-sm font-bold text-[var(--iw-text)]"
+          className="flex items-center gap-2 ev-notch border border-[var(--iw-border)] px-3.5 text-sm font-bold text-[var(--iw-text)]"
           style={{ minHeight: 42, WebkitTapHighlightColor: 'transparent' }}
         >
           <SlidersHorizontal size={16} />
@@ -216,7 +216,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
                     <button
                       key={id}
                       onClick={() => setTipoLista(id)}
-                      className={`flex-1 rounded-xl text-sm font-bold transition-colors ${
+                      className={`flex-1 ev-notch text-sm font-bold transition-colors ${
                         tipoLista === id ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
                       }`}
                       style={{ minHeight: 48 }}
@@ -234,7 +234,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
                     <button
                       key={st}
                       onClick={() => setStatusFilter(st)}
-                      className={`rounded-xl text-sm font-bold transition-colors ${
+                      className={`ev-notch text-sm font-bold transition-colors ${
                         statusFilter === st ? 'bg-[#e5007d] text-white' : 'bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]'
                       }`}
                       style={{ minHeight: 48 }}
@@ -247,7 +247,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
 
               <button
                 onClick={() => setFiltrosAbiertos(false)}
-                className="w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white"
+                className="w-full ev-notch bg-[#e5007d] text-sm font-bold text-white"
                 style={{ minHeight: 52 }}
               >
                 Ver {orders.length} pedido(s)
@@ -259,7 +259,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
 
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
         <button onClick={onCreateOrder}
-          className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white rounded-2xl font-bold text-sm mb-1 transition-transform active:scale-[0.98]"
+          className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white ev-notch font-bold text-sm mb-1 transition-transform active:scale-[0.98]"
           style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}>
           <Plus size={16} /> Registrar pedido ya pagado
         </button>
@@ -267,7 +267,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
           <div className="text-center py-16 text-[#999] text-sm">No hay pedidos</div>
         )}
         {orders.map((order: any) => (
-          <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm">
+          <div key={order.id} className="bg-white ev-notch border border-[#e5e5e5] shadow-sm">
 
             <button
               onClick={() => setExpanded(expanded === order.id ? null : order.id)}
@@ -327,7 +327,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
                     <p className="text-[#999] text-xs font-semibold uppercase tracking-wider mb-2">Productos</p>
                     <div className="flex flex-col gap-2">
                       {order.items.map((item: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between bg-[#f8f8f8] rounded-xl p-2">
+                        <div key={i} className="flex items-center justify-between bg-[#f8f8f8] ev-notch p-2">
                           <p className="text-sm text-[#111]">{item.productName}</p>
                           <div className="text-right">
                             <p className="text-xs text-[#999]">×{item.quantity}</p>
@@ -351,7 +351,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
                         key={step.key}
                         onClick={() => !isPast && !isCurrentStatus && updateStatus.mutate({ id: order.id, status: step.key as any })}
                         disabled={isPast || isCurrentStatus}
-                        className={`py-3 rounded-xl text-xs font-bold transition-all ${
+                        className={`py-3 ev-notch text-xs font-bold transition-all ${
                           isCurrentStatus
                             ? 'text-white shadow-sm'
                             : isPast
@@ -375,7 +375,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
                     }
                   }}
                   disabled={borrarPedido.isPending}
-                  className="mt-4 w-full rounded-xl border border-red-500/40 text-xs font-bold text-red-500 active:scale-95 transition-transform disabled:opacity-50"
+                  className="mt-4 w-full ev-notch border border-red-500/40 text-xs font-bold text-red-500 active:scale-95 transition-transform disabled:opacity-50"
                   style={{ minHeight: 44 }}
                 >
                   Eliminar pedido
@@ -408,7 +408,7 @@ function PaymentsSection() {
         </div>
       )}
       {orders.map((order: any) => (
-        <div key={order.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+        <div key={order.id} className="bg-white ev-notch border border-[#e5e5e5] overflow-hidden shadow-sm">
           <div className="p-4">
             <div className="flex items-start justify-between mb-3">
               <div className="min-w-0 flex-1">
@@ -427,7 +427,7 @@ function PaymentsSection() {
 
             {order.receiptUrl && (
               <a href={order.receiptUrl} target="_blank" rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 w-full bg-blue-50 text-blue-600 py-3 rounded-xl text-sm font-semibold mb-3 border border-blue-100">
+                className="flex items-center justify-center gap-2 w-full bg-blue-50 text-blue-600 py-3 ev-notch text-sm font-semibold mb-3 border border-blue-100">
                 <ExternalLink size={14} />
                 Ver comprobante
               </a>
@@ -437,14 +437,14 @@ function PaymentsSection() {
               <button
                 onClick={() => verifyPayment.mutate({ orderId: order.id, approved: true })}
                 disabled={verifyPayment.isPending}
-                className="flex-1 bg-green-500 text-white py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform disabled:opacity-40"
+                className="flex-1 bg-green-500 text-white py-3 ev-notch font-bold text-sm active:scale-95 transition-transform disabled:opacity-40"
               >
                 Aprobar
               </button>
               <button
                 onClick={() => verifyPayment.mutate({ orderId: order.id, approved: false })}
                 disabled={verifyPayment.isPending}
-                className="flex-1 bg-red-50 text-red-500 border border-red-200 py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform disabled:opacity-40"
+                className="flex-1 bg-red-50 text-red-500 border border-red-200 py-3 ev-notch font-bold text-sm active:scale-95 transition-transform disabled:opacity-40"
               >
                 Rechazar
               </button>
@@ -559,19 +559,19 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
       {/* Sub-tabs */}
       <div className="bg-white border-b border-[#e5e5e5] px-4 py-2 flex gap-2 overflow-x-auto">
         <button onClick={() => setSubTab('applications')}
-          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'applications' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          className={`flex-shrink-0 px-3 py-2 ev-notch text-xs font-bold transition-colors ${subTab === 'applications' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
           Solicitudes {(applications as any[]).length > 0 && `(${(applications as any[]).length})`}
         </button>
         <button onClick={() => setSubTab('cosplayers')}
-          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'cosplayers' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          className={`flex-shrink-0 px-3 py-2 ev-notch text-xs font-bold transition-colors ${subTab === 'cosplayers' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
           Activos ({(cosplayers as any[]).length})
         </button>
         <button onClick={() => setSubTab('activities')}
-          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'activities' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          className={`flex-shrink-0 px-3 py-2 ev-notch text-xs font-bold transition-colors ${subTab === 'activities' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
           Actividades
         </button>
         <button onClick={() => setSubTab('evaluations')}
-          className={`flex-shrink-0 px-3 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'evaluations' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          className={`flex-shrink-0 px-3 py-2 ev-notch text-xs font-bold transition-colors ${subTab === 'evaluations' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
           Evaluaciones {(submissionsData as any[]).filter((s: any) => s.status === 'pending').length > 0 && `(${(submissionsData as any[]).filter((s: any) => s.status === 'pending').length})`}
         </button>
       </div>
@@ -585,7 +585,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               <div className="text-center py-16 text-[#999] text-sm">No hay solicitudes pendientes</div>
             )}
             {(applications as any[]).map((app: any) => (
-              <div key={app.id} className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm">
+              <div key={app.id} className="bg-white ev-notch border border-[#e5e5e5] shadow-sm">
                 <div className="p-4">
                   <div className="flex items-center gap-3 mb-3">
                     {app.photo && (
@@ -606,20 +606,20 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   </div>
 
                   <button onClick={() => setViewApplication(app)}
-                    className="w-full border border-[#e5e5e5] text-[#666] py-2.5 rounded-xl text-xs font-semibold mb-2">
+                    className="w-full border border-[#e5e5e5] text-[#666] py-2.5 ev-notch text-xs font-semibold mb-2">
                     Ver solicitud completa
                   </button>
 
                   <div className="flex gap-2">
                     <button
                       onClick={() => { setApproveModal(app); setApproveForm({ totalFollowers: 0, tier: 'bronce' }); }}
-                      className="flex-1 bg-[#111] text-white py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform"
+                      className="flex-1 bg-[#111] text-white py-3 ev-notch font-bold text-sm active:scale-95 transition-transform"
                     >
                       Aprobar
                     </button>
                     <button
                       onClick={() => { setRejectModal(app); setRejectReason(''); }}
-                      className="flex-1 border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm active:scale-95 transition-transform"
+                      className="flex-1 border border-red-200 text-red-500 py-3 ev-notch font-bold text-sm active:scale-95 transition-transform"
                     >
                       Rechazar
                     </button>
@@ -635,7 +635,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
           <button
             onClick={() => cambiarVisibilidad.mutate({ visible: !miPerfil.visible })}
             disabled={cambiarVisibilidad.isPending}
-            className={`w-full flex items-center gap-3 rounded-2xl border px-4 text-left transition-colors ${
+            className={`w-full flex items-center gap-3 ev-notch border px-4 text-left transition-colors ${
               miPerfil.visible
                 ? 'border-[#e5007d] bg-[#e5007d]/10'
                 : 'border-[var(--iw-border)] bg-[var(--iw-surface)]'
@@ -660,7 +660,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
           <button
             key={cp.id}
             onClick={() => setViewCosplayer(cp)}
-            className="bg-white rounded-2xl border border-[#e5e5e5] shadow-sm p-4 w-full text-left"
+            className="bg-white ev-notch border border-[#e5e5e5] shadow-sm p-4 w-full text-left"
           >
             <div className="flex items-center gap-3 mb-3">
               {cp.photo && <img src={cp.photo} className="w-12 h-12 rounded-full object-cover flex-shrink-0" alt="" />}
@@ -685,7 +685,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
           <>
             <button
               onClick={() => setShowNewActivity(true)}
-              className="w-full bg-[#e5007d] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2"
+              className="w-full bg-[#e5007d] text-white py-3 ev-notch font-bold flex items-center justify-center gap-2"
             >
               <Plus size={18} />
               Nueva actividad
@@ -696,7 +696,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
             )}
 
             {(activitiesData as any[]).map((act: any) => (
-              <div key={act.id} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+              <div key={act.id} className="bg-white ev-notch border border-[#e5e5e5] overflow-hidden shadow-sm">
                 <button
                   onClick={() => setExpandedActivity(expandedActivity === act.id ? null : act.id)}
                   className="w-full px-4 py-4 flex items-center justify-between text-left"
@@ -751,7 +751,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                           : 'Sin fecha límite'}
                       </span>
                     </div>
-                    <div className="bg-[#f8f8f8] rounded-xl p-3">
+                    <div className="bg-[#f8f8f8] ev-notch p-3">
                       <p className="text-xs text-[#999] mb-1">Tickets por tier:</p>
                       <div className="grid grid-cols-5 gap-1 text-xs text-center">
                         {[['bronce', 1], ['plata', 1.5], ['oro', 2], ['diamante', 3], ['platino', 5]].map(([tier, mult]) => (
@@ -765,7 +765,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     <div className="flex gap-2">
                       <button
                         onClick={() => updateActivityMut.mutate({ id: act.id, active: !act.active })}
-                        className={`flex-1 py-2.5 rounded-xl text-xs font-bold border transition-colors ${
+                        className={`flex-1 py-2.5 ev-notch text-xs font-bold border transition-colors ${
                           act.active ? 'border-orange-200 text-orange-500 bg-orange-50' : 'border-green-200 text-green-500 bg-green-50'
                         }`}
                       >
@@ -773,7 +773,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                       </button>
                       <button
                         onClick={() => { if (confirm(`¿Eliminar "${act.title}"? Esta acción no se puede deshacer.`)) deleteActivity.mutate({ id: act.id }); }}
-                        className="flex-1 border border-red-200 text-red-500 bg-red-50 py-2.5 rounded-xl text-xs font-bold"
+                        className="flex-1 border border-red-200 text-red-500 bg-red-50 py-2.5 ev-notch text-xs font-bold"
                       >
                         Eliminar
                       </button>
@@ -795,7 +795,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               let evidenceUrls: string[] = [];
               try { evidenceUrls = JSON.parse(sub.evidenceUrl); } catch { evidenceUrls = [sub.evidenceUrl]; }
               return (
-                <div key={sub.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+                <div key={sub.id} className="bg-white ev-notch border border-[#e5e5e5] p-4 shadow-sm">
                   <div className="flex items-center gap-3 mb-3">
                     {sub.photo && <img src={sub.photo} className="w-10 h-10 rounded-full object-cover flex-shrink-0" />}
                     <div className="min-w-0 flex-1">
@@ -806,7 +806,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                       {sub.status === 'pending' ? 'Pendiente' : sub.status === 'approved' ? 'Aprobada' : 'Rechazada'}
                     </span>
                   </div>
-                  <div className="bg-[#f8f8f8] rounded-xl p-3 mb-3">
+                  <div className="bg-[#f8f8f8] ev-notch p-3 mb-3">
                     <p className="text-xs text-[#999] mb-0.5">Actividad</p>
                     <p className="text-sm font-semibold text-[#111]">{sub.activityTitle ?? '—'}</p>
                     <div className="flex flex-wrap items-center gap-2 text-xs text-[#999]">
@@ -827,7 +827,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   <p className="text-xs text-[#999] mb-3">Enviado: {new Date(sub.createdAt).toLocaleDateString('es-VE')}</p>
                   {sub.status === 'pending' && (
                     <button onClick={() => { setEvalModal(sub); setEvalPoints(sub.activityBasePoints ?? 100); }}
-                      className="w-full bg-[#111] text-white py-3 rounded-xl font-bold text-sm">
+                      className="w-full bg-[#111] text-white py-3 ev-notch font-bold text-sm">
                       Evaluar y aprobar
                     </button>
                   )}
@@ -841,7 +841,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
       {/* Modal evaluar submission */}
       {evalModal && (
         <div className="fixed inset-0 bg-black/70 z-[300] flex items-end justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl"
+          <div className="bg-white ev-notch w-full max-w-sm p-6 shadow-2xl"
             style={{ marginBottom: 'calc(env(safe-area-inset-bottom) + 16px)' }}>
             <h3 className="font-black text-[#111] mb-1">Evaluar submission</h3>
             <p className="text-xs text-[#999] mb-4">{evalModal.artisticName} — {evalModal.activityTitle}</p>
@@ -850,11 +850,11 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               const multiplier = MULTS[evalModal.tier ?? 'bronce'] ?? 1;
               const finalPoints = Math.round(evalPoints * multiplier);
               return (
-                <div className="bg-[#f8f8f8] rounded-xl p-4 border border-[#e5e5e5] mb-4">
+                <div className="bg-[#f8f8f8] ev-notch p-4 border border-[#e5e5e5] mb-4">
                   <p className="text-xs text-[#999] mb-3">Puntos base de la actividad</p>
                   <input type="number" value={evalPoints} min={0}
                     onChange={e => setEvalPoints(parseInt(e.target.value) || 0)}
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-[#111] mb-3 bg-white" />
+                    className="w-full border border-[#e5e5e5] ev-notch px-4 py-2.5 text-sm outline-none focus:border-[#111] mb-3 bg-white" />
                   <div className="flex items-center justify-between">
                     <p className="text-xs text-[#999]">{evalPoints} base × {multiplier} ({evalModal.tier})</p>
                     <div className="text-right">
@@ -867,19 +867,19 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
             })()}
             <div className="flex gap-2">
               <button onClick={() => setEvalModal(null)}
-                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm font-semibold">
+                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm font-semibold">
                 Cancelar
               </button>
               <button
                 onClick={() => evaluateSub.mutate({ submissionId: evalModal.id, pointsAwarded: evalPoints, status: 'approved' })}
                 disabled={evaluateSub.isPending}
-                className="flex-1 bg-green-500 text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                className="flex-1 bg-green-500 text-white py-3 ev-notch text-sm font-bold disabled:opacity-40">
                 {evaluateSub.isPending ? 'Guardando...' : 'Aprobar'}
               </button>
               <button
                 onClick={() => evaluateSub.mutate({ submissionId: evalModal.id, pointsAwarded: 0, status: 'rejected' })}
                 disabled={evaluateSub.isPending}
-                className="flex-1 bg-red-50 text-red-500 border border-red-200 py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                className="flex-1 bg-red-50 text-red-500 border border-red-200 py-3 ev-notch text-sm font-bold disabled:opacity-40">
                 Rechazar
               </button>
             </div>
@@ -902,7 +902,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
             <div className="p-4 flex flex-col gap-4">
               {viewApplication.bannerImage && (
                 <button onClick={() => setLightboxImg(viewApplication.bannerImage)} className="w-full">
-                  <img src={viewApplication.bannerImage} className="w-full h-32 object-cover rounded-2xl" alt="" />
+                  <img src={viewApplication.bannerImage} className="w-full h-32 object-cover ev-notch" alt="" />
                 </button>
               )}
               {viewApplication.photo && (
@@ -911,7 +911,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                 </button>
               )}
 
-              <div className="bg-[#f8f8f8] rounded-2xl p-4 flex flex-col gap-2 text-sm">
+              <div className="bg-[#f8f8f8] ev-notch p-4 flex flex-col gap-2 text-sm">
                 <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-1">Datos personales</p>
                 <p><span className="text-[#999]">Nombre:</span> {viewApplication.fullName} {viewApplication.lastName}</p>
                 <p><span className="text-[#999]">Edad:</span> {viewApplication.age} años</p>
@@ -922,12 +922,12 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                 <p><span className="text-[#999]">Experiencia:</span> {viewApplication.experience} años</p>
               </div>
 
-              <div className="bg-[#f8f8f8] rounded-2xl p-4">
+              <div className="bg-[#f8f8f8] ev-notch p-4">
                 <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-3">Redes sociales</p>
                 <div className="flex flex-col gap-2">
                   {['instagram', 'tiktok', 'youtube', 'facebook', 'twitter'].filter(r => viewApplication[r]).map(r => (
                     <a key={r} href={viewApplication[r]} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-between text-sm bg-white rounded-xl px-3 py-2 border border-[#e5e5e5]">
+                      className="flex items-center justify-between text-sm bg-white ev-notch px-3 py-2 border border-[#e5e5e5]">
                       <span className="capitalize font-medium text-[#111]">{r}</span>
                       <span className="text-[#e5007d] text-xs ml-2 max-w-[200px] truncate">{viewApplication[r]}</span>
                     </a>
@@ -936,13 +936,13 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               </div>
 
               {viewApplication.bio && (
-                <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                <div className="bg-[#f8f8f8] ev-notch p-4">
                   <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-2">Biografía</p>
                   <p className="text-sm text-[#666] leading-relaxed">{viewApplication.bio}</p>
                 </div>
               )}
 
-              <div className="bg-[#f8f8f8] rounded-2xl p-4">
+              <div className="bg-[#f8f8f8] ev-notch p-4">
                 <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-2">¿Por qué quiere ser representante?</p>
                 <p className="text-sm text-[#666] leading-relaxed">{viewApplication.whyIsekai}</p>
               </div>
@@ -952,7 +952,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   <p className="font-bold text-[#111] text-xs uppercase tracking-wider mb-2">Galería</p>
                   <div className="grid grid-cols-3 gap-2">
                     {viewApplication.gallery.map((img: string, i: number) => (
-                      <button key={i} onClick={() => setLightboxImg(img)} className="aspect-square overflow-hidden rounded-xl">
+                      <button key={i} onClick={() => setLightboxImg(img)} className="aspect-square overflow-hidden ev-notch">
                         <img src={img} className="w-full h-full object-cover active:opacity-80 transition-opacity" alt="" />
                       </button>
                     ))}
@@ -963,11 +963,11 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               {viewApplication.status === 'pending' && (
                 <div className="flex gap-2 mt-2">
                   <button onClick={() => { setApproveModal(viewApplication); setViewApplication(null); setApproveForm({ totalFollowers: 0, tier: 'bronce' }); }}
-                    className="flex-1 bg-[#111] text-white py-3 rounded-xl font-bold text-sm">
+                    className="flex-1 bg-[#111] text-white py-3 ev-notch font-bold text-sm">
                     Aprobar
                   </button>
                   <button onClick={() => { setRejectModal(viewApplication); setViewApplication(null); setRejectReason(''); }}
-                    className="flex-1 border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm">
+                    className="flex-1 border border-red-200 text-red-500 py-3 ev-notch font-bold text-sm">
                     Rechazar
                   </button>
                 </div>
@@ -997,7 +997,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   value={activityForm.title}
                   onChange={e => setActivityForm({ ...activityForm, title: e.target.value })}
                   placeholder="Ej: Post en Instagram mencionando Isekai"
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                 />
               </div>
               <div>
@@ -1007,7 +1007,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   onChange={e => setActivityForm({ ...activityForm, description: e.target.value })}
                   rows={3}
                   placeholder="Instrucciones detalladas..."
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111] resize-none"
                 />
               </div>
               <div className="grid grid-cols-2 gap-3">
@@ -1018,7 +1018,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     min={1}
                     value={activityForm.basePoints}
                     onChange={e => setActivityForm({ ...activityForm, basePoints: Math.max(1, parseInt(e.target.value) || 1) })}
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                    className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                   />
                 </div>
                 <div>
@@ -1026,7 +1026,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   <select
                     value={activityForm.type}
                     onChange={e => setActivityForm({ ...activityForm, type: e.target.value })}
-                    className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] bg-white"
+                    className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111] bg-white"
                   >
                     <option value="post">Post</option>
                     <option value="reel">Reel</option>
@@ -1036,7 +1036,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   </select>
                 </div>
               </div>
-              <div className="bg-[#f8f8f8] rounded-xl p-3 border border-[#e5e5e5]">
+              <div className="bg-[#f8f8f8] ev-notch p-3 border border-[#e5e5e5]">
                 <p className="text-xs text-[#999] mb-2">Tickets que recibirá cada tier:</p>
                 <div className="grid grid-cols-5 gap-1 text-center text-xs">
                   {[['Bronce', 1], ['Plata', 1.5], ['Oro', 2], ['Diamante', 3], ['Platino', 5]].map(([tier, mult]) => (
@@ -1048,7 +1048,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                 </div>
               </div>
               {/* Fecha límite opcional */}
-              <div className="rounded-xl border border-[#e5e5e5] p-3">
+              <div className="ev-notch border border-[#e5e5e5] p-3">
                 <label className="flex items-center gap-2.5 cursor-pointer" style={{ minHeight: 40 }}>
                   <input
                     type="checkbox"
@@ -1063,7 +1063,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     type="date"
                     value={activityForm.deadline}
                     onChange={e => setActivityForm({ ...activityForm, deadline: e.target.value })}
-                    className="mt-2 w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                    className="mt-2 w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                   />
                 ) : (
                   <p className="mt-1 text-xs text-[#999]">Sin fecha límite: la misión queda abierta.</p>
@@ -1071,7 +1071,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               </div>
 
               {/* Fases de la misión */}
-              <div className="rounded-xl border border-[#e5e5e5] p-3">
+              <div className="ev-notch border border-[#e5e5e5] p-3">
                 <label className="text-sm font-medium block">Fases de la misión</label>
                 <p className="text-xs text-[#999] mb-2">
                   Cuántas publicaciones debe subir. Con más de una verá barra de progreso
@@ -1082,7 +1082,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     <button
                       key={n}
                       onClick={() => setActivityForm({ ...activityForm, phases: n })}
-                      className={`h-10 w-full rounded-xl text-sm font-bold transition-colors ${
+                      className={`h-10 w-full ev-notch text-sm font-bold transition-colors ${
                         activityForm.phases === n ? 'bg-[#e5007d] text-white' : 'bg-[#f0f0f0] text-[#666]'
                       }`}
                       style={{ WebkitTapHighlightColor: 'transparent' }}
@@ -1094,7 +1094,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               </div>
               <div className="flex gap-2 mt-2">
                 <button onClick={() => setShowNewActivity(false)}
-                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">
+                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm">
                   Cancelar
                 </button>
                 <button
@@ -1107,7 +1107,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     phases: activityForm.phases,
                   })}
                   disabled={!activityForm.title || createActivity.isPending}
-                  className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40"
+                  className="flex-1 bg-[#e5007d] text-white py-3 ev-notch text-sm font-bold disabled:opacity-40"
                 >
                   {createActivity.isPending ? 'Creando...' : 'Crear actividad'}
                 </button>
@@ -1129,7 +1129,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
             </div>
             <div className="p-4 flex flex-col gap-4">
               {viewCosplayer.bannerImage && (
-                <img src={viewCosplayer.bannerImage} className="w-full h-32 object-cover rounded-2xl" alt="" />
+                <img src={viewCosplayer.bannerImage} className="w-full h-32 object-cover ev-notch" alt="" />
               )}
               <div className="flex items-center gap-4">
                 {viewCosplayer.photo && (
@@ -1146,18 +1146,18 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               </div>
 
               {viewCosplayer.bio && (
-                <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                <div className="bg-[#f8f8f8] ev-notch p-4">
                   <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Biografía</p>
                   <p className="text-sm text-[#666] leading-relaxed">{viewCosplayer.bio}</p>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-[#f8f8f8] rounded-2xl p-4 text-center">
+                <div className="bg-[#f8f8f8] ev-notch p-4 text-center">
                   <p className="text-2xl font-black text-[#e5007d]">{viewCosplayer.ticketBalance}</p>
                   <p className="text-xs text-[#999]">Tickets</p>
                 </div>
-                <div className="bg-[#f8f8f8] rounded-2xl p-4 text-center">
+                <div className="bg-[#f8f8f8] ev-notch p-4 text-center">
                   <p className="text-2xl font-black text-[#ffd700]">
                     ${parseFloat(viewCosplayer.cashBalance ?? '0').toFixed(2)} USD
                   </p>
@@ -1166,18 +1166,18 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               </div>
 
               {viewCosplayer.referralCode && (
-                <div className="bg-[#f8f8f8] rounded-2xl p-4">
+                <div className="bg-[#f8f8f8] ev-notch p-4">
                   <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Código de referido</p>
                   <p className="font-black text-[#e5007d] tracking-widest">{viewCosplayer.referralCode}</p>
                 </div>
               )}
 
-              <div className="bg-[#f8f8f8] rounded-2xl p-4">
+              <div className="bg-[#f8f8f8] ev-notch p-4">
                 <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-3">Redes sociales</p>
                 <div className="flex flex-col gap-2">
                   {['instagram', 'tiktok', 'youtube', 'facebook', 'twitter'].filter(r => viewCosplayer[r]).map(r => (
                     <a key={r} href={viewCosplayer[r]} target="_blank" rel="noopener noreferrer"
-                      className="flex items-center justify-between bg-white rounded-xl px-3 py-2 border border-[#e5e5e5]">
+                      className="flex items-center justify-between bg-white ev-notch px-3 py-2 border border-[#e5e5e5]">
                       <span className="capitalize text-sm font-medium text-[#111]">{r}</span>
                       <span className="text-[#e5007d] text-xs truncate ml-2 max-w-[180px]">{viewCosplayer[r]}</span>
                     </a>
@@ -1190,7 +1190,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">Galería</p>
                   <div className="grid grid-cols-3 gap-2">
                     {viewCosplayer.gallery.map((img: string, i: number) => (
-                      <button key={i} onClick={() => setLightboxImg(img)} className="aspect-square overflow-hidden rounded-xl">
+                      <button key={i} onClick={() => setLightboxImg(img)} className="aspect-square overflow-hidden ev-notch">
                         <img src={img} className="w-full h-full object-cover" alt="" />
                       </button>
                     ))}
@@ -1201,7 +1201,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               <div className="flex flex-col gap-2 mt-2">
                 <button
                   onClick={() => { setViewCosplayer(null); setGrantTicketsModal(viewCosplayer); setGrantForm({ basePoints: 100, reason: '' }); }}
-                  className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold text-sm"
+                  className="w-full bg-[#e5007d] text-white py-3 ev-notch font-bold text-sm"
                 >
                   Dar tickets
                 </button>
@@ -1213,7 +1213,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                         setViewCosplayer(null);
                       }
                     }}
-                    className="w-full border border-red-200 text-red-500 py-3 rounded-xl font-bold text-sm"
+                    className="w-full border border-red-200 text-red-500 py-3 ev-notch font-bold text-sm"
                   >
                     Suspender cosplayer
                   </button>
@@ -1242,10 +1242,10 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   min={1}
                   value={grantForm.basePoints}
                   onChange={e => setGrantForm({ ...grantForm, basePoints: parseInt(e.target.value) || 1 })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                 />
               </div>
-              <div className="bg-[#f8f8f8] rounded-xl p-4 border border-[#e5e5e5] flex items-center justify-between">
+              <div className="bg-[#f8f8f8] ev-notch p-4 border border-[#e5e5e5] flex items-center justify-between">
                 <p className="text-xs text-[#999]">
                   {grantForm.basePoints} × {MULTIPLIERS[grantTicketsModal.tier] ?? 1} ({grantTicketsModal.tier})
                 </p>
@@ -1260,19 +1260,19 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   value={grantForm.reason}
                   onChange={e => setGrantForm({ ...grantForm, reason: e.target.value })}
                   placeholder="Ej: Participación en evento..."
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                 />
               </div>
             </div>
             <div className="flex gap-2 mt-6">
               <button onClick={() => setGrantTicketsModal(null)}
-                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">
+                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm">
                 Cancelar
               </button>
               <button
                 onClick={() => grantTickets.mutate({ cosplayerId: grantTicketsModal.id, basePoints: grantForm.basePoints, reason: grantForm.reason })}
                 disabled={!grantForm.reason || grantTickets.isPending}
-                className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                className="flex-1 bg-[#e5007d] text-white py-3 ev-notch text-sm font-bold disabled:opacity-40">
                 {grantTickets.isPending ? 'Enviando...' : 'Dar tickets'}
               </button>
             </div>
@@ -1295,7 +1295,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
           </button>
           <img
             src={lightboxImg}
-            className="max-w-full max-h-full object-contain rounded-xl"
+            className="max-w-full max-h-full object-contain ev-notch"
             onClick={e => e.stopPropagation()}
             alt=""
           />
@@ -1318,10 +1318,10 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     const f = parseInt(e.target.value) || 0;
                     setApproveForm({ totalFollowers: f, tier: TIER_BY_FOLLOWERS(f) });
                   }}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                   placeholder="Ej: 15000" />
               </div>
-              <div className="bg-[#f8f8f8] rounded-xl p-4 border border-[#e5e5e5]">
+              <div className="bg-[#f8f8f8] ev-notch p-4 border border-[#e5e5e5]">
                 <p className="text-xs text-[#999] mb-1">Tier asignado automáticamente:</p>
                 <p className="text-xl font-black" style={{ color: TIER_COLORS[approveForm.tier] }}>
                   {approveForm.tier.toUpperCase()}
@@ -1329,7 +1329,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
               </div>
               <div className="flex gap-2 mt-2">
                 <button onClick={() => setApproveModal(null)}
-                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">
+                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm">
                   Cancelar
                 </button>
                 <button
@@ -1339,7 +1339,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     totalFollowers: approveForm.totalFollowers,
                   })}
                   disabled={approveApp.isPending}
-                  className="flex-1 bg-[#111] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                  className="flex-1 bg-[#111] text-white py-3 ev-notch text-sm font-bold disabled:opacity-40">
                   {approveApp.isPending ? 'Aprobando...' : 'Confirmar aprobación'}
                 </button>
               </div>
@@ -1357,16 +1357,16 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
             <h3 className="font-black text-lg mb-4">Razón del rechazo</h3>
             <textarea value={rejectReason} onChange={e => setRejectReason(e.target.value)}
               rows={3} placeholder="Explica por qué se rechaza la solicitud..."
-              className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none mb-4" />
+              className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111] resize-none mb-4" />
             <div className="flex gap-2">
               <button onClick={() => setRejectModal(null)}
-                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">
+                className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm">
                 Cancelar
               </button>
               <button
                 onClick={() => rejectApp.mutate({ applicationId: rejectModal.id, reason: rejectReason })}
                 disabled={!rejectReason || rejectApp.isPending}
-                className="flex-1 bg-red-500 text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                className="flex-1 bg-red-500 text-white py-3 ev-notch text-sm font-bold disabled:opacity-40">
                 Rechazar
               </button>
             </div>
@@ -1425,7 +1425,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-black text-[#111]">Productos ({products.length})</h2>
         <a href="/admin?tab=products&action=new">
-          <button className="bg-[#e5007d] text-white px-4 py-2 rounded-xl text-xs font-bold">+ Nuevo</button>
+          <button className="bg-[#e5007d] text-white px-4 py-2 ev-notch text-xs font-bold">+ Nuevo</button>
         </a>
       </div>
       {/* Agrupado por categoría, cerrado por defecto (igual que en escritorio) */}
@@ -1439,7 +1439,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
         return Array.from(grupos.entries()).map(([nombre, lista]) => {
           const abierto = openCats.includes(nombre);
           return (
-            <div key={nombre} className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden">
+            <div key={nombre} className="bg-white ev-notch border border-[#e5e5e5] overflow-hidden">
               <button
                 onClick={() => setOpenCats(prev => prev.includes(nombre) ? prev.filter(g => g !== nombre) : [...prev, nombre])}
                 className="w-full flex items-center gap-3 px-4 py-3.5 text-left active:bg-[#fafafa]"
@@ -1456,7 +1456,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                   {lista.map((p: any) => (
                     <div key={p.id} className="flex items-center gap-3 p-3">
                       {p.images?.[0]?.url && (
-                        <img src={p.images[0].url} className="w-14 h-14 rounded-xl object-cover flex-shrink-0" alt="" />
+                        <img src={p.images[0].url} className="w-14 h-14 ev-notch object-cover flex-shrink-0" alt="" />
                       )}
                       <div className="min-w-0 flex-1">
                         <p className="font-bold text-sm text-[#111] truncate">{p.name}</p>
@@ -1466,7 +1466,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                         </span>
                       </div>
                       <button onClick={() => setEditProduct({ ...p })}
-                        className="w-10 h-10 bg-[#f8f8f8] border border-[#e5e5e5] rounded-xl flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform">
+                        className="w-10 h-10 bg-[#f8f8f8] border border-[#e5e5e5] ev-notch flex items-center justify-center flex-shrink-0 active:scale-95 transition-transform">
                         <Pencil size={15} className="text-[#666]" />
                       </button>
                     </div>
@@ -1497,7 +1497,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                 <div className="grid grid-cols-3 gap-2">
                   {(productImages as any[]).map((img: any) => (
                     <div key={img.id} className="relative aspect-square">
-                      <img src={img.url} className="w-full h-full object-cover rounded-xl border border-[#e5e5e5]" alt="" />
+                      <img src={img.url} className="w-full h-full object-cover ev-notch border border-[#e5e5e5]" alt="" />
                       {productImages.length > 1 && (
                         <button
                           onClick={() => { if (confirm('¿Eliminar esta imagen?')) deleteImage.mutate({ imageId: img.id }); }}
@@ -1513,7 +1513,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                       )}
                     </div>
                   ))}
-                  <label className="aspect-square border-2 border-dashed border-[#e5e5e5] rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors">
+                  <label className="aspect-square border-2 border-dashed border-[#e5e5e5] ev-notch flex flex-col items-center justify-center cursor-pointer hover:border-[#e5007d] transition-colors">
                     {uploading ? (
                       <div className="w-5 h-5 border-2 border-[#e5007d] border-t-transparent rounded-full animate-spin" />
                     ) : (
@@ -1527,19 +1527,19 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                 <label className="text-sm font-medium block mb-1">Nombre</label>
                 <input type="text" value={editProduct.name}
                   onChange={e => setEditProduct({ ...editProduct, name: e.target.value })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">Precio (USD)</label>
                 <input type="text" value={editProduct.price}
                   onChange={e => setEditProduct({ ...editProduct, price: e.target.value })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">Stock</label>
                 <input type="number" value={editProduct.stock ?? 0}
                   onChange={e => setEditProduct({ ...editProduct, stock: parseInt(e.target.value) || 0 })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
               {/* Colección: sin esto había que ir al panel de escritorio solo
                   para asignarla. */}
@@ -1551,7 +1551,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                     ...editProduct,
                     categoryId: e.target.value ? parseInt(e.target.value) : null,
                   })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none bg-white"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none bg-white"
                 >
                   <option value="">— Sin colección —</option>
                   {(categorias ?? []).map((c: any) => (
@@ -1564,7 +1564,7 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                 <label className="text-sm font-medium block mb-1">Estado</label>
                 <select value={editProduct.status}
                   onChange={e => setEditProduct({ ...editProduct, status: e.target.value })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none bg-white">
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none bg-white">
                   <option value="published">Publicado</option>
                   <option value="draft">Borrador</option>
                 </select>
@@ -1573,15 +1573,15 @@ function ProductsSection({ onModalChange }: { onModalChange: (open: boolean) => 
                 <label className="text-sm font-medium block mb-1">Descripción</label>
                 <textarea value={editProduct.description ?? ''} rows={4}
                   onChange={e => setEditProduct({ ...editProduct, description: e.target.value })}
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
               </div>
               <div className="flex gap-2 mt-2">
                 <button onClick={() => setEditProduct(null)}
-                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
+                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm">Cancelar</button>
                 <button
                   onClick={() => updateProduct.mutate({ id: editProduct.id, name: editProduct.name, price: editProduct.price, status: editProduct.status, description: editProduct.description, stock: editProduct.stock, categoryId: editProduct.categoryId ?? null })}
                   disabled={updateProduct.isPending}
-                  className="flex-1 bg-[#111] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                  className="flex-1 bg-[#111] text-white py-3 ev-notch text-sm font-bold disabled:opacity-40">
                   {updateProduct.isPending ? 'Guardando...' : 'Guardar cambios'}
                 </button>
               </div>
@@ -1638,11 +1638,11 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
       {/* Sub-tabs */}
       <div className="bg-white border-b border-[#e5e5e5] px-4 py-2 flex gap-2 flex-shrink-0">
         <button onClick={() => setSubTab('posts')}
-          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'posts' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          className={`flex-1 py-2 ev-notch text-xs font-bold transition-colors ${subTab === 'posts' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
           Artículos ({(posts as any[]).length})
         </button>
         <button onClick={() => setSubTab('categories')}
-          className={`flex-1 py-2 rounded-xl text-xs font-bold transition-colors ${subTab === 'categories' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
+          className={`flex-1 py-2 ev-notch text-xs font-bold transition-colors ${subTab === 'categories' ? 'bg-[#111] text-white' : 'bg-[#f0f0f0] text-[#666]'}`}>
           Categorías ({(categories as any[]).length})
         </button>
       </div>
@@ -1653,13 +1653,13 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
         {subTab === 'posts' && (
           <div className="flex flex-col gap-3">
             <button onClick={() => setShowNew(true)}
-              className="w-full bg-[#e5007d] text-white py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              className="w-full bg-[#e5007d] text-white py-3 ev-notch font-bold flex items-center justify-center gap-2">
               <Plus size={18} /> Nuevo artículo
             </button>
             {(posts as any[]).map((post: any) => (
-              <div key={post.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+              <div key={post.id} className="bg-white ev-notch border border-[#e5e5e5] p-4 shadow-sm">
                 {post.coverImage && (
-                  <img src={post.coverImage} className="w-full h-32 object-cover rounded-xl mb-3" alt="" />
+                  <img src={post.coverImage} className="w-full h-32 object-cover ev-notch mb-3" alt="" />
                 )}
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
@@ -1683,7 +1683,7 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
         {/* Categorías */}
         {subTab === 'categories' && (
           <div className="flex flex-col gap-3">
-            <div className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+            <div className="bg-white ev-notch border border-[#e5e5e5] p-4 shadow-sm">
               <p className="font-bold text-sm text-[#111] mb-3">Nueva categoría</p>
               <div className="flex flex-col gap-3">
                 <input
@@ -1691,19 +1691,19 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
                   value={newCategory}
                   onChange={e => setNewCategory(e.target.value)}
                   placeholder="Nombre de la categoría *"
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                 />
                 <input
                   type="text"
                   value={newCategoryDesc}
                   onChange={e => setNewCategoryDesc(e.target.value)}
                   placeholder="Descripción (opcional)"
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]"
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]"
                 />
                 <button
                   onClick={() => createCategory.mutate({ name: newCategory, description: newCategoryDesc || undefined })}
                   disabled={!newCategory.trim() || createCategory.isPending}
-                  className="w-full bg-[#e5007d] text-white py-3 rounded-xl font-bold text-sm disabled:opacity-40"
+                  className="w-full bg-[#e5007d] text-white py-3 ev-notch font-bold text-sm disabled:opacity-40"
                 >
                   {createCategory.isPending ? 'Creando...' : '+ Crear categoría'}
                 </button>
@@ -1713,7 +1713,7 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
               <p className="text-center text-[#999] text-sm py-8">No hay categorías aún</p>
             )}
             {(categories as any[]).map((cat: any) => (
-              <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm flex items-center justify-between">
+              <div key={cat.id} className="bg-white ev-notch border border-[#e5e5e5] p-4 shadow-sm flex items-center justify-between">
                 <div className="min-w-0 flex-1">
                   <p className="font-bold text-sm text-[#111]">{cat.name}</p>
                   {cat.description && <p className="text-xs text-[#999] mt-0.5">{cat.description}</p>}
@@ -1746,14 +1746,14 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
                 <label className="text-sm font-medium block mb-2">Imagen de portada</label>
                 {coverImage ? (
                   <div className="relative">
-                    <img src={coverImage} className="w-full h-40 object-cover rounded-xl" alt="" />
+                    <img src={coverImage} className="w-full h-40 object-cover ev-notch" alt="" />
                     <button onClick={() => setCoverImage('')}
                       className="absolute top-2 right-2 bg-black/60 text-white rounded-full w-7 h-7 flex items-center justify-center">
                       <X size={14} />
                     </button>
                   </div>
                 ) : (
-                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e5e5e5] rounded-xl cursor-pointer hover:border-[#e5007d] transition-colors">
+                  <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-[#e5e5e5] ev-notch cursor-pointer hover:border-[#e5007d] transition-colors">
                     <Package size={24} className="text-[#ccc] mb-2" />
                     <span className="text-xs text-[#999]">Subir imagen de portada</span>
                     <input type="file" accept="image/*" className="hidden" onChange={handleCoverUpload} />
@@ -1764,25 +1764,25 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
                 <label className="text-sm font-medium block mb-1">Título *</label>
                 <input type="text" value={form.title} onChange={e => setForm({ ...form, title: e.target.value })}
                   placeholder="Título del artículo"
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]" />
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">Extracto</label>
                 <textarea value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })}
                   rows={2} placeholder="Resumen breve del artículo..."
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111] resize-none" />
               </div>
               <div>
                 <label className="text-sm font-medium block mb-1">Contenido</label>
                 <textarea value={form.content} onChange={e => setForm({ ...form, content: e.target.value })}
                   rows={8} placeholder="Contenido del artículo (HTML soportado)..."
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111] resize-none font-mono" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111] resize-none font-mono" />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="text-sm font-medium block mb-1">Categoría</label>
                   <select value={form.category} onChange={e => setForm({ ...form, category: e.target.value })}
-                    className="w-full border border-[#e5e5e5] rounded-xl px-3 py-3 text-sm outline-none bg-white">
+                    className="w-full border border-[#e5e5e5] ev-notch px-3 py-3 text-sm outline-none bg-white">
                     <option value="">Sin categoría</option>
                     {(categories as any[]).map((c: any) => (
                       <option key={c.id} value={c.name}>{c.name}</option>
@@ -1792,28 +1792,28 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
                 <div>
                   <label className="text-sm font-medium block mb-1">Estado</label>
                   <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value as 'draft' | 'published' })}
-                    className="w-full border border-[#e5e5e5] rounded-xl px-3 py-3 text-sm outline-none bg-white">
+                    className="w-full border border-[#e5e5e5] ev-notch px-3 py-3 text-sm outline-none bg-white">
                     <option value="draft">Borrador</option>
                     <option value="published">Publicar</option>
                   </select>
                 </div>
               </div>
-              <div className="bg-[#f8f8f8] rounded-2xl p-4 flex flex-col gap-3">
+              <div className="bg-[#f8f8f8] ev-notch p-4 flex flex-col gap-3">
                 <p className="text-xs font-bold text-[#999] uppercase tracking-wider">SEO</p>
                 <input type="text" value={form.metaTitle} onChange={e => setForm({ ...form, metaTitle: e.target.value })}
                   placeholder="Meta título (opcional)"
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none bg-white" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-2.5 text-sm outline-none bg-white" />
                 <textarea value={form.metaDescription} onChange={e => setForm({ ...form, metaDescription: e.target.value })}
                   rows={2} placeholder="Meta descripción (opcional)"
-                  className="w-full border border-[#e5e5e5] rounded-xl px-4 py-2.5 text-sm outline-none bg-white resize-none" />
+                  className="w-full border border-[#e5e5e5] ev-notch px-4 py-2.5 text-sm outline-none bg-white resize-none" />
               </div>
               <div className="flex gap-2">
                 <button onClick={() => setShowNew(false)}
-                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 rounded-xl text-sm">Cancelar</button>
+                  className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm">Cancelar</button>
                 <button
                   onClick={() => createPost.mutate({ ...form, coverImage: coverImage || undefined })}
                   disabled={!form.title || createPost.isPending}
-                  className="flex-1 bg-[#e5007d] text-white py-3 rounded-xl text-sm font-bold disabled:opacity-40">
+                  className="flex-1 bg-[#e5007d] text-white py-3 ev-notch text-sm font-bold disabled:opacity-40">
                   {createPost.isPending ? 'Creando...' : form.status === 'published' ? 'Publicar' : 'Guardar borrador'}
                 </button>
               </div>
@@ -1839,16 +1839,16 @@ function CategoriesSection() {
       <div className="flex gap-2">
         <input value={newCat} onChange={e => setNewCat(e.target.value)}
           placeholder="Nueva categoría..."
-          className="flex-1 border border-[#e5e5e5] rounded-xl px-4 py-3 text-sm outline-none focus:border-[#111]" />
+          className="flex-1 border border-[#e5e5e5] ev-notch px-4 py-3 text-sm outline-none focus:border-[#111]" />
         <button
           onClick={() => createCat.mutate({ name: newCat, slug: newCat.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') })}
           disabled={!newCat || createCat.isPending}
-          className="bg-[#e5007d] text-white px-4 rounded-xl font-bold disabled:opacity-40">
+          className="bg-[#e5007d] text-white px-4 ev-notch font-bold disabled:opacity-40">
           +
         </button>
       </div>
       {(categories as any[]).map((cat: any) => (
-        <div key={cat.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 flex items-center justify-between shadow-sm">
+        <div key={cat.id} className="bg-white ev-notch border border-[#e5e5e5] p-4 flex items-center justify-between shadow-sm">
           <p className="font-medium text-[#111]">{cat.name}</p>
           <button onClick={() => { if (confirm(`¿Eliminar "${cat.name}"?`)) deleteCat.mutate({ id: cat.id }); }}
             className="text-red-400 hover:text-red-600 p-1">
@@ -1871,7 +1871,7 @@ function FAQSection() {
         <p className="text-center text-[#999] text-sm py-8">Sin preguntas frecuentes</p>
       )}
       {(faqs as any[]).map((faq: any) => (
-        <div key={faq.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+        <div key={faq.id} className="bg-white ev-notch border border-[#e5e5e5] p-4 shadow-sm">
           <div className="flex items-start justify-between gap-2">
             <p className="font-medium text-sm text-[#111] flex-1">{faq.question}</p>
             <button onClick={() => { if (confirm('¿Eliminar esta pregunta?')) deleteFaq.mutate({ id: faq.id }); }}
@@ -1894,7 +1894,7 @@ function UsersSection() {
   return (
     <div className="p-4 flex flex-col gap-3">
       {(users as any[]).map((user: any) => (
-        <div key={user.id} className="bg-white rounded-2xl border border-[#e5e5e5] p-4 shadow-sm">
+        <div key={user.id} className="bg-white ev-notch border border-[#e5e5e5] p-4 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-[#111] text-white flex items-center justify-center font-bold flex-shrink-0">
               {user.name?.charAt(0).toUpperCase() ?? '?'}
@@ -1920,21 +1920,38 @@ function UsersSection() {
 function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigate: (tab: MobileTab) => void }) {
   const sections = [
     {
-      title: 'Gestión',
+      // Agrupado por lo que se hace, no por orden de aparición: antes eran
+      // trece entradas seguidas bajo «Gestión» y costaba encontrar nada.
+      title: 'Catálogo',
       items: [
-        { label: 'Categorías', tab: 'categories' as MobileTab, icon: Tag },
-        { label: 'FAQ',        tab: 'faq'        as MobileTab, icon: MessageCircle },
-        { label: 'Usuarios',   tab: 'users'      as MobileTab, icon: Users },
-        { label: 'Blog',       tab: 'blog'        as MobileTab, icon: BookOpen },
-        { label: 'Popups',     tab: 'popups'     as MobileTab, icon: Megaphone },
-        { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
-        { label: 'Tasa del día', tab: 'tasa'        as MobileTab, icon: DollarSign },
         { label: 'Colecciones',  tab: 'colecciones' as MobileTab, icon: Layers },
+        { label: 'Categorías',   tab: 'categories'  as MobileTab, icon: Tag },
+        { label: 'Tarjetas de regalo', tab: 'giftcards' as MobileTab, icon: Gift },
+      ],
+    },
+    {
+      title: 'Ventas',
+      items: [
+        { label: 'Cotizaciones', tab: 'quotes'    as MobileTab, icon: FileText },
+        { label: 'Boletería',    tab: 'boleteria' as MobileTab, icon: Ticket },
+        { label: 'Tasa del día', tab: 'tasa'      as MobileTab, icon: DollarSign },
+      ],
+    },
+    {
+      title: 'Comunidad',
+      items: [
+        { label: 'Usuarios',     tab: 'users'       as MobileTab, icon: Users },
+        { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
         { label: 'Sugerencias',  tab: 'feedback'    as MobileTab, icon: MessageCircle },
-        { label: 'Tarjetas',     tab: 'giftcards'   as MobileTab, icon: Gift },
-        { label: 'Boletería',    tab: 'boleteria'   as MobileTab, icon: Ticket },
-        { label: 'Cotizaciones', tab: 'quotes'      as MobileTab, icon: FileText },
-        { label: 'Comentarios',  tab: 'comments'    as MobileTab, icon: MessageCircle },
+      ],
+    },
+    {
+      title: 'Contenido',
+      items: [
+        { label: 'Blog',        tab: 'blog'     as MobileTab, icon: BookOpen },
+        { label: 'Comentarios', tab: 'comments' as MobileTab, icon: MessageCircle },
+        { label: 'FAQ',         tab: 'faq'      as MobileTab, icon: MessageCircle },
+        { label: 'Popups',      tab: 'popups'   as MobileTab, icon: Megaphone },
       ],
     },
     {
@@ -1950,7 +1967,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
       {sections.map((section, si) => (
         <div key={si}>
           <p className="text-xs font-bold text-[#999] uppercase tracking-wider mb-2">{section.title}</p>
-          <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+          <div className="bg-white ev-notch border border-[#e5e5e5] overflow-hidden shadow-sm">
             {(section.items as any[]).map((item: any, i) => (
               item.href ? (
                 <a key={i} href={item.href}
@@ -1975,7 +1992,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
           </div>
         </div>
       ))}
-      <div className="bg-white rounded-2xl border border-[#e5e5e5] overflow-hidden shadow-sm">
+      <div className="bg-white ev-notch border border-[#e5e5e5] overflow-hidden shadow-sm">
         <button onClick={onLogout}
           className="w-full flex items-center gap-3 px-4 py-4 text-red-500 active:bg-red-50">
           <LogOut size={18} />
@@ -2363,7 +2380,7 @@ function FinanzasSection() {
     <div className="p-4 flex flex-col gap-3">
       <div className="grid grid-cols-2 gap-2">
         {tarjetas.map(c => (
-          <div key={c.label} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3">
+          <div key={c.label} className="ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3">
             <p className="text-xs text-[var(--iw-text-muted)]">{c.label}</p>
             <p className={`mt-0.5 text-base font-black tabular-nums leading-tight ${c.color}`} style={{ overflowWrap: "anywhere" }}>${c.valor.toFixed(2)}</p>
           </div>
@@ -2407,7 +2424,7 @@ function FinanzasSection() {
                 {(detalleMes?.movimientos ?? []).map((mv: any, i: number) => (
                   <div
                     key={i}
-                    className="flex items-start justify-between gap-3 rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3.5"
+                    className="flex items-start justify-between gap-3 ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-3.5"
                   >
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
@@ -2442,7 +2459,7 @@ function FinanzasSection() {
 
       {/* Ventas mes a mes */}
       {(porMes as any[]).length > 0 && (
-        <div className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+        <div className="ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
           <button
             onClick={() => setMesesAbierto(!mesesAbierto)}
             className="flex w-full items-center justify-between gap-3 text-left"
@@ -2508,7 +2525,7 @@ function FinanzasSection() {
       {/* Comisiones de referido sin acreditar: es dinero que se le debe a un
           cosplayer, así que conviene verlo junto al resto de las cuentas. */}
       {comisiones && comisiones.pendientes.length > 0 && (
-        <div className="rounded-2xl border border-[#e5007d]/40 bg-[#e5007d]/[0.07] p-4">
+        <div className="ev-notch border border-[#e5007d]/40 bg-[#e5007d]/[0.07] p-4">
           <p className="text-sm font-bold text-[var(--iw-text)]">
             {comisiones.pendientes.length} comisión(es) sin pagar
           </p>
@@ -2537,7 +2554,7 @@ function FinanzasSection() {
               }
             }}
             disabled={pagarComisiones.isPending}
-            className="w-full rounded-xl bg-[#e5007d] text-xs font-bold text-white disabled:opacity-50"
+            className="w-full ev-notch bg-[#e5007d] text-xs font-bold text-white disabled:opacity-50"
             style={{ minHeight: 44 }}
           >
             {pagarComisiones.isPending ? "Pagando..." : "Pagar ahora"}
@@ -2552,7 +2569,7 @@ function FinanzasSection() {
             Abonos por verificar ({(abonosPend as any[]).length})
           </p>
           {(abonosPend as any[]).map((a: any) => (
-            <div key={a.id} className="rounded-2xl border border-[#d9a400]/50 bg-[#d9a400]/10 p-4">
+            <div key={a.id} className="ev-notch border border-[#d9a400]/50 bg-[#d9a400]/10 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-mono text-[10px] text-[var(--iw-text-muted)]">{a.orderNumber}</p>
@@ -2572,7 +2589,7 @@ function FinanzasSection() {
                   {a.receiptUrl.toLowerCase().endsWith('.pdf') ? (
                     <span className="text-xs font-bold text-[#e5007d]">Ver comprobante (PDF)</span>
                   ) : (
-                    <img src={a.receiptUrl} alt="Comprobante" className="h-20 w-20 rounded-xl border border-[var(--iw-border)] object-cover" />
+                    <img src={a.receiptUrl} alt="Comprobante" className="h-20 w-20 ev-notch border border-[var(--iw-border)] object-cover" />
                   )}
                 </a>
               )}
@@ -2580,7 +2597,7 @@ function FinanzasSection() {
               <div className="mt-3 flex gap-2">
                 <button
                   onClick={() => { if (confirm('¿Rechazar este abono?')) rechazarAb.mutate({ id: a.id }); }}
-                  className="flex-1 rounded-xl border border-red-500/40 text-xs font-bold text-red-500"
+                  className="flex-1 ev-notch border border-red-500/40 text-xs font-bold text-red-500"
                   style={{ minHeight: 44 }}
                 >
                   Rechazar
@@ -2588,7 +2605,7 @@ function FinanzasSection() {
                 <button
                   onClick={() => aprobarAb.mutate({ id: a.id })}
                   disabled={aprobarAb.isPending}
-                  className="flex-1 rounded-xl bg-[#e5007d] text-xs font-bold text-white disabled:opacity-50"
+                  className="flex-1 ev-notch bg-[#e5007d] text-xs font-bold text-white disabled:opacity-50"
                   style={{ minHeight: 44 }}
                 >
                   Aprobar
@@ -2600,7 +2617,7 @@ function FinanzasSection() {
       )}
 
       {(resumen?.cantidadPorVerificar ?? 0) > 0 && (
-        <div className="rounded-2xl border border-[#d9a400]/40 bg-[#d9a400]/10 p-3">
+        <div className="ev-notch border border-[#d9a400]/40 bg-[#d9a400]/10 p-3">
           <p className="text-sm font-bold text-[var(--iw-text)]">
             {resumen?.cantidadPorVerificar} pago(s) esperando verificación
           </p>
@@ -2618,7 +2635,7 @@ function FinanzasSection() {
           <select
             value={filtro}
             onChange={e => setFiltro(e.target.value as any)}
-            className="w-full appearance-none rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+            className="w-full appearance-none ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
             style={{ minHeight: 48 }}
           >
             <option value="all">Todas las transacciones</option>
@@ -2640,7 +2657,7 @@ function FinanzasSection() {
         <p className="py-12 text-center text-sm text-[var(--iw-text-muted)]">No hay transacciones en este filtro.</p>
       ) : (
         (tx as any[]).map((t: any) => (
-          <div key={t.id} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+          <div key={t.id} className="ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
             <div className="mb-2 flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <div className="mb-1 flex flex-wrap items-center gap-1.5">
@@ -2683,7 +2700,7 @@ function FinanzasSection() {
                     <span className="text-xs font-bold text-[#e5007d]">Ver comprobante (PDF)</span>
                   ) : (
                     <>
-                      <img src={t.receiptUrl} alt="Comprobante" className="h-20 w-20 rounded-xl border border-[var(--iw-border)] object-cover" />
+                      <img src={t.receiptUrl} alt="Comprobante" className="h-20 w-20 ev-notch border border-[var(--iw-border)] object-cover" />
                       <span className="text-xs font-bold text-[#e5007d]">Ver completo</span>
                     </>
                   )}
@@ -2695,7 +2712,7 @@ function FinanzasSection() {
                   <button
                     onClick={() => confirmar.mutate({ orderId: t.id, approved: true })}
                     disabled={confirmar.isPending}
-                    className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white"
+                    className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white"
                     style={{ minHeight: 46 }}
                   >
                     {(() => {
@@ -2737,12 +2754,12 @@ function FinanzasSection() {
                         value={abonoMonto}
                         onChange={e => setAbonoMonto(e.target.value.replace(/[^0-9.]/g, ''))}
                         placeholder={`Abono recibido (saldo $${saldo.toFixed(2)})`}
-                        className="w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+                        className="w-full ev-notch border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
                         style={{ minHeight: 46 }}
                       />
                       <button
                         onClick={() => setAbonoMonto(saldo.toFixed(2))}
-                        className="rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
+                        className="ev-notch border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
                         style={{ minHeight: 42 }}
                       >
                         Pagó todo el saldo (${saldo.toFixed(2)})
@@ -2750,7 +2767,7 @@ function FinanzasSection() {
                       <div className="flex gap-2">
                         <button
                           onClick={() => { setAbonoPara(null); setAbonoMonto(''); }}
-                          className="flex-1 rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
+                          className="flex-1 ev-notch border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
                           style={{ minHeight: 44 }}
                         >
                           Cancelar
@@ -2758,7 +2775,7 @@ function FinanzasSection() {
                         <button
                           onClick={() => abonar.mutate({ orderId: t.id, monto: parseFloat(abonoMonto || '0') })}
                           disabled={!parseFloat(abonoMonto || '0') || abonar.isPending}
-                          className="flex-1 rounded-xl bg-[#e5007d] text-xs font-bold text-white disabled:opacity-40"
+                          className="flex-1 ev-notch bg-[#e5007d] text-xs font-bold text-white disabled:opacity-40"
                           style={{ minHeight: 44 }}
                         >
                           Registrar
@@ -2768,7 +2785,7 @@ function FinanzasSection() {
                   ) : (
                     <button
                       onClick={() => { setAbonoPara(t.id); setAbonoMonto(''); }}
-                      className="w-full rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
+                      className="w-full ev-notch border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)]"
                       style={{ minHeight: 44 }}
                     >
                       Registrar abono · Saldo ${saldo.toFixed(2)}
@@ -2828,7 +2845,7 @@ function TasaSection() {
 
   return (
     <div className="p-4 flex flex-col gap-4">
-      <div className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+      <div className="ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
         <p className="text-sm font-bold text-[var(--iw-text)] mb-1">Bolívares por 1 USD</p>
         <p className="text-xs text-[var(--iw-text-muted)] mb-3">
           Se muestra en el popup de Pago Móvil para que el cliente sepa cuánto transferir.
@@ -2841,21 +2858,21 @@ function TasaSection() {
           value={enPantalla}
           onChange={e => setValor(e.target.value.replace(/[^0-9.]/g, ''))}
           placeholder="36.50"
-          className="w-full rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+          className="w-full ev-notch border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
           style={{ minHeight: 52, fontSize: 20, fontWeight: 800 }}
         />
 
         <button
           onClick={() => aplicar(enPantalla.trim())}
           disabled={guardar.isPending || enPantalla.trim() === actual}
-          className="mt-3 w-full rounded-xl bg-[#e5007d] text-white font-bold text-sm disabled:bg-[var(--iw-border)] disabled:text-[var(--iw-text-muted)]"
+          className="mt-3 w-full ev-notch bg-[#e5007d] text-white font-bold text-sm disabled:bg-[var(--iw-border)] disabled:text-[var(--iw-text-muted)]"
           style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}
         >
           {guardar.isPending ? 'Guardando...' : 'Guardar tasa'}
         </button>
 
         {/* Tasa automática desde Binance */}
-        <div className="mt-4 rounded-xl border border-[var(--iw-border)] p-3">
+        <div className="mt-4 ev-notch border border-[var(--iw-border)] p-3">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-xs font-bold text-[var(--iw-text)]">Tasa automática</p>
@@ -2896,7 +2913,7 @@ function TasaSection() {
             <button
               onClick={() => actualizarAhora.mutate()}
               disabled={actualizarAhora.isPending}
-              className="mt-2 w-full rounded-xl border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)] disabled:opacity-50"
+              className="mt-2 w-full ev-notch border border-[var(--iw-border)] text-xs font-bold text-[var(--iw-text-muted)] disabled:opacity-50"
               style={{ minHeight: 42 }}
             >
               {actualizarAhora.isPending ? 'Consultando Binance...' : 'Actualizar ahora'}
@@ -2930,7 +2947,7 @@ function TasaSection() {
 
       {/* Cálculo rápido: comprobar cuánto es un monto concreto */}
       {actual && (
-        <div className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+        <div className="ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
           <p className="text-sm font-bold text-[var(--iw-text)] mb-2">Equivalencias</p>
           <div className="flex flex-col gap-1.5">
             {[5, 10, 25, 50, 100].map(usd => (
@@ -2960,7 +2977,7 @@ function SubscribersSection() {
           <select
             value={filtro}
             onChange={e => setFiltro(e.target.value as any)}
-            className="w-full appearance-none rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+            className="w-full appearance-none ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
             style={{ minHeight: 48 }}
           >
             <option value="all">Todos los correos</option>
@@ -2975,7 +2992,7 @@ function SubscribersSection() {
       {(subs as any[]).length === 0 ? (
         <p className="text-center text-[#999] text-sm py-12">Todavía no hay correos registrados.</p>
       ) : (
-        <div className="bg-white rounded-2xl border border-[#e5e5e5] divide-y divide-[#f0f0f0] overflow-hidden">
+        <div className="bg-white ev-notch border border-[#e5e5e5] divide-y divide-[#f0f0f0] overflow-hidden">
           {(subs as any[]).map((sub: any) => (
             <div key={sub.id} className="flex items-center gap-3 px-4 py-3">
               <div className="min-w-0 flex-1">
@@ -3059,7 +3076,7 @@ function CommentsSection() {
           <select
             value={filtro}
             onChange={e => setFiltro(e.target.value as any)}
-            className="w-full appearance-none rounded-xl border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
+            className="w-full appearance-none ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] pl-4 pr-10 text-sm font-bold text-[var(--iw-text)] outline-none focus:border-[#e5007d]"
             style={{ minHeight: 48 }}
           >
             <option value="pending">Pendientes de revisar</option>
@@ -3077,7 +3094,7 @@ function CommentsSection() {
         </p>
       ) : (
         (comentarios as any[]).map((c: any) => (
-          <div key={c.id} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
+          <div key={c.id} className="ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
             <div className="flex items-start justify-between gap-2 mb-2">
               <div className="min-w-0">
                 <p className="text-sm font-bold text-[#111] truncate">{c.guestName ?? 'Anónimo'}</p>
@@ -3102,7 +3119,7 @@ function CommentsSection() {
               {c.status !== 'approved' && (
                 <button
                   onClick={() => moderar.mutate({ id: c.id, status: 'approved' })}
-                  className="flex-1 rounded-xl bg-[#e5007d] text-white text-xs font-bold transition-transform active:scale-95"
+                  className="flex-1 ev-notch bg-[#e5007d] text-white text-xs font-bold transition-transform active:scale-95"
                   style={{ minHeight: 44 }}
                 >
                   Publicar
@@ -3111,7 +3128,7 @@ function CommentsSection() {
               {c.status !== 'rejected' && (
                 <button
                   onClick={() => moderar.mutate({ id: c.id, status: 'rejected' })}
-                  className="flex-1 rounded-xl border border-[var(--iw-border)] text-[#999] text-xs font-bold"
+                  className="flex-1 ev-notch border border-[var(--iw-border)] text-[#999] text-xs font-bold"
                   style={{ minHeight: 44 }}
                 >
                   Rechazar
@@ -3119,7 +3136,7 @@ function CommentsSection() {
               )}
               <button
                 onClick={() => { if (confirm('¿Eliminar este comentario?')) borrar.mutate({ id: c.id }); }}
-                className="rounded-xl border border-red-500/30 px-4 text-red-500"
+                className="ev-notch border border-red-500/30 px-4 text-red-500"
                 style={{ minHeight: 44 }}
                 aria-label="Eliminar"
               >
@@ -3243,7 +3260,7 @@ export default function AdminMobile() {
 
         <button
           onClick={() => setShowNotifications(true)}
-          className="relative w-9 h-9 flex items-center justify-center rounded-xl bg-[#f8f8f8] border border-[#e5e5e5]"
+          className="relative w-9 h-9 flex items-center justify-center ev-notch bg-[#f8f8f8] border border-[#e5e5e5]"
         >
           <Bell size={18} className="text-[#111]" />
           {unreadCount > 0 && (
