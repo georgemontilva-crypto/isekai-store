@@ -231,6 +231,17 @@ export default function StorePortal() {
         </div>
 
         {/* ── Otorgar experiencia ── */}
+        {/* Si está autorizada pero el evento no ha empezado, se dice por qué
+            no aparece el bloque: antes simplemente no salía nada. */}
+        {esTienda && accesoXp?.puede && !accesoXp?.enCurso && (
+          <div className="ev-notch mt-8 border border-[#2e2e3a] bg-[#16191f] p-4">
+            <p className="text-sm font-bold text-[#b4b4c2]">Dar experiencia</p>
+            <p className="mt-1 text-xs leading-relaxed text-[#8a8a9c]">
+              Se activa durante los días del evento. Aparecerá aquí automáticamente.
+            </p>
+          </div>
+        )}
+
         {/* Separador: son dos tareas distintas en la misma pantalla */}
         {puedeDarXp && esTienda && (
           <div className="my-8 flex items-center gap-3">

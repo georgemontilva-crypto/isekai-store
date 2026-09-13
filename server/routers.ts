@@ -20,7 +20,7 @@ import {
   crearTienda, listarTiendas, editarTienda, borrarTienda, tiendaDeUsuario,
   generarBoletos, boletoPorToken, venderBoleto, corregirBoleto,
   listarBoletos, resumenEvento, ventasDeTienda, lotesDeEvento, boletosDeLote, ventasPorDia,
-  paqueteAcceso, registrarIngreso, resumenAsistencia, miAccesoPorCorreo,
+  paqueteAcceso, registrarIngreso, resumenAsistencia, miAccesoPorCorreo, diaDelEvento,
   crearPortero, listarPorteros, editarPortero, borrarPortero, esPorteroPorCorreo,
 } from "./tickets";
 import {
@@ -1194,9 +1194,18 @@ export const appRouter = router({
     /** ¿Puede este usuario otorgar experiencia, y está el evento en curso? */
     miAcceso: protectedProcedure.query(async ({ ctx }) => {
       const acceso = await puedeOtorgar(ctx.user.id, ctx.user.role);
+      /**
+       * Manda el evento que está ocurriendo hoy, no el primero de la lista.
+       * Con un evento futuro activo —el de 2027— el sistema daba por hecho
+       * que no había nada en curso y ocultaba el bloque de experiencia.
+       */
       const eventos = (await listarEventos()).filter(e => e.active);
-      const evento = eventos[0];
-      const activo = evento ? await levelPassActivo(evento.id) : false;
+      const enCurso = [];
+      for (const e of eventos) {
+        if (diaDelEvento(e) !== null) enCurso.push(e);
+      }
+      const evento = enCurso[0] ?? eventos[0];
+      const activo = enCurso.length > 0;
       return {
         puede: acceso.puede,
         storeId: acceso.storeId,
