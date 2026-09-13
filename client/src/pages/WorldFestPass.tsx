@@ -178,7 +178,7 @@ export default function WorldFestPass() {
             Iniciar sesión
           </button>
           <Link
-            href="/world-fest"
+            href="/"
             className="block w-full py-2 font-mono text-[11px] uppercase tracking-widest text-[#5f7f96]"
           >
             Volver
@@ -196,7 +196,7 @@ export default function WorldFestPass() {
         style={{ paddingTop: "calc(env(safe-area-inset-top) + 5rem)" }}
       >
         <Link
-          href="/world-fest"
+          href="/"
           className="absolute left-5 flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-widest text-[#5f7f96] transition-colors hover:text-[#7dd8ff]"
           style={{ top: "calc(env(safe-area-inset-top) + 1.25rem)" }}
         >
@@ -639,7 +639,7 @@ export default function WorldFestPass() {
             )}
 
             <Link
-              href="/world-fest"
+              href="/"
               className="mt-6 block text-center font-mono text-xs uppercase tracking-widest text-[#5f7f96] transition-colors hover:text-[#7dd8ff]"
             >
               Volver a Isekai World Fest

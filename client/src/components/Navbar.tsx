@@ -454,14 +454,14 @@ export default function Navbar() {
               Cosplay Guild
             </Link>
 
-            {/* Botón destacado: World Fest — mismo pill, con destello */}
+            {/* Botón destacado: la tienda, ahora que la portada es el evento */}
             <style>{WORLD_FEST_GLOW}</style>
             <Link
-              href="/world-fest"
-              className="wf-pill relative ml-2 inline-flex items-center overflow-hidden rounded-full border-2 border-[#2b8fe0] bg-white px-4 py-1.5 text-[13px] font-bold text-[#1a6fbd] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+              href="/tienda"
+              className="wf-pill relative ml-2 inline-flex items-center gap-1.5 overflow-hidden rounded-full border-2 border-[#e5007d] bg-white px-4 py-1.5 text-[13px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
             >
-              <Ticket size={17} strokeWidth={1.8} />
-              World Fest
+              <ShoppingBag size={16} strokeWidth={1.9} />
+              Tienda
             </Link>
           </nav>
 
@@ -633,14 +633,14 @@ export default function Navbar() {
             </Link>
             <style>{WORLD_FEST_GLOW}</style>
             <Link
-              href="/world-fest"
+              href="/tienda"
               onClick={() => setMobileOpen(false)}
               tabIndex={mobileOpen ? 0 : -1}
-              className="wf-pill iw-menu-cta relative inline-flex items-center justify-center gap-2 overflow-hidden rounded-xl border border-[#2b8fe0]/60 bg-[#2b8fe0]/10 px-5 text-[14px] text-[#7dd8ff] transition-colors hover:bg-[#1a6fbd] hover:text-white"
+              className="iw-menu-cta ev-notch relative inline-flex items-center justify-center gap-2 overflow-hidden border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
               style={{ minHeight: 54 }}
             >
-              <Ticket size={17} strokeWidth={1.8} />
-              World Fest
+              <ShoppingBag size={17} strokeWidth={1.8} />
+              Ir a la tienda
             </Link>
           </div>
 

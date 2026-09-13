@@ -16,7 +16,6 @@ import { InstagramChat } from "./components/InstagramChat";
 import { PopupManager } from "./components/PopupManager";
 import Home from "./pages/Home";
 const Catalog = lazy(() => import("./pages/Catalog"));
-const WorldFest = lazy(() => import("./pages/WorldFest"));
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const Invitacion = lazy(() => import("./pages/Invitacion"));
 import PantallaCarga from "@/components/PantallaCarga";
@@ -110,11 +109,14 @@ function Router() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-white" />}>
       <Switch>
-        {/* La tienda vuelve a ser la portada mientras se prepara la landing
-            del evento, que se trabaja en /evento sin estar publicada. */}
-        <Route path="/" component={Home} />
-        <Route path="/tienda" component={Home} />
+        {/* El evento es la portada; la tienda vive en /tienda. La antigua
+            página de World Fest desaparece: su contenido está ahora en la
+            portada, así que su dirección lleva allí para no romper enlaces
+            ya compartidos. */}
+        <Route path="/" component={HomeEvento} />
         <Route path="/evento" component={HomeEvento} />
+        <Route path="/tienda" component={Home} />
+        <Route path="/world-fest">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/catalog" component={Catalog} />
         <Route path="/product/:slug" component={ProductDetail} />
         <Route path="/checkout" component={Checkout} />
@@ -124,7 +126,6 @@ function Router() {
         <Route path="/nosotros" component={Nosotros} />
         <Route path="/faq" component={FAQ} />
         <Route path="/politicas" component={Politicas} />
-        <Route path="/world-fest" component={WorldFest} />
         <Route path="/cotizacion/:token" component={QuoteView} />
         {/* Invitación por QR: intencionalmente fuera del menú y del sitemap */}
         <Route path="/invitacion" component={Invitacion} />

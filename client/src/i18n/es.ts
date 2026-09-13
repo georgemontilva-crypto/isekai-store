@@ -22,7 +22,8 @@ export const es = {
     },
     mobileMenu: [
       { href: "/", label: "Inicio" },
-      { href: "/catalog", label: "Tienda" },
+      { href: "/tienda", label: "Tienda" },
+      { href: "/catalog", label: "Catálogo" },
       { href: "/collections", label: "Universos" },
       { href: "/nosotros", label: "Nosotros" },
       { href: "/faq", label: "Preguntas Frecuentes" },
