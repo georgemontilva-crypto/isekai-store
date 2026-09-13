@@ -20,7 +20,7 @@ import {
   crearTienda, listarTiendas, editarTienda, borrarTienda, tiendaDeUsuario,
   generarBoletos, boletoPorToken, venderBoleto, corregirBoleto,
   listarBoletos, resumenEvento, ventasDeTienda, lotesDeEvento, boletosDeLote, ventasPorDia,
-  paqueteAcceso, registrarIngreso, resumenAsistencia,
+  paqueteAcceso, registrarIngreso, resumenAsistencia, miAccesoPorCorreo,
   crearPortero, listarPorteros, editarPortero, borrarPortero, esPorteroPorCorreo,
 } from "./tickets";
 import {
@@ -1602,6 +1602,10 @@ export const appRouter = router({
 
         return r;
       }),
+
+    /** Permisos al vuelo: evita tener que cerrar sesión y volver a entrar */
+    miAcceso: protectedProcedure.query(({ ctx }) =>
+      miAccesoPorCorreo(ctx.user.id, ctx.user.email ?? "", ctx.user.role)),
 
     miTienda: storeProcedure.query(async ({ ctx }) => {
       const tienda = await tiendaDeUsuario(ctx.user.id);

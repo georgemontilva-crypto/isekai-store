@@ -36,7 +36,10 @@ type Veredicto = {
 
 export default function GateControl() {
   const { user, isAuthenticated, loading } = useAuth();
-  const esPortero = user?.role === "gate" || user?.role === "admin";
+  // Igual que el portal: los permisos se comprueban en el servidor, no en el
+  // rol que quedó guardado al iniciar sesión.
+  const { data: acceso } = trpc.tickets.miAcceso.useQuery(undefined, { enabled: isAuthenticated });
+  const esPortero = acceso?.esPortero || acceso?.rol === "admin";
 
   const [enLinea, setEnLinea] = useState(navigator.onLine);
   const [paquete, setPaquete] = useState<any>(null);

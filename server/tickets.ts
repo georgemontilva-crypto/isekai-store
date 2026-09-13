@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "./db";
+import { esStaffPorCorreo } from "./levelPass";
 import {
   events, ticketTypes, stores, eventTickets, ticketCheckins, gateUsers, users, siteSettings,
 } from "../drizzle/schema";
@@ -756,4 +757,48 @@ export async function esPorteroPorCorreo(email: string): Promise<"gate" | null> 
   const correo = email.trim().toLowerCase();
   const [g] = await db.select().from(gateUsers).where(eq(gateUsers.email, correo)).limit(1);
   return g?.active ? "gate" : null;
+}
+
+/**
+ * Permisos del usuario actual, calculados por su correo en el momento.
+ *
+ * El rol se guarda al iniciar sesión, así que si alguien ya tenía la sesión
+ * abierta cuando lo autorizaste, su cuenta seguía figurando como usuario
+ * normal y el portal le pedía entrar de nuevo. Aquí se comprueba al vuelo y,
+ * si el rol guardado no coincide, se corrige para que no vuelva a pasar.
+ */
+export async function miAccesoPorCorreo(userId: number, email: string, rolActual: string) {
+  const correo = (email ?? "").trim().toLowerCase();
+
+  if (rolActual === "admin") {
+    return { esTienda: true, esStaff: true, esPortero: true, rol: "admin" };
+  }
+
+  const [rolTienda, rolPortero, rolStaff] = await Promise.all([
+    rolPorCorreo(correo),
+    esPorteroPorCorreo(correo),
+    esStaffPorCorreo(correo),
+  ]);
+
+  const rol = rolTienda ?? rolPortero ?? rolStaff ?? "user";
+
+  // Se corrige el rol guardado si quedó desfasado
+  if (rol !== "user" && rol !== rolActual) {
+    try {
+      const db = await getDb();
+      if (db) {
+        await db.update(users).set({ role: rol }).where(eq(users.id, userId));
+        if (rol === "store") await vincularUsuarioTienda(correo, userId);
+      }
+    } catch (e) {
+      console.warn("[Acceso] No se pudo actualizar el rol:", e);
+    }
+  }
+
+  return {
+    esTienda: rol === "store",
+    esStaff: rol === "staff",
+    esPortero: rol === "gate",
+    rol,
+  };
 }

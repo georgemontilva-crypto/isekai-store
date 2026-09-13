@@ -71,8 +71,16 @@ export default function StorePortal() {
    * personal que solo otorga experiencia, y el admin. Antes el personal
    * quedaba fuera y no podía dar puntos.
    */
-  const esTienda = user?.role === "store" || user?.role === "admin";
-  const esStaff = user?.role === "staff";
+  /**
+   * Los permisos se consultan al servidor en vez de fiarse del rol guardado
+   * en la sesión: si te autorizaron con la sesión ya abierta, el rol viejo
+   * te dejaba fuera y había que volver a entrar.
+   */
+  const { data: acceso, isLoading: cargandoAcceso } =
+    trpc.tickets.miAcceso.useQuery(undefined, { enabled: isAuthenticated });
+
+  const esTienda = acceso?.esTienda || acceso?.rol === "admin";
+  const esStaff = acceso?.esStaff ?? false;
   const puedeEntrar = esTienda || esStaff;
 
   const { data: tienda } = trpc.tickets.miTienda.useQuery(undefined, { enabled: puedeEntrar });
@@ -131,7 +139,7 @@ export default function StorePortal() {
 
   const campo = "w-full rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
 
-  if (cargandoSesion) {
+  if (cargandoSesion || (isAuthenticated && cargandoAcceso)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
         <Loader2 className="h-6 w-6 animate-spin text-[#e5007d]" />
