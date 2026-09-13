@@ -47,7 +47,7 @@ const VALUES = [
 export default function Nosotros() {
   useSEO({
     title: 'Sobre Nosotros — Estudio de Impresión 3D',
-    description: 'Isekai World es un estudio creativo especializado en impresión 3D y fabricación de piezas inspiradas en universos de anime y videojuegos.',
+    description: 'Creamos eventos temáticos y experiencias inmersivas de anime, gaming y cultura geek, con talleres propios de impresión 3D para fabricar escenarios y piezas a medida.',
     url: 'https://isekaiworld.co/nosotros',
   });
 
@@ -118,7 +118,12 @@ export default function Nosotros() {
         <div className="px-8 lg:px-16 xl:px-24 py-24 lg:py-32 flex flex-col justify-center gap-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#999] font-medium">Nuestra historia</p>
           <h2 className="text-2xl lg:text-3xl font-light leading-relaxed text-[#111]">
-            Isekai World es un estudio creativo especializado en impresión y diseño 3D inspirado en universos cinematográficos, anime y videojuegos donde cada pieza nace para traer un mundo ficticio a la realidad. Con cobertura en toda Venezuela, creamos experiencias de fan para fan.
+            Isekai World es un equipo dedicado a crear eventos temáticos y experiencias
+            inmersivas inspiradas en el anime, los videojuegos y la cultura geek. Contamos
+            con talleres propios de impresión y diseño 3D, y eso nos permite fabricar
+            nosotros mismos los escenarios, los personajes a tamaño real y cada pieza que
+            hace falta para que un espacio deje de ser un salón y se convierta en otro
+            mundo. Con cobertura en toda Venezuela, creamos experiencias de fan para fan.
           </h2>
           <p className="text-[#555] leading-relaxed text-[15px]">
             Nacimos de la pasión por el anime y los videojuegos, y de algo más concreto:
