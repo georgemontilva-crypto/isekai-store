@@ -137,7 +137,7 @@ export default function StorePortal() {
     setNombre(""); setApellido(""); setTelefono(""); setCorreo(""); setVendido(null);
   };
 
-  const campo = "w-full rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
+  const campo = "w-full ev-notch border border-white/10 bg-[#101319] px-4 text-white outline-none transition-colors placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
 
   if (cargandoSesion || (isAuthenticated && cargandoAcceso)) {
     return (
@@ -161,7 +161,7 @@ export default function StorePortal() {
           {!isAuthenticated && (
             <button
               onClick={openLoginModal}
-              className="w-full rounded-full bg-[#e5007d] font-bold text-white"
+              className="w-full ev-notch ev-press bg-[#e5007d] font-bold text-white"
               style={{ minHeight: 52 }}
             >
               Iniciar sesión
@@ -173,7 +173,7 @@ export default function StorePortal() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] pb-16 text-white">
+    <div className="ev-grid min-h-screen bg-[#0a0a0a] pb-16 text-white">
       {escaneando2 && (
         <EscanerSeguro onFallo={() => {
           setEscaneando2(false);
@@ -197,7 +197,7 @@ export default function StorePortal() {
       <div className="mx-auto max-w-lg px-5 py-8">
         {/* Cabecera */}
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#e5007d]/15">
+          <div className="flex h-10 w-10 items-center justify-center ev-notch bg-[#e5007d]/15">
             <Ticket className="h-5 w-5 text-[#e5007d]" />
           </div>
           <div className="min-w-0">
@@ -216,7 +216,7 @@ export default function StorePortal() {
               <button
                 key={id}
                 onClick={() => { setModo(id); setResultadoXp(null); limpiar(); }}
-                className={`rounded-xl text-xs font-bold transition-colors ${
+                className={`ev-notch text-xs font-bold transition-colors ${
                   modo === id ? "bg-[#e5007d] text-white" : "border border-[#2e2e3a] text-[#b4b4c2]"
                 }`}
                 style={{ minHeight: 46 }}
@@ -231,7 +231,7 @@ export default function StorePortal() {
         {modo === "xp" && (
           <>
             {resultadoXp ? (
-              <div className={`rounded-2xl border p-6 text-center ${
+              <div className={`ev-notch border p-6 text-center ${
                 resultadoXp.subioDeRango
                   ? "border-[#38bdf8]/50 bg-[#38bdf8]/10"
                   : "border-green-500/40 bg-green-500/10"
@@ -242,7 +242,7 @@ export default function StorePortal() {
                 <p className="text-sm text-[#b4b4c2]">{resultadoXp.actividad}</p>
 
                 {resultadoXp.subioDeRango && (
-                  <p className="mt-4 rounded-xl border border-[#38bdf8]/40 bg-[#38bdf8]/10 px-4 py-3 text-sm font-black text-[#7dd8ff]">
+                  <p className="mt-4 ev-notch border border-[#38bdf8]/40 bg-[#38bdf8]/10 px-4 py-3 text-sm font-black text-[#7dd8ff]">
                     ¡Subió a rango {resultadoXp.rango}!
                   </p>
                 )}
@@ -253,7 +253,7 @@ export default function StorePortal() {
 
                 <button
                   onClick={() => { setResultadoXp(null); limpiar(); setActividadXp(null); }}
-                  className="mt-6 w-full rounded-full bg-[#e5007d] font-bold text-white"
+                  className="mt-6 w-full ev-notch ev-press bg-[#e5007d] font-bold text-white"
                   style={{ minHeight: 52 }}
                 >
                   Siguiente persona
@@ -267,7 +267,7 @@ export default function StorePortal() {
                     <button
                       key={a.id}
                       onClick={() => setActividadXp(a.id)}
-                      className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+                      className={`ev-notch border px-4 py-3 text-left transition-colors ${
                         actividadXp === a.id ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[#2e2e3a]"
                       }`}
                     >
@@ -297,7 +297,7 @@ export default function StorePortal() {
                 <button
                   onClick={() => setEscaneando2(true)}
                   disabled={!actividadXp}
-                  className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#e5007d] font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                  className="mb-4 flex w-full items-center justify-center gap-2 ev-notch bg-[#e5007d] font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
                   style={{ minHeight: 56 }}
                 >
                   <Camera size={20} /> Escanear con la cámara
@@ -317,7 +317,7 @@ export default function StorePortal() {
                   <button
                     onClick={() => otorgarXp.mutate({ token: codigoManual.trim(), activityId: actividadXp! })}
                     disabled={!actividadXp || codigoManual.trim().length < 4 || otorgarXp.isPending}
-                    className="shrink-0 rounded-xl bg-[#e5007d] px-5 font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                    className="shrink-0 ev-notch bg-[#e5007d] px-5 font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
                     style={{ minHeight: 50 }}
                   >
                     {otorgarXp.isPending ? <Loader2 size={18} className="animate-spin" /> : "Dar"}
@@ -331,15 +331,15 @@ export default function StorePortal() {
         {/* Resumen de la tienda */}
         {esTienda && modo === "vender" && misVentas && (
           <div className="mb-6 grid grid-cols-3 gap-2">
-            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
+            <div className="ev-notch border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Vendidos</p>
               <p className="text-lg font-black">{misVentas.cantidad}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
+            <div className="ev-notch border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Total USD</p>
               <p className="text-lg font-black text-[#e5007d]">${misVentas.totalUsd.toFixed(2)}</p>
             </div>
-            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-3">
+            <div className="ev-notch border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Total Bs</p>
               <p className="text-sm font-black">{misVentas.totalBs.toLocaleString("es-VE")}</p>
             </div>
@@ -348,7 +348,7 @@ export default function StorePortal() {
 
         {/* ── Venta completada ── */}
         {modo === "vender" && (vendido ? (
-          <div className="rounded-2xl border border-green-500/40 bg-green-500/10 p-6 text-center">
+          <div className="ev-notch border border-green-500/40 bg-green-500/10 p-6 text-center">
             <Check className="mx-auto mb-3 h-9 w-9 text-green-400" />
             <p className="text-lg font-black">Boleto vendido</p>
             <p className="mt-1 font-mono text-sm text-[#b4b4c2]">{vendido.code}</p>
@@ -365,7 +365,7 @@ export default function StorePortal() {
             </div>
             <button
               onClick={limpiar}
-              className="mt-6 w-full rounded-full bg-[#e5007d] font-bold text-white"
+              className="mt-6 w-full ev-notch ev-press bg-[#e5007d] font-bold text-white"
               style={{ minHeight: 52 }}
             >
               Vender otro boleto
@@ -373,7 +373,7 @@ export default function StorePortal() {
           </div>
         ) : !token ? (
           /* ── Sin boleto cargado ── */
-          <div className="rounded-2xl border border-white/10 bg-[#16191f] p-5">
+          <div className="ev-notch border border-white/10 bg-[#16191f] p-5">
             <p className="mb-1 text-sm font-bold">Escanea el boleto</p>
             <p className="mb-4 text-xs leading-relaxed text-[#8a8a9c]">
               Abre la cámara y apunta al QR. Si no funciona, escribe el código impreso.
@@ -381,7 +381,7 @@ export default function StorePortal() {
 
             <button
               onClick={() => setEscaneando2(true)}
-              className="mb-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#e5007d] font-bold text-white transition-transform active:scale-[0.98]"
+              className="mb-4 flex w-full items-center justify-center gap-2 ev-notch bg-[#e5007d] font-bold text-white transition-transform active:scale-[0.98]"
               style={{ minHeight: 56, WebkitTapHighlightColor: "transparent" }}
             >
               <Camera size={20} /> Escanear con la cámara
@@ -400,7 +400,7 @@ export default function StorePortal() {
               <button
                 onClick={() => setToken(codigoManual.trim())}
                 disabled={codigoManual.trim().length < 4}
-                className="shrink-0 rounded-xl bg-[#e5007d] px-5 font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                className="shrink-0 ev-notch bg-[#e5007d] px-5 font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
                 style={{ minHeight: 50 }}
               >
                 <Search size={18} />
@@ -412,7 +412,7 @@ export default function StorePortal() {
             <Loader2 className="h-6 w-6 animate-spin text-[#e5007d]" />
           </div>
         ) : errorEscaneo ? (
-          <div className="rounded-2xl border border-red-500/40 bg-red-500/10 p-6 text-center">
+          <div className="ev-notch border border-red-500/40 bg-red-500/10 p-6 text-center">
             <AlertCircle className="mx-auto mb-3 h-8 w-8 text-red-400" />
             <p className="font-bold">Código no válido</p>
             <p className="mt-1 text-sm text-[#b4b4c2]">{errorEscaneo.message}</p>
@@ -427,7 +427,7 @@ export default function StorePortal() {
           </div>
         ) : escaneo?.ticket?.status !== "blank" ? (
           /* ── Ya vendido o anulado ── */
-          <div className="rounded-2xl border border-[#ffd700]/40 bg-[#ffd700]/10 p-6 text-center">
+          <div className="ev-notch border border-[#ffd700]/40 bg-[#ffd700]/10 p-6 text-center">
             <AlertCircle className="mx-auto mb-3 h-8 w-8 text-[#ffd700]" />
             <p className="font-bold">
               {escaneo?.ticket?.status === "void" ? "Boleto anulado" : "Este boleto ya fue vendido"}
@@ -451,7 +451,7 @@ export default function StorePortal() {
         ) : (
           /* ── Boleto en blanco: registrar la venta ── */
           <div className="flex flex-col gap-5">
-            <div className="rounded-2xl border border-white/10 bg-[#16191f] p-4 text-center">
+            <div className="ev-notch border border-white/10 bg-[#16191f] p-4 text-center">
               <p className="text-xs text-[#8a8a9c]">Boleto</p>
               <p className="font-mono text-lg font-black text-[#e5007d]">{escaneo.ticket.code}</p>
             </div>
@@ -464,7 +464,7 @@ export default function StorePortal() {
                   <button
                     key={t.id}
                     onClick={() => setTipoElegido(t.id)}
-                    className={`rounded-xl border px-4 py-3 text-left transition-colors ${
+                    className={`ev-notch border px-4 py-3 text-left transition-colors ${
                       tipoElegido === t.id ? "border-[#e5007d] bg-[#e5007d]/10" : "border-white/10"
                     }`}
                   >
@@ -521,7 +521,7 @@ export default function StorePortal() {
                   buyerEmail: correo.trim() || undefined,
                 })}
                 disabled={!tipoElegido || !nombre.trim() || !apellido.trim() || telefono.trim().length < 4 || vender.isPending}
-                className="flex flex-[2] items-center justify-center gap-2 rounded-full bg-[#e5007d] font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                className="flex flex-[2] items-center justify-center gap-2 ev-notch ev-press bg-[#e5007d] font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
                 style={{ minHeight: 52 }}
               >
                 {vender.isPending ? <Loader2 size={18} className="animate-spin" /> : null}
@@ -537,7 +537,7 @@ export default function StorePortal() {
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#8a8a9c]">Tus últimas ventas</p>
             <div className="flex flex-col gap-2">
               {misVentas!.boletos.slice(0, 10).map((b: any) => (
-                <div key={b.id} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-[#16191f] px-4 py-3">
+                <div key={b.id} className="flex items-center justify-between gap-3 ev-notch border border-white/10 bg-[#16191f] px-4 py-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">{b.buyerName} {b.buyerLastName}</p>
                     <p className="truncate text-[11px] text-[#8a8a9c]">{b.tipoNombre} · {b.code}</p>

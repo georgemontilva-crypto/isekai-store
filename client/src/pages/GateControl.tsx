@@ -194,10 +194,10 @@ export default function GateControl() {
     );
   }
 
-  const campo = "w-full rounded-xl border border-white/10 bg-[#101319] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
+  const campo = "w-full ev-notch border border-white/10 bg-[#101319] px-4 text-white outline-none placeholder:text-[#6a6a7c] focus:border-[#e5007d]";
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="ev-grid min-h-screen bg-[#0a0a0a] text-white">
       {escaneando && (
         <QrScanner
           onDetectado={(t) => { setEscaneando(false); void procesar(t); }}
@@ -223,7 +223,7 @@ export default function GateControl() {
         </div>
 
         {/* Preparación */}
-        <div className="mb-5 rounded-2xl border border-white/10 bg-[#16191f] p-4">
+        <div className="mb-5 ev-notch border border-white/10 bg-[#16191f] p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <p className="text-sm font-bold">Lista de boletos</p>
@@ -236,7 +236,7 @@ export default function GateControl() {
             <button
               onClick={descargar}
               disabled={!enLinea || !evento}
-              className="flex shrink-0 items-center gap-1.5 rounded-xl border border-white/10 px-4 text-xs font-bold text-[#b4b4c2] disabled:opacity-40"
+              className="flex shrink-0 items-center gap-1.5 ev-notch border border-white/10 px-4 text-xs font-bold text-[#b4b4c2] disabled:opacity-40"
               style={{ minHeight: 44 }}
             >
               <RefreshCw size={14} /> Descargar
@@ -262,7 +262,7 @@ export default function GateControl() {
 
         {/* Veredicto */}
         {veredicto && (
-          <div className={`mb-5 rounded-2xl border p-6 text-center ${
+          <div className={`mb-5 ev-notch border p-6 text-center ${
             veredicto.ok
               ? "border-green-500/50 bg-green-500/15"
               : veredicto.motivo === "ya_entro" || veredicto.motivo === "dia_no_cubierto"
@@ -308,7 +308,7 @@ export default function GateControl() {
           <>
             <button
               onClick={() => setEscaneando(true)}
-              className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#e5007d] font-bold text-white transition-transform active:scale-[0.98]"
+              className="flex w-full items-center justify-center gap-2 ev-notch bg-[#e5007d] font-bold text-white transition-transform active:scale-[0.98]"
               style={{ minHeight: 72, WebkitTapHighlightColor: "transparent" }}
             >
               <Camera size={24} /> Escanear entrada
@@ -329,7 +329,7 @@ export default function GateControl() {
               <button
                 onClick={() => void procesar(codigoManual.trim())}
                 disabled={codigoManual.trim().length < 4 || validar.isPending}
-                className="shrink-0 rounded-xl bg-[#e5007d] px-6 font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
+                className="shrink-0 ev-notch bg-[#e5007d] px-6 font-bold text-white disabled:bg-[#22222c] disabled:text-[#6a6a7c]"
                 style={{ minHeight: 52 }}
               >
                 {validar.isPending ? <Loader2 size={18} className="animate-spin" /> : "Validar"}

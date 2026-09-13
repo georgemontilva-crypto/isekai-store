@@ -166,7 +166,7 @@ export default function WorldFestPass() {
           <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
             Isekai World Fest
           </p>
-          <h1 className="mb-3 text-2xl font-black text-white">Entra a tu Level Pass</h1>
+          <h1 className="ev-display mb-3 text-[24px] leading-[1.08] text-white">Entra a tu Level Pass</h1>
           <p className="mb-7 text-sm leading-relaxed text-[#8fa8bd]">
             Inicia sesión con el <strong className="text-white">mismo correo</strong> que
             diste al comprar tu boleto. Así nadie más puede ver tu progreso.
@@ -207,7 +207,7 @@ export default function WorldFestPass() {
           <p className="mb-2 text-center font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
             Isekai World Fest
           </p>
-          <h1 className="mb-3 text-center text-3xl font-black text-white">
+          <h1 className="ev-display mb-3 text-center text-[26px] leading-[1.05] text-white">
             Entrar al sistema
           </h1>
           <p className="mb-7 text-center text-sm leading-relaxed text-[#8fa8bd]">
@@ -221,13 +221,13 @@ export default function WorldFestPass() {
               onChange={e => setCodigo(e.target.value.toUpperCase())}
               onKeyDown={e => { if (e.key === "Enter") entrar(codigo); }}
               placeholder="IW-XXXXXX"
-              className="w-full rounded-lg border border-[#38bdf8]/25 bg-[#050b14] px-4 font-mono uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#3a5a72] focus:border-[#38bdf8]"
+              className="w-full ev-notch border border-[#38bdf8]/25 bg-[#050b14] px-4 font-mono uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#3a5a72] focus:border-[#38bdf8]"
               style={{ minHeight: 54 }}
             />
             <button
               onClick={() => entrar(codigo)}
               disabled={codigo.trim().length < 4}
-              className="shrink-0 rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 px-5 text-[#7dd8ff] disabled:opacity-40"
+              className="shrink-0 ev-notch ev-press border border-[#38bdf8]/50 bg-[#38bdf8]/10 px-5 text-[#7dd8ff] disabled:opacity-40"
               style={{ minHeight: 54 }}
               aria-label="Entrar"
             >
@@ -267,7 +267,7 @@ export default function WorldFestPass() {
   }
 
   return (
-    <div className="wf-zona min-h-screen pb-28">
+    <div className="wf-zona ev-grid min-h-screen pb-28">
 
       {/* El entorno toma el color del rango: golpe al ascender y tinte suave
           mientras se permanece en él. */}
@@ -372,7 +372,7 @@ export default function WorldFestPass() {
 
             <button
               onClick={() => setRangoAnunciado(null)}
-              className="lp-linea-4 mt-7 w-full rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20"
+              className="lp-linea-4 mt-7 w-full ev-notch ev-press border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20"
               style={{ minHeight: 48 }}
             >
               Aceptar
@@ -391,7 +391,7 @@ export default function WorldFestPass() {
             <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-[#7dd8ff]">
               World Fest
             </p>
-            <p className="truncate text-sm font-black text-white">{data.nombre}</p>
+            <p className="ev-display truncate text-sm text-white">{data.nombre}</p>
           </div>
           <div className="flex shrink-0 items-center gap-3">
             <span
