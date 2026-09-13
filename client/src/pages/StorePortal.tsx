@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useRoute } from "wouter";
-import { Loader2, Check, Store, Ticket, AlertCircle, Search, Camera } from "lucide-react";
+import { Loader2, Check, Store, Ticket, AlertCircle, Search, Camera, BadgeCheck, Ban } from "lucide-react";
 import QrScanner from "@/components/admin/QrScanner";
 import { Component, type ReactNode } from "react";
 
@@ -200,12 +200,27 @@ export default function StorePortal() {
           <div className="flex h-10 w-10 items-center justify-center ev-notch bg-[#e5007d]/15">
             <Ticket className="h-5 w-5 text-[#e5007d]" />
           </div>
-          <div className="min-w-0">
-            <p className="truncate text-sm font-black">{tienda?.name ?? "Tienda"}</p>
+          <div className="min-w-0 flex-1">
+            <p className="ev-display truncate text-sm text-white">{tienda?.name ?? "Tienda"}</p>
             <p className="truncate text-xs text-[#8a8a9c]">
               {esStaff ? "Personal de actividades" : (evento?.name ?? "Sin evento activo")}
             </p>
           </div>
+
+          {/* Estado de la tienda: quien vende sabe de un vistazo si está
+              habilitada para hacerlo. */}
+          {esTienda && tienda && (
+            <span
+              className={`flex shrink-0 items-center gap-1.5 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider ${
+                tienda.active
+                  ? "bg-green-500/15 text-green-400"
+                  : "bg-red-500/15 text-red-400"
+              }`}
+              style={{ clipPath: "polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)" }}
+            >
+              {tienda.active ? <><BadgeCheck size={12} /> Verificada</> : <><Ban size={12} /> Suspendida</>}
+            </span>
+          )}
         </div>
 
         {/* Cambio de modo: solo aparece si esta tienda está autorizada a dar
@@ -407,6 +422,7 @@ export default function StorePortal() {
               </button>
             </div>
           </div>
+
         ) : escaneando ? (
           <div className="flex justify-center py-12">
             <Loader2 className="h-6 w-6 animate-spin text-[#e5007d]" />
@@ -535,9 +551,11 @@ export default function StorePortal() {
         {!vendido && !token && (misVentas?.boletos.length ?? 0) > 0 && (
           <div className="mt-8">
             <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#8a8a9c]">Tus últimas ventas</p>
-            <div className="flex flex-col gap-2">
-              {misVentas!.boletos.slice(0, 10).map((b: any) => (
-                <div key={b.id} className="flex items-center justify-between gap-3 ev-notch border border-white/10 bg-[#16191f] px-4 py-3">
+            {/* Carril horizontal con la barra oculta: en el teléfono la lista
+                vertical empujaba el escáner fuera de la pantalla. */}
+            <div className="iw-areas-carril flex gap-2.5 overflow-x-auto pb-1">
+              {misVentas!.boletos.slice(0, 30).map((b: any) => (
+                <div key={b.id} className="ev-notch shrink-0 border border-white/10 bg-[#16191f] px-4 py-3.5" style={{ minWidth: 178 }}>
                   <div className="min-w-0">
                     <p className="truncate text-sm font-bold">{b.buyerName} {b.buyerLastName}</p>
                     <p className="truncate text-[11px] text-[#8a8a9c]">{b.tipoNombre} · {b.code}</p>
