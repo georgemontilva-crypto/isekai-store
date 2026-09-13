@@ -56,6 +56,7 @@ const TRANSFORMACION = [
 
 /** Áreas del festival — «Explora el Fest» */
 const AREAS = [
+  { icono: Star, titulo: "Red Carpet Cosplayer", texto: "La alfombra roja de quienes llevan meses preparando su personaje: desfile, fotógrafos y un espacio hecho para lucirlo.", color: "#f43f5e" },
   { icono: Gamepad2, titulo: "Zona Gamer", texto: "Competencias, videojuegos, desafíos y experiencias para demostrar tus habilidades.", color: "#5db4ff" },
   { icono: Users, titulo: "Fan Zone", texto: "Un espacio creado para quienes viven el anime, manga, cosplay, gaming y la cultura geek.", color: "#e5007d" },
   { icono: Sparkles, titulo: "Experiencias inmersivas", texto: "Cruza las puertas. Entra en nuevos mundos. Algunas tendrás que descubrirlas por ti mismo.", color: "#a78bfa" },
