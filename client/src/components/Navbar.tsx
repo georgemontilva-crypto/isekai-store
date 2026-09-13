@@ -448,7 +448,7 @@ export default function Navbar() {
             {/* Botón destacado: Cosplay Guild */}
             <Link
               href="/cosplay"
-              className="ml-2 inline-flex items-center rounded-full border-2 border-[#e5007d] bg-white px-4 py-1.5 text-[13px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+              className="ev-notch ev-press ml-2 inline-flex items-center gap-1.5 border-2 border-[#e5007d] bg-white px-4 py-2 text-[13px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
             >
               <Sparkles size={17} strokeWidth={1.8} />
               Cosplay Guild
@@ -458,7 +458,7 @@ export default function Navbar() {
             <style>{WORLD_FEST_GLOW}</style>
             <Link
               href="/tienda"
-              className="wf-pill relative ml-2 inline-flex items-center gap-1.5 overflow-hidden rounded-full border-2 border-[#e5007d] bg-white px-4 py-1.5 text-[13px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
+              className="ev-notch ev-press relative ml-2 inline-flex items-center gap-1.5 overflow-hidden border-2 border-[#e5007d] bg-[#e5007d] px-4 py-2 text-[13px] font-bold text-white transition-colors hover:bg-[#c4006a]"
             >
               <ShoppingBag size={16} strokeWidth={1.9} />
               Tienda
@@ -625,7 +625,7 @@ export default function Navbar() {
               href="/cosplay"
               onClick={() => setMobileOpen(false)}
               tabIndex={mobileOpen ? 0 : -1}
-              className="iw-menu-cta inline-flex items-center justify-center gap-2 rounded-xl border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
+              className="iw-menu-cta ev-notch inline-flex items-center justify-center gap-2 border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
               style={{ minHeight: 54 }}
             >
               <Sparkles size={17} strokeWidth={1.8} />
