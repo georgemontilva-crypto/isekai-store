@@ -431,12 +431,8 @@ export default function HomeEvento() {
             {TRANSFORMACION.map((x, i) => {
               const Icono = x.icono;
               return (
-                <motion.div
+                <div
                   key={x.titulo}
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: "-60px" }}
-                  transition={{ duration: 0.45, delay: i * 0.07 }}
                   className="ev-notch iw-card-grande border p-8 sm:p-10"
                   style={{
                     borderColor: `${x.color}2e`,
@@ -453,7 +449,7 @@ export default function HomeEvento() {
                     {x.titulo}
                   </h3>
                   <p className="text-[15px] leading-relaxed text-[#a99fc4]">{x.texto}</p>
-                </motion.div>
+                </div>
               );
             })}
             </div>

@@ -3027,7 +3027,8 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .iw-zona-card { flex: none; min-width: 0; }
 }
 .iw-zonas-carril {
-  scroll-snap-type: x mandatory;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -3070,7 +3071,11 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 @media (min-width: 640px) { .iw-card-grande { flex: 0 0 48%; min-width: 48%; } }
 @media (min-width: 1024px) { .iw-card-grande { flex: 0 0 33%; min-width: 33%; } }
 .iw-areas-carril {
-  scroll-snap-type: x mandatory;
+  /* proximity en vez de mandatory: con mandatory el navegador reajusta la
+     posición constantemente y el carril parecía moverse solo. */
+  scroll-snap-type: x proximity;
+  /* Al llegar al extremo, el gesto no se propaga a la página */
+  overscroll-behavior-x: contain;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
