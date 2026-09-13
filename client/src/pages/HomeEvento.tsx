@@ -504,11 +504,6 @@ export default function HomeEvento() {
             </div>
           </div>
 
-          <p className="mt-8 text-center font-mono text-sm leading-relaxed text-[#7c6fa0]">
-            Algunos nombres todavía no pueden ser revelados.
-            <br />
-            <span className="text-[#a78bfa]">El Sistema aún está desbloqueándolos.</span>
-          </p>
         </div>
       </section>
 
@@ -552,6 +547,12 @@ export default function HomeEvento() {
             })}
             </div>
           </div>
+
+          <p className="mt-8 text-center font-mono text-sm leading-relaxed text-[#7c6fa0]">
+            Algunos nombres todavía no pueden ser revelados.
+            <br />
+            <span className="text-[#a78bfa]">El Sistema aún está desbloqueándolos.</span>
+          </p>
         </div>
       </section>
 
