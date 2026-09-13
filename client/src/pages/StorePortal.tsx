@@ -378,6 +378,12 @@ export default function StorePortal() {
             <Check className="mx-auto mb-3 h-9 w-9 text-green-400" />
             <p className="text-lg font-black">Boleto vendido</p>
             <p className="mt-1 font-mono text-sm text-[#b4b4c2]">{vendido.code}</p>
+            {/* Se dice si salió el comprobante: sin correo no hay envío */}
+            <p className="mt-2 text-xs text-[#8a8a9c]">
+              {(vendido as any).correoEnviado
+                ? "Comprobante enviado por correo"
+                : "Sin correo: no se envió comprobante"}
+            </p>
             <div className="mt-4 space-y-1 text-sm text-[#b4b4c2]">
               <p>{vendido.tipo}</p>
               <p className="font-bold text-white">{vendido.comprador}</p>

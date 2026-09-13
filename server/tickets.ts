@@ -1,6 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "./db";
+import { notifyTicketPurchased } from "./_core/notification";
 import { esStaffPorCorreo } from "./levelPass";
 import {
   events, ticketTypes, stores, eventTickets, ticketCheckins, gateUsers, users, siteSettings,
@@ -323,6 +324,34 @@ export async function venderBoleto(data: {
     throw new Error("Ese boleto acaba de venderse en otro dispositivo");
   }
 
+  // Comprobante para el comprador. No detiene la venta si falla: el boleto
+  // ya está vendido y el correo se puede reenviar después.
+  if (data.buyerEmail) {
+    try {
+      const [ev] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
+      const [tienda] = await db.select().from(stores).where(eq(stores.id, data.storeId)).limit(1);
+
+      const fechas = ev?.startDate
+        ? `${new Date(ev.startDate).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" })}` +
+          (ev.endDate && new Date(ev.endDate).getTime() !== new Date(ev.startDate).getTime()
+            ? ` — ${new Date(ev.endDate).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" })}`
+            : "")
+        : undefined;
+
+      await notifyTicketPurchased(data.buyerEmail, {
+        nombre: data.buyerName,
+        codigo: t.code,
+        evento: ev?.name ?? "Isekai World Fest",
+        tipo: tipo.name,
+        precioUsd: String(precioUsd),
+        tienda: tienda?.name,
+        fechas,
+      });
+    } catch (e) {
+      console.error(`[Boleto] No se pudo enviar el comprobante de ${t.code}:`, e);
+    }
+  }
+
   return {
     code: t.code,
     tipo: tipo.name,
@@ -330,6 +359,7 @@ export async function venderBoleto(data: {
     precioBs,
     tasa,
     comprador: `${data.buyerName} ${data.buyerLastName}`,
+    correoEnviado: Boolean(data.buyerEmail),
   };
 }
 

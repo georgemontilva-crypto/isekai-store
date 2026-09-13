@@ -549,3 +549,74 @@ export async function notifyStaffActivated(
     "Ya tienes acceso al sistema del evento.",
   );
 }
+
+/**
+ * Confirmación de compra de boleto.
+ *
+ * Le llega al asistente en el momento de la venta. Además del comprobante,
+ * le explica cómo entrar a su perfil de cazador: es el primer contacto con
+ * la mecánica del evento y conviene que se entienda desde ya.
+ */
+export async function notifyTicketPurchased(
+  email: string,
+  datos: {
+    nombre: string;
+    codigo: string;
+    evento: string;
+    tipo: string;
+    precioUsd: string;
+    tienda?: string;
+    fechas?: string;
+  },
+): Promise<boolean> {
+  const content = `
+    <h1>Tu boleto está confirmado</h1>
+    <p>Hola <strong>${datos.nombre}</strong>, guarda este correo: es el comprobante de tu entrada.</p>
+
+    <div class="order-box">
+      <p><strong>${datos.evento}</strong></p>
+      <p style="margin-top:8px"><strong>Código de tu boleto:</strong></p>
+      <p style="font-size:22px; font-weight:800; letter-spacing:2px; margin-top:4px" class="highlight">
+        ${datos.codigo}
+      </p>
+      <p style="margin-top:12px"><strong>Tipo:</strong> ${datos.tipo}</p>
+      <p style="margin-top:6px"><strong>Pagado:</strong> $${parseFloat(datos.precioUsd || "0").toFixed(2)} USD</p>
+      ${datos.tienda ? `<p style="margin-top:6px"><strong>Punto de venta:</strong> ${datos.tienda}</p>` : ""}
+      ${datos.fechas ? `<p style="margin-top:6px"><strong>Fechas:</strong> ${datos.fechas}</p>` : ""}
+    </div>
+
+    <div class="order-box">
+      <p><strong>El día del evento</strong></p>
+      <p style="margin-top:8px">
+        Lleva el boleto impreso o este correo. En la entrada escanearán tu código QR.
+      </p>
+    </div>
+
+    <div class="order-box">
+      <p><strong>Tu perfil de cazador</strong></p>
+      <p style="margin-top:8px">
+        Todos empiezan en rango E. Durante el evento podrás completar misiones para ganar
+        experiencia y subir de rango — y solo quienes lleguen a rango S entran en el sorteo final.
+      </p>
+      <p style="margin-top:8px">
+        Entra en <a href="https://isekaiworld.co/worldfest/pass">isekaiworld.co/worldfest/pass</a>
+        con <strong>este mismo correo</strong> para ver tu progreso.
+      </p>
+    </div>
+
+    <p style="margin-top:20px">
+      <a href="https://isekaiworld.co/worldfest/pass" class="btn">Ver mi perfil de cazador</a>
+    </p>
+
+    <p style="color:#888; font-size:13px; margin-top:16px">
+      Si no reconoces esta compra, escríbenos a hola@isekaiworld.co.
+    </p>
+  `;
+
+  return sendEmail(
+    email,
+    `Boleto confirmado ${datos.codigo} — ${datos.evento}`,
+    content,
+    `Tu boleto ${datos.codigo} está confirmado.`,
+  );
+}
