@@ -92,11 +92,11 @@ export default function CategoryShowcase({
 
           {banner && (
             <Link href={destino} className="block shrink-0 lg:w-[360px]">
-              <div className="relative overflow-hidden rounded-2xl" style={{ aspectRatio: "1/1" }}>
+              <div className="relative overflow-hidden ev-notch" style={{ aspectRatio: "1/1" }}>
                 <img src={banner} alt={titulo} className="h-full w-full object-cover" />
                 {ctaTexto && (
                   <div className="absolute inset-x-0 bottom-0 flex justify-center p-5">
-                    <span className="rounded-xl bg-white px-6 py-3 text-sm font-bold text-[#111] transition-transform hover:scale-105">
+                    <span className="ev-notch bg-white px-6 py-3 text-sm font-bold text-[#111] transition-transform hover:scale-105">
                       {ctaTexto}
                     </span>
                   </div>
@@ -126,7 +126,7 @@ export default function CategoryShowcase({
                   <Link
                     key={prod.id}
                     href={`/product/${prod.slug}`}
-                    className="group flex items-center gap-4 rounded-xl border border-white/[0.07] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.03]"
+                    className="group flex items-center gap-4 ev-notch border border-white/[0.07] p-3 transition-colors hover:border-white/20 hover:bg-white/[0.03]"
                   >
                     <div className="h-[96px] w-[96px] shrink-0 overflow-hidden rounded-lg bg-[#16191f]">
                       {prod.imageUrl && (

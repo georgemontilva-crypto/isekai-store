@@ -19,7 +19,7 @@ export default function Collections() {
       <div className="border-b border-[#f0f0f0] py-12 px-4 lg:px-8">
         <div className="mx-auto px-4 lg:px-8" style={{ maxWidth: '1600px' }}>
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2">Isekai World</p>
-          <h1 className="text-4xl lg:text-6xl font-black text-[#111]">Universos</h1>
+          <h1 className="ev-display text-4xl text-[#111] lg:text-6xl">Universos</h1>
           <p className="text-[#999] mt-2">Explora todos nuestros universos</p>
         </div>
       </div>
@@ -31,7 +31,7 @@ export default function Collections() {
             <Link
               key={cat.id}
               href={`/catalog?category=${cat.slug}`}
-              className="group relative flex flex-col overflow-hidden rounded-2xl shadow-sm bg-white"
+              className="group relative flex flex-col overflow-hidden ev-notch shadow-sm bg-white"
             >
               <div className="aspect-[4/3] overflow-hidden">
                 <img
@@ -44,7 +44,7 @@ export default function Collections() {
               </div>
               <div className="px-4 py-3 flex items-start justify-between gap-2 text-[#1a1a1a]">
                 <div>
-                  <div className="font-bold text-[13px] leading-tight">{cat.name}</div>
+                  <div className="ev-display text-[13px] leading-tight">{cat.name}</div>
                   {cat.description && (
                     <div className="text-[11px] mt-0.5 leading-snug text-[#888]">{cat.description}</div>
                   )}
