@@ -196,10 +196,38 @@ export async function generarBoletos(eventId: number, cantidad: number) {
   if (!ev) throw new Error("Ese evento no existe");
 
   const lote = `L${Date.now().toString().slice(-8)}`;
+
+  /**
+   * Los códigos se comprueban contra los que ya existen antes de insertarlos.
+   *
+   * La columna es única, así que un choque nunca produciría dos boletos
+   * iguales — pero haría fallar el lote completo. Con seis caracteres hay
+   * 2.176 millones de combinaciones, y el riesgo de repetir sube con el
+   * volumen: a partir de unos miles de boletos deja de ser despreciable.
+   * Comprobar antes cuesta una consulta y elimina el problema.
+   */
+  const existentes = new Set(
+    (await db.select({ code: eventTickets.code }).from(eventTickets)).map(r => r.code),
+  );
+
+  const nuevoCodigo = () => {
+    for (let intento = 0; intento < 40; intento++) {
+      const c = `IW-${nanoid(6).toUpperCase().replace(/[^A-Z0-9]/g, "X")}`;
+      if (!existentes.has(c)) {
+        existentes.add(c);
+        return c;
+      }
+    }
+    // Con tantos choques seguidos, se alarga el código antes que fallar
+    const largo = `IW-${nanoid(9).toUpperCase().replace(/[^A-Z0-9]/g, "X")}`;
+    existentes.add(largo);
+    return largo;
+  };
+
   const filas = Array.from({ length: cantidad }, () => ({
     eventId,
     token: nuevoToken(),
-    code: `IW-${nanoid(6).toUpperCase().replace(/[^A-Z0-9]/g, "X")}`,
+    code: nuevoCodigo(),
     status: "blank",
     batch: lote,
   }));
