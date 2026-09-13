@@ -55,17 +55,34 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
   };
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/50 p-4" onClick={onClose}>
+    <div
+      className="fixed inset-0 z-[300] flex items-end justify-center bg-black/70 sm:items-center sm:p-4"
+      onClick={onClose}
+    >
       <div
         onClick={e => e.stopPropagation()}
-        className="flex max-h-[calc(100dvh-2rem)] w-full max-w-4xl flex-col rounded-2xl bg-white shadow-2xl"
+        className="ev-notch flex w-full max-w-4xl flex-col bg-white shadow-2xl"
+        style={{
+          // En teléfono ocupa casi toda la pantalla y respeta las zonas del
+          // sistema: antes quedaba bajo la cabecera y el botón de subir no
+          // se alcanzaba.
+          maxHeight: "calc(100dvh - env(safe-area-inset-top) - 1rem)",
+          marginTop: "env(safe-area-inset-top)",
+          paddingBottom: "env(safe-area-inset-bottom)",
+        }}
       >
         {/* Cabecera fija */}
-        <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[#e8e8ea] px-5 py-4">
-          <h3 className="text-base font-extrabold uppercase tracking-tight">Elegir archivo</h3>
+        <div className="shrink-0 border-b border-[#e8e8ea] px-5 py-4">
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <h3 className="ev-display text-base uppercase tracking-tight">Elegir archivo</h3>
+            <button onClick={onClose} className="ev-notch p-2 hover:bg-[#f0f0f0]" aria-label="Cerrar">
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+
           <div className="flex items-center gap-2">
-            <label className={`flex cursor-pointer items-center gap-2 rounded-full bg-[#111] px-4 py-2 text-xs font-bold text-white ${uploading ? "opacity-60" : ""}`}>
-              {uploading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Upload className="h-3.5 w-3.5" />}
+            <label className={`ev-notch ev-press flex flex-1 cursor-pointer items-center justify-center gap-2 bg-[#e5007d] px-4 py-3.5 text-sm font-bold text-white ${uploading ? "opacity-60" : ""}`}>
+              {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               {uploading ? "Subiendo..." : "Subir archivo"}
               <input
                 type="file"
@@ -75,9 +92,6 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
                 onChange={e => handleUpload(e.target.files?.[0] ?? null)}
               />
             </label>
-            <button onClick={onClose} className="rounded-full p-1.5 hover:bg-[#f0f0f0]" aria-label="Cerrar">
-              <X className="h-4 w-4" />
-            </button>
           </div>
         </div>
 
