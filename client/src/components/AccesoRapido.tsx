@@ -58,17 +58,18 @@ export default function AccesoRapido() {
         <X size={11} />
       </button>
 
+      {/* Solo el icono: ocupa poco y no tapa contenido. El texto aparece al
+          pasar por encima en escritorio, y el título lo describe para quien
+          use lector de pantalla. */}
       <Link
         href={destino.href}
-        className="group flex items-center gap-2 py-4 pl-4 pr-3 text-white shadow-2xl transition-all hover:pl-5"
-        style={{
-          background: destino.color,
-          borderRadius: "14px 0 0 14px",
-          writingMode: "vertical-rl",
-        }}
+        title={destino.texto}
+        aria-label={destino.texto}
+        className="group flex items-center gap-0 overflow-hidden py-3.5 pl-3.5 pr-3.5 text-white shadow-2xl transition-all lg:hover:gap-2 lg:hover:pr-4"
+        style={{ background: destino.color, borderRadius: "12px 0 0 12px" }}
       >
-        <Icono size={17} style={{ writingMode: "horizontal-tb" }} className="shrink-0" />
-        <span className="text-[11px] font-bold uppercase tracking-[0.18em]">
+        <Icono size={18} className="shrink-0" />
+        <span className="hidden max-w-0 whitespace-nowrap text-[11px] font-bold uppercase tracking-[0.18em] transition-all lg:inline lg:group-hover:max-w-[180px]">
           {destino.texto}
         </span>
       </Link>
