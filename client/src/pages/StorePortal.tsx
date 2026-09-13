@@ -201,7 +201,10 @@ export default function StorePortal() {
           />
         </EscanerSeguro>
       )}
-      <div className="mx-auto max-w-lg px-5 py-8">
+      <div
+        className="mx-auto max-w-lg px-5 pb-8"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 2rem)" }}
+      >
         {/* Cabecera */}
         <div className="mb-6 flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center ev-notch bg-[#e5007d]/15">

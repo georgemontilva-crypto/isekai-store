@@ -205,7 +205,10 @@ export default function GateControl() {
         />
       )}
 
-      <div className="mx-auto max-w-lg px-5 py-6">
+      <div
+        className="mx-auto max-w-lg px-5 pb-8"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 2rem)" }}
+      >
         {/* Estado */}
         <div className="mb-5 flex items-center justify-between gap-3">
           <div className="min-w-0">

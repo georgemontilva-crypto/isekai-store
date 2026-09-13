@@ -1516,7 +1516,7 @@ export const appRouter = router({
 
     // ── Generación de boletos (solo el dueño) ──
     generar: adminProcedure
-      .input(z.object({ eventId: z.number(), cantidad: z.number().int().min(1).max(500) }))
+      .input(z.object({ eventId: z.number(), cantidad: z.number().int().min(1).max(1000) }))
       .mutation(({ input }) => generarBoletos(input.eventId, input.cantidad)),
 
     listar: adminProcedure

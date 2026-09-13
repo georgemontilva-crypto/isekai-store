@@ -613,8 +613,14 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
               Se crean sin datos. Al generarlos se abre la hoja de QR lista para imprimir.
             </p>
+            {cantidad >= 500 && (
+              <p className="mb-2 text-xs leading-relaxed text-[#d9a400]">
+                Con lotes grandes la hoja de impresión tarda en abrirse. Dale tiempo
+                y no cierres la pestaña.
+              </p>
+            )}
             <div className="grid grid-cols-4 gap-2">
-              {[10, 25, 50, 100].map(n => (
+              {[50, 100, 500, 1000].map(n => (
                 <button key={n} onClick={() => setCantidad(n)}
                   className={`ev-notch text-xs font-bold transition-colors ${
                     cantidad === n ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
@@ -625,7 +631,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               ))}
             </div>
             <input type="number" inputMode="numeric" min={1} max={500} value={cantidad}
-              onChange={e => setCantidad(Math.min(500, Math.max(1, parseInt(e.target.value) || 1)))}
+              onChange={e => setCantidad(Math.min(1000, Math.max(1, parseInt(e.target.value) || 1)))}
               placeholder="Otra cantidad"
               className={`${campo} mt-2`} style={altoCampo} />
             <button
