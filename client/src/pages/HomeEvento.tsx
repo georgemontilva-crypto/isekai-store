@@ -828,21 +828,6 @@ export default function HomeEvento() {
         </div>
       </section>
 
-      {/* ═══ 8. PREPÁRATE PARA EL DESPERTAR ═══ */}
-      <section className="relative overflow-hidden border-t border-white/[0.06] px-6 py-24 text-center lg:py-32">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#06040d] via-[#0d0620] to-[#06040d]" />
-        <div className="relative z-10 mx-auto max-w-3xl">
-          <p className="ev-display text-[24px] leading-[1.12] sm:text-4xl lg:text-5xl">
-            TODOS COMIENZAN EN <span className="text-[#8a8a9c]">RANGO E</span>.
-            <br />
-            PERO NO TODOS LLEGARÁN A <span className="text-[#f43f5e]">S</span>.
-          </p>
-          <p className="mt-8 font-mono text-sm uppercase tracking-[0.3em] text-[#7c6fa0]">
-            ¿Estás preparado?
-          </p>
-        </div>
-      </section>
-
       <AvisoPropiedadIntelectual />
     </div>
   );
