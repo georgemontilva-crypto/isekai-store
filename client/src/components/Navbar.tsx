@@ -71,7 +71,10 @@ function destinoNotificacion(n: { type: string; body: string; title?: string }, 
 const MOBILE_MENU_CSS = `
   .iw-menu {
     position: fixed;
-    inset: 0;
+    /* Se extiende 90px por debajo del borde: con la barra del navegador
+       apareciendo y desapareciendo, un fondo que acaba justo en el borde
+       dejaba ver una línea de la página por detrás. */
+    inset: 0 0 -90px 0;
     z-index: 60;
     background: #050507;
     display: flex;
@@ -581,7 +584,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        <nav className="iw-menu-body flex flex-col px-6 pb-8 pt-6">
+        <nav className="iw-menu-body flex flex-col px-6 pt-6" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 6.5rem)" }}>
 
           {/* Navegación en rejilla de tarjetas: se recorre de un vistazo y cada
               destino tiene un área de toque amplia, en vez de una lista larga
