@@ -617,3 +617,21 @@ export async function darXpDePrueba(codigo: string, xp: number) {
     subioDeRango: subio,
   };
 }
+
+/**
+ * Boleto del usuario actual, buscado por el correo de su cuenta.
+ *
+ * Sirve para ofrecerle el acceso directo a su perfil de cazador sin que tenga
+ * que recordar el código impreso.
+ */
+export async function miBoletoPorCorreo(email: string) {
+  const db = await getDb();
+  if (!db || !email) return null;
+
+  const correo = email.trim().toLowerCase();
+  const vendidos = await db.select().from(eventTickets)
+    .where(eq(eventTickets.status, "sold"));
+
+  const suyo = vendidos.find(t => (t.buyerEmail ?? "").trim().toLowerCase() === correo);
+  return suyo ? { codigo: suyo.code, eventId: suyo.eventId } : null;
+}

@@ -27,7 +27,7 @@ import {
   crearActividad, listarActividades, editarActividad, borrarActividad,
   otorgarExperiencia, estadoPublico, resumenLevelPass,
   crearStaff, listarStaff, borrarStaff, esStaffPorCorreo, puedeOtorgar,
-  levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba, buscarBoleto, darXpDePrueba,
+  levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba, buscarBoleto, darXpDePrueba, miBoletoPorCorreo,
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 
@@ -1279,6 +1279,9 @@ export const appRouter = router({
 
     /** TEMPORAL: monta un evento completo para ensayar */
     crearPrueba: adminProcedure.mutation(({ ctx }) => crearEntornoPrueba(ctx.user.email ?? undefined)),
+
+    /** ¿Tiene boleto este usuario? Para ofrecerle el acceso directo */
+    miBoleto: protectedProcedure.query(({ ctx }) => miBoletoPorCorreo(ctx.user.email ?? "")),
 
     /** TEMPORAL: sumar puntos a mano para ensayar la subida de rango */
     darXpPrueba: adminProcedure
