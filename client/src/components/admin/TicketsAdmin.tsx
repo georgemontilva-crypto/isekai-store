@@ -258,8 +258,8 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
 
   // Variables de tema para que funcione igual en claro y oscuro, y `min-w-0`
   // en todos los contenedores para que nada se salga en pantalla estrecha.
-  const tarjeta = "rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4 min-w-0";
-  const campo = "w-full min-w-0 rounded-xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]";
+  const tarjeta = "ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4 min-w-0";
+  const campo = "w-full min-w-0 ev-notch border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]";
   const altoCampo = { minHeight: 48 };
 
   return (
@@ -279,7 +279,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         </select>
         <button
           onClick={() => setFormEvento(!formEvento)}
-          className="flex shrink-0 items-center justify-center rounded-xl bg-[#e5007d] px-4 text-white"
+          className="flex shrink-0 items-center justify-center ev-notch bg-[#e5007d] px-4 text-white"
           style={altoCampo}
           aria-label="Nuevo evento"
         >
@@ -287,7 +287,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         </button>
         <button
           onClick={() => refetchResumen()}
-          className="flex shrink-0 items-center justify-center rounded-xl border border-[var(--iw-border)] px-4 text-[var(--iw-text-muted)]"
+          className="flex shrink-0 items-center justify-center ev-notch border border-[var(--iw-border)] px-4 text-[var(--iw-text-muted)]"
           style={altoCampo}
           aria-label="Actualizar"
         >
@@ -320,7 +320,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           <button
             onClick={() => crearEvento.mutate(nuevoEvento)}
             disabled={!nuevoEvento.name || !nuevoEvento.startDate || !nuevoEvento.endDate}
-            className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+            className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
             style={{ minHeight: 52 }}
           >
             Crear evento
@@ -348,7 +348,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 <button
                   key={id}
                   onClick={() => setVista(id as any)}
-                  className={`flex-1 rounded-xl px-3 text-xs font-bold transition-colors ${
+                  className={`flex-1 ev-notch px-3 text-xs font-bold transition-colors ${
                     vista === id
                       ? "bg-[#e5007d] text-white"
                       : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
@@ -378,7 +378,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         const [titulo, descripcion] = titulos[vista] ?? ["", ""];
         return (
           <div>
-            <h2 className="text-lg font-black text-[var(--iw-text)]">{titulo}</h2>
+            <h2 className="ev-display text-lg text-[var(--iw-text)]">{titulo}</h2>
             <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">{descripcion}</p>
           </div>
         );
@@ -411,7 +411,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <div className="grid grid-cols-4 gap-2">
               {[10, 25, 50, 100].map(n => (
                 <button key={n} onClick={() => setCantidad(n)}
-                  className={`rounded-xl text-xs font-bold transition-colors ${
+                  className={`ev-notch text-xs font-bold transition-colors ${
                     cantidad === n ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
                   }`}
                   style={{ minHeight: 44 }}>
@@ -426,7 +426,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <button
               onClick={() => evento && generar.mutate({ eventId: evento.id, cantidad })}
               disabled={!evento || generar.isPending}
-              className="mt-2 flex w-full items-center justify-center gap-2 rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-2 flex w-full items-center justify-center gap-2 ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               <Download size={16} /> {generar.isPending ? "Generando..." : `Generar ${cantidad} e imprimir`}
@@ -564,7 +564,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             ) : (
               <div className="flex flex-col gap-2">
                 {lotes.map((l: any) => (
-                  <div key={l.lote} className="flex items-center justify-between gap-3 rounded-xl border border-[var(--iw-border)] p-3">
+                  <div key={l.lote} className="flex items-center justify-between gap-3 ev-notch border border-[var(--iw-border)] p-3">
                     <div className="min-w-0">
                       <p className="font-mono text-sm font-bold text-[var(--iw-text)]">{l.lote}</p>
                       <p className="text-xs text-[var(--iw-text-muted)]">
@@ -620,62 +620,6 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Level Pass ── */}
       {vista === "levelpass" && (
         <>
-          {/* TEMPORAL: entorno de ensayo */}
-          <div className="rounded-2xl border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
-            <p className="text-sm font-bold text-[var(--iw-text)]">Entorno de prueba</p>
-            <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--iw-text-muted)]">
-              Crea un evento con fechas de hoy, cinco actividades y boletos listos:
-              tres vendidos (IW-TEST01 a 03) y dos sin vender (IW-LIBRE1 y 2).
-            </p>
-            {/* Dar puntos a mano para ensayar el ascenso de rango */}
-            <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-[#fbbf24]/20 pb-3">
-              <input
-                value={codigoXp}
-                onChange={e => setCodigoXp(e.target.value.toUpperCase())}
-                placeholder="IW-TEST01"
-                className="w-36 rounded-lg border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-3 font-mono text-xs uppercase text-[var(--iw-text)] outline-none"
-                style={{ minHeight: 40 }}
-              />
-              {[40, 80, 200].map(n => (
-                <button
-                  key={n}
-                  onClick={() => darXp.mutate({ codigo: codigoXp.trim(), xp: n })}
-                  disabled={codigoXp.trim().length < 3 || darXp.isPending}
-                  className="rounded-lg border border-[#fbbf24]/40 px-3 text-xs font-bold text-[#fbbf24] disabled:opacity-40"
-                  style={{ minHeight: 40 }}
-                >
-                  +{n} XP
-                </button>
-              ))}
-              <button
-                onClick={() => darXp.mutate({ codigo: codigoXp.trim(), xp: -2000 })}
-                disabled={codigoXp.trim().length < 3}
-                className="rounded-lg border border-[var(--iw-border)] px-3 text-xs font-bold text-[var(--iw-text-muted)] disabled:opacity-40"
-                style={{ minHeight: 40 }}
-              >
-                Reiniciar
-              </button>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => crearPrueba.mutate()}
-                disabled={crearPrueba.isPending}
-                className="rounded-xl bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
-                style={{ minHeight: 44 }}
-              >
-                {crearPrueba.isPending ? "Creando..." : "Crear entorno de prueba"}
-              </button>
-              <button
-                onClick={() => { if (confirm("¿Borrar todos los datos de prueba?")) borrarPrueba.mutate(); }}
-                className="rounded-xl border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)]"
-                style={{ minHeight: 44 }}
-              >
-                Borrar pruebas
-              </button>
-            </div>
-          </div>
-
           {lpResumen && (
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
               {[
@@ -713,6 +657,11 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             </div>
           )}
 
+          <div className="mt-2">
+            <p className="ev-display text-sm text-[var(--iw-text)]">Actividades</p>
+            <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">Qué se puede completar en el evento y cuánta experiencia da</p>
+          </div>
+
           {/* Nueva actividad */}
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Nueva actividad</p>
@@ -732,7 +681,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               </div>
               <button
                 onClick={() => setNuevaAct(f => ({ ...f, repetible: !f.repetible }))}
-                className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-left ${
+                className={`flex items-center gap-3 ev-notch border px-4 py-3 text-left ${
                   nuevaAct.repetible ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[var(--iw-border)]"
                 }`}
               >
@@ -764,7 +713,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 maxVeces: nuevaAct.repetible ? nuevaAct.maxVeces : undefined,
               })}
               disabled={!nuevaAct.name || crearAct.isPending}
-              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               Añadir actividad
@@ -801,6 +750,11 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             )}
           </div>
 
+          <div className="mt-2">
+            <p className="ev-display text-sm text-[var(--iw-text)]">Quién otorga</p>
+            <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">Además de las tiendas marcadas con XP</p>
+          </div>
+
           {/* Personal autorizado */}
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Personal que otorga experiencia</p>
@@ -823,7 +777,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 puesto: nuevoStaff.puesto || undefined,
               })}
               disabled={!nuevoStaff.name || crearStaff.isPending}
-              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               Autorizar
@@ -847,6 +801,11 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-2">
+            <p className="ev-display text-sm text-[var(--iw-text)]">Cómo va el evento</p>
+            <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">Se actualiza solo cada 20 segundos</p>
           </div>
 
           {/* Ranking */}
@@ -890,6 +849,62 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               </div>
             </div>
           )}
+          {/* TEMPORAL: entorno de ensayo */}
+          <div className="ev-notch border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
+            <p className="text-sm font-bold text-[var(--iw-text)]">Entorno de prueba</p>
+            <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--iw-text-muted)]">
+              Crea un evento con fechas de hoy, cinco actividades y boletos listos:
+              tres vendidos (IW-TEST01 a 03) y dos sin vender (IW-LIBRE1 y 2).
+            </p>
+            {/* Dar puntos a mano para ensayar el ascenso de rango */}
+            <div className="mb-3 flex flex-wrap items-center gap-2 border-b border-[#fbbf24]/20 pb-3">
+              <input
+                value={codigoXp}
+                onChange={e => setCodigoXp(e.target.value.toUpperCase())}
+                placeholder="IW-TEST01"
+                className="w-36 rounded-lg border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-3 font-mono text-xs uppercase text-[var(--iw-text)] outline-none"
+                style={{ minHeight: 40 }}
+              />
+              {[40, 80, 200].map(n => (
+                <button
+                  key={n}
+                  onClick={() => darXp.mutate({ codigo: codigoXp.trim(), xp: n })}
+                  disabled={codigoXp.trim().length < 3 || darXp.isPending}
+                  className="rounded-lg border border-[#fbbf24]/40 px-3 text-xs font-bold text-[#fbbf24] disabled:opacity-40"
+                  style={{ minHeight: 40 }}
+                >
+                  +{n} XP
+                </button>
+              ))}
+              <button
+                onClick={() => darXp.mutate({ codigo: codigoXp.trim(), xp: -2000 })}
+                disabled={codigoXp.trim().length < 3}
+                className="rounded-lg border border-[var(--iw-border)] px-3 text-xs font-bold text-[var(--iw-text-muted)] disabled:opacity-40"
+                style={{ minHeight: 40 }}
+              >
+                Reiniciar
+              </button>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => crearPrueba.mutate()}
+                disabled={crearPrueba.isPending}
+                className="ev-notch bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
+                style={{ minHeight: 44 }}
+              >
+                {crearPrueba.isPending ? "Creando..." : "Crear entorno de prueba"}
+              </button>
+              <button
+                onClick={() => { if (confirm("¿Borrar todos los datos de prueba?")) borrarPrueba.mutate(); }}
+                className="ev-notch border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)]"
+                style={{ minHeight: 44 }}
+              >
+                Borrar pruebas
+              </button>
+            </div>
+          </div>
+
         </>
       )}
 
@@ -940,7 +955,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <button
               onClick={() => crearPortero.mutate({ name: nuevoPortero.name, email: nuevoPortero.email || undefined })}
               disabled={!nuevoPortero.name || crearPortero.isPending}
-              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               {crearPortero.isPending ? "Autorizando..." : "Autorizar portero"}
@@ -1001,7 +1016,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <button
               onClick={() => evento && crearTipo.mutate({ ...nuevoTipo, eventId: evento.id, perks: nuevoTipo.perks || undefined })}
               disabled={!nuevoTipo.name || !parseFloat(nuevoTipo.priceUsd || "0")}
-              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               Añadir tipo
@@ -1060,7 +1075,7 @@ Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra 
                 phone: nuevaTienda.phone || undefined,
               })}
               disabled={!nuevaTienda.name || crearTienda.isPending}
-              className="mt-3 w-full rounded-xl bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               {crearTienda.isPending ? "Autorizando..." : "Autorizar"}
