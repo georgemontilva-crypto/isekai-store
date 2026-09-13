@@ -589,7 +589,7 @@ export default function Navbar() {
           {/* Navegación en rejilla de tarjetas: se recorre de un vistazo y cada
               destino tiene un área de toque amplia, en vez de una lista larga
               de enlaces de texto. */}
-          <p className="iw-menu-item mb-3 text-[10px] font-bold uppercase tracking-[0.25em] text-white/40"
+          <p className="iw-menu-item ev-display mb-3 text-[10px] uppercase tracking-[0.25em] text-white/40"
              style={{ transitionDelay: mobileOpen ? "80ms" : "0ms" }}>
             Navegación
           </p>
@@ -602,7 +602,7 @@ export default function Navbar() {
                   href={l.href}
                   onClick={() => setMobileOpen(false)}
                   tabIndex={mobileOpen ? 0 : -1}
-                  className="iw-menu-item iw-menu-card flex flex-col justify-between rounded-xl px-4 py-3.5 transition-colors"
+                  className="iw-menu-item iw-menu-card ev-notch ev-press flex flex-col justify-between px-4 py-3.5 transition-colors"
                   style={{
                     transitionDelay: mobileOpen ? `${100 + i * 45}ms` : "0ms",
                     minHeight: 86,

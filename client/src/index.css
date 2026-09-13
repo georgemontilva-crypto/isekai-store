@@ -2588,10 +2588,15 @@ html.dark .iw-search:focus-within {
 
 /* Tipografía del menú de teléfono: Montserrat semibold, algo más redonda y
    estable que la del cuerpo para etiquetas cortas. */
+/* Tarjetas del menú móvil: mismo peso y bisel que el resto de la marca */
 .iw-menu-card, .iw-menu-cta {
   font-family: Montserrat, ui-sans-serif, system-ui, sans-serif;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+.iw-menu-card:active, .iw-menu-cta:active {
+  border-color: rgba(229, 0, 125, 0.5);
 }
 
 /* Logo de la cabecera: en teléfono se limita para que no empuje la fila y
