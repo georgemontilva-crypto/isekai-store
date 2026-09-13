@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin, Layers, Upload, Loader2, Sparkles } from "lucide-react";
+import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag, Mail, Calendar, Chrome, MapPin, Layers, Upload, Loader2, Sparkles, Store, ScanLine, Swords } from "lucide-react";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
@@ -40,13 +40,24 @@ const TABS: { id: Tab; label: string; short: string; icon: React.ElementType }[]
   { id: "orders",   label: "Mis Pedidos", short: "Pedidos",   icon: Package },
   { id: "wishlist", label: "Guardados",   short: "Guardados", icon: Heart },
   { id: "coupons",  label: "Cupones",     short: "Cupones",   icon: Ticket },
-  { id: "reserve",  label: "CredIsekai",  short: "Cred",      icon: Layers },
   { id: "profile",  label: "Mi Perfil",   short: "Perfil",    icon: User },
 ];
 
 export default function Account() {
   const { t } = useLang();
   const { user, isAuthenticated, logout, loading } = useAuth();
+
+  /** Portal que le toca a esta cuenta, si le toca alguno */
+  const { data: acceso } = trpc.tickets.miAcceso.useQuery(undefined, { enabled: isAuthenticated });
+  const { data: boleto } = trpc.levelPass.miBoleto.useQuery(undefined, { enabled: isAuthenticated });
+
+  const portal = acceso?.esTienda || acceso?.esStaff
+    ? { href: "/vender", corto: "Vender", icono: Store, color: "#e5007d" }
+    : acceso?.esPortero
+      ? { href: "/acceso", corto: "Acceso", icono: ScanLine, color: "#38bdf8" }
+      : boleto
+        ? { href: "/worldfest/pass", corto: "Cazador", icono: Swords, color: "#a78bfa" }
+        : null;
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("orders");
   const [offsetY, setOffsetY] = useState(0);
@@ -221,6 +232,22 @@ export default function Account() {
           transition={{ delay: 0.05 }}
           className="mb-8 hidden gap-2 md:flex md:flex-wrap md:justify-center"
         >
+          {/* Acceso directo al portal que corresponda: vender boletos,
+              controlar la puerta o el perfil de cazador. Ocupa el hueco que
+              tenía CredIsekai, que casi nadie usaba desde aquí. */}
+          {portal && (
+            <Link
+              href={portal.href}
+              className="relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-transform active:scale-95"
+              style={{ minHeight: 58, WebkitTapHighlightColor: "transparent" }}
+            >
+              <portal.icono className="h-5 w-5" style={{ color: portal.color }} />
+              <span className="text-[10px] font-bold" style={{ color: portal.color }}>
+                {portal.corto}
+              </span>
+            </Link>
+          )}
+
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -708,6 +735,21 @@ export default function Account() {
             )}
 
             {/* PROFILE */}
+            {/* CredIsekai salió de la barra inferior, así que se entra desde
+                aquí: sigue estando, solo cambió de sitio. */}
+            {activeTab === "profile" && (
+              <button
+                onClick={() => setActiveTab("reserve")}
+                className="ev-notch mb-4 flex w-full items-center justify-between gap-3 border border-white/10 bg-white/[0.04] p-4 text-left"
+              >
+                <span className="flex items-center gap-3">
+                  <Layers className="h-5 w-5 text-violet-400" />
+                  <span className="text-sm font-semibold text-white">CredIsekai</span>
+                </span>
+                <ChevronRight className="h-4 w-4 text-white/40" />
+              </button>
+            )}
+
             {activeTab === "profile" && (
               <div className="space-y-4">
                 <div className="ev-notch border border-[#ebebeb] divide-y divide-[#ebebeb]">
@@ -759,6 +801,22 @@ export default function Account() {
         style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
       >
         <div className="flex">
+          {/* Acceso directo al portal que corresponda: vender boletos,
+              controlar la puerta o el perfil de cazador. Ocupa el hueco que
+              tenía CredIsekai, que casi nadie usaba desde aquí. */}
+          {portal && (
+            <Link
+              href={portal.href}
+              className="relative flex flex-1 flex-col items-center justify-center gap-0.5 transition-transform active:scale-95"
+              style={{ minHeight: 58, WebkitTapHighlightColor: "transparent" }}
+            >
+              <portal.icono className="h-5 w-5" style={{ color: portal.color }} />
+              <span className="text-[10px] font-bold" style={{ color: portal.color }}>
+                {portal.corto}
+              </span>
+            </Link>
+          )}
+
           {TABS.map(tab => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
