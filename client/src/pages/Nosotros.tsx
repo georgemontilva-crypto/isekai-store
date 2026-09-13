@@ -118,7 +118,7 @@ export default function Nosotros() {
           <div className="grid grid-cols-3 gap-4 pt-4 border-t border-[#e5e5e5]">
             {[["3+", "años de experiencia"], ["500+", "productos curados"], ["10k+", "fans en la comunidad"]].map(([num, label]) => (
               <div key={label}>
-                <p className="text-2xl font-black text-[#111]">{num}</p>
+                <p className="ev-display text-2xl text-[#111]">{num}</p>
                 <p className="text-xs text-[#999] mt-0.5 leading-snug">{label}</p>
               </div>
             ))}
@@ -130,7 +130,7 @@ export default function Nosotros() {
       <section className="py-5 overflow-hidden bg-[#f8f8f8] border-y border-[#e5e5e5]">
         <div className="flex gap-4 marquee-track-slow">
           {[...gallery, ...gallery].map((src, idx) => (
-            <div key={idx} className="flex-shrink-0 w-[280px] h-[360px] bg-[#e5e5e5] rounded-xl overflow-hidden">
+            <div key={idx} className="flex-shrink-0 w-[280px] h-[360px] bg-[#e5e5e5] ev-notch overflow-hidden">
               {src ? (
                 <img src={src} className="w-full h-full object-cover" alt="" />
               ) : (
@@ -147,7 +147,7 @@ export default function Nosotros() {
       <section className="bg-white">
         <div className="px-6 lg:px-20 pt-20 pb-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">Lo que ofrecemos</p>
-          <h2 className="text-3xl lg:text-5xl font-black text-[#111]">Nuestros servicios</h2>
+          <h2 className="text-3xl lg:ev-display text-5xl text-[#111]">Nuestros servicios</h2>
         </div>
         <div>
           {SERVICES.map((s, i) => (
@@ -175,7 +175,7 @@ export default function Nosotros() {
               <div className="hidden lg:flex items-center justify-between py-7 px-20">
                 <div className="flex items-center gap-10">
                   <span className="text-xs text-[#bbb] font-mono w-6 shrink-0">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="text-4xl font-black group-hover:text-[#e5007d] transition-colors duration-300">
+                  <span className="ev-display text-4xl group-hover:text-[#e5007d] transition-colors duration-300">
                     {s.name}
                   </span>
                 </div>
@@ -280,7 +280,7 @@ export default function Nosotros() {
           viewport={{ once: true }}
           className="relative z-10 text-center px-6 max-w-4xl"
         >
-          <p className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+          <p className="text-4xl sm:text-5xl lg:ev-display text-6xl text-white leading-tight">
             "No somos una fábrica masiva.<br />
             <span className="text-[#e5007d]">Somos una comunidad</span><br />
             de apasionados."

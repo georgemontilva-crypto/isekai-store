@@ -3202,3 +3202,32 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 @media (prefers-reduced-motion: reduce) {
   .lp-ambiente-sube, .lp-marco-sube { animation: none; }
 }
+
+/* ══ Bisel de la marca en la tienda ══════════════════════════════════════
+   Las tarjetas del inicio y del catálogo llevaban su radio definido aquí,
+   así que el cambio a esquinas biseladas se aplica en el mismo sitio en vez
+   de tocar cada componente. */
+.iw-hero,
+.iw-hero-slide,
+.iw-universo-card,
+.iw-vitrina-col,
+.iw-producto-card,
+.iw-card {
+  border-radius: 0 !important;
+  clip-path: polygon(
+    16px 0,
+    100% 0,
+    100% calc(100% - 16px),
+    calc(100% - 16px) 100%,
+    0 100%,
+    0 16px
+  );
+}
+
+/* Los titulares de la tienda comparten tipografía con el resto */
+.iw-hero-title,
+.iw-seccion-titulo {
+  font-family: "Montserrat", "Inter", system-ui, sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.025em;
+}

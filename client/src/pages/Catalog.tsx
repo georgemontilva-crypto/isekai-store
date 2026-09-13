@@ -95,7 +95,7 @@ export default function Catalog() {
         <div className="container relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="text-xs font-semibold text-[#e5007d] uppercase tracking-widest">Tienda</span>
-            <h1 className="text-3xl lg:text-5xl font-black mt-2 mb-3 text-white">
+            <h1 className="text-3xl lg:ev-display text-5xl mt-2 mb-3 text-white">
               {selectedCategory
                 ? categories?.find((c) => c.id === selectedCategory)?.name ?? "Catálogo"
                 : <><span className="gradient-text">Todo</span> el catálogo</>
@@ -123,7 +123,7 @@ export default function Catalog() {
               value={search}
               onChange={(e) => handleSearch(e.target.value)}
               placeholder={t.nav.searchPlaceholder}
-              className="pl-10 bg-card border-border/50 focus:border-primary/50 rounded-xl h-11"
+              className="pl-10 bg-card border-border/50 focus:border-primary/50 ev-notch h-11"
             />
           </div>
 
@@ -132,7 +132,7 @@ export default function Catalog() {
           {/* Filter toggle */}
           <Button
             variant="outline"
-            className={`gap-2 h-11 shrink-0 rounded-xl border-border/50 ${showFilters ? "border-primary/50 text-primary bg-primary/5" : ""}`}
+            className={`gap-2 h-11 shrink-0 ev-notch border-border/50 ${showFilters ? "border-primary/50 text-primary bg-primary/5" : ""}`}
             onClick={() => setShowFilters(!showFilters)}
           >
             <SlidersHorizontal className="w-4 h-4" />
@@ -148,7 +148,7 @@ export default function Catalog() {
           <div className="relative">
             <button
               onClick={() => setSortOpen(!sortOpen)}
-              className="flex items-center gap-2 h-11 px-4 rounded-xl bg-card border border-border/50 text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+              className="flex items-center gap-2 h-11 px-4 ev-notch bg-card border border-border/50 text-sm text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
             >
               <span className="hidden sm:inline">{activeSort.label}</span>
               <span className="sm:hidden">Ordenar</span>
@@ -161,14 +161,14 @@ export default function Catalog() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.97 }}
                   transition={{ duration: 0.18 }}
-                  className="absolute right-0 top-full mt-1 w-52 rounded-2xl bg-card border border-border/50 shadow-2xl shadow-black/40 overflow-hidden z-20"
+                  className="absolute right-0 top-full mt-1 w-52 ev-notch bg-card border border-border/50 shadow-2xl shadow-black/40 overflow-hidden z-20"
                 >
                   <div className="p-1.5">
                     {sortOptions.map((opt) => (
                       <button
                         key={opt.value}
                         onClick={() => { setSortBy(opt.value); setSortOpen(false); }}
-                        className={`w-full text-left px-3 py-2.5 rounded-xl text-sm transition-colors ${
+                        className={`w-full text-left px-3 py-2.5 ev-notch text-sm transition-colors ${
                           sortBy === opt.value ? "bg-primary/10 text-primary font-medium" : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                         }`}
                       >
@@ -182,7 +182,7 @@ export default function Catalog() {
           </div>
 
           {/* View mode */}
-          <div className="hidden sm:flex items-center gap-1 p-1 rounded-xl bg-card border border-border/50">
+          <div className="hidden sm:flex items-center gap-1 p-1 ev-notch bg-card border border-border/50">
             <button
               onClick={() => setViewMode("grid")}
               className={`p-2 rounded-lg transition-colors ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
@@ -199,7 +199,7 @@ export default function Catalog() {
 
           {/* Clear filters */}
           {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground gap-1.5 h-11 shrink-0 rounded-xl">
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground hover:text-foreground gap-1.5 h-11 shrink-0 ev-notch">
               <X className="w-4 h-4" />
               Limpiar
             </Button>
@@ -217,12 +217,12 @@ export default function Catalog() {
               transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
               className="overflow-hidden mb-6"
             >
-              <div className="p-5 rounded-2xl bg-card border border-border/50">
+              <div className="p-5 ev-notch bg-card border border-border/50">
                 <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Categorías</p>
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedCategory(undefined)}
-                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                    className={`px-4 py-2 ev-notch text-sm font-medium transition-all duration-200 ${
                       !selectedCategory
                         ? "bg-primary text-primary-foreground neon-glow-purple"
                         : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
@@ -234,7 +234,7 @@ export default function Catalog() {
                     <button
                       key={cat.id}
                       onClick={() => setSelectedCategory(cat.id)}
-                      className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                      className={`px-4 py-2 ev-notch text-sm font-medium transition-all duration-200 ${
                         selectedCategory === cat.id
                           ? "bg-primary text-primary-foreground neon-glow-purple"
                           : "bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80"
@@ -276,7 +276,7 @@ export default function Catalog() {
             >
             <button
               onClick={() => setSelectedCategory(undefined)}
-              className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+              className={`flex-shrink-0 px-4 py-2 ev-notch text-sm font-medium transition-all duration-200 ${
                 !selectedCategory
                   ? "bg-[#e5007d] text-white"
                   : "bg-[#16191f] border border-white/10 text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
@@ -288,7 +288,7 @@ export default function Catalog() {
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
+                className={`flex-shrink-0 px-4 py-2 ev-notch text-sm font-medium transition-all duration-200 ${
                   selectedCategory === cat.id
                     ? "bg-[#e5007d] text-white"
                     : "bg-[#16191f] border border-white/10 text-[#c0c0cc] hover:text-white hover:border-[#e5007d]"
@@ -305,8 +305,8 @@ export default function Catalog() {
         {isLoading ? (
           <div className={`grid gap-5 lg:gap-6 ${viewMode === "list" ? "grid-cols-1" : "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4"}`}>
             {Array.from({ length: 8 }).map((_, i) => (
-              <div key={i} className={`bg-card border border-border/50 rounded-2xl overflow-hidden animate-pulse ${viewMode === "list" ? "flex gap-4 p-4" : ""}`}>
-                <div className={`bg-muted ${viewMode === "list" ? "w-32 h-32 rounded-xl flex-shrink-0" : "aspect-[3/4]"}`} />
+              <div key={i} className={`bg-card border border-border/50 ev-notch overflow-hidden animate-pulse ${viewMode === "list" ? "flex gap-4 p-4" : ""}`}>
+                <div className={`bg-muted ${viewMode === "list" ? "w-32 h-32 ev-notch flex-shrink-0" : "aspect-[3/4]"}`} />
                 <div className={`p-4 space-y-2 ${viewMode === "list" ? "flex-1 py-0" : ""}`}>
                   <div className="h-3 bg-muted rounded w-1/3" />
                   <div className="h-4 bg-muted rounded w-3/4" />
@@ -328,7 +328,7 @@ export default function Catalog() {
             <p className="text-muted-foreground mt-2">Intenta con otros filtros o términos de búsqueda</p>
             {hasFilters && (
               <Button
-                className="mt-6 bg-primary text-primary-foreground rounded-xl"
+                className="mt-6 bg-primary text-primary-foreground ev-notch"
                 onClick={clearFilters}
               >
                 Limpiar filtros
@@ -346,10 +346,10 @@ export default function Catalog() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
                   transition={{ delay: i * 0.03, duration: 0.3 }}
-                  className="flex gap-4 p-4 rounded-2xl bg-card border border-border/50 hover:border-primary/30 transition-colors group cursor-pointer"
+                  className="flex gap-4 p-4 ev-notch bg-card border border-border/50 hover:border-primary/30 transition-colors group cursor-pointer"
                   onClick={() => window.location.href = `/product/${product.slug}`}
                 >
-                  <div className="w-28 h-28 rounded-xl overflow-hidden bg-muted flex-shrink-0">
+                  <div className="w-28 h-28 ev-notch overflow-hidden bg-muted flex-shrink-0">
                     {(product as any).imageUrl ? (
                       <img src={(product as any).imageUrl} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
                     ) : (

@@ -166,7 +166,7 @@ function AliadosSection() {
       <p className="mb-1 text-center font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff45a0]">
         Confían en nosotros
       </p>
-      <h2 className="mb-8 text-center text-2xl font-black text-white sm:text-3xl">
+      <h2 className="mb-8 text-center ev-display text-2xl text-white sm:text-3xl">
         Nuestros aliados comerciales
       </h2>
 
@@ -365,7 +365,7 @@ export default function Home() {
               return (
                 <Link key={cat.id} href={href} className="iw-universo-card" style={{ scrollSnapAlign: "start" }}>
                   <div
-                    className="group relative w-full cursor-pointer overflow-hidden rounded-2xl bg-[#16191f]"
+                    className="group relative w-full cursor-pointer overflow-hidden ev-notch bg-[#16191f]"
                     style={{
                       aspectRatio: "3 / 4",
                       border: "1px solid rgba(255,255,255,0.07)",

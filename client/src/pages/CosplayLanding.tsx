@@ -55,7 +55,7 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-                className="group bg-[#16191f] border border-white/10 rounded-2xl overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer"
+                className="group bg-[#16191f] border border-white/10 ev-notch overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer"
               >
                 {/* Banner/foto superior */}
                 <div className="relative h-40 overflow-hidden bg-white/[0.06]">
@@ -200,7 +200,7 @@ export default function CosplayLanding() {
       <section className="bg-[#0a0a0a]">
         <div className="px-6 lg:px-20 pt-20 pb-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">El proceso</p>
-          <h2 className="text-3xl lg:text-5xl font-black text-white">Cómo funciona</h2>
+          <h2 className="text-3xl lg:ev-display text-5xl text-white">Cómo funciona</h2>
         </div>
         <div>
           {STEPS.map((s, i) => (
@@ -226,7 +226,7 @@ export default function CosplayLanding() {
               <div className="hidden lg:flex items-center justify-between py-7 px-20">
                 <div className="flex items-center gap-10">
                   <span className="text-xs text-[#555] font-mono w-6 shrink-0">{s.n}</span>
-                  <span className="text-4xl font-black text-white group-hover:text-[#e5007d] transition-colors duration-300">{s.title}</span>
+                  <span className="ev-display text-4xl text-white group-hover:text-[#e5007d] transition-colors duration-300">{s.title}</span>
                 </div>
                 <span className="text-sm text-[#888] max-w-[280px] text-right leading-relaxed">{s.desc}</span>
               </div>
@@ -240,7 +240,7 @@ export default function CosplayLanding() {
       <section className="py-24 bg-[#0a0a0a] overflow-hidden">
         <div className="container">
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2 font-medium">Niveles del Guild</p>
-          <h2 className="text-4xl lg:text-6xl font-black text-white mb-4">
+          <h2 className="text-4xl lg:ev-display text-6xl text-white mb-4">
             Cuanto más crezcas,<br />
             <span className="text-[#e5007d]">más ganas.</span>
           </h2>
@@ -249,7 +249,7 @@ export default function CosplayLanding() {
             Cada nivel multiplica los tickets que ganas por actividad.
           </p>
 
-          <div className="flex items-center gap-3 bg-[#16191f] border border-[#e5007d]/30 rounded-xl px-5 py-4 mb-10 max-w-xl">
+          <div className="flex items-center gap-3 bg-[#16191f] border border-[#e5007d]/30 ev-notch px-5 py-4 mb-10 max-w-xl">
             <Info size={16} className="text-[#e5007d] flex-shrink-0" />
             <p className="text-[#888] text-sm">
               <span className="text-white font-bold">Requisito mínimo:</span> necesitas al menos{" "}
@@ -273,7 +273,7 @@ export default function CosplayLanding() {
                   className="group flex items-center gap-4"
                 >
                   <div
-                    className="relative h-16 lg:h-20 rounded-2xl flex items-center px-4 sm:px-6 transition-all duration-500 group-hover:brightness-110 flex-1 lg:flex-none min-w-0"
+                    className="relative h-16 lg:h-20 ev-notch flex items-center px-4 sm:px-6 transition-all duration-500 group-hover:brightness-110 flex-1 lg:flex-none min-w-0"
                     style={{
                       width: esAncha ? tier.width : undefined,
                       minWidth: esAncha ? "200px" : undefined,
@@ -290,7 +290,7 @@ export default function CosplayLanding() {
                   </div>
 
                   <div className="flex flex-shrink-0 items-center gap-2">
-                    <span className="text-xl sm:text-2xl lg:text-3xl font-black" style={{ color: tier.color }}>{tier.mult}</span>
+                    <span className="text-xl sm:text-2xl lg:ev-display text-3xl" style={{ color: tier.color }}>{tier.mult}</span>
                     <span className="text-[#555] text-xs hidden lg:block leading-tight">tickets<br />por actividad</span>
                   </div>
                 </motion.div>
@@ -308,7 +308,7 @@ export default function CosplayLanding() {
       <section className="py-24 bg-[#111]">
         <div className="container">
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2 font-medium">Recompensas</p>
-          <h2 className="text-4xl lg:text-6xl font-black text-white mb-4">
+          <h2 className="text-4xl lg:ev-display text-6xl text-white mb-4">
             Tus tickets,<br />
             <span className="text-[#e5007d]">tu poder.</span>
           </h2>
@@ -319,7 +319,7 @@ export default function CosplayLanding() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             {/* Códigos de descuento */}
-            <div className="bg-[#16191f] rounded-2xl p-8 border border-white/10 relative overflow-hidden">
+            <div className="bg-[#16191f] ev-notch p-8 border border-white/10 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5" style={{ background: '#e5007d', transform: 'translate(30%, -30%)' }} />
               <Tag size={32} className="text-[#e5007d] mb-4" strokeWidth={1.5} />
               <h3 className="text-white font-black text-2xl mb-2">Códigos de descuento</h3>
@@ -334,7 +334,7 @@ export default function CosplayLanding() {
                   { percent: '30%', tickets: 2000 },
                   { percent: '50%', tickets: 5000 },
                 ].map(item => (
-                  <div key={item.percent} className="flex items-center justify-between py-3 px-4 rounded-xl bg-white/[0.06] border border-white/10">
+                  <div key={item.percent} className="flex items-center justify-between py-3 px-4 ev-notch bg-white/[0.06] border border-white/10">
                     <span className="text-white font-bold text-sm">{item.percent} de descuento</span>
                     <span className="text-[#e5007d] font-black text-sm">{item.tickets.toLocaleString()} tickets</span>
                   </div>
@@ -343,7 +343,7 @@ export default function CosplayLanding() {
             </div>
 
             {/* Tienda exclusiva */}
-            <div className="bg-[#16191f] rounded-2xl p-8 border border-white/10 relative overflow-hidden">
+            <div className="bg-[#16191f] ev-notch p-8 border border-white/10 relative overflow-hidden">
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5" style={{ background: '#ffd700', transform: 'translate(30%, -30%)' }} />
               <ShoppingBag size={32} className="text-[#ffd700] mb-4" strokeWidth={1.5} />
               <h3 className="text-white font-black text-2xl mb-2">Tienda exclusiva</h3>
@@ -367,7 +367,7 @@ export default function CosplayLanding() {
             </div>
 
             {/* Card — Código de referido */}
-            <div className="bg-[#16191f] border border-white/10 rounded-2xl p-8 relative overflow-hidden lg:col-span-2">
+            <div className="bg-[#16191f] border border-white/10 ev-notch p-8 relative overflow-hidden lg:col-span-2">
               <div className="absolute top-0 right-0 w-40 h-40 rounded-full opacity-5"
                 style={{ background: '#ffd700', transform: 'translate(30%, -30%)' }} />
               <div className="flex flex-col lg:flex-row lg:items-center gap-6">
@@ -381,7 +381,7 @@ export default function CosplayLanding() {
                   </p>
 
                   {/* Tabla de comisiones por tramo */}
-                  <div className="mb-4 overflow-hidden rounded-xl border border-white/10">
+                  <div className="mb-4 overflow-hidden ev-notch border border-white/10">
                     {REFERRAL_TIERS.map((t, i) => (
                       <div
                         key={t.label}
@@ -410,7 +410,7 @@ export default function CosplayLanding() {
                 </div>
                 <div className="flex-shrink-0">
                   <p className="text-[#555] text-xs uppercase tracking-widest mb-2 text-center">Ejemplo</p>
-                  <div className="bg-[#0a0a0a] border-2 border-dashed border-[#ffd700]/40 rounded-2xl px-8 py-5 text-center">
+                  <div className="bg-[#0a0a0a] border-2 border-dashed border-[#ffd700]/40 ev-notch px-8 py-5 text-center">
                     <p className="text-[#ffd700] font-black tracking-widest text-2xl">ISK-NOMBRE-0000</p>
                     <p className="text-[#555] text-xs mt-2">Tu código único e intransferible</p>
                   </div>
@@ -420,7 +420,7 @@ export default function CosplayLanding() {
           </div>
 
           {/* Banner CTA */}
-          <div className="bg-[#0a0a0a] rounded-2xl p-8 border border-[#e5007d]/30 flex flex-col lg:flex-row items-center justify-between gap-6">
+          <div className="bg-[#0a0a0a] ev-notch p-8 border border-[#e5007d]/30 flex flex-col lg:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-white font-black text-xl mb-1">¿Listo para empezar a ganar?</h3>
               <p className="text-[#888] text-sm">Aplica ahora y empieza a acumular tickets desde tu primera actividad.</p>
@@ -434,7 +434,7 @@ export default function CosplayLanding() {
         <section className="py-24 bg-[#0a0a0a] overflow-hidden">
           <div className="px-6 lg:px-20 mb-12">
             <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">La comunidad</p>
-            <h2 className="text-3xl lg:text-5xl font-black text-white">Cosplayers aliados</h2>
+            <h2 className="text-3xl lg:ev-display text-5xl text-white">Cosplayers aliados</h2>
           </div>
           <CosplayersCarousel cosplayers={cosplayers} />
           {cosplayers.length > 4 && (
@@ -464,7 +464,7 @@ export default function CosplayLanding() {
           viewport={{ once: true }}
           className="relative z-10 text-center px-6 max-w-3xl"
         >
-          <p className="text-4xl sm:text-5xl lg:text-6xl font-black text-white leading-tight">
+          <p className="text-4xl sm:text-5xl lg:ev-display text-6xl text-white leading-tight">
             "De fan para fan.<br />
             <span className="text-[#e5007d]">De cosplayer para cosplayer."</span>
           </p>
