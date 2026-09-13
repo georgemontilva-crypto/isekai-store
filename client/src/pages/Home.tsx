@@ -194,9 +194,9 @@ function AliadosSection() {
 
 export default function Home() {
   useSEO({
-    title: 'Figuras de Impresión 3D Anime & Gaming',
-    description: 'Descubre figuras únicas impresas en 3D inspiradas en anime, videojuegos y cultura geek. Fan-made para coleccionistas.',
-    url: 'https://isekaiworld.co',
+    title: 'Tienda — Figuras y props de cosplay a medida',
+    description: 'Figuras, props y piezas de cosplay impresas en 3D, hechas a medida para que tu personaje se vea como lo imaginaste.',
+    url: 'https://isekaiworld.co/tienda',
   });
 
   const { t } = useLang();
