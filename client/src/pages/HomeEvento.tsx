@@ -112,6 +112,9 @@ export default function HomeEvento() {
   /** Video de fondo opcional: queda como textura, apenas perceptible */
   const heroVideo = settings?.["wf_hero_video"] ?? "";
   const premioImg = settings?.["wf_premio_image"] ?? "";
+  /** Fondo de la lista de acceso: video si lo hay, si no la imagen */
+  const listaVideo = settings?.["wf_lista_video"] ?? "";
+  const listaImg = settings?.["wf_lista_image"] ?? "";
 
   const [email, setEmail] = useState("");
   const [suscrito, setSuscrito] = useState(false);
@@ -756,8 +759,31 @@ export default function HomeEvento() {
       </section>
 
       {/* ═══ Lista de acceso ═══ */}
-      <section id="lista-acceso" className="px-6 py-20 lg:py-24">
-        <div className="mx-auto max-w-xl text-center">
+      <section id="lista-acceso" className="relative overflow-hidden px-6 py-20 lg:py-28">
+        {/* Fondo opcional: video o imagen, siempre bajo un velo para que el
+            formulario se lea. */}
+        {listaImg && (
+          <img src={listaImg} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        {listaVideo && (
+          <video
+            src={listaVideo}
+            autoPlay
+            muted
+            loop
+            playsInline
+            poster={listaImg || undefined}
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+        )}
+        {(listaImg || listaVideo) && (
+          <>
+            <div className="absolute inset-0 bg-[#06040d]/78" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#06040d] via-transparent to-[#06040d]" />
+          </>
+        )}
+
+        <div className="relative z-10 mx-auto max-w-xl text-center">
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
             [ Lista de acceso ]
           </p>
