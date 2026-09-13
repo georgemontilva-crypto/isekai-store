@@ -94,6 +94,10 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     },
   });
 
+  /** Tienda seleccionada en la lista de vendidos; null = todas */
+  const [filtroTienda, setFiltroTienda] = useState<string | null>(null);
+
+
   const [nuevaAct, setNuevaAct] = useState({ name: "", xp: "25", ubicacion: "", repetible: false, maxVeces: 3 });
   const crearAct = trpc.levelPass.crearActividad.useMutation({
     onSuccess: () => {
@@ -154,6 +158,17 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     { eventId: evento?.id ?? 0, status: "sold" },
     { enabled: habilitado && !!evento && vista === "boletos", refetchInterval: 15000 },
   );
+
+  /**
+   * Los boletos guardan el id de la tienda, así que se traduce el nombre
+   * elegido a su id usando la lista de tiendas.
+   */
+  const boletosFiltrados = (() => {
+    if (!filtroTienda) return boletos as any[];
+    const t = (tiendas as any[]).find(x => x.name === filtroTienda);
+    if (!t) return [];
+    return (boletos as any[]).filter(b => b.storeId === t.id);
+  })();
 
   // ── Formularios ──
   const [nuevoEvento, setNuevoEvento] = useState({ name: "", startDate: "", endDate: "", location: "" });
@@ -521,9 +536,51 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Vendidos ── */}
       {vista === "boletos" && (
         <div className="flex flex-col gap-2">
-          {boletos.length === 0 ? (
-            <p className="py-12 text-center text-sm text-[var(--iw-text-muted)]">Todavía no hay boletos vendidos.</p>
-          ) : boletos.map((b: any) => (
+          {/* Filtro por tienda: con varios puntos de venta hace falta poder
+              mirar uno solo y ver cuánto lleva. */}
+          {(resumen?.porTienda?.length ?? 0) > 0 && (
+            <div className="iw-areas-carril -mx-1 mb-2 flex gap-2 overflow-x-auto px-1 pb-1">
+              <button
+                onClick={() => setFiltroTienda(null)}
+                className={`ev-notch shrink-0 px-3.5 text-[11px] font-bold ${
+                  filtroTienda === null
+                    ? "bg-[#e5007d] text-white"
+                    : "border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                }`}
+                style={{ minHeight: 40 }}
+              >
+                Todas · {boletos.length}
+              </button>
+              {resumen!.porTienda.map((t: any) => (
+                <button
+                  key={t.nombre}
+                  onClick={() => setFiltroTienda(t.nombre)}
+                  className={`ev-notch shrink-0 px-3.5 text-[11px] font-bold ${
+                    filtroTienda === t.nombre
+                      ? "bg-[#e5007d] text-white"
+                      : "border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                  }`}
+                  style={{ minHeight: 40 }}
+                >
+                  {t.nombre} · {t.cantidad}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Total de lo que se está viendo */}
+          {filtroTienda && (
+            <p className="mb-1 text-xs text-[var(--iw-text-muted)]">
+              {boletosFiltrados.length} boleto{boletosFiltrados.length === 1 ? "" : "s"} ·{" "}
+              ${boletosFiltrados.reduce((a: number, b: any) => a + (parseFloat(b.priceUsd ?? "0") || 0), 0).toFixed(2)} USD
+            </p>
+          )}
+
+          {boletosFiltrados.length === 0 ? (
+            <p className="py-12 text-center text-sm text-[var(--iw-text-muted)]">
+              {filtroTienda ? `${filtroTienda} no ha vendido boletos.` : "Todavía no hay boletos vendidos."}
+            </p>
+          ) : boletosFiltrados.map((b: any) => (
             <div key={b.id} className={tarjeta}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
