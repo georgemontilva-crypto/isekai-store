@@ -329,47 +329,81 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       )}
 
       {/* Pestañas */}
-      {/* Las secciones se agrupan por lo que se hace en cada una: primero lo
-          que se consulta a diario, luego lo que se configura una vez, y
-          aparte lo que pasa durante el evento. Antes eran siete pestañas
-          seguidas sin distinción y costaba encontrar nada. */}
-      <div className="flex flex-col gap-3">
+      {/* Cuatro apartados en un carril horizontal. Cada uno abre su propia
+          pantalla: antes eran siete pestañas y el contenido se mezclaba. */}
+      <div className="iw-areas-carril -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
         {([
-          ["Día a día", [["resumen", "Resumen"], ["boletos", "Vendidos"], ["codigos", "Códigos"]]],
-          ["Configuración", [["tipos", "Tipos de boleto"], ["tiendas", "Tiendas"]]],
-          ["Durante el evento", [["acceso", "Control de acceso"], ["levelpass", "Level Pass"]]],
-        ] as const).map(([grupo, opciones]) => (
-          <div key={grupo}>
-            <p className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[var(--iw-text-muted)]">
-              {grupo}
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {opciones.map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => setVista(id as any)}
-                  className={`flex-1 ev-notch px-3 text-xs font-bold transition-colors ${
-                    vista === id
-                      ? "bg-[#e5007d] text-white"
-                      : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
-                  }`}
-                  style={{ minHeight: 44, minWidth: 100, WebkitTapHighlightColor: "transparent" }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+          ["resumen",   "Resumen"],
+          ["codigos",   "Generar boletos"],
+          ["tipos",     "Configuración"],
+          ["levelpass", "Durante el evento"],
+        ] as const).map(([id, label]) => {
+          // Cada apartado se marca activo también desde sus sub-secciones
+          const activo =
+            (id === "resumen"   && (vista === "resumen" || vista === "boletos")) ||
+            (id === "codigos"   && vista === "codigos") ||
+            (id === "tipos"     && (vista === "tipos" || vista === "tiendas")) ||
+            (id === "levelpass" && (vista === "levelpass" || vista === "acceso"));
+
+          return (
+            <button
+              key={id}
+              onClick={() => setVista(id as any)}
+              className={`ev-notch shrink-0 px-4 text-xs font-bold transition-colors ${
+                activo
+                  ? "bg-[#e5007d] text-white"
+                  : "border border-[var(--iw-border)] bg-[var(--iw-input-bg)] text-[var(--iw-text-muted)]"
+              }`}
+              style={{ minHeight: 46, WebkitTapHighlightColor: "transparent" }}
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
+
+      {/* Sub-secciones del apartado abierto, cuando tiene más de una */}
+      {(() => {
+        const subs: Record<string, [string, string][]> = {
+          resumen:   [["resumen", "Ventas"], ["boletos", "Vendidos"]],
+          tipos:     [["tipos", "Tipos de boleto"], ["tiendas", "Tiendas"]],
+          levelpass: [["levelpass", "Level Pass"], ["acceso", "Control de acceso"]],
+        };
+        const grupo =
+          vista === "boletos" ? "resumen"
+          : vista === "tiendas" ? "tipos"
+          : vista === "acceso" ? "levelpass"
+          : vista;
+        const opciones = subs[grupo];
+        if (!opciones) return null;
+
+        return (
+          <div className="flex flex-wrap gap-2">
+            {opciones.map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setVista(id as any)}
+                className={`ev-notch px-3.5 text-[11px] font-bold transition-colors ${
+                  vista === id
+                    ? "border border-[#e5007d] text-[#e5007d]"
+                    : "border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                }`}
+                style={{ minHeight: 38 }}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+        );
+      })()}
 
       {/* Título de la sección: sin esto, al entrar en una pestaña costaba
           saber qué se estaba viendo. */}
       {(() => {
         const titulos: Record<string, [string, string]> = {
-          resumen:   ["Resumen", "Ventas del evento y generación de boletos"],
+          resumen:   ["Resumen", "Cómo van las ventas del evento"],
           boletos:   ["Boletos vendidos", "Quién compró cada boleto y en qué tienda"],
-          codigos:   ["Códigos generados", "Lotes creados y reimpresión de sus QR"],
+          codigos:   ["Generar boletos", "Crea boletos en blanco y reimprime lotes anteriores"],
           tipos:     ["Tipos de boleto", "Qué se vende, a qué precio y para cuántos días"],
           tiendas:   ["Tiendas autorizadas", "Quién puede vender y quién puede dar experiencia"],
           acceso:    ["Control de acceso", "Personal de puerta y asistencia por día"],
@@ -402,36 +436,6 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             ))}
           </div>
 
-          {/* Generar boletos */}
-          <div className={tarjeta}>
-            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Generar boletos en blanco</p>
-            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
-              Se crean sin datos. Al generarlos se abre la hoja de QR lista para imprimir.
-            </p>
-            <div className="grid grid-cols-4 gap-2">
-              {[10, 25, 50, 100].map(n => (
-                <button key={n} onClick={() => setCantidad(n)}
-                  className={`ev-notch text-xs font-bold transition-colors ${
-                    cantidad === n ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
-                  }`}
-                  style={{ minHeight: 44 }}>
-                  {n}
-                </button>
-              ))}
-            </div>
-            <input type="number" inputMode="numeric" min={1} max={500} value={cantidad}
-              onChange={e => setCantidad(Math.min(500, Math.max(1, parseInt(e.target.value) || 1)))}
-              placeholder="Otra cantidad"
-              className={`${campo} mt-2`} style={altoCampo} />
-            <button
-              onClick={() => evento && generar.mutate({ eventId: evento.id, cantidad })}
-              disabled={!evento || generar.isPending}
-              className="mt-2 flex w-full items-center justify-center gap-2 ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
-              style={{ minHeight: 52 }}
-            >
-              <Download size={16} /> {generar.isPending ? "Generando..." : `Generar ${cantidad} e imprimir`}
-            </button>
-          </div>
 
           {/* Por tipo */}
           <div className={tarjeta}>
@@ -554,6 +558,37 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Códigos generados ── */}
       {vista === "codigos" && (
         <>
+          {/* Generar boletos */}
+          <div className={tarjeta}>
+            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Generar boletos en blanco</p>
+            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
+              Se crean sin datos. Al generarlos se abre la hoja de QR lista para imprimir.
+            </p>
+            <div className="grid grid-cols-4 gap-2">
+              {[10, 25, 50, 100].map(n => (
+                <button key={n} onClick={() => setCantidad(n)}
+                  className={`ev-notch text-xs font-bold transition-colors ${
+                    cantidad === n ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                  }`}
+                  style={{ minHeight: 44 }}>
+                  {n}
+                </button>
+              ))}
+            </div>
+            <input type="number" inputMode="numeric" min={1} max={500} value={cantidad}
+              onChange={e => setCantidad(Math.min(500, Math.max(1, parseInt(e.target.value) || 1)))}
+              placeholder="Otra cantidad"
+              className={`${campo} mt-2`} style={altoCampo} />
+            <button
+              onClick={() => evento && generar.mutate({ eventId: evento.id, cantidad })}
+              disabled={!evento || generar.isPending}
+              className="mt-2 flex w-full items-center justify-center gap-2 ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              style={{ minHeight: 52 }}
+            >
+              <Download size={16} /> {generar.isPending ? "Generando..." : `Generar ${cantidad} e imprimir`}
+            </button>
+          </div>
+
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Lotes generados</p>
             <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
