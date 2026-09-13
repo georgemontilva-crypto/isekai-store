@@ -85,11 +85,17 @@ export default function StorePortal() {
 
   const { data: tienda } = trpc.tickets.miTienda.useQuery(undefined, { enabled: puedeEntrar });
   /** Modo del portal: vender boletos o dar experiencia del Level Pass */
-  const [modo, setModo] = useState<"vender" | "xp">(esStaff ? "xp" : "vender");
   const [actividadXp, setActividadXp] = useState<number | null>(null);
   const [resultadoXp, setResultadoXp] = useState<any>(null);
 
   const { data: accesoXp } = trpc.levelPass.miAcceso.useQuery(undefined, { enabled: puedeEntrar });
+
+  /**
+   * Quien vende boletos también otorga experiencia, así que ambas cosas se
+   * muestran juntas en vez de en pestañas: en el mostrador es la misma
+   * persona y cambiar de pestaña a media cola era un estorbo.
+   */
+  const puedeDarXp = Boolean(accesoXp?.puede && accesoXp?.enCurso);
   const { data: actividadesXp = [] } = trpc.levelPass.actividadesPublicas.useQuery(
     { eventId: accesoXp?.eventId ?? 0 },
     { enabled: Boolean(accesoXp?.puede && accesoXp?.eventId) },
@@ -183,8 +189,9 @@ export default function StorePortal() {
             onDetectado={(t) => {
             setEscaneando2(false);
             setUltimoEscaneo(t);
-            // Según el modo: cargar el boleto para venderlo, o dar experiencia
-            if (modo === 'xp' && actividadXp) {
+            // Este escáner es el de experiencia: si hay actividad elegida,
+            // se otorga directamente.
+            if (actividadXp) {
               otorgarXp.mutate({ token: t, activityId: actividadXp });
             } else {
               setToken(t);
@@ -223,27 +230,19 @@ export default function StorePortal() {
           )}
         </div>
 
-        {/* Cambio de modo: solo aparece si esta tienda está autorizada a dar
-            experiencia y el evento está en curso. */}
-        {esTienda && accesoXp?.puede && accesoXp?.enCurso && (
-          <div className="mb-5 grid grid-cols-2 gap-2">
-            {([["vender", "Vender boletos"], ["xp", "Dar experiencia"]] as const).map(([id, label]) => (
-              <button
-                key={id}
-                onClick={() => { setModo(id); setResultadoXp(null); limpiar(); }}
-                className={`ev-notch text-xs font-bold transition-colors ${
-                  modo === id ? "bg-[#e5007d] text-white" : "border border-[#2e2e3a] text-[#b4b4c2]"
-                }`}
-                style={{ minHeight: 46 }}
-              >
-                {label}
-              </button>
-            ))}
+        {/* ── Otorgar experiencia ── */}
+        {/* Separador: son dos tareas distintas en la misma pantalla */}
+        {puedeDarXp && esTienda && (
+          <div className="my-8 flex items-center gap-3">
+            <span className="h-px flex-1 bg-[#2e2e3a]" />
+            <span className="ev-display text-[11px] uppercase tracking-[0.25em] text-[#6a6a7c]">
+              Dar experiencia
+            </span>
+            <span className="h-px flex-1 bg-[#2e2e3a]" />
           </div>
         )}
 
-        {/* ── Otorgar experiencia ── */}
-        {modo === "xp" && (
+        {puedeDarXp && (
           <>
             {resultadoXp ? (
               <div className={`ev-notch border p-6 text-center ${
@@ -344,7 +343,7 @@ export default function StorePortal() {
         )}
 
         {/* Resumen de la tienda */}
-        {esTienda && modo === "vender" && misVentas && (
+        {esTienda && misVentas && (
           <div className="mb-6 grid grid-cols-3 gap-2">
             <div className="ev-notch border border-white/10 bg-[#16191f] p-3">
               <p className="text-[11px] text-[#8a8a9c]">Vendidos</p>
@@ -362,7 +361,7 @@ export default function StorePortal() {
         )}
 
         {/* ── Venta completada ── */}
-        {modo === "vender" && (vendido ? (
+        {esTienda && (vendido ? (
           <div className="ev-notch border border-green-500/40 bg-green-500/10 p-6 text-center">
             <Check className="mx-auto mb-3 h-9 w-9 text-green-400" />
             <p className="text-lg font-black">Boleto vendido</p>
