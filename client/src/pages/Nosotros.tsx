@@ -5,14 +5,26 @@ import { AlertTriangle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useSEO } from "@/hooks/useSEO";
 
+/**
+ * Lo que ofrecemos.
+ *
+ * Tres servicios en lugar de siete: el detalle de modelado, cosplay,
+ * restauración y ediciones especiales cabe dentro de la impresión 3D, que es
+ * el oficio que los engloba. Una lista corta se lee; una larga se hojea.
+ */
 const SERVICES = [
-  { name: "Impresión 3D Especializada", desc: "Fabricamos figuras, props y piezas decorativas con tecnología FDM y resina de alta resolución. Cada pieza pasa por un proceso de postprocesado, lijado y pintura para lograr acabados profesionales." },
-  { name: "Cosplay Lab",               desc: "Diseñamos y fabricamos accesorios, armaduras, máscaras y piezas especiales para cosplay. Trabajamos con el cosplayer para lograr la mayor fidelidad posible al personaje original." },
-  { name: "Diseño y Modelado 3D",      desc: "Creamos modelos digitales desde cero usando software de modelado profesional. Desde referencias en imagen hasta archivos listos para impresión, nos encargamos de todo el proceso de diseño." },
-  { name: "Restauración y Adaptación", desc: "Escalamos, modificamos y personalizamos piezas existentes según tus necesidades. También restauramos figuras o coleccionables dañados devolviéndoles su apariencia original." },
-  { name: "Ediciones Especiales",      desc: "Producimos series limitadas y colecciones exclusivas de figuras y coleccionables. Piezas numeradas, certificadas y pensadas para el coleccionista más exigente." },
-  { name: "Eventos Tematizados",       desc: "Diseñamos y montamos eventos ambientados de principio a fin: escenografía, personajes a tamaño real, zonas temáticas y todo lo que hace falta para que el espacio deje de parecer un salón y se convierta en otro mundo." },
-  { name: "Experiencias Inmersivas",   desc: "Creamos recorridos donde el visitante no observa: participa. Sistemas de progresión, misiones por estaciones, ambientación sonora y mecánicas de juego que convierten la visita en una historia que se vive." },
+  {
+    name: "Impresión 3D Especializada",
+    desc: "Fabricamos figuras, props, armaduras y piezas decorativas con tecnología FDM y resina de alta resolución. Modelamos desde cero a partir de una referencia, adaptamos o escalamos piezas existentes, y trabajamos junto al cosplayer para lograr la mayor fidelidad al personaje. Cada pieza pasa por postprocesado, lijado y pintura para lograr acabados profesionales.",
+  },
+  {
+    name: "Eventos Tematizados",
+    desc: "Diseñamos y montamos eventos ambientados de principio a fin: escenografía, personajes a tamaño real, zonas temáticas y todo lo que hace falta para que el espacio deje de parecer un salón y se convierta en otro mundo.",
+  },
+  {
+    name: "Experiencias Inmersivas",
+    desc: "Creamos recorridos donde el visitante no observa: participa. Sistemas de progresión, misiones por estaciones, ambientación y mecánicas de juego que convierten la visita en una historia que se vive.",
+  },
 ];
 
 /**
