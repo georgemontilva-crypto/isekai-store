@@ -7,18 +7,19 @@ import {
   BarChart3, Bell, ChevronRight, Check, Trash2, FileText,
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus, SlidersHorizontal,
   LogOut, Settings, Menu, ChevronDown, ChevronUp, Eye, ArrowLeft,
-  Tag, Store, Layers, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
+  Tag, Store, Layers, Image as ImageIcon, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
 import GiftCardsSection from '@/components/admin/GiftCardsSection';
 import CollectionsSection from '@/components/admin/CollectionsSection';
+import MediaSection from '@/components/admin/MediaSection';
 import FeedbackSection from '@/components/admin/FeedbackSection';
 import TicketsAdmin from '@/components/admin/TicketsAdmin';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'colecciones' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'colecciones' | 'media' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -1925,6 +1926,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
       title: 'Catálogo',
       items: [
         { label: 'Colecciones',  tab: 'colecciones' as MobileTab, icon: Layers },
+        { label: 'Imágenes y video', tab: 'media' as MobileTab, icon: ImageIcon },
         { label: 'Categorías',   tab: 'categories'  as MobileTab, icon: Tag },
         { label: 'Tarjetas de regalo', tab: 'giftcards' as MobileTab, icon: Gift },
       ],
@@ -3222,13 +3224,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -3287,6 +3289,7 @@ export default function AdminMobile() {
         {activeTab === 'comments'    && <CommentsSection />}
         {activeTab === 'quotes'      && <QuotesSection />}
         {activeTab === 'colecciones' && <CollectionsSection />}
+        {activeTab === 'media'       && <MediaSection />}
         {activeTab === 'giftcards'   && <GiftCardsSection />}
         {activeTab === 'feedback'    && <FeedbackSection compact />}
         {enBoleteria && (

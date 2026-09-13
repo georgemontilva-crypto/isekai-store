@@ -37,7 +37,7 @@ interface PageGroup {
   slots: Slot[];
 }
 
-const PAGES: PageGroup[] = [
+export const IMAGE_SLOTS: PageGroup[] = [
   {
     page: "Global — en todas las páginas",
     slots: [
@@ -339,7 +339,7 @@ export default function ImageSlots({ onGoToTab }: Props) {
           </p>
 
           <div className="space-y-6">
-            {PAGES.map(group => (
+            {IMAGE_SLOTS.map(group => (
               <div key={group.page}>
                 <div className="mb-2.5 text-[11px] font-bold uppercase tracking-widest text-[#999]">
                   {group.page}
