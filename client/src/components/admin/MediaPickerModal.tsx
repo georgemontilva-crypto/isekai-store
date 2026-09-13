@@ -67,7 +67,7 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
               {uploading ? "Subiendo..." : "Subir archivo"}
               <input
                 type="file"
-                accept="image/png,image/jpeg,image/webp,image/gif"
+                accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm"
                 className="hidden"
                 disabled={uploading}
                 onChange={e => handleUpload(e.target.files?.[0] ?? null)}
@@ -103,7 +103,18 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
                   className="group flex flex-col overflow-hidden rounded-xl border border-[#e8e8ea] bg-white text-left transition-colors hover:border-[#e5007d]"
                 >
                   <div className="relative aspect-square w-full shrink-0 bg-[#f6f6f7]">
-                    <img src={m.url} alt={m.altText ?? m.fileName} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                    {/* Los videos se muestran con su primer fotograma */}
+                    {/\.(mp4|webm)$/i.test(m.url) ? (
+                      <video
+                        src={m.url}
+                        muted
+                        playsInline
+                        preload="metadata"
+                        className="absolute inset-0 h-full w-full object-cover"
+                      />
+                    ) : (
+                      <img src={m.url} alt={m.altText ?? m.fileName} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                    )}
                     <span className="absolute inset-0 hidden items-center justify-center bg-[#e5007d]/70 group-hover:flex">
                       <Check className="h-6 w-6 text-white" />
                     </span>

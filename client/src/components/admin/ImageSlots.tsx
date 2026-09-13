@@ -171,6 +171,9 @@ const PAGES: PageGroup[] = [
   {
     page: "Landing del evento",
     slots: [
+      { kind: "site", key: "wf_hero_video", label: "Video de fondo del hero",
+        where: "Detrás de «El Sistema ha despertado». Se ve tenue, como textura.",
+        spec: "MP4 o WebM, horizontal, corto y en bucle. Sin sonido. Si lo subes, manda sobre la imagen." },
       { kind: "site", key: "wf_hero_bg", label: "Fondo del hero",
         where: "Detrás de «El Sistema ha despertado», primera pantalla de la landing.",
         spec: "Horizontal, ~1920 × 1200 px. Oscura o púrpura; se le aplica un velo encima." },

@@ -107,7 +107,7 @@ export default function MediaLibrary({ onGoToTab }: Props) {
           <input
             type="file"
             multiple
-            accept="image/png,image/jpeg,image/webp,image/gif"
+            accept="image/png,image/jpeg,image/webp,image/gif,video/mp4,video/webm"
             className="hidden"
             disabled={uploading}
             onChange={e => { handleUpload(e.target.files); e.target.value = ""; }}
