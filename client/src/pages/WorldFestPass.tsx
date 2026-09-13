@@ -269,6 +269,16 @@ export default function WorldFestPass() {
   return (
     <div className="wf-zona min-h-screen pb-28">
 
+      {/* El entorno toma el color del rango: golpe al ascender y tinte suave
+          mientras se permanece en él. */}
+      <div
+        className={`lp-ambiente ${rangoAnunciado ? "lp-ambiente-sube" : ""}`}
+        style={{ ["--lp-rango" as string]: color }}
+      />
+      {rangoAnunciado && (
+        <div className="lp-marco-sube" style={{ ["--lp-rango" as string]: color }} />
+      )}
+
       {/* ── Anuncio de ascenso ── */}
       {rangoAnunciado && (
         <div

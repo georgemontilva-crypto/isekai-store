@@ -3153,3 +3153,47 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 
 .ev-press { transition: transform 160ms cubic-bezier(0.16, 1, 0.3, 1); }
 .ev-press:active { transform: scale(0.97); }
+
+/* ── Ambiente del rango ───────────────────────────────────────────────────
+   Al subir de rango, toda la pantalla se tiñe del color nuevo: primero un
+   golpe fuerte y luego un tinte suave que permanece, para que el color del
+   rango acompañe mientras se está en él. */
+@keyframes lp-ambiente-entra {
+  0%   { opacity: 0; }
+  14%  { opacity: 0.85; }
+  40%  { opacity: 0.45; }
+  100% { opacity: 0.16; }
+}
+.lp-ambiente {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  pointer-events: none;
+  opacity: 0.16;
+  transition: background 1.2s ease, opacity 1.2s ease;
+  background:
+    radial-gradient(ellipse at 50% 0%, var(--lp-rango) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 100%, var(--lp-rango) 0%, transparent 55%);
+  mix-blend-mode: screen;
+}
+.lp-ambiente-sube {
+  animation: lp-ambiente-entra 2.6s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+/* Los bordes de la pantalla laten con el color al ascender */
+@keyframes lp-marco {
+  0%, 100% { box-shadow: inset 0 0 0 0 transparent; }
+  25%      { box-shadow: inset 0 0 140px 0 var(--lp-rango); }
+  60%      { box-shadow: inset 0 0 70px 0 var(--lp-rango); }
+}
+.lp-marco-sube {
+  position: fixed;
+  inset: 0;
+  z-index: 151;
+  pointer-events: none;
+  animation: lp-marco 2.4s ease-out forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-ambiente-sube, .lp-marco-sube { animation: none; }
+}

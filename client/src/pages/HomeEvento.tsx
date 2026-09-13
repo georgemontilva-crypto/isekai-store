@@ -178,6 +178,16 @@ export default function HomeEvento() {
   return (
     <div className="min-h-screen bg-[#06040d] text-white">
 
+      {/* El entorno se tiñe del color del rango actual: un golpe fuerte al
+          ascender y después un tinte suave que permanece. */}
+      <div
+        className={`lp-ambiente ${ascensoDemo ? "lp-ambiente-sube" : ""}`}
+        style={{ ["--lp-rango" as string]: colorDemo }}
+      />
+      {ascensoDemo && (
+        <div className="lp-marco-sube" style={{ ["--lp-rango" as string]: colorDemo }} />
+      )}
+
       {/* ── Anuncio de ascenso de la simulación ──
           La misma secuencia que verán en el evento: la ventana se materializa,
           el sello gira y late, y las partículas suben. */}
