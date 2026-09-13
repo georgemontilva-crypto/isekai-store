@@ -95,7 +95,7 @@ export default function Catalog() {
         <div className="container relative z-10">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
             <span className="text-xs font-semibold text-[#e5007d] uppercase tracking-widest">Tienda</span>
-            <h1 className="text-3xl lg:ev-display text-5xl mt-2 mb-3 text-white">
+            <h1 className="ev-display text-3xl lg:text-5xl mt-2 mb-3 text-white">
               {selectedCategory
                 ? categories?.find((c) => c.id === selectedCategory)?.name ?? "Catálogo"
                 : <><span className="gradient-text">Todo</span> el catálogo</>

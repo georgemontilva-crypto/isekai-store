@@ -200,7 +200,7 @@ export default function CosplayLanding() {
       <section className="bg-[#0a0a0a]">
         <div className="px-6 lg:px-20 pt-20 pb-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">El proceso</p>
-          <h2 className="text-3xl lg:ev-display text-5xl text-white">Cómo funciona</h2>
+          <h2 className="ev-display text-3xl lg:text-5xl text-white">Cómo funciona</h2>
         </div>
         <div>
           {STEPS.map((s, i) => (
@@ -240,7 +240,7 @@ export default function CosplayLanding() {
       <section className="py-24 bg-[#0a0a0a] overflow-hidden">
         <div className="container">
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2 font-medium">Niveles del Guild</p>
-          <h2 className="text-4xl lg:ev-display text-6xl text-white mb-4">
+          <h2 className="ev-display text-4xl lg:text-6xl text-white mb-4">
             Cuanto más crezcas,<br />
             <span className="text-[#e5007d]">más ganas.</span>
           </h2>
@@ -290,7 +290,7 @@ export default function CosplayLanding() {
                   </div>
 
                   <div className="flex flex-shrink-0 items-center gap-2">
-                    <span className="text-xl sm:text-2xl lg:ev-display text-3xl" style={{ color: tier.color }}>{tier.mult}</span>
+                    <span className="ev-display text-xl sm:text-2xl lg:text-3xl" style={{ color: tier.color }}>{tier.mult}</span>
                     <span className="text-[#555] text-xs hidden lg:block leading-tight">tickets<br />por actividad</span>
                   </div>
                 </motion.div>
@@ -308,7 +308,7 @@ export default function CosplayLanding() {
       <section className="py-24 bg-[#111]">
         <div className="container">
           <p className="text-xs tracking-widest uppercase text-[#e5007d] mb-2 font-medium">Recompensas</p>
-          <h2 className="text-4xl lg:ev-display text-6xl text-white mb-4">
+          <h2 className="ev-display text-4xl lg:text-6xl text-white mb-4">
             Tus tickets,<br />
             <span className="text-[#e5007d]">tu poder.</span>
           </h2>
@@ -434,7 +434,7 @@ export default function CosplayLanding() {
         <section className="py-24 bg-[#0a0a0a] overflow-hidden">
           <div className="px-6 lg:px-20 mb-12">
             <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">La comunidad</p>
-            <h2 className="text-3xl lg:ev-display text-5xl text-white">Cosplayers aliados</h2>
+            <h2 className="ev-display text-3xl lg:text-5xl text-white">Cosplayers aliados</h2>
           </div>
           <CosplayersCarousel cosplayers={cosplayers} />
           {cosplayers.length > 4 && (
@@ -464,7 +464,7 @@ export default function CosplayLanding() {
           viewport={{ once: true }}
           className="relative z-10 text-center px-6 max-w-3xl"
         >
-          <p className="text-4xl sm:text-5xl lg:ev-display text-6xl text-white leading-tight">
+          <p className="ev-display text-4xl sm:text-5xl lg:text-6xl text-white leading-tight">
             "De fan para fan.<br />
             <span className="text-[#e5007d]">De cosplayer para cosplayer."</span>
           </p>

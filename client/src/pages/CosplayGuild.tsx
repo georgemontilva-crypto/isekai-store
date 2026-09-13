@@ -34,7 +34,7 @@ export default function CosplayGuild() {
       <div className="container py-16">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-12">
           <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-2 font-medium">Isekai World</p>
-          <h1 className="text-4xl lg:ev-display text-6xl text-white mb-3">Cosplayers Aliados</h1>
+          <h1 className="ev-display text-4xl lg:text-6xl text-white mb-3">Cosplayers Aliados</h1>
           <p className="text-[#888]">Representantes verificados de la comunidad</p>
         </motion.div>
 

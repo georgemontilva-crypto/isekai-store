@@ -11,6 +11,8 @@ const SERVICES = [
   { name: "Diseño y Modelado 3D",      desc: "Creamos modelos digitales desde cero usando software de modelado profesional. Desde referencias en imagen hasta archivos listos para impresión, nos encargamos de todo el proceso de diseño." },
   { name: "Restauración y Adaptación", desc: "Escalamos, modificamos y personalizamos piezas existentes según tus necesidades. También restauramos figuras o coleccionables dañados devolviéndoles su apariencia original." },
   { name: "Ediciones Especiales",      desc: "Producimos series limitadas y colecciones exclusivas de figuras y coleccionables. Piezas numeradas, certificadas y pensadas para el coleccionista más exigente." },
+  { name: "Eventos Tematizados",       desc: "Diseñamos y montamos eventos ambientados de principio a fin: escenografía, personajes a tamaño real, zonas temáticas y todo lo que hace falta para que el espacio deje de parecer un salón y se convierta en otro mundo." },
+  { name: "Experiencias Inmersivas",   desc: "Creamos recorridos donde el visitante no observa: participa. Sistemas de progresión, misiones por estaciones, ambientación sonora y mecánicas de juego que convierten la visita en una historia que se vive." },
 ];
 
 /**
@@ -147,7 +149,7 @@ export default function Nosotros() {
       <section className="bg-white">
         <div className="px-6 lg:px-20 pt-20 pb-8">
           <p className="text-xs tracking-[0.3em] uppercase text-[#e5007d] mb-3 font-medium">Lo que ofrecemos</p>
-          <h2 className="text-3xl lg:ev-display text-5xl text-[#111]">Nuestros servicios</h2>
+          <h2 className="ev-display text-3xl lg:text-5xl text-[#111]">Nuestros servicios</h2>
         </div>
         <div>
           {SERVICES.map((s, i) => (
@@ -280,7 +282,7 @@ export default function Nosotros() {
           viewport={{ once: true }}
           className="relative z-10 text-center px-6 max-w-4xl"
         >
-          <p className="text-4xl sm:text-5xl lg:ev-display text-6xl text-white leading-tight">
+          <p className="ev-display text-4xl sm:text-5xl lg:text-6xl text-white leading-tight">
             "No somos una fábrica masiva.<br />
             <span className="text-[#e5007d]">Somos una comunidad</span><br />
             de apasionados."
