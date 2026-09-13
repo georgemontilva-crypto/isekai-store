@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { Plus, Download, Store, Ticket, Trash2, RefreshCw, Mail, Check } from "lucide-react";
+import { Plus, Download, Store, Ticket, Trash2, Mail, Check } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -45,7 +45,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     if (!eventoId && eventos.length) setEventoId(eventos[0].id);
   }, [eventos, eventoId]);
 
-  const { data: resumen, refetch: refetchResumen } = trpc.tickets.resumen.useQuery(
+  const { data: resumen } = trpc.tickets.resumen.useQuery(
     { eventId: evento?.id ?? 0 }, { enabled: habilitado && !!evento, refetchInterval: 15000 },
   );
   const { data: tipos = [] } = trpc.tickets.tipos.useQuery(
@@ -284,14 +284,6 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           aria-label="Nuevo evento"
         >
           <Plus size={18} />
-        </button>
-        <button
-          onClick={() => refetchResumen()}
-          className="flex shrink-0 items-center justify-center ev-notch border border-[var(--iw-border)] px-4 text-[var(--iw-text-muted)]"
-          style={altoCampo}
-          aria-label="Actualizar"
-        >
-          <RefreshCw size={16} />
         </button>
       </div>
 
