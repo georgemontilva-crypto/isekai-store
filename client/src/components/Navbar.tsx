@@ -274,6 +274,8 @@ export default function Navbar() {
   const scheduleClose = () => { closeTimer.current = setTimeout(() => setActiveMenu(null), 120); };
   const cancelClose = () => { if (closeTimer.current) clearTimeout(closeTimer.current); };
 
+  /** Queda para el buscador de escritorio; el del menú móvil se quitó para
+   *  que las opciones queden más arriba y a mano. */
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) { window.location.href = `/catalog?search=${encodeURIComponent(searchQuery.trim())}`; setSearchQuery(""); }
@@ -579,19 +581,7 @@ export default function Navbar() {
           </button>
         </div>
 
-        <nav className="iw-menu-body flex flex-col px-6 pb-8 pt-[20px]">
-          <form onSubmit={handleSearch} className="iw-menu-item mb-12 flex gap-2" style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              placeholder="Buscar productos..."
-              tabIndex={mobileOpen ? 0 : -1}
-              className="flex-1 rounded-xl border border-white/10 bg-[#101319] px-4 text-sm text-white outline-none transition-colors placeholder:text-[#7c7c8c] focus:border-[#e5007d]"
-              style={{ minHeight: 52 }}
-            />
-            <button type="submit" aria-label="Buscar" tabIndex={mobileOpen ? 0 : -1} className="shrink-0 rounded-xl bg-[#e5007d] px-5 text-sm font-bold text-white" style={{ minHeight: 52 }}><Search size={16} /></button>
-          </form>
+        <nav className="iw-menu-body flex flex-col px-6 pb-8 pt-6">
 
           {/* Navegación en rejilla de tarjetas: se recorre de un vistazo y cada
               destino tiene un área de toque amplia, en vez de una lista larga
