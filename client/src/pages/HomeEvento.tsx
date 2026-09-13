@@ -358,7 +358,7 @@ export default function HomeEvento() {
                 onClick={irALista}
                 className="ev-notch ev-press bg-[#e5007d] px-8 py-4 text-sm font-bold uppercase tracking-wider text-white"
               >
-                Conseguir mi boleto
+                Avísame antes que a nadie
               </button>
               <a
                 href="#el-mundo"
@@ -508,9 +508,54 @@ export default function HomeEvento() {
         </div>
       </section>
 
+      {/* ═══ 5. INVITADOS ═══ */}
+      <section className="px-6 pb-20 lg:px-16 lg:pb-24">
+        <div className="mx-auto max-w-5xl">
+          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
+            [ Invitados ]
+          </p>
+          <h2 className="ev-display mb-4 text-[26px] leading-[1.05] sm:text-5xl">LOS CAZADORES ESTÁN LLEGANDO</h2>
+          <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
+            Creadores, cosplayers, artistas, invitados especiales y talentos internacionales
+            serán parte del Isekai World Fest.
+          </p>
+
+          <div className="relative">
+            <FlechasCarril id="carril-invitados" />
+            <div id="carril-invitados" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
+            {[1, 2, 3].map(n => {
+              const nombre = settings?.[`wf_invitado_${n}_nombre`];
+              const foto = settings?.[`wf_invitado_${n}_foto`];
+              return (
+                <div key={n} className="ev-notch iw-card-grande overflow-hidden border border-white/[0.07] bg-[#0d0620]">
+                  <div className="relative" style={{ aspectRatio: "1/1" }}>
+                    {foto ? (
+                      <img src={foto} alt={nombre ?? ""} className="h-full w-full object-cover" />
+                    ) : (
+                      <div className="flex h-full items-center justify-center">
+                        <Lock size={26} className="text-white/10" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-5">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0]">
+                      Invitado #{String(n).padStart(2, "0")}
+                    </p>
+                    <p className="mt-1.5 font-black text-white">{nombre || "[ Próximamente ]"}</p>
+                  </div>
+                </div>
+              );
+            })}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <div className="ev-linea" />
 
-      {/* ═══ 5 y 6. LA MECÁNICA Y LOS RANGOS ═══ */}
+      <div className="ev-linea" />
+
+      {/* ═══ 6. LA MECÁNICA Y LOS RANGOS ═══ */}
       <section className="ev-pixels relative border-y border-[#a78bfa]/20 bg-gradient-to-b from-[#0d0620] to-[#06040d] px-6 py-20 lg:px-16 lg:py-28">
         <div className="mx-auto max-w-5xl">
           <p className="mb-3 text-center font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
@@ -710,88 +755,6 @@ export default function HomeEvento() {
         </div>
       </section>
 
-      {/* ═══ 10. INVITADOS ═══ */}
-      <section className="px-6 pb-20 lg:px-16 lg:pb-24">
-        <div className="mx-auto max-w-5xl">
-          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            [ Invitados ]
-          </p>
-          <h2 className="ev-display mb-4 text-[26px] leading-[1.05] sm:text-5xl">LOS CAZADORES ESTÁN LLEGANDO</h2>
-          <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
-            Creadores, cosplayers, artistas, invitados especiales y talentos internacionales
-            serán parte del Isekai World Fest.
-          </p>
-
-          <div className="relative">
-            <FlechasCarril id="carril-invitados" />
-            <div id="carril-invitados" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
-            {[1, 2, 3].map(n => {
-              const nombre = settings?.[`wf_invitado_${n}_nombre`];
-              const foto = settings?.[`wf_invitado_${n}_foto`];
-              return (
-                <div key={n} className="ev-notch iw-card-grande overflow-hidden border border-white/[0.07] bg-[#0d0620]">
-                  <div className="relative" style={{ aspectRatio: "1/1" }}>
-                    {foto ? (
-                      <img src={foto} alt={nombre ?? ""} className="h-full w-full object-cover" />
-                    ) : (
-                      <div className="flex h-full items-center justify-center">
-                        <Lock size={26} className="text-white/10" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="p-5">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0]">
-                      Invitado #{String(n).padStart(2, "0")}
-                    </p>
-                    <p className="mt-1.5 font-black text-white">{nombre || "[ Próximamente ]"}</p>
-                  </div>
-                </div>
-              );
-            })}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <div className="ev-linea" />
-
-      {/* ═══ 11. FECHA Y LUGAR ═══ */}
-      <section className="border-y border-[#a78bfa]/20 bg-gradient-to-b from-[#0d0620] to-[#06040d] px-6 py-20 text-center lg:py-28">
-        <div className="mx-auto max-w-3xl">
-          <h2 className="ev-display mb-12 text-[26px] leading-[1.05] sm:text-5xl">¿CUÁNDO SE ABRE EL PORTAL?</h2>
-
-          <div className="mb-10 grid gap-5 sm:grid-cols-2">
-            <div className="rounded-2xl border border-[#a78bfa]/25 bg-[#a78bfa]/[0.06] p-7">
-              <Calendar size={22} className="mx-auto mb-4 text-[#a78bfa]" />
-              <p className="text-xl font-black text-white sm:text-2xl">14 — 15</p>
-              <p className="mt-1 font-mono text-sm uppercase tracking-wider text-[#b9b0d4]">
-                Agosto 2027
-              </p>
-            </div>
-            <div className="rounded-2xl border border-[#a78bfa]/25 bg-[#a78bfa]/[0.06] p-7">
-              <MapPin size={22} className="mx-auto mb-4 text-[#a78bfa]" />
-              <p className="text-base font-black leading-tight text-white">
-                Palacio de Eventos de Venezuela
-              </p>
-              <p className="mt-1 font-mono text-sm text-[#b9b0d4]">Maracaibo, Venezuela</p>
-            </div>
-          </div>
-
-          <p className="mb-10 text-[15px] leading-relaxed text-[#b9b0d4]">
-            Dos días.
-            <br />
-            Un mundo completamente transformado.
-          </p>
-
-          <button
-            onClick={irALista}
-            className="ev-notch ev-press bg-[#e5007d] px-10 py-5 text-sm font-bold uppercase tracking-wider text-white"
-          >
-            Conseguir boletos
-          </button>
-        </div>
-      </section>
-
       {/* ═══ Lista de acceso ═══ */}
       <section id="lista-acceso" className="px-6 py-20 lg:py-24">
         <div className="mx-auto max-w-xl text-center">
@@ -839,7 +802,7 @@ export default function HomeEvento() {
         </div>
       </section>
 
-      {/* ═══ 12. PREPÁRATE PARA EL DESPERTAR ═══ */}
+      {/* ═══ 8. PREPÁRATE PARA EL DESPERTAR ═══ */}
       <section className="relative overflow-hidden border-t border-white/[0.06] px-6 py-24 text-center lg:py-32">
         <div className="absolute inset-0 bg-gradient-to-b from-[#06040d] via-[#0d0620] to-[#06040d]" />
         <div className="relative z-10 mx-auto max-w-3xl">
