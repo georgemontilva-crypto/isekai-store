@@ -3266,3 +3266,19 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .group:hover .iw-cp-img { transform: none; }
 }
 
+
+/* Velo de la pantalla de carga.
+   La textura se ve arriba y se apaga hacia el centro, igual que en el resto
+   del sitio, para que el contador quede sobre negro y se lea sin esfuerzo. */
+.iw-carga-velo {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    rgba(5, 5, 5, 0.35) 0%,
+    rgba(5, 5, 5, 0.72) 38%,
+    rgba(5, 5, 5, 0.94) 68%,
+    #050505 100%
+  );
+}

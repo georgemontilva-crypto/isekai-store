@@ -70,7 +70,7 @@ export default function PantallaCarga() {
       style={textura ? {
         backgroundImage: `url(${textura})`,
         backgroundSize: "cover",
-        backgroundPosition: "center",
+        backgroundPosition: "top center",
       } : undefined}
     >
       {/* Velo oscuro sobre la textura, para que el contador se lea siempre */}
