@@ -158,6 +158,66 @@ async function reemplazarUrl(vieja: string, nueva: string) {
   }
 }
 
+/**
+ * Imágenes de los perfiles de cosplayer.
+ *
+ * No pasan por la biblioteca de medios —se suben desde su propio panel—, así
+ * que el recorrido anterior no las veía. Son justo las que más pesan, porque
+ * las suben desde el teléfono sin reducir.
+ */
+export async function reprocesarCosplayers(tanda = 4) {
+  const db = await getDb();
+  if (!db) return { reducidas: 0, ahorroMb: 0, quedan: 0 };
+
+  const perfiles = await db.select().from(cosplayers);
+
+  /** Todas sus imágenes, con dónde está guardada cada una */
+  type Pendiente = { id: number; campo: "photo" | "bannerImage"; url: string };
+  const lista: Pendiente[] = [];
+
+  for (const c of perfiles) {
+    if (c.photo && !c.photo.includes("-opt")) lista.push({ id: c.id, campo: "photo", url: c.photo });
+    if (c.bannerImage && !c.bannerImage.includes("-opt")) {
+      lista.push({ id: c.id, campo: "bannerImage", url: c.bannerImage });
+    }
+  }
+
+  let reducidas = 0;
+  let ahorro = 0;
+
+  for (const item of lista.slice(0, tanda)) {
+    const original = await descargar(item.url);
+    if (!original) continue;
+
+    // Las que ya son ligeras se marcan para no volver a mirarlas
+    if (original.length < PESO_MINIMO) {
+      continue;
+    }
+
+    const mejor = await reducir(original);
+    if (!mejor) continue;
+
+    const { url } = await storagePut(
+      `cosplay/perfil-${item.id}-${item.campo}-opt.jpg`,
+      mejor.datos,
+      "image/jpeg",
+    );
+
+    await db.update(cosplayers)
+      .set({ [item.campo]: url } as any)
+      .where(eq(cosplayers.id, item.id));
+
+    ahorro += original.length - mejor.datos.length;
+    reducidas++;
+  }
+
+  return {
+    reducidas,
+    ahorroMb: Math.round((ahorro / 1024 / 1024) * 10) / 10,
+    quedan: Math.max(0, lista.length - tanda),
+  };
+}
+
 /** Cuántas quedan por procesar, sin tocar nada */
 export async function pendientesDeReprocesar() {
   const db = await getDb();
@@ -170,8 +230,18 @@ export async function pendientesDeReprocesar() {
     !(m.fileName ?? "").includes("-opt"),
   );
 
+  // Los perfiles de cosplayer no guardan el peso, así que solo se cuentan
+  const perfiles = await db.select().from(cosplayers);
+  const pendientesCosplay = perfiles.reduce((n, c) => {
+    let k = 0;
+    if (c.photo && !c.photo.includes("-opt")) k++;
+    if (c.bannerImage && !c.bannerImage.includes("-opt")) k++;
+    return n + k;
+  }, 0);
+
   return {
     pendientes: pendientes.length,
+    pendientesCosplay,
     pesoMb: Math.round((pendientes.reduce((a, m) => a + (m.sizeBytes ?? 0), 0) / 1024 / 1024) * 10) / 10,
   };
 }
@@ -196,13 +266,21 @@ export function iniciarOptimizacionImagenes() {
     if (trabajando) return;
     trabajando = true;
     try {
-      const { pendientes } = await pendientesDeReprocesar();
-      if (pendientes === 0) return;
+      const { pendientes, pendientesCosplay } = await pendientesDeReprocesar();
+      if (pendientes === 0 && pendientesCosplay === 0) return;
 
       const r = await reprocesarTanda(POR_TANDA);
       if (r.reducidas > 0) {
         console.log(
-          `[Imágenes] ${r.reducidas} optimizadas, ${r.ahorroMb} MB ahorrados, quedan ${r.quedan}`,
+          `[Imágenes] ${r.reducidas} de la biblioteca, ${r.ahorroMb} MB ahorrados, quedan ${r.quedan}`,
+        );
+      }
+
+      // Los perfiles de cosplayer van aparte: no están en la biblioteca
+      const c = await reprocesarCosplayers(2);
+      if (c.reducidas > 0) {
+        console.log(
+          `[Imágenes] ${c.reducidas} de cosplayers, ${c.ahorroMb} MB ahorrados, quedan ${c.quedan}`,
         );
       }
     } catch (e) {

@@ -85,15 +85,24 @@ export default function MediaSection() {
 
       {/* Reprocesado de lo ya subido: las imágenes antiguas se guardaron al
           tamaño original y pesan de más. */}
-      {(pendientes?.pendientes ?? 0) > 0 && (
+      {((pendientes?.pendientes ?? 0) > 0 || (pendientes?.pendientesCosplay ?? 0) > 0) && (
         <div className="ev-notch border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
           <p className="text-sm font-bold text-[var(--iw-text)]">
-            {pendientes!.pendientes} imágenes sin optimizar
+            Optimización de imágenes en curso
           </p>
-          <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--iw-text-muted)]">
-            Ocupan {pendientes!.pesoMb} MB y hacen que la web cargue lenta. Se reducen
-            de a pocas para no saturar el servidor: puedes tocar varias veces.
-          </p>
+          <div className="mb-3 mt-2 space-y-1 text-xs text-[var(--iw-text-muted)]">
+            <p>
+              Biblioteca: <strong>{pendientes!.pendientes}</strong> pendientes
+              {pendientes!.pesoMb > 0 ? ` · ${pendientes!.pesoMb} MB` : ""}
+            </p>
+            <p>
+              Fotos de cosplayers: <strong>{pendientes!.pendientesCosplay ?? 0}</strong> pendientes
+            </p>
+            <p className="pt-1 leading-relaxed">
+              El servidor las reduce solo, de a pocas cada seis minutos. Puedes acelerarlo
+              con el botón.
+            </p>
+          </div>
           <button
             onClick={() => reprocesar.mutate({ tanda: 8 })}
             disabled={reprocesar.isPending}
