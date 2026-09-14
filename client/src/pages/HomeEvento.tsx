@@ -208,9 +208,11 @@ export default function HomeEvento() {
           />
 
           <div
-            className="lp-ventana lp-anuncio relative w-full max-w-sm overflow-hidden p-8 text-center"
+            className="lp-ventana lp-anuncio lp-anuncio-color relative w-full max-w-sm overflow-hidden p-8 text-center"
             onClick={e => e.stopPropagation()}
             style={{
+              // El cuadro entero toma el color del rango nuevo
+              ["--lp-rango" as string]: rangoDe(xpDemo).color,
               ["--lp-glow" as string]: `${rangoDe(xpDemo).color}66`,
               ["--lp-glow-soft" as string]: `${rangoDe(xpDemo).color}22`,
             }}

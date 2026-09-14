@@ -293,9 +293,11 @@ export default function WorldFestPass() {
             }}
           />
           <div
-            className="lp-ventana lp-anuncio relative w-full max-w-sm overflow-hidden p-8 text-center"
+            className="lp-ventana lp-anuncio lp-anuncio-color relative w-full max-w-sm overflow-hidden p-8 text-center"
             onClick={e => e.stopPropagation()}
             style={{
+              // El cuadro entero toma el color del rango nuevo
+              ["--lp-rango" as string]: (COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"),
               ["--lp-glow" as string]: `${COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"}66`,
               ["--lp-glow-soft" as string]: `${COLOR_RANGO[rangoAnunciado] ?? "#38bdf8"}22`,
             }}

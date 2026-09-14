@@ -3318,3 +3318,61 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .iw-guild-card { animation: none; }
   .iw-guild-brillo { display: none; }
 }
+
+/* ── El anuncio se enciende con el color del rango ────────────────────────
+   Arranca apagado, en gris neutro, y en menos de un segundo el color del
+   rango nuevo inunda el marco: primero un golpe fuerte, luego se asienta.
+   Así el cambio de color se percibe como parte del ascenso y no como un
+   cuadro que ya estaba pintado. */
+@keyframes lp-anuncio-enciende {
+  0% {
+    border-color: rgba(140, 140, 160, 0.35);
+    box-shadow: 0 0 0 0 transparent, inset 0 0 0 0 transparent;
+  }
+  35% {
+    border-color: var(--lp-rango);
+    box-shadow:
+      0 0 60px color-mix(in srgb, var(--lp-rango) 55%, transparent),
+      inset 0 0 70px color-mix(in srgb, var(--lp-rango) 30%, transparent);
+  }
+  100% {
+    border-color: color-mix(in srgb, var(--lp-rango) 70%, transparent);
+    box-shadow:
+      0 0 32px color-mix(in srgb, var(--lp-rango) 28%, transparent),
+      inset 0 0 44px color-mix(in srgb, var(--lp-rango) 12%, transparent);
+  }
+}
+
+/* El fondo hace lo mismo: del casi negro al tinte del rango */
+@keyframes lp-anuncio-fondo {
+  0%   { background: linear-gradient(160deg, rgba(10, 12, 18, 0.98), rgba(4, 8, 16, 0.99)); }
+  35%  { background: linear-gradient(160deg, color-mix(in srgb, var(--lp-rango) 26%, rgba(6, 10, 18, 0.97)), rgba(4, 8, 16, 0.98)); }
+  100% { background: linear-gradient(160deg, color-mix(in srgb, var(--lp-rango) 14%, rgba(6, 10, 18, 0.97)), rgba(4, 8, 16, 0.98)); }
+}
+
+.lp-anuncio-color {
+  animation:
+    lp-ventana-entra .55s cubic-bezier(.2, .9, .3, 1.2) both,
+    lp-anuncio-enciende 1.5s cubic-bezier(.2, .8, .3, 1) .25s both,
+    lp-anuncio-fondo 1.5s cubic-bezier(.2, .8, .3, 1) .25s both;
+}
+
+/* Las esquinas acompañan al marco */
+.lp-anuncio-color::before,
+.lp-anuncio-color::after {
+  animation: lp-esquina-enciende 1.5s ease-out .25s both;
+}
+@keyframes lp-esquina-enciende {
+  0%   { border-color: rgba(140, 140, 160, 0.4); }
+  35%  { border-color: var(--lp-rango); filter: drop-shadow(0 0 6px var(--lp-rango)); }
+  100% { border-color: var(--lp-rango); filter: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-anuncio-color {
+    animation: none;
+    border-color: var(--lp-rango);
+  }
+  .lp-anuncio-color::before,
+  .lp-anuncio-color::after { animation: none; }
+}
