@@ -3262,13 +3262,6 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   will-change: transform;
 }
 
-/* Hueco del mismo tono mientras la imagen no ha llegado: sin esto la tarjeta
-   da un salto al aparecer la foto. */
-.iw-cp-img[src=""],
-.iw-cp-img:not([src]) {
-  visibility: hidden;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .group:hover .iw-cp-img { transform: none; }
 }

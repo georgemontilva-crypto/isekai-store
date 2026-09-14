@@ -175,3 +175,46 @@ export async function pendientesDeReprocesar() {
     pesoMb: Math.round((pendientes.reduce((a, m) => a + (m.sizeBytes ?? 0), 0) / 1024 / 1024) * 10) / 10,
   };
 }
+
+/**
+ * Optimización automática en segundo plano.
+ *
+ * Procesa unas pocas imágenes cada cierto tiempo, de forma que el trabajo se
+ * reparte y nunca compite con las visitas. Con tandas pequeñas y espaciadas,
+ * una biblioteca de cien imágenes queda lista en unas horas sin que nadie lo
+ * note.
+ *
+ * Se detiene sola cuando no queda nada pendiente.
+ */
+export function iniciarOptimizacionImagenes() {
+  const CADA = 6 * 60 * 1000;   // cada seis minutos
+  const POR_TANDA = 3;          // tres imágenes por vuelta
+
+  let trabajando = false;
+
+  const vuelta = async () => {
+    if (trabajando) return;
+    trabajando = true;
+    try {
+      const { pendientes } = await pendientesDeReprocesar();
+      if (pendientes === 0) return;
+
+      const r = await reprocesarTanda(POR_TANDA);
+      if (r.reducidas > 0) {
+        console.log(
+          `[Imágenes] ${r.reducidas} optimizadas, ${r.ahorroMb} MB ahorrados, quedan ${r.quedan}`,
+        );
+      }
+    } catch (e) {
+      console.error("[Imágenes] Fallo en la optimización automática:", e);
+    } finally {
+      trabajando = false;
+    }
+  };
+
+  // La primera vuelta con margen, para no competir con el arranque
+  setTimeout(() => { void vuelta(); }, 90_000);
+  setInterval(() => { void vuelta(); }, CADA);
+
+  console.log("[Imágenes] Optimización automática activada (3 cada 6 minutos)");
+}

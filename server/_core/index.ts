@@ -10,6 +10,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { iniciarTasaAutomatica } from "../binanceRate";
 import { iniciarRevisionComisiones } from "../db";
+import { iniciarOptimizacionImagenes } from "../reprocesarImagenes";
 import { createServer } from "http";
 import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
@@ -168,6 +169,8 @@ async function startServer() {
     iniciarTasaAutomatica();
     // Comisiones de referido: se acreditan las que hayan quedado sin pagar
     iniciarRevisionComisiones();
+    // Reduce poco a poco las imágenes que se subieron sin optimizar
+    iniciarOptimizacionImagenes();
   });
 }
 
