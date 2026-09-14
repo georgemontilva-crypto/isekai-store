@@ -446,13 +446,6 @@ export default function Navbar() {
             <Link href="/catalog" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">{t.nav.compare}</Link>
 
             {/* Botón destacado: Cosplay Guild */}
-            <Link
-              href="/cosplay"
-              className="ev-notch ev-press ml-2 inline-flex items-center gap-1.5 border-2 border-[#e5007d] bg-white px-4 py-2 text-[13px] font-bold text-[#e5007d] transition-colors hover:bg-[#e5007d] hover:text-white"
-            >
-              <Sparkles size={17} strokeWidth={1.8} />
-              Cosplay Guild
-            </Link>
 
             {/* Botón destacado: la tienda, ahora que la portada es el evento */}
             <style>{WORLD_FEST_GLOW}</style>
@@ -616,21 +609,25 @@ export default function Navbar() {
                 </Link>
               );
             })}
+
+            {/* Cosplay Guild: ocupa el hueco que queda al final de la rejilla
+                y late suavemente, para que la vista se vaya hacia él. */}
+            <Link
+              href="/cosplay"
+              onClick={() => setMobileOpen(false)}
+              tabIndex={mobileOpen ? 0 : -1}
+              className="iw-menu-item iw-menu-card iw-guild-card ev-notch relative flex flex-col justify-between overflow-hidden px-4 py-3.5"
+              style={{ transitionDelay: mobileOpen ? `${100 + mobileLinks.length * 55}ms` : "0ms" }}
+            >
+              <span className="iw-guild-brillo" />
+              <Sparkles size={18} className="relative text-[#ff45a0]" />
+              <span className="relative mt-6 text-[14px] text-[#ff45a0]">Cosplay Guild</span>
+            </Link>
           </div>
 
 
           {/* Destacados */}
           <div className="iw-menu-item mt-9 flex flex-col gap-3" style={{ transitionDelay: mobileOpen ? `${100 + mobileLinks.length * 55}ms` : "0ms" }}>
-            <Link
-              href="/cosplay"
-              onClick={() => setMobileOpen(false)}
-              tabIndex={mobileOpen ? 0 : -1}
-              className="iw-menu-cta ev-notch inline-flex items-center justify-center gap-2 border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
-              style={{ minHeight: 54 }}
-            >
-              <Sparkles size={17} strokeWidth={1.8} />
-              Cosplay Guild
-            </Link>
             <style>{WORLD_FEST_GLOW}</style>
             <Link
               href="/tienda"

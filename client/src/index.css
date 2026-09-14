@@ -3282,3 +3282,39 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
     #050505 100%
   );
 }
+
+/* ── Cosplay Guild en el menú ─────────────────────────────────────────────
+   Es el destino que más interesa promocionar, así que su tarjeta se
+   diferencia: borde magenta encendido, un latido lento y un destello que la
+   recorre cada pocos segundos. Suficiente para atraer la vista sin llegar a
+   molestar mientras se navega. */
+@keyframes iw-guild-latido {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 0, 125, 0.35), inset 0 0 18px rgba(229, 0, 125, 0.08); }
+  50%      { box-shadow: 0 0 22px 2px rgba(229, 0, 125, 0.45), inset 0 0 26px rgba(229, 0, 125, 0.16); }
+}
+@keyframes iw-guild-destello {
+  0%       { transform: translateX(-130%) skewX(-18deg); }
+  55%, 100% { transform: translateX(320%) skewX(-18deg); }
+}
+
+.iw-guild-card {
+  border: 1px solid rgba(229, 0, 125, 0.55) !important;
+  background: linear-gradient(150deg, rgba(229, 0, 125, 0.18), rgba(229, 0, 125, 0.05)) !important;
+  animation: iw-guild-latido 2.6s ease-in-out infinite;
+}
+
+/* El destello recorre la tarjeta cada pocos segundos */
+.iw-guild-brillo {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 45%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+  animation: iw-guild-destello 3.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iw-guild-card { animation: none; }
+  .iw-guild-brillo { display: none; }
+}
