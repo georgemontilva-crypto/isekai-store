@@ -8,7 +8,28 @@ import App from "./App";
 import { openLoginModal } from "./const";
 import "./index.css";
 
-const queryClient = new QueryClient();
+/**
+ * Ajustes de las consultas.
+ *
+ * Sin configuración, cada dato se consideraba viejo nada más llegar: al
+ * desplazarse fuera y volver, o al cambiar de pestaña del navegador, se
+ * pedía todo otra vez y la web parecía ir lenta.
+ *
+ * Con un minuto de vigencia, lo ya cargado se reutiliza. Los datos que sí
+ * cambian a menudo —pedidos, boletería— piden su propio refresco periódico
+ * allí donde se usan, así que no se ven afectados.
+ */
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 10 * 60_000,
+      refetchOnWindowFocus: false,
+      refetchOnMount: false,
+      retry: 1,
+    },
+  },
+});
 
 const redirectToLoginIfUnauthorized = (error: unknown) => {
   if (!(error instanceof TRPCClientError)) return;

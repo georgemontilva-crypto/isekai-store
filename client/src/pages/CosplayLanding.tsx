@@ -60,9 +60,9 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
                 {/* Banner/foto superior */}
                 <div className="relative h-40 overflow-hidden bg-white/[0.06]">
                   {cp.bannerImage
-                    ? <img src={cp.bannerImage} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" alt="" />
+                    ? <img src={cp.bannerImage} className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-200 ease-out will-change-transform" alt="" />
                     : cp.photo
-                      ? <img src={cp.photo} className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500" alt="" />
+                      ? <img src={cp.photo} className="w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-200 ease-out will-change-transform" alt="" />
                       : <div className="w-full h-full" style={{ background: tier.color + '22' }} />
                   }
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,26,26,1) 0%, transparent 60%)' }} />
@@ -112,7 +112,7 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
               <button
                 key={i}
                 onClick={() => goTo(i)}
-                className="rounded-full transition-all duration-300"
+                className="rounded-full transition-colors duration-200"
                 style={{
                   width: i === current ? '20px' : '8px',
                   height: '8px',
