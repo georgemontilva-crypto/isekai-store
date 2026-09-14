@@ -9,6 +9,7 @@ export default function CosplayProfile() {
   const username = params.username ?? '';
   const [currentSlide, setCurrentSlide] = useState(0);
 
+  const { data: ajustes } = trpc.settings.getAll.useQuery();
   const { data: cosplayer, isLoading } = trpc.cosplay.getCosplayerByUsername.useQuery(
     { username },
     { enabled: !!username }
@@ -37,6 +38,9 @@ export default function CosplayProfile() {
     );
   }
 
+  const textura = ajustes?.["textura_fondo"];
+  const opacidadTextura = parseFloat(ajustes?.["textura_fondo_opacidad"] ?? "0.28");
+
   const tierColor = getTierColor(cosplayer.tier ?? 'bronce');
   const gallery   = (cosplayer.gallery as string[] | null) ?? [];
   const banner    = (cosplayer as any).bannerImage as string | undefined;
@@ -50,7 +54,25 @@ export default function CosplayProfile() {
   ].filter(r => (cosplayer as any)[r.key]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center px-4 py-0">
+    <div className="relative min-h-screen bg-[#0a0a0a] flex flex-col items-center px-4 py-0">
+
+      {/* Textura del perfil: acompaña la parte de arriba y se apaga al bajar,
+          para que la biografía y la galería se lean sobre negro limpio. */}
+      {textura && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-x-0 top-0 -z-0"
+          style={{
+            height: "min(1100px, 100%)",
+            backgroundImage: `url(${textura})`,
+            backgroundSize: "cover",
+            backgroundPosition: "top center",
+            opacity: Number.isFinite(opacidadTextura) ? opacidadTextura : 0.28,
+            maskImage: "linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.5) 45%, transparent 90%)",
+            WebkitMaskImage: "linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.5) 45%, transparent 90%)",
+          }}
+        />
+      )}
 
       {/* Banner superior */}
       <div className="w-full h-[200px] sm:h-[260px] overflow-hidden relative">
