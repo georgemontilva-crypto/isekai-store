@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { REFERRAL_TIERS } from "@shared/referral";
-import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users, Link2, Repeat, DollarSign, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, Instagram, Youtube, Medal, Shield, Zap, Gem, Crown, Tag, ShoppingBag, Lock, Star, Gift, Info, Users, Link2, Repeat, DollarSign, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 const TIERS = [
   { name: "Bronce",   color: "#cd7f32", icon: Medal,  followers: "1K – 3K",    mult: "×1",   width: "30%"  },
@@ -205,9 +205,13 @@ export default function CosplayLanding() {
             </span>
           </p>
           <div className="mt-10 flex flex-wrap gap-4">
+            {/* Misma tarjeta llamativa que en el menú: borde encendido,
+                latido y un destello que la recorre. */}
             <Link href="/cosplay/guild">
-              <button className="inline-flex items-center gap-2 border border-[#444] text-[#ccc] px-8 py-4 rounded-full font-bold text-sm hover:border-white hover:text-white transition-colors">
-                Ver cosplayers
+              <button className="iw-guild-card ev-notch ev-press relative inline-flex items-center gap-2 overflow-hidden px-8 py-4 text-sm font-bold text-[#ff45a0]">
+                <span className="iw-guild-brillo" />
+                <Sparkles size={16} className="relative" />
+                <span className="relative">Ver cosplayers</span>
               </button>
             </Link>
           </div>
