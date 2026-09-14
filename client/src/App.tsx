@@ -19,6 +19,7 @@ const Catalog = lazy(() => import("./pages/Catalog"));
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const Invitacion = lazy(() => import("./pages/Invitacion"));
 import PantallaCarga from "@/components/PantallaCarga";
+import TexturaFondo from "@/components/TexturaFondo";
 import AccesoRapido from "@/components/AccesoRapido";
 const HomeEvento = lazy(() => import("./pages/HomeEvento"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
@@ -189,6 +190,7 @@ function Layout() {
 
   return (
     <>
+      <TexturaFondo />
       <PantallaCarga />
       <AccesoRapido />
       <ScrollToTop />

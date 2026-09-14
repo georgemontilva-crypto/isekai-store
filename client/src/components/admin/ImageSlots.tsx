@@ -163,6 +163,9 @@ export const IMAGE_SLOTS: PageGroup[] = [
   {
     page: "Pantalla de carga",
     slots: [
+      { kind: "site", key: "textura_fondo", label: "Textura de fondo del sitio",
+        where: "Detrás de todo el contenido, en cualquier página. Se ve arriba y se desvanece hacia abajo.",
+        spec: "Horizontal, ~1920 × 1080 px. Discreta: va sobre el negro y no debe competir con el texto." },
       { kind: "site", key: "carga_textura", label: "Textura de fondo",
         where: "Fondo de la pantalla de carga que se ve al entrar desde el teléfono.",
         spec: "Vertical, ~1080 × 1920 px. Se le aplica un velo oscuro encima para que el contador se lea. Si lo dejas vacío, el fondo es negro." },

@@ -3265,3 +3265,11 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 @media (prefers-reduced-motion: reduce) {
   .group:hover .iw-cp-img { transform: none; }
 }
+
+/* La textura vive detrás de todo; el resto del contenido se eleva sobre ella.
+   Se excluye a sí misma: si la regla la alcanzara, perdería su posición fija
+   y dejaría de acompañar al recorrido. */
+#root > *:not(.iw-textura) {
+  position: relative;
+  z-index: 1;
+}
