@@ -3243,3 +3243,32 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   font-weight: 900;
   letter-spacing: -0.025em;
 }
+
+/* ── Tarjetas de cosplayer ────────────────────────────────────────────────
+   El zoom al pasar el cursor iba dentro de un contenedor con esquinas
+   biseladas. Recortar con clip-path mientras algo se escala obliga al
+   navegador a recalcular el recorte en cada fotograma, y por eso el efecto
+   se sentía pesado.
+
+   Se traslada el movimiento a la propia imagen con aceleración por hardware
+   y se le avisa al navegador solo mientras dura el gesto. */
+.iw-cp-img {
+  transform: scale(1) translateZ(0);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  backface-visibility: hidden;
+}
+.group:hover .iw-cp-img {
+  transform: scale(1.05) translateZ(0);
+  will-change: transform;
+}
+
+/* Hueco del mismo tono mientras la imagen no ha llegado: sin esto la tarjeta
+   da un salto al aparecer la foto. */
+.iw-cp-img[src=""],
+.iw-cp-img:not([src]) {
+  visibility: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .group:hover .iw-cp-img { transform: none; }
+}

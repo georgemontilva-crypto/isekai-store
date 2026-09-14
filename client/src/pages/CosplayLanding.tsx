@@ -52,17 +52,14 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
           return (
             <Link key={cp.id} href={`/cosplay/guild/${cp.username ?? cp.id}`}>
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
                 className="group bg-[#16191f] border border-white/10 ev-notch overflow-hidden hover:border-[#e5007d] transition-colors cursor-pointer"
               >
                 {/* Banner/foto superior */}
                 <div className="relative h-40 overflow-hidden bg-white/[0.06]">
                   {cp.bannerImage
-                    ? <img src={cp.bannerImage} className="w-full h-full object-cover group-hover:scale-[1.04] transition-transform duration-200 ease-out will-change-transform" alt="" />
+                    ? <img src={cp.bannerImage} loading="lazy" decoding="async" className="iw-cp-img w-full h-full object-cover" alt="" />
                     : cp.photo
-                      ? <img src={cp.photo} className="w-full h-full object-cover object-top group-hover:scale-[1.04] transition-transform duration-200 ease-out will-change-transform" alt="" />
+                      ? <img src={cp.photo} loading="lazy" decoding="async" className="iw-cp-img w-full h-full object-cover object-top" alt="" />
                       : <div className="w-full h-full" style={{ background: tier.color + '22' }} />
                   }
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,26,26,1) 0%, transparent 60%)' }} />

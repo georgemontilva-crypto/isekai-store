@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Upload, Loader2, Copy, Trash2, FolderInput } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { comprimirImagen } from "@/lib/comprimirImagen";
 import ImageSlots from "./ImageSlots";
 
 interface Props {
@@ -43,13 +44,15 @@ export default function MediaLibrary({ onGoToTab }: Props) {
           setError(`"${file.name}" supera los ${tope} MB y no se subió.`);
           continue;
         }
+        // Se reduce antes de enviarla: sube más rápido y se ve igual
+        const archivo = await comprimirImagen(file);
         const base64 = await new Promise<string>((resolve, reject) => {
           const r = new FileReader();
           r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
           r.onerror = () => reject(new Error("read"));
-          r.readAsDataURL(file);
+          r.readAsDataURL(archivo);
         });
-        await upload.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+        await upload.mutateAsync({ fileName: archivo.name, contentType: archivo.type, base64Data: base64 });
       }
       await utils.media.list.invalidate();
       toast.success("Archivos subidos");

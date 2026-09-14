@@ -2,6 +2,7 @@ import { useState } from "react";
 import { X, Upload, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { comprimirImagen } from "@/lib/comprimirImagen";
 
 export interface MediaItem {
   id: number;
@@ -38,13 +39,15 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
     setUploading(true);
     setError("");
     try {
+      // Se reduce antes de enviarla: sube más rápido y se ve igual
+      const archivo = await comprimirImagen(file);
       const base64 = await new Promise<string>((resolve, reject) => {
         const r = new FileReader();
         r.onload = () => resolve(String(r.result).split(",")[1] ?? "");
         r.onerror = () => reject(new Error("read"));
-        r.readAsDataURL(file);
+        r.readAsDataURL(archivo);
       });
-      await upload.mutateAsync({ fileName: file.name, contentType: file.type, base64Data: base64 });
+      await upload.mutateAsync({ fileName: archivo.name, contentType: archivo.type, base64Data: base64 });
       await refetch();
       toast.success("Archivo subido a la biblioteca");
     } catch (e: any) {

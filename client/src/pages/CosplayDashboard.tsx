@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { trpc } from "@/lib/trpc";
+import { comprimirImagen } from "@/lib/comprimirImagen";
 import { REFERRAL_TIERS } from "@shared/referral";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
@@ -177,7 +178,8 @@ export default function CosplayDashboard() {
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const base64Data = await toBase64(file);
+    const comprimido = await comprimirImagen(file);
+    const base64Data = await toBase64(comprimido);
     const { url } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data });
     setProfileForm(f => ({ ...f, bannerImage: url }));
     toast.success("Banner actualizado");
