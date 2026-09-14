@@ -22,8 +22,10 @@ export default function TexturaFondo() {
   return (
     <div
       aria-hidden="true"
-      className="iw-textura pointer-events-none fixed inset-0 z-0"
+      className="iw-textura pointer-events-none fixed inset-0"
       style={{
+        // Por debajo de todo sin alterar el apilamiento del resto
+        zIndex: -1,
         backgroundImage: `url(${textura})`,
         backgroundSize: "cover",
         backgroundPosition: "top center",
