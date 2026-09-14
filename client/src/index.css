@@ -63,14 +63,8 @@
     scroll-behavior: smooth;
   }
 
-  html {
-    background-color: hsl(var(--background));
-  }
   body {
-    /* Transparente a propósito: deja ver la capa de textura, que va detrás.
-       El color de fondo lo pone <html>. */
-    @apply text-foreground antialiased;
-    background-color: transparent;
+    @apply bg-background text-foreground antialiased;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 14px;
     line-height: 1.6;
@@ -1181,14 +1175,8 @@ html.dark .spotlight-veil { background: #000000; }
     scroll-behavior: smooth;
   }
 
-  html {
-    background-color: hsl(var(--background));
-  }
   body {
-    /* Transparente a propósito: deja ver la capa de textura, que va detrás.
-       El color de fondo lo pone <html>. */
-    @apply text-foreground antialiased;
-    background-color: transparent;
+    @apply bg-background text-foreground antialiased;
     font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     font-size: 14px;
     line-height: 1.6;
@@ -3278,7 +3266,3 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .group:hover .iw-cp-img { transform: none; }
 }
 
-/* NO se fuerza posición ni apilamiento sobre los hijos de #root: hacerlo
-   rompía las cabeceras fijas y los menús, que dejaban de pegarse arriba y
-   abrían huecos enormes. La textura se coloca por debajo con un z-index
-   negativo, que no necesita tocar al resto. */

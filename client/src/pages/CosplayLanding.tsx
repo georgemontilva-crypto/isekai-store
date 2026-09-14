@@ -30,6 +30,10 @@ function TikTokIcon() {
 }
 
 function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
+  // Textura solo aquí, detrás de las tarjetas de cosplayer
+  const { data: ajustes } = trpc.settings.getAll.useQuery();
+  const textura = ajustes?.["textura_fondo"];
+  const opacidad = parseFloat(ajustes?.["textura_fondo_opacidad"] ?? "0.28");
   const [current, setCurrent] = useState(0);
   const itemsPerSlide = typeof window !== 'undefined' && window.innerWidth < 640 ? 1 : 4;
   const totalSlides = Math.ceil(cosplayers.slice(0, 8).length / itemsPerSlide);
@@ -45,6 +49,23 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
 
   return (
     <div className="relative px-6 lg:px-20">
+      {/* Textura de fondo: intensa arriba y desvanecida hacia abajo, para que
+          no compita con los nombres de las tarjetas. */}
+      {textura && (
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            backgroundImage: `url(${textura})`,
+            backgroundSize: "cover",
+            backgroundPosition: "top center",
+            opacity: Number.isFinite(opacidad) ? opacidad : 0.28,
+            maskImage: "linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.55) 40%, transparent 85%)",
+            WebkitMaskImage: "linear-gradient(to bottom, #000 0%, rgba(0,0,0,0.55) 40%, transparent 85%)",
+          }}
+        />
+      )}
+
       {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {visibleCosplayers.map((cp: any) => {

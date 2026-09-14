@@ -164,7 +164,7 @@ export const IMAGE_SLOTS: PageGroup[] = [
     page: "Pantalla de carga",
     slots: [
       { kind: "site", key: "textura_fondo", label: "Textura de fondo del sitio",
-        where: "Detrás de todo el contenido, en cualquier página. Se ve arriba y se desvanece hacia abajo.",
+        where: "Detrás de las tarjetas de cosplayer, en el Cosplay Guild. Se ve arriba y se desvanece hacia abajo.",
         spec: "Horizontal, ~1920 × 1080 px. Discreta: va sobre el negro y no debe competir con el texto." },
       { kind: "site", key: "carga_textura", label: "Textura de fondo",
         where: "Fondo de la pantalla de carga que se ve al entrar desde el teléfono.",
