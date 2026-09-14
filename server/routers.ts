@@ -30,6 +30,7 @@ import {
   levelPassActivo, crearEntornoPrueba, borrarEntornoPrueba, buscarBoleto, darXpDePrueba, miBoletoPorCorreo,
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
+import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
 const MOTIVO_REFERIDO: Record<string, string> = {
@@ -1122,6 +1123,14 @@ export const appRouter = router({
         }
         return { success: true, mailchimp: true };
       }),
+  }),
+
+  /** Reducir las imágenes que ya estaban subidas al tamaño original */
+  imagenes: router({
+    pendientes: adminProcedure.query(() => pendientesDeReprocesar()),
+    reprocesar: adminProcedure
+      .input(z.object({ tanda: z.number().int().min(1).max(20).optional() }).optional())
+      .mutation(({ input }) => reprocesarTanda(input?.tanda ?? 8)),
   }),
 
   /** Revisión de comisiones de referido: detecta y paga las que falten */

@@ -50,6 +50,20 @@ export default function MediaSection() {
     onError: (e) => toast.error(e.message),
   });
 
+  const { data: pendientes } = trpc.imagenes.pendientes.useQuery(undefined, { enabled: habilitado });
+  const reprocesar = trpc.imagenes.reprocesar.useMutation({
+    onSuccess: (r: any) => {
+      utils.imagenes.pendientes.invalidate();
+      utils.settings.getAll.invalidate();
+      toast.success(
+        r.reducidas > 0
+          ? `${r.reducidas} optimizadas · ${r.ahorroMb} MB ahorrados · quedan ${r.quedan}`
+          : "No había nada que reducir en esta tanda",
+      );
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+
   const [abierto, setAbierto] = useState<string | null>(null);
   const [eligiendo, setEligiendo] = useState<string | null>(null);
 
@@ -67,6 +81,28 @@ export default function MediaSection() {
           }}
           onClose={() => setEligiendo(null)}
         />
+      )}
+
+      {/* Reprocesado de lo ya subido: las imágenes antiguas se guardaron al
+          tamaño original y pesan de más. */}
+      {(pendientes?.pendientes ?? 0) > 0 && (
+        <div className="ev-notch border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
+          <p className="text-sm font-bold text-[var(--iw-text)]">
+            {pendientes!.pendientes} imágenes sin optimizar
+          </p>
+          <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--iw-text-muted)]">
+            Ocupan {pendientes!.pesoMb} MB y hacen que la web cargue lenta. Se reducen
+            de a pocas para no saturar el servidor: puedes tocar varias veces.
+          </p>
+          <button
+            onClick={() => reprocesar.mutate({ tanda: 8 })}
+            disabled={reprocesar.isPending}
+            className="ev-notch bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
+            style={{ minHeight: 44 }}
+          >
+            {reprocesar.isPending ? "Optimizando..." : "Optimizar 8 imágenes"}
+          </button>
+        </div>
       )}
 
       <p className="text-xs leading-relaxed text-[var(--iw-text-muted)]">
