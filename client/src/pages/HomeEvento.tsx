@@ -308,9 +308,9 @@ export default function HomeEvento() {
         )}
         <div className="absolute inset-0 bg-gradient-to-b from-[#06040d]/75 via-[#0d0620]/70 to-[#06040d]" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#06040d] via-[#06040d]/40 to-transparent" />
-        {/* Textura técnica del sistema: rejilla fina y bloques dispersos */}
+        {/* Solo la rejilla de líneas: los bloques sólidos ensuciaban el
+            titular y competían con las partículas. */}
         <div className="ev-grid absolute inset-0 opacity-70" />
-        <div className="ev-pixels absolute inset-0" />
         <div className="ev-halo absolute -left-40 top-1/4 h-[520px] w-[520px]" />
 
         {/* Partículas de energía ascendentes */}
@@ -557,7 +557,7 @@ export default function HomeEvento() {
       <div className="ev-linea" />
 
       {/* ═══ 6. LA MECÁNICA Y LOS RANGOS ═══ */}
-      <section className="ev-pixels relative border-y border-[#a78bfa]/20 bg-gradient-to-b from-[#0d0620] to-[#06040d] px-6 py-20 lg:px-16 lg:py-28">
+      <section className="ev-grid relative border-y border-[#a78bfa]/20 bg-gradient-to-b from-[#0d0620] to-[#06040d] px-6 py-20 lg:px-16 lg:py-28">
         <div className="mx-auto max-w-5xl">
           <p className="mb-3 text-center font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
             [ Sistema activo ]
