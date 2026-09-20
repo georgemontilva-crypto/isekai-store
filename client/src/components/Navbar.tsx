@@ -445,7 +445,16 @@ export default function Navbar() {
 
             <Link href="/catalog" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">{t.nav.compare}</Link>
 
-            {/* Botón destacado: Cosplay Guild */}
+            {/* Cosplay Guild: en contorno, con el mismo latido y destello que
+                en el menú del teléfono para que atraiga la vista. */}
+            <Link
+              href="/cosplay"
+              className="iw-guild-card ev-notch ev-press relative ml-2 inline-flex items-center gap-1.5 overflow-hidden px-4 py-2 text-[13px] font-bold text-[#e5007d]"
+            >
+              <span className="iw-guild-brillo" />
+              <Sparkles size={15} strokeWidth={1.9} className="relative" />
+              <span className="relative">Cosplay Guild</span>
+            </Link>
 
             {/* Botón destacado: la tienda, ahora que la portada es el evento */}
             <style>{WORLD_FEST_GLOW}</style>

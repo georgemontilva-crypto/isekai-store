@@ -3376,3 +3376,18 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .lp-anuncio-color::before,
   .lp-anuncio-color::after { animation: none; }
 }
+
+/* El Guild en la cabecera de escritorio va sobre fondo blanco, así que el
+   relleno translúcido del menú oscuro quedaría casi invisible. Aquí se
+   refuerza el borde y se aclara el fondo. */
+.iw-header .iw-guild-card {
+  border: 2px solid #e5007d !important;
+  background: rgba(229, 0, 125, 0.07) !important;
+}
+.iw-header .iw-guild-card:hover {
+  background: #e5007d !important;
+  color: #fff !important;
+}
+.iw-header .iw-guild-brillo {
+  background: linear-gradient(90deg, transparent, rgba(229, 0, 125, 0.16), transparent);
+}
