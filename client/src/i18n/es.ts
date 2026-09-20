@@ -6,7 +6,7 @@ export const es = {
       "Nuevos drops cada semana — ¡No te los pierdas!",
       "20% off en tu primer pedido · Únete ahora",
     ],
-    shop: "Tienda",
+    shop: "Catálogo",
     collections: "Universos",
     explore: "Explorar",
     compare: "Comparar",

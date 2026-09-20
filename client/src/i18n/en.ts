@@ -7,7 +7,7 @@ export const en: Translations = {
       "New arrivals every week — Don't miss out!",
       "20% off your first order · Join now",
     ],
-    shop: "Shop",
+    shop: "Catalog",
     collections: "Universos",
     explore: "Explore",
     compare: "Compare",

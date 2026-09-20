@@ -443,7 +443,7 @@ export default function Navbar() {
               </AnimatePresence>
             </div>
 
-            <Link href="/catalog" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">{t.nav.compare}</Link>
+            <Link href="/tienda" className="px-3.5 py-2 text-[13.5px] font-medium text-[#1a1a1a] hover:opacity-50 transition-opacity">Tienda</Link>
 
             {/* Cosplay Guild: en contorno, con el mismo latido y destello que
                 en el menú del teléfono para que atraiga la vista. */}
@@ -456,15 +456,7 @@ export default function Navbar() {
               <span className="relative">Cosplay Guild</span>
             </Link>
 
-            {/* Botón destacado: la tienda, ahora que la portada es el evento */}
             <style>{WORLD_FEST_GLOW}</style>
-            <Link
-              href="/tienda"
-              className="ev-notch ev-press relative ml-2 inline-flex items-center gap-1.5 overflow-hidden border-2 border-[#e5007d] bg-[#e5007d] px-4 py-2 text-[13px] font-bold text-white transition-colors hover:bg-[#c4006a]"
-            >
-              <ShoppingBag size={16} strokeWidth={1.9} />
-              Tienda
-            </Link>
           </nav>
 
           {/* Right icons */}
