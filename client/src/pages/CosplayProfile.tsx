@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { trpc } from "@/lib/trpc";
-import { CheckCircle2, User, ChevronLeft, ChevronRight } from "lucide-react";
+import { CheckCircle2, User, ChevronLeft, ChevronRight, Mail } from "lucide-react";
 import { getTierColor } from "./CosplayDashboard";
 
 export default function CosplayProfile() {
@@ -96,7 +96,7 @@ export default function CosplayProfile() {
 
         {/* Nombre + verificado */}
         <div className="flex items-center gap-2 mb-1">
-          <h1 className="text-white font-black text-xl">{cosplayer.artisticName}</h1>
+          <h1 className="ev-display text-2xl text-white">{cosplayer.artisticName}</h1>
           <CheckCircle2 size={16} className="text-[#e5007d]" />
         </div>
 
@@ -114,14 +114,14 @@ export default function CosplayProfile() {
 
         {/* Redes sociales — estilo LinkBio */}
         {socials.length > 0 && (
-          <div className="w-full flex flex-col gap-3 mb-8">
+          <div className="w-full flex flex-col gap-3 mb-3">
             {socials.map(r => (
               <a
                 key={r.key}
                 href={(cosplayer as any)[r.key]}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full bg-[#16191f] border border-white/10 text-white font-semibold text-center py-4 rounded-2xl hover:border-[#e5007d] hover:bg-white/[0.06] transition-all text-sm"
+                className="ev-notch ev-press w-full border border-white/10 bg-[#16191f] py-4 text-center text-sm font-semibold text-white transition-colors hover:border-[#e5007d] hover:bg-white/[0.06]"
               >
                 {r.label}
               </a>
@@ -129,10 +129,24 @@ export default function CosplayProfile() {
           </div>
         )}
 
+        {/* Booking: para contratar al cosplayer. Las solicitudes llegan al
+            correo de la marca, que las coordina; así el cosplayer no expone
+            su contacto personal. */}
+        <a
+          href={`mailto:hola@isekaiworld.co?subject=${encodeURIComponent(`Booking — ${cosplayer.artisticName}`)}&body=${encodeURIComponent(
+            `Hola, me gustaría contratar a ${cosplayer.artisticName}.\n\nTipo de evento:\nFecha:\nCiudad:\nDetalles:\n`,
+          )}`}
+          className="iw-guild-card ev-notch ev-press relative mb-8 flex w-full items-center justify-center gap-2 overflow-hidden py-4 text-sm font-bold uppercase tracking-[0.14em] text-[#ff45a0]"
+        >
+          <span className="iw-guild-brillo" />
+          <Mail size={16} className="relative" />
+          <span className="relative">Booking</span>
+        </a>
+
         {/* Galería — carrusel */}
         {gallery.length > 0 && (
           <div className="w-full mt-6">
-            <div className="relative w-full aspect-square rounded-2xl overflow-hidden">
+            <div className="relative w-full aspect-square ev-notch overflow-hidden">
               <img
                 src={gallery[currentSlide]}
                 className="w-full h-full object-cover object-top transition-opacity duration-300"
