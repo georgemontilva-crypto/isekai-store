@@ -2601,10 +2601,12 @@ html.dark .iw-search:focus-within {
 
 /* Logo de la cabecera: en teléfono se limita para que no empuje la fila y
    deje sitio a los iconos; en escritorio usa la altura configurada. */
+/* Un 20 % más grande en teléfono. Alto y ancho máximo suben en la misma
+   proporción, así el logo crece sin deformarse ni empujar los iconos. */
 .iw-logo {
-  height: min(var(--iw-logo-h, 36px), 30px);
+  height: min(var(--iw-logo-h, 36px), 36px);
   width: auto;
-  max-width: 130px;
+  max-width: 156px;
 }
 @media (min-width: 768px) {
   .iw-logo {
