@@ -101,6 +101,70 @@ async function startServer() {
     next();
   });
 
+  /**
+   * Iconos configurables desde el admin.
+   *
+   * El favicon (la pestaña del navegador) y el icono de la app instalada se
+   * suben en Medios. Estas rutas los sirven redirigiendo a la imagen subida;
+   * si no hay ninguna, se usan los que vienen con la web.
+   */
+  const redirigirIcono = (clave: string, respaldo: string) =>
+    async (_req: any, res: any) => {
+      try {
+        const url = await db.getSetting(clave);
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        return res.redirect(302, url || respaldo);
+      } catch {
+        return res.redirect(302, respaldo);
+      }
+    };
+
+  // Respaldo: el favicon que ya tenía la web, para no perderlo si aún no se
+  // ha cargado uno desde el admin.
+  const FAVICON_ACTUAL = 'https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/Favicon-11%20grande-11.png';
+  app.get('/favicon.ico', redirigirIcono('favicon_url', FAVICON_ACTUAL));
+  app.get('/favicon-web', redirigirIcono('favicon_url', FAVICON_ACTUAL));
+  app.get('/apple-touch-icon.png', redirigirIcono('pwa_icon_url', '/icons/icon-192.png'));
+
+  /**
+   * Manifiesto de la app, generado al vuelo para que el icono y los textos
+   * salgan de los ajustes en lugar de un archivo fijo.
+   */
+  app.get('/manifest.json', async (_req, res) => {
+    try {
+      const ajustes = await db.getAllSettings();
+      const icono = ajustes['pwa_icon_url'];
+      const iconos = icono
+        ? [
+            { src: icono, sizes: '192x192', type: 'image/png', purpose: 'any' },
+            { src: icono, sizes: '512x512', type: 'image/png', purpose: 'any' },
+            { src: icono, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          ]
+        : [
+            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          ];
+
+      res.setHeader('Content-Type', 'application/manifest+json');
+      res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.json({
+        name: ajustes['store_name'] || 'Isekai World',
+        short_name: ajustes['pwa_short_name'] || 'Isekai',
+        description: 'Eventos temáticos y experiencias inmersivas de anime, gaming y cosplay.',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#0a0a0a',
+        theme_color: '#e5007d',
+        orientation: 'portrait-primary',
+        icons: iconos,
+        lang: 'es',
+        dir: 'ltr',
+      });
+    } catch {
+      res.redirect(302, '/manifest-base.json');
+    }
+  });
+
   // Dynamic sitemap
   app.get('/sitemap.xml', async (_req, res) => {
     try {

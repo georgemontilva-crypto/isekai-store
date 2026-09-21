@@ -1,10 +1,10 @@
 {
   "name": "Isekai World",
   "short_name": "Isekai",
-  "description": "Figuras y piezas de impresión 3D inspiradas en anime, gaming y cultura geek.",
+  "description": "Eventos temáticos y experiencias inmersivas de anime, gaming y cosplay.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#0d0d0d",
+  "background_color": "#0a0a0a",
   "theme_color": "#e5007d",
   "orientation": "portrait-primary",
   "icons": [

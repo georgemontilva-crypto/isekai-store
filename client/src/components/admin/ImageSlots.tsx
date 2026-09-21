@@ -163,6 +163,12 @@ export const IMAGE_SLOTS: PageGroup[] = [
   {
     page: "Pantalla de carga",
     slots: [
+      { kind: "site", key: "favicon_url", label: "Favicon de la web",
+        where: "El icono pequeño que sale en la pestaña del navegador, junto al título.",
+        spec: "Cuadrado, PNG con fondo transparente, 64 × 64 o 128 × 128 px. Se ve diminuto: mejor un símbolo simple que el logo completo." },
+      { kind: "site", key: "pwa_icon_url", label: "Icono de la app (PWA)",
+        where: "El icono que aparece en la pantalla del teléfono cuando alguien instala la web como app.",
+        spec: "Cuadrado, PNG, 512 × 512 px. Deja margen alrededor del dibujo: algunos teléfonos lo recortan en círculo." },
       { kind: "site", key: "textura_fondo", label: "Textura de fondo del sitio",
         where: "Detrás de las tarjetas de cosplayer, en el Cosplay Guild. Se ve arriba y se desvanece hacia abajo.",
         spec: "Horizontal, ~1920 × 1080 px. Discreta: va sobre el negro y no debe competir con el texto." },
