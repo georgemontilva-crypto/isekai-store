@@ -118,7 +118,7 @@ export default function CosplayProfile() {
             su panel. Aquí va una marca común a todos los miembros del Guild,
             para que nadie se sienta por debajo de otro. */}
         <span className="ev-notch mb-4 border border-[#e5007d]/50 bg-[#e5007d]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff45a0]">
-          Cosplay Guild
+          Cosplayer Oficial
         </span>
 
         {/* Bio */}
@@ -232,9 +232,12 @@ export default function CosplayProfile() {
                         </div>
                       )}
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-                      <p className="ev-display absolute inset-x-0 bottom-0 truncate px-3 pb-3 text-sm text-white">
-                        {cp.artisticName}
-                      </p>
+                      <div className="absolute inset-x-0 bottom-0 px-3 pb-3">
+                        <p className="ev-display truncate text-sm text-white">{cp.artisticName}</p>
+                        <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[#ff45a0]">
+                          Cosplayer Oficial
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </Link>

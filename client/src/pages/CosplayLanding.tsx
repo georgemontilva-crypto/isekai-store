@@ -99,7 +99,10 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
                     }
                   </div>
                   <div className="flex items-center gap-1.5 mb-1">
-                    <p className="text-white font-black text-sm">{cp.artisticName}</p>
+                    <p className="ev-display text-sm text-white">{cp.artisticName}</p>
+                    <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.18em] text-[#ff45a0]">
+                      Cosplayer Oficial
+                    </p>
                     <CheckCircle2 size={13} className="text-[#e5007d] flex-shrink-0" />
                   </div>
                   {cp.bio && (

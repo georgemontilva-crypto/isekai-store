@@ -89,7 +89,7 @@ export default function CosplayGuild() {
                         </div>
                         <div className="flex items-center justify-between">
                           <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff45a0]">
-                            Guild
+                            Cosplayer Oficial
                           </span>
                           <div className="flex gap-1.5 text-[#555]">
                             {cp.instagram && <Instagram size={12} />}
