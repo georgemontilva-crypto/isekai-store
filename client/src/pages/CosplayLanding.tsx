@@ -69,7 +69,6 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
       {/* Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
         {visibleCosplayers.map((cp: any) => {
-          const tier = TIERS.find(t => t.name.toLowerCase() === (cp.tier ?? 'bronce')) ?? TIERS[0];
           return (
             <Link key={cp.id} href={`/cosplay/guild/${cp.username ?? cp.id}`}>
               <motion.div
@@ -81,23 +80,20 @@ function CosplayersCarousel({ cosplayers }: { cosplayers: any[] }) {
                     ? <img src={cp.bannerImage} loading="lazy" decoding="async" className="iw-cp-img w-full h-full object-cover" alt="" />
                     : cp.photo
                       ? <img src={cp.photo} loading="lazy" decoding="async" className="iw-cp-img w-full h-full object-cover object-top" alt="" />
-                      : <div className="w-full h-full" style={{ background: tier.color + '22' }} />
+                      : <div className="w-full h-full" style={{ background: '#e5007d22' }} />
                   }
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(26,26,26,1) 0%, transparent 60%)' }} />
-                  <span className="absolute top-3 right-3 text-[10px] px-2 py-0.5 rounded-full font-black"
-                    style={{ background: tier.color, color: '#000' }}>
-                    {(cp.tier ?? 'BRONCE').toUpperCase()}
-                  </span>
+
                 </div>
 
                 {/* Info */}
                 <div className="p-4 -mt-6 relative z-10">
                   <div className="w-12 h-12 rounded-full overflow-hidden border-2 mb-3"
-                    style={{ borderColor: tier.color }}>
+                    style={{ borderColor: '#e5007d' }}>
                     {cp.photo
                       ? <img src={cp.photo} className="w-full h-full object-cover" alt="" />
                       : <div className="w-full h-full flex items-center justify-center font-black text-lg"
-                          style={{ background: tier.color + '33', color: tier.color }}>
+                          style={{ background: '#e5007d33', color: '#e5007d' }}>
                           {cp.artisticName?.[0]}
                         </div>
                     }

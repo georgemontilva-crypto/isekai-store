@@ -10,6 +10,7 @@ export default function CosplayProfile() {
   const [currentSlide, setCurrentSlide] = useState(0);
 
   const { data: ajustes } = trpc.settings.getAll.useQuery();
+  const { data: todos = [] } = trpc.cosplay.getApprovedCosplayers.useQuery();
   const { data: cosplayer, isLoading } = trpc.cosplay.getCosplayerByUsername.useQuery(
     { username },
     { enabled: !!username }
@@ -41,8 +42,21 @@ export default function CosplayProfile() {
   const textura = ajustes?.["textura_fondo"];
   const opacidadTextura = parseFloat(ajustes?.["textura_fondo_opacidad"] ?? "0.28");
 
-  const tierColor = getTierColor(cosplayer.tier ?? 'bronce');
   const gallery   = (cosplayer.gallery as string[] | null) ?? [];
+
+  /**
+   * Cuatro cosplayers al azar, sin repetir el actual. El orden se calcula a
+   * partir del nombre del perfil que se está viendo: así es variado entre
+   * perfiles pero estable mientras navegas, y las fotos no saltan de sitio
+   * cada vez que llegan datos nuevos.
+   */
+  const semilla = (cosplayer.artisticName ?? '').split('').reduce((a, ch) => a + ch.charCodeAt(0), 0);
+  const otros = (todos as any[])
+    .filter(c => c.id !== cosplayer.id)
+    .map(c => ({ c, peso: ((c.id * 9301 + semilla * 49297) % 233280) }))
+    .sort((a, b) => a.peso - b.peso)
+    .slice(0, 4)
+    .map(x => x.c);
   const banner    = (cosplayer as any).bannerImage as string | undefined;
 
   const socials = [
@@ -87,7 +101,7 @@ export default function CosplayProfile() {
       <div className="w-full max-w-[480px] -mt-16 relative z-10 flex flex-col items-center">
 
         {/* Foto de perfil */}
-        <div className="w-24 h-24 rounded-full overflow-hidden border-4 mb-3 flex-shrink-0 bg-white/[0.06]" style={{ borderColor: tierColor, outline: '3px solid #0d0d0d', outlineOffset: '0px' }}>
+        <div className="w-24 h-24 rounded-full overflow-hidden border-4 mb-3 flex-shrink-0 bg-white/[0.06]" style={{ borderColor: '#e5007d', outline: '3px solid #0d0d0d', outlineOffset: '0px' }}>
           {cosplayer.photo
             ? <img src={cosplayer.photo} className="w-full h-full object-cover" alt={cosplayer.artisticName} />
             : <div className="w-full h-full flex items-center justify-center"><User size={32} className="text-[#555]" /></div>
@@ -100,9 +114,11 @@ export default function CosplayProfile() {
           <CheckCircle2 size={16} className="text-[#e5007d]" />
         </div>
 
-        {/* Tier badge */}
-        <span className="text-xs px-3 py-1 rounded-full font-bold mb-4 capitalize" style={{ background: tierColor, color: '#000' }}>
-          {(cosplayer.tier ?? 'bronce').toUpperCase()}
+        {/* El nivel ya no se muestra en público: solo lo ve el cosplayer en
+            su panel. Aquí va una marca común a todos los miembros del Guild,
+            para que nadie se sienta por debajo de otro. */}
+        <span className="ev-notch mb-4 border border-[#e5007d]/50 bg-[#e5007d]/10 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#ff45a0]">
+          Cosplay Guild
         </span>
 
         {/* Bio */}
@@ -185,8 +201,56 @@ export default function CosplayProfile() {
           </div>
         )}
 
+        {/* Otros miembros del Guild: mantiene la visita dentro de la
+            comunidad en vez de terminar en un callejón sin salida. Se
+            eligen al azar para que ninguno quede siempre en primer plano. */}
+        {otros.length > 0 && (
+          <div className="mt-14 w-full">
+            <p className="mb-1 text-center font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#e5007d]">
+              Cosplay Guild
+            </p>
+            <h2 className="ev-display mb-6 text-center text-xl text-white">
+              Puede que también te interesen
+            </h2>
+
+            <div className="grid grid-cols-2 gap-3">
+              {otros.map((cp: any) => (
+                <Link key={cp.id} href={`/cosplay/guild/${cp.username ?? cp.id}`}>
+                  <div className="group ev-notch overflow-hidden border border-white/10 bg-[#16191f] transition-colors hover:border-[#e5007d]/60">
+                    <div className="relative aspect-[3/4] overflow-hidden bg-[#0d0d0d]">
+                      {cp.photo ? (
+                        <img
+                          src={cp.photo}
+                          alt={cp.artisticName}
+                          loading="lazy"
+                          decoding="async"
+                          className="iw-cp-img h-full w-full object-cover object-top"
+                        />
+                      ) : (
+                        <div className="flex h-full w-full items-center justify-center">
+                          <User className="h-8 w-8 text-white/15" />
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+                      <p className="ev-display absolute inset-x-0 bottom-0 truncate px-3 pb-3 text-sm text-white">
+                        {cp.artisticName}
+                      </p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+
+            <Link href="/cosplay/guild">
+              <span className="ev-notch mt-5 block border border-white/10 py-3.5 text-center text-xs font-bold uppercase tracking-[0.18em] text-[#b4b4c2] transition-colors hover:border-[#e5007d] hover:text-white">
+                Ver todos los cosplayers
+              </span>
+            </Link>
+          </div>
+        )}
+
         {/* Footer */}
-        <p className="text-[#444] text-xs mb-10">isekaiworld.co/cosplay/guild</p>
+        <p className="mt-10 text-[#444] text-xs mb-10">isekaiworld.co/cosplay/guild</p>
       </div>
     </div>
   );

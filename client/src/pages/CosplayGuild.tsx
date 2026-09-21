@@ -76,7 +76,7 @@ export default function CosplayGuild() {
                         {cp.photo
                           ? <img src={cp.photo} alt={cp.artisticName} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           : (
-                            <div className="w-full h-full flex items-center justify-center ev-display text-5xl" style={{ color: tierColor }}>
+                            <div className="w-full h-full flex items-center justify-center ev-display text-5xl" style={{ color: '#e5007d' }}>
                               {cp.artisticName[0]}
                             </div>
                           )
@@ -88,11 +88,8 @@ export default function CosplayGuild() {
                           <CheckCircle2 size={13} className="text-[#e5007d] shrink-0" />
                         </div>
                         <div className="flex items-center justify-between">
-                          <span
-                            className="text-xs px-2 py-0.5 rounded-full font-bold capitalize"
-                            style={{ backgroundColor: tierColor + '25', color: tierColor }}
-                          >
-                            {cp.tier ?? 'bronce'}
+                          <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#ff45a0]">
+                            Guild
                           </span>
                           <div className="flex gap-1.5 text-[#555]">
                             {cp.instagram && <Instagram size={12} />}
