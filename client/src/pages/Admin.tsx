@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
 import FeedbackSection from "@/components/admin/FeedbackSection";
+import EliminarCosplayer from "@/components/admin/EliminarCosplayer";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { descargarTarjeta } from "@/lib/giftCardImage";
 import {
@@ -1065,6 +1066,8 @@ export default function Admin() {
   const updateTier = trpc.cosplay.updateCosplayerTier.useMutation({ onSuccess: () => { refetchCosplayers(); setShowTierModal(null); toast.success("Tier actualizado"); } });
   const suspendCp = trpc.cosplay.suspendCosplayer.useMutation({ onSuccess: () => { refetchCosplayers(); toast.success("Cosplayer suspendido"); } });
   const deleteCosplayerMut = trpc.cosplay.deleteCosplayer.useMutation({ onSuccess: () => { refetchCosplayers(); toast.success("Cosplayer eliminado"); } });
+  /** Cosplayer que se está por eliminar, para la confirmación detallada */
+  const [eliminandoCp, setEliminandoCp] = useState<number | null>(null);
   const createActivity = trpc.cosplay.createActivity.useMutation({ onSuccess: () => { refetchActivities(); setShowActivityModal(false); toast.success("Actividad creada"); } });
   const toggleActivity = trpc.cosplay.toggleActivity.useMutation({ onSuccess: () => refetchActivities() });
   const evaluateSub = trpc.cosplay.evaluateSubmission.useMutation({ onSuccess: () => { refetchSubs(); setShowEvalModal(null); toast.success("Evaluación guardada"); } });
@@ -4736,7 +4739,7 @@ export default function Admin() {
                                     <Ticket size={14} />
                                   </button>
                                   <button
-                                    onClick={() => { if (confirm(`¿Eliminar permanentemente a ${cp.artisticName}? Esta acción no se puede deshacer.`)) deleteCosplayerMut.mutate({ cosplayerId: cp.id }); }}
+                                    onClick={() => setEliminandoCp(cp.id)}
                                     className="text-red-400 hover:text-red-600 transition-colors p-1"
                                     title="Eliminar cosplayer"
                                   >
@@ -4795,7 +4798,7 @@ export default function Admin() {
                               <Ticket size={14} />
                             </button>
                             <button
-                              onClick={() => { if (confirm(`¿Eliminar a ${cp.artisticName}?`)) deleteCosplayerMut.mutate({ cosplayerId: cp.id }); }}
+                              onClick={() => setEliminandoCp(cp.id)}
                               className="p-2.5 border border-red-100 text-red-400 rounded-xl"
                               title="Eliminar"
                             >
@@ -5096,6 +5099,14 @@ export default function Admin() {
                 )}
 
                 {/* Modal cambiar tier */}
+                {eliminandoCp !== null && (
+                  <EliminarCosplayer
+                    cosplayerId={eliminandoCp}
+                    onCerrar={() => setEliminandoCp(null)}
+                    onEliminado={() => refetchCosplayers()}
+                  />
+                )}
+
                 {showTierModal && (
                   <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-sm p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">

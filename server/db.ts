@@ -1992,9 +1992,73 @@ export async function deductCosplayerCash(cosplayerId: number, amount: number) {
     .where(eq(cosplayers.id, cosplayerId));
 }
 
+/**
+ * Lo que implica eliminar a un cosplayer, para avisar antes de hacerlo.
+ *
+ * Importa sobre todo el dinero: si tiene saldo o un retiro pendiente, se le
+ * debe algo, y eso no desaparece al borrar su perfil.
+ */
+export async function resumenAntesDeEliminar(cosplayerId: number) {
+  const db = await getDb();
+  if (!db) return null;
+
+  const [cp] = await db.select().from(cosplayers).where(eq(cosplayers.id, cosplayerId)).limit(1);
+  if (!cp) return null;
+
+  const retiros = await db.select().from(cosplayCashWithdrawals)
+    .where(eq(cosplayCashWithdrawals.cosplayerId, cosplayerId));
+  const pendientes = retiros.filter(r => r.status === "pending");
+
+  const codigos = await db.select().from(cosplayDiscountCodes)
+    .where(eq(cosplayDiscountCodes.cosplayerId, cosplayerId));
+
+  const pedidos = (await db.select().from(orders))
+    .filter(o => (o as any).referralCosplayerId === cosplayerId && o.paymentStatus !== "approved");
+
+  return {
+    nombre: cp.artisticName,
+    saldo: parseFloat((cp.cashBalance as any) ?? "0") || 0,
+    tickets: cp.ticketBalance ?? 0,
+    retirosPendientes: pendientes.length,
+    montoRetirosPendientes: pendientes.reduce((a, r) => a + (parseFloat(r.amount as any) || 0), 0),
+    codigosSinUsar: codigos.filter(c => !c.used).length,
+    pedidosSinPagar: pedidos.length,
+  };
+}
+
+/**
+ * Elimina a un cosplayer sin dejar nada colgando.
+ *
+ * Antes solo se borraba el perfil: sus códigos de descuento seguían sirviendo,
+ * los pedidos pendientes con su código le habrían pagado comisión a alguien
+ * que ya no existe, y su cuenta seguía marcada como del Guild.
+ *
+ * El libro de movimientos y los retiros se conservan: son el registro de lo
+ * que se le pagó, y hacen falta para cuadrar cuentas.
+ */
 export async function deleteCosplayer(cosplayerId: number) {
   const db = await getDb();
   if (!db) return;
+
+  const [cp] = await db.select().from(cosplayers).where(eq(cosplayers.id, cosplayerId)).limit(1);
+  if (!cp) return;
+
+  // Sus códigos de descuento sin usar dejan de valer
+  await db.delete(cosplayDiscountCodes).where(and(
+    eq(cosplayDiscountCodes.cosplayerId, cosplayerId),
+    eq(cosplayDiscountCodes.used, false),
+  ));
+
+  // Los pedidos aún sin pagar pierden la comisión: ya no hay a quién pagarla
+  const pendientes = (await db.select().from(orders))
+    .filter(o => (o as any).referralCosplayerId === cosplayerId && o.paymentStatus !== "approved");
+  for (const o of pendientes) {
+    await db.update(orders).set({ referralCosplayerId: null } as any).where(eq(orders.id, o.id));
+  }
+
+  // Sus entregas de misiones
+  await db.delete(cosplaySubmissions).where(eq(cosplaySubmissions.cosplayerId, cosplayerId));
+
   await db.delete(cosplayers).where(eq(cosplayers.id, cosplayerId));
 }
 

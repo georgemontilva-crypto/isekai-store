@@ -13,6 +13,7 @@ import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
 import GiftCardsSection from '@/components/admin/GiftCardsSection';
 import CollectionsSection from '@/components/admin/CollectionsSection';
+import EliminarCosplayer from '@/components/admin/EliminarCosplayer';
 import MediaSection from '@/components/admin/MediaSection';
 import FeedbackSection from '@/components/admin/FeedbackSection';
 import TicketsAdmin from '@/components/admin/TicketsAdmin';
@@ -513,6 +514,8 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
   const [grantTicketsModal, setGrantTicketsModal] = useState<any>(null);
   const [grantForm, setGrantForm] = useState({ basePoints: 100, reason: '' });
   const [viewCosplayer, setViewCosplayer] = useState<any>(null);
+  /** Cosplayer que se está por eliminar, para mostrar la confirmación */
+  const [eliminando, setEliminando] = useState<number | null>(null);
 
   const MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
 
@@ -1219,10 +1222,27 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                     Suspender cosplayer
                   </button>
                 )}
+
+                {/* Eliminar: para quien ya no está con nosotros. Suspender
+                    sigue siendo la opción reversible. */}
+                <button
+                  onClick={() => setEliminando(viewCosplayer.id)}
+                  className="w-full bg-red-600 text-white py-3 ev-notch font-bold text-sm"
+                >
+                  Eliminar cosplayer
+                </button>
               </div>
             </div>
           </div>
         </div>
+      )}
+
+      {eliminando !== null && (
+        <EliminarCosplayer
+          cosplayerId={eliminando}
+          onCerrar={() => setEliminando(null)}
+          onEliminado={() => { setViewCosplayer(null); refetchCosplayers(); }}
+        />
       )}
 
       {/* Modal dar tickets */}

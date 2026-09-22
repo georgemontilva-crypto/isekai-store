@@ -78,7 +78,7 @@ import {
   getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals, revisarComisiones, historialDeCodigo,
   checkReferralEligibility, isCosplayerEmail, getMyActivityProgress,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
-  deleteCosplayer, grantTicketsManually, findUserByEmail, getDb,
+  deleteCosplayer, resumenAntesDeEliminar, grantTicketsManually, findUserByEmail, getDb,
   getBlogPosts, getBlogPostBySlug, createBlogPost, updateBlogPost, deleteBlogPost,
   incrementBlogViews, getBlogCategories, createBlogCategory, deleteBlogCategory,
   getBlogComments, getAllBlogComments, createBlogComment, updateBlogCommentStatus, deleteBlogComment,
@@ -2499,6 +2499,11 @@ export const appRouter = router({
     suspendCosplayer: adminProcedure
       .input(z.object({ cosplayerId: z.number() }))
       .mutation(({ input }) => suspendCosplayer(input.cosplayerId)),
+
+    /** Qué implica eliminarlo: saldo, retiros, códigos y pedidos pendientes */
+    resumenEliminar: adminProcedure
+      .input(z.object({ cosplayerId: z.number() }))
+      .query(({ input }) => resumenAntesDeEliminar(input.cosplayerId)),
 
     deleteCosplayer: adminProcedure
       .input(z.object({ cosplayerId: z.number() }))
