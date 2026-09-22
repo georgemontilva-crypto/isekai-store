@@ -28,11 +28,32 @@ const typeIcon: Record<string, React.ReactNode> = {
 };
 
 /** A qué sección del panel lleva cada tipo de notificación */
-const typeDestino: Record<string, { tab: string; label: string }> = {
+const typeDestino: Record<string, { tab: string; label: string; sub?: string }> = {
   new_order:      { tab: "orders",      label: "Ver el pedido" },
   new_subscriber: { tab: "subscribers", label: "Ver suscriptores" },
   new_user:       { tab: "users",       label: "Ver usuarios" },
 };
+
+/**
+ * Destino de una notificación concreta.
+ *
+ * Algunos avisos reutilizan un tipo genérico —las solicitudes del Guild llegan
+ * como "new_subscriber"— así que el tipo solo no basta: hay que mirar también
+ * el título para mandarlas a su sección real.
+ */
+function destinoDe(n: { type: string; title?: string | null; body: string }) {
+  const titulo = n.title ?? "";
+  if (n.type === "new_subscriber" && /solicitud cosplay guild/i.test(titulo)) {
+    return { tab: "cosplay", sub: "applications", label: "Ver la solicitud" };
+  }
+  if (n.type === "new_user" && /https?:\/\//.test(n.body)) {
+    return { tab: "cosplay", sub: "evaluations", label: "Revisar entrega" };
+  }
+  if (n.type === "new_user" && /comentó en el blog/i.test(titulo)) {
+    return { tab: "blog", sub: "comments", label: "Moderar comentario" };
+  }
+  return typeDestino[n.type];
+}
 
 export default function NotificationsDrawer({ open, onClose }: Props) {
   const utils = trpc.useUtils();
@@ -49,11 +70,12 @@ export default function NotificationsDrawer({ open, onClose }: Props) {
    * por la URL, y en el caso de un pedido se incluye su número para que el
    * panel lo abra directamente en vez de dejar al usuario buscándolo.
    */
-  const irA = (n: { type: string; body: string }) => {
-    const destino = typeDestino[n.type];
+  const irA = (n: { type: string; title?: string | null; body: string }) => {
+    const destino = destinoDe(n);
     if (!destino) { onClose(); return; }
 
     const params = new URLSearchParams({ tab: destino.tab });
+    if (destino.sub) params.set("sub", destino.sub);
     if (n.type === "new_order") {
       // El cuerpo del aviso trae el número de orden (ej. "ISK-1234-ABCD")
       const orden = n.body.match(/[A-Z]{2,4}-[A-Z0-9-]+/i)?.[0];
@@ -124,7 +146,7 @@ export default function NotificationsDrawer({ open, onClose }: Props) {
               ) : (
                 <ul className="divide-y divide-border">
                   {notifications.map((n) => {
-                    const destino = typeDestino[n.type];
+                    const destino = destinoDe(n);
                     return (
                     <li key={n.id} className={n.read ? "bg-background" : "bg-muted/40"}>
                       <button

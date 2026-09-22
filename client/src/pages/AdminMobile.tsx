@@ -3031,6 +3031,11 @@ function destinoNotificacion(n: { type: string; body: string; title?: string }):
       return { tab: 'orders', buscar: orden, label: 'Ver el pedido' };
     }
     case 'new_subscriber':
+      // Las solicitudes del Guild reutilizan este tipo: se reconocen por el
+      // título y van a Cosplay, no a suscriptores.
+      if (/solicitud cosplay guild/i.test(n.title ?? '')) {
+        return { tab: 'cosplay', sub: 'applications', label: 'Ver la solicitud' };
+      }
       return { tab: 'subscribers', label: 'Ver suscriptores' };
     case 'new_user': {
       if (/https?:\/\//.test(n.body)) {
