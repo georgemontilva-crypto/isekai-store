@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/_core/hooks/useAuth';
@@ -3182,6 +3182,36 @@ function CommentsSection() {
 
 export default function AdminMobile() {
   const [activeTab, setActiveTab] = useState<MobileTab>('stats');
+
+  /**
+   * Barra compacta al bajar, completa al subir.
+   *
+   * Se ignoran los movimientos pequeños —menos de 8 píxeles— para que un
+   * temblor del dedo no la haga parpadear, y arriba del todo siempre vuelve
+   * a su tamaño normal.
+   */
+  const contenidoRef = useRef<HTMLDivElement>(null);
+  const ultimaPosicion = useRef(0);
+  const [barraCompacta, setBarraCompacta] = useState(false);
+
+  const alDesplazar = () => {
+    const el = contenidoRef.current;
+    if (!el) return;
+    const y = el.scrollTop;
+    const delta = y - ultimaPosicion.current;
+
+    if (y < 24) setBarraCompacta(false);
+    else if (delta > 8) setBarraCompacta(true);
+    else if (delta < -8) setBarraCompacta(false);
+
+    if (Math.abs(delta) > 8 || y < 24) ultimaPosicion.current = y;
+  };
+
+  // Al cambiar de sección se empieza arriba, así que la barra vuelve a normal
+  useEffect(() => {
+    setBarraCompacta(false);
+    ultimaPosicion.current = 0;
+  }, [activeTab]);
   const utils = trpc.useUtils();
   const { user, isAuthenticated, loading, logout } = useAuth();
   const [, navigate] = useLocation();
@@ -3299,7 +3329,13 @@ export default function AdminMobile() {
       </div>}
 
       {/* Contenido */}
-      <div className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}>
+      <div
+        ref={contenidoRef}
+        onScroll={alDesplazar}
+        className={`flex-1 ${activeTab === 'newOrder' ? 'overflow-hidden flex flex-col' : 'overflow-y-auto'}`}
+        // Espacio abajo para que la barra flotante no tape el último elemento
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
+      >
         {activeTab === 'stats'    && <StatsSection />}
         {activeTab === 'orders'   && <OrdersSection jumpTo={orderJumpTo} onJumpDone={() => setOrderJumpTo(null)} onCreateOrder={() => setActiveTab('newOrder')} />}
         {activeTab === 'payments' && <PaymentsSection />}
@@ -3393,40 +3429,43 @@ export default function AdminMobile() {
         </div>
       )}
 
-      {/* Bottom Tab Bar */}
+      {/* Barra inferior flotante, en forma de píldora.
+          Flota sobre el contenido con un cristal muy oscuro y se encoge un
+          poco al bajar —para dejar más pantalla— y recupera su tamaño al
+          subir o al detenerse arriba del todo. */}
       {!hasModalOpen && activeTab !== 'newOrder' && (
-      <div className="border-t flex-shrink-0"
-        style={{
-          paddingBottom: 'env(safe-area-inset-bottom)',
-          backgroundColor: 'var(--iw-surface)',
-          borderColor: 'var(--iw-border)',
-          zIndex: hasModalOpen ? -1 : 'auto' as any,
-        }}>
-        <div className="flex">
-          {TABS.map(tab => (
-            <button key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className="flex-1 flex flex-col items-center justify-center relative transition-transform active:scale-95 select-none"
-              style={{ minHeight: 56, WebkitTapHighlightColor: 'transparent' }}
-            >
-              <div className="relative">
-                <tab.icon size={22} className={activeTab === tab.id ? 'text-[#e5007d]' : 'text-[#999]'} />
-                {(tab.badge ?? 0) > 0 && (
-                  <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[9px] font-black rounded-full min-w-[14px] h-3.5 flex items-center justify-center px-0.5">
-                    {tab.badge}
-                  </span>
-                )}
-              </div>
-              <span className={`text-[10px] mt-0.5 font-semibold ${activeTab === tab.id ? 'text-[#e5007d]' : 'text-[#999]'}`}>
-                {tab.label}
-              </span>
-              {activeTab === tab.id && (
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-[#e5007d] rounded-full" />
-              )}
-            </button>
-          ))}
+        <div
+          className="pointer-events-none fixed inset-x-0 z-40 flex justify-center px-4"
+          style={{ bottom: 'calc(env(safe-area-inset-bottom) + 12px)' }}
+        >
+          <nav
+            className={`iw-pildora pointer-events-auto flex items-center ${barraCompacta ? 'iw-pildora-compacta' : ''}`}
+            aria-label="Secciones del panel"
+          >
+            {TABS.map(tab => {
+              const activa = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`iw-pildora-boton relative flex flex-col items-center justify-center select-none ${activa ? 'is-activa' : ''}`}
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                  aria-current={activa ? 'page' : undefined}
+                >
+                  <div className="relative">
+                    <tab.icon className="iw-pildora-icono" />
+                    {(tab.badge ?? 0) > 0 && (
+                      <span className="absolute -right-2 -top-1.5 flex h-3.5 min-w-[14px] items-center justify-center rounded-full bg-[#e5007d] px-0.5 text-[9px] font-black text-white">
+                        {tab.badge}
+                      </span>
+                    )}
+                  </div>
+                  <span className="iw-pildora-texto">{tab.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
-      </div>
       )}
     </div>
   );
