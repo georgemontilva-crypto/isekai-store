@@ -157,6 +157,8 @@ export default function CosplayLanding() {
   /** Fondo de la sección sobre el propósito del Guild */
   const { data: ajustesGuild } = trpc.settings.getAll.useQuery();
   const fondoProposito = ajustesGuild?.["guild_proposito_bg"] ?? "";
+  /** Foto de cosplayer que acompaña al texto, a la derecha */
+  const fotoProposito = ajustesGuild?.["guild_proposito_foto"] ?? "";
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
 
   useEffect(() => {
@@ -241,7 +243,11 @@ export default function CosplayLanding() {
           </>
         )}
 
-        <div className="relative mx-auto max-w-3xl">
+        {/* Dos columnas en escritorio: el texto a la izquierda y la imagen
+            de un cosplayer a la derecha. En teléfono se apilan, con la
+            imagen debajo. */}
+        <div className="relative mx-auto grid max-w-6xl items-center gap-10 lg:grid-cols-[1.15fr_1fr] lg:gap-16">
+          <div>
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-[#e5007d]">
             Por qué existe
           </p>
@@ -276,6 +282,23 @@ export default function CosplayLanding() {
               ello.
             </p>
           </div>
+          </div>
+
+          {/* Imagen de cosplayer. Si no hay ninguna cargada, la columna
+              simplemente no se dibuja y el texto ocupa todo el ancho. */}
+          {fotoProposito && (
+            <div className="ev-notch relative overflow-hidden" style={{ aspectRatio: "3/4" }}>
+              <img
+                src={fotoProposito}
+                alt=""
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover object-top"
+              />
+              <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+              <div className="pointer-events-none absolute inset-0 border border-[#e5007d]/25" />
+            </div>
+          )}
         </div>
       </section>
 

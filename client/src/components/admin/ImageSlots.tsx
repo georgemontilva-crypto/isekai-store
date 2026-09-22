@@ -135,6 +135,9 @@ export const IMAGE_SLOTS: PageGroup[] = [
   {
     page: "Cosplay Guild",
     slots: [
+      { kind: "site", key: "guild_proposito_foto", label: "Foto de cosplayer — «Por qué existe»",
+        where: "A la derecha del texto sobre el propósito del Guild.",
+        spec: "Vertical 3:4, ~900 × 1200 px. Se ve completa y nítida: conviene una foto de cosplayer en personaje." },
       { kind: "site", key: "guild_proposito_bg", label: "Fondo de «Por qué existe»",
         where: "Detrás del texto sobre el propósito del Guild, en la página de Cosplay Guild.",
         spec: "Horizontal, ~1920 × 1080 px. Se ve muy tenue y difuminada hacia los bordes: sirve de textura, no de protagonista." },
