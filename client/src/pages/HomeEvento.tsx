@@ -113,6 +113,8 @@ export default function HomeEvento() {
   /** Video de fondo opcional: queda como textura, apenas perceptible */
   const heroVideo = settings?.["wf_hero_video"] ?? "";
   const premioImg = settings?.["wf_premio_image"] ?? "";
+  /** Fondo de la sección «El mundo ha cambiado» */
+  const mundoBg = settings?.["wf_mundo_bg"] ?? "";
   /** Fondo de la lista de acceso: video si lo hay, si no la imagen */
   const listaVideo = settings?.["wf_lista_video"] ?? "";
   const listaImg = settings?.["wf_lista_image"] ?? "";
@@ -417,8 +419,25 @@ export default function HomeEvento() {
       <div className="ev-linea" />
 
       {/* ═══ 3. EL MUNDO HA CAMBIADO ═══ */}
-      <section id="el-mundo" className="ev-grid relative border-y border-white/[0.06] bg-white/[0.015] px-6 py-20 lg:px-16 lg:py-24">
-        <div className="mx-auto max-w-6xl">
+      <section id="el-mundo" className="ev-grid relative overflow-hidden border-y border-white/[0.06] bg-white/[0.015] px-6 py-20 lg:px-16 lg:py-24">
+        {/* Fondo opcional. Va bajo un velo oscuro y se apaga hacia los bordes
+            de arriba y abajo, para que las tarjetas se lean y la sección
+            se funda con las de alrededor en vez de cortar de golpe. */}
+        {mundoBg && (
+          <>
+            <img
+              src={mundoBg}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+            />
+            <div className="pointer-events-none absolute inset-0 bg-[#06040d]/78" />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#06040d] via-transparent to-[#06040d]" />
+          </>
+        )}
+
+        <div className="relative mx-auto max-w-6xl">
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
             [ El mundo ha cambiado ]
           </p>
