@@ -217,6 +217,43 @@ export default function CosplayLanding() {
         </motion.div>
       </section>
 
+      {/* ── Por qué existe el Guild ──
+          Explica la intención detrás de la iniciativa: no es un catálogo de
+          cosplayers para la marca, es una plataforma para que ellos tengan
+          representación real. */}
+      <section className="border-y border-white/[0.06] bg-white/[0.015] px-6 py-20 lg:px-20 lg:py-24">
+        <div className="mx-auto max-w-3xl">
+          <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-[#e5007d]">
+            Por qué existe
+          </p>
+          <h2 className="ev-display mb-8 text-[26px] leading-[1.1] text-white sm:text-4xl">
+            El cosplay es trabajo.
+            <br />
+            <span className="text-[#ff45a0]">Y el trabajo se reconoce.</span>
+          </h2>
+
+          <div className="space-y-5 text-[15px] leading-relaxed text-[#b4b4c2] sm:text-base">
+            <p>
+              Detrás de cada personaje hay materiales comprados, horas de taller, noches
+              de costura y meses de preparación. Hay técnica aprendida a base de intentos,
+              y hay pasión sostenida durante mucho tiempo. Eso tiene un costo real, en
+              recursos y en vida.
+            </p>
+            <p>
+              El objetivo de Isekai World con los cosplayers y artistas es que ese trabajo
+              reciba el valor que de verdad tiene. Por eso ponemos a su disposición
+              nuestras plataformas y nuestra estructura: un perfil propio, presencia en
+              nuestros eventos, canales de contratación y una comunidad que los respalda.
+            </p>
+            <p className="text-white">
+              No queremos cosplayers que decoren nuestros eventos. Queremos creadores con
+              representación real, que puedan vivir de lo que hacen y ser reconocidos por
+              ello.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── 2. Cómo funciona — lista con hover ── */}
       <section className="bg-[#0a0a0a]">
         <div className="px-6 lg:px-20 pt-20 pb-8">
