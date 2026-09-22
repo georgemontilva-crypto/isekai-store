@@ -1945,6 +1945,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
       // trece entradas seguidas bajo «Gestión» y costaba encontrar nada.
       title: 'Catálogo',
       items: [
+        { label: 'Productos',    tab: 'products'    as MobileTab, icon: Package },
         { label: 'Colecciones',  tab: 'colecciones' as MobileTab, icon: Layers },
         { label: 'Imágenes y video', tab: 'media' as MobileTab, icon: ImageIcon },
         { label: 'Categorías',   tab: 'categories'  as MobileTab, icon: Tag },
@@ -3271,7 +3272,6 @@ export default function AdminMobile() {
         { id: 'orders' as MobileTab,   label: 'Pedidos',   icon: ShoppingBag },
         { id: 'finanzas' as MobileTab, label: 'Finanzas',  icon: CreditCard,  badge: pendingPaymentsCount },
         { id: 'cosplay' as MobileTab,  label: 'Cosplay',   icon: Sparkles,    badge: (pendingCosplay as any[]).length },
-        { id: 'products' as MobileTab, label: 'Productos', icon: Package },
         { id: 'more' as MobileTab,     label: 'Más',       icon: Menu },
       ];
 
@@ -3443,7 +3443,11 @@ export default function AdminMobile() {
             aria-label="Secciones del panel"
           >
             {TABS.map(tab => {
-              const activa = activeTab === tab.id;
+              // "Más" se queda marcado mientras estés en cualquier sección
+              // que se abre desde él; si no, al entrar en Productos ninguna
+              // pestaña aparecería activa y perderías la orientación.
+              const enBarra = TABS.some(t => t.id === activeTab);
+              const activa = activeTab === tab.id || (tab.id === 'more' && !enBarra);
               return (
                 <button
                   key={tab.id}
