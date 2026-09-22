@@ -5,6 +5,7 @@ import {
   Trophy, Lock, MapPin, Calendar, Star, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useLang } from "@/i18n/LangContext";
 import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
@@ -108,6 +109,8 @@ function FlechasCarril({ id }: { id: string }) {
 }
 
 export default function HomeEvento() {
+  const { t } = useLang();
+  const e = t.evento;
   const { data: settings } = trpc.settings.getAll.useQuery();
   const heroBg = settings?.["wf_hero_bg"] ?? settings?.["worldfest_hero_image"] ?? "";
   /** Video de fondo opcional: queda como textura, apenas perceptible */
@@ -338,26 +341,25 @@ export default function HomeEvento() {
             className="max-w-3xl"
           >
             <p className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-[#a78bfa]">
-              Isekai World Fest 2027
+              {e.etiquetaAnio}
             </p>
 
             <h1 className="ev-display mb-6 text-[38px] leading-[0.95] sm:text-6xl lg:text-7xl">
-              EL SISTEMA
+              {e.heroTitulo1}
               <br />
-              <span className="iw-texto-sistema">HA DESPERTADO.</span>
+              <span className="iw-texto-sistema">{e.heroTitulo2}</span>
             </h1>
 
             <p className="mb-9 max-w-2xl text-base leading-relaxed text-[#b9b0d4] sm:text-lg">
-              Maracaibo está a punto de convertirse en un mundo donde el anime, los
-              videojuegos, el cosplay y la cultura geek cobran vida.
+              {e.heroTexto}
             </p>
 
             <div className="mb-9 flex flex-col gap-2 font-mono text-sm text-[#d8d0ea] sm:flex-row sm:gap-8">
               <span className="flex items-center gap-2">
-                <Calendar size={15} className="text-[#a78bfa]" /> 14 — 15 AGOSTO 2027
+                <Calendar size={15} className="text-[#a78bfa]" /> {e.heroFecha}
               </span>
               <span className="flex items-center gap-2">
-                <MapPin size={15} className="text-[#a78bfa]" /> Maracaibo, Venezuela
+                <MapPin size={15} className="text-[#a78bfa]" /> {e.heroLugar}
               </span>
             </div>
 
@@ -366,18 +368,18 @@ export default function HomeEvento() {
                 onClick={irALista}
                 className="ev-notch ev-press bg-[#e5007d] px-8 py-4 text-sm font-bold uppercase tracking-wider text-white"
               >
-                Avísame antes que a nadie
+                {e.ctaAviso}
               </button>
               <a
                 href="#el-mundo"
                 className="ev-notch ev-press border border-white/20 px-8 py-4 text-sm font-bold uppercase tracking-wider text-white hover:bg-white/10"
               >
-                Descubrir el Fest
+                {e.ctaDescubrir}
               </a>
             </div>
 
             <p className="font-mono text-xs text-[#7c6fa0]">
-              ¿Cuál será tu rango?{" "}
+              {e.tuRango}{" "}
               <span className="text-[#a78bfa]">E → D → C → B → A → S</span>
             </p>
           </motion.div>
@@ -393,25 +395,21 @@ export default function HomeEvento() {
           transition={{ duration: 0.6 }}
         >
           <h2 className="ev-display mb-8 text-[26px] leading-[1.08] sm:text-5xl">
-            NO VIENES A VER EL MUNDO.
+            {e.bienvenidaT1}
             <br />
-            <span className="text-[#a78bfa]">VIENES A ENTRAR EN ÉL.</span>
+            <span className="text-[#a78bfa]">{e.bienvenidaT2}</span>
           </h2>
 
           <p className="mx-auto mb-5 max-w-3xl text-[15px] leading-relaxed text-[#b9b0d4] sm:text-base">
-            Isekai World Fest es una experiencia de entretenimiento inmersiva que
-            transforma el evento en un universo inspirado en el anime, los videojuegos,
-            el cosplay y la cultura geek.
+            {e.bienvenidaP1}
           </p>
           <p className="mx-auto mb-10 max-w-3xl text-[15px] leading-relaxed text-[#b9b0d4] sm:text-base">
-            Durante dos días, el Palacio de Eventos se transformará por completo para
-            crear una experiencia donde cada visitante podrá explorar, jugar, competir,
-            descubrir personajes, vivir historias y formar parte del mundo.
+            {e.bienvenidaP2}
           </p>
 
           <p className="text-xl font-black text-white sm:text-2xl">
-            Aquí no eres espectador.{" "}
-            <span className="text-[#e5007d]">Eres parte de la historia.</span>
+            {e.bienvenidaFrase1}{" "}
+            <span className="text-[#e5007d]">{e.bienvenidaFrase2}</span>
           </p>
         </motion.div>
       </section>
@@ -439,9 +437,9 @@ export default function HomeEvento() {
 
         <div className="relative mx-auto max-w-6xl">
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            [ El mundo ha cambiado ]
+            {e.mundoEtiqueta}
           </p>
-          <h2 className="ev-display mb-12 text-[26px] leading-[1.05] sm:text-5xl">La escala de lo que viene</h2>
+          <h2 className="ev-display mb-12 text-[26px] leading-[1.05] sm:text-5xl">{e.mundoTitulo}</h2>
 
           {/* Carril horizontal: con tarjetas más grandes se lee mejor cada
               bloque que apretándolos en una rejilla. En escritorio se pasa con
@@ -482,11 +480,11 @@ export default function HomeEvento() {
       <section className="px-6 py-20 lg:px-16 lg:py-24">
         <div className="mx-auto max-w-6xl">
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            [ Explora el Fest ]
+            {e.exploraEtiqueta}
           </p>
-          <h2 className="ev-display mb-3 text-[26px] leading-[1.05] sm:text-5xl">Las grandes áreas</h2>
+          <h2 className="ev-display mb-3 text-[26px] leading-[1.05] sm:text-5xl">{e.exploraTitulo}</h2>
           <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
-            Todavía no lo contamos todo. Algunas cosas es mejor descubrirlas allí.
+            {e.exploraTexto}
           </p>
 
           {/* En teléfono se desliza: con siete áreas, apilarlas sería eterno */}
@@ -513,7 +511,7 @@ export default function HomeEvento() {
                     className="font-mono text-[10px] uppercase tracking-[0.25em]"
                     style={{ color: `${a.color}aa` }}
                   >
-                    Próximamente
+                    {e.proximamente}
                   </p>
                 </div>
               );
@@ -528,12 +526,11 @@ export default function HomeEvento() {
       <section className="px-6 pb-20 lg:px-16 lg:pb-24">
         <div className="mx-auto max-w-5xl">
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            [ Invitados ]
+            {e.invitadosEtiqueta}
           </p>
-          <h2 className="ev-display mb-4 text-[26px] leading-[1.05] sm:text-5xl">LOS CAZADORES ESTÁN LLEGANDO</h2>
+          <h2 className="ev-display mb-4 text-[26px] leading-[1.05] sm:text-5xl">{e.invitadosTitulo}</h2>
           <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
-            Creadores, cosplayers, artistas, invitados especiales y talentos internacionales
-            serán parte del Isekai World Fest.
+            {e.invitadosTexto}
           </p>
 
           <div className="relative">
@@ -555,9 +552,9 @@ export default function HomeEvento() {
                   </div>
                   <div className="p-5">
                     <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0]">
-                      Invitado #{String(n).padStart(2, "0")}
+                      {e.invitadoNum} #{String(n).padStart(2, "0")}
                     </p>
-                    <p className="mt-1.5 font-black text-white">{nombre || "[ Próximamente ]"}</p>
+                    <p className="mt-1.5 font-black text-white">{nombre || e.porAnunciar}</p>
                   </div>
                 </div>
               );
@@ -566,9 +563,9 @@ export default function HomeEvento() {
           </div>
 
           <p className="mt-8 text-center font-mono text-sm leading-relaxed text-[#7c6fa0]">
-            Algunos nombres todavía no pueden ser revelados.
+            {e.nombresOcultos1}
             <br />
-            <span className="text-[#a78bfa]">El Sistema aún está desbloqueándolos.</span>
+            <span className="text-[#a78bfa]">{e.nombresOcultos2}</span>
           </p>
         </div>
       </section>
@@ -581,15 +578,13 @@ export default function HomeEvento() {
       <section className="ev-grid relative border-y border-[#a78bfa]/20 bg-gradient-to-b from-[#0d0620] to-[#06040d] px-6 py-20 lg:px-16 lg:py-28">
         <div className="mx-auto max-w-5xl">
           <p className="mb-3 text-center font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            [ Sistema activo ]
+            {e.sistemaEtiqueta}
           </p>
           <h2 className="mb-6 text-center text-3xl font-black sm:text-5xl">
-            TU BOLETO ES EL COMIENZO.
+            {e.sistemaTitulo}
           </h2>
           <p className="mx-auto mb-12 max-w-2xl text-center text-[15px] leading-relaxed text-[#b9b0d4]">
-            Al entrar al Isekai World Fest, todos comenzarán su aventura en Rango E.
-            Completa misiones, participa en actividades y descubre experiencias para
-            conseguir EXP y subir de rango.
+            {e.sistemaTexto}
           </p>
 
           {/* ── Simulación ──
@@ -601,7 +596,7 @@ export default function HomeEvento() {
               style={{ ["--lp-rango" as string]: colorDemo }}
             >
               <p className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: colorDemo }}>
-                Pruébalo ahora
+                {e.pruebalo}
               </p>
 
               <div className="mb-7 flex flex-col items-center">
@@ -620,13 +615,13 @@ export default function HomeEvento() {
                   </span>
                 </div>
                 <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">
-                  Tu rango
+                  {e.tuRangoActual}
                 </p>
               </div>
 
               <div className="mb-2 flex items-end justify-between">
                 <span className="font-mono text-[11px] uppercase tracking-widest" style={{ color: colorDemo }}>
-                  Experiencia
+                  {e.experiencia}
                 </span>
                 <span className="font-mono text-sm font-bold text-white">{xpDemo} EXP</span>
               </div>
@@ -644,8 +639,8 @@ export default function HomeEvento() {
 
               <p className="mb-7 mt-3 text-center text-sm text-[#8fa8bd]">
                 {siguienteDemo
-                  ? <>Faltan <strong className="text-white">{siguienteDemo.faltan} EXP</strong> para el rango {siguienteDemo.rango}</>
-                  : "Has alcanzado el rango máximo"}
+                  ? e.faltanPara.replace("{n}", String(siguienteDemo.faltan)).replace("{r}", siguienteDemo.rango)
+                  : e.rangoMaximo}
               </p>
 
               <div className="flex gap-2">
@@ -667,12 +662,12 @@ export default function HomeEvento() {
                   className="rounded-lg border border-white/15 px-5 font-mono text-xs font-bold uppercase tracking-widest text-[#5f7f96]"
                   style={{ minHeight: 48 }}
                 >
-                  Reiniciar
+                  {e.reiniciar}
                 </button>
               </div>
 
               <p className="mt-5 text-center text-[11px] leading-relaxed text-[#5f7f96]">
-                Así funcionará durante el evento. En el festival, cada EXP hay que ganarlo.
+                {e.notaSimulacion}
               </p>
             </div>
           </div>
@@ -709,7 +704,7 @@ export default function HomeEvento() {
           </div>
 
           <p className="mt-14 text-center text-2xl font-black sm:text-4xl">
-            ¿SERÁS CAPAZ DE LLEGAR A <span className="text-[#f43f5e]">RANGO S</span>?
+            {e.serasCapaz1} <span className="text-[#f43f5e]">{e.serasCapaz2}</span>?
           </p>
         </div>
       </section>
@@ -723,12 +718,12 @@ export default function HomeEvento() {
             <div className="p-8 sm:p-12">
               <Trophy size={30} className="mb-6 text-[#f43f5e]" />
               <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#f43f5e]">
-                [ Recompensa final ]
+                {e.premioEtiqueta}
               </p>
               <h2 className="mb-5 text-2xl font-black leading-tight sm:text-4xl">
-                UNA RECOMPENSA DIGNA
+                {e.premioTitulo1}
                 <br />
-                DE UN RANGO S
+                {e.premioTitulo2}
               </h2>
               <p className="mb-7 text-[15px] leading-relaxed text-[#c9a8b8]">
                 Los cazadores que logren alcanzar Rango S entrarán en la batalla final por
@@ -739,21 +734,21 @@ export default function HomeEvento() {
                   que no se lea como un premio en efectivo. */}
               <div className="mb-7 rounded-xl border border-[#f43f5e]/30 bg-[#f43f5e]/[0.07] p-5">
                 <p className="text-lg font-black leading-tight text-white sm:text-xl">
-                  Una pieza decorativa a tamaño real
+                  {e.premioPieza}
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-[#c9a8b8]">
                   Creada especialmente para el Isekai World Fest y parte de la decoración
                   del evento.
                 </p>
                 <p className="mt-4 font-mono text-sm uppercase tracking-wider text-[#f43f5e]">
-                  Avaluada en más de $1.500 USD
+                  {e.premioValor}
                 </p>
               </div>
 
               <p className="font-mono text-sm leading-relaxed text-[#7c6fa0]">
-                ¿Qué pieza será?
+                {e.premioQue}
                 <br />
-                <span className="text-[#f43f5e]">Eso todavía pertenece al Sistema.</span>
+                <span className="text-[#f43f5e]">{e.premioSistema}</span>
               </p>
             </div>
 
@@ -777,7 +772,7 @@ export default function HomeEvento() {
               )}
               <div className="absolute inset-0 flex items-center justify-center">
                 <span className="font-mono text-[11px] uppercase tracking-[0.4em] text-white/40">
-                  Clasificado
+                  {e.clasificado}
                 </span>
               </div>
             </div>
@@ -812,17 +807,16 @@ export default function HomeEvento() {
 
         <div className="relative z-10 mx-auto max-w-xl text-center">
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            [ Lista de acceso ]
+            {e.listaEtiqueta}
           </p>
-          <h2 className="mb-4 text-2xl font-black sm:text-4xl">Sé el primero en cruzar</h2>
+          <h2 className="mb-4 text-2xl font-black sm:text-4xl">{e.listaTitulo}</h2>
           <p className="mb-8 text-[15px] leading-relaxed text-[#a99fc4]">
-            Las entradas todavía no están a la venta. Deja tu correo y te avisamos antes
-            que a nadie cuando se abran.
+            {e.listaTexto}
           </p>
 
           {suscrito ? (
             <p className="rounded-xl border border-[#a78bfa]/40 bg-[#a78bfa]/10 px-6 py-4 text-sm text-[#c4b5fd]">
-              Estás dentro. Te escribimos cuando el portal se abra.
+              {e.listaHecho}
             </p>
           ) : (
             <form
@@ -848,7 +842,7 @@ export default function HomeEvento() {
                 className="shrink-0 rounded-xl bg-[#e5007d] px-7 text-sm font-bold text-white disabled:opacity-50"
                 style={{ minHeight: 54 }}
               >
-                {suscribir.isPending ? "..." : "Avísame"}
+                {suscribir.isPending ? "..." : e.listaBoton}
               </button>
             </form>
           )}

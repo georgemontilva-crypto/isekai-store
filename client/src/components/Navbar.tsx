@@ -188,7 +188,7 @@ export default function Navbar() {
   const { user, isAuthenticated } = useAuth();
   console.log("[Navbar] user:", user?.email, "role:", user?.role);
   const { totalItems, openCart } = useCart();
-  const { t } = useLang();
+  const { t, lang, toggleLang } = useLang();
 
   const announcements = t.nav.announcements;
 
@@ -462,6 +462,16 @@ export default function Navbar() {
           {/* Right icons */}
           <div className="ml-auto flex shrink-0 flex-nowrap items-center gap-1">
 
+            {/* Cambio de idioma: muestra el otro, que es al que se va */}
+            <button
+              onClick={toggleLang}
+              className="iw-icon-btn text-[11px] font-black tracking-wide"
+              aria-label={lang === "es" ? "Switch to English" : "Cambiar a español"}
+              title={lang === "es" ? "English" : "Español"}
+            >
+              {lang === "es" ? "EN" : "ES"}
+            </button>
+
             {isAuthenticated && user?.role === "admin" && (
               <Link href="/admin" className="iw-icon-btn" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
@@ -583,6 +593,17 @@ export default function Navbar() {
           {/* Navegación en rejilla de tarjetas: se recorre de un vistazo y cada
               destino tiene un área de toque amplia, en vez de una lista larga
               de enlaces de texto. */}
+          {/* Idioma, arriba del menú: en el teléfono el botón de la cabecera
+              queda escondido cuando el menú está abierto. */}
+          <button
+            onClick={toggleLang}
+            className="iw-menu-item ev-notch mb-6 flex items-center justify-center gap-2 border border-white/10 py-3 text-xs font-bold uppercase tracking-widest text-white/70"
+            tabIndex={mobileOpen ? 0 : -1}
+          >
+            <Globe size={14} />
+            {lang === "es" ? "Switch to English" : "Cambiar a español"}
+          </button>
+
           <p className="iw-menu-item ev-display mb-3 text-[10px] uppercase tracking-[0.25em] text-white/40"
              style={{ transitionDelay: mobileOpen ? "80ms" : "0ms" }}>
             Navegación
