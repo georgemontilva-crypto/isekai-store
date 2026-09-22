@@ -14,6 +14,7 @@ import QuotesSection from '@/components/admin/QuotesSection';
 import GiftCardsSection from '@/components/admin/GiftCardsSection';
 import CollectionsSection from '@/components/admin/CollectionsSection';
 import EliminarCosplayer from '@/components/admin/EliminarCosplayer';
+import { useAvisosAdmin } from '@/hooks/useAvisosAdmin';
 import MediaSection from '@/components/admin/MediaSection';
 import FeedbackSection from '@/components/admin/FeedbackSection';
 import TicketsAdmin from '@/components/admin/TicketsAdmin';
@@ -3182,6 +3183,8 @@ function CommentsSection() {
 
 
 export default function AdminMobile() {
+  // Novedades en vivo: solicitudes, pedidos y pagos sin recargar
+  useAvisosAdmin();
   const [activeTab, setActiveTab] = useState<MobileTab>('stats');
 
   /**

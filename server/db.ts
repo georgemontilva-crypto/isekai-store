@@ -648,6 +648,17 @@ export async function insertAdminNotification(data: { type: AdminNotification["t
   const db = await getDb();
   if (!db) return;
   await db.insert(adminNotifications).values(data);
+
+  // Aviso en vivo al panel: sin esto había que recargar para verlo
+  try {
+    io?.to("admin").emit("admin:notificacion", {
+      type: data.type,
+      title: data.title,
+      body: data.body,
+    });
+  } catch (e) {
+    console.warn("[Notificaciones] No se pudo avisar al panel:", e);
+  }
 }
 
 export async function getAdminNotifications(): Promise<AdminNotification[]> {

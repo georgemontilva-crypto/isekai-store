@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
 import FeedbackSection from "@/components/admin/FeedbackSection";
 import EliminarCosplayer from "@/components/admin/EliminarCosplayer";
+import { useAvisosAdmin } from "@/hooks/useAvisosAdmin";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { descargarTarjeta } from "@/lib/giftCardImage";
 import {
@@ -636,6 +637,8 @@ const isExpired = (deadline: string | null) => {
 
 
 export default function Admin() {
+  // Novedades en vivo: solicitudes, pedidos y pagos sin recargar
+  useAvisosAdmin();
   const { user, isAuthenticated, loading, logout } = useAuth();
   const utils = trpc.useUtils();
   const [sidebarOpen, setSidebarOpen] = useState(false);

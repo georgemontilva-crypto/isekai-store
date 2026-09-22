@@ -46,6 +46,8 @@ export function initSocket(httpServer: HttpServer): Server {
 
       socket.data.userId = user.id;
       socket.join(`user:${user.id}`);
+      // Sala común de administración: por ahí van los avisos del panel
+      if (user.role === "admin") socket.join("admin");
       next();
     } catch {
       next(new Error("Error de autenticación"));
