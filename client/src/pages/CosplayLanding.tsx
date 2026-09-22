@@ -154,6 +154,9 @@ export default function CosplayLanding() {
   const [offsetY, setOffsetY] = useState(0);
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
   const { data: cosplayers = [] } = trpc.cosplay.getApprovedCosplayers.useQuery();
+  /** Fondo de la sección sobre el propósito del Guild */
+  const { data: ajustesGuild } = trpc.settings.getAll.useQuery();
+  const fondoProposito = ajustesGuild?.["guild_proposito_bg"] ?? "";
   const { data: siteSettings } = trpc.settings.getAll.useQuery();
 
   useEffect(() => {
@@ -221,8 +224,24 @@ export default function CosplayLanding() {
           Explica la intención detrás de la iniciativa: no es un catálogo de
           cosplayers para la marca, es una plataforma para que ellos tengan
           representación real. */}
-      <section className="border-y border-white/[0.06] bg-white/[0.015] px-6 py-20 lg:px-20 lg:py-24">
-        <div className="mx-auto max-w-3xl">
+      <section className="relative overflow-hidden border-y border-white/[0.06] bg-white/[0.015] px-6 py-20 lg:px-20 lg:py-24">
+        {/* Fondo opcional, muy tenue: sin él la sección queda vacía alrededor
+            del texto. Se apaga hacia arriba y abajo para no cortar de golpe. */}
+        {fondoProposito && (
+          <>
+            <img
+              src={fondoProposito}
+              alt=""
+              loading="lazy"
+              decoding="async"
+              className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+              style={{ opacity: 0.22 }}
+            />
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a]/55 to-[#0a0a0a]" />
+          </>
+        )}
+
+        <div className="relative mx-auto max-w-3xl">
           <p className="mb-4 text-xs font-medium uppercase tracking-[0.3em] text-[#e5007d]">
             Por qué existe
           </p>
@@ -244,6 +263,12 @@ export default function CosplayLanding() {
               reciba el valor que de verdad tiene. Por eso ponemos a su disposición
               nuestras plataformas y nuestra estructura: un perfil propio, presencia en
               nuestros eventos, canales de contratación y una comunidad que los respalda.
+            </p>
+            <p>
+              Y ese reconocimiento se traduce en cosas concretas: dentro de Isekai World
+              hay actividades por las que los cosplayers reciben ganancias, y contamos con
+              nuestro taller de impresión 3D para darles soporte en la creación de los
+              props y piezas que completan sus personajes.
             </p>
             <p className="text-white">
               No queremos cosplayers que decoren nuestros eventos. Queremos creadores con
