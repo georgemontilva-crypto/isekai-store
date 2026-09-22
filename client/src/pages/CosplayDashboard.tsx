@@ -134,7 +134,13 @@ export default function CosplayDashboard() {
   const currentStepIndex = kitOrder ? statusOrder.indexOf(kitOrder.status) : 0;
 
   const updateProfile = trpc.cosplay.updateMyProfile.useMutation({
-    onSuccess: () => { utils.cosplay.getMyProfile.invalidate(); toast.success("Perfil actualizado"); },
+    // Se refresca también lo público: con la caché de un minuto, el perfil y
+    // el listado del Guild tardaban en mostrar los cambios.
+    onSuccess: () => {
+      utils.cosplay.getMyProfile.invalidate();
+      utils.cosplay.getCosplayerByUsername.invalidate();
+      utils.cosplay.getApprovedCosplayers.invalidate();
+    },
     onError: (e) => toast.error(e.message),
   });
   const uploadImage = trpc.cosplay.uploadImage.useMutation({
@@ -175,50 +181,88 @@ export default function CosplayDashboard() {
       reader.readAsDataURL(file);
     });
 
+  /**
+   * Sube una imagen y la guarda en el perfil en el mismo paso.
+   *
+   * Antes solo cambiaba en pantalla: el aviso decía "Foto actualizada" pero
+   * el perfil no se guardaba hasta pulsar el botón de abajo, y quien salía
+   * antes la perdía. Además la foto de perfil y la galería se subían sin
+   * reducir, a varios megas.
+   */
+  const subirYGuardar = async (
+    file: File,
+    aplicar: (url: string) => Partial<typeof profileForm>,
+    aviso: string,
+  ) => {
+    try {
+      const comprimido = await comprimirImagen(file);
+      const base64Data = await toBase64(comprimido);
+      const { url } = await uploadImage.mutateAsync({
+        fileName: comprimido.name,
+        contentType: comprimido.type,
+        base64Data,
+      });
+      const cambios = aplicar(url);
+      setProfileForm(f => ({ ...f, ...cambios }));
+      await updateProfile.mutateAsync(cambios as any);
+      toast.success(aviso);
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo subir la imagen");
+    }
+  };
+
   const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const comprimido = await comprimirImagen(file);
-    const base64Data = await toBase64(comprimido);
-    const { url } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data });
-    setProfileForm(f => ({ ...f, bannerImage: url }));
-    toast.success("Banner actualizado");
+    await subirYGuardar(file, url => ({ bannerImage: url }), "Portada guardada");
+    e.target.value = "";
   };
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const base64Data = await toBase64(file);
-    const { url } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data });
-    setProfileForm(f => ({ ...f, photo: url }));
-    toast.success("Foto actualizada");
+    await subirYGuardar(file, url => ({ photo: url }), "Foto guardada");
+    e.target.value = "";
   };
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const base64Data = await toBase64(file);
-    const { url } = await uploadImage.mutateAsync({ fileName: file.name, contentType: file.type, base64Data });
-    setProfileForm(f => ({ ...f, gallery: [...f.gallery, url] }));
-    toast.success("Foto agregada");
+    await subirYGuardar(
+      file,
+      url => ({ gallery: [...profileForm.gallery, url] }),
+      "Foto agregada a la galería",
+    );
+    e.target.value = "";
   };
 
-  const removeGalleryImage = (i: number) =>
-    setProfileForm(f => ({ ...f, gallery: f.gallery.filter((_, idx) => idx !== i) }));
+  /** Quitar de la galería también se guarda al momento */
+  const removeGalleryImage = async (i: number) => {
+    const gallery = profileForm.gallery.filter((_, idx) => idx !== i);
+    setProfileForm(f => ({ ...f, gallery }));
+    try {
+      await updateProfile.mutateAsync({ gallery } as any);
+      toast.success("Foto quitada");
+    } catch (e: any) {
+      toast.error(e?.message ?? "No se pudo quitar la foto");
+    }
+  };
 
   const handleSaveProfile = () =>
+    // Los textos se envían tal cual, vacíos incluidos: antes un campo borrado
+    // se mandaba como "sin cambios" y el texto antiguo reaparecía.
     updateProfile.mutate({
       artisticName: profileForm.artisticName?.trim() || undefined,
-      bio: profileForm.bio || undefined,
+      bio: profileForm.bio ?? "",
       photo: profileForm.photo || undefined,
       bannerImage: profileForm.bannerImage || undefined,
       gallery: profileForm.gallery,
-      instagram: profileForm.instagram || undefined,
-      tiktok: profileForm.tiktok || undefined,
-      youtube: profileForm.youtube || undefined,
-      facebook: profileForm.facebook || undefined,
-      twitter: profileForm.twitter || undefined,
-    });
+      instagram: profileForm.instagram?.trim() ?? "",
+      tiktok: profileForm.tiktok?.trim() ?? "",
+      youtube: profileForm.youtube?.trim() ?? "",
+      facebook: profileForm.facebook?.trim() ?? "",
+      twitter: profileForm.twitter?.trim() ?? "",
+    }, { onSuccess: () => toast.success("Perfil guardado") });
 
   if (loading || cpLoading) {
     return (
