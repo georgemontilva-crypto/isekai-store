@@ -568,7 +568,7 @@ export default function HomeEventoV2() {
       <Franja items={AREAS.map(a => a.titulo)} />
 
       {/* ═══ 2. BIENVENIDO AL ISEKAI ═══ */}
-      <section className="mx-auto max-w-4xl px-6 py-20 text-center lg:py-28">
+      <section className="mx-auto max-w-4xl px-6 py-20 text-left sm:text-center lg:py-28">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
