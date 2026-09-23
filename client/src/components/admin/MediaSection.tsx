@@ -161,7 +161,7 @@ export default function MediaSection() {
                   return (
                     <div key={e.key} className="ev-notch flex gap-3 border border-[var(--iw-border)] p-3">
                       <div
-                        className="flex shrink-0 items-center justify-center overflow-hidden bg-[var(--iw-input-bg)]"
+                        className="iw-preview-alpha flex shrink-0 items-center justify-center overflow-hidden"
                         style={{ width: 56, height: 70 }}
                       >
                         {url ? (

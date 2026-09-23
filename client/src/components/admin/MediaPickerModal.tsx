@@ -121,7 +121,7 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
                   onClick={() => onPick(m)}
                   className="group flex flex-col overflow-hidden rounded-xl border border-[#e8e8ea] bg-white text-left transition-colors hover:border-[#e5007d]"
                 >
-                  <div className="relative aspect-square w-full shrink-0 bg-[#f6f6f7]">
+                  <div className="iw-preview-alpha relative aspect-square w-full shrink-0">
                     {/* Los videos se muestran con su primer fotograma */}
                     {/\.(mp4|webm)$/i.test(m.url) ? (
                       <video

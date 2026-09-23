@@ -3478,3 +3478,18 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   mask-image: linear-gradient(to bottom, #000 82%, transparent 99%);
   -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 99%);
 }
+
+/* Vista previa de medios: cuadrícula de transparencia.
+   Sobre un recuadro liso no se distingue un PNG recortado de uno con fondo
+   blanco. Con el patrón de ajedrez se ve al momento si la imagen es
+   transparente o no. */
+.iw-preview-alpha {
+  background-color: #2a2a2e;
+  background-image:
+    linear-gradient(45deg, #3a3a40 25%, transparent 25%),
+    linear-gradient(-45deg, #3a3a40 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #3a3a40 75%),
+    linear-gradient(-45deg, transparent 75%, #3a3a40 75%);
+  background-size: 14px 14px;
+  background-position: 0 0, 0 7px, 7px -7px, -7px 0;
+}

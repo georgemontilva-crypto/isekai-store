@@ -148,7 +148,7 @@ export default function MediaLibrary({ onGoToTab }: Props) {
           {items.map((m: any) => (
             <div key={m.id} className="flex flex-col overflow-hidden rounded-xl border border-[#e8e8ea] bg-white">
               {/* Miniatura cuadrada fija: todas las tarjetas quedan alineadas */}
-              <div className="relative aspect-square w-full shrink-0 bg-[#f6f6f7]">
+              <div className="iw-preview-alpha relative aspect-square w-full shrink-0">
                 <img
                   src={m.url}
                   alt={m.altText ?? m.fileName}
