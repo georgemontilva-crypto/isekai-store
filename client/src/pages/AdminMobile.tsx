@@ -9,6 +9,7 @@ import {
   LogOut, Settings, Menu, ChevronDown, ChevronUp, Eye, ArrowLeft,
   Tag, Store, Layers, Image as ImageIcon, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
+import { aInputFechaLocal, deInputFechaLocal } from '@/lib/fechaLocal';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
 import GiftCardsSection from '@/components/admin/GiftCardsSection';
@@ -500,12 +501,25 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
   const [descAbierta, setDescAbierta] = useState<number | null>(null);
   const [showNewActivity, setShowNewActivity] = useState(false);
   const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 });
+  /** Misión que se está editando (null = creando una nueva) */
+  const [editandoActividad, setEditandoActividad] = useState<number | null>(null);
+  /** Al guardar una edición, reenviar la misión por correo a los cosplayers */
+  const [notificarCambio, setNotificarCambio] = useState(true);
 
   const createActivity = trpc.cosplay.createActivity.useMutation({
     onSuccess: () => { setShowNewActivity(false); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 }); refetchActivities(); },
   });
   const deleteActivity = trpc.cosplay.deleteActivity.useMutation({ onSuccess: () => refetchActivities() });
   const updateActivityMut = trpc.cosplay.updateActivity.useMutation({ onSuccess: () => refetchActivities() });
+  const guardarEdicion = trpc.cosplay.updateActivity.useMutation({
+    onSuccess: (r) => {
+      refetchActivities();
+      setShowNewActivity(false);
+      setEditandoActividad(null);
+      toast.success(r.enviados > 0 ? `Misión actualizada · correo enviado a ${r.enviados} cosplayers` : 'Misión actualizada');
+    },
+    onError: (e) => toast.error(e.message || 'No se pudo actualizar la misión'),
+  });
   const [viewApplication, setViewApplication] = useState<any>(null);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [approveModal, setApproveModal] = useState<any>(null);
@@ -689,7 +703,11 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
         {subTab === 'activities' && (
           <>
             <button
-              onClick={() => setShowNewActivity(true)}
+              onClick={() => {
+                setEditandoActividad(null);
+                setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 });
+                setShowNewActivity(true);
+              }}
               className="w-full bg-[#e5007d] text-white py-3 ev-notch font-bold flex items-center justify-center gap-2"
             >
               <Plus size={18} />
@@ -767,6 +785,25 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                         ))}
                       </div>
                     </div>
+                    <button
+                      onClick={() => {
+                        setEditandoActividad(act.id);
+                        setNotificarCambio(!!act.active);
+                        setActivityForm({
+                          title: act.title ?? '',
+                          description: act.description ?? '',
+                          basePoints: act.basePoints ?? 100,
+                          type: act.type ?? 'post',
+                          deadline: aInputFechaLocal(act.deadline),
+                          conFecha: !!act.deadline,
+                          phases: act.phases ?? 1,
+                        });
+                        setShowNewActivity(true);
+                      }}
+                      className="w-full border border-[#e5007d]/40 text-[#e5007d] bg-[#e5007d]/5 py-2.5 ev-notch text-xs font-bold"
+                    >
+                      ✏️ Editar misión
+                    </button>
                     <div className="flex gap-2">
                       <button
                         onClick={() => updateActivityMut.mutate({ id: act.id, active: !act.active })}
@@ -989,8 +1026,8 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
             style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 24px)' }}>
             <div className="sticky top-0 z-10 bg-white border-b border-[#f0f0f0] px-4 py-4 flex items-center justify-between"
               style={{ backdropFilter: 'blur(8px)', backgroundColor: 'var(--iw-surface)' }}>
-              <h3 className="font-black text-[#111]">Nueva actividad</h3>
-              <button onClick={() => setShowNewActivity(false)}>
+              <h3 className="font-black text-[#111]">{editandoActividad ? 'Editar misión' : 'Nueva actividad'}</h3>
+              <button onClick={() => { setShowNewActivity(false); setEditandoActividad(null); }}>
                 <X size={20} className="text-[#999]" />
               </button>
             </div>
@@ -1097,18 +1134,50 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                   ))}
                 </div>
               </div>
+              {editandoActividad && (
+                <label className="flex items-start gap-2.5 border border-[#e5007d]/30 bg-[#e5007d]/5 p-3 ev-notch">
+                  <input
+                    type="checkbox"
+                    className="mt-0.5 h-4 w-4 accent-[#e5007d]"
+                    checked={notificarCambio}
+                    onChange={e => setNotificarCambio(e.target.checked)}
+                  />
+                  <span className="text-xs text-[#333]">
+                    <span className="font-bold block">Enviar la misión actualizada por correo</span>
+                    <span className="text-[#888]">Les llega a todos los cosplayers activos como «Misión actualizada».</span>
+                  </span>
+                </label>
+              )}
               <div className="flex gap-2 mt-2">
-                <button onClick={() => setShowNewActivity(false)}
+                <button onClick={() => { setShowNewActivity(false); setEditandoActividad(null); }}
                   className="flex-1 border border-[#e5e5e5] text-[#666] py-3 ev-notch text-sm">
                   Cancelar
                 </button>
+                {editandoActividad ? (
+                  <button
+                    onClick={() => guardarEdicion.mutate({
+                      id: editandoActividad,
+                      title: activityForm.title,
+                      description: activityForm.description || null,
+                      basePoints: activityForm.basePoints,
+                      type: activityForm.type as any,
+                      deadline: activityForm.conFecha && activityForm.deadline ? deInputFechaLocal(activityForm.deadline) : null,
+                      phases: activityForm.phases,
+                      notificar: notificarCambio,
+                    })}
+                    disabled={!activityForm.title || guardarEdicion.isPending || (activityForm.conFecha && !activityForm.deadline)}
+                    className="flex-1 bg-[#e5007d] text-white py-3 ev-notch text-sm font-bold disabled:opacity-40"
+                  >
+                    {guardarEdicion.isPending ? 'Guardando...' : notificarCambio ? 'Guardar y enviar' : 'Guardar cambios'}
+                  </button>
+                ) : (
                 <button
                   onClick={() => createActivity.mutate({
                     title: activityForm.title,
                     description: activityForm.description || undefined,
                     basePoints: activityForm.basePoints,
                     type: activityForm.type as any,
-                    deadline: activityForm.conFecha && activityForm.deadline ? activityForm.deadline : undefined,
+                    deadline: activityForm.conFecha && activityForm.deadline ? deInputFechaLocal(activityForm.deadline) : undefined,
                     phases: activityForm.phases,
                   })}
                   disabled={!activityForm.title || createActivity.isPending}
@@ -1116,6 +1185,7 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
                 >
                   {createActivity.isPending ? 'Creando...' : 'Crear actividad'}
                 </button>
+                )}
               </div>
             </div>
           </div>

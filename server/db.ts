@@ -1728,6 +1728,31 @@ export async function getActiveActivities() {
   return result;
 }
 
+/**
+ * Envía una misión por correo a todos los cosplayers activos.
+ * «actualizada» cambia el encabezado y el asunto («Misión actualizada»).
+ * Devuelve a cuántos se les envió.
+ */
+async function notificarMisionACosplayers(data: any, actualizada = false): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  const activeCosplayers = await db
+    .select({ userId: cosplayers.userId, artisticName: cosplayers.artisticName, tier: cosplayers.tier })
+    .from(cosplayers)
+    .where(eq(cosplayers.isActive, true));
+
+  let enviados = 0;
+  for (const cp of activeCosplayers) {
+    if (!cp.userId) continue;
+    try {
+      const user = await getUserById(cp.userId);
+      if (!user?.email) continue;
+      if (await notifyCosplayActivity(user.email, cp.artisticName, cp.tier ?? 'bronce', data, { actualizada })) enviados++;
+    } catch { /* non-critical */ }
+  }
+  return enviados;
+}
+
 export async function createCosplayActivity(data: any) {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
@@ -1735,20 +1760,7 @@ export async function createCosplayActivity(data: any) {
     ...data,
     deadline: data.deadline ? new Date(data.deadline) : null,
   });
-
-  const activeCosplayers = await db
-    .select({ userId: cosplayers.userId, artisticName: cosplayers.artisticName, tier: cosplayers.tier })
-    .from(cosplayers)
-    .where(eq(cosplayers.isActive, true));
-
-  for (const cp of activeCosplayers) {
-    if (!cp.userId) continue;
-    try {
-      const user = await getUserById(cp.userId);
-      if (!user?.email) continue;
-      await notifyCosplayActivity(user.email, cp.artisticName, cp.tier ?? 'bronce', data);
-    } catch { /* non-critical */ }
-  }
+  await notificarMisionACosplayers(data);
 }
 
 export async function getAllCosplayActivities() {
@@ -1769,10 +1781,43 @@ export async function deleteCosplayActivity(id: number) {
   await db.delete(cosplayActivities).where(eq(cosplayActivities.id, id));
 }
 
-export async function updateCosplayActivity(id: number, data: { active?: boolean; title?: string; description?: string; basePoints?: number }) {
+/**
+ * Edita una misión. «deadline»: texto ISO para cambiarla, null para quitarla,
+ * sin enviar para dejarla igual. Con «notificar», la misión ya guardada se
+ * reenvía por correo a los cosplayers como «Misión actualizada».
+ */
+export async function updateCosplayActivity(
+  id: number,
+  data: {
+    active?: boolean; title?: string; description?: string | null; basePoints?: number;
+    type?: string; deadline?: string | null; phases?: number;
+  },
+  notificar = false,
+): Promise<{ ok: true; enviados: number }> {
   const db = await getDb();
   if (!db) throw new Error("DB not available");
-  await db.update(cosplayActivities).set(data).where(eq(cosplayActivities.id, id));
+  const { deadline, ...resto } = data;
+  const cambios: Record<string, unknown> = { ...resto };
+  if (deadline !== undefined) cambios.deadline = deadline ? new Date(deadline) : null;
+  if (Object.keys(cambios).length > 0) {
+    await db.update(cosplayActivities).set(cambios).where(eq(cosplayActivities.id, id));
+  }
+
+  let enviados = 0;
+  if (notificar) {
+    const [mision] = await db.select().from(cosplayActivities).where(eq(cosplayActivities.id, id)).limit(1);
+    if (mision) {
+      enviados = await notificarMisionACosplayers({
+        title: mision.title,
+        description: mision.description,
+        deadline: mision.deadline ? mision.deadline.toISOString() : null,
+        type: mision.type ?? undefined,
+        basePoints: mision.basePoints,
+        phases: mision.phases,
+      }, true);
+    }
+  }
+  return { ok: true, enviados };
 }
 
 export async function getMyCosplayerSubmissions(userId: number) {

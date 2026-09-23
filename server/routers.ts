@@ -2564,13 +2564,19 @@ export const appRouter = router({
       .input(z.object({
         id: z.number(),
         active: z.boolean().optional(),
-        title: z.string().optional(),
-        description: z.string().optional(),
-        basePoints: z.number().optional(),
+        title: z.string().min(1).max(300).optional(),
+        description: z.string().max(5000).nullable().optional(),
+        basePoints: z.number().min(1).optional(),
+        type: z.enum(['post', 'reel', 'tiktok', 'story', 'event']).optional(),
+        /** Texto ISO para cambiarla, null para quitar la fecha límite */
+        deadline: z.string().nullable().optional(),
+        phases: z.number().int().min(1).max(20).optional(),
+        /** Reenviar la misión por correo a los cosplayers al guardar */
+        notificar: z.boolean().optional(),
       }))
       .mutation(({ input }) => {
-        const { id, ...data } = input;
-        return updateCosplayActivity(id, data);
+        const { id, notificar, ...data } = input;
+        return updateCosplayActivity(id, data, notificar ?? false);
       }),
 
     evaluateSubmission: adminProcedure

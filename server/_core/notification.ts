@@ -340,17 +340,24 @@ export async function notifyCosplayActivity(
   userEmail: string,
   artisticName: string,
   tier: string,
-  activity: { title: string; description?: string | null; deadline?: string | null; type?: string; basePoints?: number },
+  activity: { title: string; description?: string | null; deadline?: string | null; type?: string; basePoints?: number; phases?: number },
+  opciones: { actualizada?: boolean } = {},
 ): Promise<boolean> {
+  const act = opciones.actualizada === true;
   const multiplier = COSPLAY_TIER_MULTIPLIERS[tier] ?? 1;
   const pointsWouldEarn = Math.round((activity.basePoints ?? 0) * multiplier);
   const content = `
-    <h1>Nueva actividad disponible</h1>
-    <p>Hola <strong>${artisticName}</strong>, hay una nueva actividad publicada en el Cosplay Guild.</p>
+    <h1>${act ? 'Misión actualizada' : 'Nueva actividad disponible'}</h1>
+    <p>Hola <strong>${artisticName}</strong>, ${act
+      ? 'actualizamos una misión del Cosplay Guild. Revisa los detalles: pueden haber cambiado la fecha, los puntos o la descripción.'
+      : 'hay una nueva actividad publicada en el Cosplay Guild.'}</p>
     <div class="order-box">
       <p><strong>Actividad:</strong> ${activity.title}</p>
       ${activity.description ? `<p><strong>Descripción:</strong> ${activity.description}</p>` : ''}
-      ${activity.deadline ? `<p><strong>Fecha límite:</strong> ${new Date(activity.deadline).toLocaleDateString('es-VE')}</p>` : ''}
+      ${activity.deadline
+        ? `<p><strong>Fecha límite:</strong> ${new Date(activity.deadline).toLocaleString('es-VE', { timeZone: 'America/Caracas', dateStyle: 'long', timeStyle: 'short' })}</p>`
+        : (act ? '<p><strong>Fecha límite:</strong> sin fecha límite</p>' : '')}
+      ${(activity.phases ?? 1) > 1 ? `<p><strong>Fases:</strong> ${activity.phases} entregas</p>` : ''}
       <p><strong>Tipo:</strong> ${activity.type ?? '—'}</p>
       <p><strong>Puntos base:</strong> ${activity.basePoints ?? 0}</p>
       <p><strong>Tus puntos (×${multiplier} tier ${tier}):</strong> <span class="highlight">${pointsWouldEarn} tickets</span></p>
@@ -366,9 +373,11 @@ export async function notifyCosplayActivity(
   `;
   return sendEmail(
     userEmail,
-    `Nueva actividad — ${activity.title}`,
+    act ? `Misión actualizada — ${activity.title}` : `Nueva actividad — ${activity.title}`,
     content,
-    `Nueva actividad disponible: ${activity.title} — ${pointsWouldEarn} tickets para ti`,
+    act
+      ? `Revisa los cambios de la misión ${activity.title}`
+      : `Nueva actividad disponible: ${activity.title} — ${pointsWouldEarn} tickets para ti`,
   );
 }
 

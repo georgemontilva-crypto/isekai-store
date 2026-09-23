@@ -13,6 +13,7 @@ import {
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
   CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText, Download,
 } from "lucide-react";
+import { aInputFechaLocal, deInputFechaLocal } from "@/lib/fechaLocal";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -743,6 +744,10 @@ export default function Admin() {
   const [rejectReason, setRejectReason] = useState('');
   const [showActivityModal, setShowActivityModal] = useState(false);
   const [activityForm, setActivityForm] = useState({ title: '', description: '', basePoints: 100, type: 'post' as const, deadline: '', conFecha: false, phases: 1 });
+  /** Misión que se está editando (null = creando una nueva) */
+  const [editandoActividad, setEditandoActividad] = useState<number | null>(null);
+  /** Al guardar una edición, reenviar la misión por correo a los cosplayers */
+  const [notificarCambio, setNotificarCambio] = useState(true);
   const [showEvalModal, setShowEvalModal] = useState<any>(null);
   const [evalForm, setEvalForm] = useState({ pointsAwarded: 0, status: 'approved' as 'approved' | 'rejected' });
   const [grantTicketsModal, setGrantTicketsModal] = useState<any>(null);
@@ -1073,6 +1078,15 @@ export default function Admin() {
   const [eliminandoCp, setEliminandoCp] = useState<number | null>(null);
   const createActivity = trpc.cosplay.createActivity.useMutation({ onSuccess: () => { refetchActivities(); setShowActivityModal(false); toast.success("Actividad creada"); } });
   const toggleActivity = trpc.cosplay.toggleActivity.useMutation({ onSuccess: () => refetchActivities() });
+  const updateActivity = trpc.cosplay.updateActivity.useMutation({
+    onSuccess: (r) => {
+      refetchActivities();
+      setShowActivityModal(false);
+      setEditandoActividad(null);
+      toast.success(r.enviados > 0 ? `Misión actualizada · correo enviado a ${r.enviados} cosplayers` : "Misión actualizada");
+    },
+    onError: (e) => toast.error(e.message || "No se pudo actualizar la misión"),
+  });
   const evaluateSub = trpc.cosplay.evaluateSubmission.useMutation({ onSuccess: () => { refetchSubs(); setShowEvalModal(null); toast.success("Evaluación guardada"); } });
   const GRANT_MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
   const grantTicketsMut = trpc.cosplay.grantTickets.useMutation({
@@ -4818,7 +4832,7 @@ export default function Admin() {
                 {cosplaySubTab === 'activities' && (
                   <div>
                     <div className="flex justify-end mb-4">
-                      <Button className="bg-primary text-white text-xs" onClick={() => { setShowActivityModal(true); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 }); }}>
+                      <Button className="bg-primary text-white text-xs" onClick={() => { setEditandoActividad(null); setShowActivityModal(true); setActivityForm({ title: '', description: '', basePoints: 100, type: 'post', deadline: '', conFecha: false, phases: 1 }); }}>
                         <Plus className="w-3.5 h-3.5 mr-1.5" /> Nueva actividad
                       </Button>
                     </div>
@@ -4838,12 +4852,33 @@ export default function Admin() {
                             </div>
                             <p className="text-xs text-muted-foreground">{act.basePoints} pts base{act.deadline ? ` · Hasta ${new Date(act.deadline).toLocaleDateString('es-VE')}` : ''}</p>
                           </div>
+                          <div className="flex shrink-0 items-center gap-3">
+                          <button
+                            onClick={() => {
+                              setEditandoActividad(act.id);
+                              setNotificarCambio(!!act.active);
+                              setActivityForm({
+                                title: act.title ?? '',
+                                description: act.description ?? '',
+                                basePoints: act.basePoints ?? 100,
+                                type: (act.type ?? 'post') as any,
+                                deadline: aInputFechaLocal(act.deadline),
+                                conFecha: !!act.deadline,
+                                phases: act.phases ?? 1,
+                              });
+                              setShowActivityModal(true);
+                            }}
+                            className="flex items-center gap-1 rounded-lg border border-border/50 px-2.5 py-1.5 text-xs font-semibold hover:bg-muted"
+                          >
+                            <Pencil className="w-3.5 h-3.5" /> Editar
+                          </button>
                           <button
                             onClick={() => toggleActivity.mutate({ id: act.id, active: !act.active })}
                             className={`relative w-10 h-5 rounded-full transition-colors ${act.active ? "bg-primary" : "bg-muted-foreground/30"}`}
                           >
                             <span className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform ${act.active ? "translate-x-5" : "translate-x-0"}`} />
                           </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -5137,7 +5172,7 @@ export default function Admin() {
                 {showActivityModal && (
                   <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/50 backdrop-blur-sm">
                     <div className="bg-white rounded-t-3xl sm:rounded-2xl w-full sm:max-w-md p-5 sm:p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
-                      <h3 className="font-bold mb-4">Nueva actividad</h3>
+                      <h3 className="font-bold mb-4">{editandoActividad ? "Editar misión" : "Nueva actividad"}</h3>
                       <div className="space-y-3">
                         <div><Label className="text-xs">Título *</Label><Input value={activityForm.title} onChange={e => setActivityForm(f => ({ ...f, title: e.target.value }))} className="mt-1 bg-muted border-border/50 text-sm" /></div>
                         <div><Label className="text-xs">Descripción</Label><textarea rows={2} value={activityForm.description} onChange={e => setActivityForm(f => ({ ...f, description: e.target.value }))} className="mt-1 w-full px-3 py-2 rounded-xl bg-muted border border-border/50 text-sm outline-none resize-none" /></div>
@@ -5195,11 +5230,44 @@ export default function Admin() {
                           </div>
                         </div>
                       </div>
+                      {editandoActividad && (
+                        <label className="mt-4 flex cursor-pointer items-start gap-2.5 rounded-xl border border-[#e5007d]/30 bg-[#e5007d]/5 p-3">
+                          <input
+                            type="checkbox"
+                            className="mt-0.5 h-4 w-4 accent-[#e5007d]"
+                            checked={notificarCambio}
+                            onChange={e => setNotificarCambio(e.target.checked)}
+                          />
+                          <span className="text-xs">
+                            <span className="font-semibold">Enviar la misión actualizada por correo</span>
+                            <span className="block text-muted-foreground">Les llega a todos los cosplayers activos como «Misión actualizada».</span>
+                          </span>
+                        </label>
+                      )}
                       <div className="flex gap-3 mt-4">
-                        <Button className="flex-1 bg-primary text-white" disabled={!activityForm.title || createActivity.isPending} onClick={() => createActivity.mutate({ title: activityForm.title, description: activityForm.description || undefined, basePoints: activityForm.basePoints, type: activityForm.type, deadline: activityForm.conFecha && activityForm.deadline ? activityForm.deadline : undefined, phases: activityForm.phases })}>
+                        {editandoActividad ? (
+                          <Button
+                            className="flex-1 bg-primary text-white"
+                            disabled={!activityForm.title || updateActivity.isPending || (activityForm.conFecha && !activityForm.deadline)}
+                            onClick={() => updateActivity.mutate({
+                              id: editandoActividad,
+                              title: activityForm.title,
+                              description: activityForm.description || null,
+                              basePoints: activityForm.basePoints,
+                              type: activityForm.type,
+                              deadline: activityForm.conFecha && activityForm.deadline ? deInputFechaLocal(activityForm.deadline) : null,
+                              phases: activityForm.phases,
+                              notificar: notificarCambio,
+                            })}
+                          >
+                            {updateActivity.isPending ? "Guardando..." : notificarCambio ? "Guardar y enviar" : "Guardar cambios"}
+                          </Button>
+                        ) : (
+                        <Button className="flex-1 bg-primary text-white" disabled={!activityForm.title || createActivity.isPending} onClick={() => createActivity.mutate({ title: activityForm.title, description: activityForm.description || undefined, basePoints: activityForm.basePoints, type: activityForm.type, deadline: activityForm.conFecha && activityForm.deadline ? deInputFechaLocal(activityForm.deadline) : undefined, phases: activityForm.phases })}>
                           {createActivity.isPending ? "Creando..." : "Crear actividad"}
                         </Button>
-                        <Button variant="outline" onClick={() => setShowActivityModal(false)}>Cancelar</Button>
+                        )}
+                        <Button variant="outline" onClick={() => { setShowActivityModal(false); setEditandoActividad(null); }}>Cancelar</Button>
                       </div>
                     </div>
                   </div>
