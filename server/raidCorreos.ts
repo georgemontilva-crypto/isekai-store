@@ -4,7 +4,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { siteSettings, wfRaid, wfRaidBajas } from "../drizzle/schema";
 import { ENV } from "./_core/env";
-import { APP_URL, emailTemplate } from "./_core/notification";
+import { APP_URL, emailTemplate, refrescarLogoCorreo } from "./_core/notification";
 
 /**
  * Correos del raid comunitario.
@@ -155,7 +155,7 @@ function correoRecordatorio(p: Participante, vida: number, vidaMax: number, caza
   // Con un decimal: «99,9 %» en vez de un «100 %» engañoso tras los primeros golpes
   const pct = vidaMax > 0 ? (Math.floor((vida / vidaMax) * 1000) / 10).toLocaleString("es-VE") : "0";
   const content = `
-    <p style="font-size:12px;letter-spacing:.3em;color:#7c3aed;margin:0 0 8px">[ NOTIFICACIÓN DEL SISTEMA ]</p>
+    <p style="font-size:12px;letter-spacing:.3em;color:#a78bfa;margin:0 0 8px">[ NOTIFICACIÓN DEL SISTEMA ]</p>
     <h1>⚔️ ${primerNombre(p.nombre)}, tu ataque se recargó</h1>
     <p>El <span class="highlight">Guardián del Portal</span> sigue en pie. Le queda el <strong>${pct}%</strong> de su vida
     (${numero(vida)} de ${numero(vidaMax)}), y ${numero(cazadores)} cazadores ya lo están atacando.</p>
@@ -190,6 +190,7 @@ export async function enviarRecordatorios(forzar = false): Promise<number> {
   // no se repite el correo
   await guardarAjuste("wf_raid_recordatorio_dia", hoy);
 
+  await refrescarLogoCorreo();
   const todos = await participantes(r.id);
   const destino = todos.filter(p => !p.atacoHoy && !p.baja);
   const enviados = await enviarLotes(destino.map(p => correoRecordatorio(p, r.vidaMax - r.danio, r.vidaMax, todos.length)));
@@ -204,7 +205,7 @@ function correoPremio(p: Participante, total: number, premio: string, imagen: st
     ? escapar(premio).replace(/\n/g, "<br/>")
     : "Como parte del ejército que derrotó al Guardián, tienes una recompensa. Muy pronto te contaremos cómo reclamarla.";
   const content = `
-    <p style="font-size:12px;letter-spacing:.3em;color:#7c3aed;margin:0 0 8px">[ RECOMPENSA DESBLOQUEADA ]</p>
+    <p style="font-size:12px;letter-spacing:.3em;color:#a78bfa;margin:0 0 8px">[ RECOMPENSA DESBLOQUEADA ]</p>
     <h1>🏆 ¡El Guardián ha caído, ${primerNombre(p.nombre)}!</h1>
     <p>Lo logramos juntos: <strong>${numero(total)} cazadores</strong> derribaron al Guardián del Portal.
     Tu aporte fue de <strong>${numero(p.danio)} de daño</strong> en ${p.ataques} ${p.ataques === 1 ? "ataque" : "ataques"}.</p>
@@ -232,6 +233,7 @@ export async function enviarPremio(): Promise<number> {
   // Reserva: se marca antes de enviar para no repetirlo nunca
   await db.update(wfRaid).set({ premioEnviadoEn: new Date() }).where(eq(wfRaid.id, r.id));
 
+  await refrescarLogoCorreo();
   const todos = await participantes(r.id); // incluye a quien pidió baja de recordatorios
   const premio = await leerAjuste("wf_raid_premio_texto");
   const imagen = await leerAjuste("wf_raid_recompensa_img");

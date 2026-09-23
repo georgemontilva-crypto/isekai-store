@@ -7,7 +7,6 @@ import { ENV } from "./env";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const LOGO_URL = 'https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/Favicon-11%20grande-11.png';
 export const APP_URL  = 'https://isekaiworld.co';
 const INSTAGRAM = 'https://instagram.com/isekaistore';
 const INSTAGRAM_DM = 'https://ig.me/m/isekaistore';
@@ -17,78 +16,141 @@ export type NotificationPayload = {
   content: string;
 };
 
+// ─── Logo de los correos ──────────────────────────────────────────────────────
+
+/**
+ * Logo que se usa en la cabecera de los correos.
+ *
+ * Orden: el «Logo para correos» del panel (email_logo_url), si no el logo de
+ * la tienda (store_logo_url) siempre que no sea SVG —Gmail y Outlook no
+ * muestran SVG—, y si no hay ninguno, el wordmark escrito en HTML.
+ * Se consulta como mucho cada 10 minutos.
+ */
+let logoCorreo = "";
+let logoRevisado = 0;
+
+export async function refrescarLogoCorreo(): Promise<void> {
+  if (Date.now() - logoRevisado < 10 * 60 * 1000) return;
+  logoRevisado = Date.now();
+  try {
+    // Import dinámico: db.ts también importa este archivo
+    const { getDb } = await import("../db");
+    const { siteSettings } = await import("../../drizzle/schema");
+    const { inArray } = await import("drizzle-orm");
+    const db = await getDb();
+    if (!db) return;
+    const filas = await db.select().from(siteSettings)
+      .where(inArray(siteSettings.key, ["email_logo_url", "store_logo_url"]));
+    const valor = (k: string) => (filas.find(f => f.key === k)?.value ?? "").trim();
+    const esImagenCorreo = (u: string) => /^https?:\/\//.test(u) && !/\.svg(\?|$)/i.test(u);
+    logoCorreo = esImagenCorreo(valor("email_logo_url")) ? valor("email_logo_url")
+      : esImagenCorreo(valor("store_logo_url")) ? valor("store_logo_url")
+      : "";
+  } catch (e) {
+    console.warn("[Email] No se pudo leer el logo:", e);
+  }
+}
+
+/** Wordmark en HTML: se ve en cualquier cliente de correo, sin imágenes */
+const WORDMARK = `<span style="font-family:'Arial Black',Arial,Helvetica,sans-serif;font-size:30px;font-weight:900;font-style:italic;letter-spacing:-0.5px;line-height:1">`
+  + `<span style="color:#e5007d">ISEKAI</span><span style="color:#ffffff">WORLD</span></span>`;
+
 // ─── Base template ────────────────────────────────────────────────────────────
 
+/**
+ * Plantilla de todos los correos, con el estilo del sitio: oscura de borde a
+ * borde (el fondo del correo y el de la tarjeta son del mismo tono, así en
+ * el teléfono no quedan franjas a los lados), línea de energía rosa→púrpura,
+ * esquinas biseladas y etiquetas tipo [ SISTEMA ].
+ *
+ * Los biseles se dibujan con triángulos de borde CSS (funcionan en Gmail,
+ * Apple Mail y Outlook), no con clip-path, que los correos no soportan.
+ */
+const FONDO = "#06040d";
+const TARJETA = "#0f0a1f";
+
 export function emailTemplate(content: string, previewText: string = ''): string {
+  const logo = logoCorreo
+    ? `<img src="${logoCorreo}" alt="Isekai World" height="40" style="height:40px;width:auto;max-width:260px;border:0;display:inline-block" />`
+    : WORDMARK;
+  const bisel = (pos: "arriba" | "abajo") => pos === "arriba"
+    ? `<div style="width:0;height:0;border-top:18px solid ${FONDO};border-right:18px solid transparent;line-height:0;font-size:0"></div>`
+    : `<div style="width:0;height:0;border-bottom:18px solid ${FONDO};border-left:18px solid transparent;line-height:0;font-size:0;margin-left:auto"></div>`;
+
   return `<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="color-scheme" content="dark light"/>
+  <meta name="supported-color-schemes" content="dark light"/>
   <title>Isekai World</title>
   <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#f4f4f5; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; }
-    .wrapper { max-width:600px; margin:0 auto; padding:24px 16px; }
-    .card { background:#ffffff; border-radius:16px; overflow:hidden; box-shadow:0 2px 8px rgba(0,0,0,0.06); }
-    .header { background:#0d0d0d; padding:32px 40px; text-align:center; }
-    .header img { height:48px; width:auto; object-fit:contain; }
-    .body { padding:40px; }
-    .footer { background:#0d0d0d; padding:24px 40px; text-align:center; }
-    .btn { display:inline-block; background:#e5007d; color:#ffffff !important; text-decoration:none; padding:14px 32px; border-radius:50px; font-weight:700; font-size:15px; margin:24px 0; }
-    .divider { border:none; border-top:1px solid #f0f0f0; margin:24px 0; }
-    .badge { display:inline-block; background:#f4f4f5; border-radius:8px; padding:6px 14px; font-size:13px; color:#555; margin:4px; }
-    h1 { font-size:26px; font-weight:800; color:#0d0d0d; line-height:1.3; margin-bottom:12px; }
-    p { font-size:15px; color:#555; line-height:1.7; margin-bottom:12px; }
-    .highlight { color:#e5007d; font-weight:700; }
-    .order-box { background:#f8f8f8; border-radius:12px; padding:20px; margin:20px 0; }
-    .order-box p { margin:4px 0; font-size:14px; }
-    .social-links { margin:16px 0; }
-    .social-links a { display:inline-block; margin:0 8px; color:#aaa !important; font-size:13px; text-decoration:none; }
-    .footer p { color:#666; font-size:12px; line-height:1.6; }
-    .footer a { color:#aaa !important; text-decoration:none; }
-    @media(max-width:600px){
-      .body { padding:24px 20px; }
-      .header { padding:24px 20px; }
-      h1 { font-size:22px; }
+    body { margin:0; padding:0; background:${FONDO}; }
+    .body-cell { padding:34px 36px 30px; }
+    .btn { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; display:inline-block; background:#e5007d; color:#ffffff !important; text-decoration:none; padding:15px 34px; font-weight:800; font-size:14px; letter-spacing:1.5px; text-transform:uppercase; margin:22px 0; border-bottom:3px solid #9d0056; }
+    .divider { border:none; border-top:1px solid #2a2140; margin:24px 0; }
+    .badge { display:inline-block; background:#1d1438; padding:6px 12px; font-size:13px; color:#d8d0ea; margin:4px; border-left:2px solid #a78bfa; }
+    h1 { font-family:'Arial Black',Arial,Helvetica,sans-serif; font-size:25px; font-weight:900; color:#ffffff; line-height:1.25; margin:0 0 14px; }
+    p { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; font-size:15px; color:#c9c3dd; line-height:1.7; margin:0 0 12px; }
+    strong { color:#ffffff; }
+    .highlight { color:#ff4fa8; font-weight:700; }
+    .order-box { background:#170f2e; border-left:3px solid #a78bfa; padding:18px 20px; margin:20px 0; }
+    .order-box p { margin:5px 0; font-size:14px; }
+    a { color:#ff4fa8; }
+    @media (max-width:600px) {
+      .body-cell { padding:26px 20px 24px !important; }
+      h1 { font-size:22px !important; }
     }
   </style>
 </head>
-<body>
-  ${previewText ? `<div style="display:none;max-height:0;overflow:hidden">${previewText}</div>` : ''}
-  <div class="wrapper">
-    <div class="card">
+<body style="margin:0;padding:0;background:${FONDO}">
+  ${previewText ? `<div style="display:none;max-height:0;overflow:hidden;mso-hide:all">${previewText}</div>` : ''}
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:${FONDO}">
+    <tr><td align="center" style="padding:0">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;background:${FONDO}">
 
-      <!-- HEADER -->
-      <div class="header">
-        <img src="${LOGO_URL}" alt="Isekai World" />
-      </div>
+        <!-- Línea de energía -->
+        <tr><td style="height:4px;line-height:4px;font-size:0;background:#e5007d;background-image:linear-gradient(90deg,#e5007d,#a78bfa,#38bdf8)">&nbsp;</td></tr>
 
-      <!-- BODY -->
-      <div class="body">
-        ${content}
-      </div>
+        <!-- Cabecera -->
+        <tr><td align="center" style="padding:30px 20px 10px">
+          <a href="${APP_URL}" style="text-decoration:none">${logo}</a>
+        </td></tr>
+        <tr><td align="center" style="padding:0 20px 24px;font-family:'Courier New',Courier,monospace;font-size:11px;letter-spacing:4px;color:#a78bfa">
+          [ SISTEMA ]
+        </td></tr>
 
-      <!-- FOOTER -->
-      <div class="footer">
-        <div class="social-links">
-          <a href="${INSTAGRAM}">📸 Instagram</a>
-          <a href="${INSTAGRAM_DM}">💬 Escríbenos</a>
-          <a href="${APP_URL}">🌐 Tienda</a>
-        </div>
-        <hr style="border:none;border-top:1px solid #222;margin:16px 0"/>
-        <p>© ${new Date().getFullYear()} Isekai World. Todos los derechos reservados.</p>
-        <p style="margin-top:6px">
-          <a href="${APP_URL}/politicas">Políticas de privacidad</a> ·
-          <a href="${APP_URL}/faq">Preguntas frecuentes</a>
-        </p>
-        <p style="margin-top:10px;color:#444;font-size:11px">
-          Isekai World — Impresión 3D Anime &amp; Gaming · isekaiworld.co
-        </p>
-      </div>
+        <!-- Tarjeta con esquinas biseladas -->
+        <tr><td style="background:${TARJETA};padding:0">
+          ${bisel("arriba")}
+          <div class="body-cell" style="padding:34px 36px 30px">
+            ${content}
+          </div>
+          ${bisel("abajo")}
+        </td></tr>
 
-    </div>
-  </div>
+        <!-- Pie -->
+        <tr><td align="center" style="padding:30px 20px 36px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+          <p style="margin:0 0 14px;font-size:13px">
+            <a href="${INSTAGRAM}" style="color:#d8d0ea;text-decoration:none;margin:0 8px">Instagram</a>
+            <span style="color:#3a3052">◆</span>
+            <a href="${INSTAGRAM_DM}" style="color:#d8d0ea;text-decoration:none;margin:0 8px">Escríbenos</a>
+            <span style="color:#3a3052">◆</span>
+            <a href="${APP_URL}" style="color:#d8d0ea;text-decoration:none;margin:0 8px">Tienda</a>
+          </p>
+          <p style="margin:0 0 6px;color:#7c6fa0;font-size:12px">© ${new Date().getFullYear()} Isekai World. Todos los derechos reservados.</p>
+          <p style="margin:0;font-size:12px">
+            <a href="${APP_URL}/politicas" style="color:#7c6fa0">Políticas de privacidad</a>
+            <span style="color:#3a3052"> · </span>
+            <a href="${APP_URL}/faq" style="color:#7c6fa0">Preguntas frecuentes</a>
+          </p>
+        </td></tr>
+        <tr><td style="height:3px;line-height:3px;font-size:0;background:#a78bfa;background-image:linear-gradient(90deg,#38bdf8,#a78bfa,#e5007d)">&nbsp;</td></tr>
+
+      </table>
+    </td></tr>
+  </table>
 </body>
 </html>`;
 }
@@ -97,6 +159,7 @@ export function emailTemplate(content: string, previewText: string = ''): string
 
 export async function sendEmail(to: string, subject: string, content: string, previewText?: string): Promise<boolean> {
   if (!ENV.resendApiKey) return false;
+  await refrescarLogoCorreo();
   try {
     const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -258,7 +321,7 @@ export async function notifyCosplayRejected(
     <p>Hola <strong>${fullName}</strong>, hemos revisado tu solicitud para unirte al Cosplay Guild de Isekai World.</p>
     <div class="order-box">
       <p>En esta ocasión no podemos aprobar tu solicitud por el siguiente motivo:</p>
-      <p style="margin-top:8px;font-style:italic;color:#555">"${reason}"</p>
+      <p style="margin-top:8px;font-style:italic;color:#c9c3dd">"${reason}"</p>
     </div>
     <p>Esto no significa que no puedas volver a intentarlo en el futuro. Te invitamos a seguir creciendo tu comunidad y volver a postularte cuando cumplas los requisitos.</p>
     <div style="text-align:center">
@@ -639,7 +702,7 @@ export async function notifyTicketPurchased(
  */
 export async function notifyMisionAceptada(email: string): Promise<boolean> {
   const content = `
-    <p style="font-size:12px;letter-spacing:.3em;color:#7c3aed;margin:0 0 8px">[ NUEVA MISIÓN ACEPTADA ]</p>
+    <p style="font-size:12px;letter-spacing:.3em;color:#a78bfa;margin:0 0 8px">[ NUEVA MISIÓN ACEPTADA ]</p>
     <h1>✅ Estás dentro, cazador</h1>
     <p>Tu lugar en la lista de acceso de <span class="highlight">Isekai World Fest 2027</span> quedó registrado.
     Cuando se abran las entradas, <strong>serás de los primeros en saberlo</strong>.</p>
