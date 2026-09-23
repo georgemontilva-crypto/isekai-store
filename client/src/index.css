@@ -3654,19 +3654,14 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 
 /* Zona de Sombras */
 .ev2-sombras-capa { background: rgba(2, 1, 6, 0); animation: ev2-oscurecer 1s ease-out forwards; }
-@keyframes ev2-oscurecer { to { background: rgba(2, 1, 6, 0.985); } }
-.ev2-sombras-niebla {
-  position: absolute; inset: auto 0 0 0; height: 45%;
-  background: radial-gradient(ellipse at 50% 100%, rgba(124, 58, 237, 0.45), transparent 70%);
-  opacity: 0; animation: ev2-aparecer 1.4s .3s ease-out forwards;
-}
+@keyframes ev2-oscurecer { to { background: rgba(2, 1, 6, 0.995); } }
 .ev2-sombra {
   position: absolute; transform: translate(-50%, 110%); opacity: 0;
   animation: ev2-emerger 1.7s cubic-bezier(.16, 1, .3, 1) forwards;
 }
 @keyframes ev2-emerger { to { transform: translate(-50%, 0); opacity: 1; } }
 .ev2-humo {
-  position: absolute; bottom: -6%; width: 22%; height: 18%; z-index: 12; pointer-events: none;
+  position: absolute; bottom: -10%; width: 22%; height: 18%; z-index: 12; pointer-events: none;
   border-radius: 9999px; background: radial-gradient(ellipse, rgba(88, 28, 135, 0.55), transparent 70%);
   filter: blur(14px); opacity: 0;
   animation: ev2-humo 3.6s ease-in-out infinite;
@@ -3682,7 +3677,7 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 
 @media (prefers-reduced-motion: reduce) {
   .ev2-sacudir, .ev2-danio, .ev2-cuenta, .ev2-jefe-ojo { animation: none !important; }
-  .ev2-sombras-capa { animation: none; background: rgba(2, 1, 6, 0.985); }
+  .ev2-sombras-capa { animation: none; background: rgba(2, 1, 6, 0.995); }
   .ev2-sombras-niebla, .ev2-sombras-texto, .ev2-sombra-ojo { animation: none; opacity: 1; transform: none; }
   .ev2-sombra { animation: none; opacity: 1; transform: translate(-50%, 0); }
   .ev2-humo { animation: none; opacity: .5; }
@@ -3739,4 +3734,68 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 @media (prefers-reduced-motion: reduce) {
   .ev2-jefe-grieta, .ev2-jefe-estalla, .ev2-destello, .ev2-esquirla, .ev2-recompensa-img, .ev2-aparece-tarde { animation: none !important; }
   .ev2-rayos { animation: none !important; }
+}
+
+/* Zona de Sombras: aura del ejército, llamas, brasas y círculo mágico */
+.ev2-aura-ejercito {
+  position: absolute; left: 50%; bottom: -30%; width: 150%; height: 120%; transform: translateX(-50%);
+  border-radius: 9999px; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 70%, rgba(124, 58, 237, 0.55), rgba(88, 28, 135, 0.25) 40%, transparent 70%);
+  filter: blur(10px); opacity: 0;
+  animation: ev2-aparecer 1.2s .3s ease-out forwards, ev2-aura-late 3.2s 1.5s ease-in-out infinite;
+}
+@keyframes ev2-circulo-aparece { from { opacity: 0; transform: translate(-50%, -50%) scale(.85); } to { opacity: .7; transform: translate(-50%, -50%) scale(1); } }
+@keyframes ev2-aura-late { 0%, 100% { filter: blur(10px) brightness(1); } 50% { filter: blur(14px) brightness(1.35); } }
+.ev2-llama {
+  position: absolute; bottom: 0; width: 18%; transform: translateX(-50%); transform-origin: 50% 100%;
+  border-radius: 50% 50% 20% 20% / 70% 70% 10% 10%; pointer-events: none;
+  background: linear-gradient(to top, rgba(139, 92, 246, 0.55), rgba(124, 58, 237, 0.25) 45%, transparent 90%);
+  filter: blur(8px); opacity: 0;
+  animation: ev2-llama 2s ease-in-out infinite;
+}
+@keyframes ev2-llama {
+  0% { opacity: 0; transform: translateX(-50%) scaleY(.6) scaleX(1); }
+  30% { opacity: .9; }
+  50% { transform: translateX(-52%) scaleY(1.05) scaleX(.85); }
+  75% { opacity: .7; transform: translateX(-48%) scaleY(.9) scaleX(1.05); }
+  100% { opacity: 0; transform: translateX(-50%) scaleY(1.15) scaleX(.8); }
+}
+.ev2-sombra-aura { animation: ev2-sombra-aura 2.6s ease-in-out infinite; }
+@keyframes ev2-sombra-aura {
+  0%, 100% { filter: drop-shadow(0 0 10px rgba(124, 58, 237, 0.55)); }
+  50% { filter: drop-shadow(0 0 22px rgba(139, 92, 246, 0.95)) drop-shadow(0 -6px 18px rgba(125, 216, 255, 0.25)); }
+}
+.ev2-brasa {
+  position: absolute; bottom: -10px; border-radius: 9999px; pointer-events: none; z-index: 15;
+  box-shadow: 0 0 8px currentColor, 0 0 16px currentColor;
+  opacity: 0; animation: ev2-brasa 6s linear infinite;
+}
+@keyframes ev2-brasa {
+  0% { opacity: 0; transform: translate(0, 0); }
+  10% { opacity: 1; }
+  50% { transform: translate(14px, -50vh); }
+  85% { opacity: .8; }
+  100% { opacity: 0; transform: translate(-10px, -105vh); }
+}
+.ev2-circulo {
+  position: absolute; left: 50%; top: 50%; width: min(420px, 92vw); aspect-ratio: 1; transform: translate(-50%, -50%);
+  pointer-events: none; opacity: 0; animation: ev2-circulo-aparece 1.4s 1.8s ease-out forwards;
+}
+.ev2-circulo-anillo {
+  position: absolute; inset: 0; border-radius: 9999px;
+  border: 1px solid rgba(167, 139, 250, 0.18);
+  background: repeating-conic-gradient(from 0deg, rgba(167, 139, 250, 0.35) 0deg .8deg, transparent .8deg 7.5deg);
+  -webkit-mask-image: radial-gradient(circle, transparent 66%, #000 67.5%, #000 70%, transparent 71%);
+  mask-image: radial-gradient(circle, transparent 66%, #000 67.5%, #000 70%, transparent 71%);
+  animation: ev2-giro 40s linear infinite;
+}
+.ev2-circulo-anillo-2 {
+  inset: 12%; border-style: dashed; border-color: rgba(125, 216, 255, 0.14);
+  -webkit-mask-image: none; mask-image: none; background: none;
+  animation-duration: 26s; animation-direction: reverse;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ev2-aura-ejercito, .ev2-llama, .ev2-sombra-aura, .ev2-brasa, .ev2-circulo, .ev2-circulo-anillo { animation: none !important; }
+  .ev2-aura-ejercito, .ev2-circulo { opacity: 1; }
+  .ev2-llama, .ev2-brasa { display: none; }
 }

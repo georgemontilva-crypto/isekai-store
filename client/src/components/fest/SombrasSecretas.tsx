@@ -204,19 +204,35 @@ function Sombra({ i }: { i: number }) {
       className="ev2-sombra"
       style={{
         left: `${c.x}%`,
-        width: `min(${34 * c.s}vmin, ${190 * c.s}px)`,
-        bottom: `${(1 - c.s) * 9}%`,
+        // Se dimensiona por el ALTO de la zona del ejército, no por el ancho
+        // de la pantalla: así nunca invade la zona del texto y el botón.
+        height: `${92 * c.s}%`,
+        aspectRatio: "120 / 230",
+        bottom: `${(1 - c.s) * 12}%`,
         zIndex: Math.round(c.s * 10),
-        filter: `brightness(${0.55 + c.s * 0.45}) drop-shadow(0 0 16px rgba(124,58,237,0.65))`,
+        filter: `brightness(${0.5 + c.s * 0.5})`,
         animationDelay: `${0.35 + (Math.abs(c.x - 50) / 50) * 0.7}s`,
       }}
     >
-      <div style={{ transform: c.voltear ? "scaleX(-1)" : undefined }}>
+      <div
+        className="ev2-sombra-aura h-full w-full"
+        style={{ transform: c.voltear ? "scaleX(-1)" : undefined, animationDelay: `${(i % 4) * 0.4}s` }}
+      >
         <Caballero tipo={c.tipo} id={`sombra-grad-${i}`} />
       </div>
     </div>
   );
 }
+
+/** Posiciones fijas (no aleatorias) para que el render sea estable */
+const LLAMAS = [4, 16, 27, 38, 50, 62, 73, 84, 96];
+const BRASAS = Array.from({ length: 26 }, (_, i) => ({
+  x: (i * 37) % 100,
+  d: 4.5 + (i % 5) * 0.9,
+  r: (i * 0.53) % 4.5,
+  t: 2 + (i % 3),
+  c: i % 3 === 0 ? "#7dd8ff" : "#a78bfa",
+}));
 
 export function RevelacionSombras({ textos, onCerrar }: { textos: Textos; onCerrar: () => void }) {
   useEffect(() => {
@@ -228,35 +244,74 @@ export function RevelacionSombras({ textos, onCerrar }: { textos: Textos; onCerr
 
   return (
     <div
-      className="ev2-sombras-capa fixed inset-0 z-[210] flex items-center justify-center overflow-hidden px-6 sm:items-start sm:pt-[10vh]"
+      className="ev2-sombras-capa fixed inset-0 z-[210] flex flex-col overflow-hidden"
       role="dialog"
       aria-modal="true"
       aria-label={textos.titulo}
       onClick={onCerrar}
     >
-      <div className="ev2-sombras-niebla" />
-      {FORMACION.map((_, i) => <Sombra key={i} i={i} />)}
-      {/* Humo que sube desde el suelo */}
-      {Array.from({ length: 12 }, (_, i) => (
+      {/* Brasas que suben por toda la pantalla */}
+      {BRASAS.map((b, i) => (
         <span
-          key={`h${i}`}
-          className="ev2-humo"
-          style={{ left: `${i * 8.5}%`, animationDelay: `${0.4 + (i % 5) * 0.45}s`, animationDuration: `${3.2 + (i % 3) * 0.8}s` }}
+          key={`b${i}`}
+          className="ev2-brasa"
+          style={{
+            left: `${b.x}%`,
+            width: b.t,
+            height: b.t,
+            background: b.c,
+            color: b.c,
+            animationDuration: `${b.d}s`,
+            animationDelay: `${0.8 + b.r}s`,
+          }}
         />
       ))}
 
-      <div className="ev2-sombras-texto relative z-20 max-w-lg text-center" onClick={ev => ev.stopPropagation()}>
-        <p className="ev-display mb-5 whitespace-nowrap text-5xl text-white sm:text-7xl" style={{ textShadow: "0 0 30px rgba(167,139,250,0.9)" }}>
-          {textos.titulo}
-        </p>
-        <p className="mb-2 text-base leading-relaxed text-[#d8d0ea] sm:text-lg">{textos.texto}</p>
-        <p className="mb-8 font-mono text-xs uppercase tracking-[0.25em] text-[#a78bfa]">{textos.secreto}</p>
-        <button
-          onClick={onCerrar}
-          className="ev-notch ev-press border border-[#a78bfa]/60 bg-[#a78bfa]/10 px-8 py-3.5 font-mono text-sm font-bold uppercase tracking-widest text-[#c4b5fd]"
-        >
-          {textos.cerrar}
-        </button>
+      {/* Zona superior: el texto, siempre centrado en su espacio */}
+      <div className="relative z-20 flex min-h-0 flex-1 items-center justify-center px-6 pb-4 pt-[max(env(safe-area-inset-top),1.5rem)]">
+        <div className="ev2-sombras-texto relative max-w-lg text-center" onClick={ev => ev.stopPropagation()}>
+          {/* Círculo mágico que gira detrás del título */}
+          <span className="ev2-circulo" aria-hidden="true">
+            <span className="ev2-circulo-anillo" />
+            <span className="ev2-circulo-anillo ev2-circulo-anillo-2" />
+          </span>
+
+          <p
+            className="ev-display relative mb-4 whitespace-nowrap text-white"
+            style={{ fontSize: "clamp(2.6rem, 12vw, 4.75rem)", textShadow: "0 0 30px rgba(167,139,250,0.9), 0 0 60px rgba(124,58,237,0.6)" }}
+          >
+            {textos.titulo}
+          </p>
+          <p className="relative mb-3 text-base leading-relaxed text-[#d8d0ea] sm:text-lg">{textos.texto}</p>
+          <p className="relative mb-7 font-mono text-[11px] uppercase tracking-[0.25em] text-[#a78bfa] sm:text-xs">{textos.secreto}</p>
+          <button
+            onClick={onCerrar}
+            className="ev-notch ev-press relative border border-[#a78bfa]/60 bg-[#a78bfa]/10 px-9 py-3.5 font-mono text-sm font-bold uppercase tracking-widest text-[#c4b5fd] backdrop-blur-sm"
+          >
+            {textos.cerrar}
+          </button>
+        </div>
+      </div>
+
+      {/* Zona inferior: el ejército con su aura. Alto fijo y separado del
+          texto, así los caballeros nunca se montan sobre el botón. */}
+      <div className="relative h-[38svh] min-h-[210px] max-h-[460px] shrink-0 sm:h-[46vh]">
+        <span className="ev2-aura-ejercito" aria-hidden="true" />
+        {LLAMAS.map((x, i) => (
+          <span
+            key={`l${i}`}
+            className="ev2-llama"
+            style={{ left: `${x}%`, height: `${55 + ((i * 17) % 40)}%`, animationDelay: `${0.6 + (i % 4) * 0.35}s`, animationDuration: `${1.8 + (i % 3) * 0.5}s` }}
+          />
+        ))}
+        {FORMACION.map((_, i) => <Sombra key={i} i={i} />)}
+        {Array.from({ length: 12 }, (_, i) => (
+          <span
+            key={`h${i}`}
+            className="ev2-humo"
+            style={{ left: `${i * 8.5}%`, animationDelay: `${0.4 + (i % 5) * 0.45}s`, animationDuration: `${3.2 + (i % 3) * 0.8}s` }}
+          />
+        ))}
       </div>
     </div>
   );
