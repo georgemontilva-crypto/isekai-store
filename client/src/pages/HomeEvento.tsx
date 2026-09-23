@@ -322,7 +322,7 @@ export default function HomeEvento() {
         {/* Texto y figura comparten un mismo contenedor y una misma retícula:
             así ambos nacen del mismo margen lateral y la composición se lee
             como una sola pieza en cualquier resolución. */}
-        <div className="relative z-10 mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-8 px-6 lg:grid-cols-2 lg:gap-10 lg:px-12">
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-8 px-6 lg:grid-cols-[48fr_52fr] lg:gap-6 lg:px-10">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -333,7 +333,7 @@ export default function HomeEvento() {
               {e.etiquetaAnio}
             </p>
 
-            <h1 className="ev-display mb-6 text-[38px] leading-[0.95] [hyphens:none] [overflow-wrap:normal] sm:text-6xl lg:text-[46px] xl:text-[58px]">
+            <h1 className="ev-display mb-6 text-[38px] leading-[0.95] [hyphens:none] [overflow-wrap:normal] sm:text-6xl lg:text-[52px] xl:text-6xl">
               {e.heroTitulo1}
               <br />
               <span className="iw-texto-sistema">{e.heroTitulo2}</span>
@@ -383,7 +383,7 @@ export default function HomeEvento() {
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.9, delay: 0.15 }}
-              className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[92%] opacity-25 lg:relative lg:inset-auto lg:z-0 lg:-mb-[5svh] lg:h-[88svh] lg:w-full lg:self-end lg:opacity-100"
+              className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[92%] opacity-25 lg:relative lg:inset-auto lg:z-0 lg:-mb-[4svh] lg:h-[92svh] lg:w-full lg:self-end lg:opacity-100"
             >
               <img
                 src={heroFigura}
