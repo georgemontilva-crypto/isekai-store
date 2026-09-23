@@ -330,13 +330,13 @@ export default function HomeEvento() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-2xl lg:max-w-3xl lg:pr-[38%]"
+            className="max-w-2xl lg:max-w-[min(38rem,50vw)]"
           >
             <p className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-[#a78bfa]">
               {e.etiquetaAnio}
             </p>
 
-            <h1 className="ev-display mb-6 text-[38px] leading-[0.95] sm:text-6xl lg:text-7xl">
+            <h1 className="ev-display mb-6 text-[38px] leading-[0.95] [hyphens:none] [overflow-wrap:normal] sm:text-6xl lg:text-[52px] xl:text-7xl">
               {e.heroTitulo1}
               <br />
               <span className="iw-texto-sistema">{e.heroTitulo2}</span>
@@ -389,7 +389,7 @@ export default function HomeEvento() {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.9, delay: 0.15 }}
-            className="pointer-events-none absolute bottom-0 right-0 z-0 h-[72%] w-[92%] opacity-30 sm:h-[80%] lg:h-[96%] lg:w-[52vw] lg:opacity-100"
+            className="pointer-events-none absolute bottom-0 right-0 z-0 h-[72%] w-[92%] opacity-30 sm:h-[80%] lg:h-[96%] lg:w-[46vw] lg:opacity-100"
           >
             <img
               src={heroFigura}
