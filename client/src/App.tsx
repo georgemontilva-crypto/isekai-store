@@ -21,7 +21,6 @@ const Invitacion = lazy(() => import("./pages/Invitacion"));
 import PantallaCarga from "@/components/PantallaCarga";
 import AccesoRapido from "@/components/AccesoRapido";
 const HomeEvento = lazy(() => import("./pages/HomeEvento"));
-const HomeEventoV2 = lazy(() => import("./pages/HomeEventoV2"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
 const GuildFeedback = lazy(() => import("./pages/GuildFeedback"));
@@ -116,8 +115,9 @@ function Router() {
             ya compartidos. */}
         <Route path="/" component={HomeEvento} />
         <Route path="/evento" component={HomeEvento} />
-        {/* Vista previa del rediseño del home: no enlazada desde el menú */}
-        <Route path="/fest-preview" component={HomeEventoV2} />
+        {/* La vista previa del rediseño ya es la portada: los enlaces viejos
+            a /fest-preview llevan a la portada */}
+        <Route path="/fest-preview">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/tienda" component={Home} />
         <Route path="/world-fest">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/catalog" component={Catalog} />

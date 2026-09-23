@@ -403,6 +403,8 @@ export const en: Translations = {
       raidDesbloqueada: "REWARD UNLOCKED",
       raidEnVivo: "Live",
       raidOtroGolpe: "A hunter dealt {n} damage",
+      raidIniciaSesion: "Sign in to attack",
+      raidNecesitasCuenta: "Sign in or create your free account: every attack gets recorded under your name.",
       raidCombo: "Combo",
       raidTiempo: "TIME!",
       raidDanioTotal: "Total damage",

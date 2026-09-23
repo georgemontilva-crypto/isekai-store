@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { modoLigero } from "@/lib/gamaBaja";
 
 /**
  * Destello de partículas en cada toque o clic de la página.
@@ -22,7 +23,7 @@ export default function ToqueParticulas() {
       const t = ev.target as HTMLElement | null;
       if (t?.closest("input, textarea, select, [data-sin-toque]")) return;
 
-      const n = 9;
+      const n = modoLigero() ? 5 : 9;
       for (let i = 0; i < n; i++) {
         const p = document.createElement("span");
         const ang = (Math.PI * 2 * i) / n + Math.random() * 0.5;

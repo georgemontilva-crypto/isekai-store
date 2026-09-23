@@ -33,8 +33,10 @@ export function initSocket(httpServer: HttpServer): Server {
        * cuenta) y solo recibe el estado del jefe, nunca datos personales.
        */
       if (socket.handshake.auth?.raid === true) {
+        // Esta conexión solo escucha al jefe: no necesita (ni valida) sesión,
+        // así una cookie vencida no la corta
         socket.join("raid");
-        if (!token) return next();
+        return next();
       }
 
       const boleto = String(socket.handshake.auth?.boleto ?? "").trim();

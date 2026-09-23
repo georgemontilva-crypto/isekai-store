@@ -210,14 +210,14 @@ function Sombra({ i }: { i: number }) {
         aspectRatio: "120 / 230",
         bottom: `${(1 - c.s) * 12}%`,
         zIndex: Math.round(c.s * 10),
-        filter: `brightness(${0.5 + c.s * 0.5})`,
+        // Filtros fijos (no animados): se pintan una sola vez
+        filter: `brightness(${0.5 + c.s * 0.5}) drop-shadow(0 0 10px rgba(124,58,237,0.6))`,
         animationDelay: `${0.35 + (Math.abs(c.x - 50) / 50) * 0.7}s`,
       }}
     >
-      <div
-        className="ev2-sombra-aura h-full w-full"
-        style={{ transform: c.voltear ? "scaleX(-1)" : undefined, animationDelay: `${(i % 4) * 0.4}s` }}
-      >
+      <div className="relative h-full w-full" style={{ transform: c.voltear ? "scaleX(-1)" : undefined }}>
+        {/* Aura que late: solo cambia opacidad y tamaño, barato de animar */}
+        <span className="ev2-sombra-halo" style={{ animationDelay: `${(i % 4) * 0.4}s` }} aria-hidden="true" />
         <Caballero tipo={c.tipo} id={`sombra-grad-${i}`} />
       </div>
     </div>
@@ -286,7 +286,7 @@ export function RevelacionSombras({ textos, onCerrar }: { textos: Textos; onCerr
           <p className="relative mb-7 font-mono text-[11px] uppercase tracking-[0.25em] text-[#a78bfa] sm:text-xs">{textos.secreto}</p>
           <button
             onClick={onCerrar}
-            className="ev-notch ev-press relative border border-[#a78bfa]/60 bg-[#a78bfa]/10 px-9 py-3.5 font-mono text-sm font-bold uppercase tracking-widest text-[#c4b5fd] backdrop-blur-sm"
+            className="ev-notch ev-press relative border border-[#a78bfa]/60 bg-[#a78bfa]/10 px-9 py-3.5 font-mono text-sm font-bold uppercase tracking-widest text-[#c4b5fd]"
           >
             {textos.cerrar}
           </button>

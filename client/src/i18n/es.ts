@@ -413,6 +413,8 @@ export const es = {
       raidDesbloqueada: "RECOMPENSA DESBLOQUEADA",
       raidEnVivo: "En vivo",
       raidOtroGolpe: "Un cazador hizo {n} de daño",
+      raidIniciaSesion: "Inicia sesión para atacar",
+      raidNecesitasCuenta: "Entra o crea tu cuenta gratis: así cada ataque queda registrado a tu nombre.",
       raidCombo: "Combo",
       raidTiempo: "¡TIEMPO!",
       raidDanioTotal: "Daño total",

@@ -9,7 +9,7 @@ import { io, Socket } from "socket.io-client";
  * cuenta y no viaja ningún dato personal.
  */
 export type EstadoRaidVivo = { activo: true; vidaMax: number; vida: number; derrotado: boolean; cazadores: number };
-export type GolpeRaidVivo = { golpes: number; quien: string };
+export type GolpeRaidVivo = { golpes: number; ref: string };
 
 export function useRaidSocket(
   onEstado: (e: EstadoRaidVivo) => void,

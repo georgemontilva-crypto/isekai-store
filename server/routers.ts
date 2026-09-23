@@ -1059,15 +1059,18 @@ export const appRouter = router({
 
   // ─── World Fest: raid comunitario (landing) ─────────────────────────────────
   raid: router({
+    /** Público: cualquiera ve al jefe. «yaAtaco» solo aplica con sesión */
     estado: publicProcedure
-      .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).optional() }).optional())
-      .query(({ input }) => estadoRaid(input?.clave)),
-    atacar: publicProcedure
+      .query(({ ctx }) => estadoRaid(ctx.user ? `u${ctx.user.id}` : undefined)),
+    /** Atacar exige cuenta: un ataque por usuario y día */
+    atacar: protectedProcedure
       .input(z.object({
-        clave: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/),
         golpes: z.number().int().min(0).max(GOLPES_MAX * 2),
+        /** Marca aleatoria del navegador para reconocer su propio aviso en vivo */
+        ref: z.string().regex(/^[A-Za-z0-9]{4,16}$/).optional(),
       }))
-      .mutation(({ input, ctx }) => atacarRaid(input.clave, input.golpes, clientIp(ctx.req))),
+      .mutation(({ input, ctx }) =>
+        atacarRaid(`u${ctx.user.id}`, input.golpes, clientIp(ctx.req), input.ref ?? "")),
   }),
 
   // ─── Newsletter ─────────────────────────────────────────────────────────────

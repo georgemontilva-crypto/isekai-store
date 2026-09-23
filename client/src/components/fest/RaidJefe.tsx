@@ -4,6 +4,8 @@ import { useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import type { Translations } from "@/i18n/es";
 import { useRaidSocket } from "@/hooks/useRaidSocket";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { openLoginModal } from "@/const";
 
 /**
  * Raid comunitario: todos los visitantes golpean al mismo jefe.
@@ -27,20 +29,6 @@ function colorCombo(n: number) {
 
 type T = Translations["evento"]["v2"];
 type Fase = "listo" | "cuenta" | "jugando" | "enviando" | "resultado";
-
-/** Identificador anónimo del navegador (no es un dato personal) */
-function claveVisitante(): string {
-  const K = "iw_raid_clave";
-  try {
-    const v = localStorage.getItem(K);
-    if (v && /^[A-Za-z0-9_-]{8,64}$/.test(v)) return v;
-    const nueva = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g, "");
-    localStorage.setItem(K, nueva);
-    return nueva;
-  } catch {
-    return `anon-${Math.random().toString(36).slice(2, 14)}`;
-  }
-}
 
 /** Jefe por defecto si no hay imagen subida: una sombra con cuernos */
 function JefeSilueta({ caido }: { caido: boolean }) {
@@ -74,11 +62,19 @@ type Revelacion = "no" | "grieta" | "estallido" | "revelada";
 export default function RaidJefe({
   t, imagen, recompensa, recompensaImg, numero,
 }: { t: T; imagen: string; recompensa: string; recompensaImg: string; numero: React.ReactNode }) {
-  const clave = useMemo(claveVisitante, []);
+  /** Para atacar hace falta cuenta: cada ataque queda a nombre del usuario */
+  const { isAuthenticated, user } = useAuth();
+  /** Marca aleatoria de esta pestaña: reconoce su propio aviso en vivo */
+  const refNavegador = useMemo(
+    () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, "0")).join(""),
+    [],
+  );
   const utils = trpc.useUtils();
   // El estado llega en vivo por el socket; la consulta periódica queda solo
   // como respaldo por si la conexión en vivo no está disponible
-  const { data } = trpc.raid.estado.useQuery({ clave }, { refetchInterval: 60_000 });
+  const { data } = trpc.raid.estado.useQuery(undefined, { refetchInterval: 60_000 });
+  // Al entrar o salir de la cuenta cambia «ya atacaste hoy»
+  useEffect(() => { utils.raid.estado.invalidate(); }, [user?.id, utils]);
   const atacar = trpc.raid.atacar.useMutation();
 
   const [fase, setFase] = useState<Fase>("listo");
@@ -151,14 +147,21 @@ export default function RaidJefe({
     setFase("enviando");
     const g = golpesRef.current;
     try {
-      const r = await atacar.mutateAsync({ clave, golpes: g });
+      const r = await atacar.mutateAsync({ golpes: g, ref: refNavegador });
       if (r.ok) setDanioFinal(r.golpes);
       if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())} ${t.raidVuelve}`);
       else if (r.motivo === "yaAtaco") setMensaje(t.raidYaAtacaste);
       else if (r.motivo === "limite") setMensaje(t.raidLimite);
       else setMensaje(t.raidDerrotado);
-    } catch {
-      setMensaje(t.raidError);
+    } catch (e: unknown) {
+      // Si la sesión venció a mitad de la ronda, se pide entrar de nuevo
+      const codigo = (e as { data?: { code?: string } })?.data?.code;
+      if (codigo === "UNAUTHORIZED") {
+        setMensaje(t.raidNecesitasCuenta);
+        openLoginModal();
+      } else {
+        setMensaje(t.raidError);
+      }
     }
     await utils.raid.estado.invalidate();
     setFase("resultado");
@@ -182,13 +185,11 @@ export default function RaidJefe({
     vivo => {
       // Actualiza sin recargar: la consulta de este visitante (conserva si ya
       // atacó hoy) y la de la página, que decide si la pieza está revelada
-      utils.raid.estado.setData({ clave }, viejo =>
-        viejo && viejo.activo ? { ...vivo, yaAtaco: viejo.yaAtaco } : viejo);
       utils.raid.estado.setData(undefined, viejo =>
         viejo && viejo.activo ? { ...vivo, yaAtaco: viejo.yaAtaco } : viejo);
     },
     golpe => {
-      if (golpe.quien === clave.slice(0, 6)) return; // fue este mismo navegador
+      if (golpe.ref && golpe.ref === refNavegador) return; // fue esta misma pestaña
       const id = ++idNum.current;
       setFeed(f => [{ id, n: golpe.golpes }, ...f].slice(0, 3));
       window.setTimeout(() => setFeed(f => f.filter(k => k.id !== id)), 4500);
@@ -280,7 +281,7 @@ export default function RaidJefe({
   const puedeAtacar = !caido && !data.yaAtaco && fase === "listo";
 
   return (
-    <section className="ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
+    <section className="ev2-diferida ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
       <div className="mx-auto max-w-3xl">
         <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#f43f5e]">
           {numero}&nbsp;&nbsp;{t.raidEtiqueta}
@@ -327,7 +328,7 @@ export default function RaidJefe({
         <div className="relative -mt-4 mb-2 h-0" aria-live="polite">
           <div className="absolute inset-x-0 top-0 z-20 flex flex-col items-start gap-1">
             {feed.map(f => (
-              <p key={f.id} className="ev2-feed border border-[#f43f5e]/30 bg-[#1a0a12]/90 px-2.5 py-1 font-mono text-[11px] text-[#fecdd3] backdrop-blur-sm">
+              <p key={f.id} className="ev2-feed border border-[#f43f5e]/30 bg-[#1a0a12]/90 px-2.5 py-1 font-mono text-[11px] text-[#fecdd3]">
                 ⚔ {t.raidOtroGolpe.replace("{n}", f.n.toLocaleString())}
               </p>
             ))}
@@ -523,7 +524,19 @@ export default function RaidJefe({
             </p>
           )}
 
-          {puedeAtacar && (
+          {puedeAtacar && !isAuthenticated && (
+            <div>
+              <button
+                onClick={openLoginModal}
+                className="ev-notch ev-press ev2-latido inline-flex items-center gap-2 bg-[#f43f5e] px-10 py-4 text-sm font-bold uppercase tracking-wider text-white"
+              >
+                <Swords size={18} /> {t.raidIniciaSesion}
+              </button>
+              <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-[#9d7f8f]">{t.raidNecesitasCuenta}</p>
+            </div>
+          )}
+
+          {puedeAtacar && isAuthenticated && (
             <button
               onClick={empezar}
               className="ev-notch ev-press ev2-latido inline-flex items-center gap-2 bg-[#f43f5e] px-10 py-4 text-sm font-bold uppercase tracking-wider text-white"

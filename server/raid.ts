@@ -96,7 +96,8 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
   }
 }
 
-export async function atacarRaid(clave: string, golpes: number, ip: string) {
+/** «clave» identifica al jugador: `u<id de usuario>` */
+export async function atacarRaid(clave: string, golpes: number, ip: string, ref = "") {
   const db = await getDb();
   const r = await raidActivo();
   if (!db || !r) throw new TRPCError({ code: "NOT_FOUND", message: "No hay un jefe activo" });
@@ -132,9 +133,9 @@ export async function atacarRaid(clave: string, golpes: number, ip: string) {
     if (io && estado.activo) {
       const { yaAtaco: _omitido, ...publico } = estado;
       io.to("raid").emit("raid:estado", publico);
-      // «quien» son los primeros caracteres de la clave anónima: le sirve al
-      // navegador que atacó para no mostrarse a sí mismo como «otro cazador»
-      io.to("raid").emit("raid:golpe", { golpes: g, quien: clave.slice(0, 6) });
+      // «ref» es una marca aleatoria que manda el navegador que atacó: así no
+      // se muestra a sí mismo como «otro cazador». No identifica a nadie.
+      io.to("raid").emit("raid:golpe", { golpes: g, ref });
     }
   } catch (e) {
     console.error("[Raid] aviso en vivo:", e);

@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { motion, useReducedMotion, useTransform, type MotionValue } from "framer-motion";
+import { modoLigero } from "@/lib/gamaBaja";
 
 /**
  * Chispas de metal en la punta de la línea de energía de los rangos.
@@ -39,12 +40,12 @@ export default function ChispasEnergia({ progreso }: { progreso: MotionValue<num
       enfriar = window.setTimeout(() => punta.classList.remove("ev2-punta-caliente"), 260);
 
       const ahora = performance.now();
-      if (ahora - ultimo < 40) return;
+      if (ahora - ultimo < (modoLigero() ? 80 : 40)) return;
       ultimo = ahora;
 
       const y = v * pista.clientHeight;
       // Más movimiento, más chispas
-      const n = Math.min(7, 2 + Math.round(delta * 900));
+      const n = Math.min(modoLigero() ? 3 : 7, 2 + Math.round(delta * 900));
       for (let i = 0; i < n; i++) {
         const derecha = Math.random() < 0.55;
         const grados = derecha ? -75 + Math.random() * 95 : 160 + Math.random() * 95;
