@@ -156,17 +156,6 @@ export const IMAGE_SLOTS: PageGroup[] = [
     ],
   },
   {
-    page: "World Fest",
-    slots: [
-      { kind: "site", key: "worldfest_hero_image", label: "Fondo del hero",
-        where: "Imagen a pantalla completa detrás del título en /world-fest.",
-        spec: "Horizontal, ~2400 × 1400 px. Se oscurece y lleva texto encima, así que mejor con zonas despejadas." },
-      { kind: "site", key: "worldfest_teaser_image", label: "Imagen del festival",
-        where: "Bloque ancho a mitad de la página, debajo de las pistas.",
-        spec: "Horizontal, ~2000 × 1100 px." },
-    ],
-  },
-  {
     page: "Pantalla de carga",
     slots: [
       { kind: "site", key: "favicon_url", label: "Favicon de la web",
@@ -192,6 +181,9 @@ export const IMAGE_SLOTS: PageGroup[] = [
       { kind: "site", key: "wf_hero_figura", label: "Figura del hero (PNG recortado)",
         where: "A la derecha del titular «El Sistema ha despertado», en la portada.",
         spec: "PNG con fondo transparente, vertical, ~1200 × 1600 px. Un personaje recortado funciona mejor que una escena." },
+      { kind: "site", key: "worldfest_hero_image", label: "Fondo del hero (respaldo)",
+        where: "Se usa solo si no hay una imagen en «Fondo del hero». Queda de la versión anterior de la página.",
+        spec: "Horizontal, ~2400 × 1400 px." },
       { kind: "site", key: "wf_hero_bg", label: "Fondo del hero",
         where: "Detrás de «El Sistema ha despertado», primera pantalla de la landing.",
         spec: "Horizontal, ~1920 × 1200 px. Oscura o púrpura; se le aplica un velo encima." },
