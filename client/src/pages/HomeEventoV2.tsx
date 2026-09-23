@@ -11,6 +11,7 @@ import { useAntiSpam } from "@/hooks/useAntiSpam";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
 import ToqueParticulas from "@/components/fest/ToqueParticulas";
+import ChispasEnergia from "@/components/fest/ChispasEnergia";
 import RaidJefe from "@/components/fest/RaidJefe";
 import { ZonaSombras, RevelacionSombras } from "@/components/fest/SombrasSecretas";
 
@@ -917,6 +918,7 @@ export default function HomeEventoV2() {
                 boxShadow: "0 0 10px rgba(167,139,250,0.6)",
               }}
             />
+            <ChispasEnergia progreso={energia} />
             {RANGOS.map((x, i) => (
               <motion.div
                 key={x.r}

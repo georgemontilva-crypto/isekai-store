@@ -3858,3 +3858,27 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .ev2-impacto-onda, .ev2-impacto-corte, .ev2-chispa, .ev2-flash-rojo { display: none; }
   .ev2-anuncio { animation: none !important; transform: rotate(-3deg); }
 }
+
+/* Escalera de rangos: punta al rojo vivo y chispas de metal */
+.ev2-punta {
+  position: absolute; left: 50%; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 9999px;
+  background: #fff; opacity: 0; transform: scale(.6);
+  box-shadow: 0 0 6px #fff, 0 0 12px #fde047, 0 0 22px #f97316;
+  transition: opacity .35s ease, transform .35s ease;
+}
+.ev2-punta-caliente { opacity: 1; transform: scale(1.25); transition-duration: .08s; }
+.ev2-chispa-metal {
+  position: absolute; left: 1px; height: 2px; border-radius: 9999px; pointer-events: none;
+  transform-origin: 100% 50%;
+  box-shadow: 0 0 4px currentColor, 0 0 8px rgba(249, 115, 22, 0.8);
+  animation: ev2-chispa-metal .6s cubic-bezier(.2, .7, .4, 1) forwards;
+}
+@keyframes ev2-chispa-metal {
+  0% { opacity: 1; transform: translate(-100%, -50%) rotate(var(--ang)); }
+  45% { opacity: 1; transform: translate(calc(var(--dx) * .75 - 100%), calc(var(--dy) * .75 - 50%)) rotate(var(--ang)); }
+  100% { opacity: 0; transform: translate(calc(var(--dx) - 100%), calc(var(--dy) + var(--caida) - 50%)) rotate(calc(var(--ang) + 35deg)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ev2-chispa-metal { display: none; }
+  .ev2-punta { transition: none; }
+}
