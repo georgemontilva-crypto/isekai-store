@@ -281,7 +281,7 @@ export default function HomeEvento() {
       )}
 
       {/* ═══ 1. EL SISTEMA HA DESPERTADO ═══ */}
-      <section className="relative flex min-h-[92svh] items-center overflow-hidden">
+      <section className="relative flex min-h-[78svh] items-center overflow-hidden py-14 lg:min-h-[84svh] lg:py-0">
         {/* El video manda si está puesto; la imagen queda de respaldo mientras
             carga o si el navegador no puede reproducirlo. */}
         {heroBg && (
@@ -330,7 +330,7 @@ export default function HomeEvento() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-2xl lg:max-w-[min(38rem,50vw)]"
+            className="max-w-2xl lg:max-w-[min(38rem,50vw)] lg:pt-10"
           >
             <p className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-[#a78bfa]">
               {e.etiquetaAnio}
@@ -389,7 +389,7 @@ export default function HomeEvento() {
             initial={{ opacity: 0, x: 40 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.9, delay: 0.15 }}
-            className="pointer-events-none absolute bottom-0 right-0 z-0 h-[72%] w-[92%] opacity-30 sm:h-[80%] lg:h-[96%] lg:w-[46vw] lg:opacity-100"
+            className="pointer-events-none absolute bottom-0 right-0 z-0 h-[78%] w-[92%] opacity-30 sm:h-[86%] lg:h-full lg:w-[46vw] lg:opacity-100"
           >
             <img
               src={heroFigura}
