@@ -9,6 +9,7 @@ import { useLang } from "@/i18n/LangContext";
 import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
+import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
 
 /**
  * Isekai World Fest — landing del evento.
@@ -99,6 +100,7 @@ export default function HomeEvento() {
   const heroVideo = settings?.["wf_hero_video"] ?? "";
   /** Figura recortada de la derecha del hero (PNG sin fondo) */
   const heroFigura = settings?.["wf_hero_figura"] ?? "";
+  const figura = useFiguraRecortada(heroFigura);
   const premioImg = settings?.["wf_premio_image"] ?? "";
   /** Fondo de la sección «El mundo ha cambiado» */
   const mundoBg = settings?.["wf_mundo_bg"] ?? "";
@@ -281,7 +283,7 @@ export default function HomeEvento() {
       )}
 
       {/* ═══ 1. EL SISTEMA HA DESPERTADO ═══ */}
-      <section className="relative flex min-h-[78svh] items-center overflow-hidden py-14 lg:min-h-[88svh] lg:py-0">
+      <section className="relative flex min-h-[78svh] items-center overflow-hidden py-14 lg:h-[min(80svh,820px)] lg:min-h-[600px] lg:py-0">
         {/* El video manda si está puesto; la imagen queda de respaldo mientras
             carga o si el navegador no puede reproducirlo. */}
         {heroBg && (
@@ -322,7 +324,7 @@ export default function HomeEvento() {
         {/* Texto y figura comparten un mismo contenedor y una misma retícula:
             así ambos nacen del mismo margen lateral y la composición se lee
             como una sola pieza en cualquier resolución. */}
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-8 px-6 lg:grid-cols-[48fr_52fr] lg:gap-6 lg:px-10">
+        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 items-center gap-8 px-6 lg:h-full lg:grid-cols-[54fr_46fr] lg:gap-4 lg:px-10">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -373,22 +375,24 @@ export default function HomeEvento() {
             </p>
           </motion.div>
 
-          {/* Segunda columna. En escritorio es una celda de la retícula, así
-              que respeta el mismo margen derecho que el texto respeta a la
-              izquierda. Se alinea abajo y sobresale un poco por la base para
-              ganar altura sin deformarse. En teléfono vuelve a pasar detrás
-              del texto, como ambiente. */}
-          {heroFigura && (
+          {/* Segunda columna. En escritorio ocupa TODO el alto del hero, de
+              borde a borde, con la figura apoyada en la base. La figura llega
+              ya recortada a su contorno (useFiguraRecortada), así llena el
+              alto aunque el PNG venga con mucho margen transparente. En
+              teléfono pasa detrás del texto, como ambiente. */}
+          {heroFigura && figura.estado !== "cargando" && (
             <motion.div
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.9, delay: 0.15 }}
-              className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[92%] opacity-25 lg:relative lg:inset-auto lg:z-0 lg:-mb-[4svh] lg:h-[92svh] lg:w-full lg:self-end lg:opacity-100"
+              transition={{ duration: 0.9 }}
+              className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[92%] opacity-25 lg:relative lg:inset-auto lg:z-0 lg:h-full lg:w-full lg:self-stretch lg:pt-6 lg:opacity-100"
             >
               <img
-                src={heroFigura}
+                src={figura.src}
                 alt=""
-                className="iw-hero-figura h-full w-full object-contain object-bottom"
+                className={`iw-hero-figura h-full w-full object-bottom ${
+                  figura.estado === "recortada" ? "object-contain" : "object-cover"
+                }`}
               />
             </motion.div>
           )}
