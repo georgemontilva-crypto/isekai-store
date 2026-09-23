@@ -28,6 +28,15 @@ export function initSocket(httpServer: HttpServer): Server {
        * antes solo se hacía sin sesión, así que al probarlo desde una cuenta
        * iniciada el aviso nunca llegaba.
        */
+      /**
+       * Sala del raid de la landing: es pública (los visitantes no tienen
+       * cuenta) y solo recibe el estado del jefe, nunca datos personales.
+       */
+      if (socket.handshake.auth?.raid === true) {
+        socket.join("raid");
+        if (!token) return next();
+      }
+
       const boleto = String(socket.handshake.auth?.boleto ?? "").trim();
       if (boleto) {
         socket.data.boleto = boleto.toUpperCase();

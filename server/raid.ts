@@ -2,6 +2,7 @@ import { and, desc, eq, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
 import { wfRaid, wfRaidAtaques } from "../drizzle/schema";
+import { io } from "./_core/socket";
 
 /**
  * Raid comunitario de la landing del World Fest.
@@ -124,6 +125,20 @@ export async function atacarRaid(clave: string, golpes: number, ip: string) {
         derrotadoEn = IF(derrotadoEn IS NULL AND danio >= vidaMax, NOW(), derrotadoEn)
     WHERE id = ${r.id}
   `);
+
+  // Tiempo real: todos los que miran la página ven bajar la vida al instante
+  try {
+    const estado = await estadoRaid();
+    if (io && estado.activo) {
+      const { yaAtaco: _omitido, ...publico } = estado;
+      io.to("raid").emit("raid:estado", publico);
+      // «quien» son los primeros caracteres de la clave anónima: le sirve al
+      // navegador que atacó para no mostrarse a sí mismo como «otro cazador»
+      io.to("raid").emit("raid:golpe", { golpes: g, quien: clave.slice(0, 6) });
+    }
+  } catch (e) {
+    console.error("[Raid] aviso en vivo:", e);
+  }
 
   return { ok: true as const, golpes: g };
 }

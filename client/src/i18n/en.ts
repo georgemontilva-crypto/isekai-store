@@ -401,6 +401,8 @@ export const en: Translations = {
       raidDerrotado: "THE BOSS HAS FALLEN",
       raidRecompensa: "The hunters did it. This is the piece that goes to whoever reaches Rank S.",
       raidDesbloqueada: "REWARD UNLOCKED",
+      raidEnVivo: "Live",
+      raidOtroGolpe: "A hunter dealt {n} damage",
       raidCombo: "Combo",
       raidTiempo: "TIME!",
       raidDanioTotal: "Total damage",

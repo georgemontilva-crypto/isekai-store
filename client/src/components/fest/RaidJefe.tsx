@@ -3,6 +3,7 @@ import { Swords } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import type { Translations } from "@/i18n/es";
+import { useRaidSocket } from "@/hooks/useRaidSocket";
 
 /**
  * Raid comunitario: todos los visitantes golpean al mismo jefe.
@@ -75,7 +76,9 @@ export default function RaidJefe({
 }: { t: T; imagen: string; recompensa: string; recompensaImg: string; numero: React.ReactNode }) {
   const clave = useMemo(claveVisitante, []);
   const utils = trpc.useUtils();
-  const { data } = trpc.raid.estado.useQuery({ clave }, { refetchInterval: 20_000 });
+  // El estado llega en vivo por el socket; la consulta periódica queda solo
+  // como respaldo por si la conexión en vivo no está disponible
+  const { data } = trpc.raid.estado.useQuery({ clave }, { refetchInterval: 60_000 });
   const atacar = trpc.raid.atacar.useMutation();
 
   const [fase, setFase] = useState<Fase>("listo");
@@ -90,6 +93,9 @@ export default function RaidJefe({
   /** Anuncio grande en los hitos del combo y al terminar el tiempo */
   const [anuncio, setAnuncio] = useState<{ id: number; texto: string } | null>(null);
   const [danioFinal, setDanioFinal] = useState(0);
+  /** Golpes de otros cazadores que llegan en vivo */
+  const [feed, setFeed] = useState<{ id: number; n: number }[]>([]);
+  const [ajenos, setAjenos] = useState<{ id: number; n: number; x: number }[]>([]);
   const [conteo, setConteo] = useState(0);
   const arenaRef = useRef<HTMLDivElement>(null);
   /**
@@ -171,6 +177,28 @@ export default function RaidJefe({
     setAnuncio({ id, texto });
     window.setTimeout(() => setAnuncio(a => (a?.id === id ? null : a)), 1100);
   };
+
+  useRaidSocket(
+    vivo => {
+      // Actualiza sin recargar: la consulta de este visitante (conserva si ya
+      // atacó hoy) y la de la página, que decide si la pieza está revelada
+      utils.raid.estado.setData({ clave }, viejo =>
+        viejo && viejo.activo ? { ...vivo, yaAtaco: viejo.yaAtaco } : viejo);
+      utils.raid.estado.setData(undefined, viejo =>
+        viejo && viejo.activo ? { ...vivo, yaAtaco: viejo.yaAtaco } : viejo);
+    },
+    golpe => {
+      if (golpe.quien === clave.slice(0, 6)) return; // fue este mismo navegador
+      const id = ++idNum.current;
+      setFeed(f => [{ id, n: golpe.golpes }, ...f].slice(0, 3));
+      window.setTimeout(() => setFeed(f => f.filter(k => k.id !== id)), 4500);
+      setAjenos(a => [...a.slice(-4), { id, n: golpe.golpes, x: 25 + ((id * 37) % 50) }]);
+      window.setTimeout(() => setAjenos(a => a.filter(k => k.id !== id)), 1300);
+      reanimar(barraRef.current, "ev2-barra-golpe");
+      if (fase !== "jugando") reanimar(jefeRef.current, "ev2-sacudir");
+    },
+    () => { utils.raid.estado.invalidate(); },
+  );
 
   // El daño total sube contando al terminar la ronda
   useEffect(() => {
@@ -283,9 +311,28 @@ export default function RaidJefe({
             }}
           />
         </div>
-        <p className="mb-6 font-mono text-[11px] text-[#9d7f8f]">
-          {t.raidCazadores.replace("{n}", data.cazadores.toLocaleString())}
-        </p>
+        <div className="mb-6 flex items-center justify-between gap-3 font-mono text-[11px]">
+          <span className="text-[#9d7f8f]">
+            {t.raidCazadores.replace("{n}", data.cazadores.toLocaleString())}
+          </span>
+          {!caido && (
+            <span className="flex shrink-0 items-center gap-1.5 uppercase tracking-widest text-[#fb7185]">
+              <span className="ev2-en-vivo h-2 w-2 rounded-full bg-[#f43f5e]" />
+              {t.raidEnVivo}
+            </span>
+          )}
+        </div>
+
+        {/* Golpes de otros cazadores, en vivo */}
+        <div className="relative -mt-4 mb-2 h-0" aria-live="polite">
+          <div className="absolute inset-x-0 top-0 z-20 flex flex-col items-start gap-1">
+            {feed.map(f => (
+              <p key={f.id} className="ev2-feed border border-[#f43f5e]/30 bg-[#1a0a12]/90 px-2.5 py-1 font-mono text-[11px] text-[#fecdd3] backdrop-blur-sm">
+                ⚔ {t.raidOtroGolpe.replace("{n}", f.n.toLocaleString())}
+              </p>
+            ))}
+          </div>
+        </div>
 
         {/* El jefe: en la ronda es la zona que se toca */}
         <div
@@ -391,6 +438,17 @@ export default function RaidJefe({
               </p>
             </div>
           )}
+
+          {ajenos.map(a => (
+            <span
+              key={`a${a.id}`}
+              className="ev2-danio-ajeno ev-display pointer-events-none absolute top-[28%] text-3xl text-white"
+              style={{ left: `${a.x}%`, textShadow: "0 0 16px #f43f5e, 0 0 30px #f43f5e" }}
+              aria-hidden="true"
+            >
+              −{a.n}
+            </span>
+          ))}
 
           {numeros.map(n => (
             <span key={n.id} className="ev2-danio pointer-events-none absolute font-mono text-xl font-black text-[#fb7185]" style={{ left: n.x, top: n.y }}>

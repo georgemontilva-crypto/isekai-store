@@ -235,7 +235,7 @@ export default function HomeEventoV2() {
   const raidRecompensa = (lang === "en" ? settings?.["wf_raid_recompensa_en"] : settings?.["wf_raid_recompensa"]) ?? "";
   const raidRecompensaImg = settings?.["wf_raid_recompensa_img"] ?? "";
   /** Si la comunidad ya derrotó al jefe, la pieza deja de estar clasificada */
-  const { data: estadoRaid } = trpc.raid.estado.useQuery(undefined, { refetchInterval: 60_000 });
+  const { data: estadoRaid } = trpc.raid.estado.useQuery(undefined, { refetchInterval: 120_000 });
   const piezaRevelada = !!(estadoRaid?.activo && estadoRaid.derrotado && raidRecompensaImg);
   const [sombras, setSombras] = useState(false);
   const cerrarSombras = useCallback(() => setSombras(false), []);

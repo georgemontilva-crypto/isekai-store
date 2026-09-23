@@ -411,6 +411,8 @@ export const es = {
       raidDerrotado: "EL JEFE HA CAÍDO",
       raidRecompensa: "Los cazadores lo lograron. Esta es la pieza que se llevará quien alcance el Rango S.",
       raidDesbloqueada: "RECOMPENSA DESBLOQUEADA",
+      raidEnVivo: "En vivo",
+      raidOtroGolpe: "Un cazador hizo {n} de daño",
       raidCombo: "Combo",
       raidTiempo: "¡TIEMPO!",
       raidDanioTotal: "Daño total",
