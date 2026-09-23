@@ -16,11 +16,17 @@ export async function comprimirImagen(
 ): Promise<File> {
   const { ladoMaximo = 1600, calidad = 0.82 } = opciones;
 
-  // Los PNG con transparencia se dejan como están: convertirlos a JPEG les
-  // pondría un fondo negro.
   if (!file.type.startsWith("image/")) return file;
   if (file.type === "image/gif") return file;
-  if (file.type === "image/png" && file.size < 400_000) return file;
+
+  /**
+   * Los PNG se mantienen como PNG.
+   *
+   * Antes se pasaban a JPEG, que no admite transparencia: un recorte sobre
+   * fondo transparente salía con un fondo blanco pegado. Se redimensionan
+   * igual, pero conservando el formato.
+   */
+  const esPng = file.type === "image/png";
 
   try {
     const bitmap = await createImageBitmap(file);
@@ -42,23 +48,27 @@ export async function comprimirImagen(
     const ctx = lienzo.getContext("2d");
     if (!ctx) return file;
 
-    // Fondo blanco: si la imagen tenía transparencia, al pasar a JPEG
-    // quedaría negra sin esto.
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(0, 0, ancho, alto);
+    // Solo se rellena el fondo cuando el destino es JPEG, que no admite
+    // transparencia. En PNG se deja el lienzo limpio.
+    if (!esPng) {
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, ancho, alto);
+    }
     ctx.drawImage(bitmap, 0, 0, ancho, alto);
     bitmap.close?.();
 
     const blob: Blob | null = await new Promise(resolve =>
-      lienzo.toBlob(resolve, "image/jpeg", calidad),
+      esPng ? lienzo.toBlob(resolve, "image/png") : lienzo.toBlob(resolve, "image/jpeg", calidad),
     );
     if (!blob) return file;
 
     // Si comprimir no mejoró nada, se queda el original
     if (blob.size >= file.size) return file;
 
-    const nombre = file.name.replace(/\.[^.]+$/, "") + ".jpg";
-    return new File([blob], nombre, { type: "image/jpeg", lastModified: Date.now() });
+    const extension = esPng ? ".png" : ".jpg";
+    const tipo = esPng ? "image/png" : "image/jpeg";
+    const nombre = file.name.replace(/\.[^.]+$/, "") + extension;
+    return new File([blob], nombre, { type: tipo, lastModified: Date.now() });
   } catch {
     // Ante cualquier problema se sube el original: mejor pesado que roto
     return file;

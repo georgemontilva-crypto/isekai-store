@@ -32,7 +32,7 @@ async function descargar(url: string): Promise<Buffer | null> {
 }
 
 /** Reduce una imagen si merece la pena; devuelve null si no hay mejora */
-async function reducir(original: Buffer): Promise<{ datos: Buffer; ancho: number; alto: number } | null> {
+async function reducir(original: Buffer): Promise<{ datos: Buffer; ancho: number; alto: number; esPng: boolean } | null> {
   try {
     const img = sharp(original, { failOn: "none" });
     const meta = await img.metadata();
@@ -42,16 +42,23 @@ async function reducir(original: Buffer): Promise<{ datos: Buffer; ancho: number
     if (meta.pages && meta.pages > 1) return null;
 
     const necesitaEscalar = Math.max(meta.width, meta.height) > LADO_MAXIMO;
-    const datos = await img
-      .rotate()                                   // respeta la orientación del móvil
-      .resize(necesitaEscalar ? { width: LADO_MAXIMO, height: LADO_MAXIMO, fit: "inside" } : undefined)
-      .jpeg({ quality: CALIDAD, mozjpeg: true })
-      .toBuffer();
+
+    // Los PNG se quedan en PNG: pasarlos a JPEG les pega un fondo blanco y
+    // arruina los recortes con transparencia.
+    const esPng = meta.format === "png" || (meta.hasAlpha ?? false);
+
+    const base = img
+      .rotate()
+      .resize(necesitaEscalar ? { width: LADO_MAXIMO, height: LADO_MAXIMO, fit: "inside" } : undefined);
+
+    const datos = esPng
+      ? await base.png({ compressionLevel: 9, palette: true }).toBuffer()
+      : await base.jpeg({ quality: CALIDAD, mozjpeg: true }).toBuffer();
 
     if (datos.length >= original.length) return null;
 
     const nueva = await sharp(datos).metadata();
-    return { datos, ancho: nueva.width ?? 0, alto: nueva.height ?? 0 };
+    return { datos, ancho: nueva.width ?? 0, alto: nueva.height ?? 0, esPng };
   } catch {
     return null;
   }
@@ -91,8 +98,9 @@ export async function reprocesarTanda(tanda = 8) {
       continue;
     }
 
-    const nombre = (m.fileName ?? "imagen").replace(/\.[^.]+$/, "") + "-opt.jpg";
-    const { url } = await storagePut(`media/${nombre}`, mejor.datos, "image/jpeg");
+    const ext = mejor.esPng ? "png" : "jpg";
+    const nombre = (m.fileName ?? "imagen").replace(/\.[^.]+$/, "") + `-opt.${ext}`;
+    const { url } = await storagePut(`media/${nombre}`, mejor.datos, mejor.esPng ? "image/png" : "image/jpeg");
 
     const urlVieja = m.url;
 
@@ -198,9 +206,9 @@ export async function reprocesarCosplayers(tanda = 4) {
     if (!mejor) continue;
 
     const { url } = await storagePut(
-      `cosplay/perfil-${item.id}-${item.campo}-opt.jpg`,
+      `cosplay/perfil-${item.id}-${item.campo}-opt.${mejor.esPng ? "png" : "jpg"}`,
       mejor.datos,
-      "image/jpeg",
+      mejor.esPng ? "image/png" : "image/jpeg",
     );
 
     await db.update(cosplayers)

@@ -3468,3 +3468,13 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
 @media (prefers-reduced-motion: reduce) {
   .iw-pildora, .iw-pildora-boton, .iw-pildora-icono, .iw-pildora-texto { transition: none; }
 }
+
+/* Figura del hero del evento: un PNG recortado que se apoya sobre el fondo.
+   La base se desvanece para que no corte en seco, y una sombra difusa por
+   detrás la separa del fondo sin necesidad de caja. */
+.iw-hero-figura {
+  filter: drop-shadow(0 22px 45px rgba(0, 0, 0, 0.7))
+          drop-shadow(0 0 60px rgba(167, 139, 250, 0.22));
+  mask-image: linear-gradient(to bottom, #000 82%, transparent 99%);
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent 99%);
+}

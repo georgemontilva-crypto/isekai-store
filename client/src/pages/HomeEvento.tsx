@@ -97,6 +97,8 @@ export default function HomeEvento() {
   const heroBg = settings?.["wf_hero_bg"] ?? settings?.["worldfest_hero_image"] ?? "";
   /** Video de fondo opcional: queda como textura, apenas perceptible */
   const heroVideo = settings?.["wf_hero_video"] ?? "";
+  /** Figura recortada de la derecha del hero (PNG sin fondo) */
+  const heroFigura = settings?.["wf_hero_figura"] ?? "";
   const premioImg = settings?.["wf_premio_image"] ?? "";
   /** Fondo de la sección «El mundo ha cambiado» */
   const mundoBg = settings?.["wf_mundo_bg"] ?? "";
@@ -317,12 +319,15 @@ export default function HomeEvento() {
           />
         ))}
 
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 lg:px-16">
+        {/* Dos columnas en escritorio: el texto a la izquierda y un PNG
+            recortado a la derecha. En teléfono la figura pasa detrás del
+            texto, con menos peso, para no robarle espacio. */}
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-10 px-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-3xl"
+            className="max-w-2xl"
           >
             <p className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-[#a78bfa]">
               {e.etiquetaAnio}
@@ -367,6 +372,24 @@ export default function HomeEvento() {
               <span className="text-[#a78bfa]">E → D → C → B → A → S</span>
             </p>
           </motion.div>
+
+          {/* Figura recortada. Sin caja ni fondo: se apoya sobre el hero y su
+              base se funde con él, así un PNG transparente se integra en vez
+              de parecer pegado encima. */}
+          {heroFigura && (
+            <motion.div
+              initial={{ opacity: 0, x: 30 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.9, delay: 0.15 }}
+              className="pointer-events-none absolute inset-y-0 right-0 -z-0 w-[62%] opacity-30 lg:relative lg:inset-auto lg:w-auto lg:opacity-100"
+            >
+              <img
+                src={heroFigura}
+                alt=""
+                className="iw-hero-figura h-full w-full object-contain object-bottom lg:h-auto lg:max-h-[74svh]"
+              />
+            </motion.div>
+          )}
         </div>
       </section>
 
