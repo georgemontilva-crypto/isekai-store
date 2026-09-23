@@ -20,6 +20,16 @@ export async function comprimirImagen(
   if (file.type === "image/gif") return file;
 
   /**
+   * Los PNG se suben tal cual, sin pasar por el lienzo.
+   *
+   * Se usan casi siempre para recortes con fondo transparente, y cualquier
+   * paso intermedio puede perderlo. Pesan más, pero el servidor los reduce
+   * después conservando el formato. Vale más una imagen correcta que una
+   * ligera con un fondo blanco pegado.
+   */
+  if (file.type === "image/png") return file;
+
+  /**
    * Los PNG se mantienen como PNG.
    *
    * Antes se pasaban a JPEG, que no admite transparencia: un recorte sobre

@@ -65,12 +65,13 @@ export default function MediaLibrary({ onGoToTab }: Props) {
 
   const handleDelete = async (item: any) => {
     try {
+      // Estar en uso ya no impide borrar: se avisa dónde está y se decide.
+      // Antes bloqueaba sin salida y había que ir quitándola sitio por sitio.
       const usage = await utils.media.usage.fetch({ id: item.id });
-      if (usage.keys.length > 0) {
-        setError(`"${item.fileName}" está asignado en: ${usage.keys.join(", ")}. Quítalo de ahí antes de borrarlo.`);
-        return;
-      }
-      if (!confirm(`¿Borrar "${item.fileName}" de forma permanente?`)) return;
+      const aviso = usage.keys.length > 0
+        ? `"${item.fileName}" está en uso en: ${usage.keys.join(", ")}.\n\n¿Borrarlo igualmente? Esos sitios quedarán sin imagen.`
+        : `¿Borrar "${item.fileName}" de forma permanente?`;
+      if (!confirm(aviso)) return;
       const out = await deleteAsset.mutateAsync({ id: item.id });
       if (out && out.storageDeleted === false) {
         setError("Se quitó de la biblioteca, pero el archivo no se pudo borrar de R2.");

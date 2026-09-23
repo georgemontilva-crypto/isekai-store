@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Upload, Loader2, Check } from "lucide-react";
+import { X, Upload, Loader2, Check, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { comprimirImagen } from "@/lib/comprimirImagen";
@@ -25,7 +25,28 @@ interface Props {
 export default function MediaPickerModal({ onPick, onClose }: Props) {
   const { data: items = [], isLoading, refetch } = trpc.media.list.useQuery();
   const upload = trpc.media.upload.useMutation();
+  const utils = trpc.useUtils();
   const [uploading, setUploading] = useState(false);
+
+  const borrarAsset = trpc.media.delete.useMutation();
+
+  /** Borra un archivo de la biblioteca, avisando si está en uso */
+  const borrar = async (m: any) => {
+    try {
+      const uso = await utils.client.media.usage.query({ id: m.id }).catch(() => null);
+      const enUso = uso && (uso as any).keys?.length > 0;
+      const aviso = enUso
+        ? `"${m.fileName}" está en uso en: ${(uso as any).keys.join(", ")}.\n\n¿Borrarlo igualmente? Esos sitios quedarán sin imagen.`
+        : `¿Borrar "${m.fileName}" de forma permanente?`;
+      if (!confirm(aviso)) return;
+
+      await borrarAsset.mutateAsync({ id: m.id });
+      await utils.media.list.invalidate();
+      toast.success("Archivo eliminado");
+    } catch (e: any) {
+      setError(e?.message ?? "No se pudo borrar");
+    }
+  };
   const [error, setError] = useState("");
 
   const handleUpload = async (file: File | null) => {
@@ -122,6 +143,15 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
                   className="group flex flex-col overflow-hidden rounded-xl border border-[#e8e8ea] bg-white text-left transition-colors hover:border-[#e5007d]"
                 >
                   <div className="iw-preview-alpha relative aspect-square w-full shrink-0">
+                    {/* Borrar desde aquí: antes solo se podía desde el panel
+                        de escritorio, y en el teléfono no había forma. */}
+                    <button
+                      onClick={(ev) => { ev.stopPropagation(); borrar(m); }}
+                      className="absolute right-1 top-1 z-10 flex h-6 w-6 items-center justify-center rounded-full bg-black/70 text-white/80 backdrop-blur transition-colors hover:bg-red-600 hover:text-white"
+                      aria-label={`Borrar ${m.fileName}`}
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
                     {/* Los videos se muestran con su primer fotograma */}
                     {/\.(mp4|webm)$/i.test(m.url) ? (
                       <video
