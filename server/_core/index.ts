@@ -10,6 +10,7 @@ import helmet from "helmet";
 import { rateLimit } from "express-rate-limit";
 import { iniciarTasaAutomatica } from "../binanceRate";
 import { iniciarRevisionComisiones } from "../db";
+import { iniciarCorreosRaid, registerRaidCorreos } from "../raidCorreos";
 import { iniciarOptimizacionImagenes } from "../reprocesarImagenes";
 import { createServer } from "http";
 import net from "net";
@@ -204,6 +205,7 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   initSocket(server);
   registerStorageProxy(app);
+  registerRaidCorreos(app);
   registerOAuthRoutes(app);
   // tRPC API
   app.use(
@@ -233,6 +235,8 @@ async function startServer() {
     iniciarTasaAutomatica();
     // Comisiones de referido: se acreditan las que hayan quedado sin pagar
     iniciarRevisionComisiones();
+    // Raid del Fest: recordatorio diario y correo del premio
+    iniciarCorreosRaid();
     // Reduce poco a poco las imágenes que se subieron sin optimizar
     iniciarOptimizacionImagenes();
   });

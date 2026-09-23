@@ -396,7 +396,7 @@ export const es = {
       correo: "tu@correo.com",
       raidEtiqueta: "[ Raid comunitario ]",
       raidTitulo: "EL GUARDIÁN DEL PORTAL",
-      raidTexto: "Un jefe. Una sola barra de vida. Todos los cazadores contra él. Ataca una vez al día y ayuda a derribarlo: cuando caiga, el Sistema revelará una recompensa.",
+      raidTexto: "Un jefe. Una sola barra de vida. Todos los cazadores contra él. Ataca una vez al día y ayuda a derribarlo: cuando caiga, el Sistema revelará la recompensa y todos los que participaron recibirán un premio.",
       raidVida: "Vida",
       raidCazadores: "{n} cazadores han atacado",
       raidAtacar: "Atacar",

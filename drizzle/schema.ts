@@ -824,6 +824,14 @@ export const wfRaid = mysqlTable("wfRaid", {
   danio: int("danio").default(0).notNull(),
   activo: boolean("activo").default(true).notNull(),
   derrotadoEn: timestamp("derrotadoEn"),
+  /** Cuándo se envió el correo del premio a todos los participantes */
+  premioEnviadoEn: timestamp("premioEnviadoEn"),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});
+
+/** Usuarios que pidieron no recibir el recordatorio diario del raid */
+export const wfRaidBajas = mysqlTable("wfRaidBajas", {
+  userId: int("userId").primaryKey(),
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
 

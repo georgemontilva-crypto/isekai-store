@@ -272,6 +272,15 @@ export default function RaidJefe({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [caidoYa, recompensaImg, enVista, reducir]);
 
+  // Desde el correo se llega a /#raid: la sección aparece cuando llegan los
+  // datos, así que se baja hasta ella en ese momento
+  const listo = !!(data && data.activo);
+  useEffect(() => {
+    if (!listo || window.location.hash !== "#raid") return;
+    const id = window.setTimeout(() => document.getElementById("raid")?.scrollIntoView({ block: "start" }), 400);
+    return () => window.clearTimeout(id);
+  }, [listo]);
+
   if (!data || !data.activo) return null;
 
   const enRonda = fase === "cuenta" || fase === "jugando" || fase === "enviando";
@@ -281,7 +290,7 @@ export default function RaidJefe({
   const puedeAtacar = !caido && !data.yaAtaco && fase === "listo";
 
   return (
-    <section className="ev2-diferida ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
+    <section id="raid" className="ev2-diferida scroll-mt-16 ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
       <div className="mx-auto max-w-3xl">
         <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#f43f5e]">
           {numero}&nbsp;&nbsp;{t.raidEtiqueta}

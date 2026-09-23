@@ -8,7 +8,7 @@ import { ENV } from "./env";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const LOGO_URL = 'https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/Favicon-11%20grande-11.png';
-const APP_URL  = 'https://isekaiworld.co';
+export const APP_URL  = 'https://isekaiworld.co';
 const INSTAGRAM = 'https://instagram.com/isekaistore';
 const INSTAGRAM_DM = 'https://ig.me/m/isekaistore';
 
@@ -19,7 +19,7 @@ export type NotificationPayload = {
 
 // ─── Base template ────────────────────────────────────────────────────────────
 
-function emailTemplate(content: string, previewText: string = ''): string {
+export function emailTemplate(content: string, previewText: string = ''): string {
   return `<!DOCTYPE html>
 <html lang="es">
 <head>

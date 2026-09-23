@@ -386,7 +386,7 @@ export const en: Translations = {
       correo: "you@email.com",
       raidEtiqueta: "[ Community raid ]",
       raidTitulo: "THE PORTAL GUARDIAN",
-      raidTexto: "One boss. One health bar. Every hunter against it. Attack once a day and help bring it down: when it falls, the System will reveal a reward.",
+      raidTexto: "One boss. One health bar. Every hunter against it. Attack once a day and help bring it down: when it falls, the System will reveal the reward and every hunter who took part gets a prize.",
       raidVida: "HP",
       raidCazadores: "{n} hunters have attacked",
       raidAtacar: "Attack",
