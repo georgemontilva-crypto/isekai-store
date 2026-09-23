@@ -353,6 +353,41 @@ export const es = {
     listaTexto: "Las entradas todavía no están a la venta. Deja tu correo y te avisamos antes que a nadie cuando se abran.",
     listaHecho: "Estás dentro. Te escribimos cuando el portal se abra.",
     listaBoton: "Avísame",
+    // Listas: el orden coincide con los iconos y colores del componente
+    mundoItems: [
+      { titulo: "Decoración total", texto: "El evento será transformado de principio a fin para crear una experiencia visual inspirada en el universo de Solo Leveling." },
+      { titulo: "Personajes a tamaño real", texto: "Personajes y elementos icónicos convertidos en piezas físicas para que puedas encontrarlos, fotografiarlos y vivirlos de cerca." },
+      { titulo: "Experiencias inmersivas", texto: "Zonas diseñadas para que no solamente las observes. Las vivas." },
+      { titulo: "Portales y dungeons", texto: "Actividades y misiones repartidas por el recinto con las que ganarás EXP. Algunas se revelarán solo durante el evento." },
+      { titulo: "El Sistema", texto: "Tu entrada no será solamente un boleto. Será el comienzo de tu progreso." },
+    ],
+    areasItems: [
+      { titulo: "Red Carpet Cosplayer", texto: "La alfombra roja de quienes llevan meses preparando su personaje: desfile, fotógrafos y un espacio hecho para lucirlo." },
+      { titulo: "Zona Gamer", texto: "Competencias, videojuegos, desafíos y experiencias para demostrar tus habilidades." },
+      { titulo: "Fan Zone", texto: "Un espacio creado para quienes viven el anime, manga, cosplay, gaming y la cultura geek." },
+      { titulo: "Experiencias inmersivas", texto: "Cruza las puertas. Entra en nuevos mundos. Algunas tendrás que descubrirlas por ti mismo." },
+      { titulo: "Stands comerciales", texto: "Tiendas, coleccionables, productos exclusivos, arte, impresión 3D y mucho más." },
+      { titulo: "Obra teatral", texto: "Una historia creada para cobrar vida frente a ti." },
+      { titulo: "Presentaciones en vivo", texto: "Música, espectáculo, performance y momentos que convertirán el escenario en otra dimensión." },
+      { titulo: "Invitados internacionales", texto: "Voces, talentos y creadores que llegarán desde diferentes partes del mundo." },
+    ],
+    rangosItems: [
+      { nombre: "Despertado", desc: "Comienzas tu aventura." },
+      { nombre: "Explorador", desc: "Empiezas a descubrir el mundo." },
+      { nombre: "Cazador", desc: "Tus primeras grandes misiones." },
+      { nombre: "Élite", desc: "Las cosas empiezan a ponerse serias." },
+      { nombre: "Élite superior", desc: "Solo los más dedicados llegarán hasta aquí." },
+      { nombre: "El Despertado", desc: "El rango máximo." },
+    ],
+    aviso: {
+      notificacion: "Notificación",
+      subiste: "Has subido de rango",
+      rango: "RANGO",
+      aceptar: "Aceptar",
+      rangoMax: "Rango máximo",
+      sorteo: "En el evento, llegar aquí te mete en la batalla final por la pieza.",
+    },
+
   },
 };
 

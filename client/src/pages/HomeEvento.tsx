@@ -21,60 +21,38 @@ import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
  * interés y permite ir anunciando por partes.
  */
 
-/** Lo que transforma el recinto — «El mundo ha cambiado» */
-const TRANSFORMACION = [
-  {
-    icono: Swords,
-    titulo: "Decoración total",
-    texto: "El evento será transformado de principio a fin para crear una experiencia visual inspirada en el universo de Solo Leveling.",
-    color: "#a78bfa",
-  },
-  {
-    icono: Star,
-    titulo: "Personajes a tamaño real",
-    texto: "Personajes y elementos icónicos convertidos en piezas físicas para que puedas encontrarlos, fotografiarlos y vivirlos de cerca.",
-    color: "#fbbf24",
-  },
-  {
-    icono: Sparkles,
-    titulo: "Experiencias inmersivas",
-    texto: "Zonas diseñadas para que no solamente las observes. Las vivas.",
-    color: "#38bdf8",
-  },
-  {
-    icono: Lock,
-    titulo: "Portales y dungeons",
-    texto: "Actividades y misiones repartidas por el recinto con las que ganarás EXP. Algunas se revelarán solo durante el evento.",
-    color: "#f43f5e",
-  },
-  {
-    icono: Trophy,
-    titulo: "El Sistema",
-    texto: "Tu entrada no será solamente un boleto. Será el comienzo de tu progreso.",
-    color: "#e5007d",
-  },
+/**
+ * Estas listas solo guardan lo visual —icono y color—. Los títulos y textos
+ * viven en los archivos de idioma y se emparejan por posición, de modo que
+ * al añadir una entrada hay que añadirla también en español e inglés.
+ */
+const MUNDO_ESTILO = [
+  { icono: Swords, color: "#a78bfa" },
+  { icono: Star, color: "#fbbf24" },
+  { icono: Sparkles, color: "#38bdf8" },
+  { icono: Lock, color: "#f43f5e" },
+  { icono: Trophy, color: "#e5007d" },
 ];
 
-/** Áreas del festival — «Explora el Fest» */
-const AREAS = [
-  { icono: Star, titulo: "Red Carpet Cosplayer", texto: "La alfombra roja de quienes llevan meses preparando su personaje: desfile, fotógrafos y un espacio hecho para lucirlo.", color: "#f43f5e" },
-  { icono: Gamepad2, titulo: "Zona Gamer", texto: "Competencias, videojuegos, desafíos y experiencias para demostrar tus habilidades.", color: "#5db4ff" },
-  { icono: Users, titulo: "Fan Zone", texto: "Un espacio creado para quienes viven el anime, manga, cosplay, gaming y la cultura geek.", color: "#e5007d" },
-  { icono: Sparkles, titulo: "Experiencias inmersivas", texto: "Cruza las puertas. Entra en nuevos mundos. Algunas tendrás que descubrirlas por ti mismo.", color: "#a78bfa" },
-  { icono: Store, titulo: "Stands comerciales", texto: "Tiendas, coleccionables, productos exclusivos, arte, impresión 3D y mucho más.", color: "#fbbf24" },
-  { icono: Theater, titulo: "Obra teatral", texto: "Una historia creada para cobrar vida frente a ti.", color: "#f43f5e" },
-  { icono: Mic, titulo: "Presentaciones en vivo", texto: "Música, espectáculo, performance y momentos que convertirán el escenario en otra dimensión.", color: "#4ade80" },
-  { icono: Globe2, titulo: "Invitados internacionales", texto: "Voces, talentos y creadores que llegarán desde diferentes partes del mundo.", color: "#7dd8ff" },
+const AREAS_ESTILO = [
+  { icono: Star, color: "#f43f5e" },
+  { icono: Gamepad2, color: "#5db4ff" },
+  { icono: Users, color: "#e5007d" },
+  { icono: Sparkles, color: "#a78bfa" },
+  { icono: Store, color: "#fbbf24" },
+  { icono: Theater, color: "#f43f5e" },
+  { icono: Mic, color: "#4ade80" },
+  { icono: Globe2, color: "#7dd8ff" },
 ];
 
-/** La escala de rangos, con su nombre dentro del Sistema */
-const RANGOS = [
-  { r: "E", nombre: "Despertado",     desc: "Comienzas tu aventura.",                      color: "#8a8a9c" },
-  { r: "D", nombre: "Explorador",     desc: "Empiezas a descubrir el mundo.",              color: "#4ade80" },
-  { r: "C", nombre: "Cazador",        desc: "Tus primeras grandes misiones.",              color: "#38bdf8" },
-  { r: "B", nombre: "Élite",          desc: "Las cosas empiezan a ponerse serias.",        color: "#a78bfa" },
-  { r: "A", nombre: "Élite superior", desc: "Solo los más dedicados llegarán hasta aquí.", color: "#fbbf24" },
-  { r: "S", nombre: "El Despertado",  desc: "El rango máximo.",                            color: "#f43f5e" },
+/** Letra y color de cada rango; su nombre y descripción van en el idioma */
+const RANGOS_ESTILO = [
+  { r: "E", color: "#8a8a9c" },
+  { r: "D", color: "#4ade80" },
+  { r: "C", color: "#38bdf8" },
+  { r: "B", color: "#a78bfa" },
+  { r: "A", color: "#fbbf24" },
+  { r: "S", color: "#f43f5e" },
 ];
 
 /**
@@ -109,8 +87,12 @@ function FlechasCarril({ id }: { id: string }) {
 }
 
 export default function HomeEvento() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const e = t.evento;
+
+  const TRANSFORMACION = MUNDO_ESTILO.map((x, i) => ({ ...x, ...e.mundoItems[i] }));
+  const AREAS = AREAS_ESTILO.map((x, i) => ({ ...x, ...e.areasItems[i] }));
+  const RANGOS = RANGOS_ESTILO.map((x, i) => ({ ...x, ...e.rangosItems[i] }));
   const { data: settings } = trpc.settings.getAll.useQuery();
   const heroBg = settings?.["wf_hero_bg"] ?? settings?.["worldfest_hero_image"] ?? "";
   /** Video de fondo opcional: queda como textura, apenas perceptible */
@@ -130,10 +112,13 @@ export default function HomeEvento() {
   });
 
   useSEO({
-    title: "Isekai World Fest 2027 — El Sistema ha despertado",
-    description:
-      "14 y 15 de agosto de 2027, Palacio de Eventos de Venezuela, Maracaibo. Dos días donde el anime, los videojuegos y el cosplay cobran vida.",
-    url: "https://isekaiworld.co/evento",
+    title: lang === "en"
+      ? "Isekai World Fest 2027 — The System has awakened"
+      : "Isekai World Fest 2027 — El Sistema ha despertado",
+    description: lang === "en"
+      ? "August 14–15, 2027 in Maracaibo, Venezuela. Two days where anime, video games and cosplay come to life."
+      : "14 y 15 de agosto de 2027 en Maracaibo, Venezuela. Dos días donde el anime, los videojuegos y el cosplay cobran vida.",
+    url: "https://isekaiworld.co/",
   });
 
   /**
@@ -239,9 +224,9 @@ export default function HomeEvento() {
             ))}
 
             <p className="lp-linea-1 mb-2 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
-              Notificación
+              {e.aviso.notificacion}
             </p>
-            <p className="lp-linea-2 mb-7 text-sm text-[#b8e6ff]">Has subido de rango</p>
+            <p className="lp-linea-2 mb-7 text-sm text-[#b8e6ff]">{e.aviso.subiste}</p>
 
             <div
               className={`lp-sello relative mx-auto mb-7 flex items-center justify-center rounded-full border-2 ${
@@ -268,17 +253,16 @@ export default function HomeEvento() {
             </div>
 
             <p className="lp-linea-3 text-base font-black leading-tight text-white sm:text-lg">
-              RANGO {ascensoDemo} · {rangoDe(xpDemo).nombre.toUpperCase()}
+              {e.aviso.rango} {ascensoDemo} · {rangoDe(xpDemo).nombre.toUpperCase()}
             </p>
 
             {ascensoDemo === "S" && (
               <div className="lp-linea-4 mt-4 rounded-lg border border-[#f43f5e]/40 bg-[#f43f5e]/10 p-4">
                 <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#f43f5e]">
-                  Rango máximo
+                  {e.aviso.rangoMax}
                 </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-[#ffd0d8]">
-                  En el evento, llegar aquí te mete en la{" "}
-                  <strong className="text-white">batalla final</strong> por la pieza.
+                  {e.aviso.sorteo}
                 </p>
               </div>
             )}
@@ -288,7 +272,7 @@ export default function HomeEvento() {
               className="lp-linea-4 mt-7 w-full rounded-lg border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20"
               style={{ minHeight: 48 }}
             >
-              Aceptar
+              {e.aviso.aceptar}
             </button>
           </div>
         </div>

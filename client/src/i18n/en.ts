@@ -343,5 +343,40 @@ export const en: Translations = {
     listaTexto: "Tickets aren't on sale yet. Leave your email and we'll let you know before anyone else.",
     listaHecho: "You're in. We'll write when the portal opens.",
     listaBoton: "Notify me",
+    // Lists: order matches the icons and colours in the component
+    mundoItems: [
+      { titulo: "Full Decoration", texto: "The venue will be transformed from end to end into a visual experience inspired by the world of Solo Leveling." },
+      { titulo: "Life-Size Characters", texto: "Iconic characters and objects built as physical pieces you can find, photograph and experience up close." },
+      { titulo: "Immersive Experiences", texto: "Zones designed not just to be seen. To be lived." },
+      { titulo: "Gates and Dungeons", texto: "Quests and activities spread across the venue that earn you EXP. Some will only be revealed during the event." },
+      { titulo: "The System", texto: "Your ticket won't just be a ticket. It will be the start of your progress." },
+    ],
+    areasItems: [
+      { titulo: "Cosplayer Red Carpet", texto: "The red carpet for everyone who spent months building their character: a runway, photographers and a space made to show it off." },
+      { titulo: "Gamer Zone", texto: "Tournaments, video games, challenges and experiences to prove your skills." },
+      { titulo: "Fan Zone", texto: "A space built for everyone who lives anime, manga, cosplay, gaming and geek culture." },
+      { titulo: "Immersive Experiences", texto: "Step through the gates. Enter new worlds. Some of them you'll have to find on your own." },
+      { titulo: "Vendor Booths", texto: "Shops, collectibles, exclusive products, art, 3D printing and much more." },
+      { titulo: "Stage Play", texto: "An original story created to come alive in front of you." },
+      { titulo: "Live Performances", texto: "Music, shows and moments that turn the stage into another dimension." },
+      { titulo: "International Guests", texto: "Voices, talents and creators arriving from around the world." },
+    ],
+    rangosItems: [
+      { nombre: "Awakened", desc: "Your adventure begins." },
+      { nombre: "Explorer", desc: "You start to uncover the world." },
+      { nombre: "Hunter", desc: "Your first major quests." },
+      { nombre: "Elite", desc: "Things start getting serious." },
+      { nombre: "High Elite", desc: "Only the most dedicated make it this far." },
+      { nombre: "The Awakened", desc: "The highest rank." },
+    ],
+    aviso: {
+      notificacion: "Notification",
+      subiste: "You have ranked up",
+      rango: "RANK",
+      aceptar: "Accept",
+      rangoMax: "Highest rank",
+      sorteo: "At the event, reaching this gets you into the final battle for the piece.",
+    },
+
   },
 };
