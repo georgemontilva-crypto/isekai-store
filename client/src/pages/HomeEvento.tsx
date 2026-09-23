@@ -1116,7 +1116,7 @@ export default function HomeEvento() {
             <form
               onSubmit={e => {
                 e.preventDefault();
-                suscribir.mutate({ email: email.trim(), ...antiSpam.fields() });
+                suscribir.mutate({ email: email.trim(), source: "worldfest", ...antiSpam.fields() });
               }}
               className="flex gap-2"
             >

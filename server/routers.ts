@@ -5,7 +5,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { notifyStaffActivated, notifyStoreActivated, notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
+import { notifyMisionAceptada, notifyStaffActivated, notifyStoreActivated, notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
 import { orders, orderItems, users } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
@@ -1089,9 +1089,17 @@ export const appRouter = router({
 
         // Se guarda SIEMPRE en nuestra base: es la lista que se consulta
         // desde el panel, independiente de Mailchimp.
+        let nuevo = false;
         try {
-          await insertSubscriber(input.email, input.source);
+          const r = await insertSubscriber(input.email, input.source);
+          nuevo = !!r?.nuevo;
         } catch (e) { console.error("Failed to store subscriber:", e); }
+
+        // Confirmación a quien acepta la misión (solo la primera vez)
+        if (esWorldFest && nuevo) {
+          try { await notifyMisionAceptada(input.email); }
+          catch (e) { console.error("Failed to send mission confirmation:", e); }
+        }
 
         // El aviso al dueño va PRIMERO y por separado: si Mailchimp falla o no
         // está configurado, el registro no se pierde silenciosamente.

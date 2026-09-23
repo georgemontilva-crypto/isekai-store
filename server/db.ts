@@ -2513,10 +2513,18 @@ export async function insertSubscriber(email: string, source: string) {
   const db = await getDb();
   if (!db) return;
   const [existing] = await db.select().from(subscribers).where(eq(subscribers.email, email)).limit(1);
-  if (existing) return existing;
+  if (existing) {
+    // Si ya estaba como suscriptor normal y ahora se apunta al Fest, pasa al Fest
+    // (y cuenta como «nuevo» para el Fest: es su primera vez en la misión)
+    if (source === "worldfest" && existing.source !== "worldfest") {
+      await db.update(subscribers).set({ source }).where(eq(subscribers.id, existing.id));
+      return { ...existing, source, nuevo: true };
+    }
+    return { ...existing, nuevo: false };
+  }
   await db.insert(subscribers).values({ email, source });
   const [row] = await db.select().from(subscribers).where(eq(subscribers.email, email)).limit(1);
-  return row;
+  return { ...row, nuevo: true };
 }
 
 export async function getSubscribers(source?: string) {

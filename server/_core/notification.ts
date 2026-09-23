@@ -620,3 +620,31 @@ export async function notifyTicketPurchased(
     `Tu boleto ${datos.codigo} está confirmado.`,
   );
 }
+
+// ─── notifyMisionAceptada ─────────────────────────────────────────────────────
+
+/**
+ * Confirmación para quien se apunta a la lista de acceso del World Fest
+ * («¿Aceptas la misión?»). Solo se envía la primera vez que se registra
+ * ese correo, para que el formulario no sirva para bombardear a nadie.
+ */
+export async function notifyMisionAceptada(email: string): Promise<boolean> {
+  const content = `
+    <p style="font-size:12px;letter-spacing:.3em;color:#7c3aed;margin:0 0 8px">[ NUEVA MISIÓN ACEPTADA ]</p>
+    <h1>✅ Estás dentro, cazador</h1>
+    <p>Tu lugar en la lista de acceso de <span class="highlight">Isekai World Fest 2027</span> quedó registrado.
+    Cuando se abran las entradas, <strong>serás de los primeros en saberlo</strong>.</p>
+    <div class="order-box">
+      <p style="margin:0">📅 <strong>14 y 15 de agosto de 2027</strong><br/>📍 Maracaibo, Venezuela</p>
+    </div>
+    <p>Mientras tanto, el <strong>Guardián del Portal</strong> ya despertó: toda la comunidad lo está atacando y,
+    cuando caiga, todos los que participaron recibirán un premio.</p>
+    <div style="text-align:center"><a href="${APP_URL}/#raid" class="btn">Atacar al Guardián →</a></div>
+    <hr class="divider"/>
+    <p style="font-size:13px;color:#999">EN: Quest accepted! You're on the Isekai World Fest 2027 early-access list
+    (August 14–15, 2027 · Maracaibo, Venezuela). You'll be among the first to know when tickets open.</p>
+    <p style="font-size:12px;color:#aaa">Si no fuiste tú quien se registró, ignora este correo.</p>
+  `;
+  return sendEmail(email, "✅ Misión aceptada — Isekai World Fest 2027", content, "Estás en la lista de acceso. Serás de los primeros en saberlo.");
+}
+
