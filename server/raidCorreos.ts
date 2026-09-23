@@ -182,7 +182,8 @@ export async function enviarRecordatorios(forzar = false): Promise<number> {
     if (horaVenezuela() < HORA_RECORDATORIO) return 0;
     if ((await leerAjuste("wf_raid_recordatorio_dia")) === hoy) return 0;
   }
-  const [r] = await db.select().from(wfRaid).where(eq(wfRaid.activo, true)).orderBy(desc(wfRaid.id)).limit(1);
+  const [r] = await db.select({ id: wfRaid.id, vidaMax: wfRaid.vidaMax, danio: wfRaid.danio })
+    .from(wfRaid).where(eq(wfRaid.activo, true)).orderBy(desc(wfRaid.id)).limit(1);
   if (!r || r.danio >= r.vidaMax) return 0;
 
   // Se reserva el día ANTES de enviar: si el servidor se reinicia a mitad,
@@ -223,7 +224,7 @@ function correoPremio(p: Participante, total: number, premio: string, imagen: st
 export async function enviarPremio(): Promise<number> {
   const db = await getDb();
   if (!db) return 0;
-  const [r] = await db.select().from(wfRaid)
+  const [r] = await db.select({ id: wfRaid.id }).from(wfRaid)
     .where(and(eq(wfRaid.activo, true), sql`${wfRaid.derrotadoEn} IS NOT NULL`, sql`${wfRaid.premioEnviadoEn} IS NULL`))
     .orderBy(desc(wfRaid.id)).limit(1);
   if (!r) return 0;

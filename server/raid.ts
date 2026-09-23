@@ -35,8 +35,16 @@ function diaVenezuela(): string {
 async function raidActivo() {
   const db = await getDb();
   if (!db) return null;
+  // Solo las columnas que el juego necesita: así el jefe se sigue viendo
+  // aunque falte alguna columna nueva (por ejemplo, migración pendiente)
   const [r] = await db
-    .select()
+    .select({
+      id: wfRaid.id,
+      vidaMax: wfRaid.vidaMax,
+      danio: wfRaid.danio,
+      activo: wfRaid.activo,
+      derrotadoEn: wfRaid.derrotadoEn,
+    })
     .from(wfRaid)
     .where(eq(wfRaid.activo, true))
     .orderBy(desc(wfRaid.id))
