@@ -261,7 +261,13 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
         </div>
       )}
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+      {/* [&>*]:shrink-0 → las tarjetas no se encogen al desplegarse (con overflow-hidden,
+          una columna con scroll las comprimía y cortaba su contenido). El espacio de
+          abajo deja ver la última tarjeta por encima de la barra flotante. */}
+      <div
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 [&>*]:shrink-0"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)' }}
+      >
         <button onClick={onCreateOrder}
           className="w-full flex items-center justify-center gap-2 bg-[#e5007d] text-white ev-notch font-bold text-sm mb-1 transition-transform active:scale-[0.98]"
           style={{ minHeight: 52, WebkitTapHighlightColor: 'transparent' }}>
@@ -595,7 +601,10 @@ function CosplaySection({ onModalChange, jumpTo, onJumpDone }: {
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-3">
+      <div
+        className="flex-1 overflow-y-auto p-4 flex flex-col gap-3 [&>*]:shrink-0"
+        style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)' }}
+      >
 
         {/* Solicitudes */}
         {subTab === 'applications' && (
@@ -1739,7 +1748,7 @@ function BlogSection({ onModalChange }: { onModalChange: (open: boolean) => void
         </button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4">
+      <div className="flex-1 overflow-y-auto p-4" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)' }}>
 
         {/* Posts */}
         {subTab === 'posts' && (
