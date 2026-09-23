@@ -281,7 +281,7 @@ export default function HomeEvento() {
       )}
 
       {/* ═══ 1. EL SISTEMA HA DESPERTADO ═══ */}
-      <section className="relative flex min-h-[78svh] items-center overflow-hidden py-14 lg:min-h-[84svh] lg:py-0">
+      <section className="relative flex min-h-[78svh] items-center overflow-hidden py-14 lg:min-h-[88svh] lg:py-0">
         {/* El video manda si está puesto; la imagen queda de respaldo mientras
             carga o si el navegador no puede reproducirlo. */}
         {heroBg && (
@@ -319,24 +319,21 @@ export default function HomeEvento() {
           />
         ))}
 
-        {/* Dos columnas en escritorio: el texto a la izquierda y un PNG
-            recortado a la derecha. En teléfono la figura pasa detrás del
-            texto, con menos peso, para no robarle espacio. */}
-        <div className="relative z-10 mx-auto w-full max-w-6xl px-6 lg:px-16">
-          {/* Se reserva sitio a la derecha para la figura con un relleno, sin
-              encoger el bloque: la rejilla estrechaba el titular y las líneas
-              se apilaban. */}
+        {/* Texto y figura comparten un mismo contenedor y una misma retícula:
+            así ambos nacen del mismo margen lateral y la composición se lee
+            como una sola pieza en cualquier resolución. */}
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl grid-cols-1 items-center gap-8 px-6 lg:grid-cols-2 lg:gap-10 lg:px-12">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-2xl lg:max-w-[min(38rem,50vw)] lg:pt-10"
+            className="min-w-0"
           >
             <p className="mb-5 font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-[#a78bfa]">
               {e.etiquetaAnio}
             </p>
 
-            <h1 className="ev-display mb-6 text-[38px] leading-[0.95] [hyphens:none] [overflow-wrap:normal] sm:text-6xl lg:text-[52px] xl:text-7xl">
+            <h1 className="ev-display mb-6 text-[38px] leading-[0.95] [hyphens:none] [overflow-wrap:normal] sm:text-6xl lg:text-[46px] xl:text-[58px]">
               {e.heroTitulo1}
               <br />
               <span className="iw-texto-sistema">{e.heroTitulo2}</span>
@@ -376,28 +373,26 @@ export default function HomeEvento() {
             </p>
           </motion.div>
 
-          {/* Figura recortada. Sin caja ni fondo: se apoya sobre el hero y su
-              base se funde con él, así un PNG transparente se integra en vez
-              de parecer pegado encima. */}
+          {/* Segunda columna. En escritorio es una celda de la retícula, así
+              que respeta el mismo margen derecho que el texto respeta a la
+              izquierda. Se alinea abajo y sobresale un poco por la base para
+              ganar altura sin deformarse. En teléfono vuelve a pasar detrás
+              del texto, como ambiente. */}
+          {heroFigura && (
+            <motion.div
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.9, delay: 0.15 }}
+              className="pointer-events-none absolute inset-y-0 right-0 -z-10 w-[92%] opacity-25 lg:relative lg:inset-auto lg:z-0 lg:-mb-[5svh] lg:h-[88svh] lg:w-full lg:self-end lg:opacity-100"
+            >
+              <img
+                src={heroFigura}
+                alt=""
+                className="iw-hero-figura h-full w-full object-contain object-bottom"
+              />
+            </motion.div>
+          )}
         </div>
-
-        {/* La figura no va dentro del contenedor centrado: se ancla al borde
-            derecho de la pantalla y ocupa casi todo el alto del hero. Dentro
-            del contenedor quedaba limitada por su ancho y se veía pequeña. */}
-        {heroFigura && (
-          <motion.div
-            initial={{ opacity: 0, x: 40 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.9, delay: 0.15 }}
-            className="pointer-events-none absolute bottom-0 right-0 z-0 h-[78%] w-[92%] opacity-30 sm:h-[86%] lg:h-full lg:w-[46vw] lg:opacity-100"
-          >
-            <img
-              src={heroFigura}
-              alt=""
-              className="iw-hero-figura h-full w-full object-contain object-bottom lg:object-right-bottom"
-            />
-          </motion.div>
-        )}
       </section>
 
       {/* ═══ 2. BIENVENIDO AL ISEKAI ═══ */}
