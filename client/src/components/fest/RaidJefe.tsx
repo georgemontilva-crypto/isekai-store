@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Swords } from "lucide-react";
+import { useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import type { Translations } from "@/i18n/es";
 
@@ -52,9 +53,17 @@ function JefeSilueta({ caido }: { caido: boolean }) {
   );
 }
 
+/**
+ * Revelación de la recompensa al caer el jefe:
+ * grieta (el jefe tiembla y brilla) → estallido (destello y esquirlas) →
+ * revelada (la pieza sube entre rayos de luz). Se reproduce cada vez que la
+ * sección entra en pantalla por primera vez en la visita.
+ */
+type Revelacion = "no" | "grieta" | "estallido" | "revelada";
+
 export default function RaidJefe({
-  t, imagen, recompensa, numero,
-}: { t: T; imagen: string; recompensa: string; numero: React.ReactNode }) {
+  t, imagen, recompensa, recompensaImg, numero,
+}: { t: T; imagen: string; recompensa: string; recompensaImg: string; numero: React.ReactNode }) {
   const clave = useMemo(claveVisitante, []);
   const utils = trpc.useUtils();
   const { data } = trpc.raid.estado.useQuery({ clave }, { refetchInterval: 20_000 });
@@ -67,6 +76,23 @@ export default function RaidJefe({
   const [numeros, setNumeros] = useState<{ id: number; x: number; y: number }[]>([]);
   const jefeRef = useRef<HTMLDivElement>(null);
   const arenaRef = useRef<HTMLDivElement>(null);
+  /**
+   * Detecta cuándo el jefe entra en pantalla. Se engancha con un ref de
+   * función porque la caja no existe hasta que llegan los datos.
+   */
+  const [caja, setCaja] = useState<HTMLDivElement | null>(null);
+  const [enVista, setEnVista] = useState(false);
+  useEffect(() => {
+    if (!caja || enVista) return;
+    const obs = new IntersectionObserver(
+      ([entrada]) => { if (entrada.isIntersecting) { setEnVista(true); obs.disconnect(); } },
+      { threshold: 0.5 },
+    );
+    obs.observe(caja);
+    return () => obs.disconnect();
+  }, [caja, enVista]);
+  const reducir = useReducedMotion();
+  const [revelacion, setRevelacion] = useState<Revelacion>("no");
   const [mensaje, setMensaje] = useState("");
   const golpesRef = useRef(0);
   const idNum = useRef(0);
@@ -138,6 +164,21 @@ export default function RaidJefe({
     try { navigator.vibrate?.(8); } catch { /* no soportado */ }
   };
 
+  const caidoYa = !!(data && data.activo && data.derrotado);
+  useEffect(() => {
+    if (!caidoYa || !recompensaImg || !enVista || revelacion !== "no") return;
+    if (reducir) { setRevelacion("revelada"); return; }
+    setRevelacion("grieta");
+    try { navigator.vibrate?.([30, 50, 30, 50, 30]); } catch { /* no soportado */ }
+    const t1 = window.setTimeout(() => {
+      setRevelacion("estallido");
+      try { navigator.vibrate?.(180); } catch { /* no soportado */ }
+    }, 1200);
+    const t2 = window.setTimeout(() => setRevelacion("revelada"), 2000);
+    return () => { window.clearTimeout(t1); window.clearTimeout(t2); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caidoYa, recompensaImg, enVista, reducir]);
+
   if (!data || !data.activo) return null;
 
   const enRonda = fase === "cuenta" || fase === "jugando" || fase === "enviando";
@@ -179,18 +220,60 @@ export default function RaidJefe({
 
         {/* El jefe: en la ronda es la zona que se toca */}
         <div
+          ref={setCaja}
           onPointerDown={golpear}
           className={`relative mx-auto mb-8 aspect-square w-full max-w-[300px] sm:max-w-[340px] select-none ${fase === "jugando" ? "cursor-crosshair" : ""}`}
           style={{ touchAction: fase === "jugando" ? "none" : "auto", WebkitTouchCallout: "none" }}
         >
           <div className="absolute inset-[8%] rounded-full" style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />
-          <div ref={jefeRef} className={`relative h-full w-full ${caido ? "grayscale" : ""}`}>
-            {imagen ? (
-              <img src={imagen} alt="" draggable={false} className="h-full w-full object-contain" />
-            ) : (
-              <JefeSilueta caido={caido} />
-            )}
-          </div>
+          {revelacion !== "revelada" && (
+            <div
+              ref={jefeRef}
+              className={`relative h-full w-full ${caido && revelacion === "no" ? "grayscale" : ""} ${
+                revelacion === "grieta" ? "ev2-jefe-grieta" : revelacion === "estallido" ? "ev2-jefe-estalla" : ""
+              }`}
+            >
+              {imagen ? (
+                <img src={imagen} alt="" draggable={false} className="h-full w-full object-contain" />
+              ) : (
+                <JefeSilueta caido={caido && revelacion === "no"} />
+              )}
+            </div>
+          )}
+
+          {revelacion === "estallido" && (
+            <>
+              <span className="ev2-destello" aria-hidden="true" />
+              {Array.from({ length: 14 }, (_, i) => {
+                const ang = (Math.PI * 2 * i) / 14;
+                const d = 120 + (i % 3) * 40;
+                return (
+                  <span
+                    key={i}
+                    className="ev2-esquirla"
+                    aria-hidden="true"
+                    style={{
+                      ["--dx" as string]: `${Math.cos(ang) * d}px`,
+                      ["--dy" as string]: `${Math.sin(ang) * d}px`,
+                      ["--r" as string]: `${i * 47}deg`,
+                    }}
+                  />
+                );
+              })}
+            </>
+          )}
+
+          {revelacion === "revelada" && (
+            <div className="absolute inset-0">
+              <span className="ev2-rayos" aria-hidden="true" />
+              <img
+                src={recompensaImg}
+                alt={t.raidDesbloqueada}
+                draggable={false}
+                className="ev2-recompensa-img relative h-full w-full object-contain"
+              />
+            </div>
+          )}
 
           {numeros.map(n => (
             <span key={n.id} className="ev2-danio pointer-events-none absolute font-mono text-xl font-black text-[#fb7185]" style={{ left: n.x, top: n.y }}>
@@ -205,7 +288,7 @@ export default function RaidJefe({
             </div>
           )}
 
-          {caido && (
+          {caido && revelacion === "no" && (
             <div className="absolute inset-x-0 bottom-4 text-center">
               <p className="ev-display text-2xl text-white sm:text-3xl">{t.raidDerrotado}</p>
             </div>
@@ -237,10 +320,17 @@ export default function RaidJefe({
             </p>
           )}
 
-          {fase === "listo" && caido && (
-            <p className="border border-[#a78bfa]/40 bg-[#a78bfa]/10 px-5 py-4 text-sm leading-relaxed text-[#ddd6fe]">
-              {recompensa || t.raidRecompensa}
-            </p>
+          {caido && (fase === "listo" || fase === "resultado") && (revelacion === "revelada" || !recompensaImg) && (
+            <div className={recompensaImg ? "ev2-aparece-tarde" : ""}>
+              {recompensaImg && (
+                <p className="ev-display mb-3 text-2xl text-white sm:text-3xl" style={{ textShadow: "0 0 24px rgba(251,191,36,0.7)" }}>
+                  {t.raidDesbloqueada}
+                </p>
+              )}
+              <p className="mt-3 border border-[#a78bfa]/40 bg-[#a78bfa]/10 px-5 py-4 text-sm leading-relaxed text-[#ddd6fe]">
+                {recompensa || t.raidRecompensa}
+              </p>
+            </div>
           )}
 
           {fase === "listo" && !caido && data.yaAtaco && (

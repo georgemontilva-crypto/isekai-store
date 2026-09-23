@@ -232,6 +232,10 @@ export default function HomeEventoV2() {
   /** Raid: imagen del jefe y recompensa opcional (se escribe desde la base) */
   const raidJefe = settings?.["wf_raid_jefe"] ?? "";
   const raidRecompensa = (lang === "en" ? settings?.["wf_raid_recompensa_en"] : settings?.["wf_raid_recompensa"]) ?? "";
+  const raidRecompensaImg = settings?.["wf_raid_recompensa_img"] ?? "";
+  /** Si la comunidad ya derrotó al jefe, la pieza deja de estar clasificada */
+  const { data: estadoRaid } = trpc.raid.estado.useQuery(undefined, { refetchInterval: 60_000 });
+  const piezaRevelada = !!(estadoRaid?.activo && estadoRaid.derrotado && raidRecompensaImg);
   const [sombras, setSombras] = useState(false);
   const cerrarSombras = useCallback(() => setSombras(false), []);
 
@@ -966,6 +970,7 @@ export default function HomeEventoV2() {
         t={e.v2}
         imagen={raidJefe}
         recompensa={raidRecompensa}
+        recompensaImg={raidRecompensaImg}
         numero={<NumSeccion n={7} />}
       />
 
@@ -1008,7 +1013,22 @@ export default function HomeEventoV2() {
               </p>
             </div>
 
-            {/* La pieza, apenas insinuada */}
+            {/* La pieza: clasificada hasta que la comunidad derrota al jefe
+                del raid; entonces se muestra entera */}
+            {piezaRevelada ? (
+              <div className="relative flex min-h-[320px] items-center justify-center overflow-hidden p-6 lg:min-h-0">
+                <span className="ev2-rayos" aria-hidden="true" />
+                <img
+                  src={raidRecompensaImg}
+                  alt={e.premioPieza}
+                  className="relative max-h-[420px] w-full object-contain"
+                  style={{ filter: "drop-shadow(0 0 28px rgba(251,191,36,0.5))" }}
+                />
+                <span className="absolute bottom-4 left-0 right-0 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-[#fbbf24]">
+                  {e.v2.premioDesbloqueado}
+                </span>
+              </div>
+            ) : (
             <div className="relative min-h-[260px] overflow-hidden lg:min-h-0">
               {premioImg ? (
                 <>
@@ -1033,6 +1053,7 @@ export default function HomeEventoV2() {
                 </span>
               </div>
             </div>
+            )}
           </div>
         </div>
       </section>
