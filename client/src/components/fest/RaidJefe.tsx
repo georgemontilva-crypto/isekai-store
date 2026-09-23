@@ -30,6 +30,107 @@ function colorCombo(n: number) {
 type T = Translations["evento"]["v2"];
 type Fase = "listo" | "cuenta" | "jugando" | "enviando" | "resultado";
 
+/**
+ * Ambiente del jefe: relámpagos rojos detrás, fuego en su base y brasas que
+ * suben. Todo son capas fijas que solo cambian opacidad o se desplazan
+ * (baratas de animar). Posiciones y tiempos fijos: el render es estable.
+ */
+const RAYOS = [
+  { x: 6, y: -6, h: 62, rot: -14, d: 5.2, r: 0.4, rama: true },
+  { x: 72, y: -10, h: 70, rot: 12, d: 6.8, r: 2.1, rama: false },
+  { x: 40, y: -16, h: 48, rot: 4, d: 8.3, r: 4.6, rama: true },
+  { x: 86, y: 8, h: 46, rot: 22, d: 7.4, r: 3.3, rama: false },
+  { x: -4, y: 16, h: 44, rot: -26, d: 9.1, r: 6.2, rama: false },
+];
+/** Llamas detrás del jefe (grandes) y delante de su base (pequeñas) */
+const LLAMAS_JEFE = [
+  { x: 16, w: 13, d: 1.3 }, { x: 27, w: 17, d: 1.7 }, { x: 38, w: 15, d: 1.1 },
+  { x: 50, w: 20, d: 1.5 }, { x: 62, w: 15, d: 1.25 }, { x: 73, w: 17, d: 1.8 }, { x: 84, w: 13, d: 1.4 },
+];
+const LLAMAS_FRENTE = [
+  { x: 24, w: 9, d: 1.2 }, { x: 36, w: 11, d: 1.55 }, { x: 64, w: 11, d: 1.35 }, { x: 76, w: 9, d: 1.65 },
+];
+const BRASAS_JEFE = Array.from({ length: 18 }, (_, i) => ({
+  x: 14 + ((i * 41) % 72),
+  d: 1.6 + (i % 5) * 0.35,
+  r: (i * 0.37) % 2.4,
+  t: 2 + (i % 3),
+  dx: ((i * 23) % 40) - 20,
+  c: i % 3 === 0 ? "#fde68a" : i % 3 === 1 ? "#fb923c" : "#f43f5e",
+}));
+
+function Rayo({ rama }: { rama: boolean }) {
+  const d = "M52 0 L40 58 L58 62 L34 120 L50 124 L28 200";
+  const r = "M44 64 L22 92 L30 96 L14 130";
+  return (
+    <svg viewBox="0 0 80 200" className="h-full w-full overflow-visible" aria-hidden="true">
+      <g className="ev2-rayo-brillo">
+        <path d={d} fill="none" stroke="#ff1744" strokeWidth="12" strokeLinejoin="round" opacity="0.7" />
+        {rama && <path d={r} fill="none" stroke="#ff1744" strokeWidth="8" strokeLinejoin="round" opacity="0.6" />}
+      </g>
+      <path d={d} fill="none" stroke="#ffe4e6" strokeWidth="3" strokeLinejoin="round" />
+      {rama && <path d={r} fill="none" stroke="#fecdd3" strokeWidth="2" strokeLinejoin="round" />}
+    </svg>
+  );
+}
+
+/** Detrás del jefe: tormenta y fuego */
+function FondoJefe() {
+  return (
+    <div className="pointer-events-none absolute -inset-[12%] overflow-hidden" aria-hidden="true">
+      {RAYOS.map((r, i) => (
+        <div key={`c${i}`} className="ev2-cielo" style={{ animationDuration: `${r.d}s`, animationDelay: `${r.r}s` }} />
+      ))}
+      {RAYOS.map((r, i) => (
+        <div
+          key={`r${i}`}
+          className="ev2-rayo absolute"
+          style={{
+            left: `${r.x}%`, top: `${r.y}%`, height: `${r.h}%`, aspectRatio: "80 / 200",
+            transform: `rotate(${r.rot}deg)`, animationDuration: `${r.d}s`, animationDelay: `${r.r}s`,
+          }}
+        >
+          <Rayo rama={r.rama} />
+        </div>
+      ))}
+      <div className="ev2-suelo-fuego" />
+      {LLAMAS_JEFE.map((l, i) => (
+        <span
+          key={`f${i}`}
+          className="ev2-llama-jefe"
+          style={{ left: `${l.x}%`, width: `${l.w}%`, animationDuration: `${l.d}s`, animationDelay: `${-i * 0.3}s` }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** Delante del jefe: llamas pequeñas en su base y brasas que suben */
+function BrasasJefe() {
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      {LLAMAS_FRENTE.map((l, i) => (
+        <span
+          key={`ff${i}`}
+          className="ev2-llama-jefe ev2-llama-frente"
+          style={{ left: `${l.x}%`, width: `${l.w}%`, animationDuration: `${l.d}s`, animationDelay: `${-i * 0.45}s` }}
+        />
+      ))}
+      {BRASAS_JEFE.map((b, i) => (
+        <span
+          key={i}
+          className="ev2-brasa-jefe"
+          style={{
+            left: `${b.x}%`, width: b.t, height: b.t, background: b.c, color: b.c,
+            ["--dx" as string]: `${b.dx}px`,
+            animationDuration: `${b.d}s`, animationDelay: `${b.r}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
 /** Jefe por defecto si no hay imagen subida: una sombra con cuernos */
 function JefeSilueta({ caido }: { caido: boolean }) {
   return (
@@ -353,6 +454,8 @@ export default function RaidJefe({
           style={{ touchAction: fase === "jugando" ? "none" : "auto", WebkitTouchCallout: "none" }}
         >
           <div className={`absolute inset-[8%] rounded-full ${fase === "jugando" && golpes >= 50 ? "ev2-furia" : ""}`} style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />
+          {!caido && revelacion === "no" && <FondoJefe />}
+
           {revelacion !== "revelada" && (
             <div
               ref={jefeRef}
@@ -367,6 +470,8 @@ export default function RaidJefe({
               )}
             </div>
           )}
+
+          {!caido && revelacion === "no" && <BrasasJefe />}
 
           {revelacion === "estallido" && (
             <>

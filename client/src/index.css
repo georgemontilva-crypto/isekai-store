@@ -3948,3 +3948,61 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
 
 /* Gama baja: sin desenfoques (en esos teléfonos sí pesan) */
 .iw-ligero .ev2-humo, .iw-ligero .ev2-aura-ejercito, .iw-ligero .ev2-llama { filter: none; }
+
+/* Raid: tormenta roja, fuego y brasas del jefe */
+.ev2-rayo { opacity: 0; transform-origin: 50% 0; animation: ev2-rayo 6s linear infinite; }
+.ev2-rayo-brillo { filter: blur(4px); }
+@keyframes ev2-rayo {
+  0%, 100% { opacity: 0; }
+  1.2% { opacity: 1; }
+  2.4% { opacity: .15; }
+  3.4% { opacity: .95; }
+  6% { opacity: 0; }
+}
+.ev2-cielo {
+  position: absolute; inset: 0; opacity: 0;
+  background: radial-gradient(ellipse at 50% 30%, rgba(255, 23, 68, .38), transparent 65%);
+  animation: ev2-rayo 6s linear infinite;
+}
+.ev2-suelo-fuego {
+  position: absolute; left: 12%; right: 12%; bottom: 8%; height: 16%; border-radius: 9999px;
+  background: radial-gradient(ellipse, rgba(251, 146, 60, .55), rgba(244, 63, 94, .35) 40%, transparent 70%);
+  filter: blur(6px);
+  animation: ev2-suelo 2.4s ease-in-out infinite;
+}
+@keyframes ev2-suelo { 0%, 100% { opacity: .75; transform: scaleX(1); } 50% { opacity: 1; transform: scaleX(1.08); } }
+/* Llama en forma de lágrima con punta: el contenedor oscila y el
+   pseudo-elemento dibuja la forma (base roja, centro naranja, núcleo claro) */
+.ev2-llama-jefe {
+  position: absolute; bottom: 12%; aspect-ratio: 1; transform: translateX(-50%); transform-origin: 50% 100%;
+  will-change: transform, opacity; animation: ev2-llama-jefe 1.4s ease-in-out infinite;
+}
+.ev2-llama-jefe::before {
+  content: ""; position: absolute; inset: 0;
+  border-radius: 50% 0 50% 50%; transform: rotate(-45deg) scale(.9, 1.35) translate(-8%, 8%);
+  background: radial-gradient(circle at 62% 38%, rgba(255, 240, 180, .95) 0 10%, rgba(255, 152, 50, .9) 24%, rgba(244, 40, 60, .75) 48%, rgba(180, 20, 50, .35) 66%, transparent 72%);
+  filter: blur(1.5px);
+}
+.ev2-llama-frente { bottom: 6%; opacity: .9; }
+@keyframes ev2-llama-jefe {
+  0%, 100% { opacity: .8; transform: translateX(-50%) scale(1, .9) skewX(0deg); }
+  25% { opacity: 1; transform: translateX(-53%) scale(.92, 1.12) skewX(-5deg); }
+  50% { opacity: .85; transform: translateX(-48%) scale(1.05, .96) skewX(4deg); }
+  75% { opacity: 1; transform: translateX(-51%) scale(.94, 1.18) skewX(-3deg); }
+}
+.ev2-brasa-jefe {
+  position: absolute; bottom: 14%; border-radius: 9999px; opacity: 0;
+  box-shadow: 0 0 6px currentColor, 0 0 12px currentColor;
+  animation: ev2-brasa-jefe 2s ease-out infinite;
+}
+@keyframes ev2-brasa-jefe {
+  0% { opacity: 0; transform: translate(0, 0) scale(1); }
+  12% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), -190px) scale(.4); }
+}
+.iw-ligero .ev2-llama-jefe:nth-child(2n), .iw-ligero .ev2-brasa-jefe:nth-child(2n) { display: none; }
+.iw-ligero .ev2-llama-jefe::before, .iw-ligero .ev2-suelo-fuego { filter: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ev2-rayo, .ev2-cielo, .ev2-brasa-jefe { display: none; }
+  .ev2-llama-jefe, .ev2-suelo-fuego { animation: none; }
+}
