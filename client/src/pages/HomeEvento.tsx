@@ -322,7 +322,7 @@ export default function HomeEvento() {
         {/* Dos columnas en escritorio: el texto a la izquierda y un PNG
             recortado a la derecha. En teléfono la figura pasa detrás del
             texto, con menos peso, para no robarle espacio. */}
-        <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-10 px-6 lg:grid-cols-[1.1fr_0.9fr] lg:gap-12 lg:px-16">
+        <div className="relative z-10 mx-auto grid w-full max-w-6xl items-center gap-10 px-6 lg:grid-cols-[1fr_1.05fr] lg:gap-8 lg:px-16">
           <motion.div
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -381,12 +381,12 @@ export default function HomeEvento() {
               initial={{ opacity: 0, x: 30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.9, delay: 0.15 }}
-              className="pointer-events-none absolute inset-y-0 right-0 -z-0 w-[62%] opacity-30 lg:relative lg:inset-auto lg:w-auto lg:opacity-100"
+              className="pointer-events-none absolute inset-y-0 right-0 -z-0 flex w-[88%] items-end justify-end opacity-35 lg:relative lg:inset-auto lg:w-full lg:items-center lg:opacity-100"
             >
               <img
                 src={heroFigura}
                 alt=""
-                className="iw-hero-figura h-full w-full object-contain object-bottom lg:h-auto lg:max-h-[74svh]"
+                className="iw-hero-figura h-full w-full object-contain object-bottom lg:h-[86svh] lg:max-h-none lg:object-right-bottom"
               />
             </motion.div>
           )}
