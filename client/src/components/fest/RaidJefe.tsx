@@ -15,6 +15,15 @@ import type { Translations } from "@/i18n/es";
 const RONDA_MS = 10_000;
 const GOLPES_MAX = 130;
 
+/** Color del combo según lo largo que va */
+function colorCombo(n: number) {
+  if (n >= 100) return "#7dd8ff";
+  if (n >= 50) return "#a78bfa";
+  if (n >= 25) return "#fbbf24";
+  if (n >= 10) return "#f97316";
+  return "#fb7185";
+}
+
 type T = Translations["evento"]["v2"];
 type Fase = "listo" | "cuenta" | "jugando" | "enviando" | "resultado";
 
@@ -75,6 +84,13 @@ export default function RaidJefe({
   const [restante, setRestante] = useState(RONDA_MS);
   const [numeros, setNumeros] = useState<{ id: number; x: number; y: number }[]>([]);
   const jefeRef = useRef<HTMLDivElement>(null);
+  const barraRef = useRef<HTMLDivElement>(null);
+  /** Efectos de cada golpe: corte, onda y chispas donde tocas */
+  const [impactos, setImpactos] = useState<{ id: number; x: number; y: number; rot: number }[]>([]);
+  /** Anuncio grande en los hitos del combo y al terminar el tiempo */
+  const [anuncio, setAnuncio] = useState<{ id: number; texto: string } | null>(null);
+  const [danioFinal, setDanioFinal] = useState(0);
+  const [conteo, setConteo] = useState(0);
   const arenaRef = useRef<HTMLDivElement>(null);
   /**
    * Detecta cuándo el jefe entra en pantalla. Se engancha con un ref de
@@ -117,6 +133,7 @@ export default function RaidJefe({
       setRestante(r);
       if (r <= 0) {
         window.clearInterval(id);
+        anunciar(t.raidTiempo);
         enviar();
       }
     }, 100);
@@ -129,6 +146,7 @@ export default function RaidJefe({
     const g = golpesRef.current;
     try {
       const r = await atacar.mutateAsync({ clave, golpes: g });
+      if (r.ok) setDanioFinal(r.golpes);
       if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())} ${t.raidVuelve}`);
       else if (r.motivo === "yaAtaco") setMensaje(t.raidYaAtacaste);
       else if (r.motivo === "limite") setMensaje(t.raidLimite);
@@ -140,7 +158,37 @@ export default function RaidJefe({
     setFase("resultado");
   };
 
+  /** Reinicia una animación CSS sin volver a montar el elemento */
+  const reanimar = (el: HTMLElement | null, clase: string) => {
+    if (!el) return;
+    el.classList.remove(clase);
+    void el.offsetWidth;
+    el.classList.add(clase);
+  };
+
+  const anunciar = (texto: string) => {
+    const id = ++idNum.current;
+    setAnuncio({ id, texto });
+    window.setTimeout(() => setAnuncio(a => (a?.id === id ? null : a)), 1100);
+  };
+
+  // El daño total sube contando al terminar la ronda
+  useEffect(() => {
+    if (fase !== "resultado" || danioFinal <= 0) return;
+    const inicio = performance.now();
+    let f = 0;
+    const paso = () => {
+      const p = Math.min(1, (performance.now() - inicio) / 900);
+      setConteo(Math.round(danioFinal * (1 - Math.pow(1 - p, 3))));
+      if (p < 1) f = requestAnimationFrame(paso);
+    };
+    f = requestAnimationFrame(paso);
+    return () => cancelAnimationFrame(f);
+  }, [fase, danioFinal]);
+
   const empezar = () => {
+    setDanioFinal(0);
+    setConteo(0);
     golpesRef.current = 0;
     setGolpes(0);
     setRestante(RONDA_MS);
@@ -155,13 +203,29 @@ export default function RaidJefe({
     if (fase !== "jugando" || golpesRef.current >= GOLPES_MAX) return;
     golpesRef.current += 1;
     setGolpes(golpesRef.current);
-    const el = jefeRef.current;
-    if (el) { el.classList.remove("ev2-sacudir"); void el.offsetWidth; el.classList.add("ev2-sacudir"); }
+    const n = golpesRef.current;
+    reanimar(jefeRef.current, "ev2-sacudir");
+    reanimar(barraRef.current, "ev2-barra-golpe");
+
     const r = ev.currentTarget.getBoundingClientRect();
+    const x = ev.clientX - r.left;
+    const y = ev.clientY - r.top;
     const id = ++idNum.current;
-    setNumeros(ns => [...ns.slice(-14), { id, x: ev.clientX - r.left, y: ev.clientY - r.top }]);
-    window.setTimeout(() => setNumeros(ns => ns.filter(n => n.id !== id)), 700);
-    try { navigator.vibrate?.(8); } catch { /* no soportado */ }
+    setNumeros(ns => [...ns.slice(-14), { id, x, y }]);
+    window.setTimeout(() => setNumeros(ns => ns.filter(k => k.id !== id)), 700);
+    setImpactos(is => [...is.slice(-8), { id, x, y, rot: -60 + ((n * 47) % 120) }]);
+    window.setTimeout(() => setImpactos(is => is.filter(k => k.id !== id)), 560);
+
+    const hitos: Record<number, string> = {
+      10: t.raidHito10, 25: t.raidHito25, 50: t.raidHito50, 75: t.raidHito75, 100: t.raidHito100,
+    };
+    if (hitos[n]) {
+      anunciar(hitos[n]);
+      reanimar(arenaRef.current, "ev2-temblor-fuerte");
+      try { navigator.vibrate?.([25, 30, 45]); } catch { /* no soportado */ }
+    } else {
+      try { navigator.vibrate?.(8); } catch { /* no soportado */ }
+    }
   };
 
   const caidoYa = !!(data && data.activo && data.derrotado);
@@ -204,9 +268,14 @@ export default function RaidJefe({
             {vidaVista.toLocaleString()} / {data.vidaMax.toLocaleString()}
           </span>
         </div>
-        <div className="ev-notch mb-2 h-5 w-full overflow-hidden border border-[#f43f5e]/40 bg-[#1a0a12]" style={{ clipPath: "polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)" }}>
+        <div ref={barraRef} className="ev-notch relative mb-2 h-5 w-full overflow-hidden border border-[#f43f5e]/40 bg-[#1a0a12]" style={{ clipPath: "polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)" }}>
+          {/* Estela blanca: marca el daño reciente y alcanza a la barra después */}
           <div
-            className="h-full transition-[width] duration-300"
+            className="absolute inset-y-0 left-0 bg-white/80 transition-[width] delay-300 duration-700 ease-out"
+            style={{ width: `${pct}%` }}
+          />
+          <div
+            className="relative h-full transition-[width] duration-150"
             style={{
               width: `${pct}%`,
               background: "linear-gradient(90deg, #7f1d1d, #f43f5e, #fb7185)",
@@ -221,11 +290,12 @@ export default function RaidJefe({
         {/* El jefe: en la ronda es la zona que se toca */}
         <div
           ref={setCaja}
+          data-sin-toque
           onPointerDown={golpear}
           className={`relative mx-auto mb-8 aspect-square w-full max-w-[300px] sm:max-w-[340px] select-none ${fase === "jugando" ? "cursor-crosshair" : ""}`}
           style={{ touchAction: fase === "jugando" ? "none" : "auto", WebkitTouchCallout: "none" }}
         >
-          <div className="absolute inset-[8%] rounded-full" style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />
+          <div className={`absolute inset-[8%] rounded-full ${fase === "jugando" && golpes >= 50 ? "ev2-furia" : ""}`} style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />
           {revelacion !== "revelada" && (
             <div
               ref={jefeRef}
@@ -275,6 +345,53 @@ export default function RaidJefe({
             </div>
           )}
 
+          {impactos.map(k => (
+            <span key={`i${k.id}`} className="pointer-events-none absolute" style={{ left: k.x, top: k.y }} aria-hidden="true">
+              <span className="ev2-impacto-onda" />
+              <span className="ev2-impacto-corte" style={{ ["--rot" as string]: `${k.rot}deg` }} />
+              {Array.from({ length: 6 }, (_, j) => {
+                const ang = (Math.PI * 2 * j) / 6 + k.rot / 60;
+                return (
+                  <span
+                    key={j}
+                    className="ev2-chispa"
+                    style={{
+                      ["--dx" as string]: `${Math.cos(ang) * 42}px`,
+                      ["--dy" as string]: `${Math.sin(ang) * 42}px`,
+                    }}
+                  />
+                );
+              })}
+            </span>
+          ))}
+
+          {fase === "jugando" && golpes > 0 && (
+            <div className="pointer-events-none absolute right-0 top-0 text-right" aria-live="off">
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: colorCombo(golpes) }}>
+                {t.raidCombo}
+              </p>
+              <p
+                key={golpes}
+                className="ev2-combo ev-display text-4xl tabular-nums"
+                style={{ color: colorCombo(golpes), textShadow: `0 0 18px ${colorCombo(golpes)}` }}
+              >
+                x{golpes}
+              </p>
+            </div>
+          )}
+
+          {anuncio && (
+            <div key={anuncio.id} className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+              <span className="ev2-flash-rojo" />
+              <p
+                className="ev2-anuncio ev-display relative whitespace-nowrap text-center text-white"
+                style={{ fontSize: "clamp(2rem, 10vw, 3.25rem)", textShadow: "0 0 24px #f43f5e, 0 0 48px #fbbf24" }}
+              >
+                {anuncio.texto}
+              </p>
+            </div>
+          )}
+
           {numeros.map(n => (
             <span key={n.id} className="ev2-danio pointer-events-none absolute font-mono text-xl font-black text-[#fb7185]" style={{ left: n.x, top: n.y }}>
               −1
@@ -313,6 +430,15 @@ export default function RaidJefe({
           )}
 
           {fase === "enviando" && <p className="font-mono text-sm text-[#c9a8b8]">…</p>}
+
+          {fase === "resultado" && danioFinal > 0 && (
+            <div className="mb-4">
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#fb7185]">{t.raidDanioTotal}</p>
+              <p className="ev-display text-6xl tabular-nums text-white" style={{ textShadow: "0 0 26px rgba(244,63,94,0.8)" }}>
+                −{conteo}
+              </p>
+            </div>
+          )}
 
           {fase === "resultado" && (
             <p className="rounded-none border border-[#f43f5e]/40 bg-[#f43f5e]/10 px-5 py-4 text-sm leading-relaxed text-[#ffd0d8]">

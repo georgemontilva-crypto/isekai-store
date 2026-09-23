@@ -20,7 +20,7 @@ export default function ToqueParticulas() {
 
     const alTocar = (ev: PointerEvent) => {
       const t = ev.target as HTMLElement | null;
-      if (t?.closest("input, textarea, select")) return;
+      if (t?.closest("input, textarea, select, [data-sin-toque]")) return;
 
       const n = 9;
       for (let i = 0; i < n; i++) {
