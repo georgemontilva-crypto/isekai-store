@@ -3493,3 +3493,124 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   background-size: 14px 14px;
   background-position: 0 0, 0 7px, 7px -7px, -7px 0;
 }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Home del Fest v2 — la página se presenta como la interfaz del Sistema.
+   Reutiliza la paleta y los biselados (ev-notch) de la versión actual.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Portal detrás de la figura: dos anillos que giran en sentidos opuestos
+   y un núcleo de luz. */
+.ev2-portal { position: absolute; aspect-ratio: 1; pointer-events: none; }
+.ev2-portal-anillo {
+  position: absolute; inset: 0; border-radius: 9999px;
+  border: 2px dashed rgba(167, 139, 250, 0.45);
+  animation: ev2-giro 38s linear infinite;
+}
+.ev2-portal-anillo-2 {
+  inset: 9%;
+  border: 2px solid rgba(229, 0, 125, 0.55);
+  border-top-color: transparent; border-bottom-color: transparent;
+  animation-duration: 22s; animation-direction: reverse;
+}
+.ev2-portal-anillo-3 {
+  inset: 18%;
+  border: 1px solid rgba(125, 216, 255, 0.35);
+  border-left-color: transparent;
+  animation-duration: 14s;
+}
+.ev2-portal-nucleo {
+  position: absolute; inset: 20%; border-radius: 9999px;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.5), rgba(124, 58, 237, 0.18) 55%, transparent 72%);
+  animation: ev2-respira 5s ease-in-out infinite;
+}
+@keyframes ev2-giro { to { transform: rotate(360deg); } }
+@keyframes ev2-respira { 0%, 100% { opacity: .75; transform: scale(.96); } 50% { opacity: 1; transform: scale(1.04); } }
+
+/* La figura sigue al mouse unos píxeles: da profundidad sin marear. */
+.ev2-parallax {
+  transform: translate3d(calc(var(--ev2-px, 0) * -14px), calc(var(--ev2-py, 0) * -8px), 0);
+  transition: transform .35s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Ventana del Sistema (azul, como las notificaciones del anime) */
+.ev2-ventana {
+  position: relative;
+  border: 1px solid rgba(56, 189, 248, 0.7);
+  background: linear-gradient(160deg, rgba(56, 189, 248, 0.12), rgba(6, 10, 22, 0.85));
+  box-shadow: 0 0 26px rgba(56, 189, 248, 0.18), inset 0 0 30px rgba(56, 189, 248, 0.06);
+}
+.ev2-cursor { display: inline-block; width: .55em; color: #7dd8ff; animation: ev2-parpadeo 1s step-end infinite; }
+@keyframes ev2-parpadeo { 50% { opacity: 0; } }
+
+/* Cajas de la cuenta regresiva */
+.ev2-hud {
+  border: 1px solid rgba(167, 139, 250, 0.4);
+  background: rgba(167, 139, 250, 0.07);
+}
+.ev2-hud-rosa { border-color: rgba(229, 0, 125, 0.55); background: rgba(229, 0, 125, 0.09); }
+
+/* Botón principal: late suave y lo cruza un destello al pasar el mouse */
+.ev2-latido { position: relative; overflow: hidden; animation: ev2-latir 2.6s ease-in-out infinite; }
+.ev2-latido::after {
+  content: ""; position: absolute; inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+.ev2-latido:hover::after { transform: translateX(120%); transition: transform .7s ease; }
+@keyframes ev2-latir {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(229, 0, 125, 0)); }
+  50% { filter: drop-shadow(0 0 14px rgba(229, 0, 125, 0.65)); }
+}
+
+/* Corchetes de mira en las cuatro esquinas */
+.ev2-corchetes {
+  --c: #a78bfa;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px 14px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 14px 2px no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px 14px no-repeat;
+}
+
+/* Franja que se desliza entre secciones */
+.ev2-franja { overflow: hidden; transform: rotate(-1.5deg); }
+.ev2-franja-pista { display: inline-flex; white-space: nowrap; animation: ev2-desliza 32s linear infinite; }
+@keyframes ev2-desliza { to { transform: translateX(-50%); } }
+
+/* Gate: la tarjeta se ilumina donde está el dedo o el mouse */
+.ev2-gate { position: relative; isolation: isolate; }
+.ev2-gate::after {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(260px circle at var(--gx, 50%) var(--gy, 0%), color-mix(in srgb, var(--gc, #a78bfa) 22%, transparent), transparent 70%);
+  opacity: 0; transition: opacity .3s ease;
+}
+.ev2-gate:hover::after, .ev2-gate:active::after { opacity: 1; }
+
+/* Invitado sin revelar: líneas de escáner encima de la silueta */
+.ev2-escaner {
+  background: repeating-linear-gradient(to bottom, rgba(167, 139, 250, 0.07) 0 1px, transparent 1px 4px);
+}
+.ev2-escaner::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 30%;
+  background: linear-gradient(to bottom, transparent, rgba(125, 216, 255, 0.14), transparent);
+  animation: ev2-barrido 3.2s linear infinite;
+}
+@keyframes ev2-barrido { from { top: -30%; } to { top: 100%; } }
+
+/* Candado del premio que late en rojo */
+.ev2-candado { animation: ev2-latir-rojo 2.2s ease-in-out infinite; }
+@keyframes ev2-latir-rojo {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); }
+  50% { box-shadow: 0 0 26px 4px rgba(244, 63, 94, 0.5); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ev2-portal-anillo, .ev2-portal-nucleo, .ev2-cursor, .ev2-latido, .ev2-franja-pista,
+  .ev2-escaner::after, .ev2-candado { animation: none !important; }
+  .ev2-parallax { transform: none !important; }
+}
