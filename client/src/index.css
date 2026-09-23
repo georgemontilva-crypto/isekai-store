@@ -3614,3 +3614,64 @@ html.dark :where(:not(.admin-shell):not(.admin-shell *):not(.wf-page):not(.wf-pa
   .ev2-escaner::after, .ev2-candado { animation: none !important; }
   .ev2-parallax { transform: none !important; }
 }
+
+/* ── Fest v2: toques, raid y Zona de Sombras ─────────────────────────── */
+
+/* Partículas al tocar la pantalla */
+.ev2-toques { position: fixed; inset: 0; pointer-events: none; z-index: 250; overflow: hidden; }
+.ev2-toque {
+  position: absolute; width: 6px; height: 6px; margin: -3px 0 0 -3px; border-radius: 9999px;
+  box-shadow: 0 0 8px currentColor;
+  animation: ev2-toque-sale .6s cubic-bezier(.16, 1, .3, 1) forwards;
+}
+@keyframes ev2-toque-sale {
+  from { transform: translate(0, 0) scale(1); opacity: 1; }
+  to { transform: translate(var(--dx), var(--dy)) scale(0.2); opacity: 0; }
+}
+.ev2-toque-onda {
+  position: absolute; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 9999px;
+  border: 2px solid rgba(167, 139, 250, 0.8);
+  animation: ev2-onda .5s ease-out forwards;
+}
+@keyframes ev2-onda { from { transform: scale(.3); opacity: 1; } to { transform: scale(1.4); opacity: 0; } }
+
+/* Raid: jefe que se sacude al recibir golpes, números de daño y cuenta */
+.ev2-sacudir { animation: ev2-sacudir .18s ease-out; }
+@keyframes ev2-sacudir {
+  0% { transform: translate(0, 0) scale(1); filter: brightness(1); }
+  30% { transform: translate(-5px, 3px) scale(.97); filter: brightness(1.8) saturate(1.4); }
+  60% { transform: translate(4px, -2px) scale(.99); }
+  100% { transform: translate(0, 0) scale(1); filter: brightness(1); }
+}
+.ev2-danio { transform: translate(-50%, -50%); animation: ev2-danio-sube .7s ease-out forwards; text-shadow: 0 0 10px rgba(244, 63, 94, .9); }
+@keyframes ev2-danio-sube {
+  from { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+  to { opacity: 0; transform: translate(-50%, -140%) scale(.9); }
+}
+.ev2-cuenta { animation: ev2-cuenta .7s ease-out; }
+@keyframes ev2-cuenta { from { transform: scale(1.8); opacity: 0; } 40% { opacity: 1; } to { transform: scale(1); } }
+.ev2-jefe-ojo { animation: ev2-respira 2.4s ease-in-out infinite; filter: drop-shadow(0 0 6px #f43f5e); }
+
+/* Zona de Sombras */
+.ev2-sombras-capa { background: rgba(2, 1, 6, 0); animation: ev2-oscurecer 1s ease-out forwards; }
+@keyframes ev2-oscurecer { to { background: rgba(2, 1, 6, 0.96); } }
+.ev2-sombras-niebla {
+  position: absolute; inset: auto 0 0 0; height: 45%;
+  background: radial-gradient(ellipse at 50% 100%, rgba(124, 58, 237, 0.45), transparent 70%);
+  opacity: 0; animation: ev2-aparecer 1.4s .3s ease-out forwards;
+}
+.ev2-sombra {
+  position: absolute; bottom: -2%; transform: translateY(110%); opacity: 0;
+  animation: ev2-emerger 1.6s cubic-bezier(.16, 1, .3, 1) forwards;
+  filter: drop-shadow(0 0 18px rgba(124, 58, 237, 0.6));
+}
+@keyframes ev2-emerger { to { transform: translateY(0); opacity: 1; } }
+.ev2-sombra-ojo { animation: ev2-aparecer .4s 1.8s ease-out both; filter: drop-shadow(0 0 4px #7dd8ff); }
+.ev2-sombras-texto { opacity: 0; animation: ev2-aparecer .8s 1.6s ease-out forwards; }
+@keyframes ev2-aparecer { from { opacity: 0; } to { opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ev2-sacudir, .ev2-danio, .ev2-cuenta, .ev2-jefe-ojo { animation: none !important; }
+  .ev2-sombras-capa { animation: none; background: rgba(2, 1, 6, 0.96); }
+  .ev2-sombra, .ev2-sombras-niebla, .ev2-sombras-texto, .ev2-sombra-ojo { animation: none; opacity: 1; transform: none; }
+}

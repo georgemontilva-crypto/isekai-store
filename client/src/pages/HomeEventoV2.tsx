@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
 import { motion, useScroll, useSpring, useReducedMotion } from "framer-motion";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
@@ -10,6 +10,9 @@ import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
+import ToqueParticulas from "@/components/fest/ToqueParticulas";
+import RaidJefe from "@/components/fest/RaidJefe";
+import { ZonaSombras, RevelacionSombras } from "@/components/fest/SombrasSecretas";
 
 /**
  * Isekai World Fest — landing del evento (v2, vista previa en /fest-preview).
@@ -162,7 +165,7 @@ function CuentaRegresiva({ etiquetas }: { etiquetas: [string, string, string, st
 }
 
 /** Número de sección tipo HUD: se siente que avanzas por niveles */
-function NumSeccion({ n, total = 8 }: { n: number; total?: number }) {
+function NumSeccion({ n, total = 9 }: { n: number; total?: number }) {
   return (
     <span className="font-mono text-[10px] tracking-[0.25em] text-[#7c6fa0]">
       {String(n).padStart(2, "0")} / {String(total).padStart(2, "0")}
@@ -226,6 +229,11 @@ export default function HomeEventoV2() {
   /** Fondo de la lista de acceso: video si lo hay, si no la imagen */
   const listaVideo = settings?.["wf_lista_video"] ?? "";
   const listaImg = settings?.["wf_lista_image"] ?? "";
+  /** Raid: imagen del jefe y recompensa opcional (se escribe desde la base) */
+  const raidJefe = settings?.["wf_raid_jefe"] ?? "";
+  const raidRecompensa = (lang === "en" ? settings?.["wf_raid_recompensa_en"] : settings?.["wf_raid_recompensa"]) ?? "";
+  const [sombras, setSombras] = useState(false);
+  const cerrarSombras = useCallback(() => setSombras(false), []);
 
   const [email, setEmail] = useState("");
   const [suscrito, setSuscrito] = useState(false);
@@ -314,6 +322,19 @@ export default function HomeEventoV2() {
 
       {/* El entorno se tiñe del color del rango actual: un golpe fuerte al
           ascender y después un tinte suave que permanece. */}
+      <ToqueParticulas />
+      {sombras && (
+        <RevelacionSombras
+          onCerrar={cerrarSombras}
+          textos={{
+            titulo: e.v2.sombrasTitulo,
+            texto: e.v2.sombrasTexto,
+            secreto: e.v2.sombrasSecreto,
+            cerrar: e.v2.sombrasCerrar,
+          }}
+        />
+      )}
+
       <div
         className={`lp-ambiente ${ascensoDemo ? "lp-ambiente-sube" : ""}`}
         style={{ ["--lp-rango" as string]: colorDemo }}
@@ -486,6 +507,9 @@ export default function HomeEventoV2() {
                 />
               </motion.div>
             )}
+
+            {/* Zona de Sombras: mantener presionada la figura 3 segundos */}
+            {heroFigura && <ZonaSombras onRevelar={() => setSombras(true)} />}
 
             {/* La base de la figura se funde con el texto que sube encima */}
             <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#06040d] to-transparent lg:h-24" />
@@ -937,14 +961,22 @@ export default function HomeEventoV2() {
 
       <div className="ev-linea" />
 
-      {/* ═══ 7. EL PREMIO ═══ */}
+      {/* ═══ 7. RAID COMUNITARIO ═══ */}
+      <RaidJefe
+        t={e.v2}
+        imagen={raidJefe}
+        recompensa={raidRecompensa}
+        numero={<NumSeccion n={7} />}
+      />
+
+      {/* ═══ 8. EL PREMIO ═══ */}
       <section className="px-6 py-20 lg:px-16 lg:py-24">
         <div className="ev-notch mx-auto max-w-5xl overflow-hidden border border-[#f43f5e]/25 bg-gradient-to-br from-[#1a0a14] to-[#06040d]">
           <div className="grid lg:grid-cols-2">
             <div className="p-8 sm:p-12">
               <Trophy size={30} className="mb-6 text-[#f43f5e]" />
               <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#f43f5e]">
-                <NumSeccion n={7} />&nbsp;&nbsp;{e.premioEtiqueta}
+                <NumSeccion n={8} />&nbsp;&nbsp;{e.premioEtiqueta}
               </p>
               <h2 className="mb-5 text-2xl font-black leading-tight sm:text-4xl">
                 {e.premioTitulo1}
@@ -1036,7 +1068,7 @@ export default function HomeEventoV2() {
           </p>
           <p className="ev-display mb-6 text-xl text-white sm:text-2xl">{e.v2.aceptasMision}</p>
           <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            <NumSeccion n={8} />&nbsp;&nbsp;{e.listaEtiqueta}
+            <NumSeccion n={9} />&nbsp;&nbsp;{e.listaEtiqueta}
           </p>
           <h2 className="mb-4 text-2xl font-black sm:text-4xl">{e.listaTitulo}</h2>
           <p className="mb-8 text-[15px] leading-relaxed text-[#a99fc4]">

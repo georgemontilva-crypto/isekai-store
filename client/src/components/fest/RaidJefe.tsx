@@ -1,0 +1,264 @@
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Swords } from "lucide-react";
+import { trpc } from "@/lib/trpc";
+import type { Translations } from "@/i18n/es";
+
+/**
+ * Raid comunitario: todos los visitantes golpean al mismo jefe.
+ *
+ * Ronda de 10 segundos: cuenta 3-2-1, luego cada toque sobre el jefe es un
+ * golpe. Al terminar se envía el total al servidor, que decide si cuenta
+ * (un ataque por día). La barra baja al momento mientras juegas y después
+ * se corrige con el valor real.
+ */
+const RONDA_MS = 10_000;
+const GOLPES_MAX = 130;
+
+type T = Translations["evento"]["v2"];
+type Fase = "listo" | "cuenta" | "jugando" | "enviando" | "resultado";
+
+/** Identificador anónimo del navegador (no es un dato personal) */
+function claveVisitante(): string {
+  const K = "iw_raid_clave";
+  try {
+    const v = localStorage.getItem(K);
+    if (v && /^[A-Za-z0-9_-]{8,64}$/.test(v)) return v;
+    const nueva = (crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`).replace(/[^A-Za-z0-9_-]/g, "");
+    localStorage.setItem(K, nueva);
+    return nueva;
+  } catch {
+    return `anon-${Math.random().toString(36).slice(2, 14)}`;
+  }
+}
+
+/** Jefe por defecto si no hay imagen subida: una sombra con cuernos */
+function JefeSilueta({ caido }: { caido: boolean }) {
+  return (
+    <svg viewBox="0 0 200 220" className="h-full w-full" aria-hidden="true">
+      <path
+        d="M100 30c-8 0-14 3-19 8L60 8l8 44c-6 9-9 19-9 30 0 13 4 24 11 33-20 8-36 26-42 50l-8 55h160l-8-55c-6-24-22-42-42-50 7-9 11-20 11-33 0-11-3-21-9-30l8-44-21 30c-5-5-11-8-19-8z"
+        fill="#0b0617"
+        stroke={caido ? "rgba(120,120,140,0.5)" : "rgba(244,63,94,0.65)"}
+        strokeWidth="2"
+      />
+      {!caido && (
+        <>
+          <path d="M80 80l14 6-14 3z" fill="#f43f5e" className="ev2-jefe-ojo" />
+          <path d="M120 80l-14 6 14 3z" fill="#f43f5e" className="ev2-jefe-ojo" />
+        </>
+      )}
+      {caido && <path d="M70 60l30 40-20 30 40 50" fill="none" stroke="rgba(200,200,220,0.5)" strokeWidth="2" />}
+    </svg>
+  );
+}
+
+export default function RaidJefe({
+  t, imagen, recompensa, numero,
+}: { t: T; imagen: string; recompensa: string; numero: React.ReactNode }) {
+  const clave = useMemo(claveVisitante, []);
+  const utils = trpc.useUtils();
+  const { data } = trpc.raid.estado.useQuery({ clave }, { refetchInterval: 20_000 });
+  const atacar = trpc.raid.atacar.useMutation();
+
+  const [fase, setFase] = useState<Fase>("listo");
+  const [cuenta, setCuenta] = useState(3);
+  const [golpes, setGolpes] = useState(0);
+  const [restante, setRestante] = useState(RONDA_MS);
+  const [numeros, setNumeros] = useState<{ id: number; x: number; y: number }[]>([]);
+  const jefeRef = useRef<HTMLDivElement>(null);
+  const arenaRef = useRef<HTMLDivElement>(null);
+  const [mensaje, setMensaje] = useState("");
+  const golpesRef = useRef(0);
+  const idNum = useRef(0);
+
+  // Cuenta 3-2-1
+  useEffect(() => {
+    if (fase !== "cuenta") return;
+    if (cuenta === 0) {
+      setFase("jugando");
+      return;
+    }
+    const id = window.setTimeout(() => setCuenta(c => c - 1), 700);
+    return () => window.clearTimeout(id);
+  }, [fase, cuenta]);
+
+  // Ronda de 10 segundos
+  useEffect(() => {
+    if (fase !== "jugando") return;
+    const inicio = performance.now();
+    const id = window.setInterval(() => {
+      const r = Math.max(0, RONDA_MS - (performance.now() - inicio));
+      setRestante(r);
+      if (r <= 0) {
+        window.clearInterval(id);
+        enviar();
+      }
+    }, 100);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fase]);
+
+  const enviar = async () => {
+    setFase("enviando");
+    const g = golpesRef.current;
+    try {
+      const r = await atacar.mutateAsync({ clave, golpes: g });
+      if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())} ${t.raidVuelve}`);
+      else if (r.motivo === "yaAtaco") setMensaje(t.raidYaAtacaste);
+      else if (r.motivo === "limite") setMensaje(t.raidLimite);
+      else setMensaje(t.raidDerrotado);
+    } catch {
+      setMensaje(t.raidError);
+    }
+    await utils.raid.estado.invalidate();
+    setFase("resultado");
+  };
+
+  const empezar = () => {
+    golpesRef.current = 0;
+    setGolpes(0);
+    setRestante(RONDA_MS);
+    setCuenta(3);
+    setMensaje("");
+    setFase("cuenta");
+    // Barra de vida y jefe a la vista durante toda la ronda
+    arenaRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const golpear = (ev: React.PointerEvent<HTMLDivElement>) => {
+    if (fase !== "jugando" || golpesRef.current >= GOLPES_MAX) return;
+    golpesRef.current += 1;
+    setGolpes(golpesRef.current);
+    const el = jefeRef.current;
+    if (el) { el.classList.remove("ev2-sacudir"); void el.offsetWidth; el.classList.add("ev2-sacudir"); }
+    const r = ev.currentTarget.getBoundingClientRect();
+    const id = ++idNum.current;
+    setNumeros(ns => [...ns.slice(-14), { id, x: ev.clientX - r.left, y: ev.clientY - r.top }]);
+    window.setTimeout(() => setNumeros(ns => ns.filter(n => n.id !== id)), 700);
+    try { navigator.vibrate?.(8); } catch { /* no soportado */ }
+  };
+
+  if (!data || !data.activo) return null;
+
+  const enRonda = fase === "cuenta" || fase === "jugando" || fase === "enviando";
+  const vidaVista = Math.max(0, data.vida - (enRonda ? golpes : 0));
+  const pct = data.vidaMax > 0 ? (vidaVista / data.vidaMax) * 100 : 0;
+  const caido = data.derrotado;
+  const puedeAtacar = !caido && !data.yaAtaco && fase === "listo";
+
+  return (
+    <section className="ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
+      <div className="mx-auto max-w-3xl">
+        <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#f43f5e]">
+          {numero}&nbsp;&nbsp;{t.raidEtiqueta}
+        </p>
+        <h2 className="ev-display mb-4 text-[28px] leading-[1.05] sm:text-5xl">{t.raidTitulo}</h2>
+        <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#c9a8b8]">{t.raidTexto}</p>
+
+        {/* Barra de vida compartida */}
+        <div ref={arenaRef} className="scroll-mt-20">
+        <div className="mb-2 flex items-end justify-between font-mono text-xs uppercase tracking-widest">
+          <span className="text-[#f43f5e]">{t.raidVida}</span>
+          <span className="text-white tabular-nums">
+            {vidaVista.toLocaleString()} / {data.vidaMax.toLocaleString()}
+          </span>
+        </div>
+        <div className="ev-notch mb-2 h-5 w-full overflow-hidden border border-[#f43f5e]/40 bg-[#1a0a12]" style={{ clipPath: "polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)" }}>
+          <div
+            className="h-full transition-[width] duration-300"
+            style={{
+              width: `${pct}%`,
+              background: "linear-gradient(90deg, #7f1d1d, #f43f5e, #fb7185)",
+              boxShadow: "0 0 16px rgba(244,63,94,0.6)",
+            }}
+          />
+        </div>
+        <p className="mb-6 font-mono text-[11px] text-[#9d7f8f]">
+          {t.raidCazadores.replace("{n}", data.cazadores.toLocaleString())}
+        </p>
+
+        {/* El jefe: en la ronda es la zona que se toca */}
+        <div
+          onPointerDown={golpear}
+          className={`relative mx-auto mb-8 aspect-square w-full max-w-[300px] sm:max-w-[340px] select-none ${fase === "jugando" ? "cursor-crosshair" : ""}`}
+          style={{ touchAction: fase === "jugando" ? "none" : "auto", WebkitTouchCallout: "none" }}
+        >
+          <div className="absolute inset-[8%] rounded-full" style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />
+          <div ref={jefeRef} className={`relative h-full w-full ${caido ? "grayscale" : ""}`}>
+            {imagen ? (
+              <img src={imagen} alt="" draggable={false} className="h-full w-full object-contain" />
+            ) : (
+              <JefeSilueta caido={caido} />
+            )}
+          </div>
+
+          {numeros.map(n => (
+            <span key={n.id} className="ev2-danio pointer-events-none absolute font-mono text-xl font-black text-[#fb7185]" style={{ left: n.x, top: n.y }}>
+              −1
+            </span>
+          ))}
+
+          {fase === "cuenta" && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-[#06040d]/60">
+              <p className="mb-2 font-mono text-xs uppercase tracking-[0.3em] text-[#fb7185]">{t.raidPreparate}</p>
+              <p key={cuenta} className="ev2-cuenta ev-display text-7xl text-white">{cuenta || "!"}</p>
+            </div>
+          )}
+
+          {caido && (
+            <div className="absolute inset-x-0 bottom-4 text-center">
+              <p className="ev-display text-2xl text-white sm:text-3xl">{t.raidDerrotado}</p>
+            </div>
+          )}
+        </div>
+
+        </div>
+
+        {/* Controles y estado de la ronda */}
+        <div className="mx-auto max-w-md text-center">
+          {fase === "jugando" && (
+            <>
+              <p className="mb-3 text-sm font-bold text-white">{t.raidToca}</p>
+              <div className="mb-2 flex items-center justify-between font-mono text-sm">
+                <span className="text-[#fb7185]">{golpes} {t.raidGolpes}</span>
+                <span className="tabular-nums text-white">{(restante / 1000).toFixed(1)}s</span>
+              </div>
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                <div className="h-full bg-[#f43f5e]" style={{ width: `${(restante / RONDA_MS) * 100}%` }} />
+              </div>
+            </>
+          )}
+
+          {fase === "enviando" && <p className="font-mono text-sm text-[#c9a8b8]">…</p>}
+
+          {fase === "resultado" && (
+            <p className="rounded-none border border-[#f43f5e]/40 bg-[#f43f5e]/10 px-5 py-4 text-sm leading-relaxed text-[#ffd0d8]">
+              {mensaje}
+            </p>
+          )}
+
+          {fase === "listo" && caido && (
+            <p className="border border-[#a78bfa]/40 bg-[#a78bfa]/10 px-5 py-4 text-sm leading-relaxed text-[#ddd6fe]">
+              {recompensa || t.raidRecompensa}
+            </p>
+          )}
+
+          {fase === "listo" && !caido && data.yaAtaco && (
+            <p className="border border-white/10 bg-white/[0.04] px-5 py-4 text-sm leading-relaxed text-[#c9a8b8]">
+              {t.raidYaAtacaste}
+            </p>
+          )}
+
+          {puedeAtacar && (
+            <button
+              onClick={empezar}
+              className="ev-notch ev-press ev2-latido inline-flex items-center gap-2 bg-[#f43f5e] px-10 py-4 text-sm font-bold uppercase tracking-wider text-white"
+            >
+              <Swords size={18} /> {t.raidAtacar}
+            </button>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+}

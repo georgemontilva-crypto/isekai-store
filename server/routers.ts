@@ -31,6 +31,7 @@ import {
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
+import { estadoRaid, atacarRaid, GOLPES_MAX } from "./raid";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
 const MOTIVO_REFERIDO: Record<string, string> = {
@@ -1054,6 +1055,19 @@ export const appRouter = router({
         return { posts: [], configured: true, error: "Failed to fetch feed" };
       }
     }),
+  }),
+
+  // ─── World Fest: raid comunitario (landing) ─────────────────────────────────
+  raid: router({
+    estado: publicProcedure
+      .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/).optional() }).optional())
+      .query(({ input }) => estadoRaid(input?.clave)),
+    atacar: publicProcedure
+      .input(z.object({
+        clave: z.string().regex(/^[A-Za-z0-9_-]{8,64}$/),
+        golpes: z.number().int().min(0).max(GOLPES_MAX * 2),
+      }))
+      .mutation(({ input, ctx }) => atacarRaid(input.clave, input.golpes, clientIp(ctx.req))),
   }),
 
   // ─── Newsletter ─────────────────────────────────────────────────────────────

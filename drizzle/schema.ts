@@ -811,3 +811,33 @@ export const giftCardUsages = mysqlTable('giftCardUsages', {
   orderId: int('orderId'),
   usedAt: timestamp('usedAt').defaultNow(),
 });
+
+// ─── World Fest: raid comunitario ──────────────────────────────────────────────
+/**
+ * Jefe con una sola barra de vida para todos los visitantes de la landing.
+ * Solo uno está activo a la vez (el más reciente con activo = true).
+ */
+export const wfRaid = mysqlTable("wfRaid", {
+  id: int("id").autoincrement().primaryKey(),
+  nombre: varchar("nombre", { length: 80 }).notNull(),
+  vidaMax: int("vidaMax").notNull(),
+  danio: int("danio").default(0).notNull(),
+  activo: boolean("activo").default(true).notNull(),
+  derrotadoEn: timestamp("derrotadoEn"),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});
+
+/**
+ * Un ataque por visitante y por día (hora de Venezuela). La clave es un
+ * identificador anónimo que guarda el navegador; la IP limita a quien
+ * intente saltárselo borrando datos.
+ */
+export const wfRaidAtaques = mysqlTable("wfRaidAtaques", {
+  id: int("id").autoincrement().primaryKey(),
+  raidId: int("raidId").notNull(),
+  clave: varchar("clave", { length: 64 }).notNull(),
+  ip: varchar("ip", { length: 64 }).notNull(),
+  dia: varchar("dia", { length: 10 }).notNull(),
+  golpes: int("golpes").notNull(),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});
