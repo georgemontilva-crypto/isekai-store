@@ -277,7 +277,7 @@ export const en: Translations = {
     etiquetaAnio: "Isekai World Fest 2027",
     heroTitulo1: "THE SYSTEM",
     heroTitulo2: "HAS AWAKENED.",
-    heroTexto: "Maracaibo is about to become a world where anime, video games, cosplay and geek culture come to life.",
+    heroTexto: "You have been selected. For two days, Maracaibo becomes your dungeon: battles, challenges, hidden zones and real rewards. Every step earns experience. Every bit of experience brings you closer to S rank.",
     heroFecha: "AUGUST 14 — 15, 2027",
     heroLugar: "Maracaibo, Venezuela",
     ctaAviso: "Notify me first",

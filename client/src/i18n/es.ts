@@ -287,7 +287,7 @@ export const es = {
     etiquetaAnio: "Isekai World Fest 2027",
     heroTitulo1: "EL SISTEMA",
     heroTitulo2: "HA DESPERTADO.",
-    heroTexto: "Maracaibo está a punto de convertirse en un mundo donde el anime, los videojuegos, el cosplay y la cultura geek cobran vida.",
+    heroTexto: "Has sido seleccionado. Durante dos días, Maracaibo se convierte en tu mazmorra: combates, retos, zonas ocultas y recompensas reales. Cada paso suma experiencia. Cada experiencia te acerca al rango S.",
     heroFecha: "14 — 15 AGOSTO 2027",
     heroLugar: "Maracaibo, Venezuela",
     ctaAviso: "Avísame antes que a nadie",
