@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useSEO } from "@/hooks/useSEO";
+import { useSocketEvento } from "@/hooks/useSocket";
 
 /**
  * Isekai World Fest 2027 — invitación a la rueda de prensa.
@@ -115,7 +116,11 @@ export default function RuedaPrensa() {
   // Conteo visible solo para administradores
   const { user } = useAuth();
   const esAdmin = user?.role === "admin";
-  const { data: total } = trpc.prensa.total.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30_000 });
+  const { data: total } = trpc.prensa.total.useQuery(undefined, { enabled: esAdmin, refetchInterval: 60_000 });
+  // Para el admin: el conteo cambia en el momento en que alguien confirma
+  useSocketEvento<{ total: number; hoy: number }>("prensa:confirmacion", conteo => {
+    if (esAdmin) utils.prensa.total.setData(undefined, conteo);
+  });
 
   const columnas = [
     { icono: Calendar, etq: t.fechaEtq, arriba: t.fecha1, dato: t.fecha2, abajo: t.fecha3 },

@@ -4064,3 +4064,6 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
   transition: box-shadow .3s ease, filter .3s ease;
 }
 .rp-boton:hover { filter: brightness(1.08); box-shadow: 0 16px 40px -12px rgba(232, 48, 90, .85); }
+
+/* Panel: el número de confirmados salta cuando llega una nueva */
+@keyframes prensa-pop { 0% { transform: scale(1); color: #111; } 35% { transform: scale(1.35); color: #e5007d; } 100% { transform: scale(1); color: #111; } }

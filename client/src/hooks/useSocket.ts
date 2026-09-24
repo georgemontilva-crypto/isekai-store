@@ -43,3 +43,32 @@ export function useSocket(): Socket | null {
 
   return socketRef.current;
 }
+
+/**
+ * Escucha un evento del canal en vivo global (el de la sesión iniciada).
+ * El socket se crea al iniciar sesión, así que si todavía no existe se
+ * reintenta enganchar cada medio segundo hasta que esté listo.
+ */
+export function useSocketEvento<T = unknown>(evento: string, alRecibir: (datos: T) => void) {
+  const handler = useRef(alRecibir);
+  handler.current = alRecibir;
+
+  useEffect(() => {
+    let enganchado: Socket | null = null;
+    let reintento: ReturnType<typeof setTimeout> | undefined;
+    const fn = (datos: T) => handler.current(datos);
+    const enganchar = () => {
+      if (socketInstance) {
+        enganchado = socketInstance;
+        enganchado.on(evento, fn);
+      } else {
+        reintento = setTimeout(enganchar, 500);
+      }
+    };
+    enganchar();
+    return () => {
+      if (reintento) clearTimeout(reintento);
+      enganchado?.off(evento, fn);
+    };
+  }, [evento]);
+}

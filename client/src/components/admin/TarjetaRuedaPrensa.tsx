@@ -1,16 +1,27 @@
+import { useState } from "react";
 import { ExternalLink, Link2, Mic } from "lucide-react";
+import { useSocketEvento } from "@/hooks/useSocket";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
 /**
  * Acceso del administrador a la invitación de la rueda de prensa.
- * Muestra cuántos confirmaron asistencia (se actualiza solo), abre la
+ * Muestra cuántos confirmaron asistencia (en tiempo real), abre la
  * invitación y copia su enlace para compartirlo o ponerlo en un QR.
  */
 const URL_INVITACION = "https://isekaiworld.co/rueda-de-prensa";
 
 export default function TarjetaRuedaPrensa() {
-  const { data, isLoading } = trpc.prensa.total.useQuery(undefined, { refetchInterval: 30_000 });
+  const utils = trpc.useUtils();
+  // El número llega en vivo; la consulta periódica queda solo de respaldo
+  const { data, isLoading } = trpc.prensa.total.useQuery(undefined, { refetchInterval: 60_000 });
+  const [destello, setDestello] = useState(0);
+
+  useSocketEvento<{ total: number; hoy: number }>("prensa:confirmacion", conteo => {
+    utils.prensa.total.setData(undefined, conteo);
+    setDestello(d => d + 1);
+    toast.success(`🎟️ Nueva confirmación · ya son ${conteo.total}`);
+  });
 
   const copiar = async () => {
     try {
@@ -32,7 +43,9 @@ export default function TarjetaRuedaPrensa() {
           <p className="text-xs text-[#888]">Arena Panter, CC Costa Verde</p>
         </div>
         <div className="shrink-0 text-right">
-          <p className="text-3xl font-black leading-none text-[#111]">{isLoading ? "…" : (data?.total ?? 0)}</p>
+          <p key={destello} className={`text-3xl font-black leading-none text-[#111] ${destello > 0 ? "animate-[prensa-pop_0.6s_ease-out]" : ""}`}>
+            {isLoading ? "…" : (data?.total ?? 0)}
+          </p>
           <p className="mt-1 text-[10px] uppercase tracking-wider text-[#888]">
             confirmados{data && data.hoy > 0 ? ` · ${data.hoy} hoy` : ""}
           </p>

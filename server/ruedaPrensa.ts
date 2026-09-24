@@ -1,6 +1,8 @@
 import { and, eq, gte, sql } from "drizzle-orm";
 import { getDb } from "./db";
 import { wfPrensaConfirmaciones } from "../drizzle/schema";
+import { io } from "./_core/socket";
+import { notifyConfirmacionPrensa } from "./_core/notification";
 
 /**
  * Confirmaciones de asistencia a la rueda de prensa del World Fest.
@@ -43,6 +45,16 @@ export async function confirmarAsistencia(clave: string, ip: string):
   } catch {
     // Dos toques casi simultáneos: la clave ya quedó guardada
     return { ok: true, yaEstaba: true };
+  }
+
+  // Aviso al instante a los administradores conectados, y correo al dueño.
+  // No se espera el correo: la persona que confirma no debe esperar por él.
+  try {
+    const conteo = await totalConfirmaciones();
+    io?.to("admin").emit("prensa:confirmacion", conteo);
+    void notifyConfirmacionPrensa(conteo.total, conteo.hoy).catch(e => console.warn("[Prensa] correo:", e));
+  } catch (e) {
+    console.warn("[Prensa] aviso en vivo:", e);
   }
   return { ok: true, yaEstaba: false };
 }
