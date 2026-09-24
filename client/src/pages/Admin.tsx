@@ -1816,10 +1816,10 @@ export default function Admin() {
                                 </div>
                               )}
                               {order.paymentStatus === 'partial' && (
-                                <div className="mt-2 bg-blue-50 border border-blue-200 rounded-xl px-3 py-2 text-xs">
-                                  <p className="text-blue-600 font-semibold">Pago parcial</p>
-                                  <p className="text-blue-500">Pagado: ${parseFloat(order.amountPaid ?? '0').toFixed(2)} USD</p>
-                                  <p className="text-blue-500">Restante: ${(parseFloat(order.total) - parseFloat(order.amountPaid ?? '0')).toFixed(2)} USD</p>
+                                <div className="mt-2 inline-flex flex-wrap items-center gap-x-3 gap-y-0.5 border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs">
+                                  <span className="font-semibold text-amber-300">Pago parcial</span>
+                                  <span className="text-amber-200/80">Pagado ${parseFloat(order.amountPaid ?? '0').toFixed(2)}</span>
+                                  <span className="text-amber-200/80">Resta ${(parseFloat(order.total) - parseFloat(order.amountPaid ?? '0')).toFixed(2)} USD</span>
                                 </div>
                               )}
                               {order.paymentStatus === 'approved' && (
