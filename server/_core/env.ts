@@ -21,6 +21,8 @@ export const ENV = {
 
   // ── Email: Resend ─────────────────────────────────────────────────────────
   resendApiKey:  process.env.RESEND_API_KEY ?? "",
+  /** Remitente de las campañas (idealmente un subdominio, p. ej. «Isekai World <noticias@noticias.isekaiworld.co>») */
+  campanasFrom: process.env.CAMPANAS_FROM ?? "",
   resendFrom:    process.env.RESEND_FROM ?? "ISEKAI WORLD <noreply@isekaiworld.co>",
 
   // ── Storage: Cloudflare R2 ────────────────────────────────────────────────

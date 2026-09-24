@@ -862,3 +862,40 @@ export const wfPrensaConfirmaciones = mysqlTable("wfPrensaConfirmaciones", {
   ip: varchar("ip", { length: 64 }).notNull(),
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
+
+// ─── Campañas de correo (el «Mailchimp propio» del panel) ──────────────────────
+export const campanas = mysqlTable("campanas", {
+  id: int("id").autoincrement().primaryKey(),
+  asunto: varchar("asunto", { length: 150 }).notNull(),
+  preheader: varchar("preheader", { length: 150 }),
+  titulo: varchar("titulo", { length: 120 }).notNull(),
+  cuerpo: text("cuerpo").notNull(),
+  imagenUrl: varchar("imagenUrl", { length: 500 }),
+  botonTexto: varchar("botonTexto", { length: 40 }),
+  botonUrl: varchar("botonUrl", { length: 500 }),
+  segmento: varchar("segmento", { length: 20 }).notNull(),
+  /** borrador · enviando · enviada · interrumpida */
+  estado: varchar("estado", { length: 20 }).default("borrador").notNull(),
+  total: int("total").default(0).notNull(),
+  enviados: int("enviados").default(0).notNull(),
+  fallidos: int("fallidos").default(0).notNull(),
+  ultimoError: varchar("ultimoError", { length: 300 }),
+  creadoPor: int("creadoPor"),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+  enviadoEn: timestamp("enviadoEn"),
+});
+
+/** A quién ya le llegó cada campaña: evita repetir el correo al reanudar */
+export const campanaEnvios = mysqlTable("campanaEnvios", {
+  id: int("id").autoincrement().primaryKey(),
+  campanaId: int("campanaId").notNull(),
+  email: varchar("email", { length: 320 }).notNull(),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});
+
+/** Personas que pidieron no recibir campañas (lista de supresión) */
+export const bajasMarketing = mysqlTable("bajasMarketing", {
+  id: int("id").autoincrement().primaryKey(),
+  email: varchar("email", { length: 320 }).notNull().unique(),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});

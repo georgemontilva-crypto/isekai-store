@@ -7,7 +7,7 @@ import { useAvisosAdmin } from "@/hooks/useAvisosAdmin";
 import MediaPickerModal from "@/components/admin/MediaPickerModal";
 import { descargarTarjeta } from "@/lib/giftCardImage";
 import {
-  LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users,
+  LayoutDashboard, Package, Tag, ShoppingBag, TrendingUp, Users, Send,
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { COLORES, ESTADOS_PEDIDO, PASOS_PEDIDO, ESTADOS_PAGO, dinero, fechaRelativa, Estado, EncabezadoSeccion, EstadoVacio, ChipFiltro, confirmar, ModalConfirmar } from "@/components/admin/ui";
 import PanelResumen from "@/components/admin/PanelResumen";
+import CampanasSection, { ContadoresAudiencia } from "@/components/admin/CampanasSection";
 import { aInputFechaLocal, deInputFechaLocal } from "@/lib/fechaLocal";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -28,7 +29,7 @@ import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards" | "campanas";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -645,7 +646,7 @@ const GRUPOS_MENU: { titulo: string; ids: string[] }[] = [
   { titulo: "Ventas", ids: ["orders", "payments", "quotes", "giftcards"] },
   { titulo: "Catálogo", ids: ["products", "categories", "media"] },
   { titulo: "World Fest", ids: ["boleteria", "cosplay"] },
-  { titulo: "Comunidad", ids: ["users", "subscribers", "feedback"] },
+  { titulo: "Comunidad", ids: ["users", "subscribers", "campanas", "feedback"] },
   { titulo: "Contenido", ids: ["blog", "faq", "popups", "linkbio"] },
   { titulo: "Ajustes", ids: ["settings"] },
 ];
@@ -1236,6 +1237,7 @@ export default function Admin() {
     { id: "boleteria" as AdminTab, label: "Boletería",    icon: Ticket },
     { id: "quotes" as AdminTab,   label: "Cotizaciones", icon: FileText },
     { id: "subscribers" as AdminTab, label: "Suscriptores", icon: Mail },
+    { id: "campanas" as AdminTab, label: "Campañas", icon: Send },
     { id: "media" as AdminTab,    label: "Medios",        icon: ImageIcon },
     { id: "settings" as AdminTab, label: "Configuración", icon: Settings },
     { id: "faq" as AdminTab,      label: "FAQ",           icon: HelpCircle },
@@ -1377,6 +1379,16 @@ export default function Admin() {
                     ocupado: resetRevenue.isPending || undoResetRevenue.isPending,
                   }}
                 />
+              </motion.div>
+            )}
+
+            {tab === "campanas" && (
+              <motion.div key="campanas" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <EncabezadoSeccion
+                  titulo="Campañas"
+                  descripcion="Correos masivos con tu diseño: sube la imagen, escribe el mensaje, envíate una prueba y elige a quién mandarlo."
+                />
+                <CampanasSection />
               </motion.div>
             )}
 
@@ -4089,6 +4101,7 @@ export default function Admin() {
             {tab === "users" && (
               <motion.div key="users" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <EncabezadoSeccion titulo="Usuarios" descripcion="Cuentas registradas en la tienda. Cambia el rol o elimina cuentas de prueba." />
+                <ContadoresAudiencia />
 
                 {/* Filtros */}
                 <div className="mb-4 flex flex-wrap gap-2">

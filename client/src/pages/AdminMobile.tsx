@@ -8,8 +8,9 @@ import {
   TrendingUp, Gift, ExternalLink, Pencil, X, Plus, SlidersHorizontal,
   LogOut, Settings, Menu, ChevronDown, ChevronUp, Eye, ArrowLeft,
   Tag, Store, Layers, Image as ImageIcon, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
-} from 'lucide-react';
+  Send } from 'lucide-react';
 import PanelResumen from '@/components/admin/PanelResumen';
+import CampanasSection, { ContadoresAudiencia } from '@/components/admin/CampanasSection';
 import { ModalConfirmar } from '@/components/admin/ui';
 import { aInputFechaLocal, deInputFechaLocal } from '@/lib/fechaLocal';
 import { Link, useLocation } from 'wouter';
@@ -24,7 +25,7 @@ import TicketsAdmin from '@/components/admin/TicketsAdmin';
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'colecciones' | 'media' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'colecciones' | 'media' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder' | 'campanas';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -2008,6 +2009,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
       items: [
         { label: 'Usuarios',     tab: 'users'       as MobileTab, icon: Users },
         { label: 'Suscriptores', tab: 'subscribers' as MobileTab, icon: Mail },
+        { label: 'Campañas',     tab: 'campanas' as MobileTab,    icon: Send },
         { label: 'Sugerencias',  tab: 'feedback'    as MobileTab, icon: MessageCircle },
       ],
     },
@@ -3320,16 +3322,16 @@ export default function AdminMobile() {
         { id: 'more' as MobileTab,     label: 'Más',       icon: Menu },
       ];
 
-  const EXTRA_TABS = ['categories', 'faq', 'users', 'blog', 'popups', 'newOrder'];
+  const EXTRA_TABS = ['categories', 'faq', 'users', 'blog', 'popups', 'newOrder', 'campanas'];
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
-    categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
+    categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups', campanas: 'Campañas',
     subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
-    categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups',
+    categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups', campanas: 'Campañas',
     subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
 
@@ -3391,7 +3393,9 @@ export default function AdminMobile() {
         {activeTab === 'more'        && <MoreSection onLogout={logout} onNavigate={setActiveTab} />}
         {activeTab === 'categories'  && <CategoriesSection />}
         {activeTab === 'faq'         && <FAQSection />}
+        {activeTab === 'users'       && <div className="px-3 pt-3"><ContadoresAudiencia /></div>}
         {activeTab === 'users'       && <UsersSection />}
+        {activeTab === 'campanas'    && <div className="p-3"><CampanasSection /></div>}
         {activeTab === 'blog'        && <BlogSection onModalChange={setBlogHasModal} />}
         {activeTab === 'subscribers' && <SubscribersSection />}
         {activeTab === 'comments'    && <CommentsSection />}

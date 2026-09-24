@@ -11,6 +11,7 @@ import { rateLimit } from "express-rate-limit";
 import { iniciarTasaAutomatica } from "../binanceRate";
 import { iniciarRevisionComisiones } from "../db";
 import { iniciarCorreosRaid, registerRaidCorreos } from "../raidCorreos";
+import { registerBajaCampanas, recuperarCampanasInterrumpidas } from "../campanas";
 import { iniciarOptimizacionImagenes } from "../reprocesarImagenes";
 import { createServer } from "http";
 import net from "net";
@@ -206,6 +207,7 @@ async function startServer() {
   initSocket(server);
   registerStorageProxy(app);
   registerRaidCorreos(app);
+  registerBajaCampanas(app);
   registerOAuthRoutes(app);
   // tRPC API
   app.use(
@@ -237,6 +239,8 @@ async function startServer() {
     iniciarRevisionComisiones();
     // Raid del Fest: recordatorio diario y correo del premio
     iniciarCorreosRaid();
+    // Campañas: lo que quedó a medias por un reinicio se puede reanudar
+    void recuperarCampanasInterrumpidas();
     // Reduce poco a poco las imágenes que se subieron sin optimizar
     iniciarOptimizacionImagenes();
   });

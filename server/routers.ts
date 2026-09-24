@@ -33,6 +33,7 @@ import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/ref
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, GOLPES_MAX } from "./raid";
 import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones } from "./ruedaPrensa";
+import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
 const MOTIVO_REFERIDO: Record<string, string> = {
@@ -138,6 +139,20 @@ const storeProcedure = protectedProcedure.use(({ ctx, next }) => {
   }
   return next({ ctx });
 });
+
+/** Solo enlaces https (o vacío) */
+const httpsOVacio = z.string().trim().max(500).refine(v => v === "" || /^https:\/\//i.test(v), "El enlace debe empezar por https://");
+const campanaInput = z.object({
+  asunto: z.string().trim().min(3).max(150),
+  preheader: z.string().trim().max(150).optional().nullable(),
+  titulo: z.string().trim().min(2).max(120),
+  cuerpo: z.string().trim().min(2).max(5000),
+  imagenUrl: httpsOVacio.optional().nullable(),
+  botonTexto: z.string().trim().max(40).optional().nullable(),
+  botonUrl: httpsOVacio.optional().nullable(),
+  segmento: z.enum(SEGMENTOS),
+});
+const pruebasRecientes = new Map<number, number[]>();
 
 export const appRouter = router({
   system: systemRouter,
@@ -1056,6 +1071,38 @@ export const appRouter = router({
         return { posts: [], configured: true, error: "Failed to fetch feed" };
       }
     }),
+  }),
+
+  // ─── Campañas de correo (solo administradores) ──────────────────────────────
+  campanas: router({
+    estadisticas: adminProcedure.query(() => estadisticasAudiencia()),
+    listar: adminProcedure.query(() => listarCampanas()),
+    guardar: adminProcedure
+      .input(campanaInput.extend({ id: z.number().int().positive().optional() }))
+      .mutation(({ input, ctx }) => guardarCampana(input, ctx.user.id)),
+    borrar: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(({ input }) => borrarCampana(input.id)),
+    vistaPrevia: adminProcedure
+      .input(campanaInput)
+      .query(({ input }) => vistaPreviaCampana(input)),
+    enviarPrueba: adminProcedure
+      .input(campanaInput)
+      .mutation(async ({ input, ctx }) => {
+        // Máximo 10 pruebas por minuto por administrador
+        const ahora = Date.now();
+        const lista = (pruebasRecientes.get(ctx.user.id) ?? []).filter(t => ahora - t < 60_000);
+        if (lista.length >= 10) throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Espera un minuto antes de enviar otra prueba" });
+        pruebasRecientes.set(ctx.user.id, [...lista, ahora]);
+        try {
+          return await enviarPruebaCampana(input, ctx.user.email ?? "");
+        } catch (e: any) {
+          throw new TRPCError({ code: "BAD_REQUEST", message: e?.message ?? "No se pudo enviar la prueba" });
+        }
+      }),
+    enviar: adminProcedure
+      .input(z.object({ id: z.number().int().positive() }))
+      .mutation(({ input }) => lanzarCampana(input.id)),
   }),
 
   // ─── World Fest: rueda de prensa (confirmar asistencia sin registro) ─────────
