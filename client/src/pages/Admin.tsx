@@ -13,6 +13,7 @@ import {
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
   CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText, Download,
 } from "lucide-react";
+import { COLORES, ESTADOS_PEDIDO, PASOS_PEDIDO, ESTADOS_PAGO, dinero, fechaRelativa, Estado, EncabezadoSeccion, EstadoVacio, ChipFiltro, confirmar, ModalConfirmar } from "@/components/admin/ui";
 import PanelResumen from "@/components/admin/PanelResumen";
 import { aInputFechaLocal, deInputFechaLocal } from "@/lib/fechaLocal";
 import { OrderTimeline } from "@/components/OrderTimeline";
@@ -666,6 +667,8 @@ export default function Admin() {
   /** Los kits de cosplayer son pedidos de $0 con prefijo IW-KIT: se separan
       para que no ensucien la lista de ventas reales. */
   const [ordersKind, setOrdersKind] = useState<"ventas" | "kits">("ventas");
+  /** Filtro por estado en la lista de pedidos («all» = todos) */
+  const [ordersStatus, setOrdersStatus] = useState<string>("all");
   const esKit = (o: any) => String(o.orderNumber ?? "").startsWith("IW-KIT-");
   const [cosplaySubTab, setCosplaySubTab] = useState<'applications'|'cosplayers'|'activities'|'evaluations'|'withdrawals'>('applications');
   const [blogSubTab, setBlogSubTab] = useState<'posts' | 'categories' | 'comments'>('posts');
@@ -1016,7 +1019,7 @@ export default function Admin() {
 
   // Payments queries + mutations
   const { data: paymentsData, refetch: refetchPayments } = trpc.orders.adminPayments.useQuery(
-    { paymentStatus: paymentsFilter === "all" ? undefined : paymentsFilter },
+    undefined,
     { enabled: isAuthenticated && user?.role === "admin" }
   );
   const verifyPayment = trpc.orders.verifyPayment.useMutation({
@@ -1244,6 +1247,7 @@ export default function Admin() {
   return (
     /* App shell: alto fijo, solo scrollea el contenido de la derecha */
     <div className="admin-shell h-[100dvh] overflow-hidden bg-[#f6f6f7] flex">
+      <ModalConfirmar />
       {/* Sidebar */}
       <aside
         className={`fixed lg:static top-0 left-0 z-40 h-[100dvh] w-60 shrink-0 bg-white border-r border-[#e8e8ea] flex flex-col transition-transform lg:translate-x-0 ${
@@ -1698,55 +1702,21 @@ export default function Admin() {
             {/* ─── Orders ─────────────────────────────────────────────────────── */}
             {tab === "orders" && (
               <motion.div key="orders" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold">Pedidos</h1>
-                  <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 bg-[#111] text-white px-5 py-3.5 rounded-xl text-sm font-bold">
-                    <Plus size={16} /> Registrar pedido ya pagado
-                  </button>
-                </div>
-                <div className="relative mb-3">
-                  <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nombre, correo o número de orden..."
-                    value={orderSearch}
-                    onChange={e => setOrderSearch(e.target.value)}
-                    className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#e5e5e5] rounded-lg outline-none focus:border-[#111] transition-colors"
-                  />
-                </div>
-
-                {/* Activos vs archivados */}
-                <div className="mb-4 flex flex-wrap items-center gap-2">
-                  {([["active", "En producción"], ["archived", "Archivados"]] as const).map(([id, label]) => (
-                    <button
-                      key={id}
-                      onClick={() => { setOrdersView(id); setExpandedOrderId(null); }}
-                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                        ordersView === id ? "bg-[#111] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
-                      }`}
-                    >
-                      {label}
+                <EncabezadoSeccion
+                  titulo="Pedidos"
+                  descripcion="Toca un pedido para ver el detalle. «Avanzar» lo pasa al siguiente paso."
+                  accion={
+                    <button onClick={() => setShowManualOrder(true)} className="flex items-center gap-2 bg-[#e5007d] px-5 py-3 text-sm font-bold text-white">
+                      <Plus size={16} /> Registrar pedido ya pagado
                     </button>
-                  ))}
-                  {ordersView === "active" && (
-                    <button
-                      onClick={() => {
-                        if (confirm("¿Archivar los pedidos entregados o cancelados de hace más de 30 días?")) {
-                          archiveOldOrders.mutate({ days: 30 });
-                        }
-                      }}
-                      disabled={archiveOldOrders.isPending}
-                      className="ml-auto flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-bold border border-[#e5e5e5] text-[#666] hover:border-[#111] hover:text-[#111] transition-colors disabled:opacity-50"
-                    >
-                      {archiveOldOrders.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Archive className="w-3.5 h-3.5" />}
-                      Archivar completados de +30 días
-                    </button>
-                  )}
-                </div>
+                  }
+                />
                 {(() => {
-                  const filteredOrders = orders.filter(order => {
-                    // Kits y ventas van en listas separadas
-                    if (ordersKind === "kits" ? !esKit(order) : esKit(order)) return false;
+                  const totalKits = orders.filter(esKit).length;
+                  const totalVentas = orders.length - totalKits;
+                  // Base: tipo (ventas/kits; en archivados, ambos) + búsqueda
+                  const base = orders.filter(order => {
+                    if (ordersView === "active" && (ordersKind === "kits" ? !esKit(order) : esKit(order))) return false;
                     const q = orderSearch.toLowerCase();
                     if (!q) return true;
                     return (
@@ -1755,102 +1725,158 @@ export default function Admin() {
                       order.customerEmail?.toLowerCase().includes(q)
                     );
                   });
-                  const totalKits = orders.filter(esKit).length;
-                  const totalVentas = orders.length - totalKits;
+                  const cuenta = (st: string) => base.filter(o => o.status === st).length;
+                  const filteredOrders = ordersStatus === "all" ? base : base.filter(o => o.status === ordersStatus);
+                  const vista = ordersView === "archived" ? "archivados" : ordersKind;
                   return (
-                <div className="space-y-3">
-                  {/* Ventas vs kits */}
-                  <div className="mb-4 flex gap-2">
-                    {([["ventas", `Ventas (${totalVentas})`], ["kits", `Kits de cosplayer (${totalKits})`]] as const).map(([id, label]) => (
+                <div>
+                  {/* Un solo selector: Ventas · Kits · Archivados */}
+                  <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <div className="inline-flex border border-white/10">
+                      {([["ventas", `Ventas · ${totalVentas}`], ["kits", `Kits · ${totalKits}`], ["archivados", "Archivados"]] as const).map(([id, label]) => (
+                        <button
+                          key={id}
+                          onClick={() => {
+                            setExpandedOrderId(null); setOrdersStatus("all");
+                            if (id === "archivados") setOrdersView("archived");
+                            else { setOrdersView("active"); setOrdersKind(id); }
+                          }}
+                          className={`px-4 py-2 text-xs font-bold transition-colors ${vista === id ? "bg-[#e5007d] text-white" : "text-[#a39cad] hover:text-white"}`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <div className="relative min-w-[220px] flex-1">
+                      <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#6f6878]" />
+                      <input
+                        type="text"
+                        placeholder="Buscar cliente, correo o número…"
+                        value={orderSearch}
+                        onChange={e => setOrderSearch(e.target.value)}
+                        className="w-full border py-2 pl-9 pr-4 text-sm outline-none transition-colors"
+                      />
+                    </div>
+                    {ordersView === "active" && (
                       <button
-                        key={id}
-                        onClick={() => setOrdersKind(id)}
-                        className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-                          ordersKind === id ? "bg-[#e5007d] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
-                        }`}
+                        onClick={() => {
+                          confirmar({
+                            titulo: "Archivar pedidos completados",
+                            mensaje: "Se archivan los pedidos entregados o cancelados de hace más de 30 días. No se borran: quedan en «Archivados».",
+                            confirmar: "Archivar",
+                          }).then(ok => { if (ok) archiveOldOrders.mutate({ days: 30 }); });
+                        }}
+                        disabled={archiveOldOrders.isPending}
+                        title="Archiva los entregados o cancelados de hace más de 30 días"
+                        className="flex items-center gap-1.5 border border-white/10 px-3.5 py-2 text-xs font-bold text-[#a39cad] transition-colors hover:text-white disabled:opacity-50"
                       >
-                        {label}
+                        {archiveOldOrders.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Archive className="h-3.5 w-3.5" />}
+                        Archivar completados +30 días
                       </button>
+                    )}
+                  </div>
+
+                  {/* Estados: cuentan y filtran */}
+                  <div className="mb-5 grid grid-cols-3 gap-1.5 sm:grid-cols-5 xl:grid-cols-9">
+                    <ChipFiltro activo={ordersStatus === "all"} numero={base.length} texto="Todos" onClick={() => setOrdersStatus("all")} />
+                    {[...PASOS_PEDIDO, "cancelled"].map(st => (
+                      <ChipFiltro
+                        key={st}
+                        activo={ordersStatus === st}
+                        color={ESTADOS_PEDIDO[st].color}
+                        numero={cuenta(st)}
+                        texto={ESTADOS_PEDIDO[st].corto}
+                        onClick={() => setOrdersStatus(ordersStatus === st ? "all" : st)}
+                      />
                     ))}
                   </div>
+
+                  {/* Cabecera de la tabla */}
+                  {filteredOrders.length > 0 && (
+                    <div className="adm-fila-tabla hidden gap-x-4 border-b border-white/[0.08] px-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6878] lg:grid">
+                      <span>Pedido</span><span>Cliente</span><span>Estado</span><span>Pago</span><span className="text-right">Total</span><span />
+                    </div>
+                  )}
+                  {filteredOrders.length === 0 && (
+                    <EstadoVacio icono={ShoppingBag} texto={orderSearch || ordersStatus !== "all" ? "No hay pedidos con esos filtros." : "Todavía no hay pedidos aquí."} />
+                  )}
+                  <div className="divide-y divide-white/[0.05]">
                   {filteredOrders.map((order) => {
                     const isExpanded = expandedOrderId === order.id;
                     return (
-                      <div key={order.id} className="rounded-2xl bg-card border border-border/50 overflow-hidden">
-                        {/* Header row */}
-                        <button
-                          className="w-full p-4 text-left hover:bg-muted/30 transition-colors"
+                      <div key={order.id} className={isExpanded ? "bg-[#0e0d13]" : ""}>
+                        {/* Fila de la tabla: pedido · cliente · estado · pago · total · acciones */}
+                        {(() => {
+                          const est = ESTADOS_PEDIDO[order.status] ?? { texto: order.status, color: COLORES.gris };
+                          const idx = PASOS_PEDIDO.indexOf(order.status as typeof PASOS_PEDIDO[number]);
+                          const siguiente = idx >= 0 && idx < PASOS_PEDIDO.length - 1 ? PASOS_PEDIDO[idx + 1] : null;
+                          const total = parseFloat(order.total) || 0;
+                          const pagado = parseFloat(order.amountPaid ?? "0") || 0;
+                          const f = fechaRelativa(order.createdAt);
+                          const corto = String(order.orderNumber ?? "").startsWith("IW-KIT-")
+                            ? String(order.orderNumber).replace("IW-", "")
+                            : "#" + String(order.orderNumber ?? "").split("-").pop();
+                          return (
+                        <div
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                          onKeyDown={e => { if (e.key === "Enter") setExpandedOrderId(isExpanded ? null : order.id); }}
+                          className="adm-fila-tabla grid cursor-pointer grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 transition-colors hover:bg-white/[0.025]"
                         >
-                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-3 mb-1 flex-wrap">
-                                <span className="font-semibold">{order.orderNumber}</span>
-                                <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-[#f0f0f0] text-[#999]">
-                                  {statusLabels[order.status] ?? order.status}
-                                </span>
-                                {order.status === "cancelled" && (
-                                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-600">Cancelada</span>
-                                )}
-                              </div>
-                              <p className="text-sm text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
-                              {order.customerPhone && (
-                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><Phone className="w-3 h-3 shrink-0" />{order.customerPhone}</p>
-                              )}
-                              <p className="text-xs text-muted-foreground mt-0.5">{new Date(order.createdAt).toLocaleString("es-VE")}</p>
-                              {/* Mini progress timeline */}
-                              {order.status !== "cancelled" && (
-                                <div className="flex items-center gap-0.5 mt-2">
-                                  {ORDER_STEPS.map((step, i) => {
-                                    const currentIdx = ORDER_STEPS.indexOf(order.status as typeof ORDER_STEPS[number]);
-                                    const done = i <= currentIdx;
-                                    return (
-                                      <div key={step} className="flex items-center gap-0.5">
-                                        <div className={`w-2 h-2 rounded-full transition-colors ${done ? "bg-[#e5007d]" : "bg-[#e5e5e5]"}`} />
-                                        {i < ORDER_STEPS.length - 1 && (
-                                          <div className={`w-3 h-0.5 transition-colors ${done && i < currentIdx ? "bg-[#e5007d]" : "bg-[#e5e5e5]"}`} />
-                                        )}
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                              {order.paymentStatus === 'partial' && (
-                                <div className="mt-2 inline-flex flex-wrap items-center gap-x-3 gap-y-0.5 border border-amber-400/30 bg-amber-400/10 px-3 py-1.5 text-xs">
-                                  <span className="font-semibold text-amber-300">Pago parcial</span>
-                                  <span className="text-amber-200/80">Pagado ${parseFloat(order.amountPaid ?? '0').toFixed(2)}</span>
-                                  <span className="text-amber-200/80">Resta ${(parseFloat(order.total) - parseFloat(order.amountPaid ?? '0')).toFixed(2)} USD</span>
-                                </div>
-                              )}
-                              {order.paymentStatus === 'approved' && (
-                                <p className="text-xs text-green-600 font-semibold mt-1 flex items-center gap-1"><CheckCircle2 className="w-3 h-3" />Pagado completo</p>
-                              )}
-                              {order.paymentStatus === 'pending' && (
-                                <p className="text-xs text-orange-500 font-semibold mt-1 flex items-center gap-1"><Clock className="w-3 h-3" />Pago pendiente</p>
-                              )}
-                            </div>
-                            <div className="flex items-center gap-3 shrink-0">
-                              <span className="font-bold text-base">${parseFloat(order.total).toFixed(2)} USD</span>
-                              {/* Archivar / restaurar — va dentro de la fila, por eso corta el clic del acordeón */}
-                              <span
-                                role="button"
-                                tabIndex={0}
-                                title={(order as any).archived ? "Restaurar a producción" : "Archivar pedido"}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOrderArchived.mutate({ id: order.id, archived: !(order as any).archived });
-                                }}
-                                onKeyDown={(e) => { if (e.key === "Enter") { e.stopPropagation(); setOrderArchived.mutate({ id: order.id, archived: !(order as any).archived }); } }}
-                                className="p-1.5 rounded-lg text-[#999] hover:text-[#111] hover:bg-[#f0f0f0] transition-colors"
-                              >
-                                {(order as any).archived
-                                  ? <ArchiveRestore className="w-4 h-4" />
-                                  : <Archive className="w-4 h-4" />}
-                              </span>
-                              <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
-                            </div>
+                          <div className="min-w-0" title={order.orderNumber}>
+                            <p className="text-sm font-black text-white">{corto}</p>
+                            <p className="text-[11px] text-[#8a8494]" title={f.exacta}>{f.texto}</p>
                           </div>
-                        </button>
+                          <div className="min-w-0 max-lg:col-span-2 max-lg:row-start-2">
+                            <p className="truncate text-sm text-white">{order.customerName}</p>
+                            <p className="truncate text-[11px] text-[#8a8494]">{order.customerEmail}{order.customerPhone ? ` · ${order.customerPhone}` : ""}</p>
+                          </div>
+                          <div className="max-lg:row-start-3">
+                            <Estado color={est.color}>{est.texto}{idx >= 0 ? ` · ${idx + 1}/7` : ""}</Estado>
+                          </div>
+                          <div className="min-w-0 max-lg:row-start-3 max-lg:justify-self-end">
+                            {order.paymentStatus === "partial" ? (
+                              <div title={`Pagado ${dinero(pagado)} · resta ${dinero(total - pagado)}`}>
+                                <p className="text-xs font-semibold" style={{ color: COLORES.ambar }}>{dinero(pagado)} de {dinero(total)}</p>
+                                <div className="mt-1 h-1 w-24 bg-white/10"><div className="h-full" style={{ width: `${Math.min(100, (pagado / Math.max(total, 1)) * 100)}%`, background: COLORES.ambar }} /></div>
+                              </div>
+                            ) : order.paymentStatus === "approved" ? (
+                              <p className="flex items-center gap-1 text-xs font-semibold" style={{ color: COLORES.verde }}><CheckCircle2 className="h-3.5 w-3.5" /> Pagado</p>
+                            ) : (
+                              <p className="flex items-center gap-1 text-xs font-semibold" style={{ color: COLORES.ambar }}><Clock className="h-3.5 w-3.5" /> Pendiente</p>
+                            )}
+                          </div>
+                          <p className="text-right text-sm font-black tabular-nums text-white max-lg:col-start-2 max-lg:row-start-1">{dinero(total)}</p>
+                          <div className="flex items-center justify-end gap-1.5 max-lg:col-span-2" onClick={e => e.stopPropagation()}>
+                            {siguiente && !(order as any).archived && (
+                              <button
+                                onClick={() => updateOrderStatus.mutate({ id: order.id, status: siguiente })}
+                                disabled={updateOrderStatus.isPending}
+                                title={`Pasar a «${ESTADOS_PEDIDO[siguiente].texto}»`}
+                                className="whitespace-nowrap border border-white/12 bg-[#141318] px-2.5 py-1.5 text-[11px] font-bold text-white transition-colors hover:border-[#ff3d9e] disabled:opacity-50"
+                              >
+                                Avanzar → {ESTADOS_PEDIDO[siguiente].corto === "Nuevos" ? "Nuevo" : ESTADOS_PEDIDO[siguiente].texto}
+                              </button>
+                            )}
+                            <button
+                              title={(order as any).archived ? "Restaurar a producción" : "Archivar pedido"}
+                              onClick={() => setOrderArchived.mutate({ id: order.id, archived: !(order as any).archived })}
+                              className="p-1.5 text-[#8a8494] transition-colors hover:text-white"
+                            >
+                              {(order as any).archived ? <ArchiveRestore className="h-4 w-4" /> : <Archive className="h-4 w-4" />}
+                            </button>
+                            <button
+                              title={isExpanded ? "Cerrar detalle" : "Ver detalle"}
+                              onClick={() => setExpandedOrderId(isExpanded ? null : order.id)}
+                              className="p-1.5 text-[#8a8494] transition-colors hover:text-white"
+                            >
+                              <ChevronDown className={`h-4 w-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} />
+                            </button>
+                          </div>
+                        </div>
+                          );
+                        })()}
 
                         {/* Expanded detail */}
                         <AnimatePresence>
@@ -1873,9 +1899,12 @@ export default function Admin() {
                                     pedido no estaba cancelado, el stock vuelve. */}
                                 <button
                                   onClick={() => {
-                                    if (confirm(`¿Eliminar el pedido ${order.orderNumber}? Esta acción no se puede deshacer.`)) {
-                                      deleteOrder.mutate({ id: order.id });
-                                    }
+                                    confirmar({
+                                      titulo: `Eliminar el pedido ${order.orderNumber}`,
+                                      mensaje: "Se borra para siempre. Si no estaba cancelado, el stock vuelve al inventario.",
+                                      confirmar: "Eliminar pedido",
+                                      peligro: true,
+                                    }).then(ok => { if (ok) deleteOrder.mutate({ id: order.id }); });
                                   }}
                                   disabled={deleteOrder.isPending}
                                   className="mt-4 rounded-full border border-red-200 px-5 py-2.5 text-xs font-bold text-red-500 transition-colors hover:bg-red-50 disabled:opacity-50"
@@ -1889,17 +1918,7 @@ export default function Admin() {
                       </div>
                     );
                   })}
-                  {filteredOrders.length === 0 && orderSearch && (
-                    <p className="text-center text-[#999] text-sm py-8">
-                      No se encontraron pedidos para "{orderSearch}"
-                    </p>
-                  )}
-                  {filteredOrders.length === 0 && !orderSearch && (
-                    <div className="text-center py-16 text-muted-foreground">
-                      <ShoppingBag className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p>No hay pedidos aún</p>
-                    </div>
-                  )}
+                  </div>
                 </div>
                   );
                 })()}
@@ -2144,34 +2163,37 @@ export default function Admin() {
             {/* ─── Payments Tab ───────────────────────────────────────────────── */}
             {tab === "payments" && (
               <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-                  <h1 className="text-2xl font-bold">Pagos</h1>
-                  <div className="flex gap-2 flex-wrap w-full sm:w-auto">
-                    {[
-                      { id: "all", label: "Todos" },
-                      { id: "pending", label: "Pendiente" },
-                      { id: "verifying", label: "En revisión" },
-                      { id: "approved", label: "Aprobado" },
-                      { id: "rejected", label: "Rechazado" },
-                    ].map(f => (
-                      <button
-                        key={f.id}
-                        onClick={() => setPaymentsFilter(f.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all ${
-                          paymentsFilter === f.id ? "border-primary bg-primary/10 text-primary" : "border-border/50 text-muted-foreground hover:border-primary/40"
-                        }`}
-                      >
-                        {f.label}
-                      </button>
+                <EncabezadoSeccion titulo="Pagos" descripcion="Revisa los comprobantes y aprueba o rechaza cada pago. Toca una fila para ver el comprobante." />
+                {(() => {
+                  const todosPagos: any[] = paymentsData?.items ?? [];
+                  const orden = ["pending_verification", "pending", "verifying", "partial", "approved", "rejected"];
+                  const presentes = orden.filter(st => todosPagos.some(o => (o.paymentStatus ?? "pending") === st));
+                  const pagosFiltrados = paymentsFilter === "all" ? todosPagos : todosPagos.filter(o => (o.paymentStatus ?? "pending") === paymentsFilter);
+                  return (
+                <>
+                  <div className="mb-5 grid grid-cols-3 gap-1.5 sm:grid-cols-4 xl:grid-cols-7">
+                    <ChipFiltro activo={paymentsFilter === "all"} numero={todosPagos.length} texto="Todos" onClick={() => setPaymentsFilter("all")} />
+                    {presentes.map(st => (
+                      <ChipFiltro
+                        key={st}
+                        activo={paymentsFilter === st}
+                        color={ESTADOS_PAGO[st]?.color}
+                        numero={todosPagos.filter(o => (o.paymentStatus ?? "pending") === st).length}
+                        texto={ESTADOS_PAGO[st]?.texto ?? st}
+                        onClick={() => setPaymentsFilter(paymentsFilter === st ? "all" : st)}
+                      />
                     ))}
                   </div>
-                </div>
 
-                <div className="space-y-3">
-                  {(paymentsData?.items ?? []).length === 0 && (
-                    <div className="text-center py-12 text-muted-foreground">No hay pagos en esta categoría</div>
+                  {pagosFiltrados.length > 0 ? (
+                    <div className="adm-fila-pago hidden gap-x-4 border-b border-white/[0.08] px-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6878] lg:grid">
+                      <span>Pedido</span><span>Cliente</span><span>Método · referencia</span><span>Estado</span><span className="text-right">Total</span><span />
+                    </div>
+                  ) : (
+                    <EstadoVacio icono={CreditCard} texto="No hay pagos en esta categoría." />
                   )}
-                  {(paymentsData?.items ?? []).map((order: any) => {
+                <div className="divide-y divide-white/[0.05]">
+                  {pagosFiltrados.map((order: any) => {
                     const isExpanded = expandedPaymentId === order.id;
                     const statusColors: Record<string, string> = {
                       pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
@@ -2183,28 +2205,40 @@ export default function Admin() {
                       pending: "Pendiente", verifying: "En revisión", approved: "Aprobado", rejected: "Rechazado",
                     };
                     return (
-                      <div key={order.id} className="rounded-2xl bg-card border border-border/50 overflow-hidden">
-                        <button
-                          className="w-full flex items-center justify-between p-4 text-left hover:bg-muted/30 transition-colors"
+                      <div key={order.id} className={isExpanded ? "bg-[#0e0d13]" : ""}>
+                        {(() => {
+                          const est = ESTADOS_PAGO[order.paymentStatus ?? "pending"] ?? { texto: order.paymentStatus, color: COLORES.gris };
+                          const porRevisar = ["pending", "pending_verification", "verifying"].includes(order.paymentStatus ?? "pending");
+                          const f = fechaRelativa(order.createdAt);
+                          return (
+                        <div
+                          role="button"
+                          tabIndex={0}
                           onClick={() => setExpandedPaymentId(isExpanded ? null : order.id)}
+                          onKeyDown={e => { if (e.key === "Enter") setExpandedPaymentId(isExpanded ? null : order.id); }}
+                          className="adm-fila-pago grid cursor-pointer grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 transition-colors hover:bg-white/[0.025]"
                         >
-                          <div className="flex items-center gap-4 min-w-0">
-                            <div className="min-w-0">
-                              <p className="font-semibold text-sm">{order.orderNumber}</p>
-                              <p className="text-xs text-muted-foreground truncate overflow-hidden max-w-full">{order.customerName} · {order.customerEmail}</p>
-                              {order.customerPhone && (
-                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1"><Phone className="w-3 h-3 shrink-0" />{order.customerPhone}</p>
-                              )}
-                            </div>
+                          <div className="min-w-0" title={order.orderNumber}>
+                            <p className="text-sm font-black text-white">#{String(order.orderNumber ?? "").split("-").pop()}</p>
+                            <p className="text-[11px] text-[#8a8494]" title={f.exacta}>{f.texto}</p>
                           </div>
-                          <div className="flex items-center gap-3 ml-4 shrink-0">
-                            <span className="font-bold text-primary text-sm">${parseFloat(order.total).toFixed(2)} USD</span>
-                            <span className={`px-2 py-0.5 rounded-full text-xs font-medium border ${statusColors[order.paymentStatus ?? "pending"]}`}>
-                              {statusLabels[order.paymentStatus ?? "pending"]}
-                            </span>
-                            <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          <div className="min-w-0 max-lg:col-span-2 max-lg:row-start-2">
+                            <p className="truncate text-sm text-white">{order.customerName}</p>
+                            <p className="truncate text-[11px] text-[#8a8494]">{order.customerEmail}</p>
                           </div>
-                        </button>
+                          <div className="min-w-0 max-lg:row-start-3">
+                            <p className="truncate text-xs text-white">{order.paymentMethod ?? "—"}</p>
+                            <p className="truncate font-mono text-[11px] text-[#8a8494]">{order.paymentReference ?? "sin referencia"}</p>
+                          </div>
+                          <div className="max-lg:row-start-3 max-lg:justify-self-end"><Estado color={est.color}>{est.texto}</Estado></div>
+                          <p className="text-right text-sm font-black tabular-nums text-white max-lg:col-start-2 max-lg:row-start-1">{dinero(order.total)}</p>
+                          <div className="flex items-center justify-end gap-2 max-lg:col-span-2">
+                            {porRevisar && <span className="text-[11px] font-bold" style={{ color: COLORES.ambar }}>Revisar</span>}
+                            <ChevronDown className={`h-4 w-4 text-[#8a8494] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </div>
+                        </div>
+                          );
+                        })()}
 
                         {isExpanded && (
                           <div className="px-4 pb-4 space-y-4 border-t border-border/30 pt-4">
@@ -2245,7 +2279,7 @@ export default function Admin() {
                               </div>
                             )}
 
-                            {(order.paymentStatus === "pending" || order.paymentStatus === "verifying") && (
+                            {(order.paymentStatus === "pending" || order.paymentStatus === "pending_verification" || order.paymentStatus === "verifying") && (
                               <div className="flex flex-col sm:flex-row gap-2 mt-3">
                                 <Button
                                   className="w-full py-3 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
@@ -2270,6 +2304,9 @@ export default function Admin() {
                     );
                   })}
                 </div>
+                </>
+                  );
+                })()}
               </motion.div>
             )}
 

@@ -4142,3 +4142,9 @@ html.dark .admin-shell aside nav button.bg-\[\#0a0a0a\] {
   box-shadow: inset 2px 0 0 #e5007d; border-radius: 0 !important;
 }
 html.dark .admin-shell aside nav button { border-radius: 0 !important; }
+
+/* Panel: columnas de las tablas de Pedidos y Pagos (en pantallas grandes) */
+@media (min-width: 1024px) {
+  .admin-shell .adm-fila-tabla { grid-template-columns: 96px minmax(0, 1.6fr) 190px 150px 90px 250px; }
+  .admin-shell .adm-fila-pago { grid-template-columns: 96px minmax(0, 1.4fr) minmax(0, 1fr) 130px 96px 90px; }
+}
