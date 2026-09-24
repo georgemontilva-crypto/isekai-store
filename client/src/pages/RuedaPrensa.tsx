@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Mic, Megaphone, Handshake, Users, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -65,16 +65,29 @@ function CuentaAtras({ t }: { t: { dias: string; horas: string; minutos: string;
   const v = [Math.floor(s / 86400), Math.floor((s % 86400) / 3600), Math.floor((s % 3600) / 60), s % 60];
   const et = [t.dias, t.horas, t.minutos, t.segundos];
   return (
-    <div className="mx-auto grid max-w-sm grid-cols-4 gap-2">
+    <div className="mx-auto flex max-w-sm justify-center">
       {v.map((n, i) => (
-        <div key={i} className="rp-caja py-2.5 text-center">
-          <div className="ev-display text-2xl tabular-nums text-white">{String(n).padStart(2, "0")}</div>
-          <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-[#ff5c7a]">{et[i]}</div>
+        <div key={i} className={`flex-1 px-2 text-center ${i > 0 ? "border-l border-[#ff4d6d]/20" : ""}`}>
+          <div className="rp-serif text-[34px] font-bold leading-none tabular-nums text-[#f6e3e7]">{String(n).padStart(2, "0")}</div>
+          <div className="rp-sistema mt-2 text-[9px] uppercase tracking-[0.3em] text-[#ff6b86]/80">{et[i]}</div>
         </div>
       ))}
     </div>
   );
 }
+
+/** Separador fino con rombo al centro */
+function Separador({ className = "" }: { className?: string }) {
+  return (
+    <div className={`flex items-center justify-center gap-3 ${className}`} aria-hidden="true">
+      <span className="h-px w-16 bg-gradient-to-r from-transparent to-[#ff4d6d]/60" />
+      <span className="text-[8px] text-[#ff4d6d]">◆</span>
+      <span className="h-px w-16 bg-gradient-to-l from-transparent to-[#ff4d6d]/60" />
+    </div>
+  );
+}
+
+const ROMANOS = ["I", "II", "III", "IV"];
 
 export default function RuedaPrensa() {
   const { t: tr } = useLang();
@@ -101,185 +114,175 @@ export default function RuedaPrensa() {
   const { data: total } = trpc.prensa.total.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30_000 });
 
   const columnas = [
-    // «dato» es el tamaño del texto grande: la ubicación lleva una palabra más larga
-    { icono: Calendar, etq: t.fechaEtq, l1: t.fecha1, l2: t.fecha2, l3: t.fecha3, dato: "text-[40px] sm:text-6xl" },
-    { icono: Clock, etq: t.horaEtq, l1: "", l2: t.hora1, l3: t.hora2, dato: "text-[32px] sm:text-5xl" },
-    { icono: MapPin, etq: t.lugarEtq, l1: t.lugar1, l2: t.lugar2, l3: t.lugar3, dato: "text-[23px] sm:text-4xl" },
+    { icono: Calendar, etq: t.fechaEtq, arriba: t.fecha1, dato: t.fecha2, abajo: t.fecha3 },
+    { icono: Clock, etq: t.horaEtq, arriba: "", dato: t.hora1, abajo: t.hora2 },
+    { icono: MapPin, etq: t.lugarEtq, arriba: t.lugar1, dato: t.lugar2, abajo: t.lugar3 },
   ];
   const agenda = [
-    { icono: Mic, titulo: t.agenda1Titulo, texto: t.agenda1Texto },
-    { icono: Megaphone, titulo: t.agenda2Titulo, texto: t.agenda2Texto },
-    { icono: Handshake, titulo: t.agenda3Titulo, texto: t.agenda3Texto },
-    { icono: Users, titulo: t.agenda4Titulo, texto: t.agenda4Texto },
+    { titulo: t.agenda1Titulo, texto: t.agenda1Texto },
+    { titulo: t.agenda2Titulo, texto: t.agenda2Texto },
+    { titulo: t.agenda3Titulo, texto: t.agenda3Texto },
+    { titulo: t.agenda4Titulo, texto: t.agenda4Texto },
   ];
+  const aparece = { initial: { opacity: 0, y: 18 }, whileInView: { opacity: 1, y: 0 }, viewport: { once: true }, transition: { duration: 0.8 } };
 
   return (
-    <div className="rp min-h-screen overflow-x-clip bg-[#07030a] text-white">
-      {/* ═══ Portada ═══ */}
-      <section className="relative overflow-hidden px-5 pb-10 pt-0">
-        {fondo && <img src={fondo} alt="" className="absolute inset-0 h-full w-full object-cover opacity-60" />}
-        <div className="rp-humo absolute inset-0" aria-hidden="true" />
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#07030a]/30 to-[#07030a]" aria-hidden="true" />
+    <div className="rp relative min-h-screen overflow-x-clip bg-[#060305] text-white">
+      {fondo && <img src={fondo} alt="" className="pointer-events-none absolute inset-x-0 top-0 h-[90vh] w-full object-cover opacity-25" />}
+      <div className="rp-velo pointer-events-none absolute inset-0" aria-hidden="true" />
+      <div className="rp-grano pointer-events-none absolute inset-0" aria-hidden="true" />
 
-        {/* Pestaña roja superior, como en la invitación */}
-        <div className="rp-pestana relative mx-auto h-14 w-[62%] max-w-sm" aria-hidden="true" />
+      <div className="relative mx-auto max-w-2xl px-4 py-8 sm:py-14">
+        {/* ═══ La invitación: un marco fino con esquinas en corchete ═══ */}
+        <div className="rp-tarjeta relative px-5 pb-12 pt-12 sm:px-12">
+          <span className="rp-esquina rp-esquina-1" /><span className="rp-esquina rp-esquina-2" />
+          <span className="rp-esquina rp-esquina-3" /><span className="rp-esquina rp-esquina-4" />
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8 }}
-          className="relative mx-auto max-w-2xl pt-10 text-center"
-        >
-          <p className="rp-marca ev-display mb-1 text-[34px] italic leading-none sm:text-5xl">ISEKAI</p>
-          <p className="mb-8 font-mono text-[11px] font-bold uppercase tracking-[0.45em] text-white/85">{t.marca}</p>
+          <motion.header initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="text-center">
+            <div className="rp-sello-chico mx-auto mb-4 h-14 w-14">
+              <img src={LOGO_CALAVERA} alt="Isekai World" className="h-full w-full object-contain" />
+            </div>
+            <p className="rp-sistema mb-8 text-[10px] font-semibold uppercase tracking-[0.5em] text-[#f1c7d0]/80">
+              Isekai {t.marca} · 2027
+            </p>
 
-          <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.35em] text-[#ff5c7a]">{t.etiqueta}</p>
-          <h1 className="ev-display mb-6 leading-[0.92]">
-            <span className="block text-[44px] text-white sm:text-7xl">{t.titulo1.toUpperCase()}</span>
-            <span className="rp-titulo-rojo block text-[42px] sm:text-7xl">{t.titulo2.toUpperCase()}</span>
-          </h1>
+            <p className="rp-sistema mb-6 text-[10px] uppercase tracking-[0.45em] text-[#ff6b86]">{t.etiqueta}</p>
+            <p className="rp-serif mb-1 text-[44px] font-bold italic leading-none text-[#f6e3e7] sm:text-6xl">{t.titulo1}</p>
+            <h1 className="rp-titulo ev-display mb-8 text-[30px] leading-tight tracking-[0.08em] sm:text-5xl">
+              {t.titulo2.toUpperCase()}
+            </h1>
 
-          <p className="mx-auto mb-4 max-w-lg font-serif text-lg italic leading-relaxed text-[#ffd6de] sm:text-xl">
-            {t.intro}
-          </p>
-          <p className="mx-auto max-w-lg text-[15px] leading-relaxed text-[#cdbfc6] sm:text-base">{t.texto}</p>
-        </motion.div>
-      </section>
+            <Separador className="mb-8" />
 
-      {/* ═══ Panel en V con fecha, hora y ubicación ═══ */}
-      <section className="relative px-4 pb-4">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7 }}
-          className="relative mx-auto max-w-xl"
-        >
-          <div className="rp-sello" aria-hidden="true">
-            <img src={LOGO_CALAVERA} alt="" className="h-full w-full object-contain" />
-          </div>
-          <div className="rp-panel px-3 pb-8 pt-24 sm:px-6">
-            <div className="grid grid-cols-3">
-              {columnas.map((c, i) => (
-                <div key={i} className={`flex flex-col items-center px-1 text-center ${i > 0 ? "border-l border-white/25" : ""}`}>
-                  <c.icono size={30} strokeWidth={1.6} className="mb-3 text-white" />
-                  <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-white/80">{c.etq}</p>
-                  {c.l1 && <p className="ev-display text-lg leading-tight text-white sm:text-xl">{c.l1.toUpperCase()}</p>}
-                  <p className={`rp-dato ev-display leading-none ${c.dato}`}>{c.l2.toUpperCase()}</p>
-                  <p className="ev-display text-base leading-tight text-white sm:text-xl">{c.l3.toUpperCase()}</p>
+            <p className="rp-serif mx-auto mb-5 max-w-md text-[19px] italic leading-relaxed text-[#f1c7d0] sm:text-[21px]">
+              {t.intro}
+            </p>
+            <p className="mx-auto max-w-md text-[15px] font-light leading-[1.8] text-[#bfaeb5]">{t.texto}</p>
+          </motion.header>
+
+          {/* ═══ Panel en V: contorno carmesí y la calavera en la muesca ═══ */}
+          <motion.div {...aparece} className="relative mx-auto mt-14 max-w-lg">
+            <div className="rp-sello" aria-hidden="true">
+              <img src={LOGO_CALAVERA} alt="" className="h-full w-full object-contain" />
+            </div>
+            <div className="rp-marco">
+              <div className="rp-panel px-2 pb-8 pt-[88px] sm:px-6">
+                <div className="grid grid-cols-3">
+                  {columnas.map((c, i) => (
+                    <div key={i} className={`flex flex-col items-center px-1 text-center ${i > 0 ? "border-l border-[#ff4d6d]/20" : ""}`}>
+                      <c.icono size={20} strokeWidth={1.3} className="mb-3 text-[#ff6b86]" />
+                      <p className="rp-sistema mb-2 text-[9px] uppercase tracking-[0.35em] text-[#f1c7d0]/70">{c.etq}</p>
+                      <p className="rp-sistema h-4 text-[11px] uppercase tracking-[0.2em] text-[#f6e3e7]">{c.arriba}</p>
+                      <p className={`rp-serif rp-dato my-1 font-bold leading-none ${i === 2 ? "text-[26px] sm:text-4xl" : "text-[40px] sm:text-5xl"}`}>{c.dato}</p>
+                      <p className="rp-sistema text-[11px] uppercase tracking-[0.2em] text-[#f6e3e7]">{c.abajo}</p>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            <p className="mt-5 text-center font-mono text-[11px] uppercase tracking-[0.3em] text-white/85">{t.ciudad}</p>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* ═══ Cuenta atrás y confirmación ═══ */}
-      <section id="confirmar" className="scroll-mt-20 px-5 pb-14 pt-8 text-center">
-        <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.35em] text-[#ff5c7a]">{t.faltan}</p>
-        <div className="mb-9"><CuentaAtras t={t} /></div>
-
-        {!confirmado ? (
-          <div>
-            <button
-              onClick={() => confirmar.mutate({ clave })}
-              disabled={confirmar.isPending}
-              className="rp-boton ev-notch ev-press inline-flex items-center gap-2.5 px-10 py-5 text-sm font-black uppercase tracking-[0.18em] text-white disabled:opacity-70"
-            >
-              {confirmar.isPending ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} strokeWidth={3} />}
-              {confirmar.isPending ? t.confirmando : t.cta}
-            </button>
-            {fallo && <p className="mx-auto mt-4 max-w-xs text-sm text-[#ff9aac]">{fallo}</p>}
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5 }}
-            className="mx-auto max-w-md"
-          >
-            <div className="rp-check mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full">
-              <Check size={30} strokeWidth={3} className="text-white" />
-            </div>
-            <p className="ev-display mb-2 text-2xl text-white">{t.confirmadoTitulo.toUpperCase()}</p>
-            <p className="mb-6 text-[15px] leading-relaxed text-[#cdbfc6]">{t.confirmadoTexto}</p>
-            <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-              <button
-                onClick={() => descargarCalendario(`${t.titulo2} — Isekai World Fest 2027`, t.accesoTexto)}
-                className="ev-notch ev-press inline-flex items-center justify-center gap-2 border border-white/25 bg-white/5 px-6 py-3.5 text-xs font-bold uppercase tracking-widest"
-              >
-                <CalendarPlus size={16} /> {t.calendario}
-              </button>
-              <a
-                href={MAPA}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="ev-notch ev-press inline-flex items-center justify-center gap-2 border border-white/25 bg-white/5 px-6 py-3.5 text-xs font-bold uppercase tracking-widest"
-              >
-                <Navigation size={16} /> {t.comoLlegar}
-              </a>
+                <p className="rp-sistema mt-7 text-center text-[9px] uppercase tracking-[0.45em] text-[#f1c7d0]/60">{t.ciudad}</p>
+              </div>
             </div>
           </motion.div>
-        )}
 
-        {esAdmin && total && (
-          <p className="mx-auto mt-6 inline-block border border-[#fbbf24]/40 bg-[#fbbf24]/10 px-4 py-2 font-mono text-xs text-[#fde68a]">
-            {t.adminTotal.replace("{n}", String(total.total)).replace("{h}", String(total.hoy))}
-          </p>
-        )}
-      </section>
+          {/* ═══ Cuenta atrás y confirmación ═══ */}
+          <section id="confirmar" className="scroll-mt-20 pt-14 text-center">
+            <p className="rp-sistema mb-5 text-[10px] uppercase tracking-[0.45em] text-[#ff6b86]">{t.faltan}</p>
+            <div className="mb-12"><CuentaAtras t={t} /></div>
 
-      {/* ═══ Acceso con invitación física ═══ */}
-      <section className="px-5 pb-16">
-        <div className="rp-aviso ev-notch mx-auto flex max-w-xl gap-4 p-5 sm:p-6">
-          <Ticket size={34} strokeWidth={1.5} className="mt-1 shrink-0 text-[#ff5c7a]" />
-          <div>
-            <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#ff5c7a]">{t.accesoEtq}</p>
-            <p className="ev-display mb-2 text-lg leading-tight text-white">{t.accesoTitulo}</p>
-            <p className="text-sm leading-relaxed text-[#cdbfc6]">{t.accesoTexto}</p>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══ Lo que se revelará ═══ */}
-      <section className="px-5 pb-16">
-        <div className="mx-auto max-w-3xl">
-          <p className="mb-2 text-center font-mono text-[11px] uppercase tracking-[0.35em] text-[#ff5c7a]">{t.agendaEtq}</p>
-          <h2 className="ev-display mb-8 text-center text-[26px] leading-tight sm:text-4xl">{t.agendaTitulo.toUpperCase()}</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            {agenda.map((a, i) => (
-              <motion.div
-                key={i}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="rp-item ev-notch p-5"
-              >
-                <a.icono size={24} strokeWidth={1.6} className="mb-3 text-[#ff5c7a]" />
-                <p className="mb-1.5 font-bold text-white">{a.titulo}</p>
-                <p className="text-sm leading-relaxed text-[#b9aab2]">{a.texto}</p>
+            {!confirmado ? (
+              <div>
+                <button
+                  onClick={() => confirmar.mutate({ clave })}
+                  disabled={confirmar.isPending}
+                  className="rp-boton rp-sistema ev-notch ev-press inline-flex items-center gap-3 whitespace-nowrap px-8 py-[18px] text-[12px] font-semibold uppercase tracking-[0.26em] text-white sm:px-12 sm:tracking-[0.35em] disabled:opacity-70"
+                >
+                  {confirmar.isPending ? <Loader2 size={16} className="animate-spin" /> : null}
+                  {confirmar.isPending ? t.confirmando : t.cta}
+                </button>
+                {fallo && <p className="mx-auto mt-4 max-w-xs text-sm text-[#ff9aac]">{fallo}</p>}
+              </div>
+            ) : (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mx-auto max-w-md">
+                <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[#ff4d6d]/70">
+                  <Check size={24} strokeWidth={1.8} className="text-[#ff6b86]" />
+                </div>
+                <p className="rp-serif mb-3 text-[30px] font-bold italic leading-tight text-[#f6e3e7]">{t.confirmadoTitulo}</p>
+                <p className="mb-8 text-[15px] font-light leading-[1.8] text-[#bfaeb5]">{t.confirmadoTexto}</p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                  <button
+                    onClick={() => descargarCalendario(`${t.titulo2} — Isekai World Fest 2027`, t.accesoTexto)}
+                    className="rp-sistema ev-notch ev-press inline-flex items-center justify-center gap-2 border border-[#ff4d6d]/40 px-6 py-3.5 text-[11px] uppercase tracking-[0.25em] text-[#f6e3e7] hover:bg-[#ff4d6d]/10"
+                  >
+                    <CalendarPlus size={15} strokeWidth={1.5} /> {t.calendario}
+                  </button>
+                  <a
+                    href={MAPA}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rp-sistema ev-notch ev-press inline-flex items-center justify-center gap-2 border border-[#ff4d6d]/40 px-6 py-3.5 text-[11px] uppercase tracking-[0.25em] text-[#f6e3e7] hover:bg-[#ff4d6d]/10"
+                  >
+                    <Navigation size={15} strokeWidth={1.5} /> {t.comoLlegar}
+                  </a>
+                </div>
               </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
+            )}
 
-      {/* ═══ Cierre ═══ */}
-      <section className="px-5 pb-20 text-center">
-        <p className="mx-auto mb-8 max-w-md font-serif text-xl italic leading-relaxed text-[#ffd6de]">{t.cierre}</p>
-        {!confirmado && (
-          <button
-            onClick={() => { confirmar.mutate({ clave }); document.getElementById("confirmar")?.scrollIntoView({ behavior: "smooth" }); }}
-            disabled={confirmar.isPending}
-            className="rp-boton ev-notch ev-press inline-flex items-center gap-2.5 px-10 py-5 text-sm font-black uppercase tracking-[0.18em] text-white"
-          >
-            <Check size={18} strokeWidth={3} /> {t.cta}
-          </button>
-        )}
-        <p className="mt-12 font-mono text-[10px] uppercase tracking-[0.3em] text-white/40">{t.pie}</p>
-      </section>
+            {esAdmin && total && (
+              <p className="rp-sistema mx-auto mt-8 inline-block border border-[#fbbf24]/30 px-4 py-2 text-[11px] tracking-wider text-[#fde68a]">
+                {t.adminTotal.replace("{n}", String(total.total)).replace("{h}", String(total.hoy))}
+              </p>
+            )}
+          </section>
+
+          {/* ═══ Acceso con invitación física ═══ */}
+          <motion.section {...aparece} className="mx-auto mt-16 max-w-md border-y border-[#ff4d6d]/25 py-8 text-center">
+            <Ticket size={26} strokeWidth={1.2} className="mx-auto mb-4 text-[#ff6b86]" />
+            <p className="rp-sistema mb-3 text-[10px] uppercase tracking-[0.45em] text-[#ff6b86]">{t.accesoEtq}</p>
+            <p className="rp-serif mb-3 text-[24px] font-bold italic leading-snug text-[#f6e3e7]">{t.accesoTitulo}</p>
+            <p className="text-[14px] font-light leading-[1.8] text-[#bfaeb5]">{t.accesoTexto}</p>
+          </motion.section>
+
+          {/* ═══ Lo que se revelará ═══ */}
+          <section className="mt-16">
+            <p className="rp-sistema mb-3 text-center text-[10px] uppercase tracking-[0.45em] text-[#ff6b86]">{t.agendaEtq}</p>
+            <h2 className="rp-serif mb-10 text-center text-[28px] font-bold italic leading-tight text-[#f6e3e7] sm:text-4xl">{t.agendaTitulo}</h2>
+            <div className="mx-auto max-w-lg">
+              {agenda.map((a, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 12 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.6, delay: i * 0.08 }}
+                  className={`flex gap-5 py-6 ${i > 0 ? "border-t border-white/[0.07]" : ""}`}
+                >
+                  <span className="rp-serif rp-dato w-10 shrink-0 text-[26px] font-bold italic leading-none">{ROMANOS[i]}</span>
+                  <div>
+                    <p className="mb-1.5 text-[15px] font-semibold tracking-wide text-[#f6e3e7]">{a.titulo}</p>
+                    <p className="text-[14px] font-light leading-[1.75] text-[#a9989f]">{a.texto}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+
+          {/* ═══ Cierre ═══ */}
+          <section className="mt-14 text-center">
+            <Separador className="mb-10" />
+            <p className="rp-serif mx-auto mb-10 max-w-sm text-[22px] italic leading-relaxed text-[#f1c7d0]">{t.cierre}</p>
+            {!confirmado && (
+              <button
+                onClick={() => { confirmar.mutate({ clave }); document.getElementById("confirmar")?.scrollIntoView({ behavior: "smooth" }); }}
+                disabled={confirmar.isPending}
+                className="rp-boton rp-sistema ev-notch ev-press inline-flex items-center gap-3 whitespace-nowrap px-8 py-[18px] text-[12px] font-semibold uppercase tracking-[0.26em] text-white sm:px-12 sm:tracking-[0.35em]"
+              >
+                {t.cta}
+              </button>
+            )}
+          </section>
+        </div>
+
+        <p className="rp-sistema mt-8 text-center text-[9px] uppercase tracking-[0.4em] text-white/35">{t.pie}</p>
+      </div>
     </div>
   );
 }
