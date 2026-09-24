@@ -4067,3 +4067,24 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
 
 /* Panel: el número de confirmados salta cuando llega una nueva */
 @keyframes prensa-pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); filter: brightness(1.5); } 100% { transform: scale(1); } }
+
+/* ═══ Panel de administración: inicio (colores fijos, estilo del sitio) ═══ */
+.adm-etiqueta {
+  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .22em; color: #ff3d9e;
+}
+.adm-tarjeta {
+  background: #0c0b10; border: 1px solid rgba(255, 255, 255, .07);
+}
+.adm-tarjeta-accion { transition: border-color .2s ease, background .2s ease; }
+.adm-tarjeta-accion:hover { border-color: color-mix(in srgb, var(--acento, #ff3d9e) 60%, transparent); background: #111018; }
+.adm-icono { display: flex; height: 38px; width: 38px; flex-shrink: 0; align-items: center; justify-content: center; }
+.adm-estado { align-items: center; border: 1px solid; padding: 3px 9px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.adm-enlace { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #a39cad; }
+.adm-enlace:hover { color: #fff; }
+.adm-boton-sec {
+  display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: 12px; font-weight: 700;
+  color: #fff; background: #141318; border: 1px solid rgba(255, 255, 255, .12);
+}
+.adm-boton-sec:hover { border-color: rgba(255, 61, 158, .5); }
+.adm { background: #07060a; border: 1px solid rgba(255, 255, 255, .04); padding: 22px 20px; }
+@media (max-width: 640px) { .adm { padding: 18px 14px; } }

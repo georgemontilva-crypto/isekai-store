@@ -9,7 +9,7 @@ import {
   LogOut, Settings, Menu, ChevronDown, ChevronUp, Eye, ArrowLeft,
   Tag, Store, Layers, Image as ImageIcon, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
-import TarjetaRuedaPrensa from '@/components/admin/TarjetaRuedaPrensa';
+import PanelResumen from '@/components/admin/PanelResumen';
 import { aInputFechaLocal, deInputFechaLocal } from '@/lib/fechaLocal';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
@@ -58,66 +58,22 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 // ============ SECCIÓN: ESTADÍSTICAS ============
-function StatsSection() {
+/** Inicio del panel: el mismo Resumen que en el computador (PanelResumen) */
+function StatsSection({ onIr }: { onIr: (t: MobileTab) => void }) {
   const { user, isAuthenticated } = useAuth();
-  const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: isAuthenticated && user?.role === 'admin' });
-  const { data: pendingPaymentsData } = trpc.orders.adminPayments.useQuery(
-    { paymentStatus: 'pending_verification' },
-    { enabled: isAuthenticated && user?.role === 'admin' },
-  );
-  const { data: pendingCosplay = [] } = trpc.cosplay.getApplications.useQuery(
-    { status: 'pending' },
-    { enabled: isAuthenticated && user?.role === 'admin' },
-  );
-
-  const pendingPaymentsCount = pendingPaymentsData?.items?.length ?? 0;
-  // La tienda opera en dólares: los totales ya vienen en USD, no se convierten.
-  const revenueUSD = metrics?.totalRevenue ?? 0;
-
-  const stats = [
-    { label: 'Pedidos totales', value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: '#e5007d' },
-    { label: 'Ingresos', value: `$${revenueUSD.toFixed(2)} USD`, icon: TrendingUp, color: '#22c55e' },
-    { label: 'Pagos pendientes', value: pendingPaymentsCount, icon: CreditCard, color: '#f59e0b' },
-    { label: 'Solicitudes cosplay', value: pendingCosplay.length, icon: Sparkles, color: '#8b5cf6' },
-  ];
+  const esAdmin = isAuthenticated && user?.role === 'admin';
+  const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: esAdmin });
+  const { data: pendingCount = 0 } = trpc.orders.pendingCount.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30000 });
+  const { data: pendingPaymentsCount = 0 } = trpc.orders.pendingPaymentsCount.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30000 });
+  const { data: pendingCosplay = [] } = trpc.cosplay.getApplications.useQuery({ status: 'pending' }, { enabled: esAdmin });
 
   return (
-    <div className="p-4 flex flex-col gap-4">
-      <h2 className="text-lg font-black text-[#111]">Resumen</h2>
-
-      {/* Acceso a la invitación de la rueda de prensa (solo admin) */}
-      <TarjetaRuedaPrensa />
-
-      <div className="grid grid-cols-2 gap-3">
-        {stats.map((stat, i) => (
-          <div key={i} className="bg-white ev-notch p-4 border border-[#e5e5e5] shadow-sm">
-            <div className="w-9 h-9 ev-notch flex items-center justify-center mb-3"
-              style={{ background: stat.color + '15' }}>
-              <stat.icon size={18} style={{ color: stat.color }} />
-            </div>
-            <p className="text-2xl font-black text-[#111]">{stat.value}</p>
-            <p className="text-xs text-[#999] mt-0.5">{stat.label}</p>
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-white ev-notch border border-[#e5e5e5] overflow-hidden shadow-sm">
-        <div className="px-4 py-3 border-b border-[#e5e5e5]">
-          <p className="font-bold text-sm text-[#111]">Pedidos recientes</p>
-        </div>
-        {(metrics?.recentOrders ?? []).slice(0, 5).map((order: any) => (
-          <div key={order.id} className="px-4 py-3 border-b border-[#f0f0f0] last:border-0 flex items-center justify-between">
-            <div className="min-w-0 flex-1">
-              <p className="font-semibold text-sm text-[#111] truncate">{order.orderNumber}</p>
-              <p className="text-xs text-[#999] truncate">{order.customerName}</p>
-            </div>
-            <div className="text-right ml-3 flex-shrink-0">
-              <p className="text-sm font-bold text-[#e5007d]">${parseFloat(order.total ?? 0).toFixed(2)} USD</p>
-              <StatusBadge status={order.status} />
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="p-3">
+      <PanelResumen
+        metrics={metrics as any}
+        pendientes={{ pedidos: pendingCount, pagos: pendingPaymentsCount, cosplay: pendingCosplay.length }}
+        onIr={destino => onIr(destino === 'categories' ? 'products' : destino)}
+      />
     </div>
   );
 }
@@ -3422,7 +3378,7 @@ export default function AdminMobile() {
         // Espacio abajo para que la barra flotante no tape el último elemento
         style={{ paddingBottom: 'calc(env(safe-area-inset-bottom) + 96px)' }}
       >
-        {activeTab === 'stats'    && <StatsSection />}
+        {activeTab === 'stats'    && <StatsSection onIr={setActiveTab} />}
         {activeTab === 'orders'   && <OrdersSection jumpTo={orderJumpTo} onJumpDone={() => setOrderJumpTo(null)} onCreateOrder={() => setActiveTab('newOrder')} />}
         {activeTab === 'payments' && <PaymentsSection />}
         {activeTab === 'cosplay'     && <CosplaySection jumpTo={cosplayJumpTo} onJumpDone={() => setCosplayJumpTo(null)} onModalChange={setCosplayHasModal} />}

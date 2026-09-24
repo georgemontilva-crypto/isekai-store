@@ -13,7 +13,7 @@ import {
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
   CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText, Download,
 } from "lucide-react";
-import TarjetaRuedaPrensa from "@/components/admin/TarjetaRuedaPrensa";
+import PanelResumen from "@/components/admin/PanelResumen";
 import { aInputFechaLocal, deInputFechaLocal } from "@/lib/fechaLocal";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -638,6 +638,17 @@ const isExpired = (deadline: string | null) => {
 // ─── Main Admin Component ─────────────────────────────────────────────────────
 
 
+/** Secciones del menú lateral del panel. Lo que no esté aquí va en «Otros». */
+const GRUPOS_MENU: { titulo: string; ids: string[] }[] = [
+  { titulo: "", ids: ["dashboard"] },
+  { titulo: "Ventas", ids: ["orders", "payments", "quotes", "finanzas", "giftcards"] },
+  { titulo: "Catálogo", ids: ["products", "categories", "media"] },
+  { titulo: "World Fest", ids: ["boleteria", "cosplay"] },
+  { titulo: "Comunidad", ids: ["users", "subscribers", "feedback"] },
+  { titulo: "Contenido", ids: ["blog", "faq", "popups", "linkbio"] },
+  { titulo: "Ajustes", ids: ["settings"] },
+];
+
 export default function Admin() {
   // Novedades en vivo: solicitudes, pedidos y pagos sin recargar
   useAvisosAdmin();
@@ -1252,15 +1263,25 @@ export default function Admin() {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto py-3 px-3 space-y-1">
-          {tabs.map((t) => {
+        {/* Menú agrupado por secciones: antes eran 19 opciones seguidas */}
+        <nav className="flex-1 overflow-y-auto py-3 px-3">
+          {[...GRUPOS_MENU, { titulo: "Otros", ids: tabs.map(t => t.id).filter(id => !GRUPOS_MENU.some(g => g.ids.includes(id))) }].map(g => {
+            const items = g.ids.map(id => tabs.find(t => t.id === id)).filter(Boolean) as typeof tabs;
+            if (items.length === 0) return null;
+            return (
+              <div key={g.titulo || "inicio"} className="mb-3">
+                {g.titulo && (
+                  <p className="px-3 pb-1.5 pt-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#e5007d]">{g.titulo}</p>
+                )}
+                <div className="space-y-0.5">
+                  {items.map((t) => {
             const badge = badgeFor(t.id);
             const isActive = tab === t.id;
             return (
               <button
                 key={t.id}
                 onClick={() => { handleTabChange(t.id); setSidebarOpen(false); }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold transition-colors ${
                   isActive
                     ? "bg-[#0a0a0a] text-white"
                     : "text-[#4a4a4a] hover:bg-[#f6f6f7] hover:text-[#0f0f0f]"
@@ -1276,6 +1297,10 @@ export default function Admin() {
                   </span>
                 )}
               </button>
+            );
+                  })}
+                </div>
+              </div>
             );
           })}
         </nav>
@@ -1322,117 +1347,18 @@ export default function Admin() {
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
               <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-
-                {/* Acceso a la invitación de la rueda de prensa (solo admin) */}
-                <div className="mb-6 max-w-xl"><TarjetaRuedaPrensa /></div>
-
-                {/* Metrics */}
-                <div className="grid grid-cols-2 gap-3 w-full mb-6 md:grid-cols-4">
-                  {[
-                    { label: "Ingresos totales", value: `$${revenueUSD.toFixed(2)} USD`, icon: DollarSign, color: "text-green-400" },
-                    { label: "Total pedidos", value: metrics?.totalOrders ?? 0, icon: ShoppingBag, color: "text-[#ff3d9e]" },
-                    { label: "Productos", value: products.length, icon: Package, color: "text-[#7dd8ff]" },
-                    { label: "Categorías", value: categories?.length ?? 0, icon: Tag, color: "text-yellow-400" },
-                  ].map((m, i) => (
-                    <motion.div
-                      key={m.label}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: i * 0.05 }}
-                      className="p-5 rounded-2xl bg-white border border-[#e5e5e5] min-w-0 overflow-hidden"
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm text-muted-foreground">{m.label}</span>
-                        <m.icon className={`w-5 h-5 ${m.color}`} />
-                      </div>
-                      <p className={`text-xl font-bold tabular-nums leading-tight ${m.color}`} style={{ overflowWrap: "anywhere" }}>{m.value}</p>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Contador de ganancias: se puede reiniciar sin borrar pedidos */}
-                <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-[#e5e5e5] bg-white px-4 py-3">
-                  <span className="text-xs text-[#888]">
-                    {(metrics as any)?.revenueResetAt
-                      ? <>Contando desde el <strong className="text-[#111]">{new Date((metrics as any).revenueResetAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}</strong></>
-                      : "Contando desde el primer pedido"}
-                  </span>
-                  <div className="ml-auto flex items-center gap-2">
-                    {(metrics as any)?.revenueResetAt && (
-                      <button
-                        onClick={() => undoResetRevenue.mutate()}
-                        disabled={undoResetRevenue.isPending}
-                        className="rounded-full border border-[#e5e5e5] px-3.5 py-1.5 text-xs font-bold text-[#666] transition-colors hover:border-[#111] hover:text-[#111] disabled:opacity-50"
-                      >
-                        Contar todo de nuevo
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        if (confirm("¿Reiniciar el contador de ganancias? Los pedidos NO se borran: el dashboard empieza a contar desde ahora.")) {
-                          resetRevenue.mutate();
-                        }
-                      }}
-                      disabled={resetRevenue.isPending}
-                      className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] px-3.5 py-1.5 text-xs font-bold text-[#666] transition-colors hover:border-[#e5007d] hover:text-[#e5007d] disabled:opacity-50"
-                    >
-                      {resetRevenue.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCcw className="h-3.5 w-3.5" />}
-                      Reiniciar contador
-                    </button>
-                  </div>
-                </div>
-
-                {/* Recent orders */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 w-full">
-                  <div className="p-4 rounded-2xl bg-card border border-border/50 w-full">
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-primary" />
-                      Pedidos recientes
-                    </h3>
-                    <div className="space-y-3">
-                      {(metrics?.recentOrders ?? []).map((order: any) => (
-                        <div key={order.id} className="flex items-start justify-between gap-2 text-sm w-full min-w-0">
-                          <div className="min-w-0 flex-1">
-                            <p className="font-medium truncate">{order.orderNumber}</p>
-                            <p className="text-muted-foreground text-xs truncate">{order.customerName}</p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <p className="text-primary font-semibold text-xs">${parseFloat(order.total).toFixed(2)} USD</p>
-                            <span className={`text-xs px-2 py-0.5 rounded-full status-${order.status}`}>
-                              {statusLabels[order.status]}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                      {(metrics?.recentOrders ?? []).length === 0 && (
-                        <p className="text-muted-foreground text-sm">No hay pedidos aún</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-card border border-border/50 w-full">
-                    <h3 className="font-semibold mb-4 flex items-center gap-2">
-                      <ArrowUpRight className="w-4 h-4 text-accent" />
-                      Productos más vendidos
-                    </h3>
-                    <div className="space-y-3">
-                      {(metrics?.topProducts ?? []).map((p: any, i: number) => (
-                        <div key={p.productId} className="flex items-center gap-3 text-sm">
-                          <span className="w-6 h-6 rounded-full bg-primary/10 text-primary text-xs flex items-center justify-center font-bold">{i + 1}</span>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">{p.productName}</p>
-                            <p className="text-muted-foreground text-xs">{p.totalSold} vendidos</p>
-                          </div>
-                          <p className="text-primary font-semibold">${parseFloat(p.revenue).toFixed(2)} USD</p>
-                        </div>
-                      ))}
-                      {(metrics?.topProducts ?? []).length === 0 && (
-                        <p className="text-muted-foreground text-sm">Sin datos de ventas aún</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+                <PanelResumen
+                  metrics={metrics as any}
+                  pendientes={{ pedidos: pendingCount, pagos: pendingPaymentsCount, cosplay: pendingCosplayCount }}
+                  onIr={destino => handleTabChange(destino as AdminTab)}
+                  productos={products.length}
+                  categorias={categories?.length ?? 0}
+                  contador={{
+                    onReiniciar: () => resetRevenue.mutate(),
+                    onDeshacer: () => undoResetRevenue.mutate(),
+                    ocupado: resetRevenue.isPending || undoResetRevenue.isPending,
+                  }}
+                />
               </motion.div>
             )}
 
