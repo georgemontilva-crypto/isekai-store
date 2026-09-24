@@ -488,6 +488,8 @@ export const es = {
     agenda4Texto: "Un espacio para conocer a los creadores, marcas y aliados que harán realidad este mundo.",
     cierre: "Maracaibo está a punto de cambiar. Sea de los primeros en verlo.",
     pie: "Isekai World Fest 2027 · 14 y 15 de agosto de 2027 · Maracaibo",
+    webTexto: "Mientras llega el día, conozca el mundo de Isekai World.",
+    webBoton: "Conocer nuestra web",
     adminTotal: "Solo tú lo ves: {n} confirmaciones ({h} hoy)",
   },
 };

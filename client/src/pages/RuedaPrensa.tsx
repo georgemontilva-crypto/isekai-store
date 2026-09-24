@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Loader2 } from "lucide-react";
+import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Loader2, ArrowRight } from "lucide-react";
+import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -283,7 +284,18 @@ export default function RuedaPrensa() {
           </section>
         </div>
 
-        <p className="rp-sistema mt-8 text-center text-[9px] uppercase tracking-[0.4em] text-white/35">{t.pie}</p>
+        {/* Invitación a conocer la web (la página va sola, sin menú) */}
+        <div className="mt-10 text-center">
+          <p className="rp-serif mb-4 text-[14px] font-light text-[#bfaeb5]">{t.webTexto}</p>
+          <Link
+            href="/"
+            className="rp-sistema ev-notch ev-press inline-flex items-center gap-2 border border-[#ff4d6d]/40 px-7 py-3.5 text-[11px] uppercase tracking-[0.22em] text-[#f6e3e7] hover:bg-[#ff4d6d]/10"
+          >
+            {t.webBoton} <ArrowRight size={14} strokeWidth={1.6} />
+          </Link>
+        </div>
+
+        <p className="rp-sistema mt-10 text-center text-[9px] uppercase tracking-[0.3em] text-white/35">{t.pie}</p>
       </div>
     </div>
   );

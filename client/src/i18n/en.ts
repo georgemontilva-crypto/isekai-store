@@ -478,6 +478,8 @@ export const en: Translations = {
     agenda4Texto: "A space to meet the creators, brands and partners who will bring this world to life.",
     cierre: "Maracaibo is about to change. Be among the first to see it.",
     pie: "Isekai World Fest 2027 · August 14–15, 2027 · Maracaibo",
+    webTexto: "Until the day arrives, discover the world of Isekai World.",
+    webBoton: "Explore our website",
     adminTotal: "Only you can see this: {n} confirmations ({h} today)",
   },
 };

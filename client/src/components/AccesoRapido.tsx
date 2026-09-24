@@ -30,7 +30,7 @@ export default function AccesoRapido() {
   });
 
   // No aparece dentro de los propios paneles ni en el admin
-  const rutasOcultas = ["/vender", "/acceso", "/worldfest/pass", "/admin", "/guild/mejoras"];
+  const rutasOcultas = ["/vender", "/acceso", "/worldfest/pass", "/admin", "/guild/mejoras", "/rueda-de-prensa"];
   if (rutasOcultas.some(r => location.startsWith(r))) return null;
   if (!isAuthenticated || cerrado) return null;
 

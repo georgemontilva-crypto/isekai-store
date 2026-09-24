@@ -9,6 +9,7 @@ import {
   LogOut, Settings, Menu, ChevronDown, ChevronUp, Eye, ArrowLeft,
   Tag, Store, Layers, Image as ImageIcon, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
+import TarjetaRuedaPrensa from '@/components/admin/TarjetaRuedaPrensa';
 import { aInputFechaLocal, deInputFechaLocal } from '@/lib/fechaLocal';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
@@ -83,6 +84,9 @@ function StatsSection() {
   return (
     <div className="p-4 flex flex-col gap-4">
       <h2 className="text-lg font-black text-[#111]">Resumen</h2>
+
+      {/* Acceso a la invitación de la rueda de prensa (solo admin) */}
+      <TarjetaRuedaPrensa />
 
       <div className="grid grid-cols-2 gap-3">
         {stats.map((stat, i) => (

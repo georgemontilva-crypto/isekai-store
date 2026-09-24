@@ -172,6 +172,7 @@ function Layout() {
   /** Páginas sin navbar: viven solas, se llega a ellas por enlace directo */
   const esPaginaSola =
     location.startsWith("/invitacion") ||
+    location.startsWith("/rueda-de-prensa") ||
     location.startsWith("/guild/mejoras") ||
     location.startsWith("/worldfest/pass") ||
     location.startsWith("/vender") ||
@@ -184,6 +185,7 @@ function Layout() {
    */
   const esPanelApp =
     isAdmin ||
+    location.startsWith("/rueda-de-prensa") ||
     location.startsWith("/cosplay/dashboard") ||
     location.startsWith("/account") ||
     location.startsWith("/cotizacion/") ||

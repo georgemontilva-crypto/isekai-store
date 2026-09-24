@@ -13,6 +13,7 @@ import {
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
   CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText, Download,
 } from "lucide-react";
+import TarjetaRuedaPrensa from "@/components/admin/TarjetaRuedaPrensa";
 import { aInputFechaLocal, deInputFechaLocal } from "@/lib/fechaLocal";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -1322,6 +1323,9 @@ export default function Admin() {
             {tab === "dashboard" && (
               <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+
+                {/* Acceso a la invitación de la rueda de prensa (solo admin) */}
+                <div className="mb-6 max-w-xl"><TarjetaRuedaPrensa /></div>
 
                 {/* Metrics */}
                 <div className="grid grid-cols-2 gap-3 w-full mb-6 md:grid-cols-4">
