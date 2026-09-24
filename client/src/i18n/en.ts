@@ -434,7 +434,7 @@ export const en: Translations = {
     seoDesc: "Official invitation to the Isekai World Fest 2027 press conference. Saturday, November 7, 4:30 PM, Arena Panter, CC Costa Verde, Maracaibo.",
     etiqueta: "[ Official invitation ]",
     marca: "World Fest",
-    titulo1: "Invitation",
+    titulo1: "Official invitation",
     titulo2: "Press conference",
     intro: "Some projects are announced. Others are presented in person, before the people who will make them possible.",
     texto: "We are honored to invite you to the official Isekai World Fest 2027 press conference, where we will present the complete project for the first time and share the announcements we have kept secret until today.",

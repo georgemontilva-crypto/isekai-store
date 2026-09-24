@@ -444,7 +444,7 @@ export const es = {
     seoDesc: "Invitación oficial a la rueda de prensa de Isekai World Fest 2027. Sábado 7 de noviembre, 4:30 p. m., Arena Panter, CC Costa Verde, Maracaibo.",
     etiqueta: "[ Invitación oficial ]",
     marca: "World Fest",
-    titulo1: "Invitación",
+    titulo1: "Invitación oficial",
     titulo2: "Rueda de prensa",
     intro: "Hay proyectos que se anuncian. Y hay otros que se presentan en persona, frente a quienes los harán posibles.",
     texto: "Tenemos el honor de invitarle a la rueda de prensa oficial de Isekai World Fest 2027, donde presentaremos por primera vez el proyecto completo y compartiremos los anuncios que hasta hoy hemos guardado en secreto.",
