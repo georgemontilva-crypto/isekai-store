@@ -4008,10 +4008,12 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
 }
 
 /* ═══ Rueda de prensa del Fest: invitación de gala ═══
-   Negro profundo, líneas finas carmesí, serifa itálica (Playfair) y la
-   tipografía de sistema (Chakra Petch) espaciada. Movimiento mínimo. */
-.rp-serif { font-family: "Playfair Display", Georgia, "Times New Roman", serif; }
-.rp-sistema { font-family: "Chakra Petch", "Inter", system-ui, sans-serif; }
+   Negro profundo, líneas finas carmesí y toda la tipografía en Montserrat,
+   jugando con sus pesos: Light itálica para los acentos, ExtraBold para
+   títulos y datos, Medium espaciada para las etiquetas. Movimiento mínimo. */
+.rp { font-family: "Montserrat", "Inter", system-ui, sans-serif; }
+.rp-serif { font-family: "Montserrat", "Inter", system-ui, sans-serif; }
+.rp-sistema { font-family: "Montserrat", "Inter", system-ui, sans-serif; font-weight: 500; }
 .rp-velo {
   background:
     radial-gradient(ellipse 80% 45% at 50% 0%, rgba(160, 16, 50, .32), transparent 70%),

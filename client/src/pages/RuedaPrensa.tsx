@@ -68,7 +68,7 @@ function CuentaAtras({ t }: { t: { dias: string; horas: string; minutos: string;
     <div className="mx-auto flex max-w-sm justify-center">
       {v.map((n, i) => (
         <div key={i} className={`flex-1 px-2 text-center ${i > 0 ? "border-l border-[#ff4d6d]/20" : ""}`}>
-          <div className="rp-serif text-[34px] font-bold leading-none tabular-nums text-[#f6e3e7]">{String(n).padStart(2, "0")}</div>
+          <div className="rp-serif text-[34px] font-light leading-none tabular-nums text-[#f6e3e7]">{String(n).padStart(2, "0")}</div>
           <div className="rp-sistema mt-2 text-[9px] uppercase tracking-[0.3em] text-[#ff6b86]/80">{et[i]}</div>
         </div>
       ))}
@@ -147,17 +147,17 @@ export default function RuedaPrensa() {
             </p>
 
             <p className="rp-sistema mb-6 text-[10px] uppercase tracking-[0.45em] text-[#ff6b86]">{t.etiqueta}</p>
-            <p className="rp-serif mb-1 text-[44px] font-bold italic leading-none text-[#f6e3e7] sm:text-6xl">{t.titulo1}</p>
-            <h1 className="rp-titulo ev-display mb-8 text-[30px] leading-tight tracking-[0.08em] sm:text-5xl">
+            <p className="rp-serif mb-2 text-[46px] font-light italic leading-none tracking-[-0.01em] text-[#f6e3e7] sm:text-6xl">{t.titulo1}</p>
+            <h1 className="rp-titulo rp-serif mb-8 text-[29px] font-extrabold leading-tight tracking-[0.1em] sm:text-5xl">
               {t.titulo2.toUpperCase()}
             </h1>
 
             <Separador className="mb-8" />
 
-            <p className="rp-serif mx-auto mb-5 max-w-md text-[19px] italic leading-relaxed text-[#f1c7d0] sm:text-[21px]">
+            <p className="rp-serif mx-auto mb-5 max-w-md text-[18px] font-light italic leading-relaxed text-[#f1c7d0] sm:text-[20px]">
               {t.intro}
             </p>
-            <p className="mx-auto max-w-md text-[15px] font-light leading-[1.8] text-[#bfaeb5]">{t.texto}</p>
+            <p className="rp-serif mx-auto max-w-md text-[14.5px] font-light leading-[1.85] text-[#bfaeb5]">{t.texto}</p>
           </motion.header>
 
           {/* ═══ Panel en V: contorno carmesí y la calavera en la muesca ═══ */}
@@ -173,7 +173,7 @@ export default function RuedaPrensa() {
                       <c.icono size={20} strokeWidth={1.3} className="mb-3 text-[#ff6b86]" />
                       <p className="rp-sistema mb-2 text-[9px] uppercase tracking-[0.35em] text-[#f1c7d0]/70">{c.etq}</p>
                       <p className="rp-sistema h-4 text-[11px] uppercase tracking-[0.2em] text-[#f6e3e7]">{c.arriba}</p>
-                      <p className={`rp-serif rp-dato my-1 font-bold leading-none ${i === 2 ? "text-[26px] sm:text-4xl" : "text-[40px] sm:text-5xl"}`}>{c.dato}</p>
+                      <p className={`rp-serif rp-dato my-1 font-extrabold uppercase leading-none tracking-[-0.01em] ${i === 2 ? "text-[23px] sm:text-4xl" : "text-[40px] sm:text-5xl"}`}>{c.dato}</p>
                       <p className="rp-sistema text-[11px] uppercase tracking-[0.2em] text-[#f6e3e7]">{c.abajo}</p>
                     </div>
                   ))}
@@ -205,7 +205,7 @@ export default function RuedaPrensa() {
                 <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full border border-[#ff4d6d]/70">
                   <Check size={24} strokeWidth={1.8} className="text-[#ff6b86]" />
                 </div>
-                <p className="rp-serif mb-3 text-[30px] font-bold italic leading-tight text-[#f6e3e7]">{t.confirmadoTitulo}</p>
+                <p className="rp-serif mb-3 text-[28px] font-light italic leading-tight text-[#f6e3e7]">{t.confirmadoTitulo}</p>
                 <p className="mb-8 text-[15px] font-light leading-[1.8] text-[#bfaeb5]">{t.confirmadoTexto}</p>
                 <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
                   <button
@@ -237,14 +237,14 @@ export default function RuedaPrensa() {
           <motion.section {...aparece} className="mx-auto mt-16 max-w-md border-y border-[#ff4d6d]/25 py-8 text-center">
             <Ticket size={26} strokeWidth={1.2} className="mx-auto mb-4 text-[#ff6b86]" />
             <p className="rp-sistema mb-3 text-[10px] uppercase tracking-[0.45em] text-[#ff6b86]">{t.accesoEtq}</p>
-            <p className="rp-serif mb-3 text-[24px] font-bold italic leading-snug text-[#f6e3e7]">{t.accesoTitulo}</p>
+            <p className="rp-serif mb-3 text-[20px] font-semibold leading-snug text-[#f6e3e7]">{t.accesoTitulo}</p>
             <p className="text-[14px] font-light leading-[1.8] text-[#bfaeb5]">{t.accesoTexto}</p>
           </motion.section>
 
           {/* ═══ Lo que se revelará ═══ */}
           <section className="mt-16">
             <p className="rp-sistema mb-3 text-center text-[10px] uppercase tracking-[0.45em] text-[#ff6b86]">{t.agendaEtq}</p>
-            <h2 className="rp-serif mb-10 text-center text-[28px] font-bold italic leading-tight text-[#f6e3e7] sm:text-4xl">{t.agendaTitulo}</h2>
+            <h2 className="rp-serif mb-10 text-center text-[27px] font-light italic leading-tight text-[#f6e3e7] sm:text-4xl">{t.agendaTitulo}</h2>
             <div className="mx-auto max-w-lg">
               {agenda.map((a, i) => (
                 <motion.div
@@ -255,7 +255,7 @@ export default function RuedaPrensa() {
                   transition={{ duration: 0.6, delay: i * 0.08 }}
                   className={`flex gap-5 py-6 ${i > 0 ? "border-t border-white/[0.07]" : ""}`}
                 >
-                  <span className="rp-serif rp-dato w-10 shrink-0 text-[26px] font-bold italic leading-none">{ROMANOS[i]}</span>
+                  <span className="rp-serif rp-dato w-11 shrink-0 text-[24px] font-light leading-none tracking-[0.04em]">{ROMANOS[i]}</span>
                   <div>
                     <p className="mb-1.5 text-[15px] font-semibold tracking-wide text-[#f6e3e7]">{a.titulo}</p>
                     <p className="text-[14px] font-light leading-[1.75] text-[#a9989f]">{a.texto}</p>
@@ -268,7 +268,7 @@ export default function RuedaPrensa() {
           {/* ═══ Cierre ═══ */}
           <section className="mt-14 text-center">
             <Separador className="mb-10" />
-            <p className="rp-serif mx-auto mb-10 max-w-sm text-[22px] italic leading-relaxed text-[#f1c7d0]">{t.cierre}</p>
+            <p className="rp-serif mx-auto mb-10 max-w-sm text-[21px] font-light italic leading-relaxed text-[#f1c7d0]">{t.cierre}</p>
             {!confirmado && (
               <button
                 onClick={() => { confirmar.mutate({ clave }); document.getElementById("confirmar")?.scrollIntoView({ behavior: "smooth" }); }}
