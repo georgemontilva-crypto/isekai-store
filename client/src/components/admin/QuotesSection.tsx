@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { COLORES, Estado, ChipFiltro, confirmar, dinero } from "./ui";
 import { Plus, Copy, ExternalLink, Trash2, FileText, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { trpc } from '@/lib/trpc';
@@ -10,7 +11,12 @@ import { useAuth } from '@/_core/hooks/useAuth';
  * El caso real es este: te escriben por Instagram desde el móvil y quieres
  * responder con el enlace de pago sin tener que ir a la computadora.
  */
-export default function QuotesSection() {
+/**
+ * «enPanelGrande»: en el computador el encabezado ya explica la diferencia
+ * con el pedido manual, así que no se repite el recuadro de ayuda.
+ */
+export default function QuotesSection({ enPanelGrande = false }: { enPanelGrande?: boolean } = {}) {
+  const [filtroEstado, setFiltroEstado] = useState<string>("todas");
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
 
@@ -98,14 +104,14 @@ export default function QuotesSection() {
   return (
     <div className="p-4 flex flex-col gap-3">
       {/* Para qué sirve: evita confundirla con el pedido manual */}
-      <div className="rounded-2xl border border-[#e5007d]/30 bg-[#e5007d]/5 p-4">
+      {!enPanelGrande && <div className="rounded-2xl border border-[#e5007d]/30 bg-[#e5007d]/5 p-4">
         <p className="text-sm font-bold text-[#e5007d] mb-1">¿Cotización o pedido manual?</p>
         <p className="text-xs leading-relaxed text-[var(--iw-text-muted)]">
           Usa <strong>cotización</strong> cuando la venta aún no ocurre: le mandas el enlace,
           el cliente ve el precio, paga y sube su comprobante.
           Usa <strong>pedido manual</strong> (en Pedidos) para registrar algo que ya se cerró y pagó por fuera.
         </p>
-      </div>
+      </div>}
 
       <button
         onClick={() => { setEditandoId(null); if (!abierto) vacio(); setAbierto(!abierto); }}
@@ -312,13 +318,32 @@ export default function QuotesSection() {
       )}
 
       {/* Listado */}
+      {(quotes as any[]).length > 0 && (() => {
+        const lista = quotes as any[];
+        const estados: [string, string, string | undefined][] = [
+          ["todas", "Todas", undefined], ["sent", "Enviadas", COLORES.azul], ["partial", "Abonadas", COLORES.ambar],
+          ["paid", "Pagadas", COLORES.verde], ["cancelled", "Canceladas", COLORES.rojo],
+        ];
+        const cuenta = (id: string) => id === "todas" ? lista.length : lista.filter(q => (q.status === "paid" || q.status === "partial" || q.status === "cancelled" ? q.status : "sent") === id).length;
+        return (
+          <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+            {estados.map(([id, texto, color]) => (
+              <ChipFiltro key={id} activo={filtroEstado === id} color={color} numero={cuenta(id)} texto={texto}
+                onClick={() => setFiltroEstado(filtroEstado === id ? "todas" : id)} />
+            ))}
+          </div>
+        );
+      })()}
+
       {(quotes as any[]).length === 0 ? (
         <div className="text-center py-12">
           <FileText size={32} className="mx-auto mb-3 text-[var(--iw-border)]" />
           <p className="text-sm text-[var(--iw-text-muted)]">Todavía no has creado cotizaciones.</p>
         </div>
       ) : (
-        (quotes as any[]).map((q: any) => {
+        (quotes as any[])
+          .filter((q: any) => filtroEstado === "todas" || (q.status === "paid" || q.status === "partial" || q.status === "cancelled" ? q.status : "sent") === filtroEstado)
+          .map((q: any) => {
           const enlace = `${window.location.origin}/cotizacion/${q.token}`;
           return (
             <div key={q.id} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
@@ -326,23 +351,16 @@ export default function QuotesSection() {
                 <div className="min-w-0">
                   <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="font-mono text-[10px] text-[var(--iw-text-muted)]">{q.quoteNumber}</span>
-                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                      q.status === 'paid' ? 'bg-green-500/15 text-green-500'
-                      : q.status === 'partial' ? 'bg-yellow-500/15 text-[#d9a400]'
-                      : q.status === 'cancelled' ? 'bg-red-500/15 text-red-500'
-                      : 'bg-blue-500/15 text-blue-400'
-                    }`}>
-                      {q.status === 'paid' ? 'Pagada'
-                        : q.status === 'partial' ? 'Abonada'
-                        : q.status === 'cancelled' ? 'Cancelada' : 'Enviada'}
-                    </span>
+                    <Estado color={q.status === 'paid' ? COLORES.verde : q.status === 'partial' ? COLORES.ambar : q.status === 'cancelled' ? COLORES.rojo : COLORES.azul}>
+                      {q.status === 'paid' ? 'Pagada' : q.status === 'partial' ? 'Abonada' : q.status === 'cancelled' ? 'Cancelada' : 'Enviada'}
+                    </Estado>
                   </div>
                   <p className="text-sm font-bold text-[var(--iw-text)] truncate">{q.title}</p>
                   {q.customerName && (
                     <p className="text-xs text-[var(--iw-text-muted)] truncate">{q.customerName}</p>
                   )}
                 </div>
-                <p className="shrink-0 font-black text-[#e5007d]">${q.total}</p>
+                <p className="shrink-0 font-black tabular-nums text-[#e5007d]">{dinero(q.total)}</p>
               </div>
 
               <div className="flex gap-2">
@@ -372,7 +390,10 @@ export default function QuotesSection() {
                 )}
                 {q.status !== 'paid' && (
                   <button
-                    onClick={() => { if (confirm('¿Eliminar esta cotización?')) borrar.mutate({ id: q.id }); }}
+                    onClick={() => {
+                      confirmar({ titulo: `Eliminar la cotización ${q.quoteNumber ?? ''}`, mensaje: "El enlace deja de funcionar para el cliente. Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true })
+                        .then(ok => { if (ok) borrar.mutate({ id: q.id }); });
+                    }}
                     className="flex items-center justify-center rounded-xl border border-red-500/30 px-4 text-red-500"
                     style={{ minHeight: 44 }}
                     aria-label="Eliminar"

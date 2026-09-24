@@ -671,6 +671,10 @@ export default function Admin() {
   /** Los kits de cosplayer son pedidos de $0 con prefijo IW-KIT: se separan
       para que no ensucien la lista de ventas reales. */
   const [ordersKind, setOrdersKind] = useState<"ventas" | "kits">("ventas");
+  /** Filtro de cotizaciones por estado */
+  const [filtroCotiz, setFiltroCotiz] = useState<string>("todas");
+  /** Filtro rápido de productos */
+  const [filtroProductos, setFiltroProductos] = useState<"todos" | "publicados" | "borradores" | "sinStock" | "destacados">("todos");
   /** Pestaña de «Pagos y finanzas» */
   const [vistaPagos, setVistaPagos] = useState<"verificar" | "pagos" | "movimientos">("verificar");
   /** Filtro por estado en la lista de pedidos («all» = todos) */
@@ -1379,16 +1383,15 @@ export default function Admin() {
             {/* ─── Products ───────────────────────────────────────────────────── */}
             {tab === "products" && (
               <motion.div key="products" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <div className="flex items-center justify-between mb-6">
-                  <h1 className="text-2xl font-bold">Productos</h1>
-                  <Button
-                    className="bg-primary text-primary-foreground hover:bg-primary/90"
-                    onClick={() => { setShowProductForm(true); setEditingProduct(null); }}
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Nuevo producto
-                  </Button>
-                </div>
+                <EncabezadoSeccion
+                  titulo="Productos"
+                  descripcion="Tu catálogo agrupado por categoría. Toca el lápiz para editar precio, stock, fotos y variantes."
+                  accion={
+                    <button onClick={() => { setShowProductForm(true); setEditingProduct(null); }} className="flex items-center gap-2 bg-[#e5007d] px-5 py-3 text-sm font-bold text-white">
+                      <Plus className="h-4 w-4" /> Nuevo producto
+                    </button>
+                  }
+                />
 
                 {/* New product form */}
                 <AnimatePresence>
@@ -1425,10 +1428,39 @@ export default function Admin() {
                 </div>
 
                 {(() => {
+                  const esSinStock = (p: any) => Number(p.stock ?? 0) <= 0;
+                  const conteos = {
+                    todos: filteredProducts.length,
+                    publicados: filteredProducts.filter(p => p.status === "published").length,
+                    borradores: filteredProducts.filter(p => p.status !== "published").length,
+                    sinStock: filteredProducts.filter(esSinStock).length,
+                    destacados: filteredProducts.filter(p => p.featured).length,
+                  };
+                  const chips: [typeof filtroProductos, string, string | undefined][] = [
+                    ["todos", "Todos", undefined], ["publicados", "Publicados", COLORES.verde], ["borradores", "Borradores", COLORES.gris],
+                    ["sinStock", "Sin stock", COLORES.rojo], ["destacados", "Destacados", "#ff3d9e"],
+                  ];
+                  return (
+                    <div className="mb-5 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+                      {chips.map(([id, texto, color]) => (
+                        <ChipFiltro key={id} activo={filtroProductos === id} color={color} numero={conteos[id]} texto={texto}
+                          onClick={() => setFiltroProductos(filtroProductos === id ? "todos" : id)} />
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {(() => {
+                  const pasaFiltro = (p: any) =>
+                    filtroProductos === "todos" ? true
+                    : filtroProductos === "publicados" ? p.status === "published"
+                    : filtroProductos === "borradores" ? p.status !== "published"
+                    : filtroProductos === "sinStock" ? Number(p.stock ?? 0) <= 0
+                    : !!p.featured;
                   // Agrupar por categoría, respetando el orden de la lista de categorías
                   const groups = new Map<string, typeof filteredProducts>();
                   for (const cat of (categories ?? [])) groups.set(cat.name, []);
-                  for (const prod of filteredProducts) {
+                  for (const prod of filteredProducts.filter(pasaFiltro)) {
                     const key = prod.category?.name ?? "Sin categoría";
                     if (!groups.has(key)) groups.set(key, []);
                     groups.get(key)!.push(prod);
@@ -1438,15 +1470,13 @@ export default function Admin() {
 
                   return (
                 <div className="space-y-3">
-                  {filteredProducts.length === 0 && productSearch && (
-                    <p className="text-center text-[#999] text-sm py-8">
-                      No se encontraron productos para "{productSearch}"
-                    </p>
+                  {visible.length === 0 && products.length > 0 && (
+                    <EstadoVacio icono={Search} texto={productSearch ? `No hay productos para «${productSearch}» con este filtro.` : "No hay productos con este filtro."} />
                   )}
 
                   {visible.map(([groupName, groupProducts]) => {
                     // Al buscar, todo abierto; si no, se respeta lo que el usuario haya plegado
-                    const isOpen = productSearch
+                    const isOpen = productSearch || filtroProductos !== "todos"
                       ? true
                       : openCategories.includes(groupName);
                     return (
@@ -1464,52 +1494,59 @@ export default function Admin() {
                       </button>
 
                       {isOpen && (
-                        <div className="p-3 pt-0 space-y-3 border-t border-[#f0f0f0]">
+                        <div className="divide-y divide-white/[0.05] border-t border-white/[0.06]">
                   {groupProducts.map((product: typeof filteredProducts[number]) => (
                     <div key={product.id}>
-                      <div className="p-4 rounded-2xl bg-card border border-border/50 hover:border-border transition-colors">
-                        <div className="flex items-start sm:items-center justify-between gap-3">
-                          <div className="flex items-start gap-3 flex-1 min-w-0">
-                            {(product as any).images?.[0]?.url && (
-                              <img
-                                src={(product as any).images[0].url}
-                                className="w-12 h-12 rounded-xl object-cover shrink-0 border border-border/30"
-                                alt=""
-                              />
-                            )}
-                            <div className="flex-1 min-w-0">
-                              <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                                <p className="font-medium truncate">{product.name}</p>
-                                <span className={`px-2 py-0.5 rounded-full text-xs shrink-0 ${product.status === "published" ? "bg-green-500/10 text-green-400" : "bg-muted text-muted-foreground"}`}>
-                                  {product.status === "published" ? "Publicado" : "Borrador"}
-                                </span>
-                                {product.featured && <span className="px-2 py-0.5 rounded-full text-xs bg-primary/10 text-primary shrink-0">Destacado</span>}
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                ${parseFloat(product.price).toFixed(2)} USD · Stock: {product.stock} · {product.category?.name ?? "Sin categoría"}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 shrink-0">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-muted-foreground hover:text-foreground h-9 w-9 p-0"
-                              onClick={() => { setEditingProduct(product); setShowProductForm(false); }}
-                            >
-                              <Pencil className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-muted-foreground hover:text-destructive h-9 w-9 p-0"
-                              onClick={() => { if (confirm("¿Eliminar producto?")) deleteProduct.mutate({ id: product.id }); }}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
+                      {(() => {
+                        const stock = Number(product.stock ?? 0);
+                        const colorStock = stock <= 0 ? COLORES.rojo : stock <= 3 ? COLORES.ambar : "#d6d0de";
+                        const publicado = product.status === "published";
+                        return (
+                      <div className={`flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.025] ${editingProduct?.id === product.id ? "bg-[#0e0d13]" : ""}`}>
+                        {(product as any).images?.[0]?.url ? (
+                          <img src={(product as any).images[0].url} className="h-11 w-11 shrink-0 border border-white/10 object-cover" alt="" />
+                        ) : (
+                          <div className="flex h-11 w-11 shrink-0 items-center justify-center border border-dashed border-white/10 text-[#5d5766]"><Package className="h-4 w-4" /></div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-semibold text-white">{product.name}</p>
+                          <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                            <Estado color={publicado ? COLORES.verde : COLORES.gris}>{publicado ? "Publicado" : "Borrador"}</Estado>
+                            {product.featured && <Estado color="#ff3d9e">Destacado</Estado>}
                           </div>
                         </div>
+                        <div className="w-24 shrink-0 text-right">
+                          <p className="text-sm font-bold tabular-nums text-white">{dinero(product.price)}</p>
+                          <p className="text-[11px] font-semibold tabular-nums" style={{ color: colorStock }}>
+                            {stock <= 0 ? "Sin stock" : `${stock} en stock`}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-0.5">
+                          <button
+                            title="Editar producto"
+                            onClick={() => { setEditingProduct(editingProduct?.id === product.id ? null : product); setShowProductForm(false); }}
+                            className="p-2 text-[#8a8494] transition-colors hover:text-white"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </button>
+                          <button
+                            title="Eliminar producto"
+                            onClick={() => {
+                              confirmar({
+                                titulo: `Eliminar «${product.name}»`,
+                                mensaje: "El producto desaparece de la tienda. Los pedidos que ya lo incluyen no se modifican.",
+                                confirmar: "Eliminar producto",
+                                peligro: true,
+                              }).then(ok => { if (ok) deleteProduct.mutate({ id: product.id }); });
+                            }}
+                            className="p-2 text-[#8a8494] transition-colors hover:text-[#f87171]"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
                       </div>
+                        );
+                      })()}
 
                       {/* Edit form */}
                       <AnimatePresence>
@@ -1518,7 +1555,7 @@ export default function Admin() {
                             initial={{ opacity: 0, height: 0 }}
                             animate={{ opacity: 1, height: "auto" }}
                             exit={{ opacity: 0, height: 0 }}
-                            className="mt-2 p-6 rounded-2xl bg-card border border-primary/30"
+                            className="border-t border-[#e5007d]/30 bg-[#0e0d13] p-6"
                           >
                             <h3 className="font-semibold mb-4">Editar producto</h3>
                             <ProductForm
@@ -1548,10 +1585,8 @@ export default function Admin() {
                   })}
 
                   {products.length === 0 && (
-                    <div className="text-center py-16 text-muted-foreground">
-                      <Package className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                      <p>No hay productos aún</p>
-                    </div>
+                    <EstadoVacio icono={Package} texto="Todavía no hay productos."
+                      accion={<button onClick={() => { setShowProductForm(true); setEditingProduct(null); }} className="bg-[#e5007d] px-4 py-2 text-xs font-bold text-white">Crear el primero</button>} />
                   )}
                 </div>
                   );
@@ -2659,24 +2694,18 @@ export default function Admin() {
       {/* ─── Cotizaciones a medida ────────────────────────────────────────── */}
             {tab === "quotes" && (
               <motion.div key="quotes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h1 className="text-2xl font-bold">Cotizaciones</h1>
-                    <p className="mt-1 text-sm text-[#666]">
-                      Para piezas a medida: armas la cotización, compartes el enlace y el cliente paga por la web.
-                    </p>
-                    <p className="mt-2 max-w-2xl text-xs leading-relaxed text-[#888]">
-                      Úsala cuando la venta <strong>aún no ocurre</strong>. Si ya te pagaron por fuera y solo
-                      quieres dejarlo registrado, usa «Registrar pedido ya pagado» en Pedidos.
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => { setEditingQuoteId(null); setShowQuoteForm(!showQuoteForm); }}
-                    className="flex items-center gap-2 rounded-xl bg-[#111] px-5 py-3 text-sm font-bold text-white"
-                  >
-                    <Plus className="h-4 w-4" /> Nueva cotización
-                  </button>
-                </div>
+                <EncabezadoSeccion
+                  titulo="Cotizaciones"
+                  descripcion="Para piezas a medida: armas la cotización, compartes el enlace y el cliente paga por la web. Si ya te pagaron por fuera, usa «Registrar pedido ya pagado» en Pedidos."
+                  accion={
+                    <button
+                      onClick={() => { setEditingQuoteId(null); setShowQuoteForm(!showQuoteForm); }}
+                      className="flex items-center gap-2 bg-[#e5007d] px-5 py-3 text-sm font-bold text-white"
+                    >
+                      <Plus className="h-4 w-4" /> Nueva cotización
+                    </button>
+                  }
+                />
 
                 {showQuoteForm && (
                   <div className="mb-6 rounded-2xl border border-[#e5e5e5] bg-white p-5">
@@ -2798,86 +2827,93 @@ export default function Admin() {
                   </div>
                 )}
 
-                {(quotes as any[]).length === 0 ? (
-                  <div className="rounded-2xl border border-[#e5e5e5] bg-white p-12 text-center text-sm text-[#888]">
-                    Todavía no has creado cotizaciones.
-                  </div>
-                ) : (
-                  <div className="flex flex-col gap-3">
-                    {(quotes as any[]).map((q: any) => {
-                      const enlace = `${window.location.origin}/cotizacion/${q.token}`;
-                      return (
-                        <div key={q.id} className="rounded-2xl border border-[#e5e5e5] bg-white p-4">
-                          <div className="flex flex-wrap items-start justify-between gap-3">
-                            <div className="min-w-0 flex-1">
-                              <div className="mb-1 flex flex-wrap items-center gap-2">
-                                <span className="font-mono text-[11px] text-[#999]">{q.quoteNumber}</span>
-                                <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${
-                                  q.status === "paid" ? "bg-green-100 text-green-700"
-                                  : q.status === "partial" ? "bg-yellow-100 text-yellow-700"
-                                  : q.status === "cancelled" ? "bg-red-100 text-red-700"
-                                  : "bg-blue-100 text-blue-700"
-                                }`}>
-                                  {q.status === "paid" ? "Pagada"
-                                    : q.status === "partial" ? "Abonada"
-                                    : q.status === "cancelled" ? "Cancelada" : "Enviada"}
-                                </span>
+                {(() => {
+                  const lista = quotes as any[];
+                  const estadoDe = (q: any) => (q.status === "paid" || q.status === "partial" || q.status === "cancelled" ? q.status : "sent");
+                  const est: Record<string, { texto: string; color: string }> = {
+                    sent: { texto: "Enviada", color: COLORES.azul }, partial: { texto: "Abonada", color: COLORES.ambar },
+                    paid: { texto: "Pagada", color: COLORES.verde }, cancelled: { texto: "Cancelada", color: COLORES.rojo },
+                  };
+                  const visibles = filtroCotiz === "todas" ? lista : lista.filter(q => estadoDe(q) === filtroCotiz);
+                  if (lista.length === 0) {
+                    return <EstadoVacio icono={FileText} texto="Todavía no has creado cotizaciones."
+                      accion={<button onClick={() => { setEditingQuoteId(null); setShowQuoteForm(true); }} className="bg-[#e5007d] px-4 py-2 text-xs font-bold text-white">Crear la primera</button>} />;
+                  }
+                  return (
+                    <>
+                      <div className="mb-5 grid grid-cols-3 gap-1.5 sm:grid-cols-5">
+                        <ChipFiltro activo={filtroCotiz === "todas"} numero={lista.length} texto="Todas" onClick={() => setFiltroCotiz("todas")} />
+                        {(["sent", "partial", "paid", "cancelled"] as const).map(id => (
+                          <ChipFiltro key={id} activo={filtroCotiz === id} color={est[id].color} numero={lista.filter(q => estadoDe(q) === id).length}
+                            texto={est[id].texto + "s"} onClick={() => setFiltroCotiz(filtroCotiz === id ? "todas" : id)} />
+                        ))}
+                      </div>
+                      {visibles.length === 0 ? (
+                        <EstadoVacio icono={FileText} texto="No hay cotizaciones con este estado." />
+                      ) : (
+                      <div className="divide-y divide-white/[0.05] border border-white/[0.08]">
+                        {visibles.map((q: any) => {
+                          const enlace = `${window.location.origin}/cotizacion/${q.token}`;
+                          const e = est[estadoDe(q)];
+                          const f = fechaRelativa(q.createdAt);
+                          return (
+                            <div key={q.id} className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 transition-colors hover:bg-white/[0.025]">
+                              <div className="w-28 shrink-0">
+                                <p className="font-mono text-[11px] text-[#a39cad]">{q.quoteNumber}</p>
+                                <p className="text-[11px] text-[#6f6878]" title={f.exacta}>{f.texto}</p>
                               </div>
-                              <p className="font-bold text-[#111]">{q.title}</p>
-                              <p className="text-xs text-[#888]">
-                                {q.customerName ?? "Sin nombre"}{q.customerEmail ? ` · ${q.customerEmail}` : ""}
-                              </p>
+                              <div className="min-w-0 flex-1">
+                                <p className="truncate text-sm font-semibold text-white">{q.title}</p>
+                                <p className="truncate text-[11px] text-[#8a8494]">{q.customerName ?? "Sin nombre"}{q.customerEmail ? ` · ${q.customerEmail}` : ""}</p>
+                              </div>
+                              <Estado color={e.color} className="w-24 justify-center">{e.texto}</Estado>
+                              <p className="w-24 shrink-0 text-right text-sm font-black tabular-nums text-white">{dinero(q.total)}</p>
+                              <div className="flex shrink-0 items-center gap-0.5">
+                                <button
+                                  title="Copiar enlace para el cliente"
+                                  onClick={async () => {
+                                    try { await navigator.clipboard.writeText(enlace); toast.success("Enlace copiado"); }
+                                    catch { prompt("Copia el enlace:", enlace); }
+                                  }}
+                                  className="p-2 text-[#8a8494] transition-colors hover:text-white"
+                                ><Copy className="h-4 w-4" /></button>
+                                <a href={enlace} target="_blank" rel="noopener noreferrer" title="Ver como cliente" className="p-2 text-[#8a8494] transition-colors hover:text-white">
+                                  <ExternalLink className="h-4 w-4" />
+                                </a>
+                                {q.status !== "paid" && (
+                                  <button title="Editar" onClick={() => abrirEdicion(q)} className="p-2 text-[#8a8494] transition-colors hover:text-white">
+                                    <Pencil className="h-4 w-4" />
+                                  </button>
+                                )}
+                                {q.status !== "paid" && (
+                                  <button
+                                    title="Eliminar"
+                                    onClick={() => {
+                                      confirmar({ titulo: `Eliminar la cotización ${q.quoteNumber}`, mensaje: "El enlace deja de funcionar para el cliente. Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true })
+                                        .then(ok => { if (ok) deleteQuote.mutate({ id: q.id }); });
+                                    }}
+                                    className="p-2 text-[#8a8494] transition-colors hover:text-[#f87171]"
+                                  ><Trash2 className="h-4 w-4" /></button>
+                                )}
+                              </div>
                             </div>
-                            <p className="shrink-0 text-lg font-black text-[#e5007d]">${q.total} USD</p>
-                          </div>
-
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <button
-                              onClick={async () => {
-                                try { await navigator.clipboard.writeText(enlace); toast.success("Enlace copiado"); }
-                                catch { prompt("Copia el enlace:", enlace); }
-                              }}
-                              className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#e5007d] hover:text-[#e5007d]"
-                            >
-                              <Copy className="h-3.5 w-3.5" /> Copiar enlace
-                            </button>
-                            <a href={enlace} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-1.5 rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#111] hover:text-[#111]">
-                              Ver como cliente <ExternalLink className="h-3.5 w-3.5" />
-                            </a>
-                            {q.status !== "paid" && (
-                              <button
-                                onClick={() => abrirEdicion(q)}
-                                className="rounded-full border border-[#e5e5e5] px-4 py-2 text-xs font-bold text-[#555] hover:border-[#e5007d] hover:text-[#e5007d]"
-                              >
-                                Editar
-                              </button>
-                            )}
-                            {q.status !== "paid" && (
-                              <button
-                                onClick={() => { if (confirm("¿Eliminar esta cotización?")) deleteQuote.mutate({ id: q.id }); }}
-                                className="rounded-full border border-red-200 px-4 py-2 text-xs font-bold text-red-500 hover:bg-red-50"
-                              >
-                                Eliminar
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+                          );
+                        })}
+                      </div>
+                      )}
+                    </>
+                  );
+                })()}
               </motion.div>
             )}
 
           {/* ─── Suscriptores ─────────────────────────────────────────────────── */}
             {tab === "subscribers" && (
               <motion.div key="subscribers" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h1 className="text-2xl font-bold">Suscriptores</h1>
-                    <p className="mt-1 text-sm text-[#666]">Correos que dejó la gente en World Fest y en la newsletter.</p>
-                  </div>
+                <EncabezadoSeccion
+                  titulo="Suscriptores"
+                  descripcion="Correos que dejó la gente en la lista del World Fest y en la newsletter."
+                  accion={
                   <button
                     onClick={() => {
                       const csv = "correo,origen,fecha\n" + (subscribers as any[])
@@ -2890,50 +2926,49 @@ export default function Admin() {
                       a.click();
                     }}
                     disabled={(subscribers as any[]).length === 0}
-                    className="flex items-center gap-2 rounded-xl border border-[#e5e5e5] bg-white px-4 py-2.5 text-sm font-bold text-[#555] transition-colors hover:border-[#111] hover:text-[#111] disabled:opacity-40"
+                    className="flex items-center gap-2 border border-white/15 bg-[#141318] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:border-[#ff3d9e] disabled:opacity-40"
                   >
                     <ArrowUpRight className="h-4 w-4" /> Descargar CSV
                   </button>
-                </div>
+                  }
+                />
 
                 <div className="mb-4 flex flex-wrap items-center gap-2">
-                  {([["all", "Todos"], ["worldfest", "World Fest"], ["newsletter", "Newsletter"]] as const).map(([id, label]) => (
-                    <button
-                      key={id}
-                      onClick={() => setSubsFilter(id)}
-                      className={`rounded-full px-3.5 py-1.5 text-xs font-bold transition-colors ${
-                        subsFilter === id ? "bg-[#111] text-white" : "bg-[#f0f0f0] text-[#666] hover:bg-[#e5e5e5]"
-                      }`}
-                    >
-                      {label}
-                    </button>
-                  ))}
-                  <span className="ml-auto text-xs text-[#888]">{(subscribers as any[]).length} correo(s)</span>
+                  <div className="inline-flex border border-white/10">
+                    {([["all", "Todos"], ["worldfest", "World Fest"], ["newsletter", "Newsletter"]] as const).map(([id, label]) => (
+                      <button
+                        key={id}
+                        onClick={() => setSubsFilter(id)}
+                        className={`px-4 py-2 text-xs font-bold transition-colors ${subsFilter === id ? "bg-[#e5007d] text-white" : "text-[#a39cad] hover:text-white"}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                  <span className="ml-auto text-xs text-[#8a8494]">{(subscribers as any[]).length} correo(s)</span>
                 </div>
 
                 {(subscribers as any[]).length === 0 ? (
-                  <div className="rounded-2xl border border-[#e5e5e5] bg-white p-12 text-center text-sm text-[#888]">
-                    Todavía no hay correos registrados.
-                  </div>
+                  <EstadoVacio icono={Mail} texto="Todavía no hay correos en esta lista." />
                 ) : (
-                  <div className="divide-y divide-[#f0f0f0] overflow-hidden rounded-2xl border border-[#e5e5e5] bg-white">
+                  <div className="divide-y divide-white/[0.05] border border-white/[0.08]">
                     {(subscribers as any[]).map((sub: any) => (
-                      <div key={sub.id} className="flex items-center gap-3 px-4 py-3">
-                        <Mail className="h-4 w-4 shrink-0 text-[#ccc]" />
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold text-[#111]">{sub.email}</p>
-                          <p className="text-xs text-[#999]">
-                            {new Date(sub.createdAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}
-                          </p>
-                        </div>
-                        <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-[11px] font-bold ${
-                          sub.source === "worldfest" ? "bg-[#5db4ff]/15 text-[#1a6fbd]" : "bg-[#f0f0f0] text-[#666]"
-                        }`}>
-                          {sub.source === "worldfest" ? "World Fest" : "Newsletter"}
+                      <div key={sub.id} className="flex items-center gap-3 px-4 py-2.5 transition-colors hover:bg-white/[0.025]">
+                        <Mail className="h-4 w-4 shrink-0 text-[#5d5766]" />
+                        <p className="min-w-0 flex-1 truncate text-sm font-semibold text-white">{sub.email}</p>
+                        <span className="hidden w-28 shrink-0 text-right text-xs text-[#8a8494] sm:block" title={fechaRelativa(sub.createdAt).exacta}>
+                          {fechaRelativa(sub.createdAt).texto}
                         </span>
+                        <Estado color={sub.source === "worldfest" ? COLORES.purpura : COLORES.gris} className="w-24 justify-center">
+                          {sub.source === "worldfest" ? "World Fest" : "Newsletter"}
+                        </Estado>
                         <button
-                          onClick={() => { if (confirm(`¿Eliminar ${sub.email}?`)) deleteSubscriber.mutate({ id: sub.id }); }}
-                          className="shrink-0 rounded-lg p-2 text-[#ccc] transition-colors hover:bg-[#f8f8f8] hover:text-red-500"
+                          onClick={() => {
+                            confirmar({ titulo: `Eliminar ${sub.email}`, mensaje: "Deja de recibir los avisos de esta lista.", confirmar: "Eliminar", peligro: true })
+                              .then(ok => { if (ok) deleteSubscriber.mutate({ id: sub.id }); });
+                          }}
+                          title="Eliminar suscriptor"
+                          className="shrink-0 p-2 text-[#5d5766] transition-colors hover:text-[#f87171]"
                           aria-label="Eliminar"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -4053,15 +4088,21 @@ export default function Admin() {
             {/* ─── Users Tab ──────────────────────────────────────────────── */}
             {tab === "users" && (
               <motion.div key="users" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl font-bold">Usuarios</h2>
-                    <p className="text-sm text-[#999]">{filteredUsers.length} usuarios registrados</p>
-                  </div>
-                </div>
+                <EncabezadoSeccion titulo="Usuarios" descripcion="Cuentas registradas en la tienda. Cambia el rol o elimina cuentas de prueba." />
 
                 {/* Filtros */}
-                <div className="flex gap-3 mb-4">
+                <div className="mb-4 flex flex-wrap gap-2">
+                  <div className="inline-flex border border-white/10">
+                    {([["all", "Todos"], ["user", "Clientes"], ["admin", "Admins"]] as const).map(([id, label]) => (
+                      <button
+                        key={id}
+                        onClick={() => setUserRoleFilter(id)}
+                        className={`px-4 py-2 text-xs font-bold transition-colors ${userRoleFilter === id ? "bg-[#e5007d] text-white" : "text-[#a39cad] hover:text-white"}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
                   <div className="relative flex-1">
                     <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#999]" />
                     <input
@@ -4072,73 +4113,76 @@ export default function Admin() {
                       className="w-full pl-9 pr-4 py-2.5 text-sm border border-[#e5e5e5] rounded-lg outline-none focus:border-[#111]"
                     />
                   </div>
-                  <select
-                    value={userRoleFilter}
-                    onChange={e => setUserRoleFilter(e.target.value)}
-                    className="text-sm border border-[#e5e5e5] rounded-lg px-3 py-2.5 outline-none bg-background"
-                  >
-                    <option value="all">Todos</option>
-                    <option value="user">Clientes</option>
-                    <option value="admin">Admins</option>
-                  </select>
+                  <span className="self-center text-xs text-[#8a8494]">{filteredUsers.length} cuenta(s)</span>
                 </div>
 
                 {/* Tabla de usuarios */}
-                <div className="border border-[#e5e5e5] rounded-xl overflow-x-auto">
+                <div className="overflow-x-auto border border-white/[0.08]">
                   <table style={{ minWidth: '600px', width: '100%' }} className="text-sm">
-                    <thead className="bg-[#f8f8f8] border-b border-[#e5e5e5]">
+                    <thead className="border-b border-white/[0.08] text-[10px] uppercase tracking-[0.14em]">
                       <tr>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Usuario</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Método</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Rol</th>
-                        <th className="text-left px-4 py-3 font-semibold text-[#999]">Registro</th>
-                        <th className="text-right px-4 py-3 font-semibold text-[#999]">Acciones</th>
+                        <th className="px-4 py-3 text-left font-semibold text-[#6f6878]">Usuario</th>
+                        <th className="px-4 py-3 text-left font-semibold text-[#6f6878]">Método</th>
+                        <th className="px-4 py-3 text-left font-semibold text-[#6f6878]">Rol</th>
+                        <th className="px-4 py-3 text-left font-semibold text-[#6f6878]">Registro</th>
+                        <th className="px-4 py-3 text-right font-semibold text-[#6f6878]"></th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredUsers.map((u: any) => (
-                        <tr key={u.id} className="border-b border-[#f0f0f0] hover:bg-[#fafafa]">
+                        <tr key={u.id} className="border-b border-white/[0.05] hover:bg-white/[0.025]">
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-[#111] text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: u.role === "admin" ? "#a78bfa33" : "#e5007d33", color: u.role === "admin" ? "#c4b5fd" : "#ff7ab8" }}>
                                 {u.name?.charAt(0).toUpperCase() ?? '?'}
                               </div>
                               <div>
-                                <p className="font-medium text-[#111]">{u.name ?? 'Sin nombre'}</p>
-                                <p className="text-xs text-[#999]">{u.email}</p>
+                                <p className="font-medium text-white">{u.name ?? 'Sin nombre'}</p>
+                                <p className="text-xs text-[#8a8494]">{u.email}</p>
                               </div>
                             </div>
                           </td>
                           <td className="px-4 py-3">
-                            <span className="text-xs bg-[#f0f0f0] px-2 py-1 rounded-full">
-                              {u.loginMethod === 'google' ? 'Google' : 'Magic Link'}
+                            <span className="text-xs text-[#a39cad]">
+                              {u.loginMethod === 'google' ? 'Google' : 'Enlace por correo'}
                             </span>
                           </td>
                           <td className="px-4 py-3">
                             <select
                               value={u.role}
-                              onChange={e => updateUserRole.mutate({ userId: u.id, role: e.target.value as 'user' | 'admin' })}
-                              className={`text-xs px-2 py-1 rounded-full border outline-none font-semibold ${
-                                u.role === 'admin'
-                                  ? 'bg-purple-50 border-purple-200 text-purple-700'
-                                  : 'bg-green-50 border-green-200 text-green-700'
-                              }`}
+                              onChange={e => {
+                                const rol = e.target.value as 'user' | 'admin';
+                                const aplicar = () => updateUserRole.mutate({ userId: u.id, role: rol });
+                                // Dar acceso de administrador es delicado: se confirma
+                                if (rol === 'admin') {
+                                  confirmar({
+                                    titulo: `Hacer administrador a ${u.name ?? u.email}`,
+                                    mensaje: "Tendrá acceso completo al panel: pedidos, pagos, usuarios y configuración.",
+                                    confirmar: "Dar acceso de admin",
+                                    peligro: true,
+                                  }).then(ok => { if (ok) aplicar(); });
+                                } else aplicar();
+                              }}
+                              className="border px-2 py-1 text-xs font-semibold outline-none"
+                              style={{ color: u.role === 'admin' ? '#c4b5fd' : '#4ade80' }}
                             >
                               <option value="user">Cliente</option>
                               <option value="admin">Admin</option>
                             </select>
                           </td>
-                          <td className="px-4 py-3 text-xs text-[#999]">
-                            {new Date(u.createdAt).toLocaleDateString('es-VE', {
-                              day: '2-digit', month: 'short', year: 'numeric'
-                            })}
+                          <td className="px-4 py-3 text-xs text-[#8a8494]">
+                            <span title={fechaRelativa(u.createdAt).exacta}>{fechaRelativa(u.createdAt).texto}</span>
                           </td>
                           <td className="px-4 py-3 text-right">
                             <button
+                              title="Eliminar cuenta"
                               onClick={() => {
-                                if (confirm(`¿Eliminar a ${u.name}? Esta acción no se puede deshacer.`)) {
-                                  deleteUser.mutate({ userId: u.id });
-                                }
+                                confirmar({
+                                  titulo: `Eliminar a ${u.name ?? u.email}`,
+                                  mensaje: "La cuenta se borra para siempre. Esta acción no se puede deshacer.",
+                                  confirmar: "Eliminar cuenta",
+                                  peligro: true,
+                                }).then(ok => { if (ok) deleteUser.mutate({ userId: u.id }); });
                               }}
                               className="text-red-400 hover:text-red-600 transition-colors p-1"
                             >
@@ -4151,9 +4195,7 @@ export default function Admin() {
                   </table>
 
                   {filteredUsers.length === 0 && (
-                    <p className="text-center text-[#999] text-sm py-8">
-                      No se encontraron usuarios
-                    </p>
+                    <div className="p-4"><EstadoVacio icono={Users} texto="No hay usuarios con esos filtros." /></div>
                   )}
                 </div>
               </motion.div>
