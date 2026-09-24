@@ -32,6 +32,7 @@ import {
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, GOLPES_MAX } from "./raid";
+import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones } from "./ruedaPrensa";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
 const MOTIVO_REFERIDO: Record<string, string> = {
@@ -1055,6 +1056,17 @@ export const appRouter = router({
         return { posts: [], configured: true, error: "Failed to fetch feed" };
       }
     }),
+  }),
+
+  // ─── World Fest: rueda de prensa (confirmar asistencia sin registro) ─────────
+  prensa: router({
+    estado: publicProcedure
+      .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/).optional() }).optional())
+      .query(({ input }) => estadoConfirmacion(input?.clave)),
+    confirmar: publicProcedure
+      .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/) }))
+      .mutation(({ input, ctx }) => confirmarAsistencia(input.clave, clientIp(ctx.req))),
+    total: adminProcedure.query(() => totalConfirmaciones()),
   }),
 
   // ─── World Fest: raid comunitario (landing) ─────────────────────────────────

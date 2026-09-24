@@ -59,6 +59,7 @@ const FAQ = lazy(() => import("./pages/FAQ"));
 const Politicas = lazy(() => import("./pages/Politicas"));
 const LinkBio = lazy(() => import("./pages/LinkBio"));
 const CosplayLanding = lazy(() => import("./pages/CosplayLanding"));
+const RuedaPrensa = lazy(() => import("./pages/RuedaPrensa"));
 const CosplayApply = lazy(() => import("./pages/CosplayApply"));
 const CosplayGuild = lazy(() => import("./pages/CosplayGuild"));
 const CosplayProfile = lazy(() => import("./pages/CosplayProfile"));
@@ -141,6 +142,8 @@ function Router() {
         <Route path="/guild/mejoras" component={GuildFeedback} />
         {/* Zona del evento: espacio propio, fuera de la tienda */}
         <Route path="/worldfest/pass" component={WorldFestPass} />
+        {/* Invitación a la rueda de prensa del World Fest */}
+        <Route path="/rueda-de-prensa" component={RuedaPrensa} />
         <Route path="/cosplay" component={CosplayLanding} />
         <Route path="/cosplay/apply" component={CosplayApply} />
         <Route path="/cosplay/guild" component={CosplayGuild} />

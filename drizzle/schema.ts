@@ -849,3 +849,16 @@ export const wfRaidAtaques = mysqlTable("wfRaidAtaques", {
   golpes: int("golpes").notNull(),
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
+
+// ─── World Fest: confirmaciones a la rueda de prensa ───────────────────────────
+/**
+ * Una fila por navegador que confirmó asistencia. No hay registro: la clave
+ * es un identificador anónimo que guarda el navegador. Sirve solo para
+ * contar cuántos vendrán.
+ */
+export const wfPrensaConfirmaciones = mysqlTable("wfPrensaConfirmaciones", {
+  id: int("id").autoincrement().primaryKey(),
+  clave: varchar("clave", { length: 64 }).notNull().unique(),
+  ip: varchar("ip", { length: 64 }).notNull(),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});

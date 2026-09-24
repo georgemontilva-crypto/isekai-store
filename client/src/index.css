@@ -4006,3 +4006,70 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
   .ev2-rayo, .ev2-cielo, .ev2-brasa-jefe { display: none; }
   .ev2-llama-jefe, .ev2-suelo-fuego { animation: none; }
 }
+
+/* ═══ Rueda de prensa del Fest: estética de la invitación impresa ═══ */
+.rp-humo {
+  background:
+    radial-gradient(ellipse 60% 45% at 12% 18%, rgba(255, 45, 85, .38), transparent 70%),
+    radial-gradient(ellipse 55% 40% at 88% 22%, rgba(200, 20, 60, .35), transparent 70%),
+    radial-gradient(ellipse 70% 40% at 50% 0%, rgba(120, 10, 35, .5), transparent 70%);
+  animation: rp-humo 9s ease-in-out infinite alternate;
+}
+@keyframes rp-humo { from { opacity: .75; transform: scale(1); } to { opacity: 1; transform: scale(1.06); } }
+.rp-pestana {
+  background: linear-gradient(180deg, #ff2d55, #d11645);
+  clip-path: polygon(0 0, 100% 0, 100% 35%, 50% 100%, 0 35%);
+  filter: drop-shadow(0 6px 18px rgba(255, 45, 85, .45));
+}
+.rp-marca {
+  background: linear-gradient(180deg, #ff6b88, #ff2d55 55%, #c3103a);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 2px 0 #fff) drop-shadow(0 0 16px rgba(255, 45, 85, .5));
+}
+.rp-titulo-rojo {
+  background: linear-gradient(180deg, #ff7390, #ff2d55 60%, #d8103f);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(0 0 22px rgba(255, 45, 85, .45));
+}
+/* Panel con la muesca en V arriba, rojo que se oscurece hacia abajo */
+.rp-panel {
+  position: relative;
+  background:
+    repeating-radial-gradient(circle at 50% 30%, rgba(255, 255, 255, .045) 0 2px, transparent 2px 7px),
+    linear-gradient(180deg, #ff2d55 0%, #d3163f 26%, #6b0a22 58%, #230509 100%);
+  clip-path: polygon(0 18px, 18px 0, 50% 88px, calc(100% - 18px) 0, 100% 18px, 100% 100%, 0 100%);
+  box-shadow: 0 30px 60px -20px rgba(255, 45, 85, .35);
+}
+.rp-sello {
+  position: absolute; left: 50%; top: 4px; z-index: 2; width: 92px; height: 92px; transform: translateX(-50%);
+  filter: drop-shadow(0 0 18px rgba(255, 45, 85, .7));
+  animation: rp-latido 3s ease-in-out infinite;
+}
+@keyframes rp-latido { 0%, 100% { transform: translateX(-50%) scale(1); } 50% { transform: translateX(-50%) scale(1.05); } }
+.rp-dato { color: #ff6b88; text-shadow: 0 0 18px rgba(255, 45, 85, .6); }
+.rp-caja { border: 1px solid rgba(255, 45, 85, .35); background: rgba(255, 45, 85, .07); }
+.rp-boton {
+  position: relative; overflow: hidden;
+  background: linear-gradient(180deg, #ff3b62, #d8103f);
+  box-shadow: 0 10px 30px -8px rgba(255, 45, 85, .65);
+}
+.rp-boton::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 20px rgba(255, 255, 255, .5); opacity: 0;
+  animation: ev2-latir 2.4s ease-in-out infinite;
+}
+.rp-boton::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .45) 50%, transparent 70%);
+  transform: translateX(-120%); animation: rp-destello 3.5s ease-in-out infinite;
+}
+@keyframes rp-destello { 0%, 60% { transform: translateX(-120%); } 85%, 100% { transform: translateX(120%); } }
+.rp-check {
+  background: linear-gradient(180deg, #ff3b62, #d8103f);
+  box-shadow: 0 0 0 6px rgba(255, 45, 85, .18), 0 0 30px rgba(255, 45, 85, .6);
+}
+.rp-aviso { border: 1px solid rgba(255, 45, 85, .45); background: linear-gradient(135deg, rgba(255, 45, 85, .12), rgba(255, 45, 85, .03)); }
+.rp-item { border: 1px solid rgba(255, 255, 255, .08); background: linear-gradient(160deg, rgba(255, 45, 85, .08), rgba(255, 255, 255, .02)); }
+@media (prefers-reduced-motion: reduce) {
+  .rp-humo, .rp-sello, .rp-boton::before, .rp-boton::after { animation: none; }
+}
