@@ -19,7 +19,8 @@ import { useSEO } from "@/hooks/useSEO";
 /** Sábado 7 de noviembre de 2026, 4:30 p. m. en Venezuela (UTC−4) */
 const INICIO = new Date("2026-11-07T16:30:00-04:00");
 const FIN = new Date("2026-11-07T19:00:00-04:00");
-const LOGO_CALAVERA = "https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/Favicon-11%20grande-11.png";
+/** Ícono de respaldo si todavía no se subió el oficial en el panel */
+const ICONO_RESPALDO = "https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/Favicon-11%20grande-11.png";
 const MAPA = "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent("Arena Panter, Centro Comercial Costa Verde, Maracaibo");
 
 /** Clave anónima del navegador (no es un dato personal) */
@@ -96,6 +97,8 @@ export default function RuedaPrensa() {
 
   const { data: settings } = trpc.settings.getAll.useQuery();
   const fondo = settings?.["rp_fondo"] ?? "";
+  /** Ícono oficial: el del panel («Ícono oficial de la marca»), si no el favicon */
+  const icono = settings?.["icono_oficial"] || settings?.["favicon_url"] || ICONO_RESPALDO;
 
   const clave = useMemo(claveNavegador, []);
   const utils = trpc.useUtils();
@@ -140,7 +143,7 @@ export default function RuedaPrensa() {
 
           <motion.header initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1 }} className="text-center">
             <div className="rp-sello-chico mx-auto mb-4 h-14 w-14">
-              <img src={LOGO_CALAVERA} alt="Isekai World" className="h-full w-full object-contain" />
+              <img src={icono} alt="Isekai World" className="h-full w-full object-contain" />
             </div>
             <p className="rp-sistema mb-8 text-[10px] font-semibold uppercase tracking-[0.5em] text-[#f1c7d0]/80">
               Isekai {t.marca} · 2027
@@ -163,7 +166,7 @@ export default function RuedaPrensa() {
           {/* ═══ Panel en V: contorno carmesí y la calavera en la muesca ═══ */}
           <motion.div {...aparece} className="relative mx-auto mt-14 max-w-lg">
             <div className="rp-sello" aria-hidden="true">
-              <img src={LOGO_CALAVERA} alt="" className="h-full w-full object-contain" />
+              <img src={icono} alt="" className="h-full w-full object-contain" />
             </div>
             <div className="rp-marco">
               <div className="rp-panel px-2 pb-8 pt-[88px] sm:px-6">
