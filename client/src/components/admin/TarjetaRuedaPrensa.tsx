@@ -32,23 +32,35 @@ export default function TarjetaRuedaPrensa() {
     }
   };
 
+  // Colores fijos en línea: el tema claro/oscuro del panel no los altera
   return (
-    <div className="ev-notch w-full border border-[#e5007d]/25 bg-gradient-to-br from-[#e5007d]/[0.06] to-white p-4 sm:p-5">
+    <div
+      className="ev-notch w-full p-4 sm:p-5"
+      style={{ background: "#050505", border: "1px solid rgba(229,0,125,0.55)", boxShadow: "0 0 24px -8px rgba(229,0,125,0.45)" }}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="mb-1 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#e5007d]">
-            <Mic size={12} /> Rueda de prensa · World Fest
+          <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "#ff3d9e" }}>
+            <Mic size={12} /> Rueda de prensa
           </p>
-          <p className="text-sm font-semibold text-[#111]">Sábado 7 de noviembre · 4:30 p. m.</p>
-          <p className="text-xs text-[#888]">Arena Panter, CC Costa Verde</p>
+          <p className="text-[15px] font-bold leading-snug" style={{ color: "#ffffff" }}>Sábado 7 de noviembre</p>
+          <p className="text-[15px] font-bold leading-snug" style={{ color: "#ffffff" }}>4:30 p. m.</p>
+          <p className="mt-1 text-xs" style={{ color: "#9a9a9a" }}>Arena Panter, CC Costa Verde</p>
         </div>
         <div className="shrink-0 text-right">
-          <p key={destello} className={`text-3xl font-black leading-none text-[#111] ${destello > 0 ? "animate-[prensa-pop_0.6s_ease-out]" : ""}`}>
+          <p
+            key={destello}
+            className={`text-4xl font-black leading-none ${destello > 0 ? "animate-[prensa-pop_0.6s_ease-out]" : ""}`}
+            style={{ color: "#ff3d9e", textShadow: "0 0 18px rgba(255,61,158,0.45)" }}
+          >
             {isLoading ? "…" : (data?.total ?? 0)}
           </p>
-          <p className="mt-1 text-[10px] uppercase tracking-wider text-[#888]">
-            confirmados{data && data.hoy > 0 ? ` · ${data.hoy} hoy` : ""}
+          <p className="mt-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: "#bdbdbd" }}>
+            confirmados
           </p>
+          {data && data.hoy > 0 && (
+            <p className="text-[10px] uppercase tracking-wider" style={{ color: "#7a7a7a" }}>{data.hoy} hoy</p>
+          )}
         </div>
       </div>
       <div className="mt-4 flex gap-2">
@@ -56,13 +68,15 @@ export default function TarjetaRuedaPrensa() {
           href="/rueda-de-prensa"
           target="_blank"
           rel="noopener noreferrer"
-          className="ev-notch flex flex-1 items-center justify-center gap-1.5 bg-[#e5007d] py-2.5 text-xs font-bold text-white"
+          className="ev-notch flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+          style={{ background: "#e5007d", color: "#ffffff" }}
         >
           <ExternalLink size={14} /> Abrir invitación
         </a>
         <button
           onClick={copiar}
-          className="ev-notch flex flex-1 items-center justify-center gap-1.5 border border-[#e5e5e5] bg-white py-2.5 text-xs font-bold text-[#333]"
+          className="ev-notch flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+          style={{ background: "#141414", color: "#ffffff", border: "1px solid rgba(255,255,255,0.18)" }}
         >
           <Link2 size={14} /> Copiar enlace
         </button>
