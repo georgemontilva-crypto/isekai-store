@@ -10,6 +10,7 @@ import {
   Tag, Store, Layers, Image as ImageIcon, MessageCircle, Megaphone, BookOpen, Link, Users, Mail, Ticket, DollarSign, FolderOpen,
 } from 'lucide-react';
 import PanelResumen from '@/components/admin/PanelResumen';
+import { ModalConfirmar } from '@/components/admin/ui';
 import { aInputFechaLocal, deInputFechaLocal } from '@/lib/fechaLocal';
 import { Link, useLocation } from 'wouter';
 import QuotesSection from '@/components/admin/QuotesSection';
@@ -3335,6 +3336,8 @@ export default function AdminMobile() {
   return (
     <div className="admin-shell flex flex-col bg-[#f8f8f8]"
       style={{ height: '100dvh', paddingTop: activeTab === 'newOrder' ? 0 : 'env(safe-area-inset-top)' }}>
+      {/* Confirmaciones con el estilo del sitio (en vez de la ventanita del navegador) */}
+      <ModalConfirmar />
 
       {/* Header */}
       {activeTab !== 'newOrder' && <div className="bg-white border-b border-[#e5e5e5] px-4 flex items-center justify-between flex-shrink-0"

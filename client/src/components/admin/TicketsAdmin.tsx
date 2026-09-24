@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { Plus, Download, Store, Ticket, Trash2, Mail, Check } from "lucide-react";
+import { Plus, Download, Store, Ticket, Trash2, Mail, Check, BarChart3, Settings2, Zap, Search, X } from "lucide-react";
+import { confirmar } from "./ui";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -12,6 +13,40 @@ import { useAuth } from "@/_core/hooks/useAuth";
  * autorizan las tiendas y se generan los QR en blanco. Los totales se
  * actualizan en vivo conforme las tiendas registran ventas.
  */
+/** $12.00 — si el valor viene vacío muestra $0.00 en vez de romper la pantalla */
+const usd = (n: unknown) => "$" + (Number(n) || 0).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+/**
+ * Formulario plegado detrás de un botón «+ …». En el teléfono lo primero que
+ * se ve son tus datos (tipos, tiendas, actividades), no un formulario vacío.
+ */
+function Plegable({ titulo, children }: { titulo: string; children: React.ReactNode }) {
+  const [abierto, setAbierto] = useState(false);
+  if (!abierto) {
+    return (
+      <button
+        onClick={() => setAbierto(true)}
+        className="ev-notch flex w-full items-center justify-center gap-2 border border-dashed border-[#e5007d]/60 text-sm font-bold text-[#ff3d9e] transition-colors hover:bg-[#e5007d]/10"
+        style={{ minHeight: 52, WebkitTapHighlightColor: "transparent" }}
+      >
+        <Plus size={16} /> {titulo}
+      </button>
+    );
+  }
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setAbierto(false)}
+        className="absolute right-3 top-3 z-10 p-1 text-[var(--iw-text-muted)] hover:text-[var(--iw-text)]"
+        aria-label="Cerrar formulario"
+      >
+        <X size={16} />
+      </button>
+      {children}
+    </div>
+  );
+}
+
 export default function TicketsAdmin({ compact = false, vistaFija }: {
   compact?: boolean;
   /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
@@ -22,6 +57,14 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
   const habilitado = isAuthenticated && user?.role === "admin";
 
   const [eventoId, setEventoId] = useState<number | null>(null);
+  /** Buscador de Vendidos y Códigos (nombre, apellido, código o teléfono) */
+  const [busqueda, setBusqueda] = useState("");
+  const coincide = (b: any) => {
+    const q = busqueda.trim().toLowerCase();
+    if (!q) return true;
+    return [b.code, b.buyerName, b.buyerLastName, b.buyerPhone, `${b.buyerName ?? ""} ${b.buyerLastName ?? ""}`]
+      .some(v => String(v ?? "").toLowerCase().includes(q));
+  };
   const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass">("resumen");
 
   /**
@@ -297,8 +340,9 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           className="flex shrink-0 items-center justify-center ev-notch bg-[#e5007d] px-4 text-white"
           style={altoCampo}
           aria-label="Nuevo evento"
+          title="Crear un evento nuevo"
         >
-          <Plus size={18} />
+          <Plus size={16} /><span className="ml-1 text-xs font-bold">Evento</span>
         </button>
       </div>
 
@@ -338,32 +382,32 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* Pestañas */}
       {/* Cuatro apartados en un carril horizontal. Cada uno abre su propia
           pantalla: antes eran siete pestañas y el contenido se mezclaba. */}
-      <div className="iw-areas-carril -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {([
-          ["resumen",   "Resumen"],
-          ["codigos",   "Generar boletos"],
-          ["tipos",     "Configuración"],
-          ["levelpass", "Durante el evento"],
-        ] as const).map(([id, label]) => {
+          ["resumen",   "Resumen", BarChart3],
+          ["codigos",   "Generar boletos", Ticket],
+          ["tipos",     "Configuración", Settings2],
+          ["levelpass", "Durante el evento", Zap],
+        ] as const).map(([id, label, Icono]) => {
           // Cada apartado se marca activo también desde sus sub-secciones
           const activo =
             (id === "resumen"   && (vista === "resumen" || vista === "boletos")) ||
             (id === "codigos"   && vista === "codigos") ||
             (id === "tipos"     && (vista === "tipos" || vista === "tiendas")) ||
             (id === "levelpass" && (vista === "levelpass" || vista === "acceso"));
-
           return (
             <button
               key={id}
-              onClick={() => setVista(id as any)}
-              className={`ev-notch shrink-0 px-4 text-xs font-bold transition-colors ${
+              onClick={() => { setVista(id as any); setBusqueda(""); }}
+              className={`ev-notch flex items-center gap-2 px-3 text-left text-xs font-bold transition-colors ${
                 activo
                   ? "bg-[#e5007d] text-white"
                   : "border border-[var(--iw-border)] bg-[var(--iw-input-bg)] text-[var(--iw-text-muted)]"
               }`}
-              style={{ minHeight: 46, WebkitTapHighlightColor: "transparent" }}
+              style={{ minHeight: 50, WebkitTapHighlightColor: "transparent" }}
             >
-              {label}
+              <Icono size={16} className="shrink-0" />
+              <span className="leading-tight">{label}</span>
             </button>
           );
         })}
@@ -385,17 +429,15 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         if (!opciones) return null;
 
         return (
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-2 border border-[var(--iw-border)]">
             {opciones.map(([id, label]) => (
               <button
                 key={id}
-                onClick={() => setVista(id as any)}
-                className={`ev-notch px-3.5 text-[11px] font-bold transition-colors ${
-                  vista === id
-                    ? "border border-[#e5007d] text-[#e5007d]"
-                    : "border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
+                onClick={() => { setVista(id as any); setBusqueda(""); }}
+                className={`text-xs font-bold transition-colors ${
+                  vista === id ? "bg-[#e5007d]/15 text-[#ff3d9e]" : "text-[var(--iw-text-muted)]"
                 }`}
-                style={{ minHeight: 38 }}
+                style={{ minHeight: 42, boxShadow: vista === id ? "inset 0 -2px 0 #e5007d" : undefined }}
               >
                 {label}
               </button>
@@ -418,10 +460,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         };
         const [titulo, descripcion] = titulos[vista] ?? ["", ""];
         return (
-          <div>
-            <h2 className="ev-display text-lg text-[var(--iw-text)]">{titulo}</h2>
-            <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">{descripcion}</p>
-          </div>
+          <p className="text-xs text-[var(--iw-text-muted)]" title={titulo}>{descripcion}</p>
         );
       })()}
 
@@ -431,7 +470,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
             {[
               { l: "Vendidos", v: String(resumen.vendidos), c: "text-[#e5007d]" },
-              { l: "Recaudado", v: `$${resumen.totalUsd.toFixed(2)}`, c: "text-green-500" },
+              { l: "Recaudado", v: usd(resumen.totalUsd), c: "text-green-500" },
               { l: "En bolívares", v: `Bs ${resumen.totalBs.toLocaleString("es-VE")}`, c: "text-[var(--iw-text)]" },
               { l: "Sin vender", v: String(resumen.enBlanco), c: "text-[var(--iw-text-muted)]" },
             ].map(c => (
@@ -455,11 +494,11 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                   <div key={t.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-2 last:border-0">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
-                      <p className="text-xs text-[var(--iw-text-muted)]">${t.precioUsd.toFixed(2)} · {t.dias} día(s)</p>
+                      <p className="text-xs text-[var(--iw-text-muted)]">{usd(t.precioUsd)} · {t.dias} día(s)</p>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="font-black text-[var(--iw-text)]">{t.cantidad}</p>
-                      <p className="text-xs text-[#e5007d]">${t.totalUsd.toFixed(2)}</p>
+                      <p className="text-xs text-[#e5007d]">{usd(t.totalUsd)}</p>
                     </div>
                   </div>
                 ))}
@@ -483,7 +522,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                       <div className="mb-1 flex items-end justify-between gap-3">
                         <p className="min-w-0 truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
                         <div className="shrink-0 text-right">
-                          <span className="text-sm font-black text-[var(--iw-text)]">${t.totalUsd.toFixed(2)}</span>
+                          <span className="text-sm font-black text-[var(--iw-text)]">{usd(t.totalUsd)}</span>
                           <span className="ml-2 text-xs text-[var(--iw-text-muted)]">{t.cantidad} boletos</span>
                         </div>
                       </div>
@@ -518,7 +557,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                         <div
                           className="w-full rounded-t bg-[#e5007d]"
                           style={{ height: `${Math.max(6, (d.cantidad / tope) * 80)}px` }}
-                          title={`${d.cantidad} boletos · $${d.usd.toFixed(2)}`}
+                          title={`${d.cantidad} boletos · ${usd(d.usd)}`}
                         />
                         <span className="truncate text-[9px] text-[var(--iw-text-muted)]">
                           {new Date(d.dia + "T12:00:00").toLocaleDateString("es-VE", { day: "2-digit", month: "short" })}
@@ -568,34 +607,46 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             </div>
           )}
 
+          {/* Buscador: en la puerta hay que encontrar a alguien rápido */}
+          <div className="relative">
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[var(--iw-text-muted)]" />
+            <input
+              type="search"
+              placeholder="Buscar nombre, código o teléfono"
+              value={busqueda}
+              onChange={e => setBusqueda(e.target.value)}
+              className={`${campo} pl-9`}
+              style={altoCampo}
+            />
+          </div>
+
           {/* Total de lo que se está viendo */}
           {filtroTienda && (
             <p className="mb-1 text-xs text-[var(--iw-text-muted)]">
               {boletosFiltrados.length} boleto{boletosFiltrados.length === 1 ? "" : "s"} ·{" "}
-              ${boletosFiltrados.reduce((a: number, b: any) => a + (parseFloat(b.priceUsd ?? "0") || 0), 0).toFixed(2)} USD
+              {usd(boletosFiltrados.reduce((a: number, b: any) => a + (parseFloat(b.priceUsd ?? "0") || 0), 0))} USD
             </p>
           )}
 
-          {boletosFiltrados.length === 0 ? (
+          {boletosFiltrados.filter(coincide).length === 0 ? (
             <p className="py-12 text-center text-sm text-[var(--iw-text-muted)]">
-              {filtroTienda ? `${filtroTienda} no ha vendido boletos.` : "Todavía no hay boletos vendidos."}
+              {busqueda ? `No hay boletos que coincidan con «${busqueda}».` : filtroTienda ? `${filtroTienda} no ha vendido boletos.` : "Todavía no hay boletos vendidos."}
             </p>
-          ) : boletosFiltrados.map((b: any) => (
+          ) : boletosFiltrados.filter(coincide).map((b: any) => (
             <div key={b.id} className={tarjeta}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="font-mono text-[11px] text-[var(--iw-text-muted)]">{b.code}</p>
                   <p className="text-sm font-bold text-[var(--iw-text)]">{b.buyerName} {b.buyerLastName}</p>
                   <p className="text-xs text-[var(--iw-text-muted)]">
-                    {b.tipoNombre} · {b.buyerPhone}
+                    {[b.tipoNombre, b.buyerPhone].filter(Boolean).join(" · ")}
                   </p>
                   <p className="mt-0.5 text-[11px] text-[var(--iw-text-muted)]">
-                    {b.tiendaNombre ?? "—"} ·{" "}
-                    {b.soldAt ? new Date(b.soldAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" }) : ""}
+                    {[b.tiendaNombre ?? "Venta online", b.soldAt ? new Date(b.soldAt).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" }) : null].filter(Boolean).join(" · ")}
                   </p>
                 </div>
                 <div className="shrink-0 text-right">
-                  <p className="font-black text-[var(--iw-text)]">${parseFloat(b.priceUsd ?? "0").toFixed(2)}</p>
+                  <p className="font-black text-[var(--iw-text)]">{usd(b.priceUsd)}</p>
                   {b.priceBs && <p className="text-[11px] text-[var(--iw-text-muted)]">Bs {parseFloat(b.priceBs).toLocaleString("es-VE")}</p>}
                 </div>
               </div>
@@ -679,14 +730,19 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               <p className="text-sm font-bold text-[var(--iw-text)]">Todos los códigos</p>
               <span className="text-xs text-[var(--iw-text-muted)]">{todosLosCodigos.length}</span>
             </div>
+            <div className="relative mb-2">
+              <Search size={15} className="pointer-events-none absolute left-3 top-1/2 z-10 -translate-y-1/2 text-[var(--iw-text-muted)]" />
+              <input type="search" placeholder="Buscar código o comprador" value={busqueda}
+                onChange={e => setBusqueda(e.target.value)} className={`${campo} pl-9`} style={altoCampo} />
+            </div>
             <div className="iw-scroll-oculto flex max-h-[420px] flex-col gap-1.5 overflow-y-auto pr-1">
-              {todosLosCodigos.map((b: any) => (
+              {todosLosCodigos.filter(coincide).map((b: any) => (
                 <div key={b.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-1.5 last:border-0">
                   <div className="min-w-0">
                     <p className="font-mono text-xs font-bold text-[var(--iw-text)]">{b.code}</p>
                     {b.buyerName && (
                       <p className="truncate text-[11px] text-[var(--iw-text-muted)]">
-                        {b.buyerName} {b.buyerLastName} · {b.tiendaNombre ?? "—"}
+                        {[`${b.buyerName} ${b.buyerLastName ?? ""}`.trim(), b.tiendaNombre ?? "Venta online"].join(" · ")}
                       </p>
                     )}
                   </div>
@@ -752,6 +808,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">Qué se puede completar en el evento y cuánta experiencia da</p>
           </div>
 
+          <Plegable titulo="Nueva actividad">
           {/* Nueva actividad */}
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Nueva actividad</p>
@@ -809,6 +866,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               Añadir actividad
             </button>
           </div>
+          </Plegable>
 
           {/* Actividades */}
           <div className="flex flex-col gap-2">
@@ -825,7 +883,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     <span className="font-mono text-sm font-black text-[#e5007d]">+{a.xp}</span>
-                    <button onClick={() => { if (confirm(`¿Eliminar "${a.name}"?`)) borrarAct.mutate({ id: a.id }); }}
+                    <button onClick={() => { confirmar({ titulo: `¿Eliminar "${a.name}"?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarAct.mutate({ id: a.id }); }); }}
                       className="p-2 text-[var(--iw-text-muted)] hover:text-red-500">
                       <Trash2 size={15} />
                     </button>
@@ -846,6 +904,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           </div>
 
           {/* Personal autorizado */}
+          <Plegable titulo="Autorizar personal que da experiencia">
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Personal que otorga experiencia</p>
             <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
@@ -873,6 +932,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               Autorizar
             </button>
           </div>
+          </Plegable>
 
           <div className="flex flex-col gap-2">
             {(lpStaff as any[]).map((g: any) => (
@@ -884,7 +944,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                       {g.puesto ? `${g.puesto} · ` : ""}{g.email ?? "sin correo"}
                     </p>
                   </div>
-                  <button onClick={() => { if (confirm(`¿Eliminar a ${g.name}?`)) borrarStaff.mutate({ id: g.id }); }}
+                  <button onClick={() => { confirmar({ titulo: `¿Eliminar a ${g.name}?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarStaff.mutate({ id: g.id }); }); }}
                     className="shrink-0 p-2 text-[var(--iw-text-muted)] hover:text-red-500">
                     <Trash2 size={15} />
                   </button>
@@ -986,7 +1046,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 {crearPrueba.isPending ? "Creando..." : "Crear entorno de prueba"}
               </button>
               <button
-                onClick={() => { if (confirm("¿Borrar todos los datos de prueba?")) borrarPrueba.mutate(); }}
+                onClick={() => { confirmar({ titulo: "Borrar todos los datos de prueba", mensaje: "Se eliminan los participantes y la experiencia creados para ensayar. Los boletos reales no se tocan.", confirmar: "Borrar", peligro: true }).then(ok => { if (ok) borrarPrueba.mutate(); }); }}
                 className="ev-notch border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)]"
                 style={{ minHeight: 44 }}
               >
@@ -1031,6 +1091,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             </div>
           )}
 
+          <Plegable titulo="Autorizar personal de puerta">
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Personal de acceso</p>
             <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
@@ -1051,6 +1112,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               {crearPortero.isPending ? "Autorizando..." : "Autorizar portero"}
             </button>
           </div>
+          </Plegable>
 
           <div className="flex flex-col gap-2">
             {porteros.map((g: any) => (
@@ -1063,7 +1125,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                     </p>
                   </div>
                   <button
-                    onClick={() => { if (confirm(`¿Eliminar a ${g.name}?`)) borrarPortero.mutate({ id: g.id }); }}
+                    onClick={() => { confirmar({ titulo: `¿Eliminar a ${g.name}?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarPortero.mutate({ id: g.id }); }); }}
                     className="p-2 text-[var(--iw-text-muted)] hover:text-red-500"
                     aria-label="Eliminar portero"
                   >
@@ -1082,6 +1144,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Tipos ── */}
       {vista === "tipos" && (
         <>
+          <Plegable titulo="Nuevo tipo de boleto">
           <div className={tarjeta}>
             <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Nuevo tipo de boleto</p>
             <div className="flex flex-col gap-3">
@@ -1112,6 +1175,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               Añadir tipo
             </button>
           </div>
+          </Plegable>
 
           <div className="flex flex-col gap-2">
             {tipos.map((t: any) => (
@@ -1123,8 +1187,8 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                     {t.perks && <p className="mt-1 text-[11px] leading-snug text-[var(--iw-text-muted)]">{t.perks}</p>}
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <p className="font-black text-[#e5007d]">${parseFloat(t.priceUsd).toFixed(2)}</p>
-                    <button onClick={() => { if (confirm(`¿Eliminar "${t.name}"?`)) borrarTipo.mutate({ id: t.id }); }}
+                    <p className="font-black text-[#e5007d]">{usd(t.priceUsd)}</p>
+                    <button onClick={() => { confirmar({ titulo: `¿Eliminar "${t.name}"?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarTipo.mutate({ id: t.id }); }); }}
                       className="p-2 text-[var(--iw-text-muted)] hover:text-red-500">
                       <Trash2 size={15} />
                     </button>
@@ -1140,6 +1204,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Tiendas ── */}
       {vista === "tiendas" && (
         <>
+          <Plegable titulo="Autorizar tienda">
           <div className={tarjeta}>
             <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Autorizar tienda</p>
             <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
@@ -1171,18 +1236,19 @@ Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra 
               {crearTienda.isPending ? "Autorizando..." : "Autorizar"}
             </button>
           </div>
+          </Plegable>
 
           <div className="flex flex-col gap-2">
             {tiendas.map((s: any) => (
               <div key={s.id} className={`${tarjeta} ${s.active ? "" : "opacity-50"}`}>
-                <div className="flex items-center justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">
                     <p className="text-sm font-bold text-[var(--iw-text)]">{s.name}</p>
-                    <p className="truncate text-xs text-[var(--iw-text-muted)]" style={{ overflowWrap: "anywhere" }}>
+                    <p className="text-xs text-[var(--iw-text-muted)]" style={{ overflowWrap: "anywhere" }}>
                       {s.email ?? "sin correo"}{s.phone ? ` · ${s.phone}` : ""}
                     </p>
                   </div>
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
                     {/* Autorización para dar experiencia del Level Pass */}
                     <button
                       onClick={() => editarTienda.mutate({ id: s.id, puedeOtorgarXp: !s.puedeOtorgarXp })}
@@ -1194,7 +1260,7 @@ Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra 
                       style={{ minHeight: 40 }}
                       title="Puede otorgar experiencia del Level Pass"
                     >
-                      XP
+                      {s.puedeOtorgarXp ? "✓ Da XP" : "Da XP"}
                     </button>
                     {s.email && (
                       <button
@@ -1217,7 +1283,7 @@ Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra 
                       {s.active ? "Desactivar" : "Activar"}
                     </button>
                     <button
-                      onClick={() => { if (confirm(`¿Eliminar "${s.name}"?`)) borrarTienda.mutate({ id: s.id }); }}
+                      onClick={() => { confirmar({ titulo: `¿Eliminar "${s.name}"?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarTienda.mutate({ id: s.id }); }); }}
                       className="p-2 text-[var(--iw-text-muted)] hover:text-red-500"
                       aria-label="Eliminar tienda"
                     >
