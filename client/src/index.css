@@ -4088,3 +4088,7 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
 .adm-boton-sec:hover { border-color: rgba(255, 61, 158, .5); }
 .adm { background: #07060a; border: 1px solid rgba(255, 255, 255, .04); padding: 22px 20px; }
 @media (max-width: 640px) { .adm { padding: 18px 14px; } }
+
+/* Scroll sin barra visible (se sigue desplazando con rueda, trackpad o dedo) */
+.sin-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+.sin-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }

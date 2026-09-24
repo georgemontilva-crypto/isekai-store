@@ -1264,7 +1264,7 @@ export default function Admin() {
         </div>
 
         {/* Menú agrupado por secciones: antes eran 19 opciones seguidas */}
-        <nav className="flex-1 overflow-y-auto py-3 px-3">
+        <nav className="sin-scroll flex-1 overflow-y-auto py-3 px-3">
           {[...GRUPOS_MENU, { titulo: "Otros", ids: tabs.map(t => t.id).filter(id => !GRUPOS_MENU.some(g => g.ids.includes(id))) }].map(g => {
             const items = g.ids.map(id => tabs.find(t => t.id === id)).filter(Boolean) as typeof tabs;
             if (items.length === 0) return null;
@@ -1328,8 +1328,8 @@ export default function Admin() {
       )}
 
       <div className="flex-1 min-w-0 flex flex-col h-full">
-        {/* Barra superior con el nombre de la sección */}
-        <header className="shrink-0 z-20 bg-white border-b border-[#e8e8ea] px-5 lg:px-8 h-16 flex items-center gap-4">
+        {/* Barra superior (solo en pantallas pequeñas: botón del menú y nombre de la sección) */}
+        <header className="shrink-0 z-20 bg-white border-b border-[#e8e8ea] px-5 lg:px-8 h-16 flex items-center gap-4 lg:hidden">
           <button
             className="lg:hidden w-9 h-9 rounded-full border border-[#e8e8ea] flex items-center justify-center shrink-0"
             onClick={() => setSidebarOpen(true)}
@@ -1342,7 +1342,7 @@ export default function Admin() {
           </h1>
         </header>
 
-        <main className="flex-1 overflow-y-auto overscroll-contain bg-[#f6f6f7] text-[#111] px-5 lg:px-8 py-6 min-w-0">
+        <main className="sin-scroll flex-1 overflow-y-auto overscroll-contain bg-[#f6f6f7] text-[#111] px-5 lg:px-8 py-6 min-w-0">
           <AnimatePresence mode="wait">
             {/* ─── Dashboard ──────────────────────────────────────────────────── */}
             {tab === "dashboard" && (
