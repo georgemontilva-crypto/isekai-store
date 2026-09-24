@@ -4148,3 +4148,22 @@ html.dark .admin-shell aside nav button { border-radius: 0 !important; }
   .admin-shell .adm-fila-tabla { grid-template-columns: 96px minmax(0, 1.6fr) 190px 150px 90px 250px; }
   .admin-shell .adm-fila-pago { grid-template-columns: 96px minmax(0, 1.4fr) minmax(0, 1fr) 130px 96px 90px; }
 }
+
+/* Panel (computador y teléfono), modo oscuro: al pasar el mouse o tocar ya
+   no aparece un fondo casi blanco (venía del tema claro y dejaba el texto
+   ilegible). En su lugar, un tono rosa suave con el texto en blanco. */
+html.dark .admin-shell :is(.hover\:bg-white, .hover\:bg-\[\#f6f6f7\], .hover\:bg-\[\#fafafa\], .hover\:bg-\[\#f8f8f8\], .hover\:bg-\[\#f0f0f0\]):hover {
+  background-color: rgba(229, 0, 125, 0.09) !important;
+}
+html.dark .admin-shell :is(.hover\:text-\[\#0f0f0f\], .hover\:text-\[\#111\]):hover { color: #fff !important; }
+html.dark .admin-shell :is(.active\:bg-\[\#f8f8f8\], .active\:bg-\[\#fafafa\], .active\:bg-\[\#f5f5f5\]):active {
+  background-color: rgba(229, 0, 125, 0.14) !important;
+}
+/* Menú lateral: al pasar el mouse, el mismo acento que la sección activa pero más suave */
+html.dark .admin-shell aside nav button:not(.bg-\[\#0a0a0a\]):hover {
+  background: linear-gradient(90deg, rgba(229, 0, 125, 0.10), rgba(229, 0, 125, 0)) !important;
+  box-shadow: inset 2px 0 0 rgba(229, 0, 125, 0.55);
+  color: #fff !important;
+}
+/* En el teléfono, sin el destello gris del navegador al tocar */
+html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-color: transparent; }
