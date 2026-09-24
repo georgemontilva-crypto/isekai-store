@@ -30,9 +30,9 @@ export const ESTADOS_PEDIDO: Record<string, { texto: string; corto: string; colo
 export const PASOS_PEDIDO = ["pending", "preparing", "printing", "post_printing", "packed", "shipped", "delivered"] as const;
 
 export const ESTADOS_PAGO: Record<string, { texto: string; color: string }> = {
-  pending: { texto: "Pendiente", color: COLORES.ambar },
-  pending_verification: { texto: "Por verificar", color: COLORES.ambar },
-  verifying: { texto: "En revisión", color: COLORES.azul },
+  // Estados reales de la base: pending, verifying, partial, approved, rejected
+  pending: { texto: "Sin pagar", color: COLORES.gris },
+  verifying: { texto: "Por verificar", color: COLORES.ambar },
   partial: { texto: "Parcial", color: COLORES.ambar },
   approved: { texto: "Aprobado", color: COLORES.verde },
   rejected: { texto: "Rechazado", color: COLORES.rojo },

@@ -642,7 +642,7 @@ const isExpired = (deadline: string | null) => {
 /** Secciones del menú lateral del panel. Lo que no esté aquí va en «Otros». */
 const GRUPOS_MENU: { titulo: string; ids: string[] }[] = [
   { titulo: "", ids: ["dashboard"] },
-  { titulo: "Ventas", ids: ["orders", "payments", "quotes", "finanzas", "giftcards"] },
+  { titulo: "Ventas", ids: ["orders", "payments", "quotes", "giftcards"] },
   { titulo: "Catálogo", ids: ["products", "categories", "media"] },
   { titulo: "World Fest", ids: ["boleteria", "cosplay"] },
   { titulo: "Comunidad", ids: ["users", "subscribers", "feedback"] },
@@ -657,7 +657,11 @@ export default function Admin() {
   const utils = trpc.useUtils();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [tab, setTab] = useState<AdminTab>("dashboard");
-  const handleTabChange = (t: AdminTab) => setTab(t);
+  const handleTabChange = (t: AdminTab) => {
+    // Finanzas ahora vive dentro de «Pagos y finanzas»
+    if (t === "finanzas") { setTab("payments" as AdminTab); setVistaPagos("movimientos"); return; }
+    setTab(t);
+  };
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [showProductForm, setShowProductForm] = useState(false);
   const [productSearch, setProductSearch] = useState('');
@@ -667,6 +671,8 @@ export default function Admin() {
   /** Los kits de cosplayer son pedidos de $0 con prefijo IW-KIT: se separan
       para que no ensucien la lista de ventas reales. */
   const [ordersKind, setOrdersKind] = useState<"ventas" | "kits">("ventas");
+  /** Pestaña de «Pagos y finanzas» */
+  const [vistaPagos, setVistaPagos] = useState<"verificar" | "pagos" | "movimientos">("verificar");
   /** Filtro por estado en la lista de pedidos («all» = todos) */
   const [ordersStatus, setOrdersStatus] = useState<string>("all");
   const esKit = (o: any) => String(o.orderNumber ?? "").startsWith("IW-KIT-");
@@ -1220,7 +1226,7 @@ export default function Admin() {
     { id: "products" as AdminTab, label: "Productos", icon: Package },
     { id: "categories" as AdminTab, label: "Categorías", icon: Tag },
     { id: "orders" as AdminTab, label: "Pedidos", icon: ShoppingBag },
-    { id: "payments" as AdminTab, label: "Pagos", icon: CreditCard },
+    { id: "payments" as AdminTab, label: "Pagos y finanzas", icon: CreditCard },
     { id: "finanzas" as AdminTab, label: "Finanzas",     icon: DollarSign },
     { id: "feedback" as AdminTab, label: "Sugerencias",  icon: MessageCircle },
     { id: "boleteria" as AdminTab, label: "Boletería",    icon: Ticket },
@@ -1238,9 +1244,13 @@ export default function Admin() {
   ];
 
   const activeTab = tabs.find(t => t.id === tab);
+  /** Lo que de verdad espera tu aprobación: comprobantes de pedidos y abonos */
+  const porVerificarCount =
+    ((paymentsData?.items ?? []) as any[]).filter(o => o.paymentStatus === "verifying").length +
+    ((abonosPendientes ?? []) as any[]).length;
   const badgeFor = (id: AdminTab) =>
     id === "orders" ? pendingCount
-    : id === "payments" ? pendingPaymentsCount
+    : id === "payments" ? porVerificarCount
     : id === "cosplay" ? pendingCosplayCount
     : 0;
 
@@ -1269,7 +1279,7 @@ export default function Admin() {
 
         {/* Menú agrupado por secciones: antes eran 19 opciones seguidas */}
         <nav className="sin-scroll flex-1 overflow-y-auto py-3 px-3">
-          {[...GRUPOS_MENU, { titulo: "Otros", ids: tabs.map(t => t.id).filter(id => !GRUPOS_MENU.some(g => g.ids.includes(id))) }].map(g => {
+          {[...GRUPOS_MENU, { titulo: "Otros", ids: tabs.map(t => t.id).filter(id => id !== "finanzas" && !GRUPOS_MENU.some(g => g.ids.includes(id))) }].map(g => {
             const items = g.ids.map(id => tabs.find(t => t.id === id)).filter(Boolean) as typeof tabs;
             if (items.length === 0) return null;
             return (
@@ -1353,7 +1363,7 @@ export default function Admin() {
               <motion.div key="dashboard" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
                 <PanelResumen
                   metrics={metrics as any}
-                  pendientes={{ pedidos: pendingCount, pagos: pendingPaymentsCount, cosplay: pendingCosplayCount }}
+                  pendientes={{ pedidos: pendingCount, pagos: porVerificarCount, cosplay: pendingCosplayCount }}
                   onIr={destino => handleTabChange(destino as AdminTab)}
                   productos={products.length}
                   categorias={categories?.length ?? 0}
@@ -2163,161 +2173,10 @@ export default function Admin() {
             {/* ─── Payments Tab ───────────────────────────────────────────────── */}
             {tab === "payments" && (
               <motion.div key="payments" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <EncabezadoSeccion titulo="Pagos" descripcion="Revisa los comprobantes y aprueba o rechaza cada pago. Toca una fila para ver el comprobante." />
-                {(() => {
-                  const todosPagos: any[] = paymentsData?.items ?? [];
-                  const orden = ["pending_verification", "pending", "verifying", "partial", "approved", "rejected"];
-                  const presentes = orden.filter(st => todosPagos.some(o => (o.paymentStatus ?? "pending") === st));
-                  const pagosFiltrados = paymentsFilter === "all" ? todosPagos : todosPagos.filter(o => (o.paymentStatus ?? "pending") === paymentsFilter);
-                  return (
-                <>
-                  <div className="mb-5 grid grid-cols-3 gap-1.5 sm:grid-cols-4 xl:grid-cols-7">
-                    <ChipFiltro activo={paymentsFilter === "all"} numero={todosPagos.length} texto="Todos" onClick={() => setPaymentsFilter("all")} />
-                    {presentes.map(st => (
-                      <ChipFiltro
-                        key={st}
-                        activo={paymentsFilter === st}
-                        color={ESTADOS_PAGO[st]?.color}
-                        numero={todosPagos.filter(o => (o.paymentStatus ?? "pending") === st).length}
-                        texto={ESTADOS_PAGO[st]?.texto ?? st}
-                        onClick={() => setPaymentsFilter(paymentsFilter === st ? "all" : st)}
-                      />
-                    ))}
-                  </div>
-
-                  {pagosFiltrados.length > 0 ? (
-                    <div className="adm-fila-pago hidden gap-x-4 border-b border-white/[0.08] px-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6878] lg:grid">
-                      <span>Pedido</span><span>Cliente</span><span>Método · referencia</span><span>Estado</span><span className="text-right">Total</span><span />
-                    </div>
-                  ) : (
-                    <EstadoVacio icono={CreditCard} texto="No hay pagos en esta categoría." />
-                  )}
-                <div className="divide-y divide-white/[0.05]">
-                  {pagosFiltrados.map((order: any) => {
-                    const isExpanded = expandedPaymentId === order.id;
-                    const statusColors: Record<string, string> = {
-                      pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
-                      verifying: "bg-blue-500/10 text-blue-400 border-blue-500/30",
-                      approved: "bg-green-500/10 text-green-400 border-green-500/30",
-                      rejected: "bg-red-500/10 text-red-400 border-red-500/30",
-                    };
-                    const statusLabels: Record<string, string> = {
-                      pending: "Pendiente", verifying: "En revisión", approved: "Aprobado", rejected: "Rechazado",
-                    };
-                    return (
-                      <div key={order.id} className={isExpanded ? "bg-[#0e0d13]" : ""}>
-                        {(() => {
-                          const est = ESTADOS_PAGO[order.paymentStatus ?? "pending"] ?? { texto: order.paymentStatus, color: COLORES.gris };
-                          const porRevisar = ["pending", "pending_verification", "verifying"].includes(order.paymentStatus ?? "pending");
-                          const f = fechaRelativa(order.createdAt);
-                          return (
-                        <div
-                          role="button"
-                          tabIndex={0}
-                          onClick={() => setExpandedPaymentId(isExpanded ? null : order.id)}
-                          onKeyDown={e => { if (e.key === "Enter") setExpandedPaymentId(isExpanded ? null : order.id); }}
-                          className="adm-fila-pago grid cursor-pointer grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 transition-colors hover:bg-white/[0.025]"
-                        >
-                          <div className="min-w-0" title={order.orderNumber}>
-                            <p className="text-sm font-black text-white">#{String(order.orderNumber ?? "").split("-").pop()}</p>
-                            <p className="text-[11px] text-[#8a8494]" title={f.exacta}>{f.texto}</p>
-                          </div>
-                          <div className="min-w-0 max-lg:col-span-2 max-lg:row-start-2">
-                            <p className="truncate text-sm text-white">{order.customerName}</p>
-                            <p className="truncate text-[11px] text-[#8a8494]">{order.customerEmail}</p>
-                          </div>
-                          <div className="min-w-0 max-lg:row-start-3">
-                            <p className="truncate text-xs text-white">{order.paymentMethod ?? "—"}</p>
-                            <p className="truncate font-mono text-[11px] text-[#8a8494]">{order.paymentReference ?? "sin referencia"}</p>
-                          </div>
-                          <div className="max-lg:row-start-3 max-lg:justify-self-end"><Estado color={est.color}>{est.texto}</Estado></div>
-                          <p className="text-right text-sm font-black tabular-nums text-white max-lg:col-start-2 max-lg:row-start-1">{dinero(order.total)}</p>
-                          <div className="flex items-center justify-end gap-2 max-lg:col-span-2">
-                            {porRevisar && <span className="text-[11px] font-bold" style={{ color: COLORES.ambar }}>Revisar</span>}
-                            <ChevronDown className={`h-4 w-4 text-[#8a8494] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
-                          </div>
-                        </div>
-                          );
-                        })()}
-
-                        {isExpanded && (
-                          <div className="px-4 pb-4 space-y-4 border-t border-border/30 pt-4">
-                            {(order.hasSecretGift || order.referralCode) && (
-                              <div className="flex flex-wrap gap-2">
-                                {order.hasSecretGift && (
-                                  <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm text-orange-700">
-                                    <Gift className="w-4 h-4 flex-shrink-0" />
-                                    <span><strong>Obsequio secreto</strong> — incluir en el paquete</span>
-                                  </div>
-                                )}
-                                {order.referralCode && (
-                                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 border border-border/30">
-                                    Referido: <strong className="text-foreground">{order.referralCode}</strong>
-                                  </p>
-                                )}
-                              </div>
-                            )}
-                            <div className="grid sm:grid-cols-2 gap-3 text-sm">
-                              <div><span className="text-muted-foreground">Método:</span> <span className="font-medium">{order.paymentMethod ?? "—"}</span></div>
-                              <div><span className="text-muted-foreground">País:</span> <span className="font-medium">{order.country ?? "—"}</span></div>
-                              <div><span className="text-muted-foreground">Referencia:</span> <span className="font-mono font-medium">{order.paymentReference ?? "—"}</span></div>
-                              <div><span className="text-muted-foreground">Titular:</span> <span className="font-medium">{order.receiptHolder ?? "—"}</span></div>
-                            </div>
-
-                            {order.receiptUrl && (
-                              <div>
-                                <p className="text-xs font-medium text-muted-foreground mb-2">Comprobante:</p>
-                                {order.receiptUrl.endsWith(".pdf") ? (
-                                  <a href={order.receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-primary underline">
-                                    <Eye className="w-4 h-4" /> Ver PDF
-                                  </a>
-                                ) : (
-                                  <a href={order.receiptUrl} target="_blank" rel="noreferrer">
-                                    <img src={order.receiptUrl} alt="Comprobante" className="max-h-48 rounded-xl border border-border/50 object-contain" />
-                                  </a>
-                                )}
-                              </div>
-                            )}
-
-                            {(order.paymentStatus === "pending" || order.paymentStatus === "pending_verification" || order.paymentStatus === "verifying") && (
-                              <div className="flex flex-col sm:flex-row gap-2 mt-3">
-                                <Button
-                                  className="w-full py-3 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
-                                  disabled={verifyPayment.isPending}
-                                  onClick={() => verifyPayment.mutate({ orderId: order.id, approved: true })}
-                                >
-                                  <CheckCheck className="w-4 h-4 mr-1.5" /> Aprobar pago
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  className="w-full py-3 text-sm font-bold border-red-400 text-red-500 hover:bg-red-50"
-                                  disabled={verifyPayment.isPending}
-                                  onClick={() => verifyPayment.mutate({ orderId: order.id, approved: false })}
-                                >
-                                  <Ban className="w-4 h-4 mr-1.5" /> Rechazar
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-                </>
-                  );
-                })()}
-              </motion.div>
-            )}
-
-          {/* ─── Finanzas ─────────────────────────────────────────────────────── */}
-            {tab === "finanzas" && (
-              <motion.div key="finanzas" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
-                <h1 className="text-2xl font-bold">Finanzas</h1>
-                <p className="mt-1 mb-6 text-sm text-[#666]">
-                  Todo el dinero que entra, de dónde viene y en qué estado está.
-                </p>
-
+                <EncabezadoSeccion
+                  titulo="Pagos y finanzas"
+                  descripcion="Verifica comprobantes y abonos, y revisa todo el dinero que entra. Hasta que apruebas un pago, no cuenta como ingreso."
+                />
                 {/* Resumen */}
                 <div className="mb-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
                   {[
@@ -2334,6 +2193,33 @@ export default function Admin() {
                   ))}
                 </div>
 
+                {(() => {
+                  const todosPagos: any[] = paymentsData?.items ?? [];
+                  const porVerificar = todosPagos.filter(o => o.paymentStatus === "verifying");
+                  const nAbonos = (abonosPendientes as any[]).length;
+                  const pestanas = [
+                    ["verificar", `Por verificar · ${porVerificar.length + nAbonos}`],
+                    ["pagos", `Todos los pagos · ${todosPagos.length}`],
+                    ["movimientos", "Movimientos"],
+                  ] as const;
+                  return (
+                    <div className="mb-5 inline-flex border border-white/10">
+                      {pestanas.map(([id, label]) => (
+                        <button
+                          key={id}
+                          onClick={() => { setVistaPagos(id); setExpandedPaymentId(null); }}
+                          className={`px-4 py-2 text-xs font-bold transition-colors ${vistaPagos === id ? "bg-[#e5007d] text-white" : "text-[#a39cad] hover:text-white"}`}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Abonos por verificar (van en «Por verificar») */}
+                {vistaPagos === "verificar" && (
+                  <>
                 {/* Abonos que subió el cliente, esperando verificación */}
                 {(abonosPendientes as any[]).length > 0 && (
                   <div className="mb-6">
@@ -2376,7 +2262,7 @@ export default function Admin() {
                             )}
                             <div className="ml-auto flex gap-2">
                               <button
-                                onClick={() => { if (confirm("¿Rechazar este abono?")) rechazarAbono.mutate({ id: a.id }); }}
+                                onClick={() => { confirmar({ titulo: "Rechazar este abono", mensaje: "El abono no se sumará al pedido y el cliente tendrá que enviar otro comprobante.", confirmar: "Rechazar", peligro: true }).then(ok => { if (ok) rechazarAbono.mutate({ id: a.id }); }); }}
                                 className="rounded-full border border-red-200 px-4 py-2.5 text-xs font-bold text-red-500 hover:bg-red-50"
                               >
                                 Rechazar
@@ -2396,17 +2282,12 @@ export default function Admin() {
                   </div>
                 )}
 
-                {(finanzas?.cantidadPorVerificar ?? 0) > 0 && (
-                  <div className="mb-6 rounded-2xl border border-[#ffd700]/40 bg-[#fff8e1] px-4 py-3">
-                    <p className="text-sm font-bold text-[#111]">
-                      Tienes {finanzas?.cantidadPorVerificar} pago(s) esperando tu verificación
-                    </p>
-                    <p className="mt-0.5 text-xs text-[#666]">
-                      Hasta que los apruebes no cuentan como ingreso. Revisa el comprobante y confirma abajo.
-                    </p>
-                  </div>
+                  </>
                 )}
 
+                {/* Historial de transacciones */}
+                {vistaPagos === "movimientos" && (
+                  <>
                 {/* Filtros */}
                 <div className="mb-4 flex flex-wrap items-center gap-2">
                   {([["all", "Todas"], ["verifying", "Por verificar"], ["approved", "Cobradas"], ["pending", "Pendientes"]] as const).map(([id, label]) => (
@@ -2577,8 +2458,169 @@ export default function Admin() {
                     ))}
                   </div>
                 )}
+                  </>
+                )}
+
+                {vistaPagos !== "movimientos" && (() => {
+                  const todosPagos: any[] = paymentsData?.items ?? [];
+                  const orden = ["verifying", "partial", "pending", "approved", "rejected"];
+                  const presentes = orden.filter(st => todosPagos.some(o => (o.paymentStatus ?? "pending") === st));
+                  const pagosFiltrados = vistaPagos === "verificar"
+                    ? todosPagos.filter(o => o.paymentStatus === "verifying")
+                    : paymentsFilter === "all" ? todosPagos : todosPagos.filter(o => (o.paymentStatus ?? "pending") === paymentsFilter);
+                  return (
+                <>
+                  {vistaPagos === "verificar" && pagosFiltrados.length > 0 && (
+                    <h2 className="mb-3 text-sm font-bold uppercase tracking-wide">Comprobantes de pedidos ({pagosFiltrados.length})</h2>
+                  )}
+                  {vistaPagos === "pagos" && (
+                  <div className="mb-5 grid grid-cols-3 gap-1.5 sm:grid-cols-4 xl:grid-cols-7">
+                    <ChipFiltro activo={paymentsFilter === "all"} numero={todosPagos.length} texto="Todos" onClick={() => setPaymentsFilter("all")} />
+                    {presentes.map(st => (
+                      <ChipFiltro
+                        key={st}
+                        activo={paymentsFilter === st}
+                        color={ESTADOS_PAGO[st]?.color}
+                        numero={todosPagos.filter(o => (o.paymentStatus ?? "pending") === st).length}
+                        texto={ESTADOS_PAGO[st]?.texto ?? st}
+                        onClick={() => setPaymentsFilter(paymentsFilter === st ? "all" : st)}
+                      />
+                    ))}
+                  </div>
+                  )}
+
+                  {pagosFiltrados.length > 0 ? (
+                    <div className="adm-fila-pago hidden gap-x-4 border-b border-white/[0.08] px-4 pb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#6f6878] lg:grid">
+                      <span>Pedido</span><span>Cliente</span><span>Método · referencia</span><span>Estado</span><span className="text-right">Total</span><span />
+                    </div>
+                  ) : (
+                    <EstadoVacio
+                      icono={vistaPagos === "verificar" ? CheckCircle2 : CreditCard}
+                      texto={vistaPagos === "verificar"
+                        ? ((abonosPendientes as any[]).length > 0 ? "No hay comprobantes de pedidos por revisar." : "Todo al día: no hay comprobantes ni abonos por verificar.")
+                        : "No hay pagos en esta categoría."}
+                    />
+                  )}
+                <div className="divide-y divide-white/[0.05]">
+                  {pagosFiltrados.map((order: any) => {
+                    const isExpanded = expandedPaymentId === order.id;
+                    const statusColors: Record<string, string> = {
+                      pending: "bg-yellow-500/10 text-yellow-400 border-yellow-500/30",
+                      verifying: "bg-blue-500/10 text-blue-400 border-blue-500/30",
+                      approved: "bg-green-500/10 text-green-400 border-green-500/30",
+                      rejected: "bg-red-500/10 text-red-400 border-red-500/30",
+                    };
+                    const statusLabels: Record<string, string> = {
+                      pending: "Pendiente", verifying: "En revisión", approved: "Aprobado", rejected: "Rechazado",
+                    };
+                    return (
+                      <div key={order.id} className={isExpanded ? "bg-[#0e0d13]" : ""}>
+                        {(() => {
+                          const est = ESTADOS_PAGO[order.paymentStatus ?? "pending"] ?? { texto: order.paymentStatus, color: COLORES.gris };
+                          const porRevisar = order.paymentStatus === "verifying";
+                          const f = fechaRelativa(order.createdAt);
+                          return (
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onClick={() => setExpandedPaymentId(isExpanded ? null : order.id)}
+                          onKeyDown={e => { if (e.key === "Enter") setExpandedPaymentId(isExpanded ? null : order.id); }}
+                          className="adm-fila-pago grid cursor-pointer grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2 px-4 py-3 transition-colors hover:bg-white/[0.025]"
+                        >
+                          <div className="min-w-0" title={order.orderNumber}>
+                            <p className="text-sm font-black text-white">#{String(order.orderNumber ?? "").split("-").pop()}</p>
+                            <p className="text-[11px] text-[#8a8494]" title={f.exacta}>{f.texto}</p>
+                          </div>
+                          <div className="min-w-0 max-lg:col-span-2 max-lg:row-start-2">
+                            <p className="truncate text-sm text-white">{order.customerName}</p>
+                            <p className="truncate text-[11px] text-[#8a8494]">{order.customerEmail}</p>
+                          </div>
+                          <div className="min-w-0 max-lg:row-start-3">
+                            <p className="truncate text-xs text-white">{order.paymentMethod ?? "—"}</p>
+                            <p className="truncate font-mono text-[11px] text-[#8a8494]">{order.paymentReference ?? "sin referencia"}</p>
+                          </div>
+                          <div className="max-lg:row-start-3 max-lg:justify-self-end"><Estado color={est.color}>{est.texto}</Estado></div>
+                          <p className="text-right text-sm font-black tabular-nums text-white max-lg:col-start-2 max-lg:row-start-1">{dinero(order.total)}</p>
+                          <div className="flex items-center justify-end gap-2 max-lg:col-span-2">
+                            {porRevisar && <span className="text-[11px] font-bold" style={{ color: COLORES.ambar }}>Revisar</span>}
+                            <ChevronDown className={`h-4 w-4 text-[#8a8494] transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                          </div>
+                        </div>
+                          );
+                        })()}
+
+                        {isExpanded && (
+                          <div className="px-4 pb-4 space-y-4 border-t border-border/30 pt-4">
+                            {(order.hasSecretGift || order.referralCode) && (
+                              <div className="flex flex-wrap gap-2">
+                                {order.hasSecretGift && (
+                                  <div className="flex items-center gap-2 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 text-sm text-orange-700">
+                                    <Gift className="w-4 h-4 flex-shrink-0" />
+                                    <span><strong>Obsequio secreto</strong> — incluir en el paquete</span>
+                                  </div>
+                                )}
+                                {order.referralCode && (
+                                  <p className="flex items-center gap-1.5 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 border border-border/30">
+                                    Referido: <strong className="text-foreground">{order.referralCode}</strong>
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                            <div className="grid sm:grid-cols-2 gap-3 text-sm">
+                              <div><span className="text-muted-foreground">Método:</span> <span className="font-medium">{order.paymentMethod ?? "—"}</span></div>
+                              <div><span className="text-muted-foreground">País:</span> <span className="font-medium">{order.country ?? "—"}</span></div>
+                              <div><span className="text-muted-foreground">Referencia:</span> <span className="font-mono font-medium">{order.paymentReference ?? "—"}</span></div>
+                              <div><span className="text-muted-foreground">Titular:</span> <span className="font-medium">{order.receiptHolder ?? "—"}</span></div>
+                            </div>
+
+                            {order.receiptUrl && (
+                              <div>
+                                <p className="text-xs font-medium text-muted-foreground mb-2">Comprobante:</p>
+                                {order.receiptUrl.endsWith(".pdf") ? (
+                                  <a href={order.receiptUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 text-sm text-primary underline">
+                                    <Eye className="w-4 h-4" /> Ver PDF
+                                  </a>
+                                ) : (
+                                  <a href={order.receiptUrl} target="_blank" rel="noreferrer">
+                                    <img src={order.receiptUrl} alt="Comprobante" className="max-h-48 rounded-xl border border-border/50 object-contain" />
+                                  </a>
+                                )}
+                              </div>
+                            )}
+
+                            {(order.paymentStatus === "pending" || order.paymentStatus === "verifying") && (
+                              <div className="flex flex-col sm:flex-row gap-2 mt-3">
+                                <Button
+                                  className="w-full py-3 text-sm font-bold bg-green-600 hover:bg-green-700 text-white"
+                                  disabled={verifyPayment.isPending}
+                                  onClick={() => verifyPayment.mutate({ orderId: order.id, approved: true })}
+                                >
+                                  <CheckCheck className="w-4 h-4 mr-1.5" /> Aprobar pago
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  className="w-full py-3 text-sm font-bold border-red-400 text-red-500 hover:bg-red-50"
+                                  disabled={verifyPayment.isPending}
+                                  onClick={() => verifyPayment.mutate({ orderId: order.id, approved: false })}
+                                >
+                                  <Ban className="w-4 h-4 mr-1.5" /> Rechazar
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+                </>
+                  );
+                })()}
               </motion.div>
             )}
+
+          {/* ─── Finanzas ─────────────────────────────────────────────────────── */}
+
 
           {/* ─── Sugerencias del Guild ────────────────────────────────────────── */}
             {tab === "feedback" && (

@@ -64,7 +64,9 @@ function StatsSection({ onIr }: { onIr: (t: MobileTab) => void }) {
   const esAdmin = isAuthenticated && user?.role === 'admin';
   const { data: metrics } = trpc.admin.metrics.useQuery(undefined, { enabled: esAdmin });
   const { data: pendingCount = 0 } = trpc.orders.pendingCount.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30000 });
-  const { data: pendingPaymentsCount = 0 } = trpc.orders.pendingPaymentsCount.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30000 });
+  // Solo los que tienen comprobante esperando revisión
+  const { data: porVerificar } = trpc.orders.adminPayments.useQuery({ paymentStatus: 'verifying' }, { enabled: esAdmin, refetchInterval: 30000 });
+  const pendingPaymentsCount = porVerificar?.items?.length ?? 0;
   const { data: pendingCosplay = [] } = trpc.cosplay.getApplications.useQuery({ status: 'pending' }, { enabled: esAdmin });
 
   return (
@@ -363,7 +365,7 @@ function OrdersSection({ onCreateOrder, jumpTo, onJumpDone }: {
 function PaymentsSection() {
   const { user, isAuthenticated } = useAuth();
   const { data: paymentsData, refetch } = trpc.orders.adminPayments.useQuery(
-    { paymentStatus: 'pending_verification' },
+    { paymentStatus: 'verifying' },
     { enabled: isAuthenticated && user?.role === 'admin' },
   );
   const orders = paymentsData?.items ?? [];
@@ -3260,7 +3262,7 @@ export default function AdminMobile() {
   const [, navigate] = useLocation();
 
   const { data: pendingPaymentsData } = trpc.orders.adminPayments.useQuery(
-    { paymentStatus: 'pending_verification' },
+    { paymentStatus: 'verifying' },
     { enabled: isAuthenticated && user?.role === 'admin', refetchInterval: 30000 },
   );
   const { data: pendingCosplay = [] } = trpc.cosplay.getApplications.useQuery(
