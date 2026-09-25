@@ -208,24 +208,38 @@ function InvitadoFigura({ foto, nombre }: { foto: string; nombre: string }) {
   const figura = useFiguraRecortada(foto);
   return (
     <div className="ev2-invitado group relative h-full overflow-hidden">
-      <span className="ev2-invitado-rayos" aria-hidden="true" />
-      <span className="ev2-invitado-contraluz" aria-hidden="true" />
-      {Array.from({ length: 7 }, (_, i) => (
-        <span
-          key={i}
-          className="ev2-invitado-particula"
-          style={{ left: `${12 + ((i * 29) % 76)}%`, animationDelay: `${(i * 0.7) % 4}s`, animationDuration: `${4 + (i % 3)}s` }}
-          aria-hidden="true"
-        />
-      ))}
+      <PortalGate />
       {figura.estado !== "cargando" && (
         <img
           src={figura.src}
           alt={nombre}
-          className="ev2-invitado-img absolute inset-x-0 bottom-0 top-[6%] h-[94%] w-full object-contain object-bottom"
+          className="ev2-invitado-img absolute inset-x-0 bottom-0 top-[12%] h-[88%] w-full object-contain object-bottom"
         />
       )}
       <span className="ev2-invitado-suelo" aria-hidden="true" />
+    </div>
+  );
+}
+
+/**
+ * Portal de mazmorra (Gate) detrás del cazador: óvalo de energía azul y
+ * púrpura con un remolino que gira dentro y partículas que se escapan.
+ */
+function PortalGate() {
+  return (
+    <div className="pointer-events-none absolute inset-0" aria-hidden="true">
+      <span className="ev2-gate-halo" />
+      <span className="ev2-gate">
+        <span className="ev2-gate-remolino" />
+        <span className="ev2-gate-nucleo" />
+      </span>
+      {Array.from({ length: 7 }, (_, i) => (
+        <span
+          key={i}
+          className="ev2-invitado-particula"
+          style={{ left: `${22 + ((i * 29) % 56)}%`, animationDelay: `${(i * 0.7) % 4}s`, animationDuration: `${4 + (i % 3)}s` }}
+        />
+      ))}
     </div>
   );
 }
@@ -809,26 +823,57 @@ export default function HomeEvento() {
             {[1, 2, 3].map(n => {
               const nombre = settings?.[`wf_invitado_${n}_nombre`];
               const foto = settings?.[`wf_invitado_${n}_foto`];
+              // Rango opcional (S, A, B…) desde el panel; «?» mientras no se revele
+              const rango = String(settings?.[`wf_invitado_${n}_rango`] ?? "").trim().toUpperCase().slice(0, 2);
               return (
-                <div key={n} className="ev-notch iw-card-grande overflow-hidden border border-white/[0.07] bg-[#0d0620]">
+                <div key={n} className="ev-notch iw-card-grande ev2-cazador relative overflow-hidden border border-[#7dd8ff]/15 bg-[#0a0616]">
+                  {/* Esquinas de mira del Sistema */}
+                  <span className="ev2-mira ev2-mira-1" aria-hidden="true" />
+                  <span className="ev2-mira ev2-mira-2" aria-hidden="true" />
+                  <span className="ev2-mira ev2-mira-3" aria-hidden="true" />
+                  <span className="ev2-mira ev2-mira-4" aria-hidden="true" />
+
                   <div className="relative" style={{ aspectRatio: "4/5" }}>
                     {foto ? (
                       <InvitadoFigura foto={foto} nombre={nombre ?? ""} />
                     ) : (
-                      <div className="ev2-escaner relative h-full overflow-hidden">
-                        <Silueta />
-                        <span className="ev-display absolute inset-x-0 top-[30%] text-center text-5xl text-[#a78bfa]">?</span>
-                        <span className="absolute inset-x-0 bottom-3 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-[#f43f5e]">
-                          {e.clasificado}
-                        </span>
+                      <div className="ev2-invitado relative h-full overflow-hidden">
+                        <PortalGate />
+                        <div className="absolute inset-x-0 bottom-0 top-[18%]">
+                          <Silueta />
+                          <span className="ev-display absolute inset-x-0 top-[26%] text-center text-5xl text-[#c4b5fd]" style={{ textShadow: "0 0 18px #7dd8ff" }}>?</span>
+                        </div>
+                        <span className="ev2-invitado-suelo" aria-hidden="true" />
                       </div>
                     )}
+
+                    {/* Escaneo del Sistema */}
+                    <span className="ev2-escaneo" aria-hidden="true" />
+                    <div className="absolute inset-x-3 top-3 flex items-start justify-between">
+                      <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#7dd8ff]">
+                        [ {e.v2.hudSistema.replace(/[[\]\s]/g, "")} ] <span className="ev2-parpadeo">{e.v2.analizando}…</span>
+                      </p>
+                      <div className="ev2-rango flex flex-col items-center" title={`${e.v2.rango} ${rango || "?"}`}>
+                        <span className="ev2-rango-hex ev-display">{rango || "?"}</span>
+                        <span className="mt-1 font-mono text-[8px] uppercase tracking-[0.2em] text-[#7dd8ff]/80">{e.v2.rango}</span>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-5">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0]">
-                      {e.invitadoNum} #{String(n).padStart(2, "0")}
+
+                  {/* Ficha del cazador */}
+                  <div className="relative border-t border-[#7dd8ff]/15 bg-gradient-to-b from-[#0e0a22] to-[#0a0616] p-5">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]/80">
+                      {e.v2.cazador} #{String(n).padStart(2, "0")} · {e.v2.perfilCazador}
                     </p>
                     <p className="mt-1.5 font-black text-white">{nombre || e.porAnunciar}</p>
+                    <div className="mt-3 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.15em]">
+                      <span className="text-[#7c6fa0]">{e.v2.poder}</span>
+                      <span className="ev2-poder h-1.5 bg-white/10"><span /></span>
+                      <span className="text-[#c4b5fd]">{nombre ? "∞" : "???"}</span>
+                      <span className="text-[#7c6fa0]">{e.v2.estadoCazador}</span>
+                      <span />
+                      <span className={nombre ? "text-[#4ade80]" : "ev2-parpadeo text-[#f43f5e]"}>{nombre ? e.v2.confirmado : e.v2.porRevelar}</span>
+                    </div>
                   </div>
                 </div>
               );

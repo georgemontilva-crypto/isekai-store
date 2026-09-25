@@ -4168,49 +4168,84 @@ html.dark .admin-shell aside nav button:not(.bg-\[\#0a0a0a\]):hover {
 /* En el teléfono, sin el destello gris del navegador al tocar */
 html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-color: transparent; }
 
-/* ═══ Invitados: silueta completa con luz imponente ═══ */
-.ev2-invitado { background: radial-gradient(ellipse 80% 60% at 50% 35%, #1e0f3a, #0d0620 70%); }
-.ev2-invitado-contraluz {
-  position: absolute; left: 50%; top: 30%; width: 95%; aspect-ratio: 1; transform: translate(-50%, -50%);
-  border-radius: 9999px; pointer-events: none;
-  background: radial-gradient(circle, rgba(196, 181, 253, 0.55), rgba(167, 139, 250, 0.28) 30%, rgba(229, 0, 125, 0.18) 50%, transparent 70%);
-  animation: ev2-contraluz 4.5s ease-in-out infinite; transition: filter .4s ease;
+/* ═══ Invitados: cazadores que el Sistema está por revelar ═══ */
+.ev2-invitado { background: radial-gradient(ellipse 80% 60% at 50% 42%, #140c30, #0a0616 72%); }
+
+/* Portal de mazmorra (Gate) */
+.ev2-gate-halo {
+  position: absolute; left: 50%; top: 44%; width: 110%; height: 80%; transform: translate(-50%, -50%);
+  border-radius: 9999px; background: radial-gradient(ellipse, rgba(56, 189, 248, 0.22), rgba(167, 139, 250, 0.16) 40%, transparent 70%);
+  animation: ev2-contraluz 4.5s ease-in-out infinite;
 }
-@keyframes ev2-contraluz { 0%, 100% { opacity: .75; transform: translate(-50%, -50%) scale(.95); } 50% { opacity: 1; transform: translate(-50%, -50%) scale(1.06); } }
-.ev2-invitado-rayos {
-  position: absolute; left: 50%; top: 30%; width: 170%; aspect-ratio: 1; transform: translate(-50%, -50%);
-  pointer-events: none; opacity: .55;
-  background: repeating-conic-gradient(from 0deg, rgba(196, 181, 253, 0.22) 0deg 4deg, transparent 4deg 18deg);
-  -webkit-mask-image: radial-gradient(circle, #000 8%, transparent 55%);
-  mask-image: radial-gradient(circle, #000 8%, transparent 55%);
-  animation: ev2-giro-centro 40s linear infinite;
+.ev2-gate {
+  position: absolute; left: 50%; top: 42%; width: 62%; height: 70%; transform: translate(-50%, -50%);
+  border-radius: 50%; overflow: hidden;
+  box-shadow: 0 0 0 2px rgba(125, 216, 255, 0.85), 0 0 18px 4px rgba(56, 189, 248, 0.55), 0 0 60px 10px rgba(167, 139, 250, 0.35), inset 0 0 30px rgba(125, 216, 255, 0.6);
+  animation: ev2-gate-latido 3.2s ease-in-out infinite;
 }
-@keyframes ev2-giro-centro { to { transform: translate(-50%, -50%) rotate(360deg); } }
-/* Borde de luz: filtros fijos (se pintan una vez) */
+@keyframes ev2-gate-latido { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
+.ev2-gate-remolino {
+  position: absolute; inset: -30%;
+  background: conic-gradient(from 0deg, #0b1a3a, #3b2a8a, #1d4f8f, #5b21b6, #0b1a3a, #2e7bbf, #3b2a8a, #0b1a3a);
+  animation: ev2-giro 9s linear infinite;
+}
+.ev2-gate-nucleo {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: radial-gradient(ellipse at 50% 55%, rgba(6, 4, 20, 0.95) 0 30%, rgba(20, 12, 60, 0.55) 55%, transparent 80%);
+}
+.ev2-invitado-particula {
+  position: absolute; bottom: 14%; width: 3px; height: 3px; border-radius: 9999px; pointer-events: none;
+  background: #bae6fd; box-shadow: 0 0 6px #38bdf8, 0 0 12px #7dd8ff; opacity: 0;
+  animation: ev2-invitado-sube 5s ease-out infinite;
+}
+@keyframes ev2-invitado-sube { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-240px); } }
+
+/* Aura de sombra alrededor del cazador (filtros fijos) */
 .ev2-invitado-img {
-  filter: drop-shadow(0 0 1px rgba(221, 214, 254, 0.95)) drop-shadow(0 0 10px rgba(167, 139, 250, 0.6)) drop-shadow(0 -6px 22px rgba(229, 0, 125, 0.35));
+  filter: drop-shadow(0 0 1px rgba(186, 230, 253, 0.95)) drop-shadow(0 0 9px rgba(56, 189, 248, 0.55)) drop-shadow(0 -4px 22px rgba(167, 139, 250, 0.5));
   transform-origin: 50% 100%; transition: transform .5s cubic-bezier(.16, 1, .3, 1);
 }
 .ev2-invitado-suelo {
-  position: absolute; inset: auto 0 0 0; height: 30%; pointer-events: none;
-  background: linear-gradient(to top, rgba(13, 6, 32, 0.95), rgba(88, 28, 135, 0.25) 45%, transparent);
+  position: absolute; inset: auto 0 0 0; height: 26%; pointer-events: none;
+  background: linear-gradient(to top, rgba(10, 6, 22, 0.97), rgba(30, 58, 138, 0.2) 50%, transparent);
 }
 .ev2-invitado-suelo::after {
-  content: ""; position: absolute; left: 10%; right: 10%; bottom: 0; height: 26%; border-radius: 9999px;
-  background: radial-gradient(ellipse, rgba(167, 139, 250, 0.55), transparent 70%); filter: blur(6px);
+  content: ""; position: absolute; left: 14%; right: 14%; bottom: 0; height: 24%; border-radius: 9999px;
+  background: radial-gradient(ellipse, rgba(56, 189, 248, 0.5), transparent 70%); filter: blur(6px);
 }
-.ev2-invitado-particula {
-  position: absolute; bottom: 8%; width: 3px; height: 3px; border-radius: 9999px; pointer-events: none;
-  background: #c4b5fd; box-shadow: 0 0 6px #a78bfa, 0 0 12px #a78bfa; opacity: 0;
-  animation: ev2-invitado-sube 5s ease-out infinite;
+.ev2-cazador:hover .ev2-invitado-img, .ev2-cazador:active .ev2-invitado-img { transform: scale(1.04); }
+.ev2-cazador:hover .ev2-gate, .ev2-cazador:active .ev2-gate { animation-duration: 1.2s; }
+
+/* Interfaz del Sistema sobre la tarjeta */
+.ev2-mira { position: absolute; z-index: 3; width: 14px; height: 14px; border-color: #7dd8ff; border-style: solid; pointer-events: none; }
+.ev2-mira-1 { top: 6px; left: 6px; border-width: 1.5px 0 0 1.5px; }
+.ev2-mira-2 { top: 6px; right: 6px; border-width: 1.5px 1.5px 0 0; }
+.ev2-mira-3 { bottom: 6px; left: 6px; border-width: 0 0 1.5px 1.5px; }
+.ev2-mira-4 { bottom: 6px; right: 6px; border-width: 0 1.5px 1.5px 0; }
+.ev2-escaneo {
+  position: absolute; left: 0; right: 0; top: 0; height: 18%; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgba(125, 216, 255, 0.16), rgba(125, 216, 255, 0.5) 50%, rgba(125, 216, 255, 0.16), transparent);
+  animation: ev2-escaneo 4.5s ease-in-out infinite;
 }
-@keyframes ev2-invitado-sube { 0% { opacity: 0; transform: translateY(0); } 15% { opacity: 1; } 100% { opacity: 0; transform: translateY(-260px); } }
-/* Al pasar el mouse o tocar: la figura crece y la luz se intensifica */
-.ev2-invitado:hover .ev2-invitado-img, .ev2-invitado:active .ev2-invitado-img { transform: scale(1.04); }
-.ev2-invitado:hover .ev2-invitado-contraluz, .ev2-invitado:active .ev2-invitado-contraluz { filter: brightness(1.35); }
-.iw-ligero .ev2-invitado-rayos { animation: none; }
+@keyframes ev2-escaneo { 0% { transform: translateY(-100%); opacity: 0; } 10% { opacity: 1; } 55% { transform: translateY(560%); opacity: 1; } 60%, 100% { transform: translateY(560%); opacity: 0; } }
+.ev2-parpadeo { animation: ev2-parpadeo-texto 1.4s steps(2, jump-none) infinite; }
+@keyframes ev2-parpadeo-texto { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.ev2-rango-hex {
+  display: flex; width: 38px; height: 42px; align-items: center; justify-content: center; font-size: 18px; color: #fff;
+  background: linear-gradient(160deg, rgba(56, 189, 248, 0.35), rgba(91, 33, 182, 0.55));
+  clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%);
+  text-shadow: 0 0 10px #7dd8ff;
+}
+.ev2-poder > span {
+  display: block; height: 100%; width: 35%;
+  background: linear-gradient(90deg, #38bdf8, #a78bfa, #e5007d);
+  animation: ev2-poder 2.8s ease-in-out infinite;
+}
+@keyframes ev2-poder { 0%, 100% { width: 20%; } 50% { width: 92%; } }
+
+.iw-ligero .ev2-gate-remolino, .iw-ligero .ev2-escaneo { animation: none; }
 .iw-ligero .ev2-invitado-particula:nth-child(2n) { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .ev2-invitado-contraluz, .ev2-invitado-rayos, .ev2-invitado-particula { animation: none; }
-  .ev2-invitado-particula { display: none; }
+  .ev2-gate, .ev2-gate-halo, .ev2-gate-remolino, .ev2-escaneo, .ev2-parpadeo, .ev2-poder > span, .ev2-invitado-particula { animation: none; }
+  .ev2-escaneo, .ev2-invitado-particula { display: none; }
 }
