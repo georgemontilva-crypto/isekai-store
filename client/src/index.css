@@ -4209,10 +4209,7 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
   position: absolute; inset: auto 0 0 0; height: 26%; pointer-events: none;
   background: linear-gradient(to top, rgba(10, 6, 22, 0.97), rgba(30, 58, 138, 0.2) 50%, transparent);
 }
-.ev2-invitado-suelo::after {
-  content: ""; position: absolute; left: 14%; right: 14%; bottom: 0; height: 24%; border-radius: 9999px;
-  background: radial-gradient(ellipse, rgba(56, 189, 248, 0.5), transparent 70%); filter: blur(6px);
-}
+
 .ev2-cazador:hover .ev2-invitado-img, .ev2-cazador:active .ev2-invitado-img { transform: scale(1.04); }
 .ev2-cazador:hover .ev2-portalgate, .ev2-cazador:active .ev2-portalgate { animation-duration: 1.2s; }
 
@@ -4257,7 +4254,6 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 }
 .ev2-apagado .ev2-portalgate-remolino { animation: none; }
 .ev2-apagado .ev2-portalgate-halo, .ev2-apagado .ev2-invitado-particula, .ev2-apagado .ev2-escaneo { display: none; }
-.ev2-apagado .ev2-invitado-suelo::after { opacity: 0; }
 .ev2-apagado .ev2-mira { border-color: rgba(148, 163, 184, 0.3); }
 .ev2-apagado .ev2-rango-hex { background: rgba(148, 163, 184, 0.12); color: #64748b; text-shadow: none; }
 .ev2-apagado .ev2-poder > span { animation: none; width: 0; }
