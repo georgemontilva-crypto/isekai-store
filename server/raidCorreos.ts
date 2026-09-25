@@ -79,8 +79,15 @@ export function registerRaidCorreos(app: Express): void {
 type Correo = { to: string; subject: string; html: string; baja?: string };
 
 async function enviarLotes(correos: Correo[]): Promise<number> {
-  if (!ENV.resendApiKey || correos.length === 0) return 0;
+  return (await enviarLotesDetalle(correos)).enviados;
+}
+
+/** Envía por lotes y devuelve cuántos salieron y a quién no le llegó */
+async function enviarLotesDetalle(correos: Correo[]): Promise<{ enviados: number; fallidos: string[] }> {
+  if (correos.length === 0) return { enviados: 0, fallidos: [] };
+  if (!ENV.resendApiKey) return { enviados: 0, fallidos: correos.map(c => c.to) };
   let enviados = 0;
+  const fallidos: string[] = [];
   for (let i = 0; i < correos.length; i += LOTE) {
     const lote = correos.slice(i, i + LOTE).map(c => ({
       from: FROM,
@@ -96,13 +103,17 @@ async function enviarLotes(correos: Correo[]): Promise<number> {
         body: JSON.stringify(lote),
       });
       if (r.ok) enviados += lote.length;
-      else console.warn(`[Raid correos] Resend (${r.status}):`, await r.text().catch(() => ""));
+      else {
+        fallidos.push(...lote.map(l => l.to[0]));
+        console.warn(`[Raid correos] Resend (${r.status}):`, await r.text().catch(() => ""));
+      }
     } catch (e) {
+      fallidos.push(...lote.map(l => l.to[0]));
       console.warn("[Raid correos] Error de envío:", e);
     }
     await new Promise(r => setTimeout(r, 700)); // respeta el límite de Resend
   }
-  return enviados;
+  return { enviados, fallidos };
 }
 
 // ─── Ajustes (siteSettings) ────────────────────────────────────────────────
@@ -193,8 +204,46 @@ export async function enviarRecordatorios(forzar = false): Promise<number> {
   await refrescarLogoCorreo();
   const todos = await participantes(r.id);
   const destino = todos.filter(p => !p.atacoHoy && !p.baja);
-  const enviados = await enviarLotes(destino.map(p => correoRecordatorio(p, r.vidaMax - r.danio, r.vidaMax, todos.length)));
-  console.log(`[Raid correos] Recordatorio del ${hoy}: ${enviados}/${destino.length} enviados`);
+  const { enviados, fallidos } = await enviarLotesDetalle(destino.map(p => correoRecordatorio(p, r.vidaMax - r.danio, r.vidaMax, todos.length)));
+  await guardarAjuste(CLAVE_REINTENTO, JSON.stringify({ dia: hoy, correos: fallidos, intentos: 1 }));
+  console.log(`[Raid correos] Recordatorio del ${hoy}: ${enviados}/${destino.length} enviados` +
+    (fallidos.length ? ` · ${fallidos.length} quedan para reintentar` : ""));
+  return enviados;
+}
+
+/**
+ * Reintento del recordatorio: si Resend falló (dominio sin verificar, límite
+ * del plan, caída), cada revisión vuelve a intentar SOLO con quienes no lo
+ * recibieron, hasta 6 veces y solo durante ese mismo día. Nadie lo recibe dos
+ * veces, y quien ya atacó entretanto no lo recibe.
+ */
+const CLAVE_REINTENTO = "wf_raid_recordatorio_reintento";
+const MAX_INTENTOS = 6;
+
+export async function reintentarRecordatorios(): Promise<number> {
+  const db = await getDb();
+  if (!db) return 0;
+  let pendiente: { dia: string; correos: string[]; intentos: number };
+  try { pendiente = JSON.parse((await leerAjuste(CLAVE_REINTENTO)) || "null"); } catch { return 0; }
+  if (!pendiente || !pendiente.correos?.length) return 0;
+  if (pendiente.dia !== diaVenezuela() || pendiente.intentos >= MAX_INTENTOS) {
+    if (pendiente.correos.length) {
+      console.warn(`[Raid correos] Recordatorio del ${pendiente.dia}: ${pendiente.correos.length} no se pudieron enviar tras ${pendiente.intentos} intentos`);
+    }
+    await guardarAjuste(CLAVE_REINTENTO, "");
+    return 0;
+  }
+  const [r] = await db.select({ id: wfRaid.id, vidaMax: wfRaid.vidaMax, danio: wfRaid.danio })
+    .from(wfRaid).where(eq(wfRaid.activo, true)).orderBy(desc(wfRaid.id)).limit(1);
+  if (!r || r.danio >= r.vidaMax) { await guardarAjuste(CLAVE_REINTENTO, ""); return 0; }
+
+  const faltan = new Set(pendiente.correos);
+  const todos = await participantes(r.id);
+  const destino = todos.filter(p => faltan.has(p.email) && !p.atacoHoy && !p.baja);
+  await refrescarLogoCorreo();
+  const { enviados, fallidos } = await enviarLotesDetalle(destino.map(p => correoRecordatorio(p, r.vidaMax - r.danio, r.vidaMax, todos.length)));
+  await guardarAjuste(CLAVE_REINTENTO, JSON.stringify({ dia: pendiente.dia, correos: fallidos, intentos: pendiente.intentos + 1 }));
+  console.log(`[Raid correos] Reintento ${pendiente.intentos + 1}: ${enviados}/${destino.length} enviados`);
   return enviados;
 }
 
@@ -249,7 +298,12 @@ export function iniciarCorreosRaid() {
   const revisar = async () => {
     try {
       await enviarPremio();
+      // Si en esta revisión salió el recordatorio del día, el reintento
+      // espera a la siguiente (5 minutos): reintentar al instante suele
+      // chocar con el mismo fallo
+      const antes = (await leerAjuste("wf_raid_recordatorio_dia")) === diaVenezuela();
       await enviarRecordatorios();
+      if (antes) await reintentarRecordatorios();
     } catch (e) {
       // Si las tablas nuevas aún no existen (migración pendiente) no se envía nada
       console.error("[Raid correos] Revisión fallida:", e);
