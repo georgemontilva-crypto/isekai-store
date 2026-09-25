@@ -4172,24 +4172,24 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 .ev2-invitado { background: radial-gradient(ellipse 80% 60% at 50% 42%, #140c30, #0a0616 72%); }
 
 /* Portal de mazmorra (Gate) */
-.ev2-gate-halo {
+.ev2-portalgate-halo {
   position: absolute; left: 50%; top: 44%; width: 110%; height: 80%; transform: translate(-50%, -50%);
   border-radius: 9999px; background: radial-gradient(ellipse, rgba(56, 189, 248, 0.22), rgba(167, 139, 250, 0.16) 40%, transparent 70%);
   animation: ev2-contraluz 4.5s ease-in-out infinite;
 }
-.ev2-gate {
+.ev2-portalgate {
   position: absolute; left: 50%; top: 42%; width: 62%; height: 70%; transform: translate(-50%, -50%);
   border-radius: 50%; overflow: hidden;
   box-shadow: 0 0 0 2px rgba(125, 216, 255, 0.85), 0 0 18px 4px rgba(56, 189, 248, 0.55), 0 0 60px 10px rgba(167, 139, 250, 0.35), inset 0 0 30px rgba(125, 216, 255, 0.6);
   animation: ev2-gate-latido 3.2s ease-in-out infinite;
 }
 @keyframes ev2-gate-latido { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.25); } }
-.ev2-gate-remolino {
+.ev2-portalgate-remolino {
   position: absolute; inset: -30%;
   background: conic-gradient(from 0deg, #0b1a3a, #3b2a8a, #1d4f8f, #5b21b6, #0b1a3a, #2e7bbf, #3b2a8a, #0b1a3a);
   animation: ev2-giro 9s linear infinite;
 }
-.ev2-gate-nucleo {
+.ev2-portalgate-nucleo {
   position: absolute; inset: 0; border-radius: 50%;
   background: radial-gradient(ellipse at 50% 55%, rgba(6, 4, 20, 0.95) 0 30%, rgba(20, 12, 60, 0.55) 55%, transparent 80%);
 }
@@ -4214,7 +4214,7 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
   background: radial-gradient(ellipse, rgba(56, 189, 248, 0.5), transparent 70%); filter: blur(6px);
 }
 .ev2-cazador:hover .ev2-invitado-img, .ev2-cazador:active .ev2-invitado-img { transform: scale(1.04); }
-.ev2-cazador:hover .ev2-gate, .ev2-cazador:active .ev2-gate { animation-duration: 1.2s; }
+.ev2-cazador:hover .ev2-portalgate, .ev2-cazador:active .ev2-portalgate { animation-duration: 1.2s; }
 
 /* Interfaz del Sistema sobre la tarjeta */
 .ev2-mira { position: absolute; z-index: 3; width: 14px; height: 14px; border-color: #7dd8ff; border-style: solid; pointer-events: none; }
@@ -4243,9 +4243,22 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 }
 @keyframes ev2-poder { 0%, 100% { width: 20%; } 50% { width: 92%; } }
 
-.iw-ligero .ev2-gate-remolino, .iw-ligero .ev2-escaneo { animation: none; }
+.iw-ligero .ev2-portalgate-remolino, .iw-ligero .ev2-escaneo { animation: none; }
 .iw-ligero .ev2-invitado-particula:nth-child(2n) { display: none; }
 @media (prefers-reduced-motion: reduce) {
-  .ev2-gate, .ev2-gate-halo, .ev2-gate-remolino, .ev2-escaneo, .ev2-parpadeo, .ev2-poder > span, .ev2-invitado-particula { animation: none; }
+  .ev2-portalgate, .ev2-portalgate-halo, .ev2-portalgate-remolino, .ev2-escaneo, .ev2-parpadeo, .ev2-poder > span, .ev2-invitado-particula { animation: none; }
   .ev2-escaneo, .ev2-invitado-particula { display: none; }
 }
+
+/* Invitado sin foto: tarjeta «apagada». Al subir la foto se enciende sola */
+.ev2-apagado .ev2-portalgate {
+  box-shadow: 0 0 0 1px rgba(148, 163, 184, 0.25), inset 0 0 20px rgba(0, 0, 0, 0.6);
+  animation: none; filter: grayscale(1) brightness(.45);
+}
+.ev2-apagado .ev2-portalgate-remolino { animation: none; }
+.ev2-apagado .ev2-portalgate-halo, .ev2-apagado .ev2-invitado-particula, .ev2-apagado .ev2-escaneo { display: none; }
+.ev2-apagado .ev2-invitado-suelo::after { opacity: 0; }
+.ev2-apagado .ev2-mira { border-color: rgba(148, 163, 184, 0.3); }
+.ev2-apagado .ev2-rango-hex { background: rgba(148, 163, 184, 0.12); color: #64748b; text-shadow: none; }
+.ev2-apagado .ev2-poder > span { animation: none; width: 0; }
+.ev2-apagado { border-color: rgba(148, 163, 184, 0.12) !important; }

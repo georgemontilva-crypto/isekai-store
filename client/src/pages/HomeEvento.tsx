@@ -228,10 +228,10 @@ function InvitadoFigura({ foto, nombre }: { foto: string; nombre: string }) {
 function PortalGate() {
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      <span className="ev2-gate-halo" />
-      <span className="ev2-gate">
-        <span className="ev2-gate-remolino" />
-        <span className="ev2-gate-nucleo" />
+      <span className="ev2-portalgate-halo" />
+      <span className="ev2-portalgate">
+        <span className="ev2-portalgate-remolino" />
+        <span className="ev2-portalgate-nucleo" />
       </span>
       {Array.from({ length: 7 }, (_, i) => (
         <span
@@ -826,7 +826,7 @@ export default function HomeEvento() {
               // Rango opcional (S, A, B…) desde el panel; «?» mientras no se revele
               const rango = String(settings?.[`wf_invitado_${n}_rango`] ?? "").trim().toUpperCase().slice(0, 2);
               return (
-                <div key={n} className="ev-notch iw-card-grande ev2-cazador relative overflow-hidden border border-[#7dd8ff]/15 bg-[#0a0616]">
+                <div key={n} className={`ev-notch iw-card-grande ev2-cazador relative overflow-hidden border border-[#7dd8ff]/15 bg-[#0a0616] ${foto ? "" : "ev2-apagado"}`}>
                   {/* Esquinas de mira del Sistema */}
                   <span className="ev2-mira ev2-mira-1" aria-hidden="true" />
                   <span className="ev2-mira ev2-mira-2" aria-hidden="true" />
@@ -839,9 +839,9 @@ export default function HomeEvento() {
                     ) : (
                       <div className="ev2-invitado relative h-full overflow-hidden">
                         <PortalGate />
-                        <div className="absolute inset-x-0 bottom-0 top-[18%]">
+                        <div className="absolute inset-x-0 bottom-0 top-[18%] opacity-50">
                           <Silueta />
-                          <span className="ev-display absolute inset-x-0 top-[26%] text-center text-5xl text-[#c4b5fd]" style={{ textShadow: "0 0 18px #7dd8ff" }}>?</span>
+                          <span className="ev-display absolute inset-x-0 top-[26%] text-center text-5xl text-[#475569]">?</span>
                         </div>
                         <span className="ev2-invitado-suelo" aria-hidden="true" />
                       </div>
@@ -850,8 +850,8 @@ export default function HomeEvento() {
                     {/* Escaneo del Sistema */}
                     <span className="ev2-escaneo" aria-hidden="true" />
                     <div className="absolute inset-x-3 top-3 flex items-start justify-between">
-                      <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#7dd8ff]">
-                        [ {e.v2.hudSistema.replace(/[[\]\s]/g, "")} ] <span className="ev2-parpadeo">{e.v2.analizando}…</span>
+                      <p className={`font-mono text-[9px] uppercase tracking-[0.25em] ${foto ? "text-[#7dd8ff]" : "text-[#64748b]"}`}>
+                        [ {e.v2.hudSistema.replace(/[[\]\s]/g, "")} ] {foto ? <span className="ev2-parpadeo">{e.v2.analizando}…</span> : <span>{e.v2.sinSenal}</span>}
                       </p>
                       <div className="ev2-rango flex flex-col items-center" title={`${e.v2.rango} ${rango || "?"}`}>
                         <span className="ev2-rango-hex ev-display">{rango || "?"}</span>

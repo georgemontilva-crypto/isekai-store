@@ -423,6 +423,7 @@ export const es = {
       estadoCazador: "Estado",
       porRevelar: "Por revelar",
       confirmado: "Confirmado",
+      sinSenal: "Sin señal",
       raidCombo: "Combo",
       raidTiempo: "¡TIEMPO!",
       raidDanioTotal: "Daño total",

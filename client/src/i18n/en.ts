@@ -413,6 +413,7 @@ export const en: Translations = {
       estadoCazador: "Status",
       porRevelar: "To be revealed",
       confirmado: "Confirmed",
+      sinSenal: "No signal",
       raidCombo: "Combo",
       raidTiempo: "TIME!",
       raidDanioTotal: "Total damage",
