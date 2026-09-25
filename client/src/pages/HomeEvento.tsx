@@ -837,13 +837,9 @@ export default function HomeEvento() {
                     {foto ? (
                       <InvitadoFigura foto={foto} nombre={nombre ?? ""} />
                     ) : (
-                      <div className="ev2-invitado relative h-full overflow-hidden">
-                        <PortalGate />
-                        <div className="absolute inset-x-0 bottom-0 top-[18%] opacity-50">
-                          <Silueta />
-                          <span className="ev-display absolute inset-x-0 top-[26%] text-center text-5xl text-[#475569]">?</span>
-                        </div>
-                        <span className="ev2-invitado-suelo" aria-hidden="true" />
+                      <div className="ev2-invitado relative flex h-full items-center justify-center overflow-hidden">
+                        {/* Sin foto todavía: solo el signo de interrogación */}
+                        <span className="ev-display select-none text-[110px] leading-none text-[#3b3553]" aria-hidden="true">?</span>
                       </div>
                     )}
 
