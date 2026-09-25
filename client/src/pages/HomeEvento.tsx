@@ -197,6 +197,39 @@ function moverLuz(ev: RPointerEvent<HTMLDivElement>) {
   ev.currentTarget.style.setProperty("--gy", `${ev.clientY - r.top}px`);
 }
 
+/**
+ * Invitado con su silueta completa (sin cortar la cabeza) y efectos de luz:
+ * contraluz que late, rayos que giran, borde de luz alrededor de la figura,
+ * niebla en el suelo y partículas que suben. Al pasar el mouse o tocar, la
+ * figura crece un poco y la luz se intensifica.
+ */
+function InvitadoFigura({ foto, nombre }: { foto: string; nombre: string }) {
+  // Recorta el borde transparente del PNG: la figura ocupa todo el alto
+  const figura = useFiguraRecortada(foto);
+  return (
+    <div className="ev2-invitado group relative h-full overflow-hidden">
+      <span className="ev2-invitado-rayos" aria-hidden="true" />
+      <span className="ev2-invitado-contraluz" aria-hidden="true" />
+      {Array.from({ length: 7 }, (_, i) => (
+        <span
+          key={i}
+          className="ev2-invitado-particula"
+          style={{ left: `${12 + ((i * 29) % 76)}%`, animationDelay: `${(i * 0.7) % 4}s`, animationDuration: `${4 + (i % 3)}s` }}
+          aria-hidden="true"
+        />
+      ))}
+      {figura.estado !== "cargando" && (
+        <img
+          src={figura.src}
+          alt={nombre}
+          className="ev2-invitado-img absolute inset-x-0 bottom-0 top-[6%] h-[94%] w-full object-contain object-bottom"
+        />
+      )}
+      <span className="ev2-invitado-suelo" aria-hidden="true" />
+    </div>
+  );
+}
+
 /** Silueta genérica para invitados aún sin revelar */
 function Silueta() {
   return (
@@ -778,9 +811,9 @@ export default function HomeEvento() {
               const foto = settings?.[`wf_invitado_${n}_foto`];
               return (
                 <div key={n} className="ev-notch iw-card-grande overflow-hidden border border-white/[0.07] bg-[#0d0620]">
-                  <div className="relative" style={{ aspectRatio: "1/1" }}>
+                  <div className="relative" style={{ aspectRatio: "4/5" }}>
                     {foto ? (
-                      <img src={foto} alt={nombre ?? ""} className="h-full w-full object-cover" />
+                      <InvitadoFigura foto={foto} nombre={nombre ?? ""} />
                     ) : (
                       <div className="ev2-escaner relative h-full overflow-hidden">
                         <Silueta />
