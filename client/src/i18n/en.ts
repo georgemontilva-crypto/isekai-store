@@ -301,7 +301,7 @@ export const en: Translations = {
     nombresOcultos2: "The System is still unlocking them.",
 
     invitadosEtiqueta: "[ Guests ]",
-    invitadosTitulo: "THE HUNTERS ARE ARRIVING",
+    invitadosTitulo: "INTERNATIONAL ARTISTS ARE ARRIVING",
     invitadosTexto: "Creators, cosplayers, artists, special guests and international talent will be part of Isekai World Fest.",
     invitadoNum: "Guest",
     porAnunciar: "[ Coming soon ]",

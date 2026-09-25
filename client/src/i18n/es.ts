@@ -311,7 +311,7 @@ export const es = {
     nombresOcultos2: "El Sistema aún está desbloqueándolos.",
 
     invitadosEtiqueta: "[ Invitados ]",
-    invitadosTitulo: "LOS CAZADORES ESTÁN LLEGANDO",
+    invitadosTitulo: "LOS ARTISTAS INTERNACIONALES ESTÁN LLEGANDO",
     invitadosTexto: "Creadores, cosplayers, artistas, invitados especiales y talentos internacionales serán parte del Isekai World Fest.",
     invitadoNum: "Invitado",
     porAnunciar: "[ Próximamente ]",
