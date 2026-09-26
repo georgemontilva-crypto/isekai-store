@@ -177,6 +177,12 @@ export default function RaidJefe({
   // Al entrar o salir de la cuenta cambia «ya atacaste hoy»
   useEffect(() => { utils.raid.estado.invalidate(); }, [user?.id, utils]);
   const atacar = trpc.raid.atacar.useMutation();
+  const iniciarRonda = trpc.raid.iniciar.useMutation();
+  /** Ticket firmado de la ronda en curso y el registro de toques (anti auto clicker) */
+  const ticketRef = useRef("");
+  const toquesRef = useRef<{ ultimo: number; intervalos: number[]; sinteticos: number; puntos: Set<string> }>({
+    ultimo: 0, intervalos: [], sinteticos: 0, puntos: new Set(),
+  });
 
   const [fase, setFase] = useState<Fase>("listo");
   const [cuenta, setCuenta] = useState(3);
@@ -248,11 +254,17 @@ export default function RaidJefe({
     setFase("enviando");
     const g = golpesRef.current;
     try {
-      const r = await atacar.mutateAsync({ golpes: g, ref: refNavegador });
+      const tq = toquesRef.current;
+      const r = await atacar.mutateAsync({
+        golpes: g, ref: refNavegador, ticket: ticketRef.current,
+        intervalos: tq.intervalos.slice(0, 400), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
+      });
       if (r.ok) setDanioFinal(r.golpes);
-      if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())} ${t.raidVuelve}`);
+      if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())}${r.multiplicador > 1 ? ` ${t.raidBonusX2}` : ""} ${t.raidVuelve}`);
+      else if (r.motivo === "autoclicker") setMensaje(t.raidTrampa);
       else if (r.motivo === "yaAtaco") setMensaje(t.raidYaAtacaste);
       else if (r.motivo === "limite") setMensaje(t.raidLimite);
+      else if (r.motivo === "ticket") setMensaje(t.raidError);
       else setMensaje(t.raidDerrotado);
     } catch (e: unknown) {
       // Si la sesión venció a mitad de la ronda, se pide entrar de nuevo
@@ -287,7 +299,9 @@ export default function RaidJefe({
       // Actualiza sin recargar: la consulta de este visitante (conserva si ya
       // atacó hoy) y la de la página, que decide si la pieza está revelada
       utils.raid.estado.setData(undefined, viejo =>
-        viejo && viejo.activo ? { ...vivo, yaAtaco: viejo.yaAtaco } : viejo);
+        viejo && viejo.activo
+          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador }
+          : viejo);
     },
     golpe => {
       if (golpe.ref && golpe.ref === refNavegador) return; // fue esta misma pestaña
@@ -316,7 +330,16 @@ export default function RaidJefe({
     return () => cancelAnimationFrame(f);
   }, [fase, danioFinal]);
 
-  const empezar = () => {
+  const empezar = async () => {
+    // Ticket de la ronda: el servidor anota la hora de inicio
+    try {
+      ticketRef.current = (await iniciarRonda.mutateAsync()).ticket;
+    } catch (e: unknown) {
+      const codigo = (e as { data?: { code?: string } })?.data?.code;
+      if (codigo === "UNAUTHORIZED") { openLoginModal(); return; }
+      setMensaje(t.raidError); setFase("resultado"); return;
+    }
+    toquesRef.current = { ultimo: 0, intervalos: [], sinteticos: 0, puntos: new Set() };
     setDanioFinal(0);
     setConteo(0);
     golpesRef.current = 0;
@@ -331,6 +354,13 @@ export default function RaidJefe({
 
   const golpear = (ev: React.PointerEvent<HTMLDivElement>) => {
     if (fase !== "jugando" || golpesRef.current >= GOLPES_MAX) return;
+    // Registro para el detector: tiempo entre toques, toques no reales y puntos tocados
+    const tq = toquesRef.current;
+    const ahora = performance.now();
+    if (tq.ultimo) tq.intervalos.push(Math.round(ahora - tq.ultimo));
+    tq.ultimo = ahora;
+    if (!ev.isTrusted) tq.sinteticos += 1;
+    tq.puntos.add(`${Math.round(ev.clientX)},${Math.round(ev.clientY)}`);
     golpesRef.current += 1;
     setGolpes(golpesRef.current);
     const n = golpesRef.current;
@@ -385,7 +415,7 @@ export default function RaidJefe({
   if (!data || !data.activo) return null;
 
   const enRonda = fase === "cuenta" || fase === "jugando" || fase === "enviando";
-  const vidaVista = Math.max(0, data.vida - (enRonda ? golpes : 0));
+  const vidaVista = Math.max(0, data.vida - (enRonda ? golpes * (data.multiplicador ?? 1) : 0));
   const pct = data.vidaMax > 0 ? (vidaVista / data.vidaMax) * 100 : 0;
   const caido = data.derrotado;
   const puedeAtacar = !caido && !data.yaAtaco && fase === "listo";
@@ -567,7 +597,7 @@ export default function RaidJefe({
 
           {numeros.map(n => (
             <span key={n.id} className="ev2-danio pointer-events-none absolute font-mono text-xl font-black text-[#fb7185]" style={{ left: n.x, top: n.y }}>
-              −1
+              −{data?.activo ? data.multiplicador : 1}
             </span>
           ))}
 
@@ -650,9 +680,29 @@ export default function RaidJefe({
             </div>
           )}
 
+          {/* Cazador veterano: desde su 5.º ataque válido, daño doble */}
+          {isAuthenticated && !caido && (data.multiplicador ?? 1) > 1 && fase !== "jugando" && (
+            <p className="ev2-veterano mb-3 inline-flex items-center gap-1.5 border border-[#fbbf24]/50 bg-[#fbbf24]/10 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[#fde68a]">
+              ⚡ {t.raidVeteranoX2}
+            </p>
+          )}
+          {isAuthenticated && !caido && (data.multiplicador ?? 1) === 1 && fase === "listo" && (
+            <div className="mx-auto mb-4 max-w-xs">
+              <p className="mb-1.5 text-[11px] text-[#c9a8b8]">
+                {t.raidVeteranoProgreso.replace("{n}", String(Math.min(data.misAtaques ?? 0, 4)))}
+              </p>
+              <div className="flex gap-1">
+                {[0, 1, 2, 3].map(i => (
+                  <span key={i} className="h-1.5 flex-1" style={{ background: i < (data.misAtaques ?? 0) ? "#fbbf24" : "rgba(255,255,255,0.12)" }} />
+                ))}
+              </div>
+            </div>
+          )}
+
           {puedeAtacar && isAuthenticated && (
             <button
               onClick={empezar}
+              disabled={iniciarRonda.isPending}
               className="ev-notch ev-press ev2-latido inline-flex items-center gap-2 bg-[#f43f5e] px-10 py-4 text-sm font-bold uppercase tracking-wider text-white"
             >
               <Swords size={18} /> {t.raidAtacar}

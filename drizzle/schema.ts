@@ -847,6 +847,8 @@ export const wfRaidAtaques = mysqlTable("wfRaidAtaques", {
   ip: varchar("ip", { length: 64 }).notNull(),
   dia: varchar("dia", { length: 10 }).notNull(),
   golpes: int("golpes").notNull(),
+  /** Si el ataque se anuló por trampa (auto clicker): el motivo; si no, vacío */
+  motivo: varchar("motivo", { length: 40 }),
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
 

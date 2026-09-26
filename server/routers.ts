@@ -31,7 +31,7 @@ import {
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
-import { estadoRaid, atacarRaid, GOLPES_MAX } from "./raid";
+import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
 import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones } from "./ruedaPrensa";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
@@ -1122,14 +1122,27 @@ export const appRouter = router({
     estado: publicProcedure
       .query(({ ctx }) => estadoRaid(ctx.user ? `u${ctx.user.id}` : undefined)),
     /** Atacar exige cuenta: un ataque por usuario y día */
+    /** Ticket firmado para una ronda: sin él no se acepta el ataque */
+    iniciar: protectedProcedure.mutation(({ ctx }) => iniciarRonda(ctx.user.id)),
     atacar: protectedProcedure
       .input(z.object({
         golpes: z.number().int().min(0).max(GOLPES_MAX * 2),
         /** Marca aleatoria del navegador para reconocer su propio aviso en vivo */
         ref: z.string().regex(/^[A-Za-z0-9]{4,16}$/).optional(),
+        ticket: z.string().max(120),
+        /** Milisegundos entre toques (para detectar auto clickers) */
+        intervalos: z.array(z.number().int().min(0).max(60_000)).max(400),
+        /** Clics generados por programa (no son toques reales) */
+        sinteticos: z.number().int().min(0).max(10_000),
+        /** Cuántos puntos distintos de la pantalla se tocaron */
+        posiciones: z.number().int().min(0).max(10_000),
       }))
       .mutation(({ input, ctx }) =>
-        atacarRaid(`u${ctx.user.id}`, input.golpes, clientIp(ctx.req), input.ref ?? "")),
+        atacarRaid(`u${ctx.user.id}`, input.golpes, clientIp(ctx.req), input.ref ?? "", {
+          userId: ctx.user.id,
+          ticket: input.ticket,
+          analisis: { intervalos: input.intervalos, sinteticos: input.sinteticos, posiciones: input.posiciones },
+        })),
   }),
 
   // ─── Newsletter ─────────────────────────────────────────────────────────────
