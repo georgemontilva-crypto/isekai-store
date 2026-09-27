@@ -77,7 +77,7 @@ function Rayo({ rama }: { rama: boolean }) {
 /** Detrás del jefe: tormenta y fuego */
 function FondoJefe() {
   return (
-    <div className="pointer-events-none absolute -inset-[12%] overflow-hidden" aria-hidden="true">
+    <div className="pointer-events-none absolute -inset-x-[12%] -bottom-[12%] top-0 overflow-hidden" aria-hidden="true">
       {RAYOS.map((r, i) => (
         <div key={`c${i}`} className="ev2-cielo" style={{ animationDuration: `${r.d}s`, animationDelay: `${r.r}s` }} />
       ))}
