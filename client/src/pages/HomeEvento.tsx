@@ -10,6 +10,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
+import TutorialGuiado from "@/components/fest/TutorialGuiado";
 import ToqueParticulas from "@/components/fest/ToqueParticulas";
 import ChispasEnergia from "@/components/fest/ChispasEnergia";
 import { esGamaBaja } from "@/lib/gamaBaja";
@@ -266,6 +267,12 @@ export default function HomeEvento() {
   const AREAS = AREAS_ESTILO.map((x, i) => ({ ...x, ...e.areasItems[i] }));
   const RANGOS = RANGOS_ESTILO.map((x, i) => ({ ...x, ...e.rangosItems[i] }));
   const { data: settings } = trpc.settings.getAll.useQuery();
+  // Tutorial de la simulación de experiencia
+  const tutoVentanaRef = useRef<HTMLDivElement>(null);
+  const tutoRangoRef = useRef<HTMLDivElement>(null);
+  const tutoBarraRef = useRef<HTMLDivElement>(null);
+  const tutoBotonRef = useRef<HTMLButtonElement>(null);
+  const abrirTutorialRef = useRef<(() => void) | null>(null);
   const heroBg = settings?.["wf_hero_bg"] ?? settings?.["worldfest_hero_image"] ?? "";
   /** Video de fondo opcional: queda como textura, apenas perceptible */
   /**
@@ -910,6 +917,7 @@ export default function HomeEvento() {
               una explicación. Todo ocurre en el navegador, no se guarda nada. */}
           <div className="mx-auto mb-16 max-w-lg">
             <div
+              ref={tutoVentanaRef}
               className="lp-ventana p-7 sm:p-9"
               style={{ ["--lp-rango" as string]: colorDemo }}
             >
@@ -919,6 +927,7 @@ export default function HomeEvento() {
 
               <div className="mb-7 flex flex-col items-center">
                 <div
+                  ref={tutoRangoRef}
                   className="mb-4 flex h-28 w-28 items-center justify-center rounded-full border-2 transition-all duration-500"
                   style={{
                     borderColor: colorDemo,
@@ -937,6 +946,7 @@ export default function HomeEvento() {
                 </p>
               </div>
 
+              <div ref={tutoBarraRef}>
               <div className="mb-2 flex items-end justify-between">
                 <span className="font-mono text-[11px] uppercase tracking-widest" style={{ color: colorDemo }}>
                   {e.experiencia}
@@ -960,9 +970,11 @@ export default function HomeEvento() {
                   ? e.faltanPara.replace("{n}", String(siguienteDemo.faltan)).replace("{r}", siguienteDemo.rango)
                   : e.rangoMaximo}
               </p>
+              </div>
 
               <div className="flex gap-2">
                 <button
+                  ref={tutoBotonRef}
                   onClick={() => sumarXp(80)}
                   disabled={xpDemo >= 500}
                   className="ev-notch ev-press flex-1 border font-mono text-xs font-bold uppercase tracking-widest transition-colors disabled:opacity-30"
@@ -987,6 +999,24 @@ export default function HomeEvento() {
               <p className="mt-5 text-center text-[11px] leading-relaxed text-[#5f7f96]">
                 {e.notaSimulacion}
               </p>
+              <button
+                onClick={() => { setXpDemo(0); setAscensoDemo(null); abrirTutorialRef.current?.(); }}
+                className="mx-auto mt-3 block font-mono text-[10px] uppercase tracking-[0.25em] text-[#7dd8ff] underline-offset-4 hover:underline"
+              >
+                ▶ {e.tutorial.ver}
+              </button>
+              <TutorialGuiado
+                claveVisto="iw_tutorial_exp_v1"
+                disparador={tutoVentanaRef}
+                abrirRef={abrirTutorialRef}
+                textos={{ saltar: e.tutorial.saltar, siguiente: e.tutorial.siguiente, entendido: e.tutorial.entendido, paso: e.tutorial.paso, tocaAqui: e.tutorial.tocaAqui }}
+                pasos={[
+                  { objetivo: tutoRangoRef, titulo: e.tutorial.p1Titulo, texto: e.tutorial.p1Texto },
+                  { objetivo: tutoBarraRef, titulo: e.tutorial.p2Titulo, texto: e.tutorial.p2Texto },
+                  { objetivo: tutoBotonRef, titulo: e.tutorial.p3Titulo, texto: e.tutorial.p3Texto, accion: true },
+                  { objetivo: tutoVentanaRef, titulo: e.tutorial.p4Titulo, texto: e.tutorial.p4Texto },
+                ]}
+              />
             </div>
           </div>
 
