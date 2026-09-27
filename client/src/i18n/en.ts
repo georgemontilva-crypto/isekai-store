@@ -375,7 +375,7 @@ export const en: Translations = {
       siguiente: "Next",
       entendido: "Got it!",
       paso: "Step {n} of {t}",
-      tocaAqui: "Tap here",
+      tocaAqui: "Tap +80 EXP to continue",
       p1Titulo: "This is your rank",
       p1Texto: "Every hunter starts the Fest at Rank E. Your ticket is your profile inside the System.",
       p2Titulo: "Your experience",

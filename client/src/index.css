@@ -4317,3 +4317,13 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
   .tg-foco { transition: none; }
   .tg-foco::after, .tg-mano, .tg-mano-onda, .tg-globo { animation: none; }
 }
+/* Tutorial: indicación del paso de acción y «Siguiente» de respaldo */
+.tg-indicacion {
+  margin: 0 0 12px; padding: 9px 12px; font: 700 12px/1.3 ui-monospace, monospace; letter-spacing: .08em; text-transform: uppercase;
+  color: #bae6fd; background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(125, 216, 255, 0.35);
+  animation: tg-indicacion 1.4s ease-in-out infinite;
+}
+@keyframes tg-indicacion { 0%, 100% { opacity: .75; } 50% { opacity: 1; box-shadow: 0 0 14px rgba(56, 189, 248, .35); } }
+.tg-siguiente-suave { margin-left: auto; padding: 10px 6px; font: 700 11px/1 ui-monospace, monospace; letter-spacing: .18em; text-transform: uppercase; color: #7dd8ff; }
+.tg-siguiente-suave:hover { color: #fff; }
+@media (prefers-reduced-motion: reduce) { .tg-indicacion { animation: none; } }

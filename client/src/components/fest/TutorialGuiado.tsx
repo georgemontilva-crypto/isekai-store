@@ -141,7 +141,6 @@ export default function TutorialGuiado({
           <span className="tg-mano" aria-hidden="true">
             <span className="tg-mano-onda" />
             👆
-            <span className="tg-mano-texto">{textos.tocaAqui}</span>
           </span>
         )}
       </div>
@@ -168,9 +167,12 @@ export default function TutorialGuiado({
         <div className="tg-puntos" aria-hidden="true">
           {pasos.map((_, i) => <span key={i} className={i === paso ? "tg-punto-activo" : ""} />)}
         </div>
+        {actual.accion && <p className="tg-indicacion">👆 {textos.tocaAqui}</p>}
         <div className="tg-botones">
           {!ultimo && <button className="tg-saltar" onClick={cerrar}>{textos.saltar}</button>}
-          {!actual.accion && (
+          {actual.accion ? (
+            <button className="tg-siguiente-suave" onClick={() => setPaso(paso + 1)}>{textos.siguiente} →</button>
+          ) : (
             <button className="tg-siguiente" onClick={() => (ultimo ? cerrar() : setPaso(paso + 1))} autoFocus>
               {ultimo ? textos.entendido : textos.siguiente}
             </button>

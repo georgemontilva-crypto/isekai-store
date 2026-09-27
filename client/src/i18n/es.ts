@@ -385,7 +385,7 @@ export const es = {
       siguiente: "Siguiente",
       entendido: "¡Entendido!",
       paso: "Paso {n} de {t}",
-      tocaAqui: "Toca aquí",
+      tocaAqui: "Toca +80 EXP para continuar",
       p1Titulo: "Este es tu rango",
       p1Texto: "Todos los cazadores empiezan el Fest en Rango E. Tu boleto es tu perfil dentro del Sistema.",
       p2Titulo: "Tu experiencia",
