@@ -4,6 +4,8 @@ validateEnv();
 console.log('[DB] DATABASE_URL configured:', !!process.env.DATABASE_URL);
 console.log('[DB] DATABASE_URL prefix:', process.env.DATABASE_URL?.slice(0, 20));
 import crypto from "crypto";
+import fsVersion from "fs";
+import pathVersion from "path";
 import express from "express";
 import compression from "compression";
 import helmet from "helmet";
@@ -124,6 +126,18 @@ async function startServer() {
   // Respaldo: el favicon que ya tenía la web, para no perderlo si aún no se
   // ha cargado uno desde el admin.
   const FAVICON_ACTUAL = 'https://pub-c4fd9395c33848c3be4160fe5f9532a4.r2.dev/isekai-world/banner/Favicon-11%20grande-11.png';
+  // Versión publicada: huella del index.html de esta compilación (cambia en
+  // cada despliegue). La app instalada la compara al volver a primer plano.
+  const VERSION_SITIO = (() => {
+    try {
+      const ruta = pathVersion.resolve(import.meta.dirname, "public", "index.html");
+      return crypto.createHash("sha1").update(fsVersion.readFileSync(ruta)).digest("hex").slice(0, 12);
+    } catch { return "dev"; }
+  })();
+  app.get('/api/version', (_req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ v: VERSION_SITIO });
+  });
   app.get('/favicon.ico', redirigirIcono('favicon_url', FAVICON_ACTUAL));
   app.get('/favicon-web', redirigirIcono('favicon_url', FAVICON_ACTUAL));
   app.get('/apple-touch-icon.png', redirigirIcono('pwa_icon_url', '/icons/icon-192.png'));

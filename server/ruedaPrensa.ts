@@ -53,6 +53,12 @@ export async function confirmarAsistencia(clave: string, ip: string):
     const conteo = await totalConfirmaciones();
     io?.to("admin").emit("prensa:confirmacion", conteo);
     void notifyConfirmacionPrensa(conteo.total, conteo.hoy).catch(e => console.warn("[Prensa] correo:", e));
+    void import("./push").then(m => m.enviarPushAdmins({
+      titulo: "🎟️ Nueva confirmación · rueda de prensa",
+      cuerpo: `Ya son ${conteo.total} confirmados (${conteo.hoy} hoy).`,
+      url: "/admin",
+      etiqueta: "prensa",
+    }));
   } catch (e) {
     console.warn("[Prensa] aviso en vivo:", e);
   }

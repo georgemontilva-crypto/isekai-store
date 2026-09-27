@@ -72,3 +72,11 @@ export function useSocketEvento<T = unknown>(evento: string, alRecibir: (datos: 
     };
   }, [evento]);
 }
+
+// Al volver a la app, si el canal se cortó en segundo plano, se reconecta
+if (typeof window !== "undefined") {
+  window.addEventListener("iw:volver", () => {
+    if (socketInstance && !socketInstance.connected) socketInstance.connect();
+  });
+}
+

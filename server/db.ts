@@ -649,6 +649,9 @@ export async function insertAdminNotification(data: { type: AdminNotification["t
   if (!db) return;
   await db.insert(adminNotifications).values(data);
 
+  // Notificación push a los teléfonos de los administradores (app cerrada)
+  void import("./push").then(m => m.enviarPushAdmins({ titulo: data.title, cuerpo: data.body, url: "/admin", etiqueta: data.type }));
+
   // Aviso en vivo al panel: sin esto había que recargar para verlo
   try {
     io?.to("admin").emit("admin:notificacion", {

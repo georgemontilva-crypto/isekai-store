@@ -37,6 +37,12 @@ export function useRaidSocket(
     // perdió algún aviso mientras tanto
     socket.io.on("reconnect", () => alReconectar.current?.());
 
-    return () => { socket.disconnect(); };
+    // Al volver a la app: si el canal se cortó en segundo plano, se reconecta
+    const alVolver = () => {
+      if (!socket.connected) socket.connect();
+      alReconectar.current?.();
+    };
+    window.addEventListener("iw:volver", alVolver);
+    return () => { window.removeEventListener("iw:volver", alVolver); socket.disconnect(); };
   }, []);
 }

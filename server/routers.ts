@@ -33,6 +33,7 @@ import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/ref
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
 import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones } from "./ruedaPrensa";
+import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
 /** Mensajes de rechazo del código de referido, en el idioma del cliente */
@@ -1071,6 +1072,29 @@ export const appRouter = router({
         return { posts: [], configured: true, error: "Failed to fetch feed" };
       }
     }),
+  }),
+
+  // ─── Notificaciones push de la app instalada ─────────────────────────────────
+  push: router({
+    clave: publicProcedure.query(() => clavePublicaPush()),
+    suscribir: protectedProcedure
+      .input(z.object({
+        endpoint: z.string().url().max(600).refine(u => u.startsWith("https://"), "Endpoint no válido"),
+        keys: z.object({ p256dh: z.string().min(20).max(200), auth: z.string().min(8).max(100) }),
+      }))
+      .mutation(({ input, ctx }) => guardarSuscripcion(ctx.user.id, input, String(ctx.req.headers["user-agent"] ?? ""))),
+    desuscribir: protectedProcedure
+      .input(z.object({ endpoint: z.string().max(600) }))
+      .mutation(({ input, ctx }) => borrarSuscripcion(ctx.user.id, input.endpoint)),
+    /** Envía una notificación de prueba a los dispositivos de quien la pide */
+    probar: protectedProcedure.mutation(async ({ ctx }) => ({
+      enviados: await enviarPushAUsuarios([ctx.user.id], {
+        titulo: "✅ Notificaciones activadas",
+        cuerpo: "Así te llegarán los avisos de Isekai World, aunque la app esté cerrada.",
+        url: ctx.user.role === "admin" ? "/admin" : "/",
+        etiqueta: "prueba",
+      }),
+    })),
   }),
 
   // ─── Campañas de correo (solo administradores) ──────────────────────────────

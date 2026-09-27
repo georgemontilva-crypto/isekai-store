@@ -901,3 +901,15 @@ export const bajasMarketing = mysqlTable("bajasMarketing", {
   email: varchar("email", { length: 320 }).notNull().unique(),
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
+
+// ─── Notificaciones push (app instalada) ───────────────────────────────────────
+/** Un registro por dispositivo que aceptó recibir notificaciones */
+export const pushSuscripciones = mysqlTable("pushSuscripciones", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  endpoint: varchar("endpoint", { length: 600 }).notNull().unique(),
+  p256dh: varchar("p256dh", { length: 200 }).notNull(),
+  auth: varchar("auth", { length: 100 }).notNull(),
+  dispositivo: varchar("dispositivo", { length: 200 }),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});

@@ -23,6 +23,10 @@ export const ENV = {
   resendApiKey:  process.env.RESEND_API_KEY ?? "",
   /** Remitente de las campañas (idealmente un subdominio, p. ej. «Isekai World <noticias@noticias.isekaiworld.co>») */
   campanasFrom: process.env.CAMPANAS_FROM ?? "",
+  /** Claves VAPID de las notificaciones push (se generan una vez) */
+  vapidPublicKey: process.env.VAPID_PUBLIC_KEY ?? "",
+  vapidPrivateKey: process.env.VAPID_PRIVATE_KEY ?? "",
+  vapidSubject: process.env.VAPID_SUBJECT ?? "mailto:hola@isekaiworld.co",
   resendFrom:    process.env.RESEND_FROM ?? "ISEKAI WORLD <noreply@isekaiworld.co>",
 
   // ── Storage: Cloudflare R2 ────────────────────────────────────────────────

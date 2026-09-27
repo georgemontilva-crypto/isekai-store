@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, CreditCard, ExternalLink, Package, RotateCcw, ShoppingBag, Sparkles, Tag, TrendingUp } from "lucide-react";
 import TarjetaRuedaPrensa from "./TarjetaRuedaPrensa";
+import ActivarNotificaciones from "./ActivarNotificaciones";
 
 /**
  * Inicio del panel de administración (computador y teléfono).
@@ -87,6 +88,9 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
           <ExternalLink size={14} /> Ver sitio
         </a>
       </div>
+
+      {/* Notificaciones push en este dispositivo */}
+      <ActivarNotificaciones />
 
       {/* ── 1. Requiere tu atención ── */}
       <section className="mb-7">

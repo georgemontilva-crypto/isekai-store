@@ -81,24 +81,52 @@ createRoot(document.getElementById("root")!).render(
 );
 
 /**
- * Limpieza del service worker.
- *
- * Ya no se usa: guardaba versiones antiguas de la web y al recargar aparecía
- * por un instante la interfaz original. Aquí se da de baja cualquier registro
- * que quede y se vacían las cachés, para que nadie siga viendo contenido
- * viejo. El archivo /sw.js sigue publicado, vacío, para limpiar a quienes
- * tengan instalada una versión anterior.
+ * Service worker: solo para notificaciones push (no guarda caché ni
+ * intercepta la carga, así que la web siempre llega fresca). Al registrarse
+ * también borra las cachés que hayan quedado de la versión antigua.
  */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.getRegistrations()
-      .then((regs) => regs.forEach((r) => { r.unregister().catch(() => {}); }))
-      .catch(() => {});
-
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
     if ('caches' in window) {
-      caches.keys()
-        .then((claves) => Promise.all(claves.map((k) => caches.delete(k))))
-        .catch(() => {});
+      caches.keys().then(claves => Promise.all(claves.map(k => caches.delete(k)))).catch(() => {});
     }
   });
 }
+
+/**
+ * Al volver a la app (sobre todo instalada en el teléfono): el sistema la
+ * congela en segundo plano y al despertarla mostraba datos viejos hasta
+ * cerrarla del todo. Ahora, al volver tras más de 3 segundos fuera:
+ *  - si se publicó una versión nueva del sitio, se recarga sola;
+ *  - si no, se vuelven a pedir los datos en pantalla y se reconectan los
+ *    canales en vivo (evento «iw:volver»).
+ */
+let versionInicial: string | null = null;
+const leerVersion = () =>
+  fetch('/api/version', { cache: 'no-store' }).then(r => r.json()).then((d: { v?: string }) => d.v ?? null).catch(() => null);
+void leerVersion().then(v => { versionInicial = v; });
+
+let ocultoDesde = 0;
+let volviendo = false;
+async function alVolver() {
+  if (volviendo) return;
+  volviendo = true;
+  try {
+    const v = await leerVersion();
+    if (versionInicial && v && v !== 'dev' && v !== versionInicial) {
+      window.location.reload();
+      return;
+    }
+    await queryClient.invalidateQueries({ refetchType: 'active' });
+    window.dispatchEvent(new Event('iw:volver'));
+  } finally {
+    volviendo = false;
+  }
+}
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) { ocultoDesde = Date.now(); return; }
+  if (ocultoDesde && Date.now() - ocultoDesde > 3000) void alVolver();
+});
+window.addEventListener('pageshow', e => { if (e.persisted) void alVolver(); });
+window.addEventListener('online', () => void alVolver());
