@@ -466,7 +466,7 @@ export const en: Translations = {
     titulo1: "Official invitation",
     titulo2: "Press conference",
     intro: "Some projects are announced. Others are presented in person, before the people who will make them possible.",
-    texto: "We are honored to invite you to the official Isekai World Fest 2027 press conference, where we will present the complete project for the first time and share the announcements we have kept secret until today.",
+    texto: "We are honored to invite you to the official Isekai World Fest 2027 press conference, where we will present the complete project for the first time and share the announcements we have kept secret until today. Leading media outlets will be present at the press conference.",
     fechaEtq: "Date",
     fecha1: "Saturday",
     fecha2: "7",

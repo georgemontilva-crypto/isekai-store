@@ -476,7 +476,7 @@ export const es = {
     titulo1: "Invitación oficial",
     titulo2: "Rueda de prensa",
     intro: "Hay proyectos que se anuncian. Y hay otros que se presentan en persona, frente a quienes los harán posibles.",
-    texto: "Tenemos el honor de invitarle a la rueda de prensa oficial de Isekai World Fest 2027, donde presentaremos por primera vez el proyecto completo y compartiremos los anuncios que hasta hoy hemos guardado en secreto.",
+    texto: "Tenemos el honor de invitarle a la rueda de prensa oficial de Isekai World Fest 2027, donde presentaremos por primera vez el proyecto completo y compartiremos los anuncios que hasta hoy hemos guardado en secreto. La rueda de prensa contará con la presencia de importantes medios de comunicación.",
     fechaEtq: "Fecha",
     fecha1: "Sábado",
     fecha2: "7",
