@@ -206,6 +206,37 @@ export default function RaidJefe({
    * función porque la caja no existe hasta que llegan los datos.
    */
   const [caja, setCaja] = useState<HTMLDivElement | null>(null);
+  const [seccion, setSeccion] = useState<HTMLElement | null>(null);
+
+  // En computadora, el fondo se coloca para que el portal de la imagen quede
+  // justo detrás del jefe. Centro del portal en la imagen: 48,5 % · 47 %.
+  useEffect(() => {
+    if (!seccion || !caja) return;
+    const PX = 0.485, PY = 0.47, PROP = 883 / 2000;
+    const ajustar = () => {
+      if (window.innerWidth < 1024) {
+        seccion.style.removeProperty("--rj-bg-w");
+        seccion.style.removeProperty("--rj-bg-x");
+        seccion.style.removeProperty("--rj-bg-y");
+        return;
+      }
+      const s = seccion.getBoundingClientRect();
+      const c = caja.getBoundingClientRect();
+      const cx = c.left - s.left + c.width / 2;
+      const cy = c.top - s.top + c.height / 2;
+      // Ancho: que el portal (≈32 % del ancho) envuelva al jefe y que la
+      // imagen cubra desde arriba de la sección
+      const w = Math.max(s.width * 1.3, c.width * 1.15 / 0.32, cy / (PY * PROP), 1600);
+      seccion.style.setProperty("--rj-bg-w", `${Math.round(w)}px`);
+      seccion.style.setProperty("--rj-bg-x", `${Math.round(cx - w * PX)}px`);
+      seccion.style.setProperty("--rj-bg-y", `${Math.round(cy - w * PROP * PY)}px`);
+    };
+    ajustar();
+    const ro = new ResizeObserver(ajustar);
+    ro.observe(seccion);
+    window.addEventListener("resize", ajustar);
+    return () => { ro.disconnect(); window.removeEventListener("resize", ajustar); };
+  }, [seccion, caja]);
   const [enVista, setEnVista] = useState(false);
   useEffect(() => {
     if (!caja || enVista) return;
@@ -421,7 +452,7 @@ export default function RaidJefe({
   const puedeAtacar = !caido && !data.yaAtaco && fase === "listo";
 
   return (
-    <section id="raid" className="ev2-diferida scroll-mt-16 ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
+    <section ref={setSeccion} id="raid" className="ev2-diferida scroll-mt-16 ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
       {/* Fondo: la ciudad en ruinas con el portal, y un glitch en la parte de
           arriba, como si la señal se cortara */}
       <div className="rj-fondo pointer-events-none absolute inset-0" aria-hidden="true">
@@ -440,6 +471,7 @@ export default function RaidJefe({
 
         {/* Barra de vida compartida */}
         <div ref={arenaRef} className="scroll-mt-20">
+        <div className="lg:mx-auto lg:max-w-lg">
         <div className="mb-2 flex items-end justify-between font-mono text-xs uppercase tracking-widest">
           <span className="text-[#f43f5e]">{t.raidVida}</span>
           <span className="text-white tabular-nums">
@@ -473,6 +505,8 @@ export default function RaidJefe({
           )}
         </div>
 
+        </div>
+
         {/* Golpes de otros cazadores, en vivo */}
         <div className="relative -mt-4 mb-2 h-0" aria-live="polite">
           <div className="absolute inset-x-0 top-0 z-20 flex flex-col items-start gap-1">
@@ -489,7 +523,7 @@ export default function RaidJefe({
           ref={setCaja}
           data-sin-toque
           onPointerDown={golpear}
-          className={`relative mx-auto mb-8 aspect-square w-full max-w-[300px] sm:max-w-[340px] select-none ${fase === "jugando" ? "cursor-crosshair" : ""}`}
+          className={`relative mx-auto mb-8 aspect-square w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[500px] select-none ${fase === "jugando" ? "cursor-crosshair" : ""}`}
           style={{ touchAction: fase === "jugando" ? "none" : "auto", WebkitTouchCallout: "none" }}
         >
           <div className={`absolute inset-[8%] rounded-full ${fase === "jugando" && golpes >= 50 ? "ev2-furia" : ""}`} style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />

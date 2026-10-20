@@ -4425,6 +4425,19 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
   background: linear-gradient(to bottom, rgba(18, 6, 13, .15) 0%, rgba(10, 4, 10, .4) 40%, rgba(6, 4, 13, .85) 78%, #06040d 100%);
 }
 @media (max-width: 639px) { .rj-fondo-velo { height: 760px; } }
+/* Computadora: la imagen la coloca el script para centrar el portal en el jefe */
+@media (min-width: 1024px) {
+  .rj-fondo-img, .rj-glitch {
+    height: 100%;
+    background-size: var(--rj-bg-w, cover);
+    background-position: var(--rj-bg-x, 50%) var(--rj-bg-y, 40%);
+  }
+  .rj-fondo-velo {
+    height: 100%;
+    background: radial-gradient(ellipse 60% 50% at 50% 55%, transparent 40%, rgba(6, 4, 13, .55) 100%),
+                linear-gradient(to bottom, rgba(18, 6, 13, .2) 0%, rgba(10, 4, 10, .3) 60%, rgba(6, 4, 13, .9) 88%, #06040d 100%);
+  }
+}
 /* Dos copias de la imagen, teñidas y desplazadas, que aparecen a ratos en
    franjas finas de la mitad de arriba */
 .rj-glitch { opacity: 0; mix-blend-mode: screen; }
