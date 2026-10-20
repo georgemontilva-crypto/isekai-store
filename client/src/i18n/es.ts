@@ -310,6 +310,9 @@ export const es = {
     nombresOcultos1: "Algunos nombres todavía no pueden ser revelados.",
     nombresOcultos2: "El Sistema aún está desbloqueándolos.",
 
+    invitadosTransmision: "Transmisión entrante · Invitados internacionales",
+    artistaInvitado: "Artista internacional invitado",
+    descifrandoNombre: "Descifrando nombre",
     invitadosEtiqueta: "[ Invitados ]",
     invitadosTitulo: "LOS ARTISTAS INTERNACIONALES ESTÁN LLEGANDO",
     invitadosTexto: "Creadores, cosplayers, artistas, invitados especiales y talentos internacionales serán parte del Isekai World Fest.",

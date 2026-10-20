@@ -245,6 +245,66 @@ function PortalGate() {
   );
 }
 
+/**
+ * Nombre «en descifrado»: caracteres que cambian sin parar como si el Sistema
+ * estuviera rompiendo una clave. Nunca muestra el nombre real (ni lo recibe).
+ * Solo se anima mientras está en pantalla, para no gastar batería.
+ */
+const GLIFOS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#$%&@*?/<>";
+function NombreDescifrando({ etiqueta, semilla }: { etiqueta: string; semilla: number }) {
+  const largo = semilla === 1 ? 9 : 11;
+  const azar = () => GLIFOS[Math.floor(Math.random() * GLIFOS.length)];
+  const [chars, setChars] = useState<string[]>(() => Array.from({ length: largo }, azar));
+  const [fijos, setFijos] = useState<boolean[]>(() => Array(largo).fill(false));
+  const [pct, setPct] = useState(0);
+  const ref = useRef<HTMLDivElement>(null);
+  const reducir = useReducedMotion();
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let visible = false;
+    let id = 0;
+    let tick = 0;
+    const paso = () => {
+      tick++;
+      // Algunos caracteres «se fijan» un momento y luego se vuelven a perder
+      setFijos(f => f.map(v => (v ? Math.random() > 0.25 : Math.random() > 0.93)));
+      setChars(c => c.map((ch, i) => (Math.random() > 0.35 ? azar() : ch)));
+      if (tick % 3 === 0) setPct(p => (p >= 97 ? 12 : Math.min(97, p + 1 + Math.floor(Math.random() * 4))));
+    };
+    const arrancar = () => { if (!id) id = window.setInterval(paso, reducir ? 400 : 75); };
+    const parar = () => { if (id) { window.clearInterval(id); id = 0; } };
+    const io = new IntersectionObserver(([en]) => {
+      visible = en.isIntersecting;
+      if (visible && !document.hidden) arrancar(); else parar();
+    });
+    io.observe(el);
+    const vis = () => { if (document.hidden) parar(); else if (visible) arrancar(); };
+    document.addEventListener("visibilitychange", vis);
+    return () => { parar(); io.disconnect(); document.removeEventListener("visibilitychange", vis); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reducir]);
+
+  return (
+    <div ref={ref} className="mt-3">
+      <p className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">
+        <span className="ev2-inv-cursor" aria-hidden="true" />
+        {etiqueta}<span className="ev2-parpadeo">…</span>
+        <span className="ml-auto tabular-nums text-[#7dd8ff]/70">{pct}%</span>
+      </p>
+      <div className="ev2-inv-clave mt-2.5 flex select-none justify-between gap-[2px] px-3 py-3" aria-label={etiqueta}>
+        {chars.map((ch, i) => (
+          <span key={i} aria-hidden="true" className={`ev2-inv-glifo ${fijos[i] ? "ev2-inv-glifo-fijo" : ""}`}>{ch}</span>
+        ))}
+      </div>
+      <div className="mt-2 h-[3px] overflow-hidden bg-white/[0.07]">
+        <div className="ev2-inv-progreso h-full" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  );
+}
+
 /** Silueta genérica para invitados aún sin revelar */
 function Silueta() {
   return (
@@ -813,27 +873,42 @@ export default function HomeEvento() {
         </div>
       </section>
 
-      {/* ═══ 5. INVITADOS ═══ */}
-      <section className="ev2-diferida px-6 pb-20 lg:px-16 lg:pb-24">
-        <div className="mx-auto max-w-5xl">
-          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            <NumSeccion n={5} />&nbsp;&nbsp;{e.invitadosEtiqueta}
-          </p>
-          <h2 className="ev-display mb-4 text-[26px] leading-[1.05] sm:text-5xl">{e.invitadosTitulo}</h2>
-          <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
+      {/* ═══ 5. INVITADOS ═══
+          Solo los dos artistas internacionales, en grande. Su nombre no se
+          muestra: el Sistema lo está «descifrando». Para revelarlo algún día,
+          poner wf_invitado_N_revelado = 1 (y su nombre) en los ajustes. */}
+      <section className="ev2-diferida ev2-inv-seccion relative overflow-hidden px-6 py-20 lg:px-16 lg:py-28">
+        <div className="ev2-inv-fondo pointer-events-none absolute inset-0" aria-hidden="true">
+          <span className="ev2-inv-aura ev2-inv-aura-1" />
+          <span className="ev2-inv-aura ev2-inv-aura-2" />
+          <span className="ev2-inv-rejilla" />
+          <span className="ev2-inv-barrido" />
+        </div>
+
+        <div className="relative mx-auto max-w-5xl">
+          <div className="mb-5 flex items-center justify-center gap-3">
+            <span className="ev2-inv-punto" aria-hidden="true" />
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#ff6bb5]">
+              <NumSeccion n={5} />&nbsp;&nbsp;{e.invitadosTransmision}
+            </p>
+          </div>
+          <h2 className="ev-display ev2-inv-titulo mx-auto mb-5 max-w-4xl text-center text-[34px] leading-[1.02] sm:text-6xl lg:text-7xl">
+            {e.invitadosTitulo}
+          </h2>
+          <p className="mx-auto mb-12 max-w-2xl text-center text-[15px] leading-relaxed text-[#b9aed6] sm:text-[17px]">
             {e.invitadosTexto}
           </p>
 
-          <div className="relative">
-            <FlechasCarril anterior={e.v2.anterior} siguiente={e.v2.siguiente} id="carril-invitados" />
-            <div id="carril-invitados" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
-            {[1, 2, 3].map(n => {
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-6 lg:gap-10">
+            {[1, 2].map(n => {
               const nombre = settings?.[`wf_invitado_${n}_nombre`];
               const foto = settings?.[`wf_invitado_${n}_foto`];
+              const revelado = settings?.[`wf_invitado_${n}_revelado`] === "1" && !!nombre;
               // Rango opcional (S, A, B…) desde el panel; «?» mientras no se revele
               const rango = String(settings?.[`wf_invitado_${n}_rango`] ?? "").trim().toUpperCase().slice(0, 2);
               return (
-                <div key={n} className={`ev-notch iw-card-grande ev2-cazador relative overflow-hidden border border-[#7dd8ff]/15 bg-[#0a0616] ${foto ? "" : "ev2-apagado"}`}>
+                <div key={n} className="ev2-inv-marco ev-notch p-[1.5px]">
+                <div className={`ev-notch ev2-cazador relative h-full overflow-hidden bg-[#0a0616] ${foto ? "" : "ev2-apagado"}`}>
                   {/* Esquinas de mira del Sistema */}
                   <span className="ev2-mira ev2-mira-1" aria-hidden="true" />
                   <span className="ev2-mira ev2-mira-2" aria-hidden="true" />
@@ -842,19 +917,17 @@ export default function HomeEvento() {
 
                   <div className="relative" style={{ aspectRatio: "4/5" }}>
                     {foto ? (
-                      <InvitadoFigura foto={foto} nombre={nombre ?? ""} />
+                      <InvitadoFigura foto={foto} nombre={revelado ? nombre ?? "" : e.artistaInvitado} />
                     ) : (
                       <div className="ev2-invitado relative flex h-full items-center justify-center overflow-hidden">
-                        {/* Sin foto todavía: solo el signo de interrogación */}
                         <span className="ev-display select-none text-[110px] leading-none text-[#3b3553]" aria-hidden="true">?</span>
                       </div>
                     )}
 
-                    {/* Escaneo del Sistema */}
                     <span className="ev2-escaneo" aria-hidden="true" />
                     <div className="absolute inset-x-3 top-3 flex items-start justify-between">
-                      <p className={`font-mono text-[9px] uppercase tracking-[0.25em] ${foto ? "text-[#7dd8ff]" : "text-[#64748b]"}`}>
-                        [ {e.v2.hudSistema.replace(/[[\]\s]/g, "")} ] {foto ? <span className="ev2-parpadeo">{e.v2.analizando}…</span> : <span>{e.v2.sinSenal}</span>}
+                      <p className="font-mono text-[9px] uppercase tracking-[0.25em] text-[#7dd8ff]">
+                        [ {e.v2.hudSistema.replace(/[[\]\s]/g, "")} ] <span className="ev2-parpadeo">{e.v2.analizando}…</span>
                       </p>
                       <div className="ev2-rango flex flex-col items-center" title={`${e.v2.rango} ${rango || "?"}`}>
                         <span className="ev2-rango-hex ev-display">{rango || "?"}</span>
@@ -863,31 +936,34 @@ export default function HomeEvento() {
                     </div>
                   </div>
 
-                  {/* Ficha del cazador */}
-                  <div className="relative border-t border-[#7dd8ff]/15 bg-gradient-to-b from-[#0e0a22] to-[#0a0616] p-5">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]/80">
-                      {e.v2.cazador} #{String(n).padStart(2, "0")} · {e.v2.perfilCazador}
+                  {/* Ficha: artista internacional y nombre en descifrado */}
+                  <div className="relative border-t border-[#ff3d9e]/25 bg-gradient-to-b from-[#120a26] to-[#0a0616] p-5 sm:p-6">
+                    <p className="ev2-inv-etiqueta flex items-center gap-2 font-mono text-[10.5px] font-bold uppercase tracking-[0.28em]">
+                      <Globe2 size={13} strokeWidth={2} /> {e.artistaInvitado}
                     </p>
-                    <p className="mt-1.5 font-black text-white">{nombre || e.porAnunciar}</p>
-                    <div className="mt-3 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.15em]">
+
+                    {revelado ? (
+                      <p className="mt-3 text-[22px] font-black text-white">{nombre}</p>
+                    ) : (
+                      <NombreDescifrando etiqueta={e.descifrandoNombre} semilla={n} />
+                    )}
+
+                    <div className="mt-4 grid grid-cols-[auto_1fr_auto] items-center gap-x-2 gap-y-1.5 font-mono text-[10px] uppercase tracking-[0.15em]">
                       <span className="text-[#7c6fa0]">{e.v2.poder}</span>
                       <span className="ev2-poder h-1.5 bg-white/10"><span /></span>
-                      <span className="text-[#c4b5fd]">{nombre ? "∞" : "???"}</span>
+                      <span className="text-[#c4b5fd]">{revelado ? "∞" : "???"}</span>
                       <span className="text-[#7c6fa0]">{e.v2.estadoCazador}</span>
                       <span />
-                      <span className={nombre ? "text-[#4ade80]" : "ev2-parpadeo text-[#f43f5e]"}>{nombre ? e.v2.confirmado : e.v2.porRevelar}</span>
+                      <span className="text-[#4ade80]">{e.v2.confirmado}</span>
                     </div>
                   </div>
                 </div>
+                </div>
               );
             })}
-            </div>
-            <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0] lg:hidden">
-              {e.v2.desliza} →
-            </p>
           </div>
 
-          <p className="mt-8 text-center font-mono text-sm leading-relaxed text-[#7c6fa0]">
+          <p className="mt-12 text-center font-mono text-sm leading-relaxed text-[#7c6fa0]">
             {e.nombresOcultos1}
             <br />
             <span className="text-[#a78bfa]">{e.nombresOcultos2}</span>

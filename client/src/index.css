@@ -4330,3 +4330,68 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 .tg-siguiente-suave { margin-left: auto; padding: 10px 6px; font: 700 11px/1 ui-monospace, monospace; letter-spacing: .18em; text-transform: uppercase; color: #7dd8ff; }
 .tg-siguiente-suave:hover { color: #fff; }
 @media (prefers-reduced-motion: reduce) { .tg-indicacion { animation: none; } }
+
+/* ═══ Invitados internacionales: sección destacada ═══ */
+.ev2-inv-seccion { background: linear-gradient(180deg, #07040f 0%, #0c0620 45%, #07040f 100%); }
+.ev2-inv-seccion::before, .ev2-inv-seccion::after {
+  content: ""; position: absolute; left: 0; right: 0; height: 1px; pointer-events: none;
+  background: linear-gradient(90deg, transparent, #ff3d9e 30%, #7dd8ff 70%, transparent);
+}
+.ev2-inv-seccion::before { top: 0; } .ev2-inv-seccion::after { bottom: 0; }
+.ev2-inv-aura { position: absolute; width: 70vw; max-width: 760px; aspect-ratio: 1; border-radius: 9999px; filter: blur(60px); opacity: .55; }
+.ev2-inv-aura-1 { left: -18%; top: 8%; background: radial-gradient(circle, rgba(229, 0, 125, .45), transparent 65%); animation: ev2-inv-flotar 11s ease-in-out infinite; }
+.ev2-inv-aura-2 { right: -18%; bottom: 0; background: radial-gradient(circle, rgba(56, 189, 248, .4), transparent 65%); animation: ev2-inv-flotar 13s ease-in-out infinite reverse; }
+@keyframes ev2-inv-flotar { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(6%, -5%) scale(1.12); } }
+.ev2-inv-rejilla {
+  position: absolute; inset: 0; opacity: .35;
+  background-image: linear-gradient(rgba(125, 216, 255, .07) 1px, transparent 1px), linear-gradient(90deg, rgba(125, 216, 255, .07) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 45%, #000 30%, transparent 75%);
+}
+.ev2-inv-barrido {
+  position: absolute; left: 0; right: 0; top: 0; height: 160px;
+  background: linear-gradient(to bottom, transparent, rgba(255, 61, 158, .08), transparent);
+  animation: ev2-inv-barrer 7s linear infinite;
+}
+@keyframes ev2-inv-barrer { from { transform: translateY(-160px); } to { transform: translateY(2400px); } }
+.ev2-inv-punto { width: 8px; height: 8px; border-radius: 9999px; background: #ff3d9e; box-shadow: 0 0 0 0 rgba(255, 61, 158, .7); animation: ev2-inv-latido 1.6s ease-out infinite; }
+@keyframes ev2-inv-latido { 0% { box-shadow: 0 0 0 0 rgba(255, 61, 158, .7); } 100% { box-shadow: 0 0 0 12px rgba(255, 61, 158, 0); } }
+.ev2-inv-titulo {
+  background: linear-gradient(100deg, #ffffff 20%, #ffb3d9 45%, #7dd8ff 60%, #ffffff 80%);
+  background-size: 220% 100%; -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: ev2-inv-brillo 6s ease-in-out infinite;
+  filter: drop-shadow(0 0 22px rgba(229, 0, 125, .35));
+}
+@keyframes ev2-inv-brillo { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0 0; } }
+
+/* Marco con luz que recorre el borde */
+.ev2-inv-marco {
+  background: linear-gradient(120deg, rgba(255, 61, 158, .9), rgba(125, 216, 255, .25) 30%, rgba(167, 139, 250, .2) 55%, rgba(125, 216, 255, .9) 80%, rgba(255, 61, 158, .9));
+  background-size: 300% 300%;
+  animation: ev2-inv-borde 6s linear infinite;
+  box-shadow: 0 0 40px -10px rgba(229, 0, 125, .55);
+  transition: transform .5s cubic-bezier(.16, 1, .3, 1), box-shadow .5s;
+}
+.ev2-inv-marco:hover { transform: translateY(-4px); box-shadow: 0 0 60px -6px rgba(229, 0, 125, .7); }
+@keyframes ev2-inv-borde { 0% { background-position: 0% 50%; } 100% { background-position: 300% 50%; } }
+
+.ev2-inv-etiqueta { color: #ff6bb5; text-shadow: 0 0 12px rgba(255, 61, 158, .55); }
+.ev2-inv-cursor { width: 7px; height: 11px; background: #7dd8ff; animation: ev2-parpadeo-texto 1s steps(2, jump-none) infinite; }
+.ev2-inv-clave {
+  border: 1px solid rgba(125, 216, 255, .22);
+  background: linear-gradient(180deg, rgba(125, 216, 255, .06), rgba(10, 6, 22, .4));
+  box-shadow: inset 0 0 18px rgba(56, 189, 248, .12);
+}
+.ev2-inv-glifo {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700;
+  display: inline-block; font-size: clamp(17px, 5.4vw, 24px); line-height: 1; width: 1ch; text-align: center;
+  color: rgba(196, 181, 253, .55); text-shadow: 0 0 8px rgba(125, 216, 255, .35);
+}
+.ev2-inv-glifo-fijo { color: #ffffff; text-shadow: 0 0 10px rgba(255, 61, 158, .9), 0 0 2px #fff; }
+.ev2-inv-progreso { background: linear-gradient(90deg, #38bdf8, #a78bfa, #ff3d9e); transition: width .25s ease; box-shadow: 0 0 10px rgba(255, 61, 158, .6); }
+
+.iw-ligero .ev2-inv-aura, .iw-ligero .ev2-inv-barrido { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .ev2-inv-aura, .ev2-inv-barrido, .ev2-inv-titulo, .ev2-inv-marco, .ev2-inv-punto { animation: none; }
+}

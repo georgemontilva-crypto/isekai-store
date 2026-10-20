@@ -300,6 +300,9 @@ export const en: Translations = {
     nombresOcultos1: "Some names can't be revealed yet.",
     nombresOcultos2: "The System is still unlocking them.",
 
+    invitadosTransmision: "Incoming transmission · International guests",
+    artistaInvitado: "International guest artist",
+    descifrandoNombre: "Decrypting name",
     invitadosEtiqueta: "[ Guests ]",
     invitadosTitulo: "INTERNATIONAL ARTISTS ARE ARRIVING",
     invitadosTexto: "Creators, cosplayers, artists, special guests and international talent will be part of Isekai World Fest.",
