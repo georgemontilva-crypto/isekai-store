@@ -74,7 +74,12 @@ const MOBILE_MENU_CSS = `
     /* Se extiende 90px por debajo del borde: con la barra del navegador
        apareciendo y desapareciendo, un fondo que acaba justo en el borde
        dejaba ver una línea de la página por detrás. */
-    inset: 0 0 -90px 0;
+    /* El panel mide justo la pantalla (antes se pasaba 90px y lo último del
+       menú, como «Iniciar sesión», quedaba fuera de alcance). El fondo se
+       prolonga hacia abajo con una sombra sólida, que no ocupa espacio. */
+    inset: 0;
+    height: 100dvh;
+    box-shadow: 0 90px 0 0 #050507;
     z-index: 60;
     background: #050507;
     display: flex;
@@ -118,7 +123,9 @@ const MOBILE_MENU_CSS = `
     transform: translateY(14px);
     transition: opacity .3s ease, transform .4s cubic-bezier(.34,1.56,.64,1);
   }
-  .iw-menu.is-open .iw-menu-item { opacity: 1; transform: translateY(0); }
+  /* Al terminar de entrar, sin transform: un transform activo partía en dos
+     capas los botones semitransparentes y se veía una línea cruzándolos. */
+  .iw-menu.is-open .iw-menu-item { opacity: 1; transform: none; }
   .iw-menu-link {
     display: inline-block;
     font-size: 26px;
@@ -604,6 +611,20 @@ export default function Navbar() {
             {lang === "es" ? "Switch to English" : "Cambiar a español"}
           </button>
 
+          {/* Iniciar sesión arriba, a la vista: al final del menú quedaba
+              escondido y había que bajar para encontrarlo. */}
+          {!isAuthenticated && (
+            <button
+              onClick={() => { setMobileOpen(false); openLoginModal(); }}
+              tabIndex={mobileOpen ? 0 : -1}
+              className="iw-menu-item iw-menu-cta ev-notch ev-press mb-6 flex w-full items-center justify-center gap-2 bg-[#e5007d] px-5 text-[14px] text-white"
+              style={{ minHeight: 52, borderColor: "#e5007d" }}
+            >
+              <User size={17} strokeWidth={2} />
+              {t.nav.signIn}
+            </button>
+          )}
+
           <p className="iw-menu-item ev-display mb-3 text-[10px] uppercase tracking-[0.25em] text-white/40"
              style={{ transitionDelay: mobileOpen ? "80ms" : "0ms" }}>
             Navegación
@@ -655,7 +676,7 @@ export default function Navbar() {
               href="/tienda"
               onClick={() => setMobileOpen(false)}
               tabIndex={mobileOpen ? 0 : -1}
-              className="iw-menu-cta ev-notch relative inline-flex items-center justify-center gap-2 overflow-hidden border border-[#e5007d]/60 bg-[#e5007d]/10 px-5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
+              className="iw-menu-cta ev-notch inline-flex items-center justify-center gap-2 border border-[#e5007d]/60 bg-[#1d0613] px-5 text-[14px] text-[#ff45a0] transition-colors hover:bg-[#e5007d] hover:text-white"
               style={{ minHeight: 54 }}
             >
               <ShoppingBag size={17} strokeWidth={1.8} />
@@ -663,20 +684,6 @@ export default function Navbar() {
             </Link>
           </div>
 
-          {/* Cuenta */}
-          <div className="iw-menu-item mt-9 flex flex-col gap-3 border-t border-white/[0.08] pt-7" style={{ transitionDelay: mobileOpen ? `${160 + mobileLinks.length * 55}ms` : "0ms" }}>
-            {/* "Mi cuenta" ya está en la rejilla de arriba: repetirlo aquí
-                sobraba. Se conserva solo el acceso para quien no ha entrado. */}
-            {!isAuthenticated && (
-              <button
-                onClick={() => { setMobileOpen(false); openLoginModal(); }}
-                tabIndex={mobileOpen ? 0 : -1}
-                className="iw-menu-cta w-full rounded-xl border border-white/10 bg-white/[0.06] px-5 py-3.5 text-[14px] text-white transition-colors hover:bg-white/[0.1]"
-              >
-                {t.nav.signIn}
-              </button>
-            )}
-          </div>
         </nav>
       </div>
 
