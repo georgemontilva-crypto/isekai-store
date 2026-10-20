@@ -4397,3 +4397,65 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 }
 .ev2-inv-clave-larga .ev2-inv-glifo { font-size: clamp(15px, 4.4vw, 21px); }
 @media (min-width: 640px) and (max-width: 1023px) { .ev2-inv-clave-larga .ev2-inv-glifo { font-size: 15px; } }
+
+/* Portal astral en video detrás de cada artista */
+.ev2-portal-video {
+  position: absolute; left: 50%; top: 44%; width: 118%; height: 118%; max-width: none;
+  transform: translate(-50%, -50%); object-fit: cover; mix-blend-mode: screen;
+  -webkit-mask-image: radial-gradient(ellipse 62% 58% at 50% 46%, #000 55%, transparent 82%);
+  mask-image: radial-gradient(ellipse 62% 58% at 50% 46%, #000 55%, transparent 82%);
+}
+/* Fondo de la sección de invitados */
+.ev2-inv-imagen {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 60%; opacity: .6;
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 78%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 18%, #000 78%, transparent);
+}
+
+/* ═══ Jefe: fondo con glitch arriba ═══ */
+/* La imagen vive en la parte de arriba (título y jefe) y se funde hacia abajo */
+.rj-fondo-img, .rj-glitch {
+  position: absolute; left: 0; right: 0; top: 0; height: min(100%, 880px);
+  background: url(/fest/jefe-fondo.webp) center 40% / cover no-repeat;
+}
+@media (max-width: 639px) { .rj-fondo-img, .rj-glitch { height: 760px; background-position: 50% 50%; } }
+.rj-fondo-img { opacity: .75; }
+.rj-fondo-velo {
+  position: absolute; left: 0; right: 0; top: 0; height: min(100%, 880px);
+  background: linear-gradient(to bottom, rgba(18, 6, 13, .15) 0%, rgba(10, 4, 10, .4) 40%, rgba(6, 4, 13, .85) 78%, #06040d 100%);
+}
+@media (max-width: 639px) { .rj-fondo-velo { height: 760px; } }
+/* Dos copias de la imagen, teñidas y desplazadas, que aparecen a ratos en
+   franjas finas de la mitad de arriba */
+.rj-glitch { opacity: 0; mix-blend-mode: screen; }
+.rj-glitch-1 { filter: hue-rotate(-40deg) saturate(3) brightness(1.2); animation: rj-glitch-1 3.6s steps(1) infinite; }
+.rj-glitch-2 { filter: hue-rotate(140deg) saturate(3) brightness(1.1); animation: rj-glitch-2 3.6s steps(1) infinite; }
+@keyframes rj-glitch-1 {
+  0%, 62%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  64% { opacity: .55; clip-path: inset(8% 0 90% 0); transform: translateX(-14px); }
+  66% { opacity: .5;  clip-path: inset(22% 0 76% 0); transform: translateX(18px); }
+  68% { opacity: .6;  clip-path: inset(3% 0 95% 0); transform: translateX(-8px); }
+  70% { opacity: .45; clip-path: inset(30% 0 68% 0); transform: translateX(10px); }
+  72% { opacity: 0; }
+  90% { opacity: .5; clip-path: inset(14% 0 84% 0); transform: translateX(22px); }
+  92% { opacity: 0; }
+}
+@keyframes rj-glitch-2 {
+  0%, 63%, 100% { opacity: 0; clip-path: inset(0 0 100% 0); transform: none; }
+  65% { opacity: .5; clip-path: inset(12% 0 86% 0); transform: translateX(12px); }
+  67% { opacity: .55; clip-path: inset(26% 0 72% 0); transform: translateX(-20px); }
+  69% { opacity: .4; clip-path: inset(5% 0 93% 0); transform: translateX(6px); }
+  71% { opacity: 0; }
+  91% { opacity: .45; clip-path: inset(18% 0 80% 0); transform: translateX(-16px); }
+  93% { opacity: 0; }
+}
+/* Línea de interferencia que recorre la parte de arriba */
+.rj-glitch-barra {
+  position: absolute; left: 0; right: 0; top: 0; height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(244, 63, 94, .9), rgba(125, 216, 255, .9), transparent);
+  box-shadow: 0 0 14px rgba(244, 63, 94, .7); opacity: .7;
+  animation: rj-barra 2.4s cubic-bezier(.6, 0, .4, 1) infinite;
+}
+@keyframes rj-barra { 0% { transform: translateY(0); opacity: 0; } 10% { opacity: .8; } 50% { transform: translateY(42vh); opacity: .5; } 51%, 100% { opacity: 0; transform: translateY(42vh); } }
+.iw-ligero .rj-glitch, .iw-ligero .rj-glitch-barra { animation: none; display: none; }
+@media (prefers-reduced-motion: reduce) { .rj-glitch, .rj-glitch-barra { animation: none; display: none; } }

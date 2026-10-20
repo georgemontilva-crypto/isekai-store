@@ -223,18 +223,36 @@ function InvitadoFigura({ foto, nombre }: { foto: string; nombre: string }) {
 }
 
 /**
- * Portal de mazmorra (Gate) detrás del cazador: óvalo de energía azul y
- * púrpura con un remolino que gira dentro y partículas que se escapan.
+ * Portal astral detrás del artista: video en bucle (anillo morado sobre el
+ * agua). El negro del video se funde con la tarjeta (modo «screen»), así que
+ * solo se ve la luz. Solo se reproduce cuando está en pantalla; en teléfonos
+ * de gama baja o con «reducir movimiento» queda la imagen fija.
  */
 function PortalGate() {
+  const ref = useRef<HTMLVideoElement>(null);
+  const reducir = useReducedMotion();
+  const [quieto] = useState(() => esGamaBaja());
+  const estatico = quieto || !!reducir;
+  useEffect(() => {
+    const v = ref.current;
+    if (!v || estatico) return;
+    const io = new IntersectionObserver(([en]) => {
+      if (en.isIntersecting) { void v.play().catch(() => {}); } else v.pause();
+    }, { rootMargin: "120px" });
+    io.observe(v);
+    return () => io.disconnect();
+  }, [estatico]);
   return (
     <div className="pointer-events-none absolute inset-0" aria-hidden="true">
-      <span className="ev2-portalgate-halo" />
-      <span className="ev2-portalgate">
-        <span className="ev2-portalgate-remolino" />
-        <span className="ev2-portalgate-nucleo" />
-      </span>
-      {Array.from({ length: 7 }, (_, i) => (
+      {estatico ? (
+        <img src="/fest/portal-astral.jpg" alt="" className="ev2-portal-video" loading="lazy" />
+      ) : (
+        <video ref={ref} className="ev2-portal-video" muted loop playsInline preload="metadata" poster="/fest/portal-astral.jpg">
+          <source src="/fest/portal-astral.webm" type="video/webm" />
+          <source src="/fest/portal-astral.mp4" type="video/mp4" />
+        </video>
+      )}
+      {Array.from({ length: 6 }, (_, i) => (
         <span
           key={i}
           className="ev2-invitado-particula"
@@ -899,6 +917,7 @@ export default function HomeEvento() {
           poner wf_invitado_N_revelado = 1 (y su nombre) en los ajustes. */}
       <section className="ev2-diferida ev2-inv-seccion relative overflow-hidden px-6 py-20 lg:px-16 lg:py-28">
         <div className="ev2-inv-fondo pointer-events-none absolute inset-0" aria-hidden="true">
+          <img src="/fest/invitados-fondo.webp" alt="" loading="lazy" decoding="async" className="ev2-inv-imagen" />
           <span className="ev2-inv-aura ev2-inv-aura-1" />
           <span className="ev2-inv-aura ev2-inv-aura-2" />
           <span className="ev2-inv-rejilla" />

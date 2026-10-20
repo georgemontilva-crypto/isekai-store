@@ -422,7 +422,16 @@ export default function RaidJefe({
 
   return (
     <section id="raid" className="ev2-diferida scroll-mt-16 ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
-      <div className="mx-auto max-w-3xl">
+      {/* Fondo: la ciudad en ruinas con el portal, y un glitch en la parte de
+          arriba, como si la señal se cortara */}
+      <div className="rj-fondo pointer-events-none absolute inset-0" aria-hidden="true">
+        <span className="rj-fondo-img" />
+        <span className="rj-glitch rj-glitch-1" />
+        <span className="rj-glitch rj-glitch-2" />
+        <span className="rj-glitch-barra" />
+        <span className="rj-fondo-velo" />
+      </div>
+      <div className="relative mx-auto max-w-3xl">
         <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#f43f5e]">
           {numero}&nbsp;&nbsp;{t.raidEtiqueta}
         </p>
