@@ -255,6 +255,9 @@ const GLIFOS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#$%&@*?/<>";
  * Forma del nombre de cada invitado (letras por palabra). Solo la forma, nunca
  * las letras: 1 = Taryn (5), 2 = Prince De Guzman (6 · 2 · 6).
  */
+/** Silueta incluida en la web por si no hay foto subida desde el panel */
+const FOTO_RESPALDO_INVITADO: Record<number, string> = { 2: "/invitados/invitado-2-silueta.png" };
+
 const PATRON_NOMBRE: Record<number, number[]> = { 1: [5], 2: [6, 2, 6] };
 
 function NombreDescifrando({ etiqueta, semilla }: { etiqueta: string; semilla: number }) {
@@ -919,7 +922,8 @@ export default function HomeEvento() {
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-6 lg:gap-10">
             {[1, 2].map(n => {
               const nombre = settings?.[`wf_invitado_${n}_nombre`];
-              const foto = settings?.[`wf_invitado_${n}_foto`];
+              // Si no se subió foto en el panel, el invitado 2 usa su silueta incluida en la web
+              const foto = settings?.[`wf_invitado_${n}_foto`] || FOTO_RESPALDO_INVITADO[n];
               const revelado = settings?.[`wf_invitado_${n}_revelado`] === "1" && !!nombre;
               // Rango opcional (S, A, B…) desde el panel; «?» mientras no se revele
               const rango = String(settings?.[`wf_invitado_${n}_rango`] ?? "").trim().toUpperCase().slice(0, 2);
