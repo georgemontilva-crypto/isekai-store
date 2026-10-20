@@ -427,6 +427,8 @@ export default function HomeEvento() {
    * ni requiere cuenta.
    */
   const [xpDemo, setXpDemo] = useState(0);
+  /** Misiones de ejemplo ya completadas en la simulación */
+  const [misionesHechas, setMisionesHechas] = useState<number[]>([]);
   const [ascensoDemo, setAscensoDemo] = useState<string | null>(null);
 
   const UMBRALES = [0, 60, 140, 240, 360, 500];
@@ -1031,10 +1033,10 @@ export default function HomeEvento() {
           {/* ── Simulación ──
               Pruébalo aquí mismo: es más convincente ver el ascenso que leer
               una explicación. Todo ocurre en el navegador, no se guarda nada. */}
-          <div className="mx-auto mb-16 max-w-lg">
+          <div className="mx-auto mb-16 grid max-w-lg grid-cols-1 items-stretch gap-6 lg:max-w-5xl lg:grid-cols-2">
             <div
               ref={tutoVentanaRef}
-              className="lp-ventana p-7 sm:p-9"
+              className="lp-ventana p-7 sm:p-9 lg:flex lg:flex-col lg:justify-center"
               style={{ ["--lp-rango" as string]: colorDemo }}
             >
               <p className="mb-6 text-center font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: colorDemo }}>
@@ -1104,7 +1106,7 @@ export default function HomeEvento() {
                   +80 EXP
                 </button>
                 <button
-                  onClick={() => { setXpDemo(0); setAscensoDemo(null); }}
+                  onClick={() => { setXpDemo(0); setAscensoDemo(null); setMisionesHechas([]); }}
                   className="rounded-lg border border-white/15 px-5 font-mono text-xs font-bold uppercase tracking-widest text-[#5f7f96]"
                   style={{ minHeight: 48 }}
                 >
@@ -1116,7 +1118,7 @@ export default function HomeEvento() {
                 {e.notaSimulacion}
               </p>
               <button
-                onClick={() => { setXpDemo(0); setAscensoDemo(null); abrirTutorialRef.current?.(); }}
+                onClick={() => { setXpDemo(0); setAscensoDemo(null); setMisionesHechas([]); abrirTutorialRef.current?.(); }}
                 className="mx-auto mt-3 block font-mono text-[10px] uppercase tracking-[0.25em] text-[#7dd8ff] underline-offset-4 hover:underline"
               >
                 ▶ {e.tutorial.ver}
@@ -1133,6 +1135,75 @@ export default function HomeEvento() {
                   { objetivo: tutoVentanaRef, titulo: e.tutorial.p4Titulo, texto: e.tutorial.p4Texto },
                 ]}
               />
+            </div>
+
+            {/* ── Lista de misiones (ejemplo): cada una suma su EXP a la simulación ── */}
+            <div className="lp-ventana flex flex-col p-7 sm:p-9" style={{ ["--lp-rango" as string]: colorDemo }}>
+              <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: colorDemo }}>
+                {e.listaMisiones.etiqueta}
+              </p>
+              <h3 className="mb-3 text-xl font-black text-white sm:text-2xl">{e.listaMisiones.titulo}</h3>
+              <p className="mb-6 text-[14px] leading-relaxed text-[#8fa8bd]">{e.listaMisiones.texto}</p>
+
+              <div className="mb-3 flex items-center justify-between gap-3 font-mono text-[9.5px] uppercase tracking-[0.1em] sm:text-[10px] sm:tracking-[0.2em]">
+                <span className="text-[#5f7f96]">{e.listaMisiones.ejemplo}</span>
+                <span className="shrink-0" style={{ color: colorDemo }}>
+                  {e.listaMisiones.progreso.replace("{h}", String(misionesHechas.length)).replace("{t}", String(e.listaMisiones.items.length))}
+                </span>
+              </div>
+
+              <ul className="flex flex-col gap-2">
+                {e.listaMisiones.items.map((m, i) => {
+                  const hecha = misionesHechas.includes(i);
+                  return (
+                    <li key={i}>
+                      <button
+                        onClick={() => {
+                          if (hecha || xpDemo >= 500) return;
+                          setMisionesHechas(h => [...h, i]);
+                          sumarXp(m.xp);
+                        }}
+                        disabled={hecha}
+                        className="lp-mision ev-press flex w-full items-center gap-3 border px-3.5 py-3 text-left transition-colors"
+                        style={{
+                          borderColor: hecha ? `${colorDemo}66` : "rgba(255,255,255,0.08)",
+                          background: hecha ? `${colorDemo}14` : "rgba(255,255,255,0.025)",
+                        }}
+                      >
+                        <span
+                          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[12px] font-black transition-colors"
+                          style={{ borderColor: hecha ? colorDemo : "rgba(255,255,255,0.25)", background: hecha ? colorDemo : "transparent", color: "#04080f" }}
+                          aria-hidden="true"
+                        >
+                          {hecha ? "✓" : ""}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className={`block text-[14px] font-semibold leading-snug ${hecha ? "text-white/60 line-through decoration-white/30" : "text-white"}`}>{m.t}</span>
+                          <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-[0.15em] text-[#5f7f96]">
+                            {e.listaMisiones.estacion}: {m.z}
+                          </span>
+                        </span>
+                        <span className="shrink-0 text-right font-mono text-[12px] font-bold" style={{ color: colorDemo }}>
+                          +{m.xp} EXP
+                          <span className="mt-0.5 block text-[9px] font-normal uppercase tracking-[0.15em] text-[#5f7f96]">
+                            {hecha ? e.listaMisiones.hecha : e.listaMisiones.completar}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+                <li>
+                  <div className="flex w-full items-center gap-3 border border-dashed border-white/10 px-3.5 py-3 opacity-70">
+                    <Lock size={16} className="shrink-0 text-[#5f7f96]" />
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[14px] font-semibold text-[#8fa8bd]">{e.listaMisiones.secreta}</span>
+                      <span className="mt-0.5 block font-mono text-[10px] uppercase tracking-[0.15em] text-[#5f7f96]">{e.listaMisiones.secretaTexto}</span>
+                    </span>
+                    <span className="shrink-0 font-mono text-[12px] font-bold text-[#5f7f96]">??? EXP</span>
+                  </div>
+                </li>
+              </ul>
             </div>
           </div>
 
