@@ -131,6 +131,13 @@ export default function Account() {
     },
   });
 
+  // Va antes de cualquier «return»: los hooks siempre en el mismo orden.
+  // Sin sesión no tiene sentido quedarse en /account: se vuelve al inicio,
+  // donde el usuario puede abrir el diálogo de acceso con el ícono de cuenta.
+  useEffect(() => {
+    if (!loading && !isAuthenticated) navigate("/");
+  }, [loading, isAuthenticated, navigate]);
+
   if (loading) {
     return (
       <div className="min-h-screen pt-24 flex items-center justify-center">
@@ -138,12 +145,6 @@ export default function Account() {
       </div>
     );
   }
-
-  // Sin sesión no tiene sentido quedarse en /account: se vuelve al inicio,
-  // donde el usuario puede abrir el diálogo de acceso con el ícono de cuenta.
-  useEffect(() => {
-    if (!loading && !isAuthenticated) navigate("/");
-  }, [loading, isAuthenticated, navigate]);
 
   if (!isAuthenticated) return null;
 
@@ -172,7 +173,7 @@ export default function Account() {
           <p className="text-sm text-[#888]">{user?.email}</p>
           <button
             onClick={async () => { await logout(); navigate("/"); }}
-            className="mt-2 flex items-center gap-1.5 text-xs text-[#888] hover:text-[#1a1a1a] transition-colors"
+            className="mt-3 flex items-center gap-1.5 rounded-full border border-[#888]/40 px-4 py-2 text-xs font-semibold text-[#888] hover:text-[#1a1a1a] transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
             Cerrar sesión
@@ -788,6 +789,13 @@ export default function Account() {
                     </div>
                   )}
                 </div>
+                <button
+                  onClick={async () => { await logout(); navigate("/"); }}
+                  className="ev-notch ev-press flex w-full items-center justify-center gap-2 border border-[#e5007d]/50 bg-[#e5007d]/10 py-3.5 text-sm font-bold text-[#ff3d9e] transition-colors hover:bg-[#e5007d]/20"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Cerrar sesión
+                </button>
               </div>
             )}
 
