@@ -251,8 +251,15 @@ function PortalGate() {
  * Solo se anima mientras está en pantalla, para no gastar batería.
  */
 const GLIFOS = "ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#$%&@*?/<>";
+/**
+ * Forma del nombre de cada invitado (letras por palabra). Solo la forma, nunca
+ * las letras: 1 = Taryn (5), 2 = Prince De Guzman (6 · 2 · 6).
+ */
+const PATRON_NOMBRE: Record<number, number[]> = { 1: [5], 2: [6, 2, 6] };
+
 function NombreDescifrando({ etiqueta, semilla }: { etiqueta: string; semilla: number }) {
-  const largo = semilla === 1 ? 9 : 11;
+  const patron = PATRON_NOMBRE[semilla] ?? [8];
+  const largo = patron.reduce((a, b) => a + b, 0);
   const azar = () => GLIFOS[Math.floor(Math.random() * GLIFOS.length)];
   const [chars, setChars] = useState<string[]>(() => Array.from({ length: largo }, azar));
   const [fijos, setFijos] = useState<boolean[]>(() => Array(largo).fill(false));
@@ -293,10 +300,20 @@ function NombreDescifrando({ etiqueta, semilla }: { etiqueta: string; semilla: n
         {etiqueta}<span className="ev2-parpadeo">…</span>
         <span className="ml-auto tabular-nums text-[#7dd8ff]/70">{pct}%</span>
       </p>
-      <div className="ev2-inv-clave mt-2.5 flex select-none justify-between gap-[2px] px-3 py-3" aria-label={etiqueta}>
-        {chars.map((ch, i) => (
-          <span key={i} aria-hidden="true" className={`ev2-inv-glifo ${fijos[i] ? "ev2-inv-glifo-fijo" : ""}`}>{ch}</span>
-        ))}
+      <div
+        className={`ev2-inv-clave mt-2.5 flex select-none items-center justify-center px-3 py-3 ${largo > 8 ? "ev2-inv-clave-larga gap-3" : "gap-1"}`}
+        aria-label={etiqueta}
+      >
+        {patron.map((n, w) => {
+          const desde = patron.slice(0, w).reduce((a, b) => a + b, 0);
+          return (
+            <span key={w} className={`flex ${largo > 8 ? "gap-[1px]" : "gap-3"}`}>
+              {chars.slice(desde, desde + n).map((ch, k) => (
+                <span key={k} aria-hidden="true" className={`ev2-inv-glifo ${fijos[desde + k] ? "ev2-inv-glifo-fijo" : ""}`}>{ch}</span>
+              ))}
+            </span>
+          );
+        })}
       </div>
       <div className="mt-2 h-[3px] overflow-hidden bg-white/[0.07]">
         <div className="ev2-inv-progreso h-full" style={{ width: `${pct}%` }} />

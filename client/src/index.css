@@ -4395,3 +4395,5 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 @media (prefers-reduced-motion: reduce) {
   .ev2-inv-aura, .ev2-inv-barrido, .ev2-inv-titulo, .ev2-inv-marco, .ev2-inv-punto { animation: none; }
 }
+.ev2-inv-clave-larga .ev2-inv-glifo { font-size: clamp(15px, 4.4vw, 21px); }
+@media (min-width: 640px) and (max-width: 1023px) { .ev2-inv-clave-larga .ev2-inv-glifo { font-size: 15px; } }
