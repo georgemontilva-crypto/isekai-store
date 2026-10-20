@@ -32,7 +32,7 @@ import {
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
-import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones } from "./ruedaPrensa";
+import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
@@ -1137,7 +1137,17 @@ export const appRouter = router({
     confirmar: publicProcedure
       .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/) }))
       .mutation(({ input, ctx }) => confirmarAsistencia(input.clave, clientIp(ctx.req))),
+    /** Quien ya confirmó deja su tienda, correo y WhatsApp */
+    completarDatos: publicProcedure
+      .input(z.object({
+        clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/),
+        tienda: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        email: z.string().trim().toLowerCase().email().max(320),
+        whatsapp: z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/).transform(v => v.replace(/[^0-9+]/g, "")),
+      }))
+      .mutation(({ input }) => completarDatos(input.clave, { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp })),
     total: adminProcedure.query(() => totalConfirmaciones()),
+    lista: adminProcedure.query(() => listaConfirmaciones()),
   }),
 
   // ─── World Fest: raid comunitario (landing) ─────────────────────────────────

@@ -4064,6 +4064,9 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
   transition: box-shadow .3s ease, filter .3s ease;
 }
 .rp-boton:hover { filter: brightness(1.08); box-shadow: 0 16px 40px -12px rgba(232, 48, 90, .85); }
+.rp-campo { border-bottom: 1px solid rgba(255, 77, 109, .35); border-radius: 0; transition: border-color .2s, background .2s; }
+.rp-campo:focus { border-bottom-color: #ff4d6d; background: rgba(255, 77, 109, .05); }
+.rp-campo:-webkit-autofill { -webkit-text-fill-color: #f6e3e7; -webkit-box-shadow: 0 0 0 1000px #12070b inset; caret-color: #f6e3e7; }
 
 /* Panel: el número de confirmados salta cuando llega una nueva */
 @keyframes prensa-pop { 0% { transform: scale(1); } 35% { transform: scale(1.35); filter: brightness(1.5); } 100% { transform: scale(1); } }

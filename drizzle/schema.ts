@@ -862,6 +862,11 @@ export const wfPrensaConfirmaciones = mysqlTable("wfPrensaConfirmaciones", {
   id: int("id").autoincrement().primaryKey(),
   clave: varchar("clave", { length: 64 }).notNull().unique(),
   ip: varchar("ip", { length: 64 }).notNull(),
+  /** Datos que la persona deja después de confirmar (opcionales) */
+  tienda: varchar("tienda", { length: 150 }),
+  email: varchar("email", { length: 320 }),
+  whatsapp: varchar("whatsapp", { length: 30 }),
+  datosEn: timestamp("datosEn"),
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
 
