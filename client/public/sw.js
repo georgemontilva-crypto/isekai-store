@@ -1,19 +1,44 @@
 /**
- * Service worker de Isekai World: SOLO notificaciones push.
+ * Service worker de Isekai World: notificaciones push y pantalla sin conexión.
  *
- * No guarda nada en caché ni intercepta peticiones (no hay «fetch»): la web
- * siempre se carga fresca desde la red. Esto evita el problema de antes, en
- * el que aparecían versiones viejas de la web. Al activarse, además, borra
- * cualquier caché que haya quedado de aquella versión.
+ * La web NO se guarda en caché: cada página se pide siempre a la red, así que
+ * nunca aparece una versión vieja (el problema de antes). Lo único guardado es
+ * una pantalla pequeña de «sin conexión», que solo se muestra si al abrir una
+ * página no hay internet, en vez del dinosaurio o la pantalla en blanco.
  */
+const CACHE_OFFLINE = 'iw-offline-v1';
+const PAGINA_OFFLINE = '/offline.html';
 
-self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('install', (event) => {
+  event.waitUntil((async () => {
+    const c = await caches.open(CACHE_OFFLINE);
+    await c.add(new Request(PAGINA_OFFLINE, { cache: 'reload' })).catch(() => {});
+    await self.skipWaiting();
+  })());
+});
 
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
+    // Borra cualquier caché de versiones anteriores (menos la de sin conexión)
     const claves = await caches.keys();
-    await Promise.all(claves.map((k) => caches.delete(k)));
+    await Promise.all(claves.filter((k) => k !== CACHE_OFFLINE).map((k) => caches.delete(k)));
+    if (self.registration.navigationPreload) await self.registration.navigationPreload.enable().catch(() => {});
     await self.clients.claim();
+  })());
+});
+
+// Solo se intercepta la apertura de páginas, y solo para el caso sin internet
+self.addEventListener('fetch', (event) => {
+  if (event.request.mode !== 'navigate') return;
+  event.respondWith((async () => {
+    try {
+      const previa = await event.preloadResponse;
+      if (previa) return previa;
+      return await fetch(event.request);
+    } catch {
+      const c = await caches.open(CACHE_OFFLINE);
+      return (await c.match(PAGINA_OFFLINE)) || new Response('Sin conexión', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
+    }
   })());
 });
 

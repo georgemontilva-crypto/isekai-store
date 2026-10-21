@@ -81,15 +81,16 @@ createRoot(document.getElementById("root")!).render(
 );
 
 /**
- * Service worker: solo para notificaciones push (no guarda caché ni
- * intercepta la carga, así que la web siempre llega fresca). Al registrarse
- * también borra las cachés que hayan quedado de la versión antigua.
+ * Service worker: notificaciones push y pantalla de «sin conexión». La web
+ * no se guarda en caché (siempre llega fresca); al registrarse se borran las
+ * cachés que hayan quedado de la versión antigua.
  */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
     if ('caches' in window) {
-      caches.keys().then(claves => Promise.all(claves.map(k => caches.delete(k)))).catch(() => {});
+      // Se conserva solo la pantalla de «sin conexión» del service worker
+      caches.keys().then(claves => Promise.all(claves.filter(k => k !== 'iw-offline-v1').map(k => caches.delete(k)))).catch(() => {});
     }
   });
 }

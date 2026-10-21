@@ -870,6 +870,21 @@ export const wfPrensaConfirmaciones = mysqlTable("wfPrensaConfirmaciones", {
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
 
+// ─── Patrocinantes: banners del carrusel de la zona del cazador ────────────────
+export const patrocinantes = mysqlTable("patrocinantes", {
+  id: int("id").autoincrement().primaryKey(),
+  nombre: varchar("nombre", { length: 120 }).notNull(),
+  imagenUrl: varchar("imagenUrl", { length: 500 }).notNull(),
+  /** A dónde lleva el banner al tocarlo (opcional) */
+  enlace: varchar("enlace", { length: 500 }),
+  orden: int("orden").default(0).notNull(),
+  activo: boolean("activo").default(true).notNull(),
+  /** Veces que se mostró y que se tocó: para rendirle cuentas al patrocinante */
+  vistas: int("vistas").default(0).notNull(),
+  clics: int("clics").default(0).notNull(),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
+});
+
 // ─── Campañas de correo (el «Mailchimp propio» del panel) ──────────────────────
 export const campanas = mysqlTable("campanas", {
   id: int("id").autoincrement().primaryKey(),

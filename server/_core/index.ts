@@ -164,17 +164,29 @@ async function startServer() {
       res.setHeader('Content-Type', 'application/manifest+json');
       res.setHeader('Cache-Control', 'public, max-age=3600');
       res.json({
+        id: '/',
         name: ajustes['store_name'] || 'Isekai World',
         short_name: ajustes['pwa_short_name'] || 'Isekai',
         description: 'Eventos temáticos y experiencias inmersivas de anime, gaming y cosplay.',
-        start_url: '/',
+        start_url: '/?origen=app',
+        scope: '/',
         display: 'standalone',
-        background_color: '#0a0a0a',
-        theme_color: '#e5007d',
+        display_override: ['standalone', 'minimal-ui'],
+        // Oscuro como la app: la barra del sistema no corta la pantalla en rosa
+        background_color: '#050507',
+        theme_color: '#050507',
         orientation: 'portrait-primary',
         icons: iconos,
         lang: 'es',
         dir: 'ltr',
+        categories: ['entertainment', 'events', 'shopping'],
+        // Atajos al mantener presionado el ícono de la app
+        shortcuts: [
+          { name: 'Mi Level Pass', short_name: 'Level Pass', description: 'Tu rango, tu EXP y tus misiones', url: '/worldfest/pass', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Isekai World Fest', short_name: 'World Fest', description: 'El evento', url: '/', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Tienda', short_name: 'Tienda', description: 'Figuras y coleccionables', url: '/tienda', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Mi cuenta', short_name: 'Cuenta', description: 'Tus pedidos y boletos', url: '/account', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+        ],
       });
     } catch {
       res.redirect(302, '/manifest-base.json');

@@ -136,9 +136,13 @@ export type ContenidoCampana = {
 export function htmlCampana(c: ContenidoCampana, bajaUrl: string): string {
   const imagen = urlSegura(c.imagenUrl);
   const botonUrl = urlSegura(c.botonUrl);
+  // Los enlaces del texto se vuelven tocables y se parten en el teléfono
+  // (un enlace largo, como el de un grupo de WhatsApp, se salía de la pantalla)
+  const enlazar = (t: string) => t.replace(/https?:\/\/[^\s<]+[^\s<.,;:!?)]/g, u =>
+    `<a href="${u}" style="color:#ff3d9e;word-break:break-all;overflow-wrap:anywhere">${u}</a>`);
   const parrafos = escapar(c.cuerpo.trim())
     .split(/\n{2,}/)
-    .map(p => `<p>${p.replace(/\n/g, "<br/>")}</p>`)
+    .map(p => `<p style="overflow-wrap:anywhere">${enlazar(p).replace(/\n/g, "<br/>")}</p>`)
     .join("");
   const content = `
     ${imagen ? `<img src="${escapar(imagen)}" alt="${escapar(c.titulo)}" width="100%" style="display:block;width:100%;height:auto;border:0;margin:0 0 24px"/>` : ""}

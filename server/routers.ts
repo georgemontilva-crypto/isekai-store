@@ -32,6 +32,7 @@ import {
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
+import * as patro from "./patrocinantes";
 import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
@@ -1127,6 +1128,27 @@ export const appRouter = router({
     enviar: adminProcedure
       .input(z.object({ id: z.number().int().positive() }))
       .mutation(({ input }) => lanzarCampana(input.id)),
+  }),
+
+  // ─── Patrocinantes: carrusel de banners en la zona del cazador ──────────────
+  patrocinantes: router({
+    publicos: publicProcedure.query(() => patro.listarPublicos()),
+    todos: adminProcedure.query(() => patro.listarTodos()),
+    guardar: adminProcedure
+      .input(z.object({
+        id: z.number().int().positive().optional(),
+        nombre: z.string().trim().min(1).max(120),
+        imagenUrl: z.string().trim().url().max(500).refine(u => /^https:\/\//i.test(u), "La imagen debe ser https"),
+        enlace: z.string().trim().max(500).refine(u => u === "" || /^https:\/\//i.test(u), "El enlace debe empezar con https://").optional().nullable(),
+        activo: z.boolean().optional(),
+      }))
+      .mutation(({ input }) => patro.guardar(input)),
+    borrar: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => patro.borrar(input.id)),
+    ordenar: adminProcedure.input(z.object({ ids: z.array(z.number().int().positive()).max(100) })).mutation(({ input }) => patro.ordenar(input.ids)),
+    reiniciar: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => patro.reiniciarEstadisticas(input.id)),
+    registrar: publicProcedure
+      .input(z.object({ tipo: z.enum(["vista", "clic"]), ids: z.array(z.number().int().positive()).max(20) }))
+      .mutation(({ input, ctx }) => patro.registrar(input.tipo, input.ids, clientIp(ctx.req))),
   }),
 
   // ─── World Fest: rueda de prensa (confirmar asistencia sin registro) ─────────

@@ -2,8 +2,9 @@ import { useState, useEffect, useRef } from "react";
 import { Link } from "wouter";
 import {
   Loader2, Search, Check, Lock, MapPin, Trophy, X, LogOut,
-  Swords, User, ScrollText, ChevronLeft,
+  Swords, User, ScrollText, ChevronLeft, ChevronRight, Copy, Repeat,
 } from "lucide-react";
+import CarruselPatrocinantes from "@/components/fest/CarruselPatrocinantes";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useBoletoSocket } from "@/hooks/useBoletoSocket";
@@ -41,7 +42,117 @@ const RANGOS_INFO = [
   { rango: "S", desde: 500 },
 ];
 
+const NOMBRE_RANGO: Record<string, string> = {
+  E: "Despertado", D: "Explorador", C: "Cazador", B: "Élite", A: "Élite superior", S: "El Despertado",
+};
+
 type Pestana = "rango" | "misiones" | "perfil";
+type Filtro = "pendientes" | "completadas" | "todas";
+
+/** Número que sube de a poco hasta el valor (se nota cuando gana EXP) */
+function Contador({ valor }: { valor: number }) {
+  const [visto, setVisto] = useState(0);
+  const previo = useRef(0);
+  useEffect(() => {
+    const desde = previo.current;
+    previo.current = valor;
+    if (desde === valor) { setVisto(valor); return; }
+    const reducir = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    if (reducir) { setVisto(valor); return; }
+    const inicio = performance.now();
+    const dur = 900;
+    let raf = 0;
+    const paso = (t: number) => {
+      const k = Math.min(1, (t - inicio) / dur);
+      const suave = 1 - Math.pow(1 - k, 3);
+      setVisto(Math.round(desde + (valor - desde) * suave));
+      if (k < 1) raf = requestAnimationFrame(paso);
+    };
+    raf = requestAnimationFrame(paso);
+    return () => cancelAnimationFrame(raf);
+  }, [valor]);
+  return <>{visto.toLocaleString()}</>;
+}
+
+/** Sello del rango con un anillo que marca el avance hacia el siguiente */
+function AnilloRango({ color, progreso, rango }: { color: string; progreso: number; rango: string }) {
+  const R = 62;
+  const C = 2 * Math.PI * R;
+  return (
+    <div className="relative h-[150px] w-[150px]">
+      <svg viewBox="0 0 150 150" className="absolute inset-0 -rotate-90" aria-hidden="true">
+        <circle cx="75" cy="75" r={R} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7" />
+        <circle
+          cx="75" cy="75" r={R} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round"
+          strokeDasharray={C} strokeDashoffset={C * (1 - Math.min(100, progreso) / 100)}
+          style={{ transition: "stroke-dashoffset 1.1s cubic-bezier(.16,1,.3,1)", filter: `drop-shadow(0 0 6px ${color})` }}
+        />
+      </svg>
+      <div
+        className="wfp-sello absolute inset-[18px] flex items-center justify-center rounded-full"
+        style={{ background: `radial-gradient(circle at 50% 35%, ${color}33, #040a12 70%)`, boxShadow: `inset 0 0 24px ${color}33, 0 0 30px ${color}33`, ["--lp-rango" as string]: color }}
+      >
+        <span className="font-mono text-[56px] font-black leading-none" style={{ color, textShadow: `0 0 22px ${color}aa` }}>{rango}</span>
+      </div>
+    </div>
+  );
+}
+
+/** Una misión: qué hacer, dónde, cuánta EXP da y cómo va */
+function TarjetaMision({ a, color }: { a: any; color: string }) {
+  const [abierta, setAbierta] = useState(false);
+  const hecha = a.completada;
+  const larga = (a.description ?? "").length > 90;
+  return (
+    <article
+      className={`wfp-mision rounded-2xl border p-4 transition-colors ${hecha ? "border-[#4ade80]/20 bg-[#4ade80]/[0.04]" : "border-white/[0.08] bg-white/[0.025]"}`}
+      onClick={() => larga && setAbierta(v => !v)}
+    >
+      <div className="flex items-start gap-3.5">
+        <span
+          className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border"
+          style={hecha
+            ? { borderColor: "#4ade8066", background: "#4ade801a", color: "#4ade80" }
+            : { borderColor: `${color}55`, background: `${color}12`, color }}
+        >
+          {hecha ? <Check size={18} strokeWidth={2.6} /> : a.tope > 1 ? <Repeat size={16} /> : <Swords size={16} />}
+        </span>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className={`text-[15px] font-bold leading-snug ${hecha ? "text-[#8fa8bd]" : "text-white"}`}>{a.name}</h3>
+            <span
+              className="shrink-0 rounded-full px-2.5 py-1 font-mono text-[11.5px] font-black"
+              style={hecha ? { background: "#4ade801a", color: "#4ade80" } : { background: `${color}1f`, color }}
+            >
+              +{a.xp}
+            </span>
+          </div>
+          {a.description && (
+            <p className={`mt-1 text-[13px] leading-relaxed text-[#8fa8bd] ${abierta ? "" : "line-clamp-2"}`}>{a.description}</p>
+          )}
+          <div className="mt-2.5 flex flex-wrap items-center gap-2">
+            {a.ubicacion && (
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#b8e6ff]">
+                <MapPin size={11} /> {a.ubicacion}
+              </span>
+            )}
+            {a.tope > 1 && (
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/[0.05] px-2.5 py-1 text-[11px] text-[#b8e6ff]">
+                <span className="flex gap-0.5" aria-hidden="true">
+                  {Array.from({ length: Math.min(a.tope, 8) }, (_, i) => (
+                    <span key={i} className="h-1.5 w-1.5 rounded-full" style={{ background: i < a.veces ? (hecha ? "#4ade80" : color) : "rgba(255,255,255,0.15)" }} />
+                  ))}
+                </span>
+                {a.veces}/{a.tope}
+              </span>
+            )}
+            {hecha && <span className="text-[11px] font-semibold text-[#4ade80]">Completada</span>}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
 
 export default function WorldFestPass() {
   /**
@@ -144,11 +255,41 @@ export default function WorldFestPass() {
    */
   const [anchoBarra, setAnchoBarra] = useState(0);
   useEffect(() => {
-    if (!data) return;
+    if (!data || rangoAnunciado) return;   // mientras se anuncia el ascenso queda vacía
     const destino = data.siguiente?.progreso ?? 100;
     const id = setTimeout(() => setAnchoBarra(destino), 120);
     return () => clearTimeout(id);
-  }, [data?.xpTotal, data?.rango]);
+  }, [data?.xpTotal, data?.rango, rangoAnunciado]);
+
+  // Pestaña y filtro de misiones; al cambiar de pestaña se vuelve arriba
+  const [filtro, setFiltro] = useState<Filtro>("pendientes");
+  const [copiado, setCopiado] = useState(false);
+  const irA = (p: Pestana) => { setPestana(p); window.scrollTo({ top: 0, behavior: "smooth" }); };
+
+  // «+N EXP» flotante cuando llega experiencia nueva (no al entrar)
+  const [ganancia, setGanancia] = useState<{ id: number; n: number } | null>(null);
+  const xpPrevio = useRef<number | null>(null);
+  useEffect(() => {
+    if (data?.xpTotal === undefined) return;
+    const antes = xpPrevio.current;
+    xpPrevio.current = data.xpTotal;
+    if (antes !== null && data.xpTotal > antes) {
+      setGanancia({ id: Date.now(), n: data.xpTotal - antes });
+      const t = window.setTimeout(() => setGanancia(null), 2400);
+      return () => window.clearTimeout(t);
+    }
+  }, [data?.xpTotal]);
+
+  const actividades: any[] = data?.actividades ?? [];
+  const pendientes = actividades.filter(a => !a.completada);
+  const hechas = actividades.length - pendientes.length;
+  const expDisponible = pendientes.reduce((t, a) => t + a.xp * Math.max(1, (a.tope ?? 1) - (a.veces ?? 0)), 0);
+  const listaFiltrada = filtro === "pendientes" ? pendientes : filtro === "completadas" ? actividades.filter(a => a.completada) : actividades;
+  const indiceRango = RANGOS_INFO.findIndex(r => r.rango === data?.rango);
+  const tramo = {
+    desde: RANGOS_INFO[Math.max(0, indiceRango)]?.desde ?? 0,
+    hasta: RANGOS_INFO[indiceRango + 1]?.desde ?? null,
+  };
 
   if (cargandoSesion) {
     return (
@@ -267,7 +408,7 @@ export default function WorldFestPass() {
   }
 
   return (
-    <div className="wf-zona ev-grid min-h-screen pb-28">
+    <div className="wf-zona ev-grid min-h-screen" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 84px)" }}>
 
       {/* El entorno toma el color del rango: golpe al ascender y tinte suave
           mientras se permanece en él. */}
@@ -383,39 +524,45 @@ export default function WorldFestPass() {
         </div>
       )}
 
+      {/* Aviso flotante de EXP ganada (llega en vivo desde la estación) */}
+      {ganancia && (
+        <div key={ganancia.id} className="wfp-ganancia pointer-events-none fixed inset-x-0 z-[150] flex justify-center" style={{ top: "calc(env(safe-area-inset-top) + 76px)" }}>
+          <span className="wfp-ganancia-chip" style={{ ["--lp-rango" as string]: color }}>+{ganancia.n} EXP</span>
+        </div>
+      )}
+
       {/* ── Cabecera propia ── */}
       <header
-        className="sticky top-0 z-40 border-b border-[#38bdf8]/15 bg-[#040a12]/95 backdrop-blur"
+        className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#040a12]/90 backdrop-blur-md"
         style={{ paddingTop: "env(safe-area-inset-top)" }}
       >
-        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-5 py-4">
-          <div className="min-w-0">
-            <p className="font-mono text-[10px] uppercase tracking-[0.35em] text-[#7dd8ff]">
-              World Fest
-            </p>
-            <p className="ev-display truncate text-sm text-white">{data.nombre}</p>
-          </div>
-          <div className="flex shrink-0 items-center gap-3">
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-3">
             <span
-              className="flex h-9 w-9 items-center justify-center rounded-full border font-mono text-base font-black"
-              style={{ borderColor: color, color, boxShadow: `0 0 14px ${color}44` }}
+              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border-2 font-mono text-base font-black"
+              style={{ borderColor: color, color, boxShadow: `0 0 16px ${color}55`, background: `${color}14` }}
+              aria-label={`Rango ${data.rango}`}
             >
               {data.rango}
             </span>
-            <button onClick={salir} className="p-2 text-[#5f7f96] hover:text-[#7dd8ff]" aria-label="Salir">
-              <LogOut size={17} />
-            </button>
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-bold leading-tight text-white">{data.nombre || "Cazador"}</p>
+              <p className="font-mono text-[10px] uppercase tracking-[0.2em]" style={{ color }}>
+                {NOMBRE_RANGO[data.rango] ?? "Cazador"} · {data.xpTotal.toLocaleString()} EXP
+              </p>
+            </div>
           </div>
+          <button onClick={salir} className="flex h-10 w-10 items-center justify-center rounded-full text-[#5f7f96] hover:text-[#7dd8ff]" aria-label="Cambiar de boleto">
+            <LogOut size={17} />
+          </button>
         </div>
       </header>
 
       {/* TEMPORAL: solo el dueño la ve */}
       {esDueno && (
-        <div className="border-b border-[#fbbf24]/25 bg-[#fbbf24]/[0.07] px-5 py-3">
+        <div className="border-b border-[#fbbf24]/25 bg-[#fbbf24]/[0.07] px-4 py-2.5">
           <div className="mx-auto flex max-w-2xl flex-wrap items-center gap-2">
-            <span className="font-mono text-[10px] uppercase tracking-widest text-[#fbbf24]">
-              Ensayo
-            </span>
+            <span className="font-mono text-[10px] uppercase tracking-widest text-[#fbbf24]">Ensayo</span>
             {[40, 80, 200].map(n => (
               <button
                 key={n}
@@ -423,7 +570,7 @@ export default function WorldFestPass() {
                 disabled={darXp.isPending}
                 className="rounded-lg border border-[#fbbf24]/40 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24] disabled:opacity-40"
               >
-                +{n} XP
+                +{n} EXP
               </button>
             ))}
             <button
@@ -436,247 +583,332 @@ export default function WorldFestPass() {
         </div>
       )}
 
-      <div className="mx-auto max-w-2xl px-5 py-6">
+      <main className="mx-auto max-w-2xl px-4 pb-6 pt-5">
 
-        {/* ── Mi rango ── */}
+        {/* ═══════════ MI RANGO ═══════════ */}
         {pestana === "rango" && (
-          <>
-            <div className="lp-ventana mb-4 p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
-              <div className="mb-7 flex flex-col items-center text-center">
-                <div
-                  className="mb-4 flex h-32 w-32 items-center justify-center rounded-full border-2"
-                  style={{ borderColor: color, boxShadow: `0 0 36px ${color}55, inset 0 0 26px ${color}22` }}
-                >
-                  <span className="font-mono text-6xl font-black" style={{ color }}>{data.rango}</span>
-                </div>
-                <p className="font-mono text-[11px] uppercase tracking-[0.35em] text-[#7dd8ff]">
-                  Rango actual
-                </p>
+          <div className="wfp-entra flex flex-col gap-5">
+            {/* Tarjeta principal: sello con anillo de progreso, EXP y barra */}
+            <section className="lp-ventana wfp-heroe overflow-hidden px-5 pb-6 pt-7" style={{ ["--lp-rango" as string]: color }}>
+              <div className="flex flex-col items-center text-center">
+                <AnilloRango color={color} progreso={anchoBarra} rango={data.rango} />
+                <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.35em] text-[#7dd8ff]">Rango actual</p>
+                <p className="mt-1 text-[22px] font-black leading-tight text-white">{NOMBRE_RANGO[data.rango] ?? data.rango}</p>
               </div>
 
-              <div className="mb-2 flex items-end justify-between">
-                <span className="font-mono text-[11px] uppercase tracking-widest text-[#7dd8ff]">
-                  Experiencia
-                </span>
-                <span className="font-mono text-sm font-bold text-white">{data.xpTotal} XP</span>
-              </div>
-
-              <div className="h-3 w-full overflow-hidden rounded-full bg-[#0d1c2b]">
-                <div
-                  className="h-full rounded-full transition-all duration-[1100ms] ease-out"
-                  style={{
-                    width: `${anchoBarra}%`,
-                    background: `linear-gradient(90deg, ${color}, #7dd8ff)`,
-                    boxShadow: `0 0 14px ${color}88`,
-                  }}
-                />
-              </div>
-
-              <p className="mt-3 text-center text-sm text-[#8fa8bd]">
-                {data.siguiente
-                  ? <>Faltan <strong className="text-white">{data.siguiente.faltan} XP</strong> para el rango {data.siguiente.rango}</>
-                  : "Has alcanzado el rango máximo"}
-              </p>
-
-              {data.esRangoS && (
-                <div className="mt-6 flex items-center gap-3 rounded-lg border border-[#f43f5e]/40 bg-[#f43f5e]/10 p-4">
-                  <Trophy size={20} className="shrink-0 text-[#f43f5e]" />
-                  <p className="text-sm leading-relaxed text-[#ffd0d8]">
-                    Estás dentro del <strong className="text-white">sorteo especial</strong>.
+              <div className="mt-6 flex items-end justify-between">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#5f7f96]">Experiencia</p>
+                  <p className="font-mono text-[34px] font-black leading-none text-white tabular-nums">
+                    <Contador valor={data.xpTotal} /> <span className="text-sm font-bold" style={{ color }}>EXP</span>
                   </p>
                 </div>
-              )}
-            </div>
-
-            {/* Escala de rangos */}
-            <div className="lp-ventana p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
-              <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
-                Escala
-              </p>
-              <div className="flex flex-col gap-2.5">
-                {RANGOS_INFO.map(r => {
-                  const alcanzado = data.xpTotal >= r.desde;
-                  const esActual = data.rango === r.rango;
-                  return (
-                    <div
-                      key={r.rango}
-                      className={`flex items-center gap-3.5 rounded-lg border px-4 py-3 ${
-                        esActual ? "border-[#38bdf8]/50 bg-[#38bdf8]/[0.07]" : "border-[#38bdf8]/12"
-                      }`}
-                    >
-                      <span
-                        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border font-mono text-sm font-black"
-                        style={{
-                          borderColor: alcanzado ? (COLOR_RANGO[r.rango] ?? "#38bdf8") : "#1e3a52",
-                          color: alcanzado ? (COLOR_RANGO[r.rango] ?? "#38bdf8") : "#3a5a72",
-                        }}
-                      >
-                        {r.rango}
-                      </span>
-                      <span className={`flex-1 text-sm ${alcanzado ? "text-white" : "text-[#5f7f96]"}`}>
-                        {r.desde} XP
-                      </span>
-                      {alcanzado && <Check size={15} className="text-[#4ade80]" />}
-                      {r.rango === "S" && (
-                        <span className="font-mono text-[10px] uppercase tracking-widest text-[#f43f5e]">
-                          Sorteo
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* ── Misiones ── */}
-        {pestana === "misiones" && (
-          <div className="lp-ventana p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
-            <p className="mb-1 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
-              Misiones disponibles
-            </p>
-            <p className="mb-5 text-xs text-[#8fa8bd]">
-              Complétalas durante el evento para ganar experiencia.
-            </p>
-
-            <div className="flex flex-col gap-2.5">
-              {data.actividades.map((a: any) => (
-                <div
-                  key={a.id}
-                  className={`flex items-start gap-3.5 rounded-lg border p-4 ${
-                    a.completada ? "border-[#4ade80]/25 bg-[#4ade80]/[0.05]" : "border-[#38bdf8]/25 bg-[#050b14]"
-                  }`}
-                >
-                  <div
-                    className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded border ${
-                      a.completada ? "border-[#4ade80] bg-[#4ade80]/15" : "border-[#38bdf8]/35"
-                    }`}
-                  >
-                    {a.completada
-                      ? <Check size={13} className="text-[#4ade80]" />
-                      : <Lock size={11} className="text-[#38bdf8]/50" />}
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <p className={`text-sm font-bold ${a.completada ? "text-[#8fa8bd]" : "text-white"}`}>
-                      {a.name}
+                {data.siguiente && (
+                  <div className="text-right">
+                    <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#5f7f96]">Siguiente</p>
+                    <p className="font-mono text-lg font-black leading-none" style={{ color: COLOR_RANGO[data.siguiente.rango] }}>
+                      {data.siguiente.rango}
                     </p>
-                    {a.description && (
-                      <p className="mt-1 text-xs leading-relaxed text-[#8fa8bd]">{a.description}</p>
-                    )}
-                    {a.ubicacion && (
-                      <p className="mt-1.5 flex items-center gap-1 text-[11px] text-[#5f7f96]">
-                        <MapPin size={11} /> {a.ubicacion}
-                      </p>
-                    )}
-                    {a.tope > 1 && (
-                      <p className="mt-1 text-[11px] text-[#5f7f96]">{a.veces} de {a.tope} veces</p>
-                    )}
                   </div>
+                )}
+              </div>
 
-                  <span
-                    className="shrink-0 font-mono text-sm font-black"
-                    style={{ color: a.completada ? "#4ade80" : "#7dd8ff" }}
-                  >
-                    +{a.xp}
-                  </span>
+              {/* Barra con los dos extremos del tramo */}
+              <div className="mt-3">
+                <div className="wfp-barra relative h-3.5 w-full overflow-hidden rounded-full">
+                  <div
+                    className="wfp-barra-relleno h-full rounded-full transition-[width] duration-[1100ms] ease-out"
+                    style={{ width: `${anchoBarra}%`, background: `linear-gradient(90deg, ${color}, #7dd8ff)`, boxShadow: `0 0 14px ${color}88` }}
+                  />
                 </div>
-              ))}
+                <div className="mt-1.5 flex justify-between font-mono text-[10px] text-[#5f7f96]">
+                  <span>{tramo.desde} EXP</span>
+                  <span>{tramo.hasta !== null ? `${tramo.hasta} EXP` : "MÁX"}</span>
+                </div>
+              </div>
 
-              {data.actividades.length === 0 && (
-                <p className="py-10 text-center text-sm text-[#8fa8bd]">
-                  Todavía no hay misiones publicadas.
-                </p>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* ── Perfil ── */}
-        {pestana === "perfil" && (
-          <>
-            <div className="lp-ventana mb-4 p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
-              <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
-                Cazador
+              <p className="mt-3 text-center text-[14px] text-[#8fa8bd]">
+                {data.siguiente
+                  ? <>Te faltan <strong className="text-white">{data.siguiente.faltan} EXP</strong> para <strong style={{ color: COLOR_RANGO[data.siguiente.rango] }}>{NOMBRE_RANGO[data.siguiente.rango]}</strong></>
+                  : <>Alcanzaste el <strong className="text-white">rango máximo</strong></>}
               </p>
 
-              <div className="flex flex-col gap-3">
+              {/* Resumen rápido */}
+              <div className="mt-6 grid grid-cols-3 gap-2">
                 {[
-                  ["Nombre", data.nombre],
-                  ["Boleto", data.codigo],
-                  ["Rango", data.rango],
-                  ["Experiencia", `${data.xpTotal} XP`],
-                  ["Misiones completadas", String(data.actividades.filter((a: any) => a.completada).length)],
-                ].map(([k, v]) => (
-                  <div key={k} className="flex items-center justify-between gap-3 border-b border-[#38bdf8]/10 pb-2.5 last:border-0">
-                    <span className="text-sm text-[#8fa8bd]">{k}</span>
-                    <span className="text-right font-mono text-sm font-bold text-white" style={{ overflowWrap: "anywhere" }}>
-                      {v}
-                    </span>
+                  { n: `${hechas}/${data.actividades.length}`, t: "Misiones" },
+                  { n: String(pendientes.length), t: "Pendientes" },
+                  { n: `+${expDisponible}`, t: "EXP por ganar" },
+                ].map(c => (
+                  <div key={c.t} className="rounded-xl border border-white/[0.07] bg-white/[0.03] px-2 py-3 text-center">
+                    <p className="font-mono text-[17px] font-black text-white tabular-nums">{c.n}</p>
+                    <p className="mt-0.5 text-[10.5px] text-[#5f7f96]">{c.t}</p>
                   </div>
                 ))}
               </div>
-            </div>
 
-            {data.historial.length > 0 && (
-              <div className="lp-ventana p-6 sm:p-8" style={{ ["--lp-rango" as string]: color }}>
-                <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.3em] text-[#7dd8ff]">
-                  Registro de actividad
-                </p>
-                <div className="flex flex-col gap-2">
-                  {data.historial.map((h: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between gap-3 border-b border-[#38bdf8]/10 pb-2 last:border-0">
-                      <div className="min-w-0">
-                        <p className="truncate text-sm text-[#b8e6ff]">{h.actividad}</p>
-                        <p className="font-mono text-[10px] text-[#5f7f96]">
-                          {new Date(h.fecha).toLocaleString("es-VE", { dateStyle: "short", timeStyle: "short" })}
-                        </p>
+              {data.esRangoS && (
+                <div className="mt-5 flex items-center gap-3 rounded-xl border border-[#f43f5e]/40 bg-[#f43f5e]/10 p-4">
+                  <Trophy size={20} className="shrink-0 text-[#f43f5e]" />
+                  <p className="text-sm leading-relaxed text-[#ffd0d8]">
+                    Estás dentro del <strong className="text-white">sorteo especial</strong> del cierre.
+                  </p>
+                </div>
+              )}
+            </section>
+
+            <CarruselPatrocinantes />
+
+            {/* Próximas misiones */}
+            <section>
+              <div className="mb-3 flex items-end justify-between">
+                <h2 className="text-[17px] font-black text-white">Tus próximas misiones</h2>
+                {pendientes.length > 0 && (
+                  <button onClick={() => irA("misiones")} className="flex items-center gap-1 font-mono text-[11px] uppercase tracking-wider text-[#7dd8ff]">
+                    Ver todas <ChevronRight size={13} />
+                  </button>
+                )}
+              </div>
+              {pendientes.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/10 px-5 py-8 text-center">
+                  <p className="text-sm text-[#8fa8bd]">
+                    {data.actividades.length === 0 ? "Las misiones aparecerán aquí cuando se publiquen." : "¡Completaste todas las misiones disponibles!"}
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {pendientes.slice(0, 3).map((a: any) => <TarjetaMision key={a.id} a={a} color={color} />)}
+                </div>
+              )}
+            </section>
+
+            {/* Escala de rangos en línea */}
+            <section className="lp-ventana px-4 py-5" style={{ ["--lp-rango" as string]: color }}>
+              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">El camino al rango S</p>
+              <div className="relative">
+                <div className="absolute left-[8%] right-[8%] top-[18px] h-[2px] bg-white/[0.08]" />
+                <div
+                  className="absolute left-[8%] top-[18px] h-[2px] transition-[width] duration-700"
+                  style={{ width: `${(Math.max(0, indiceRango) / (RANGOS_INFO.length - 1)) * 84}%`, background: `linear-gradient(90deg, #8a8a9c, ${color})` }}
+                />
+                <div className="relative grid grid-cols-6">
+                  {RANGOS_INFO.map((r, i) => {
+                    const alcanzado = data.xpTotal >= r.desde;
+                    const esActual = data.rango === r.rango;
+                    const c = COLOR_RANGO[r.rango];
+                    return (
+                      <div key={r.rango} className="flex flex-col items-center">
+                        <span
+                          className={`flex h-9 w-9 items-center justify-center rounded-full border-2 font-mono text-sm font-black ${esActual ? "wfp-nodo-actual" : ""}`}
+                          style={{
+                            borderColor: alcanzado ? c : "#1e3a52",
+                            color: alcanzado ? c : "#3a5a72",
+                            background: esActual ? `${c}22` : "#040a12",
+                            ["--lp-rango" as string]: c,
+                          }}
+                        >
+                          {alcanzado && !esActual && i < indiceRango ? <Check size={14} strokeWidth={3} /> : r.rango}
+                        </span>
+                        <span className={`mt-1.5 font-mono text-[9.5px] tabular-nums ${alcanzado ? "text-[#b8e6ff]" : "text-[#3a5a72]"}`}>{r.desde}</span>
                       </div>
-                      <span className="shrink-0 font-mono text-xs font-bold text-[#4ade80]">+{h.xp}</span>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
+              <p className="mt-4 text-center text-[12px] leading-relaxed text-[#5f7f96]">
+                Quien llegue al <strong style={{ color: COLOR_RANGO.S }}>rango S</strong> entra al sorteo especial del cierre del evento.
+              </p>
+            </section>
+          </div>
+        )}
+
+        {/* ═══════════ MISIONES ═══════════ */}
+        {pestana === "misiones" && (
+          <div className="wfp-entra flex flex-col gap-4">
+            <section className="lp-ventana px-5 py-5" style={{ ["--lp-rango" as string]: color }}>
+              <div className="flex items-end justify-between">
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">Misiones</p>
+                  <p className="mt-1 text-[22px] font-black leading-tight text-white">
+                    {hechas} <span className="text-[#5f7f96]">de {data.actividades.length}</span>
+                  </p>
+                </div>
+                <p className="text-right font-mono text-[12px] font-bold" style={{ color }}>
+                  +{expDisponible} EXP
+                  <span className="block text-[10px] font-normal uppercase tracking-wider text-[#5f7f96]">por ganar</span>
+                </p>
+              </div>
+              <div className="wfp-barra mt-3 h-2 w-full overflow-hidden rounded-full">
+                <div
+                  className="h-full rounded-full transition-[width] duration-700"
+                  style={{ width: `${data.actividades.length ? (hechas / data.actividades.length) * 100 : 0}%`, background: `linear-gradient(90deg, ${color}, #7dd8ff)` }}
+                />
+              </div>
+              <p className="mt-3 text-[13px] leading-relaxed text-[#8fa8bd]">
+                Ve a la estación de cada misión y complétala allí: el personal la marca y tu EXP sube al instante.
+              </p>
+            </section>
+
+            {/* Filtros */}
+            <div className="flex gap-2" role="tablist" aria-label="Filtrar misiones">
+              {([
+                ["pendientes", `Pendientes (${pendientes.length})`],
+                ["completadas", `Hechas (${hechas})`],
+                ["todas", "Todas"],
+              ] as const).map(([id, txt]) => (
+                <button
+                  key={id}
+                  role="tab"
+                  aria-selected={filtro === id}
+                  onClick={() => setFiltro(id)}
+                  className="wfp-chip"
+                  data-activo={filtro === id ? "1" : "0"}
+                  style={{ ["--lp-rango" as string]: color }}
+                >
+                  {txt}
+                </button>
+              ))}
+            </div>
+
+            {listaFiltrada.length === 0 ? (
+              <div className="rounded-2xl border border-dashed border-white/10 px-5 py-10 text-center">
+                <p className="text-sm text-[#8fa8bd]">
+                  {data.actividades.length === 0
+                    ? "Todavía no hay misiones publicadas. Vuelve pronto."
+                    : filtro === "completadas" ? "Aún no completas ninguna. ¡La primera está cerca!" : "No te queda ninguna pendiente. ¡Bien hecho, cazador!"}
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2.5">
+                {listaFiltrada.map((a: any, i: number) => (
+                  <div key={a.id} className="contents">
+                    <TarjetaMision a={a} color={color} />
+                    {i === 2 && listaFiltrada.length > 3 && <CarruselPatrocinantes className="my-2" />}
+                  </div>
+                ))}
+              </div>
             )}
+            {listaFiltrada.length > 0 && listaFiltrada.length <= 3 && <CarruselPatrocinantes className="mt-2" />}
+          </div>
+        )}
+
+        {/* ═══════════ PERFIL ═══════════ */}
+        {pestana === "perfil" && (
+          <div className="wfp-entra flex flex-col gap-4">
+            {/* El boleto, como una credencial */}
+            <section className="wfp-credencial relative overflow-hidden rounded-2xl p-5" style={{ ["--lp-rango" as string]: color }}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">Isekai World Fest · Cazador</p>
+                  <p className="mt-2 truncate text-[20px] font-black text-white">{data.nombre || "Cazador"}</p>
+                  <p className="text-[13px]" style={{ color }}>Rango {data.rango} · {NOMBRE_RANGO[data.rango]}</p>
+                </div>
+                <span
+                  className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 font-mono text-2xl font-black"
+                  style={{ borderColor: color, color, boxShadow: `0 0 20px ${color}55` }}
+                >
+                  {data.rango}
+                </span>
+              </div>
+              <div className="wfp-credencial-corte my-4" />
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#5f7f96]">Código del boleto</p>
+                  <p className="font-mono text-[17px] font-bold tracking-[0.12em] text-white" style={{ overflowWrap: "anywhere" }}>{data.codigo}</p>
+                </div>
+                <button
+                  onClick={async () => { try { await navigator.clipboard.writeText(data.codigo); setCopiado(true); window.setTimeout(() => setCopiado(false), 1800); } catch { /* sin portapapeles */ } }}
+                  className="flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-white/15 px-4 text-xs font-bold text-white"
+                >
+                  {copiado ? <Check size={14} className="text-[#4ade80]" /> : <Copy size={14} />} {copiado ? "Copiado" : "Copiar"}
+                </button>
+              </div>
+            </section>
+
+            <div className="grid grid-cols-2 gap-2.5">
+              {[
+                { n: data.xpTotal.toLocaleString(), t: "EXP total" },
+                { n: `${hechas}/${data.actividades.length}`, t: "Misiones hechas" },
+                { n: data.rango, t: NOMBRE_RANGO[data.rango] ?? "Rango" },
+                { n: String(data.historial.length), t: "Registros" },
+              ].map(c => (
+                <div key={c.t} className="rounded-xl border border-white/[0.07] bg-white/[0.03] px-4 py-3.5">
+                  <p className="font-mono text-[20px] font-black text-white tabular-nums">{c.n}</p>
+                  <p className="text-[11px] text-[#5f7f96]">{c.t}</p>
+                </div>
+              ))}
+            </div>
+
+            <section className="lp-ventana px-5 py-5" style={{ ["--lp-rango" as string]: color }}>
+              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">Registro de actividad</p>
+              {data.historial.length === 0 ? (
+                <p className="py-4 text-center text-sm text-[#5f7f96]">Aquí aparecerá cada misión que completes.</p>
+              ) : (
+                <ol className="relative flex flex-col gap-4 border-l border-white/[0.08] pl-5">
+                  {data.historial.map((h: any, i: number) => (
+                    <li key={i} className="relative">
+                      <span className="absolute -left-[25px] top-1 h-2.5 w-2.5 rounded-full" style={{ background: color, boxShadow: `0 0 8px ${color}` }} />
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="text-[14px] font-semibold leading-snug text-white">{h.actividad}</p>
+                          <p className="mt-0.5 font-mono text-[10.5px] text-[#5f7f96]">
+                            {new Date(h.fecha).toLocaleString("es-VE", { weekday: "short", hour: "numeric", minute: "2-digit" })}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-[#4ade80]/10 px-2.5 py-1 font-mono text-[11px] font-bold text-[#4ade80]">+{h.xp}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
 
             <Link
               href="/"
-              className="mt-6 block text-center font-mono text-xs uppercase tracking-widest text-[#5f7f96] transition-colors hover:text-[#7dd8ff]"
+              className="mt-2 block py-3 text-center font-mono text-xs uppercase tracking-widest text-[#5f7f96] transition-colors hover:text-[#7dd8ff]"
             >
               Volver a Isekai World Fest
             </Link>
-          </>
+          </div>
         )}
-      </div>
+      </main>
 
       {/* ── Navegación propia, estilo app ── */}
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-[#38bdf8]/20 bg-[#040a12]/97 backdrop-blur"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.06] bg-[#040a12]/95 backdrop-blur-md"
         style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+        aria-label="Secciones"
       >
-        <div className="mx-auto flex max-w-2xl">
+        <div className="mx-auto flex max-w-2xl px-2">
           {([
             ["rango", "Mi rango", Swords],
             ["misiones", "Misiones", ScrollText],
             ["perfil", "Perfil", User],
-          ] as const).map(([id, label, Icono]) => (
-            <button
-              key={id}
-              onClick={() => setPestana(id)}
-              className="flex flex-1 flex-col items-center justify-center gap-1 py-3 transition-colors"
-              style={{ minHeight: 62, WebkitTapHighlightColor: "transparent" }}
-            >
-              <Icono size={19} className={pestana === id ? "text-[#7dd8ff]" : "text-[#3a5a72]"} />
-              <span
-                className={`font-mono text-[10px] uppercase tracking-wider ${
-                  pestana === id ? "text-[#7dd8ff]" : "text-[#3a5a72]"
-                }`}
+          ] as const).map(([id, label, Icono]) => {
+            const activo = pestana === id;
+            return (
+              <button
+                key={id}
+                onClick={() => irA(id)}
+                aria-current={activo ? "page" : undefined}
+                className="relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5"
+                style={{ minHeight: 62, WebkitTapHighlightColor: "transparent" }}
               >
-                {label}
-              </span>
-            </button>
-          ))}
+                <span
+                  className="flex h-8 w-14 items-center justify-center rounded-full transition-colors"
+                  style={{ background: activo ? `${color}22` : "transparent" }}
+                >
+                  <Icono size={19} style={{ color: activo ? color : "#3a5a72" }} />
+                </span>
+                <span className="text-[10.5px] font-semibold" style={{ color: activo ? "#e6f6ff" : "#3a5a72" }}>
+                  {label}
+                  {id === "misiones" && pendientes.length > 0 && (
+                    <span className="ml-1 rounded-full px-1.5 py-px font-mono text-[9px] font-bold text-[#04080f]" style={{ background: color }}>{pendientes.length}</span>
+                  )}
+                </span>
+              </button>
+            );
+          })}
         </div>
       </nav>
     </div>

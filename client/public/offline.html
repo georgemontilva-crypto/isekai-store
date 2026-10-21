@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#050507" />
+<title>Sin conexión — Isekai World</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #050507; color: #f4f1f8; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, system-ui, sans-serif; }
+  body { display: flex; align-items: center; justify-content: center; padding: max(24px, env(safe-area-inset-top)) 24px max(24px, env(safe-area-inset-bottom)); }
+  .caja { width: 100%; max-width: 360px; text-align: center; }
+  .sello { width: 88px; height: 88px; margin: 0 auto 28px; border-radius: 50%; border: 2px solid #e5007d; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 30px rgba(229,0,125,.35), inset 0 0 20px rgba(229,0,125,.2); animation: latido 2.4s ease-in-out infinite; }
+  .sello svg { width: 38px; height: 38px; }
+  @keyframes latido { 50% { transform: scale(1.05); } }
+  .etq { font: 700 11px/1 ui-monospace, Menlo, monospace; letter-spacing: .35em; text-transform: uppercase; color: #ff3d9e; margin: 0 0 12px; }
+  h1 { font-size: 24px; line-height: 1.15; margin: 0 0 12px; font-weight: 900; }
+  p { color: #a39cad; font-size: 15px; line-height: 1.6; margin: 0 0 28px; }
+  button { width: 100%; min-height: 52px; border: 0; background: #e5007d; color: #fff; font-size: 15px; font-weight: 800; cursor: pointer; clip-path: polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px); }
+  @media (prefers-reduced-motion: reduce) { .sello { animation: none; } }
+</style>
+</head>
+<body>
+  <div class="caja">
+    <div class="sello" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ff3d9e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h.01"/><path d="M8.5 16.4a5 5 0 0 1 7 0"/><path d="M5 12.9a10 10 0 0 1 5.2-2.7"/><path d="M19 12.9a10 10 0 0 0-2.1-1.5"/><path d="M2 8.8a15 15 0 0 1 4.2-2.6"/><path d="M22 8.8a15 15 0 0 0-11.3-3.6"/><path d="m2 2 20 20"/></svg>
+    </div>
+    <p class="etq">[ Sin señal ]</p>
+    <h1>Te quedaste sin conexión</h1>
+    <p>El Sistema no puede alcanzar Isekai World. Revisa tus datos o el wifi y vuelve a intentarlo.</p>
+    <button onclick="location.reload()">Reintentar</button>
+  </div>
+  <script>window.addEventListener('online', function () { location.reload(); });</script>
+</body>
+</html>

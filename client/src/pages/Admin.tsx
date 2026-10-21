@@ -16,6 +16,7 @@ import {
 import { COLORES, ESTADOS_PEDIDO, PASOS_PEDIDO, ESTADOS_PAGO, dinero, fechaRelativa, Estado, EncabezadoSeccion, EstadoVacio, ChipFiltro, confirmar, ModalConfirmar } from "@/components/admin/ui";
 import PanelResumen from "@/components/admin/PanelResumen";
 import CampanasSection, { ContadoresAudiencia } from "@/components/admin/CampanasSection";
+import PatrocinantesSection from "@/components/admin/PatrocinantesSection";
 import { aInputFechaLocal, deInputFechaLocal } from "@/lib/fechaLocal";
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { trpc } from "@/lib/trpc";
@@ -29,7 +30,7 @@ import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards" | "campanas";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards" | "campanas" | "patrocinantes";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -1235,6 +1236,7 @@ export default function Admin() {
     { id: "finanzas" as AdminTab, label: "Finanzas",     icon: DollarSign },
     { id: "feedback" as AdminTab, label: "Sugerencias",  icon: MessageCircle },
     { id: "boleteria" as AdminTab, label: "Boletería",    icon: Ticket },
+    { id: "patrocinantes" as AdminTab, label: "Patrocinantes", icon: Megaphone },
     { id: "quotes" as AdminTab,   label: "Cotizaciones", icon: FileText },
     { id: "subscribers" as AdminTab, label: "Suscriptores", icon: Mail },
     { id: "campanas" as AdminTab, label: "Campañas", icon: Send },
@@ -1379,6 +1381,16 @@ export default function Admin() {
                     ocupado: resetRevenue.isPending || undoResetRevenue.isPending,
                   }}
                 />
+              </motion.div>
+            )}
+
+            {tab === "patrocinantes" && (
+              <motion.div key="patrocinantes" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <EncabezadoSeccion
+                  titulo="Patrocinantes"
+                  descripcion="Banners de las marcas que apoyan el World Fest. Rotan en la zona del cazador y aquí ves cuántas veces se vieron y se tocaron."
+                />
+                <PatrocinantesSection />
               </motion.div>
             )}
 

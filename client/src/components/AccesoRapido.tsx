@@ -53,7 +53,7 @@ export default function AccesoRapido() {
       <button
         onClick={() => setCerrado(true)}
         aria-label="Ocultar acceso rápido"
-        className="mr-1 flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-black/60 text-white/50 backdrop-blur transition-colors hover:text-white"
+        className="relative mr-1 flex h-6 w-6 after:absolute after:-inset-2.5 after:content-[''] items-center justify-center rounded-full border border-white/15 bg-black/60 text-white/50 backdrop-blur transition-colors hover:text-white"
       >
         <X size={11} />
       </button>
