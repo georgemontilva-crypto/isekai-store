@@ -744,9 +744,9 @@ export async function notifyConfirmacionPrensa(total: number, hoy: number): Prom
 
   const hora = new Date().toLocaleString("es-VE", { timeZone: "America/Caracas", dateStyle: "long", timeStyle: "short" });
   const content = `
-    <p style="font-size:12px;letter-spacing:.3em;color:#a78bfa;margin:0 0 8px">[ RUEDA DE PRENSA ]</p>
+    <p style="font-size:12px;letter-spacing:.3em;color:#a78bfa;margin:0 0 8px">[ RUEDA DE NEGOCIOS ]</p>
     <h1>🎟️ Nueva confirmación de asistencia</h1>
-    <p>Alguien acaba de confirmar que asistirá a la rueda de prensa del <span class="highlight">Isekai World Fest 2027</span>.</p>
+    <p>Alguien acaba de confirmar que asistirá a la rueda de negocios del <span class="highlight">Isekai World Fest 2027</span>.</p>
     <div class="order-box">
       <p><strong>Confirmados en total:</strong> ${total}</p>
       <p><strong>Confirmados hoy:</strong> ${hoy}</p>
@@ -756,7 +756,7 @@ export async function notifyConfirmacionPrensa(total: number, hoy: number): Prom
     <div style="text-align:center"><a href="${APP_URL}/admin" class="btn">Ver en el panel →</a></div>
   `;
   for (const to of destinos) {
-    await sendEmail(to, `🎟️ Confirmación #${total} — Rueda de prensa`, content, `Ya son ${total} confirmados para la rueda de prensa.`);
+    await sendEmail(to, `🎟️ Confirmación #${total} — Rueda de negocios`, content, `Ya son ${total} confirmados para la rueda de negocios.`);
   }
 }
 

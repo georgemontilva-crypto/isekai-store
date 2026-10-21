@@ -8,7 +8,7 @@ import ActivarNotificaciones from "./ActivarNotificaciones";
  * Orden pensado para decidir rápido:
  *  1. Lo que requiere tu atención (con acceso directo a cada sección).
  *  2. Métricas clave.
- *  3. Ventas recientes (sin kits de cosplayer) · rueda de prensa · más vendidos.
+ *  3. Ventas recientes (sin kits de cosplayer) · rueda de negocios · más vendidos.
  *
  * Colores fijos (clases adm-*): se ve igual con el tema claro u oscuro.
  */
@@ -175,7 +175,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
         </div>
       </section>
 
-      {/* ── 3. Ventas recientes · rueda de prensa · más vendidos ── */}
+      {/* ── 3. Ventas recientes · rueda de negocios · más vendidos ── */}
       <div className="grid gap-5 lg:grid-cols-3">
         <section className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">

@@ -5,7 +5,7 @@ import { io } from "./_core/socket";
 import { notifyConfirmacionPrensa } from "./_core/notification";
 
 /**
- * Confirmaciones de asistencia a la rueda de prensa del World Fest.
+ * Confirmaciones de asistencia a la rueda de negocios del World Fest.
  *
  * Sin registro: cada navegador guarda una clave anónima y confirma una sola
  * vez. Para que nadie infle el número, una misma red (IP) puede confirmar
@@ -62,7 +62,7 @@ export async function completarDatos(clave: string, datos: DatosPrensa):
     io?.to("admin").emit("prensa:datos", { id: f.id });
     if (primeraVez) {
       void import("./push").then(m => m.enviarPushAdmins({
-        titulo: "🏪 Datos de invitado · rueda de prensa",
+        titulo: "🏪 Datos de invitado · rueda de negocios",
         cuerpo: `${datos.tienda} dejó su correo y WhatsApp.`,
         url: "/admin",
         etiqueta: "prensa-datos",
@@ -127,7 +127,7 @@ export async function confirmarAsistencia(clave: string, ip: string):
     io?.to("admin").emit("prensa:confirmacion", conteo);
     void notifyConfirmacionPrensa(conteo.total, conteo.hoy).catch(e => console.warn("[Prensa] correo:", e));
     void import("./push").then(m => m.enviarPushAdmins({
-      titulo: "🎟️ Nueva confirmación · rueda de prensa",
+      titulo: "🎟️ Nueva confirmación · rueda de negocios",
       cuerpo: `Ya son ${conteo.total} confirmados (${conteo.hoy} hoy).`,
       url: "/admin",
       etiqueta: "prensa",

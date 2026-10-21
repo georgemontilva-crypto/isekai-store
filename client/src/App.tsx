@@ -142,7 +142,9 @@ function Router() {
         <Route path="/guild/mejoras" component={GuildFeedback} />
         {/* Zona del evento: espacio propio, fuera de la tienda */}
         <Route path="/worldfest/pass" component={WorldFestPass} />
-        {/* Invitación a la rueda de prensa del World Fest */}
+        {/* Invitación a la rueda de negocios del World Fest */}
+        <Route path="/rueda-de-negocios" component={RuedaPrensa} />
+        {/* Enlace anterior: las invitaciones ya entregadas lo siguen usando */}
         <Route path="/rueda-de-prensa" component={RuedaPrensa} />
         <Route path="/cosplay" component={CosplayLanding} />
         <Route path="/cosplay/apply" component={CosplayApply} />
@@ -173,6 +175,7 @@ function Layout() {
   const esPaginaSola =
     location.startsWith("/invitacion") ||
     location.startsWith("/rueda-de-prensa") ||
+    location.startsWith("/rueda-de-negocios") ||
     location.startsWith("/guild/mejoras") ||
     location.startsWith("/worldfest/pass") ||
     location.startsWith("/vender") ||
@@ -186,6 +189,7 @@ function Layout() {
   const esPanelApp =
     isAdmin ||
     location.startsWith("/rueda-de-prensa") ||
+    location.startsWith("/rueda-de-negocios") ||
     location.startsWith("/cosplay/dashboard") ||
     location.startsWith("/account") ||
     location.startsWith("/cotizacion/") ||

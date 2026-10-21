@@ -9,7 +9,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useSocketEvento } from "@/hooks/useSocket";
 
 /**
- * Isekai World Fest 2027 — invitación a la rueda de prensa.
+ * Isekai World Fest 2027 — invitación a la rueda de negocios.
  *
  * Misma estética que la invitación impresa: fondo oscuro con humo rojo,
  * panel rojo en V con la calavera en la muesca y las tres columnas de fecha,
@@ -43,7 +43,7 @@ function claveNavegador(): string {
 function descargarCalendario(titulo: string, descripcion: string) {
   const f = (d: Date) => d.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "");
   const ics = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Isekai World//Rueda de prensa//ES", "BEGIN:VEVENT",
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Isekai World//Rueda de negocios//ES", "BEGIN:VEVENT",
     "UID:rueda-prensa-2027@isekaiworld.co", `DTSTAMP:${f(new Date())}`, `DTSTART:${f(INICIO)}`, `DTEND:${f(FIN)}`,
     `SUMMARY:${titulo}`, `DESCRIPTION:${descripcion}`,
     "LOCATION:Arena Panter\\, CC Costa Verde\\, Maracaibo", "END:VEVENT", "END:VCALENDAR",
@@ -51,7 +51,7 @@ function descargarCalendario(titulo: string, descripcion: string) {
   const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar;charset=utf-8" }));
   const a = document.createElement("a");
   a.href = url;
-  a.download = "rueda-de-prensa-isekai-world-fest.ics";
+  a.download = "rueda-de-negocios-isekai-world-fest.ics";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -202,7 +202,7 @@ const ROMANOS = ["I", "II", "III", "IV"];
 export default function RuedaPrensa() {
   const { t: tr } = useLang();
   const t = tr.prensa;
-  useSEO({ title: t.seoTitulo, description: t.seoDesc, url: "https://isekaiworld.co/rueda-de-prensa" });
+  useSEO({ title: t.seoTitulo, description: t.seoDesc, url: "https://isekaiworld.co/rueda-de-negocios" });
 
   const { data: settings } = trpc.settings.getAll.useQuery();
   const fondo = settings?.["rp_fondo"] ?? "";

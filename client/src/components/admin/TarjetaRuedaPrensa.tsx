@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { ExternalLink, Link2, Mic, Users, X, Download, Mail, MessageCircle } from "lucide-react";
+import { ExternalLink, Link2, Handshake, Users, X, Download, Mail, MessageCircle } from "lucide-react";
 import { useSocketEvento } from "@/hooks/useSocket";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 
 /**
- * Acceso del administrador a la invitación de la rueda de prensa.
+ * Acceso del administrador a la invitación de la rueda de negocios.
  * Muestra cuántos confirmaron asistencia (en tiempo real), abre la
  * invitación y copia su enlace para compartirlo o ponerlo en un QR.
  */
-const URL_INVITACION = "https://isekaiworld.co/rueda-de-prensa";
+const URL_INVITACION = "https://isekaiworld.co/rueda-de-negocios";
 
 export default function TarjetaRuedaPrensa() {
   const utils = trpc.useUtils();
@@ -44,7 +44,7 @@ export default function TarjetaRuedaPrensa() {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="mb-2 flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.18em]" style={{ color: "#ff3d9e" }}>
-            <Mic size={12} /> Rueda de prensa
+            <Handshake size={12} /> Rueda de negocios
           </p>
           <p className="text-[15px] font-bold leading-snug" style={{ color: "#ffffff" }}>Sábado 7 de noviembre</p>
           <p className="text-[15px] font-bold leading-snug" style={{ color: "#ffffff" }}>4:30 p. m.</p>
@@ -68,7 +68,7 @@ export default function TarjetaRuedaPrensa() {
       </div>
       <div className="mt-4 flex gap-2">
         <a
-          href="/rueda-de-prensa"
+          href="/rueda-de-negocios"
           target="_blank"
           rel="noopener noreferrer"
           className="ev-notch flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
@@ -121,7 +121,7 @@ function ListaConfirmados({ onCerrar }: { onCerrar: () => void }) {
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
     a.href = url;
-    a.download = "confirmados-rueda-de-prensa.csv";
+    a.download = "confirmados-rueda-de-negocios.csv";
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -133,14 +133,14 @@ function ListaConfirmados({ onCerrar }: { onCerrar: () => void }) {
     <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center" style={{ background: "rgba(0,0,0,0.72)" }} onClick={onCerrar}>
       <div
         aria-modal="true"
-        aria-label="Confirmados de la rueda de prensa"
+        aria-label="Confirmados de la rueda de negocios"
         className="flex max-h-[88vh] w-full max-w-lg flex-col"
         style={{ background: "#0a0a0a", border: "1px solid rgba(229,0,125,0.45)", paddingBottom: "env(safe-area-inset-bottom)" }}
         onClick={e => e.stopPropagation()}
       >
         <div className="flex items-start justify-between gap-3 p-4" style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
           <div>
-            <p className="text-[15px] font-bold" style={{ color: "#ffffff" }}>Confirmados · rueda de prensa</p>
+            <p className="text-[15px] font-bold" style={{ color: "#ffffff" }}>Confirmados · rueda de negocios</p>
             <p className="mt-0.5 text-xs" style={{ color: "#9a9a9a" }}>
               {isLoading ? "Cargando…" : `${conDatos.length} con datos · ${sinDatos} sin datos todavía`}
             </p>
