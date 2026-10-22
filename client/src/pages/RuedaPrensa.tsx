@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Loader2, ArrowRight, Store, Mail, MessageCircle, Pencil } from "lucide-react";
+import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Loader2, ArrowRight, Store, Mail, MessageCircle, X } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
@@ -93,8 +94,9 @@ function Separador({ className = "" }: { className?: string }) {
 type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosTienda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosEditar" | "datosInvalido" | "datosError", string>;
 
 /**
- * Formulario que aparece a quien ya confirmó: nombre de la tienda, correo y
- * WhatsApp. Si ya los dejó, muestra un aviso discreto con opción a corregir.
+ * Datos de quien confirmó (tienda, correo y WhatsApp) en una ventana que se
+ * abre sola al confirmar. Al enviarlos la ventana se cierra y no vuelve.
+ * Si la cierra sin enviar, queda un botón para abrirla de nuevo.
  */
 function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: boolean; t: TextosDatos }) {
   const utils = trpc.useUtils();
@@ -113,7 +115,16 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
     },
     onError: () => setAviso(t.datosError),
   });
-  useEffect(() => { if (!conDatos) setAbierto(true); }, [conDatos]);
+
+  // Mientras la ventana está abierta, la página de atrás no se desplaza
+  useEffect(() => {
+    if (!abierto) return;
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const tecla = (e: KeyboardEvent) => { if (e.key === "Escape") setAbierto(false); };
+    window.addEventListener("keydown", tecla);
+    return () => { document.body.style.overflow = previo; window.removeEventListener("keydown", tecla); };
+  }, [abierto]);
 
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
@@ -127,73 +138,95 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
     guardar.mutate({ clave, tienda: tienda.trim(), email: email.trim(), whatsapp: whatsapp.trim() });
   };
 
-  if (!abierto) {
+  // Ya dejó sus datos: solo una confirmación discreta, sin formulario
+  if (conDatos) {
     return (
-      <div className="mx-auto mt-10 max-w-md">
-        <p className="rp-sistema inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[#f1c7d0]/80">
-          <Check size={13} strokeWidth={2} className="text-[#ff6b86]" /> {t.datosListo}
-        </p>
-        <div>
-          <button
-            onClick={() => setAbierto(true)}
-            className="rp-sistema mt-3 inline-flex items-center gap-1.5 text-[10px] uppercase tracking-[0.2em] text-[#bfaeb5] underline-offset-4 hover:text-[#f6e3e7] hover:underline"
-          >
-            <Pencil size={11} /> {t.datosEditar}
-          </button>
-        </div>
-      </div>
+      <p className="rp-sistema mx-auto mt-10 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[#f1c7d0]/80">
+        <Check size={13} strokeWidth={2} className="text-[#ff6b86]" /> {t.datosListo}
+      </p>
     );
   }
 
   const campo = "rp-campo w-full bg-transparent py-3 pl-9 pr-3 text-[16px] font-light text-[#f6e3e7] placeholder:text-[#8d7b83] focus:outline-none";
   return (
-    <motion.form
-      onSubmit={enviar}
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7, delay: 0.15 }}
-      className="mx-auto mt-12 max-w-md border-t border-[#ff4d6d]/25 pt-10 text-left"
-      noValidate
-    >
-      <p className="rp-sistema mb-3 text-center text-[10px] uppercase tracking-[0.3em] text-[#ff6b86]">{t.datosEtq}</p>
-      <p className="rp-serif mb-3 text-center text-[22px] font-light leading-tight text-[#f6e3e7]">{t.datosTitulo}</p>
-      <p className="mb-8 text-center text-[14px] font-light leading-[1.75] text-[#bfaeb5]">{t.datosTexto}</p>
-
-      <label className="mb-5 block">
-        <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosTienda}</span>
-        <span className="relative block">
-          <Store size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
-          <input value={tienda} onChange={e => setTienda(e.target.value)} maxLength={150} autoComplete="organization" className={campo} />
-        </span>
-      </label>
-      <label className="mb-5 block">
-        <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosEmail}</span>
-        <span className="relative block">
-          <Mail size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
-          <input type="email" inputMode="email" value={email} onChange={e => setEmail(e.target.value)} maxLength={320} autoComplete="email" autoCapitalize="none" className={campo} />
-        </span>
-      </label>
-      <label className="mb-2 block">
-        <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosWhatsapp}</span>
-        <span className="relative block">
-          <MessageCircle size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
-          <input type="tel" inputMode="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} maxLength={24} autoComplete="tel" placeholder="+58 414 1234567" className={campo} />
-        </span>
-      </label>
-      <p className="mb-8 text-[11.5px] font-light text-[#8d7b83]">{t.datosWhatsappAyuda}</p>
-
-      <div className="text-center">
+    <>
+      {/* Si cerró la ventana sin enviar, puede volver a abrirla */}
+      {!abierto && (
         <button
-          type="submit"
-          disabled={guardar.isPending}
-          className="rp-boton rp-sistema ev-notch ev-press inline-flex items-center gap-3 whitespace-nowrap px-8 py-4 text-[11.5px] font-semibold uppercase tracking-[0.26em] text-white disabled:opacity-70"
+          onClick={() => setAbierto(true)}
+          className="rp-sistema ev-notch ev-press mx-auto mt-10 inline-flex items-center gap-2 border border-[#ff4d6d]/50 bg-[#ff4d6d]/10 px-6 py-3.5 text-[11px] uppercase tracking-[0.22em] text-[#f6e3e7]"
         >
-          {guardar.isPending && <Loader2 size={15} className="animate-spin" />}
-          {guardar.isPending ? t.datosEnviando : t.datosEnviar}
+          <Store size={14} strokeWidth={1.6} /> {t.datosTitulo}
         </button>
-        {aviso && <p className="mx-auto mt-4 max-w-xs text-sm text-[#ff9aac]">{aviso}</p>}
-      </div>
-    </motion.form>
+      )}
+
+      {abierto && createPortal(
+        <div className="rp rp-modal-fondo fixed inset-0 z-[300] flex items-end justify-center sm:items-center" onClick={() => setAbierto(false)}>
+          <motion.form
+            onSubmit={enviar}
+            onClick={e => e.stopPropagation()}
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+            aria-modal="true"
+            aria-label={t.datosTitulo}
+            className="rp-modal relative max-h-[92vh] w-full max-w-md overflow-y-auto px-6 pb-8 pt-9 text-left sm:px-9"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)" }}
+            noValidate
+          >
+            <button
+              type="button"
+              onClick={() => setAbierto(false)}
+              className="absolute right-3 top-3 flex h-10 w-10 items-center justify-center text-[#bfaeb5] hover:text-white"
+              aria-label="Cerrar"
+            >
+              <X size={18} />
+            </button>
+
+            <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full border border-[#ff4d6d]/70">
+              <Check size={20} strokeWidth={1.8} className="text-[#ff6b86]" />
+            </div>
+            <p className="rp-sistema mb-3 text-center text-[10px] uppercase tracking-[0.3em] text-[#ff6b86]">{t.datosEtq}</p>
+            <p className="rp-serif mb-3 text-center text-[22px] font-light leading-tight text-[#f6e3e7]">{t.datosTitulo}</p>
+            <p className="mb-7 text-center text-[14px] font-light leading-[1.75] text-[#bfaeb5]">{t.datosTexto}</p>
+
+            <label className="mb-5 block">
+              <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosTienda}</span>
+              <span className="relative block">
+                <Store size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
+                <input value={tienda} onChange={e => setTienda(e.target.value)} maxLength={150} autoComplete="organization" className={campo} />
+              </span>
+            </label>
+            <label className="mb-5 block">
+              <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosEmail}</span>
+              <span className="relative block">
+                <Mail size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
+                <input type="email" inputMode="email" value={email} onChange={e => setEmail(e.target.value)} maxLength={320} autoComplete="email" autoCapitalize="none" className={campo} />
+              </span>
+            </label>
+            <label className="mb-2 block">
+              <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosWhatsapp}</span>
+              <span className="relative block">
+                <MessageCircle size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
+                <input type="tel" inputMode="tel" value={whatsapp} onChange={e => setWhatsapp(e.target.value)} maxLength={24} autoComplete="tel" placeholder="+58 414 1234567" className={campo} />
+              </span>
+            </label>
+            <p className="mb-8 text-[11.5px] font-light text-[#8d7b83]">{t.datosWhatsappAyuda}</p>
+
+            <button
+              type="submit"
+              disabled={guardar.isPending}
+              className="rp-boton rp-sistema ev-notch ev-press flex w-full items-center justify-center gap-3 px-6 py-4 text-[11.5px] font-semibold uppercase tracking-[0.26em] text-white disabled:opacity-70"
+            >
+              {guardar.isPending && <Loader2 size={15} className="animate-spin" />}
+              {guardar.isPending ? t.datosEnviando : t.datosEnviar}
+            </button>
+            {aviso && <p className="mx-auto mt-4 max-w-xs text-center text-sm text-[#ff9aac]">{aviso}</p>}
+          </motion.form>
+        </div>,
+        document.body,
+      )}
+    </>
   );
 }
 

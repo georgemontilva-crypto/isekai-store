@@ -4535,3 +4535,12 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 @media (prefers-reduced-motion: reduce) { .ia-hoja { animation: none; } }
 .wfp-demo { background: linear-gradient(90deg, rgba(251, 191, 36, .1), rgba(251, 191, 36, .04)); }
 .wfp-demo-punto { width: 8px; height: 8px; border-radius: 9999px; background: #fbbf24; animation: ev2-inv-latido 1.6s ease-out infinite; box-shadow: 0 0 0 0 rgba(251, 191, 36, .7); }
+
+/* Ventana de datos de la invitación */
+.rp-modal-fondo { background: rgba(4, 2, 4, .78); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.rp-modal {
+  background: radial-gradient(ellipse 90% 50% at 50% 0%, rgba(232, 48, 90, .18), transparent 70%), #0d0609;
+  border-top: 1px solid rgba(255, 77, 109, .45);
+  font-family: Montserrat, Inter, system-ui, sans-serif;
+}
+@media (min-width: 640px) { .rp-modal { border: 1px solid rgba(255, 77, 109, .45); } }

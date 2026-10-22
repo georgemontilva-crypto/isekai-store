@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { ExternalLink, Link2, Handshake, Users, X, Download, Mail, MessageCircle } from "lucide-react";
 import { useSocketEvento } from "@/hooks/useSocket";
 import { toast } from "sonner";
@@ -128,13 +129,24 @@ function ListaConfirmados({ onCerrar }: { onCerrar: () => void }) {
     window.setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
-  // Sin role="dialog": el tema oscuro le pone fondo sólido a esos elementos
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center" style={{ background: "rgba(0,0,0,0.72)" }} onClick={onCerrar}>
+  // Mientras está abierta, el panel de atrás no se desplaza
+  useEffect(() => {
+    const previo = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const tecla = (e: KeyboardEvent) => { if (e.key === "Escape") onCerrar(); };
+    window.addEventListener("keydown", tecla);
+    return () => { document.body.style.overflow = previo; window.removeEventListener("keydown", tecla); };
+  }, [onCerrar]);
+
+  // Se monta fuera de la tarjeta (en el body): la tarjeta recorta sus esquinas
+  // y eso dejaba la ventana encerrada y cortada dentro de ella.
+  // Sin role="dialog": el tema oscuro le pone fondo sólido a esos elementos.
+  return createPortal(
+    <div className="fixed inset-0 z-[300] flex items-end justify-center sm:items-center" style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }} onClick={onCerrar}>
       <div
         aria-modal="true"
         aria-label="Confirmados de la rueda de negocios"
-        className="flex max-h-[88vh] w-full max-w-lg flex-col"
+        className="flex h-[92vh] w-full max-w-lg flex-col sm:h-auto sm:max-h-[88vh]"
         style={{ background: "#0a0a0a", border: "1px solid rgba(229,0,125,0.45)", paddingBottom: "env(safe-area-inset-bottom)" }}
         onClick={e => e.stopPropagation()}
       >
@@ -189,6 +201,7 @@ function ListaConfirmados({ onCerrar }: { onCerrar: () => void }) {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
