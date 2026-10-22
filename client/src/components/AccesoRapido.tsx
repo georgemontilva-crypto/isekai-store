@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { Swords, ScanLine, Store, X } from "lucide-react";
-import { trpc } from "@/lib/trpc";
+import { X } from "lucide-react";
+import { usePortales } from "@/hooks/usePortales";
 import { useAuth } from "@/_core/hooks/useAuth";
 
 /**
@@ -22,26 +22,16 @@ export default function AccesoRapido() {
   const { isAuthenticated } = useAuth();
   const [cerrado, setCerrado] = useState(false);
 
-  const { data: acceso } = trpc.tickets.miAcceso.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
-  const { data: boleto } = trpc.levelPass.miBoleto.useQuery(undefined, {
-    enabled: isAuthenticated,
-  });
+  const portales = usePortales();
 
   // No aparece dentro de los propios paneles ni en el admin
   const rutasOcultas = ["/vender", "/acceso", "/worldfest/pass", "/admin", "/guild/mejoras", "/rueda-de-prensa", "/rueda-de-negocios"];
   if (rutasOcultas.some(r => location.startsWith(r))) return null;
   if (!isAuthenticated || cerrado) return null;
 
-  /** Qué se le ofrece, en orden de prioridad */
-  const destino = acceso?.esTienda || acceso?.esStaff
-    ? { href: "/vender", texto: "Vender boletos", icono: Store, color: "#e5007d" }
-    : acceso?.esPortero
-      ? { href: "/acceso", texto: "Control de acceso", icono: ScanLine, color: "#38bdf8" }
-      : boleto
-        ? { href: "/worldfest/pass", texto: "Mi perfil de cazador", icono: Swords, color: "#a78bfa" }
-        : null;
+  /** El primero que le toque: su rol, o su Level Pass si compró boleto */
+  const p = portales.roles[0] ?? (portales.tieneBoleto ? portales.pase : null);
+  const destino = p ? { href: p.href, texto: p.texto, icono: p.icono, color: p.color } : null;
 
   if (!destino) return null;
 

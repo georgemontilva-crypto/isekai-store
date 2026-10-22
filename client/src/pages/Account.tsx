@@ -4,6 +4,7 @@ import { Package, Clock, ChevronRight, LogOut, Heart, Ticket, User, ShoppingBag,
 import { OrderTimeline } from "@/components/OrderTimeline";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
+import { usePortales } from "@/hooks/usePortales";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
@@ -48,16 +49,9 @@ export default function Account() {
   const { user, isAuthenticated, logout, loading } = useAuth();
 
   /** Portal que le toca a esta cuenta, si le toca alguno */
-  const { data: acceso } = trpc.tickets.miAcceso.useQuery(undefined, { enabled: isAuthenticated });
-  const { data: boleto } = trpc.levelPass.miBoleto.useQuery(undefined, { enabled: isAuthenticated });
-
-  const portal = acceso?.esTienda || acceso?.esStaff
-    ? { href: "/vender", corto: "Vender", icono: Store, color: "#e5007d" }
-    : acceso?.esPortero
-      ? { href: "/acceso", corto: "Acceso", icono: ScanLine, color: "#38bdf8" }
-      : boleto
-        ? { href: "/worldfest/pass", corto: "Cazador", icono: Swords, color: "#a78bfa" }
-        : null;
+  // Acceso directo al portal que le toca (vender, dar EXP, puerta o su Level Pass)
+  const portales = usePortales();
+  const portal = portales.roles[0] ?? (portales.tieneBoleto ? { ...portales.pase, corto: "Level Pass" } : null);
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("orders");
   const [offsetY, setOffsetY] = useState(0);

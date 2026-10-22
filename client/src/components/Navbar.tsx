@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "wouter";
 import { ShoppingBag, Menu, X, User, Search, Facebook, Twitter, Instagram, Youtube, ChevronLeft, ChevronRight, ArrowRight, ChevronDown, LayoutDashboard, Bell, Home, Layers, Users, HelpCircle, FileText, BookOpen, Sparkles, Ticket, Globe } from "lucide-react";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { usePortales } from "@/hooks/usePortales";
 import { useCart } from "@/contexts/CartContext";
 import { openLoginModal } from "@/const";
 import CartDrawer from "./CartDrawer";
@@ -117,6 +118,9 @@ const MOBILE_MENU_CSS = `
     padding-bottom: calc(env(safe-area-inset-bottom) + 2rem);
   }
   .iw-menu-body::-webkit-scrollbar { display: none; }
+  /* Nada del menú se encoge: con más contenido que pantalla, los bloques se
+     aplastaban y se montaban unos sobre otros en vez de desplazarse */
+  .iw-menu-body > * { flex-shrink: 0; }
 
   .iw-menu-item {
     opacity: 0;
@@ -193,6 +197,8 @@ export default function Navbar() {
   const closeTimer = useRef<ReturnType<typeof setTimeout>|null>(null);
   const notifRef = useRef<HTMLDivElement>(null);
   const { user, isAuthenticated } = useAuth();
+  // Portales por rol (vender, dar EXP, acceso, Level Pass)
+  const portales = usePortales();
   console.log("[Navbar] user:", user?.email, "role:", user?.role);
   const { totalItems, openCart } = useCart();
   const { t, lang, toggleLang } = useLang();
@@ -463,6 +469,20 @@ export default function Navbar() {
               <span className="relative">Cosplay Guild</span>
             </Link>
 
+            {/* Accesos por rol: a cada quien el suyo, a la vista */}
+            {[...portales.roles, ...(portales.tieneBoleto ? [portales.pase] : [])].map(p => (
+              <Link
+                key={p.clave}
+                href={p.href}
+                title={p.descripcion}
+                className="ev-notch ev-press ml-2 inline-flex items-center gap-1.5 px-3 py-2 text-[12.5px] font-bold"
+                style={{ color: p.color, background: `${p.color}14`, border: `1px solid ${p.color}55` }}
+              >
+                <p.icono size={14} strokeWidth={2} />
+                <span className="hidden lg:inline">{p.corto}</span>
+              </Link>
+            ))}
+
             <style>{WORLD_FEST_GLOW}</style>
           </nav>
 
@@ -624,6 +644,33 @@ export default function Navbar() {
               {t.nav.signIn}
             </button>
           )}
+
+          {/* Tus accesos: vender, dar EXP, control de acceso y el Level Pass */}
+          <p className="iw-menu-item ev-display mb-3 text-[10px] uppercase tracking-[0.25em] text-white/40"
+             style={{ transitionDelay: mobileOpen ? "60ms" : "0ms" }}>
+            {portales.roles.length ? "Tus accesos" : "World Fest"}
+          </p>
+          <div className="mb-7 flex flex-col gap-2">
+            {portales.todos.map((p, i) => (
+              <Link
+                key={p.clave}
+                href={p.href}
+                onClick={() => setMobileOpen(false)}
+                tabIndex={mobileOpen ? 0 : -1}
+                className="iw-menu-item iw-menu-card ev-notch ev-press flex items-center gap-3.5 px-4 py-3"
+                style={{ transitionDelay: mobileOpen ? `${70 + i * 40}ms` : "0ms", background: `${p.color}12`, border: `1px solid ${p.color}40`, minHeight: 64 }}
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center" style={{ background: `${p.color}22`, color: p.color, clipPath: "polygon(8px 0,100% 0,100% calc(100% - 8px),calc(100% - 8px) 100%,0 100%,0 8px)" }}>
+                  <p.icono size={19} strokeWidth={2} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-[14.5px] text-white">{p.texto}</span>
+                  <span className="block text-[11.5px] font-medium text-white/50" style={{ fontFamily: "Inter, system-ui, sans-serif", letterSpacing: 0 }}>{p.descripcion}</span>
+                </span>
+                <ChevronRight size={16} className="shrink-0 text-white/30" />
+              </Link>
+            ))}
+          </div>
 
           <p className="iw-menu-item ev-display mb-3 text-[10px] uppercase tracking-[0.25em] text-white/40"
              style={{ transitionDelay: mobileOpen ? "80ms" : "0ms" }}>

@@ -2,8 +2,18 @@ import { useState, useEffect, useRef, useMemo } from "react";
 import { Link } from "wouter";
 import {
   Loader2, Search, Check, Lock, MapPin, Trophy, X, LogOut,
-  Swords, User, ScrollText, ChevronLeft, ChevronRight, Copy, Repeat,
+  Swords, User, ScrollText, ChevronLeft, ChevronRight, Copy, Repeat, Camera,
 } from "lucide-react";
+import { Component, type ReactNode } from "react";
+import QrScanner from "@/components/admin/QrScanner";
+
+/** Si la cámara falla, la pantalla sigue viva y se escribe el código */
+class EscanerSeguro extends Component<{ children: ReactNode; onFallo: () => void }, { roto: boolean }> {
+  state = { roto: false };
+  static getDerivedStateFromError() { return { roto: true }; }
+  componentDidCatch() { this.props.onFallo(); }
+  render() { return this.state.roto ? null : this.props.children; }
+}
 import CarruselPatrocinantes from "@/components/fest/CarruselPatrocinantes";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -208,13 +218,22 @@ export default function WorldFestPass() {
   const [rangoAnunciado, setRangoAnunciado] = useState<string | null>(null);
   const rangoPrevio = useRef<string | null>(null);
 
-  // El boleto se recuerda: nadie quiere teclear su código cada vez
+  // El boleto llega por el enlace (al escanear el QR propio: ?boleto=TOKEN)
+  // o se recuerda de la última vez: nadie quiere teclear su código cada vez
   useEffect(() => {
     try {
+      const delEnlace = new URLSearchParams(window.location.search).get("boleto");
+      if (delEnlace && delEnlace.length >= 4) {
+        setConsultado(delEnlace);
+        localStorage.setItem(CLAVE_BOLETO, delEnlace);
+        window.history.replaceState(null, "", "/worldfest/pass");
+        return;
+      }
       const guardado = localStorage.getItem(CLAVE_BOLETO);
       if (guardado) setConsultado(guardado);
     } catch { /* almacenamiento no disponible */ }
   }, []);
+  const [escaneandoPropio, setEscaneandoPropio] = useState(false);
 
   const { data: real, isLoading, error } = trpc.levelPass.estado.useQuery(
     { codigo: consultado },
@@ -263,6 +282,12 @@ export default function WorldFestPass() {
 
 
   const utils = trpc.useUtils();
+
+  // Con sesión iniciada: si su correo tiene un boleto, se abre solo
+  const { data: miBoleto } = trpc.levelPass.miBoleto.useQuery(undefined, { enabled: isAuthenticated && !consultado });
+  useEffect(() => {
+    if (!consultado && miBoleto?.codigo) setConsultado(miBoleto.codigo);
+  }, [miBoleto?.codigo, consultado]);
 
   /**
    * TEMPORAL: barra de ensayo para el dueño. Permite sumar puntos sin salir
@@ -428,9 +453,23 @@ export default function WorldFestPass() {
             Entrar al sistema
           </h1>
           <p className="mb-7 text-center text-sm leading-relaxed text-[#8fa8bd]">
-            Escribe el código impreso en tu boleto. Desde aquí verás tu rango,
-            las misiones disponibles y tu progreso.
+            Escanea el QR de tu boleto o escribe el código impreso. Desde aquí
+            verás tu rango, tus misiones y tu progreso.
           </p>
+
+          {escaneandoPropio && (
+            <EscanerSeguro onFallo={() => setEscaneandoPropio(false)}>
+              <QrScanner onDetectado={t => { setEscaneandoPropio(false); entrar(t); }} onCerrar={() => setEscaneandoPropio(false)} />
+            </EscanerSeguro>
+          )}
+          <button
+            onClick={() => setEscaneandoPropio(true)}
+            className="ev-press mb-4 flex w-full items-center justify-center gap-2.5 rounded-2xl font-bold text-[#04080f]"
+            style={{ minHeight: 56, background: "#38bdf8", boxShadow: "0 12px 30px -12px #38bdf8" }}
+          >
+            <Camera size={20} /> Escanear mi boleto
+          </button>
+          <p className="mb-3 text-center text-[11px] uppercase tracking-wider text-[#5f7f96]">o escribe el código</p>
 
           <div className="flex gap-2">
             <input
@@ -460,8 +499,8 @@ export default function WorldFestPass() {
             El código está debajo del QR de tu boleto.
           </p>
 
-          {/* TEMPORAL: atajo mientras se prueba el sistema */}
-          <div className="mt-5 border-t border-[#38bdf8]/12 pt-4">
+          {/* TEMPORAL: atajo mientras se prueba el sistema (solo administración) */}
+          {esDueno && <div className="mt-5 border-t border-[#38bdf8]/12 pt-4">
             <p className="mb-2 text-center font-mono text-[10px] uppercase tracking-widest text-[#5f7f96]">
               Boletos de prueba
             </p>
@@ -476,7 +515,7 @@ export default function WorldFestPass() {
                 </button>
               ))}
             </div>
-          </div>
+          </div>}
 
         </div>
       </div>
