@@ -332,6 +332,7 @@ export const en: Translations = {
         { t: "Attend the stage play", z: "Main stage", xp: 60 },
       ],
     },
+    probarLevelPass: "Try the Level Pass (demo)",
     pruebalo: "Try it now",
     tuRangoActual: "Your rank",
     experiencia: "Experience",

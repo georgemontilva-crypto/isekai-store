@@ -1207,6 +1207,19 @@ export default function HomeEvento() {
             </div>
           </div>
 
+          {/* Demo del Level Pass: solo mientras está encendida desde el panel */}
+          {settings?.["lp_demo"] === "1" && (
+            <div className="-mt-8 mb-16 text-center">
+              <a
+                href="/worldfest/pass"
+                className="ev-notch ev-press inline-flex items-center gap-2 border px-6 py-3.5 font-mono text-xs font-bold uppercase tracking-widest"
+                style={{ borderColor: `${colorDemo}80`, background: `${colorDemo}1a`, color: colorDemo, minHeight: 48 }}
+              >
+                ▶ {e.probarLevelPass}
+              </a>
+            </div>
+          )}
+
           {/* Detalle de cada rango */}
           <div ref={escaleraRef} className="relative flex flex-col gap-2.5 pl-7 sm:pl-9">
             <span className="absolute bottom-3 left-2 top-3 w-[2px] bg-white/10 sm:left-3" aria-hidden="true" />

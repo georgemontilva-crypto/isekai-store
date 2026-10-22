@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { Link } from "wouter";
 import {
   Loader2, Search, Check, Lock, MapPin, Trophy, X, LogOut,
@@ -45,6 +45,36 @@ const RANGOS_INFO = [
 const NOMBRE_RANGO: Record<string, string> = {
   E: "Despertado", D: "Explorador", C: "Cazador", B: "Élite", A: "Élite superior", S: "El Despertado",
 };
+
+/**
+ * Demo pública del Level Pass: se activa desde el panel (ajuste «lp_demo»).
+ * Mientras está activa, quien entra sin boleto ve un cazador de prueba con
+ * misiones de ejemplo que puede completar tocándolas. Todo pasa en su
+ * teléfono: no se guarda nada ni toca boletos reales.
+ */
+const MISIONES_DEMO = [
+  { id: 1, name: "Escanea tu boleto en la entrada", description: "Muestra tu boleto en el acceso y empieza tu aventura en rango E.", ubicacion: "Acceso principal", xp: 20, tope: 1 },
+  { id: 2, name: "Foto en el photocall oficial", description: "Tómate la foto en el photocall del World Fest y muéstrasela al personal.", ubicacion: "Entrada principal", xp: 30, tope: 1 },
+  { id: 3, name: "Desfila en el Red Carpet Cosplayer", description: "Recorre la alfombra roja con tu personaje frente a fotógrafos y público.", ubicacion: "Red Carpet", xp: 60, tope: 1 },
+  { id: 4, name: "Gana un reto en la Zona Gamer", description: "Compite en cualquiera de los retos de videojuegos y gana una partida.", ubicacion: "Zona Gamer", xp: 80, tope: 1 },
+  { id: 5, name: "Compra en un stand aliado", description: "Cada compra en los stands autorizados suma experiencia. Se puede repetir.", ubicacion: "Stands comerciales", xp: 20, tope: 3 },
+  { id: 6, name: "Encuentra la puerta oculta", description: "Una de las experiencias inmersivas esconde una puerta. Encuéntrala y crúzala.", ubicacion: "Experiencias inmersivas", xp: 100, tope: 1 },
+  { id: 7, name: "Asiste a la obra teatral", description: "Vive la historia creada para el World Fest en el escenario principal.", ubicacion: "Escenario principal", xp: 60, tope: 1 },
+  { id: 8, name: "Ataca al Guardián del Portal", description: "Únete al raid del jefe en la Zona Gate y ayuda a derribarlo.", ubicacion: "Zona Gate", xp: 120, tope: 1 },
+];
+
+function rangoDeXp(xp: number) {
+  let r = "E";
+  for (const x of RANGOS_INFO) if (xp >= x.desde) r = x.rango;
+  return r;
+}
+function siguienteDeXp(xp: number) {
+  const prox = RANGOS_INFO.find(r => xp < r.desde);
+  if (!prox) return null;
+  const act = [...RANGOS_INFO].reverse().find(r => xp >= r.desde) ?? RANGOS_INFO[0];
+  const tramo = prox.desde - act.desde;
+  return { rango: prox.rango, faltan: prox.desde - xp, progreso: tramo > 0 ? Math.round(((xp - act.desde) / tramo) * 100) : 100 };
+}
 
 type Pestana = "rango" | "misiones" | "perfil";
 type Filtro = "pendientes" | "completadas" | "todas";
@@ -99,14 +129,18 @@ function AnilloRango({ color, progreso, rango }: { color: string; progreso: numb
 }
 
 /** Una misión: qué hacer, dónde, cuánta EXP da y cómo va */
-function TarjetaMision({ a, color }: { a: any; color: string }) {
+function TarjetaMision({ a, color, onCompletar }: { a: any; color: string; onCompletar?: () => void }) {
   const [abierta, setAbierta] = useState(false);
   const hecha = a.completada;
   const larga = (a.description ?? "").length > 90;
+  const tocable = !!onCompletar && !hecha;
   return (
     <article
-      className={`wfp-mision rounded-2xl border p-4 transition-colors ${hecha ? "border-[#4ade80]/20 bg-[#4ade80]/[0.04]" : "border-white/[0.08] bg-white/[0.025]"}`}
-      onClick={() => larga && setAbierta(v => !v)}
+      className={`wfp-mision rounded-2xl border p-4 transition-colors ${hecha ? "border-[#4ade80]/20 bg-[#4ade80]/[0.04]" : "border-white/[0.08] bg-white/[0.025]"} ${tocable ? "ev-press cursor-pointer active:bg-white/[0.06]" : ""}`}
+      onClick={() => { if (tocable) onCompletar!(); else if (larga) setAbierta(v => !v); }}
+      role={tocable ? "button" : undefined}
+      tabIndex={tocable ? 0 : undefined}
+      onKeyDown={e => { if (tocable && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); onCompletar!(); } }}
     >
       <div className="flex items-start gap-3.5">
         <span
@@ -147,6 +181,7 @@ function TarjetaMision({ a, color }: { a: any; color: string }) {
               </span>
             )}
             {hecha && <span className="text-[11px] font-semibold text-[#4ade80]">Completada</span>}
+            {tocable && <span className="text-[11px] font-semibold text-[#fbbf24]">Toca para completar · demo</span>}
           </div>
         </div>
       </div>
@@ -181,10 +216,50 @@ export default function WorldFestPass() {
     } catch { /* almacenamiento no disponible */ }
   }, []);
 
-  const { data, isLoading, error } = trpc.levelPass.estado.useQuery(
+  const { data: real, isLoading, error } = trpc.levelPass.estado.useQuery(
     { codigo: consultado },
     { enabled: consultado.length >= 4, retry: false, refetchInterval: 15000 },
   );
+
+  // ── Demo (se enciende desde el panel) ──
+  const { data: ajustes } = trpc.settings.getAll.useQuery();
+  const demoActivo = ajustes?.["lp_demo"] === "1";
+  const [salioDemo, setSalioDemo] = useState(false);
+  const [demoVeces, setDemoVeces] = useState<Record<number, number>>({});
+  const [demoHistorial, setDemoHistorial] = useState<{ actividad: string; xp: number; fecha: Date }[]>([]);
+  const modoDemo = demoActivo && !real && !salioDemo;
+  const demoData = useMemo(() => {
+    const xp = MISIONES_DEMO.reduce((t, m) => t + m.xp * (demoVeces[m.id] ?? 0), 0);
+    const rango = rangoDeXp(xp);
+    return {
+      codigo: "IW-DEMO",
+      nombre: "Cazador de prueba",
+      xpTotal: xp,
+      rango,
+      siguiente: siguienteDeXp(xp),
+      esRangoS: rango === "S",
+      actividades: MISIONES_DEMO.map(m => {
+        const veces = demoVeces[m.id] ?? 0;
+        return { ...m, veces, completada: veces >= m.tope };
+      }),
+      historial: demoHistorial,
+    };
+  }, [demoVeces, demoHistorial]);
+  const data: any = modoDemo ? demoData : real;
+  const completarDemo = (id: number) => {
+    const m = MISIONES_DEMO.find(x => x.id === id);
+    if (!m || (demoVeces[id] ?? 0) >= m.tope) return;
+    setDemoVeces(v => ({ ...v, [id]: (v[id] ?? 0) + 1 }));
+    setDemoHistorial(h => [{ actividad: m.name, xp: m.xp, fecha: new Date() }, ...h]);
+    try { navigator.vibrate?.(30); } catch { /* no soportado */ }
+  };
+  const reiniciarDemo = () => {
+    setDemoVeces({});
+    setDemoHistorial([]);
+    rangoPrevio.current = null;
+    setRangoAnunciado(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
 
   const utils = trpc.useUtils();
@@ -239,6 +314,7 @@ export default function WorldFestPass() {
   };
 
   const salir = () => {
+    if (modoDemo) { reiniciarDemo(); return; }
     setConsultado("");
     setCodigo("");
     rangoPrevio.current = null;
@@ -300,7 +376,7 @@ export default function WorldFestPass() {
   }
 
   // ── Sin sesión: el boleto se reclama con el correo con el que se compró ──
-  if (!esAdmin) {
+  if (!esAdmin && !modoDemo) {
     return (
       <div className="wf-zona flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <div className="lp-ventana w-full max-w-sm p-8">
@@ -558,8 +634,22 @@ export default function WorldFestPass() {
         </div>
       </header>
 
+      {modoDemo && (
+        <div className="wfp-demo border-b border-[#fbbf24]/25 px-4 py-3">
+          <div className="mx-auto flex max-w-2xl items-center gap-3">
+            <span className="wfp-demo-punto shrink-0" aria-hidden="true" />
+            <p className="min-w-0 flex-1 text-[12.5px] leading-snug text-[#fde68a]">
+              <strong className="text-[#fbbf24]">Demo.</strong> Así verás tu Level Pass el día del evento. Toca una misión para completarla.
+            </p>
+            <button onClick={reiniciarDemo} className="flex h-9 shrink-0 items-center rounded-full border border-[#fbbf24]/40 px-3 text-[11.5px] font-bold text-[#fbbf24]">
+              Reiniciar
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* TEMPORAL: solo el dueño la ve */}
-      {esDueno && (
+      {esDueno && !modoDemo && (
         <div className="border-b border-[#fbbf24]/25 bg-[#fbbf24]/[0.07] px-4 py-2.5">
           <div className="mx-auto flex max-w-2xl flex-wrap items-center gap-2">
             <span className="font-mono text-[10px] uppercase tracking-widest text-[#fbbf24]">Ensayo</span>
@@ -677,7 +767,7 @@ export default function WorldFestPass() {
                 </div>
               ) : (
                 <div className="flex flex-col gap-2.5">
-                  {pendientes.slice(0, 3).map((a: any) => <TarjetaMision key={a.id} a={a} color={color} />)}
+                  {pendientes.slice(0, 3).map((a: any) => <TarjetaMision key={a.id} a={a} color={color} onCompletar={modoDemo ? () => completarDemo(a.id) : undefined} />)}
                 </div>
               )}
             </section>
@@ -782,7 +872,7 @@ export default function WorldFestPass() {
               <div className="flex flex-col gap-2.5">
                 {listaFiltrada.map((a: any, i: number) => (
                   <div key={a.id} className="contents">
-                    <TarjetaMision a={a} color={color} />
+                    <TarjetaMision a={a} color={color} onCompletar={modoDemo ? () => completarDemo(a.id) : undefined} />
                     {i === 2 && listaFiltrada.length > 3 && <CarruselPatrocinantes className="my-2" />}
                   </div>
                 ))}

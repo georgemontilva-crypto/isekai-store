@@ -342,6 +342,7 @@ export const es = {
         { t: "Asiste a la obra teatral", z: "Escenario principal", xp: 60 },
       ],
     },
+    probarLevelPass: "Probar el Level Pass (demo)",
     pruebalo: "Pruébalo ahora",
     tuRangoActual: "Tu rango",
     experiencia: "Experiencia",

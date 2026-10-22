@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, CreditCard, ExternalLink, Package, RotateCcw, ShoppingBag, Sparkles, Tag, TrendingUp } from "lucide-react";
 import TarjetaRuedaPrensa from "./TarjetaRuedaPrensa";
+import TarjetaDemoLevelPass from "./TarjetaDemoLevelPass";
 import ActivarNotificaciones from "./ActivarNotificaciones";
 
 /**
@@ -216,6 +217,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
           <section>
             <Etiqueta>World Fest</Etiqueta>
             <TarjetaRuedaPrensa />
+            <div className="mt-3"><TarjetaDemoLevelPass /></div>
           </section>
 
           <section>
