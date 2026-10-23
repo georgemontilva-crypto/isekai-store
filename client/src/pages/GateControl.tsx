@@ -34,6 +34,14 @@ type Veredicto = {
   nombre?: string;
   tipoNombre?: string;
   sinConexion?: boolean;
+  color?: string | null;
+  esVip?: boolean;
+  beneficios?: string[];
+  entregaKit?: string | null;
+  kitEntregado?: string | Date | null;
+  bonos?: { usados: number; total: number } | null;
+  diasRestantes?: number;
+  token?: string;
 };
 
 export default function GateControl() {
@@ -153,17 +161,20 @@ export default function GateControl() {
     );
     if (!b) return { ok: false, motivo: "inexistente", mensaje: "No está en la lista descargada. Si se vendió hace poco, valídalo cuando vuelva la señal." };
 
-    if (dia > b.dias) {
-      return {
-        ok: false, motivo: "dia_no_cubierto", nombre: b.nombre, tipoNombre: b.tipoNombre,
-        mensaje: `Este boleto es solo para ${b.dias} día(s) y hoy es el día ${dia}`,
-      };
-    }
-
+    const info = { nombre: b.nombre, tipoNombre: b.tipoNombre, color: b.color, esVip: b.esVip, entregaKit: b.entregaKit, token: b.token };
     const yaHoy = (b.diasUsados ?? []).includes(dia) ||
       cola.some(c => c.token === b.token && c.dia === dia);
     if (yaHoy) {
-      return { ok: false, motivo: "ya_entro", nombre: b.nombre, tipoNombre: b.tipoNombre, mensaje: "Este boleto ya entró hoy" };
+      return { ok: false, motivo: "ya_entro", ...info, mensaje: "Este boleto ya entró hoy" };
+    }
+
+    // Un boleto de N días vale para N días distintos, en el orden que quiera
+    const usados = Array.from(new Set([...(b.diasUsados ?? []), ...cola.filter(c => c.token === b.token).map(c => c.dia)]));
+    if (usados.length >= b.dias) {
+      return {
+        ok: false, motivo: "dia_no_cubierto", ...info,
+        mensaje: b.dias === 1 ? `Boleto de 1 día: ya se usó el día ${usados[0]}` : `Ya usó sus ${b.dias} días`,
+      };
     }
 
     // Se anota en la cola y en el paquete, para que un segundo intento
@@ -171,14 +182,14 @@ export default function GateControl() {
     guardarCola([...cola, { token: b.token, dia, hora: new Date().toISOString() }]);
     b.diasUsados = [...(b.diasUsados ?? []), dia];
 
-    return { ok: true, motivo: "ok", nombre: b.nombre, tipoNombre: b.tipoNombre, mensaje: "Acceso permitido", sinConexion: true };
+    return { ok: true, motivo: "ok", ...info, mensaje: "Acceso permitido", sinConexion: true, diasRestantes: b.dias - usados.length - 1 };
   };
 
   const procesar = async (token: string) => {
     if (!enLinea) { setVeredicto(validarLocalmente(token)); return; }
     try {
       const r = await validar.mutateAsync({ token });
-      setVeredicto(r as Veredicto);
+      setVeredicto({ ...(r as Veredicto), token });
     } catch {
       // Si la red falla en mitad del escaneo, se resuelve con la lista local
       setVeredicto(validarLocalmente(token));
@@ -307,10 +318,30 @@ export default function GateControl() {
             <p className="mt-2 text-[14px] text-[#d8d3e0]">{veredicto.mensaje}</p>
 
             {veredicto.nombre && (
-              <div className="mt-5 rounded-2xl bg-black/25 px-4 py-3">
-                <p className="text-[16px] font-bold text-white">{veredicto.nombre}</p>
-                {veredicto.tipoNombre && <p className="text-[12.5px] text-[#a39cad]">{veredicto.tipoNombre}</p>}
+              <div className="mt-5 overflow-hidden rounded-2xl bg-black/25 text-left">
+                {/* Tipo de boleto, con su color: se reconoce de un vistazo */}
+                {veredicto.tipoNombre && (
+                  <div className="flex items-center justify-between gap-2 px-4 py-2.5" style={{ background: `${veredicto.color ?? "#ffffff"}22` }}>
+                    <p className="text-[14px] font-black uppercase tracking-wide" style={{ color: veredicto.color ?? "#ffffff" }}>{veredicto.tipoNombre}</p>
+                    {veredicto.esVip && <span className="rounded-full bg-[#fbbf24] px-2.5 py-0.5 text-[11px] font-black text-[#1a1203]">VIP</span>}
+                  </div>
+                )}
+                <div className="px-4 py-3">
+                  <p className="text-[17px] font-bold text-white">{veredicto.nombre}</p>
+                  {veredicto.ok && veredicto.diasRestantes !== undefined && veredicto.diasRestantes > 0 && (
+                    <p className="text-[12.5px] text-[#a39cad]">Le queda {veredicto.diasRestantes} día más</p>
+                  )}
+                  {veredicto.esVip && (
+                    <p className="mt-2 rounded-xl bg-[#fbbf24]/12 px-3 py-2 text-[12.5px] font-semibold text-[#fde68a]">Llévalo a la zona VIP · puede entrar 1 hora antes</p>
+                  )}
+                  {veredicto.bonos && (
+                    <p className="mt-2 text-[12.5px] text-[#a39cad]">Bonos de consumo: {veredicto.bonos.total - veredicto.bonos.usados} de {veredicto.bonos.total}</p>
+                  )}
+                </div>
               </div>
+            )}
+            {veredicto.entregaKit && veredicto.motivo !== "inexistente" && veredicto.motivo !== "anulado" && veredicto.motivo !== "sin_vender" && (
+              <EntregaKit token={veredicto.token ?? ""} kit={veredicto.entregaKit} entregado={veredicto.kitEntregado ?? null} enLinea={enLinea} />
             )}
             {veredicto.sinConexion && (
               <p className="mt-3 text-[11.5px] text-[#8a8494]">Registrado sin señal · se enviará al volver la conexión</p>
@@ -364,6 +395,39 @@ export default function GateControl() {
           </section>
         )}
       </main>
+    </div>
+  );
+}
+
+
+/** Entrega de la caja Fanbox en la puerta: se marca una sola vez */
+function EntregaKit({ token, kit, entregado, enLinea }: { token: string; kit: string; entregado: string | Date | null; enLinea: boolean }) {
+  const [hecho, setHecho] = useState<string | Date | null>(entregado);
+  const entregar = trpc.tickets.entregarKit.useMutation({
+    onSuccess: r => {
+      if (r.ok) { setHecho(new Date()); toast.success("Entrega registrada"); }
+      else { setHecho(r.yaEntregado); toast.warning("Ya se le había entregado"); }
+    },
+    onError: e => toast.error(e.message),
+  });
+  if (hecho) {
+    return (
+      <p className="mt-3 rounded-2xl bg-white/[0.05] px-4 py-3 text-left text-[13px] text-[#a39cad]">
+        <Check size={14} className="mr-1 inline text-[#4ade80]" /> {kit}: entregado {new Date(hecho).toLocaleString("es-VE", { timeZone: "America/Caracas", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+      </p>
+    );
+  }
+  return (
+    <div className="mt-3 rounded-2xl border border-[#e5007d]/40 bg-[#e5007d]/10 p-4 text-left">
+      <p className="text-[14px] font-bold text-white">Entrégale: {kit}</p>
+      <button
+        onClick={() => entregar.mutate({ token })}
+        disabled={!enLinea || !token || entregar.isPending}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-full py-3 text-[14px] font-bold text-white disabled:opacity-45"
+        style={{ background: "#e5007d" }}
+      >
+        {entregar.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} {enLinea ? "Marcar como entregado" : "Sin señal: márcalo al volver"}
+      </button>
     </div>
   );
 }

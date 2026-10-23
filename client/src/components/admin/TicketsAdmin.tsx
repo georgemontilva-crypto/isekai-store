@@ -7,6 +7,8 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import DetalleBoleto from "./DetalleBoleto";
 import EquipoEvento from "./EquipoEvento";
+import TiposBoleto from "./TiposBoleto";
+import SorteoVip from "./SorteoVip";
 
 /**
  * Boletería de eventos — panel del dueño.
@@ -776,6 +778,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Level Pass ── */}
       {vista === "levelpass" && (
         <>
+          {evento && <SorteoVip eventId={evento.id} />}
           {lpResumen && (
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
               {[
@@ -1067,64 +1070,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       )}
 
       {/* ── Tipos ── */}
-      {vista === "tipos" && (
-        <>
-          <Plegable titulo="Nuevo tipo de boleto">
-          <div className={tarjeta}>
-            <p className="mb-3 text-sm font-bold text-[var(--iw-text)]">Nuevo tipo de boleto</p>
-            <div className="flex flex-col gap-3">
-              <input placeholder="Ej: Boleto General x1 Día" value={nuevoTipo.name}
-                onChange={e => setNuevoTipo(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
-              <div className="grid grid-cols-2 gap-2">
-                <input placeholder="Precio USD" inputMode="decimal" value={nuevoTipo.priceUsd}
-                  onChange={e => setNuevoTipo(f => ({ ...f, priceUsd: e.target.value.replace(/[^0-9.]/g, "") }))}
-                  className={campo} style={altoCampo} />
-                <select value={nuevoTipo.days}
-                  onChange={e => setNuevoTipo(f => ({ ...f, days: Number(e.target.value) }))}
-                  className={campo} style={altoCampo}>
-                  <option value={1}>1 día</option>
-                  <option value={2}>2 días</option>
-                </select>
-              </div>
-              <textarea rows={3} placeholder="Qué incluye (Level Pass, zona cosplayers, etc.)"
-                value={nuevoTipo.perks}
-                onChange={e => setNuevoTipo(f => ({ ...f, perks: e.target.value }))}
-                className={`${campo} resize-y py-3`} />
-            </div>
-            <button
-              onClick={() => evento && crearTipo.mutate({ ...nuevoTipo, eventId: evento.id, perks: nuevoTipo.perks || undefined })}
-              disabled={!nuevoTipo.name || !parseFloat(nuevoTipo.priceUsd || "0")}
-              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
-              style={{ minHeight: 52 }}
-            >
-              Añadir tipo
-            </button>
-          </div>
-          </Plegable>
-
-          <div className="flex flex-col gap-2">
-            {tipos.map((t: any) => (
-              <div key={t.id} className={`${tarjeta} ${t.active ? "" : "opacity-50"}`}>
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[var(--iw-text)]">{t.name}</p>
-                    <p className="text-xs text-[var(--iw-text-muted)]">{t.days} día(s){t.active ? "" : " · desactivado"}</p>
-                    {t.perks && <p className="mt-1 text-[11px] leading-snug text-[var(--iw-text-muted)]">{t.perks}</p>}
-                  </div>
-                  <div className="flex shrink-0 items-center gap-3">
-                    <p className="font-black text-[#e5007d]">{usd(t.priceUsd)}</p>
-                    <button onClick={() => { confirmar({ titulo: `¿Eliminar "${t.name}"?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarTipo.mutate({ id: t.id }); }); }}
-                      className="p-2 text-[var(--iw-text-muted)] hover:text-red-500">
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
-            {tipos.length === 0 && <p className="py-8 text-center text-sm text-[var(--iw-text-muted)]">Aún no has creado tipos de boleto.</p>}
-          </div>
-        </>
-      )}
+      {vista === "tipos" && <TiposBoleto evento={evento} />}
 
       {/* ── Equipo: todas las funciones en un solo lugar ── */}
       {vista === "equipo" && <EquipoEvento />}

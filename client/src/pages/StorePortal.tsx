@@ -2,7 +2,7 @@ import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from 
 import { Link, useLocation, useRoute } from "wouter";
 import {
   AlertCircle, ArrowLeft, BadgeCheck, Ban, Camera, Check, ChevronRight, Home, Keyboard, ListChecks,
-  Loader2, MapPin, Receipt, Repeat, Search, Store, Swords, Ticket, User, X, Zap,
+  Gift, Loader2, MapPin, Receipt, Repeat, Search, Store, Swords, Ticket, User, X, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
 import QrScanner from "@/components/admin/QrScanner";
@@ -32,7 +32,7 @@ class EscanerSeguro extends Component<{ children: ReactNode; onFallo: () => void
   render() { return this.state.roto ? null : this.props.children; }
 }
 
-type Modo = "vender" | "xp" | "ventas";
+type Modo = "vender" | "xp" | "ventas" | "bonos";
 const ROSA = "#e5007d";
 const CIAN = "#38bdf8";
 const COLOR_RANGO: Record<string, string> = { E: "#8a8a9c", D: "#4ade80", C: "#38bdf8", B: "#a78bfa", A: "#fbbf24", S: "#f43f5e" };
@@ -63,6 +63,87 @@ function Campo({ etiqueta, error, ...props }: React.InputHTMLAttributes<HTMLInpu
 }
 
 /** Botón grande para abrir la cámara */
+const VERDE_BONO = "#4ade80";
+
+/**
+ * Canje de bonos de consumo (Isekai Fanbox trae 5). La tienda aliada escanea
+ * el boleto, ve cuántos le quedan y canjea uno. No se puede pasar del total:
+ * el servidor lo cuenta con candado aunque dos tiendas canjeen a la vez.
+ */
+function CanjeBonos({ token, onEscanear, onCodigo, onLimpiar, suspendida }: { token: string; onEscanear: () => void; onCodigo: (c: string) => void; onLimpiar: () => void; suspendida: boolean }) {
+  const utils = trpc.useUtils();
+  const { data: b, isLoading, error } = trpc.tickets.beneficios.useQuery({ token }, { enabled: token.trim().length >= 4, retry: false });
+  const canjear = trpc.tickets.canjearBono.useMutation({
+    onSuccess: r => {
+      toast.success(`Bono canjeado · le quedan ${r.quedan}`);
+      try { navigator.vibrate?.([30, 40, 60]); } catch { /* */ }
+      void utils.tickets.beneficios.invalidate();
+    },
+    onError: e => toast.error(e.message),
+  });
+
+  if (!token) {
+    return (
+      <div className="sp-entra flex flex-col gap-4">
+        <div className="rounded-3xl border border-[#4ade80]/20 bg-[#4ade80]/[0.05] p-5">
+          <p className="text-[18px] font-black">Canjear bono de consumo</p>
+          <p className="mt-1 text-[13.5px] leading-relaxed text-[#a39cad]">Los boletos <strong className="text-white">Isekai Fanbox</strong> traen 5 bonos para usar en tiendas aliadas. Escanea el boleto y canjea uno por compra.</p>
+        </div>
+        <BotonEscanear onClick={onEscanear} color={VERDE_BONO} texto="Escanear boleto" disabled={suspendida} />
+        <CodigoManual onEnviar={onCodigo} color={VERDE_BONO} />
+      </div>
+    );
+  }
+
+  const quedan = b ? b.bonosTotales - b.bonosUsados : 0;
+  return (
+    <div className="sp-entra flex flex-col gap-4">
+      {isLoading ? (
+        <div className="flex justify-center py-12"><Loader2 className="animate-spin text-[#4ade80]" /></div>
+      ) : error ? (
+        <div className="rounded-3xl border border-[#f87171]/25 bg-[#f87171]/[0.06] p-5 text-[14px] text-[#fca5a5]">{error.message}</div>
+      ) : b && (
+        <div className="rounded-3xl border p-5" style={{ borderColor: `${b.color ?? VERDE_BONO}40`, background: `${b.color ?? VERDE_BONO}0d` }}>
+          <p className="font-mono text-[12px] text-[#8a8494]">{b.codigo}</p>
+          <p className="mt-0.5 text-[20px] font-black">{b.nombre || "Boleto"}</p>
+          <p className="text-[13px] text-[#a39cad]">{b.tipo ?? "Sin tipo"}</p>
+          {b.estado !== "sold" ? (
+            <p className="mt-4 rounded-2xl bg-[#f87171]/10 px-4 py-3 text-[14px] font-semibold text-[#f87171]">{b.estado === "void" ? "Boleto anulado" : "Boleto sin vender"}</p>
+          ) : b.bonosTotales === 0 ? (
+            <p className="mt-4 rounded-2xl bg-white/[0.05] px-4 py-3 text-[14px] text-[#cfc9d8]">Este boleto no trae bonos de consumo.</p>
+          ) : (
+            <>
+              <div className="mt-4 flex items-center justify-between">
+                <p className="text-[14px] font-semibold">Bonos</p>
+                <p className="text-[14px] font-bold" style={{ color: quedan ? VERDE_BONO : "#f87171" }}>{quedan ? `Le quedan ${quedan} de ${b.bonosTotales}` : "Ya usó todos"}</p>
+              </div>
+              <div className="mt-2 flex gap-1.5">
+                {Array.from({ length: b.bonosTotales }, (_, i) => (
+                  <span key={i} className="h-2.5 flex-1 rounded-full" style={{ background: i < b.bonosUsados ? "rgba(255,255,255,0.12)" : VERDE_BONO }} />
+                ))}
+              </div>
+              {b.canjes.length > 0 && (
+                <ul className="mt-3 flex flex-col gap-1 text-[12px] text-[#8a8494]">
+                  {b.canjes.map((c, i) => <li key={i}>Usado en {c.tienda ?? "una tienda"} · {new Date(c.fecha).toLocaleString("es-VE", { timeZone: "America/Caracas", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}</li>)}
+                </ul>
+              )}
+              <button
+                onClick={() => canjear.mutate({ token })}
+                disabled={!quedan || canjear.isPending || suspendida}
+                className="mt-5 flex w-full items-center justify-center gap-2 rounded-full py-4 text-[16px] font-bold text-[#04130a] disabled:opacity-40"
+                style={{ background: VERDE_BONO }}
+              >
+                {canjear.isPending ? <Loader2 size={18} className="animate-spin" /> : <Gift size={18} />} Canjear 1 bono
+              </button>
+            </>
+          )}
+        </div>
+      )}
+      <button onClick={onLimpiar} className="rounded-full bg-white/[0.06] py-3.5 text-[14px] font-semibold text-white">Escanear otro boleto</button>
+    </div>
+  );
+}
+
 function BotonEscanear({ onClick, color, texto, disabled }: { onClick: () => void; color: string; texto: string; disabled?: boolean }) {
   return (
     <button
@@ -127,7 +208,8 @@ export default function StorePortal() {
 
   const [token, setToken] = useState(params?.token ?? "");
   const [ultimoEscaneo, setUltimoEscaneo] = useState("");
-  const [camara, setCamara] = useState<null | "vender" | "xp">(null);
+  const [camara, setCamara] = useState<null | "vender" | "xp" | "bono">(null);
+  const [tokenBono, setTokenBono] = useState("");
 
   /**
    * El token se guarda al llegar por QR: si el navegador se abre sin sesión
@@ -166,7 +248,7 @@ export default function StorePortal() {
   // Pestaña inicial: la que pida el enlace (?modo=xp), si no la principal del rol
   const modoInicial = (): Modo => {
     const q = new URLSearchParams(window.location.search).get("modo");
-    if (q === "xp" || q === "ventas" || q === "vender") return q;
+    if (q === "xp" || q === "ventas" || q === "vender" || q === "bonos") return q;
     return "vender";
   };
   const [modo, setModo] = useState<Modo>(modoInicial);
@@ -210,6 +292,7 @@ export default function StorePortal() {
       setVendido(r);
       void utils.tickets.misVentas.invalidate();
       void utils.tickets.escanear.invalidate();
+      void utils.tickets.tipos.invalidate();
       try { navigator.vibrate?.([30, 40, 60]); } catch { /* */ }
       window.scrollTo({ top: 0, behavior: "smooth" });
     },
@@ -218,7 +301,7 @@ export default function StorePortal() {
 
   // Un solo tipo activo: se elige solo
   useEffect(() => {
-    if (escaneo?.ticket?.status === "blank" && tiposActivos.length === 1 && !tipoElegido) setTipoElegido(tiposActivos[0].id);
+    if (escaneo?.ticket?.status === "blank" && tiposActivos.length === 1 && !tipoElegido && (tiposActivos[0] as any).quedan !== 0) setTipoElegido(tiposActivos[0].id);
   }, [escaneo?.ticket?.status, tiposActivos.length, tipoElegido]);
 
   const limpiarVenta = () => {
@@ -334,10 +417,11 @@ export default function StorePortal() {
   const pestanas = ([
     esTienda && ["vender", "Vender", Ticket, ROSA],
     puedeXp && ["xp", "Dar EXP", Zap, CIAN],
+    esTienda && ["bonos", "Canjear", Gift, VERDE_BONO],
     esTienda && ["ventas", "Ventas", Receipt, "#a78bfa"],
   ].filter(Boolean) as [Modo, string, any, string][]);
   const conBarra = pestanas.length > 1;
-  const colorModo = modo === "xp" ? CIAN : modo === "ventas" ? "#a78bfa" : ROSA;
+  const colorModo = modo === "xp" ? CIAN : modo === "ventas" ? "#a78bfa" : modo === "bonos" ? VERDE_BONO : ROSA;
 
   // Paso actual de la venta (para la guía de arriba)
   const pasoVenta = vendido ? 4 : !token ? 1 : escaneo?.ticket?.status === "blank" ? (tipoElegido ? 3 : 2) : 1;
@@ -352,6 +436,7 @@ export default function StorePortal() {
               setCamara(null);
               setUltimoEscaneo(t);
               if (para === "xp") darXp(t);
+              else if (para === "bono") setTokenBono(t);
               else { setVendido(null); setTipoElegido(null); setIntento(false); setToken(t); }
             }}
             onCerrar={() => setCamara(null)}
@@ -529,20 +614,35 @@ export default function StorePortal() {
                     {tiposActivos.map((t: any) => {
                       const sel = tipoElegido === t.id;
                       const usd = parseFloat(t.priceUsd);
+                      const agotado = t.quedan === 0;
+                      const c = t.color ?? ROSA;
+                      const beneficios = String(t.perks ?? "").split("\n").map((x: string) => x.trim()).filter(Boolean);
                       return (
                         <button
                           key={t.id}
+                          disabled={agotado}
                           onClick={() => { setTipoElegido(t.id); window.setTimeout(() => datosRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 120); }}
-                          className="flex items-center gap-3 rounded-2xl border p-4 text-left transition-colors"
-                          style={{ borderColor: sel ? ROSA : "rgba(255,255,255,0.08)", background: sel ? `${ROSA}14` : "rgba(255,255,255,0.025)" }}
+                          className="flex items-start gap-3 rounded-2xl border p-4 text-left transition-colors disabled:opacity-45"
+                          style={{ borderColor: sel ? c : "rgba(255,255,255,0.08)", background: sel ? `${c}14` : "rgba(255,255,255,0.025)" }}
                           aria-pressed={sel}
                         >
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2" style={{ borderColor: sel ? ROSA : "rgba(255,255,255,0.25)", background: sel ? ROSA : "transparent" }}>
+                          <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2" style={{ borderColor: sel ? c : "rgba(255,255,255,0.25)", background: sel ? c : "transparent" }}>
                             {sel && <Check size={13} strokeWidth={3} />}
                           </span>
                           <span className="min-w-0 flex-1">
-                            <span className="block text-[15px] font-bold">{t.name}</span>
-                            <span className="block text-[12px] text-[#8a8494]">{t.days === 2 ? "Ambos días" : "Un día"}{t.perks ? ` · ${t.perks}` : ""}</span>
+                            <span className="flex flex-wrap items-center gap-1.5 text-[15px] font-bold">
+                              {t.name}
+                              {t.esVip && <span className="rounded-full bg-[#fbbf24]/15 px-2 py-0.5 text-[10px] font-bold text-[#fbbf24]">VIP</span>}
+                            </span>
+                            <span className="block text-[12px] text-[#8a8494]">
+                              {t.days === 2 ? "Ambos días" : "Un día (el que elija)"}
+                              {t.cupo != null && (agotado ? " · Agotado" : ` · Quedan ${t.quedan} de ${t.cupo}`)}
+                            </span>
+                            {sel && beneficios.length > 0 && (
+                              <span className="mt-2 flex flex-col gap-0.5 text-[12px] leading-snug text-[#cfc9d8]">
+                                {beneficios.map((x: string) => <span key={x}>· {x}</span>)}
+                              </span>
+                            )}
                           </span>
                           <span className="shrink-0 text-right">
                             <span className="block text-[17px] font-black">${usd.toFixed(2)}</span>
@@ -721,6 +821,17 @@ export default function StorePortal() {
               </section>
             )}
           </div>
+        )}
+
+        {/* ═════════════ CANJEAR BONOS ═════════════ */}
+        {modo === "bonos" && esTienda && (
+          <CanjeBonos
+            token={tokenBono}
+            onEscanear={() => setCamara("bono")}
+            onCodigo={c => setTokenBono(c)}
+            onLimpiar={() => setTokenBono("")}
+            suspendida={tienda ? !tienda.active : false}
+          />
         )}
 
         {/* ═════════════ VENTAS ═════════════ */}

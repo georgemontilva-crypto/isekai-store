@@ -283,9 +283,31 @@ export const ticketTypes = mysqlTable("ticketTypes", {
   priceUsd: decimal("priceUsd", { precision: 10, scale: 2 }).notNull(),
   /** 1 = un día, 2 = ambos días */
   days: int("days").notNull().default(1),
+  /** Beneficios, uno por línea (se muestran en la venta, la puerta y el correo) */
   perks: text("perks"),
   active: boolean("active").notNull().default(true),
   sortOrder: int("sortOrder").notNull().default(0),
+  /** Máximo de boletos de este tipo (null = sin límite). VIP 20, Fanbox 100 */
+  cupo: int("cupo"),
+  /** VIP: la puerta lo destaca (zona VIP, ingreso anticipado) y entra al sorteo */
+  esVip: boolean("esVip").notNull().default(false),
+  /** Algo que se le entrega al llegar (p. ej. «Caja Fanbox + tote bag») */
+  entregaKit: varchar("entregaKit", { length: 200 }),
+  /** Bonos de consumo que puede canjear en tiendas aliadas */
+  bonos: int("bonos").notNull().default(0),
+  /** Color con que se reconoce el tipo en la puerta */
+  color: varchar("color", { length: 20 }),
+});
+
+/** Canjes de beneficios de un boleto: bonos en tiendas y entrega del kit */
+export const ticketCanjes = mysqlTable("ticketCanjes", {
+  id: int("id").autoincrement().primaryKey(),
+  ticketId: int("ticketId").notNull(),
+  /** "bono" | "kit" */
+  tipo: varchar("tipo", { length: 20 }).notNull(),
+  storeId: int("storeId"),
+  userId: int("userId"),
+  creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
 
 /** Tiendas autorizadas a vender. Cada una tiene su usuario con rol `store`. */

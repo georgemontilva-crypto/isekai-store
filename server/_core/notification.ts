@@ -639,8 +639,10 @@ export async function notifyTicketPurchased(
     precioUsd: string;
     tienda?: string;
     fechas?: string;
+    beneficios?: string[];
   },
 ): Promise<boolean> {
+  const esc = (v: string) => v.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
   const content = `
     <h1>Tu boleto está confirmado</h1>
     <p>Hola <strong>${datos.nombre}</strong>, guarda este correo: es el comprobante de tu entrada.</p>
@@ -655,6 +657,7 @@ export async function notifyTicketPurchased(
       <p style="margin-top:6px"><strong>Pagado:</strong> $${parseFloat(datos.precioUsd || "0").toFixed(2)} USD</p>
       ${datos.tienda ? `<p style="margin-top:6px"><strong>Punto de venta:</strong> ${datos.tienda}</p>` : ""}
       ${datos.fechas ? `<p style="margin-top:6px"><strong>Fechas:</strong> ${datos.fechas}</p>` : ""}
+      ${datos.beneficios?.length ? `<p style="margin-top:12px"><strong>Tu boleto incluye:</strong></p><ul style="margin:6px 0 0 18px; padding:0">${datos.beneficios.map(b => `<li style="margin-top:4px">${esc(b)}</li>`).join("")}</ul>` : ""}
     </div>
 
     <div class="order-box">

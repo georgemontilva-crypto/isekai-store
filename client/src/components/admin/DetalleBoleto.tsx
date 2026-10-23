@@ -89,6 +89,13 @@ export default function DetalleBoleto({ boleto, tipos, onCerrar }: { boleto: any
         </div>
       </div>
 
+      {extra?.beneficios && (
+        <div className="mb-4 rounded-2xl bg-white/[0.04] px-4 py-3 text-[13px]">
+          {extra.beneficios.kit && <p className="text-[#cfc9d8]"><span className="text-[#9a93a6]">{extra.beneficios.kit}:</span> {extra.beneficios.kitEntregado ? `entregado ${new Date(extra.beneficios.kitEntregado).toLocaleString("es-VE", { timeZone: "America/Caracas", dateStyle: "short", timeStyle: "short" })}` : "pendiente de entregar"}</p>}
+          {extra.beneficios.bonosTotales > 0 && <p className="mt-1 text-[#cfc9d8]"><span className="text-[#9a93a6]">Bonos:</span> {extra.beneficios.bonosUsados} de {extra.beneficios.bonosTotales} usados{extra.beneficios.canjes.length ? ` (${extra.beneficios.canjes.map(c => c.tienda ?? "tienda").join(", ")})` : ""}</p>}
+        </div>
+      )}
+
       {!editando ? (
         <>
           <div className="mb-4 flex flex-col gap-1.5 rounded-2xl bg-white/[0.03] px-4 py-3 text-[13px]">

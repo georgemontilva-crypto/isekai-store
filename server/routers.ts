@@ -35,6 +35,7 @@ import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
 import * as patro from "./patrocinantes";
 import { permisosDe, esDelEquipo, limpiarPermisos } from "./permisos";
 import { listarEquipo, asignarRol, quitarDelEquipo, pausarRol } from "./equipo";
+import { cargarPlantilla2027, vendidosPorTipo, beneficiosDe, canjearBono, entregarKit, participantesSorteo } from "./beneficios";
 import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
@@ -1683,9 +1684,13 @@ export const appRouter = router({
       .mutation(({ input }) => { const { id, ...d } = input; return editarEvento(id, d); }),
 
     // ── Tipos de boleto ──
+    /** Tipos con lo vendido y lo que queda de cada cupo */
     tipos: protectedProcedure
       .input(z.object({ eventId: z.number() }))
-      .query(({ input }) => listarTipos(input.eventId)),
+      .query(async ({ input }) => {
+        const [tipos, vendidos] = await Promise.all([listarTipos(input.eventId), vendidosPorTipo(input.eventId)]);
+        return tipos.map(t => ({ ...t, vendidos: vendidos[t.id] ?? 0, quedan: t.cupo != null ? Math.max(0, t.cupo - (vendidos[t.id] ?? 0)) : null }));
+      }),
     crearTipo: adminProcedure
       .input(z.object({
         eventId: z.number(),
@@ -1694,6 +1699,11 @@ export const appRouter = router({
         days: z.number().int().min(1).max(7),
         perks: z.string().max(1000).optional(),
         sortOrder: z.number().int().optional(),
+        cupo: z.number().int().min(1).max(100000).nullable().optional(),
+        esVip: z.boolean().optional(),
+        entregaKit: z.string().trim().max(200).nullable().optional(),
+        bonos: z.number().int().min(0).max(50).optional(),
+        color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
       }))
       .mutation(({ input }) => crearTipoBoleto(input)),
     editarTipo: adminProcedure
@@ -1704,8 +1714,21 @@ export const appRouter = router({
         days: z.number().int().min(1).max(7).optional(),
         perks: z.string().max(1000).optional(),
         active: z.boolean().optional(),
+        cupo: z.number().int().min(1).max(100000).nullable().optional(),
+        esVip: z.boolean().optional(),
+        entregaKit: z.string().trim().max(200).nullable().optional(),
+        bonos: z.number().int().min(0).max(50).optional(),
+        color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
       }))
       .mutation(({ input }) => { const { id, ...d } = input; return editarTipo(id, d); }),
+    /** Carga en un toque los cuatro boletos del Isekai World Fest 2027 */
+    plantilla2027: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .mutation(({ input }) => cargarPlantilla2027(input.eventId)),
+    /** Participantes del sorteo VIP */
+    sorteo: adminProcedure
+      .input(z.object({ eventId: z.number() }))
+      .query(({ input }) => participantesSorteo(input.eventId)),
     borrarTipo: adminProcedure
       .input(z.object({ id: z.number() }))
       .mutation(({ input }) => borrarTipo(input.id)),
@@ -1902,6 +1925,42 @@ export const appRouter = router({
         const tienda = await tiendaDeSesion(ctx.permisos);
         if (!tienda) return { cantidad: 0, totalUsd: 0, totalBs: 0, boletos: [] };
         return ventasDeTienda(tienda.id, input.eventId);
+      }),
+
+    // ── Beneficios: bonos de consumo y entrega del kit ──
+    /** Qué beneficios le quedan a un boleto (lo ve la tienda al escanearlo) */
+    beneficios: storeProcedure
+      .input(z.object({ token: z.string().min(4).max(64) }))
+      .query(async ({ input }) => {
+        const r = await boletoPorToken(input.token);
+        if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "No encontramos ese boleto" });
+        const b = await beneficiosDe(r.ticket.id, r.tipo);
+        return {
+          codigo: r.ticket.code, estado: r.ticket.status,
+          nombre: `${r.ticket.buyerName ?? ""} ${r.ticket.buyerLastName ?? ""}`.trim(),
+          tipo: r.tipo?.name ?? null, color: r.tipo?.color ?? null, ...b,
+        };
+      }),
+    /** Una tienda aliada canjea un bono de consumo del boleto */
+    canjearBono: storeProcedure
+      .input(z.object({ token: z.string().min(4).max(64) }))
+      .mutation(async ({ ctx, input }) => {
+        if (!ctx.permisos.admin && !ctx.permisos.tienda?.active) throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está suspendida" });
+        const r = await boletoPorToken(input.token);
+        if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "No encontramos ese boleto" });
+        try { return await canjearBono(r.ticket, ctx.user.id, ctx.permisos.tienda?.id); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    /** En la puerta (o en el puesto de entrega): la caja Fanbox ya se entregó */
+    entregarKit: protectedProcedure
+      .input(z.object({ token: z.string().min(4).max(64) }))
+      .mutation(async ({ ctx, input }) => {
+        const p = await permisosDe(ctx.user);
+        if (!p.portero && !p.tienda?.active) throw new TRPCError({ code: "FORBIDDEN", message: "Solo el personal del evento puede entregar el kit" });
+        const r = await boletoPorToken(input.token);
+        if (!r) throw new TRPCError({ code: "NOT_FOUND", message: "No encontramos ese boleto" });
+        try { return await entregarKit(r.ticket, ctx.user.id); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
       }),
 
     // ── Control de acceso (porteros) ──

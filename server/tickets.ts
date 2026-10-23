@@ -62,6 +62,7 @@ export async function editarEvento(id: number, data: Partial<{
 
 export async function crearTipoBoleto(data: {
   eventId: number; name: string; priceUsd: string; days: number; perks?: string; sortOrder?: number;
+  cupo?: number | null; esVip?: boolean; entregaKit?: string | null; bonos?: number; color?: string | null;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
@@ -72,6 +73,11 @@ export async function crearTipoBoleto(data: {
     days: data.days,
     perks: data.perks,
     sortOrder: data.sortOrder ?? 0,
+    cupo: data.cupo ?? null,
+    esVip: data.esVip ?? false,
+    entregaKit: data.entregaKit || null,
+    bonos: data.bonos ?? 0,
+    color: data.color || null,
   });
 }
 
@@ -85,6 +91,7 @@ export async function listarTipos(eventId: number) {
 
 export async function editarTipo(id: number, data: Partial<{
   name: string; priceUsd: string; days: number; perks: string; active: boolean; sortOrder: number;
+  cupo: number | null; esVip: boolean; entregaKit: string | null; bonos: number; color: string | null;
 }>) {
   const db = await getDb();
   if (!db) return;
@@ -328,6 +335,25 @@ export async function venderBoleto(data: {
   const [evVenta] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
   if (!evVenta?.active) throw new Error("La venta de este evento está cerrada");
 
+  // Cupo: VIP y Fanbox tienen un número fijo. Se cuenta y se vende dentro del
+  // mismo candado para que dos tiendas no vendan el último a la vez.
+  if (tipo.cupo != null) {
+    return conCandado(`cupo:${tipo.id}`, async () => {
+      const [{ n }] = await db.select({ n: sql<number>`COUNT(*)` }).from(eventTickets)
+        .where(and(eq(eventTickets.ticketTypeId, tipo.id), eq(eventTickets.status, "sold")));
+      if (Number(n) >= tipo.cupo!) throw new Error(`Se agotaron los boletos «${tipo.name}» (${tipo.cupo} de ${tipo.cupo} vendidos)`);
+      return completarVenta(db, t, tipo, data);
+    });
+  }
+  return completarVenta(db, t, tipo, data);
+}
+
+async function completarVenta(
+  db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
+  t: typeof eventTickets.$inferSelect,
+  tipo: typeof ticketTypes.$inferSelect,
+  data: { token: string; ticketTypeId: number; buyerName: string; buyerLastName: string; buyerPhone: string; buyerEmail?: string; storeId: number; userId: number },
+) {
   // La tasa se congela en el momento de la venta: si mañana cambia, este
   // boleto conserva el precio en bolívares con el que se vendió.
   const [rateRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, "bs_rate")).limit(1);
@@ -381,6 +407,7 @@ export async function venderBoleto(data: {
         precioUsd: String(precioUsd),
         tienda: tienda?.name,
         fechas,
+        beneficios: (tipo.perks ?? "").split("\n").map(x => x.trim()).filter(Boolean),
       });
     } catch (e) {
       console.error(`[Boleto] No se pudo enviar el comprobante de ${t.code}:`, e);
@@ -473,6 +500,7 @@ export async function reenviarComprobante(id: number) {
     precioUsd: String(parseFloat((t.priceUsd as any) ?? "0")),
     tienda: tienda?.name,
     fechas: ev?.startDate ? new Date(ev.startDate).toLocaleDateString("es-VE", { timeZone: "UTC", day: "2-digit", month: "long", year: "numeric" }) : undefined,
+    beneficios: (tipo?.perks ?? "").split("\n").map((x: string) => x.trim()).filter(Boolean),
   });
   return { ok: true, correo: t.buyerEmail };
 }
@@ -489,6 +517,13 @@ export async function listarBoletosPorId(id: number) {
     ingresos: ingresos.map(i => ({ dia: i.eventDay, hora: i.checkedAt, sinConexion: i.offline })).sort((a, b) => a.dia - b.dia),
     xp: Number(xp?.[0]?.xp ?? 0),
     actividades: Number(xp?.[0]?.n ?? 0),
+    beneficios: await (async () => {
+      if (!t.ticketTypeId) return null;
+      const [tipo] = await db.select().from(ticketTypes).where(eq(ticketTypes.id, t.ticketTypeId)).limit(1);
+      if (!tipo || (!tipo.entregaKit && !tipo.bonos)) return null;
+      const { beneficiosDe } = await import("./beneficios");
+      return { ...(await beneficiosDe(t.id, tipo)), kit: tipo.entregaKit };
+    })(),
   };
 }
 
@@ -560,6 +595,7 @@ export async function resumenEvento(eventId: number) {
       nombre: t.name,
       precioUsd: parseFloat(t.priceUsd as any),
       dias: t.days,
+      cupo: t.cupo ?? null,
       cantidad: delTipo.length,
       totalUsd: Math.round(delTipo.reduce((a, b) => a + (parseFloat(b.priceUsd as any) || 0), 0) * 100) / 100,
     };
@@ -745,6 +781,9 @@ export async function paqueteAcceso(eventId: number) {
       tipoId: t.ticketTypeId,
       dias: tipos.find(x => x.id === t.ticketTypeId)?.days ?? 1,
       tipoNombre: tipos.find(x => x.id === t.ticketTypeId)?.name ?? "",
+      color: tipos.find(x => x.id === t.ticketTypeId)?.color ?? null,
+      esVip: Boolean(tipos.find(x => x.id === t.ticketTypeId)?.esVip),
+      entregaKit: tipos.find(x => x.id === t.ticketTypeId)?.entregaKit ?? null,
       diasUsados: porBoleto.get(t.id) ?? [],
     })),
     generadoEn: new Date().toISOString(),
@@ -821,19 +860,30 @@ async function registrarIngresoDe(t: typeof eventTickets.$inferSelect, data: { t
     ? (await db.select().from(ticketTypes).where(eq(ticketTypes.id, t.ticketTypeId)).limit(1))[0]
     : undefined;
   const diasCubiertos = tipo?.days ?? 1;
+  const nombre = `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim();
 
-  if (dia > diasCubiertos) {
-    return {
-      ok: false,
-      motivo: "dia_no_cubierto" as const,
-      mensaje: `Este boleto es solo para ${diasCubiertos} día(s) y hoy es el día ${dia}`,
-      nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(),
-      tipoNombre: tipo?.name,
-    };
-  }
+  // Lo que la puerta debe saber del tipo: VIP, kit por entregar y bonos
+  const { beneficiosDe } = await import("./beneficios");
+  const ben = tipo ? await beneficiosDe(t.id, tipo) : null;
+  const extra = {
+    nombre,
+    tipoNombre: tipo?.name,
+    color: tipo?.color ?? null,
+    esVip: Boolean(tipo?.esVip),
+    beneficios: (tipo?.perks ?? "").split("\n").map(x => x.trim()).filter(Boolean),
+    entregaKit: tipo?.entregaKit ?? null,
+    kitEntregado: ben?.kitEntregado ?? null,
+    bonos: tipo?.bonos ? { usados: ben?.bonosUsados ?? 0, total: tipo.bonos } : null,
+  };
 
-  const previos = await db.select().from(ticketCheckins)
-    .where(and(eq(ticketCheckins.ticketId, t.id), eq(ticketCheckins.eventDay, dia)));
+  /**
+   * Días: un boleto de N días vale para N días distintos del evento, en el
+   * orden que la persona quiera. Antes un boleto de 1 día solo valía el
+   * primer día, y quien lo compraba para el domingo era rechazado.
+   */
+  const previosTodos = await db.select().from(ticketCheckins).where(eq(ticketCheckins.ticketId, t.id));
+  const previos = previosTodos.filter(p => p.eventDay === dia);
+  const diasUsados = Array.from(new Set(previosTodos.map(p => p.eventDay))).sort();
 
   if (previos.length) {
     return {
@@ -841,8 +891,18 @@ async function registrarIngresoDe(t: typeof eventTickets.$inferSelect, data: { t
       motivo: "ya_entro" as const,
       mensaje: "Este boleto ya entró hoy",
       entroA: previos[0].checkedAt,
-      nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(),
-      tipoNombre: tipo?.name,
+      ...extra,
+    };
+  }
+
+  if (diasUsados.length >= diasCubiertos) {
+    return {
+      ok: false,
+      motivo: "dia_no_cubierto" as const,
+      mensaje: diasCubiertos === 1
+        ? `Boleto de 1 día: ya se usó el día ${diasUsados[0]}`
+        : `Este boleto ya usó sus ${diasCubiertos} días (días ${diasUsados.join(" y ")})`,
+      ...extra,
     };
   }
 
@@ -856,7 +916,7 @@ async function registrarIngresoDe(t: typeof eventTickets.$inferSelect, data: { t
   } catch (e: any) {
     // El índice único lo frenó: alguien lo registró en ese mismo instante
     if (String(e?.cause?.code ?? e?.code ?? e?.message).includes("DUP")) {
-      return { ok: false, motivo: "ya_entro" as const, mensaje: "Este boleto ya entró hoy", entroA: new Date(), nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(), tipoNombre: tipo?.name };
+      return { ok: false, motivo: "ya_entro" as const, mensaje: "Este boleto ya entró hoy", entroA: new Date(), ...extra };
     }
     throw e;
   }
@@ -865,10 +925,10 @@ async function registrarIngresoDe(t: typeof eventTickets.$inferSelect, data: { t
     ok: true as const,
     motivo: "ok" as const,
     mensaje: "Acceso permitido",
-    nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(),
-    tipoNombre: tipo?.name,
+    ...extra,
     dia,
     diasCubiertos,
+    diasRestantes: diasCubiertos - diasUsados.length - 1,
   };
 }
 

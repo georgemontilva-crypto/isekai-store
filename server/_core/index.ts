@@ -48,6 +48,11 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 }
 
 async function startServer() {
+  // Columnas y tablas nuevas de la boletería: se crean solas antes de atender
+  try {
+    const { asegurarEsquemaBeneficios } = await import("../beneficios");
+    await asegurarEsquemaBeneficios();
+  } catch (e) { console.error("[Arranque] Esquema de boletería:", e); }
   const app = express();
   const server = createServer(app);
 
