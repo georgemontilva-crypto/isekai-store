@@ -21,6 +21,7 @@ const Invitacion = lazy(() => import("./pages/Invitacion"));
 import PantallaCarga from "@/components/PantallaCarga";
 import AccesoRapido from "@/components/AccesoRapido";
 import InstalarApp from "@/components/InstalarApp";
+import InsigniaApp from "@/components/InsigniaApp";
 const HomeEvento = lazy(() => import("./pages/HomeEvento"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
@@ -205,6 +206,7 @@ function Layout() {
       <PantallaCarga />
       <AccesoRapido />
       <InstalarApp />
+      <InsigniaApp />
       <ScrollToTop />
       <WelcomeToastHandler />
       {!esPaginaSola && <Navbar />}

@@ -42,19 +42,57 @@ self.addEventListener('fetch', (event) => {
   })());
 });
 
+/**
+ * Número rojo sobre el ícono de la app (como las demás apps).
+ * Cada aviso que llega suma 1, aunque la app esté cerrada. Al abrirla, la web
+ * lo pone en el número real de notificaciones sin leer. Se guarda en la caché
+ * de «sin conexión» para no perder la cuenta entre avisos.
+ */
+const CLAVE_CONTADOR = '/__contador-insignia';
+async function leerContador() {
+  try {
+    const c = await caches.open(CACHE_OFFLINE);
+    const r = await c.match(CLAVE_CONTADOR);
+    return r ? (parseInt(await r.text(), 10) || 0) : 0;
+  } catch { return 0; }
+}
+async function ponerContador(n) {
+  const valor = Math.max(0, Math.min(999, n | 0));
+  try {
+    const c = await caches.open(CACHE_OFFLINE);
+    await c.put(CLAVE_CONTADOR, new Response(String(valor)));
+  } catch { /* sin caché */ }
+  try {
+    if (valor > 0 && self.navigator.setAppBadge) await self.navigator.setAppBadge(valor);
+    else if (self.navigator.clearAppBadge) await self.navigator.clearAppBadge();
+  } catch { /* el sistema no lo permite */ }
+}
+
+// La web avisa el número real al abrirse o al leer notificaciones
+self.addEventListener('message', (event) => {
+  const d = event.data || {};
+  if (d.tipo === 'insignia') event.waitUntil(ponerContador(d.n));
+});
+
 // Llega una notificación (aunque la app esté cerrada)
 self.addEventListener('push', (event) => {
   let datos = {};
   try { datos = event.data ? event.data.json() : {}; } catch { datos = { body: event.data && event.data.text() }; }
   const titulo = datos.title || 'Isekai World';
-  event.waitUntil(self.registration.showNotification(titulo, {
-    body: datos.body || '',
-    icon: '/apple-touch-icon.png',
-    badge: '/icons/icon-192.png',
-    tag: datos.tag || undefined,
-    renotify: !!datos.tag,
-    data: { url: datos.url || '/' },
-  }));
+  event.waitUntil(Promise.all([
+    self.registration.showNotification(titulo, {
+      body: datos.body || '',
+      icon: '/apple-touch-icon.png',
+      badge: '/icons/icon-192.png',
+      tag: datos.tag || undefined,
+      renotify: !!datos.tag,
+      data: { url: datos.url || '/' },
+    }),
+    (async () => {
+      const n = typeof datos.badge === 'number' ? datos.badge : (await leerContador()) + 1;
+      await ponerContador(n);
+    })(),
+  ]));
 });
 
 // Al tocar la notificación: abre la app en la sección indicada
