@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { Plus, Download, Store, Ticket, Trash2, Mail, Check, BarChart3, Settings2, Zap, Search, X } from "lucide-react";
+import { Plus, Download, Store, Ticket, Trash2, Mail, Check, BarChart3, Settings2, Zap, Search, X, Users } from "lucide-react";
 import { confirmar } from "./ui";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import DetalleBoleto from "./DetalleBoleto";
+import EquipoEvento from "./EquipoEvento";
 
 /**
  * Boletería de eventos — panel del dueño.
@@ -50,7 +52,7 @@ function Plegable({ titulo, children }: { titulo: string; children: React.ReactN
 export default function TicketsAdmin({ compact = false, vistaFija }: {
   compact?: boolean;
   /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
-  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass";
+  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass" | "equipo";
 }) {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
@@ -65,7 +67,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     return [b.code, b.buyerName, b.buyerLastName, b.buyerPhone, `${b.buyerName ?? ""} ${b.buyerLastName ?? ""}`]
       .some(v => String(v ?? "").toLowerCase().includes(q));
   };
-  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass">("resumen");
+  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass" | "equipo">("resumen");
 
   /**
    * La vista puede venir de la barra inferior del teléfono, pero en cuanto se
@@ -139,6 +141,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
 
   /** Tienda seleccionada en la lista de vendidos; null = todas */
   const [filtroTienda, setFiltroTienda] = useState<string | null>(null);
+  const [detalle, setDetalle] = useState<any>(null);
 
 
   const [nuevaAct, setNuevaAct] = useState({ name: "", xp: "25", ubicacion: "", repetible: false, maxVeces: 3 });
@@ -198,7 +201,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     { enabled: habilitado && !!evento && vista === "codigos" },
   );
   const { data: boletos = [] } = trpc.tickets.listar.useQuery(
-    { eventId: evento?.id ?? 0, status: "sold" },
+    { eventId: evento?.id ?? 0, status: "emitidos" },
     { enabled: habilitado && !!evento && vista === "boletos", refetchInterval: 15000 },
   );
 
@@ -382,18 +385,20 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* Pestañas */}
       {/* Cuatro apartados en un carril horizontal. Cada uno abre su propia
           pantalla: antes eran siete pestañas y el contenido se mezclaba. */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
         {([
           ["resumen",   "Resumen", BarChart3],
           ["codigos",   "Generar boletos", Ticket],
-          ["tipos",     "Configuración", Settings2],
+          ["equipo",    "Equipo", Users],
+          ["tipos",     "Tipos de boleto", Settings2],
           ["levelpass", "Durante el evento", Zap],
         ] as const).map(([id, label, Icono]) => {
           // Cada apartado se marca activo también desde sus sub-secciones
           const activo =
             (id === "resumen"   && (vista === "resumen" || vista === "boletos")) ||
             (id === "codigos"   && vista === "codigos") ||
-            (id === "tipos"     && (vista === "tipos" || vista === "tiendas")) ||
+            (id === "equipo"    && (vista === "equipo" || vista === "tiendas")) ||
+            (id === "tipos"     && vista === "tipos") ||
             (id === "levelpass" && (vista === "levelpass" || vista === "acceso"));
           return (
             <button
@@ -417,12 +422,12 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {(() => {
         const subs: Record<string, [string, string][]> = {
           resumen:   [["resumen", "Ventas"], ["boletos", "Vendidos"]],
-          tipos:     [["tipos", "Tipos de boleto"], ["tiendas", "Tiendas"]],
+          equipo:    [["equipo", "Personas"], ["tiendas", "Ventas por tienda"]],
           levelpass: [["levelpass", "Level Pass"], ["acceso", "Control de acceso"]],
         };
         const grupo =
           vista === "boletos" ? "resumen"
-          : vista === "tiendas" ? "tipos"
+          : vista === "tiendas" ? "equipo"
           : vista === "acceso" ? "levelpass"
           : vista;
         const opciones = subs[grupo];
@@ -454,8 +459,9 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           boletos:   ["Boletos vendidos", "Quién compró cada boleto y en qué tienda"],
           codigos:   ["Generar boletos", "Crea boletos en blanco y reimprime lotes anteriores"],
           tipos:     ["Tipos de boleto", "Qué se vende, a qué precio y para cuántos días"],
-          tiendas:   ["Tiendas autorizadas", "Quién puede vender y quién puede dar experiencia"],
-          acceso:    ["Control de acceso", "Personal de puerta y asistencia por día"],
+          equipo:    ["Equipo del evento", "Tiendas, porteros, personal de EXP y staff de la rueda"],
+          tiendas:   ["Ventas por tienda", "Lo que lleva cada tienda y si puede dar experiencia"],
+          acceso:    ["Control de acceso", "Asistencia por día en la puerta"],
           levelpass: ["Level Pass", "Actividades, colaboradores y progreso de los asistentes"],
         };
         const [titulo, descripcion] = titulos[vista] ?? ["", ""];
@@ -633,10 +639,13 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               {busqueda ? `No hay boletos que coincidan con «${busqueda}».` : filtroTienda ? `${filtroTienda} no ha vendido boletos.` : "Todavía no hay boletos vendidos."}
             </p>
           ) : boletosFiltrados.filter(coincide).map((b: any) => (
-            <div key={b.id} className={tarjeta}>
+            <button key={b.id} onClick={() => setDetalle(b)} className={`${tarjeta} w-full text-left transition-colors active:bg-white/[0.04] ${b.status === "void" ? "opacity-60" : ""}`}>
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[11px] text-[var(--iw-text-muted)]">{b.code}</p>
+                  <p className="font-mono text-[11px] text-[var(--iw-text-muted)]">
+                    {b.code}
+                    {b.status === "void" && <span className="ml-2 rounded-full bg-[#f87171]/15 px-2 py-0.5 font-sans text-[10px] font-bold text-[#f87171]">Anulado</span>}
+                  </p>
                   <p className="text-sm font-bold text-[var(--iw-text)]">{b.buyerName} {b.buyerLastName}</p>
                   <p className="text-xs text-[var(--iw-text-muted)]">
                     {[b.tipoNombre, b.buyerPhone].filter(Boolean).join(" · ")}
@@ -650,8 +659,9 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                   {b.priceBs && <p className="text-[11px] text-[var(--iw-text-muted)]">Bs {parseFloat(b.priceBs).toLocaleString("es-VE")}</p>}
                 </div>
               </div>
-            </div>
+            </button>
           ))}
+          {detalle && <DetalleBoleto boleto={detalle} tipos={tipos as any[]} onCerrar={() => setDetalle(null)} />}
         </div>
       )}
 
@@ -898,60 +908,14 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             )}
           </div>
 
-          <div className="mt-2">
-            <p className="ev-display text-sm text-[var(--iw-text)]">Quién otorga</p>
-            <p className="mt-0.5 text-xs text-[var(--iw-text-muted)]">Además de las tiendas marcadas con XP</p>
-          </div>
-
-          {/* Personal autorizado */}
-          <Plegable titulo="Autorizar personal que da experiencia">
-          <div className={tarjeta}>
-            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Personal que otorga experiencia</p>
-            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
-              Además de las tiendas que marques en la pestaña Tiendas. Entran desde
-              isekaiworld.co/vender con su correo.
-            </p>
-            <div className="flex flex-col gap-3">
-              <input placeholder="Nombre" value={nuevoStaff.name}
-                onChange={e => setNuevoStaff(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
-              <input placeholder="Correo de acceso" type="email" inputMode="email" value={nuevoStaff.email}
-                onChange={e => setNuevoStaff(f => ({ ...f, email: e.target.value }))} className={campo} style={altoCampo} />
-              <input placeholder="Puesto o zona" value={nuevoStaff.puesto}
-                onChange={e => setNuevoStaff(f => ({ ...f, puesto: e.target.value }))} className={campo} style={altoCampo} />
-            </div>
-            <button
-              onClick={() => crearStaff.mutate({
-                name: nuevoStaff.name,
-                email: nuevoStaff.email || undefined,
-                puesto: nuevoStaff.puesto || undefined,
-              })}
-              disabled={!nuevoStaff.name || crearStaff.isPending}
-              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
-              style={{ minHeight: 52 }}
-            >
-              Autorizar
-            </button>
-          </div>
-          </Plegable>
-
-          <div className="flex flex-col gap-2">
-            {(lpStaff as any[]).map((g: any) => (
-              <div key={g.id} className={tarjeta}>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[var(--iw-text)]">{g.name}</p>
-                    <p className="truncate text-xs text-[var(--iw-text-muted)]" style={{ overflowWrap: "anywhere" }}>
-                      {g.puesto ? `${g.puesto} · ` : ""}{g.email ?? "sin correo"}
-                    </p>
-                  </div>
-                  <button onClick={() => { confirmar({ titulo: `¿Eliminar a ${g.name}?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarStaff.mutate({ id: g.id }); }); }}
-                    className="shrink-0 p-2 text-[var(--iw-text-muted)] hover:text-red-500">
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
+          <button onClick={() => { setVista("equipo" as any); setBusqueda(""); }} className="flex w-full items-center gap-3 rounded-3xl border border-white/[0.06] bg-white/[0.035] p-4 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e5007d]/15 text-[#ff3d9e]"><Users size={18} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-semibold text-[var(--iw-text)]">Quién da EXP: tiendas y personal</span>
+              <span className="block text-[12px] text-[var(--iw-text-muted)]">Ahora todo el equipo se agrega y se gestiona en «Equipo»</span>
+            </span>
+            <span className="text-[var(--iw-text-muted)]">›</span>
+          </button>
 
           <div className="mt-2">
             <p className="ev-display text-sm text-[var(--iw-text)]">Cómo va el evento</p>
@@ -1091,53 +1055,14 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             </div>
           )}
 
-          <Plegable titulo="Autorizar personal de puerta">
-          <div className={tarjeta}>
-            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Personal de acceso</p>
-            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
-              Validan entradas en la puerta desde isekaiworld.co/acceso. No ven ventas ni dinero.
-            </p>
-            <div className="flex flex-col gap-3">
-              <input placeholder="Nombre" value={nuevoPortero.name}
-                onChange={e => setNuevoPortero(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
-              <input placeholder="Correo de acceso" type="email" inputMode="email" value={nuevoPortero.email}
-                onChange={e => setNuevoPortero(f => ({ ...f, email: e.target.value }))} className={campo} style={altoCampo} />
-            </div>
-            <button
-              onClick={() => crearPortero.mutate({ name: nuevoPortero.name, email: nuevoPortero.email || undefined })}
-              disabled={!nuevoPortero.name || crearPortero.isPending}
-              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
-              style={{ minHeight: 52 }}
-            >
-              {crearPortero.isPending ? "Autorizando..." : "Autorizar portero"}
-            </button>
-          </div>
-          </Plegable>
-
-          <div className="flex flex-col gap-2">
-            {porteros.map((g: any) => (
-              <div key={g.id} className={tarjeta}>
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[var(--iw-text)]">{g.name}</p>
-                    <p className="truncate text-xs text-[var(--iw-text-muted)]" style={{ overflowWrap: "anywhere" }}>
-                      {g.email ?? "sin correo"}
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => { confirmar({ titulo: `¿Eliminar a ${g.name}?`, mensaje: "Esta acción no se puede deshacer.", confirmar: "Eliminar", peligro: true }).then(ok => { if (ok) borrarPortero.mutate({ id: g.id }); }); }}
-                    className="p-2 text-[var(--iw-text-muted)] hover:text-red-500"
-                    aria-label="Eliminar portero"
-                  >
-                    <Trash2 size={15} />
-                  </button>
-                </div>
-              </div>
-            ))}
-            {porteros.length === 0 && (
-              <p className="py-8 text-center text-sm text-[var(--iw-text-muted)]">No hay personal de acceso autorizado.</p>
-            )}
-          </div>
+<button onClick={() => { setVista("equipo" as any); setBusqueda(""); }} className="flex w-full items-center gap-3 rounded-3xl border border-white/[0.06] bg-white/[0.035] p-4 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e5007d]/15 text-[#ff3d9e]"><Users size={18} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-semibold text-[var(--iw-text)]">Porteros de la puerta</span>
+              <span className="block text-[12px] text-[var(--iw-text-muted)]">Ahora todo el equipo se agrega y se gestiona en «Equipo»</span>
+            </span>
+            <span className="text-[var(--iw-text-muted)]">›</span>
+          </button>
         </>
       )}
 
@@ -1201,42 +1126,20 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         </>
       )}
 
+      {/* ── Equipo: todas las funciones en un solo lugar ── */}
+      {vista === "equipo" && <EquipoEvento />}
+
       {/* ── Tiendas ── */}
       {vista === "tiendas" && (
         <>
-          <Plegable titulo="Autorizar tienda">
-          <div className={tarjeta}>
-            <p className="mb-1 text-sm font-bold text-[var(--iw-text)]">Autorizar tienda</p>
-            <p className="mb-3 text-xs text-[var(--iw-text-muted)]">
-Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra sin contraseña.
-            </p>
-            <div className="flex flex-col gap-3">
-              <input placeholder="Nombre de la tienda" value={nuevaTienda.name}
-                onChange={e => setNuevaTienda(f => ({ ...f, name: e.target.value }))} className={campo} style={altoCampo} />
-              <input placeholder="Correo de acceso" type="email" inputMode="email" value={nuevaTienda.email}
-                onChange={e => setNuevaTienda(f => ({ ...f, email: e.target.value }))} className={campo} style={altoCampo} />
-              <div className="grid grid-cols-2 gap-2">
-                <input placeholder="Contacto" value={nuevaTienda.contactName}
-                  onChange={e => setNuevaTienda(f => ({ ...f, contactName: e.target.value }))} className={campo} style={altoCampo} />
-                <input placeholder="Teléfono" inputMode="tel" value={nuevaTienda.phone}
-                  onChange={e => setNuevaTienda(f => ({ ...f, phone: e.target.value }))} className={campo} style={altoCampo} />
-              </div>
-            </div>
-            <button
-              onClick={() => crearTienda.mutate({
-                name: nuevaTienda.name,
-                email: nuevaTienda.email || undefined,
-                contactName: nuevaTienda.contactName || undefined,
-                phone: nuevaTienda.phone || undefined,
-              })}
-              disabled={!nuevaTienda.name || crearTienda.isPending}
-              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
-              style={{ minHeight: 52 }}
-            >
-              {crearTienda.isPending ? "Autorizando..." : "Autorizar"}
-            </button>
-          </div>
-          </Plegable>
+          <button onClick={() => { setVista("equipo" as any); setBusqueda(""); }} className="flex w-full items-center gap-3 rounded-3xl border border-white/[0.06] bg-white/[0.035] p-4 text-left">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e5007d]/15 text-[#ff3d9e]"><Users size={18} /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14px] font-semibold text-[var(--iw-text)]">Autorizar una tienda nueva</span>
+              <span className="block text-[12px] text-[var(--iw-text-muted)]">Se agrega en «Equipo», junto con el resto del personal</span>
+            </span>
+            <span className="text-[var(--iw-text-muted)]">›</span>
+          </button>
 
           <div className="flex flex-col gap-2">
             {tiendas.map((s: any) => (

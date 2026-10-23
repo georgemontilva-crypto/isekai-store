@@ -18,7 +18,7 @@ import {
   crearEvento, listarEventos, editarEvento,
   crearTipoBoleto, listarTipos, editarTipo, borrarTipo,
   crearTienda, listarTiendas, editarTienda, borrarTienda, tiendaDeUsuario,
-  generarBoletos, boletoPorToken, venderBoleto, corregirBoleto,
+  generarBoletos, boletoPorToken, venderBoleto, corregirBoleto, ordenarEventos, deshacerVenta, reenviarComprobante, listarBoletosPorId,
   listarBoletos, resumenEvento, ventasDeTienda, lotesDeEvento, boletosDeLote, ventasPorDia,
   paqueteAcceso, registrarIngreso, resumenAsistencia, miAccesoPorCorreo, diaDelEvento,
   crearPortero, listarPorteros, editarPortero, borrarPortero, esPorteroPorCorreo,
@@ -33,6 +33,8 @@ import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/ref
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
 import * as patro from "./patrocinantes";
+import { permisosDe, esDelEquipo, limpiarPermisos } from "./permisos";
+import { listarEquipo, asignarRol, quitarDelEquipo, pausarRol } from "./equipo";
 import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
@@ -121,25 +123,32 @@ function validateUpload(contentType: string, buffer: Buffer) {
 }
 
 // Admin guard middleware
-const adminProcedure = protectedProcedure.use(({ ctx, next }) => {
+const adminProcedure = protectedProcedure.use(async ({ ctx, next, type }) => {
   if (ctx.user.role !== "admin") throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-  return next({ ctx });
+  const r = await next({ ctx });
+  // Cualquier cambio del admin (tiendas, porteros, personal…) se aplica al
+  // instante: se olvidan los permisos guardados de todo el equipo
+  if (type === "mutation") limpiarPermisos();
+  return r;
 });
 
+/**
+ * Permisos del equipo: se comprueban en cada uso con los datos actuales (ver
+ * server/permisos.ts). Un portero desactivado o una tienda borrada pierden el
+ * acceso al momento, aunque tengan la sesión abierta.
+ */
 /** Portal de porteros: valida entradas, no vende ni ve dinero */
-const gateProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "gate" && ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Solo para el personal de acceso" });
-  }
-  return next({ ctx });
+const gateProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const p = await permisosDe(ctx.user);
+  if (!p.portero) throw new TRPCError({ code: "FORBIDDEN", message: "Solo para el personal de acceso" });
+  return next({ ctx: { ...ctx, permisos: p } });
 });
 
 /** Portal de tiendas: admin también entra, para poder probarlo */
-const storeProcedure = protectedProcedure.use(({ ctx, next }) => {
-  if (ctx.user.role !== "store" && ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Solo para tiendas autorizadas" });
-  }
-  return next({ ctx });
+const storeProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  const p = await permisosDe(ctx.user);
+  if (!p.admin && !p.tienda) throw new TRPCError({ code: "FORBIDDEN", message: "Solo para tiendas autorizadas" });
+  return next({ ctx: { ...ctx, permisos: p } });
 });
 
 /** Rueda de negocios: el administrador y el staff que él autoriza por correo */
@@ -149,6 +158,19 @@ const ruedaProcedure = protectedProcedure.use(async ({ ctx, next }) => {
   if (!s) throw new TRPCError({ code: "FORBIDDEN", message: "Tu cuenta no tiene acceso a la rueda de negocios" });
   return next({ ctx: { ...ctx, nombreStaff: s.nombre || ctx.user.name || s.email } });
 });
+
+/** ¿Puede dar EXP? Personal activo o tienda activa autorizada (o el admin) */
+async function accesoXp(u: { id: number; email?: string | null; role: string }) {
+  const p = await permisosDe(u);
+  const storeId = !p.admin && p.tienda?.active && p.tienda.puedeOtorgarXp ? p.tienda.id : undefined;
+  return { puede: p.xp, storeId };
+}
+
+/** Tienda de la sesión, leída completa con los datos actuales */
+async function tiendaDeSesion(p: { tienda: { id: number } | null }) {
+  if (!p.tienda) return undefined;
+  return (await listarTiendas()).find(t => t.id === p.tienda!.id);
+}
 
 /** Solo enlaces https (o vacío) */
 const httpsOVacio = z.string().trim().max(500).refine(v => v === "" || /^https:\/\//i.test(v), "El enlace debe empezar por https://");
@@ -1203,6 +1225,42 @@ export const appRouter = router({
     borrar: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => borrarConfirmacion(input.id)),
   }),
 
+  // ─── Equipo del evento: todas las funciones en un solo lugar ───────────────
+  equipo: router({
+    lista: adminProcedure.query(() => listarEquipo()),
+    asignar: adminProcedure
+      .input(z.object({
+        email: z.string().trim().toLowerCase().email().max(320),
+        nombre: z.string().trim().max(200).default(""),
+        rol: z.enum(["tienda", "portero", "xp", "rueda"]),
+        activo: z.boolean(),
+        telefono: z.string().trim().max(50).optional(),
+        nombreTienda: z.string().trim().max(200).optional(),
+        daXp: z.boolean().optional(),
+        puesto: z.string().trim().max(200).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        try { return await asignarRol(input); } catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    pausar: adminProcedure
+      .input(z.object({ email: z.string().trim().toLowerCase().email(), rol: z.enum(["tienda", "portero", "xp"]), activo: z.boolean() }))
+      .mutation(({ input }) => pausarRol(input.email, input.rol, input.activo)),
+    quitar: adminProcedure
+      .input(z.object({ email: z.string().trim().toLowerCase().email() }))
+      .mutation(({ input }) => quitarDelEquipo(input.email)),
+    /** Mis funciones en el equipo: qué herramientas le tocan a esta cuenta */
+    mio: protectedProcedure.query(async ({ ctx }) => {
+      const p = await permisosDe(ctx.user);
+      return {
+        admin: p.admin,
+        tienda: p.tienda ? { nombre: p.tienda.name, activa: p.tienda.active } : null,
+        portero: p.portero,
+        xp: p.xp,
+        rueda: p.rueda,
+      };
+    }),
+  }),
+
   // ─── World Fest: raid comunitario (landing) ─────────────────────────────────
   raid: router({
     /** Público: cualquiera ve al jefe. «yaAtaco» solo aplica con sesión */
@@ -1348,7 +1406,7 @@ export const appRouter = router({
          * evento y el dueño pueden ver cualquiera, porque lo necesitan para
          * resolver incidencias.
          */
-        const delEquipo = ["admin", "store", "staff", "gate"].includes(ctx.user.role);
+        const delEquipo = esDelEquipo(await permisosDe(ctx.user));
 
         if (!delEquipo) {
           const boleto = await buscarBoleto(input.codigo);
@@ -1386,19 +1444,15 @@ export const appRouter = router({
 
     /** ¿Puede este usuario otorgar experiencia, y está el evento en curso? */
     miAcceso: protectedProcedure.query(async ({ ctx }) => {
-      const acceso = await puedeOtorgar(ctx.user.id, ctx.user.role);
+      const acceso = await accesoXp(ctx.user);
       /**
        * Manda el evento que está ocurriendo hoy, no el primero de la lista.
        * Con un evento futuro activo —el de 2027— el sistema daba por hecho
        * que no había nada en curso y ocultaba el bloque de experiencia.
        */
-      const eventos = (await listarEventos()).filter(e => e.active);
-      const enCurso = [];
-      for (const e of eventos) {
-        if (diaDelEvento(e) !== null) enCurso.push(e);
-      }
-      const evento = enCurso[0] ?? eventos[0];
-      const activo = enCurso.length > 0;
+      const eventos = ordenarEventos(await listarEventos());
+      const evento = eventos[0];
+      const activo = Boolean(evento && diaDelEvento(evento) !== null);
       return {
         puede: acceso.puede,
         storeId: acceso.storeId,
@@ -1413,7 +1467,7 @@ export const appRouter = router({
     otorgar: protectedProcedure
       .input(z.object({ token: z.string().min(4).max(64), activityId: z.number() }))
       .mutation(async ({ ctx, input }) => {
-        const acceso = await puedeOtorgar(ctx.user.id, ctx.user.role);
+        const acceso = await accesoXp(ctx.user);
         if (!acceso.puede) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permiso para otorgar experiencia" });
         }
@@ -1735,13 +1789,35 @@ export const appRouter = router({
     corregir: adminProcedure
       .input(z.object({
         id: z.number(),
-        buyerName: z.string().max(200).optional(),
-        buyerLastName: z.string().max(200).optional(),
-        buyerPhone: z.string().max(50).optional(),
+        buyerName: z.string().trim().min(1).max(200).optional(),
+        buyerLastName: z.string().trim().min(1).max(200).optional(),
+        buyerPhone: z.string().trim().min(4).max(50).optional(),
+        buyerEmail: z.string().trim().email().max(320).nullable().optional().or(z.literal("").transform(() => null)),
         ticketTypeId: z.number().optional(),
-        status: z.enum(["blank", "sold", "void"]).optional(),
+        status: z.enum(["sold", "void"]).optional(),
       }))
-      .mutation(({ input }) => { const { id, ...d } = input; return corregirBoleto(id, d); }),
+      .mutation(async ({ input }) => {
+        const { id, ...d } = input;
+        try { return await corregirBoleto(id, d); } catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    deshacerVenta: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        try { return await deshacerVenta(input.id); } catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    reenviarComprobante: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .mutation(async ({ input }) => {
+        try { return await reenviarComprobante(input.id); } catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    /** Detalle de un boleto: ingresos por día y EXP, para resolver incidencias */
+    detalle: adminProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const lista = await listarBoletosPorId(input.id);
+        if (!lista) throw new TRPCError({ code: "NOT_FOUND", message: "Ese boleto no existe" });
+        return lista;
+      }),
 
     // ── Portal de la tienda ──
     /** Datos del boleto escaneado. Exige sesión de tienda: un QR suelto no
@@ -1750,6 +1826,9 @@ export const appRouter = router({
       // Acepta tanto el token del QR (largo) como el código impreso (corto)
       .input(z.object({ token: z.string().min(4).max(64) }))
       .query(async ({ ctx, input }) => {
+        if (!ctx.permisos.admin && !ctx.permisos.tienda?.active) {
+          throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está suspendida. Escríbenos para reactivarla." });
+        }
         // Freno al sondeo de tokens: 60 escaneos cada 10 minutos por usuario
         if (!limitarPorUsuario(`scan:${ctx.user.id}`, 60, 10 * 60 * 1000)) {
           throw new TRPCError({
@@ -1793,7 +1872,7 @@ export const appRouter = router({
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiadas ventas seguidas. Espera un momento." });
         }
 
-        const tienda = await tiendaDeUsuario(ctx.user.id);
+        const tienda = await tiendaDeSesion(ctx.permisos);
         if (!tienda) throw new TRPCError({ code: "FORBIDDEN", message: "Tu usuario no está asociado a una tienda" });
         if (!tienda.active) throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está desactivada" });
 
@@ -1813,14 +1892,14 @@ export const appRouter = router({
       miAccesoPorCorreo(ctx.user.id, ctx.user.email ?? "", ctx.user.role)),
 
     miTienda: storeProcedure.query(async ({ ctx }) => {
-      const tienda = await tiendaDeUsuario(ctx.user.id);
+      const tienda = await tiendaDeSesion(ctx.permisos);
       return tienda ?? null;
     }),
 
     misVentas: storeProcedure
       .input(z.object({ eventId: z.number() }))
       .query(async ({ ctx, input }) => {
-        const tienda = await tiendaDeUsuario(ctx.user.id);
+        const tienda = await tiendaDeSesion(ctx.permisos);
         if (!tienda) return { cantidad: 0, totalUsd: 0, totalBs: 0, boletos: [] };
         return ventasDeTienda(tienda.id, input.eventId);
       }),
@@ -1835,10 +1914,7 @@ export const appRouter = router({
         return r;
       }),
 
-    eventosParaAcceso: gateProcedure.query(async () => {
-      const todos = await listarEventos();
-      return todos.filter(e => e.active);
-    }),
+    eventosParaAcceso: gateProcedure.query(async () => ordenarEventos(await listarEventos())),
 
     /** Registra un ingreso. Devuelve el motivo si no procede, sin lanzar. */
     validarIngreso: gateProcedure
@@ -1913,10 +1989,7 @@ export const appRouter = router({
       .input(z.object({ eventId: z.number() }))
       .query(({ input }) => resumenAsistencia(input.eventId)),
 
-    eventosActivos: storeProcedure.query(async () => {
-      const todos = await listarEventos();
-      return todos.filter(e => e.active);
-    }),
+    eventosActivos: storeProcedure.query(async () => ordenarEventos(await listarEventos())),
   }),
 
   // ─── Tasa automática ─────────────────────────────────────────────────────────

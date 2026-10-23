@@ -1,3 +1,4 @@
+import { conCandado } from "./candado";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "./db";
@@ -182,7 +183,15 @@ export async function otorgarExperiencia(data: {
 
   const ticket = await buscarBoleto(data.token);
   if (!ticket) throw new Error(`No encontramos el boleto ${data.token.toUpperCase()}`);
-  if (ticket.status !== "sold") throw new Error("Ese boleto no fue vendido");
+  if (ticket.status !== "sold") throw new Error(ticket.status === "void" ? "Ese boleto fue anulado" : "Ese boleto no fue vendido");
+
+  // Un boleto a la vez: un doble toque o dos estaciones a la vez no suman de más
+  return conCandado(`xp:${ticket.id}`, () => otorgarA(ticket, data));
+}
+
+async function otorgarA(ticket: NonNullable<Awaited<ReturnType<typeof buscarBoleto>>>, data: { activityId: number; userId: number; storeId?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
 
   const [actividad] = await db.select().from(levelActivities)
     .where(eq(levelActivities.id, data.activityId)).limit(1);

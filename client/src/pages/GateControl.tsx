@@ -5,9 +5,11 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import CambiarHerramienta from "@/components/CambiarHerramienta";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 import QrScanner from "@/components/admin/QrScanner";
+import { diaDelEventoVE } from "@shared/diaEvento";
 
 /**
  * Control de acceso al evento.
@@ -83,17 +85,33 @@ export default function GateControl() {
   }, []);
 
   /** Descarga la lista de boletos para poder validar sin señal */
-  const descargar = async () => {
+  const descargar = useCallback(async (silencioso = false) => {
     if (!evento) return;
     try {
-      const p = await utils.tickets.paqueteAcceso.fetch({ eventId: evento.id });
+      const p = await utils.tickets.paqueteAcceso.fetch({ eventId: evento.id }, { staleTime: 0 });
       setPaquete(p);
       try { localStorage.setItem(CLAVE_PAQUETE, JSON.stringify(p)); } catch { /* ignorado */ }
-      toast.success(`${p.boletos.length} boletos descargados`);
+      if (!silencioso) toast.success(`${p.boletos.length} boletos descargados`);
     } catch {
-      toast.error("No se pudo descargar la lista");
+      if (!silencioso) toast.error("No se pudo descargar la lista");
     }
-  };
+  }, [evento, utils]);
+
+  /**
+   * Con señal, la lista se actualiza sola cada 3 minutos y al volver a la
+   * app: así incluye los boletos vendidos a última hora y los que ya
+   * entraron por otra puerta, por si luego se cae la conexión.
+   */
+  useEffect(() => {
+    if (!evento || !enLinea) return;
+    const vieja = !paquete || paquete.evento?.id !== evento.id || Date.now() - new Date(paquete.generadoEn).getTime() > 3 * 60_000;
+    if (vieja) void descargar(true);
+    const id = window.setInterval(() => { if (!document.hidden) void descargar(true); }, 3 * 60_000);
+    const alVolver = () => { if (!document.hidden) void descargar(true); };
+    document.addEventListener("visibilitychange", alVolver);
+    return () => { window.clearInterval(id); document.removeEventListener("visibilitychange", alVolver); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [evento?.id, enLinea]);
 
   /** Envía los ingresos guardados mientras no había conexión */
   const enviarPendientes = useCallback(async () => {
@@ -124,14 +142,16 @@ export default function GateControl() {
     if (!paquete) {
       return { ok: false, motivo: "sin_paquete", mensaje: "Descarga la lista de boletos antes de trabajar sin conexión" };
     }
-    const dia = paquete.diaActual;
+    // El día se calcula aquí, con la hora del teléfono: la lista pudo
+    // descargarse el día anterior y su «día actual» ya no sería el de hoy
+    const dia = paquete.evento ? diaDelEventoVE(paquete.evento) : paquete.diaActual;
     if (!dia) return { ok: false, motivo: "fuera_de_fecha", mensaje: "Hoy no hay evento" };
 
     const limpio = token.trim();
     const b = paquete.boletos.find(
       (x: any) => x.token === limpio || x.code.toUpperCase() === limpio.toUpperCase(),
     );
-    if (!b) return { ok: false, motivo: "inexistente", mensaje: "Boleto no encontrado o no vendido" };
+    if (!b) return { ok: false, motivo: "inexistente", mensaje: "No está en la lista descargada. Si se vendió hace poco, valídalo cuando vuelva la señal." };
 
     if (dia > b.dias) {
       return {
@@ -217,7 +237,7 @@ export default function GateControl() {
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-bold leading-tight">{paquete?.evento?.name ?? evento?.name ?? "Sin evento"}</p>
             <p className="truncate text-[11.5px] text-[#8a8494]">
-              Control de acceso · {paquete?.diaActual ? `día ${paquete.diaActual}` : "fuera de fechas"}
+              Control de acceso · {(() => { const e = evento ?? paquete?.evento; const d = e ? diaDelEventoVE(e) : null; return d ? `día ${d}` : "fuera de fechas"; })()}
             </p>
           </div>
           <span className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-bold ${enLinea ? "bg-[#4ade80]/12 text-[#4ade80]" : "bg-[#fbbf24]/12 text-[#fbbf24]"}`}>
@@ -228,6 +248,7 @@ export default function GateControl() {
             <Home size={18} />
           </a>
         </div>
+        <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" ocultar={[]} />
       </header>
 
       <main className="mx-auto flex max-w-lg flex-col gap-4 px-4 pt-5">
@@ -246,7 +267,7 @@ export default function GateControl() {
               </p>
             </div>
             <button
-              onClick={descargar}
+              onClick={() => descargar()}
               disabled={!enLinea || !evento}
               className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/[0.07] px-4 text-[12.5px] font-semibold text-white disabled:opacity-40"
               style={{ minHeight: 40 }}

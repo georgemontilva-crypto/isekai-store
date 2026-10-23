@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { X } from "lucide-react";
+import { Briefcase, X } from "lucide-react";
 import { usePortales } from "@/hooks/usePortales";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -25,12 +25,15 @@ export default function AccesoRapido() {
   const portales = usePortales();
 
   // No aparece dentro de los propios paneles ni en el admin
-  const rutasOcultas = ["/vender", "/acceso", "/worldfest/pass", "/admin", "/guild/mejoras", "/rueda-de-prensa", "/rueda-de-negocios", "/staff/"];
+  const rutasOcultas = ["/vender", "/acceso", "/worldfest/pass", "/admin", "/guild/mejoras", "/rueda-de-prensa", "/rueda-de-negocios", "/staff/", "/equipo"];
   if (rutasOcultas.some(r => location.startsWith(r))) return null;
   if (!isAuthenticated || cerrado) return null;
 
   /** El primero que le toque: su rol, o su Level Pass si compró boleto */
-  const p = portales.roles[0] ?? (portales.tieneBoleto ? portales.pase : null);
+  // Con más de una herramienta, el acceso lleva a «Mis herramientas»
+  const p = portales.roles.length > 1
+    ? { href: "/equipo", texto: "Mis herramientas", icono: Briefcase, color: "#e5007d" }
+    : portales.roles[0] ?? (portales.tieneBoleto ? portales.pase : null);
   const destino = p ? { href: p.href, texto: p.texto, icono: p.icono, color: p.color } : null;
 
   if (!destino) return null;

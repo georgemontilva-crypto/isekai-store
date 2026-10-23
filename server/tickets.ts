@@ -1,8 +1,9 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "./db";
+import { diaDelEventoVE, fechaVE } from "@shared/diaEvento";
+import { conCandado } from "./candado";
 import { notifyTicketPurchased } from "./_core/notification";
-import { esStaffPorCorreo } from "./levelPass";
 import {
   events, ticketTypes, stores, eventTickets, ticketCheckins, gateUsers, users, siteSettings,
 } from "../drizzle/schema";
@@ -188,7 +189,7 @@ export async function tiendaDeUsuario(userId: number) {
 export async function generarBoletos(eventId: number, cantidad: number) {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
-  if (cantidad < 1 || cantidad > 500) throw new Error("Cantidad entre 1 y 500");
+  if (cantidad < 1 || cantidad > 1000) throw new Error("Cantidad entre 1 y 1000");
 
   // El evento debe existir: antes se podían generar boletos huérfanos que
   // luego fallaban al escanearse.
@@ -232,7 +233,10 @@ export async function generarBoletos(eventId: number, cantidad: number) {
     batch: lote,
   }));
 
-  await db.insert(eventTickets).values(filas);
+  // Por tandas: un solo INSERT de mil filas puede pasarse del tamaño permitido
+  for (let i = 0; i < filas.length; i += 200) {
+    await db.insert(eventTickets).values(filas.slice(i, i + 200));
+  }
 
   const creados = await db.select().from(eventTickets)
     .where(and(eq(eventTickets.eventId, eventId), eq(eventTickets.batch, lote)))
@@ -319,7 +323,10 @@ export async function venderBoleto(data: {
   if (t.status !== "blank") throw new Error("Ese boleto ya fue vendido");
 
   const [tipo] = await db.select().from(ticketTypes).where(eq(ticketTypes.id, data.ticketTypeId)).limit(1);
-  if (!tipo || tipo.eventId !== t.eventId) throw new Error("Tipo de boleto inválido");
+  if (!tipo || tipo.eventId !== t.eventId) throw new Error("Ese tipo de boleto no es de este evento");
+  if (!tipo.active) throw new Error("Ese tipo de boleto ya no está a la venta");
+  const [evVenta] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
+  if (!evVenta?.active) throw new Error("La venta de este evento está cerrada");
 
   // La tasa se congela en el momento de la venta: si mañana cambia, este
   // boleto conserva el precio en bolívares con el que se vendió.
@@ -391,13 +398,118 @@ export async function venderBoleto(data: {
   };
 }
 
-/** Corrección por parte del admin (la tienda no puede) */
+/**
+ * Corrección por parte del admin (la tienda no puede). Si cambia el tipo, el
+ * precio se recalcula con la misma tasa con la que se vendió.
+ */
 export async function corregirBoleto(id: number, data: Partial<{
-  buyerName: string; buyerLastName: string; buyerPhone: string; ticketTypeId: number; status: string;
+  buyerName: string; buyerLastName: string; buyerPhone: string; buyerEmail: string | null; ticketTypeId: number; status: string;
 }>) {
   const db = await getDb();
   if (!db) return;
-  await db.update(eventTickets).set(data as any).where(eq(eventTickets.id, id));
+  const [t] = await db.select().from(eventTickets).where(eq(eventTickets.id, id)).limit(1);
+  if (!t) throw new Error("Ese boleto no existe");
+  const cambios: any = {};
+  for (const k of ["buyerName", "buyerLastName", "buyerPhone"] as const) {
+    if (data[k] !== undefined) cambios[k] = String(data[k]).trim().slice(0, 200);
+  }
+  if (data.buyerEmail !== undefined) cambios.buyerEmail = data.buyerEmail ? data.buyerEmail.trim().toLowerCase().slice(0, 320) : null;
+  if (data.ticketTypeId !== undefined && data.ticketTypeId !== t.ticketTypeId) {
+    const [tipo] = await db.select().from(ticketTypes).where(eq(ticketTypes.id, data.ticketTypeId)).limit(1);
+    if (!tipo || tipo.eventId !== t.eventId) throw new Error("Tipo de boleto inválido");
+    const usd = parseFloat(tipo.priceUsd as any);
+    const tasa = parseFloat((t.rateBs as any) ?? "0") || 0;
+    cambios.ticketTypeId = tipo.id;
+    cambios.priceUsd = usd.toFixed(2);
+    cambios.priceBs = tasa > 0 ? (Math.round(usd * tasa * 100) / 100).toFixed(2) : null;
+  }
+  if (data.status !== undefined) {
+    if (data.status === "blank") throw new Error("Para devolver un boleto a blanco usa «Deshacer venta»");
+    if (data.status === "sold" && !t.buyerName) throw new Error("Ese boleto no tiene comprador: véndelo desde el portal");
+    cambios.status = data.status;
+  }
+  if (Object.keys(cambios).length) await db.update(eventTickets).set(cambios).where(eq(eventTickets.id, id));
+  return { ok: true };
+}
+
+/**
+ * Deshace una venta mal hecha: el boleto vuelve a quedar en blanco para
+ * venderse de nuevo. No se permite si ya entró al evento o ya ganó EXP,
+ * porque se perdería ese historial (en ese caso, mejor anularlo).
+ */
+export async function deshacerVenta(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+  const [t] = await db.select().from(eventTickets).where(eq(eventTickets.id, id)).limit(1);
+  if (!t) throw new Error("Ese boleto no existe");
+  if (t.status === "blank") return { ok: true };
+  const ingresos = await db.select({ id: ticketCheckins.id }).from(ticketCheckins).where(eq(ticketCheckins.ticketId, id)).limit(1);
+  if (ingresos.length) throw new Error("Este boleto ya entró al evento: no se puede deshacer la venta. Puedes anularlo.");
+  const [xp] = await db.execute(sql`SELECT COUNT(*) AS n FROM levelGrants WHERE ticketId = ${id}`).catch(() => [[{ n: 0 }]]) as any;
+  if (Number(xp?.[0]?.n ?? 0) > 0) throw new Error("Este boleto ya ganó EXP: no se puede deshacer la venta. Puedes anularlo.");
+  await db.update(eventTickets).set({
+    status: "blank", ticketTypeId: null, storeId: null,
+    buyerName: null, buyerLastName: null, buyerPhone: null, buyerEmail: null,
+    priceUsd: null, rateBs: null, priceBs: null, soldAt: null, soldByUserId: null,
+  } as any).where(eq(eventTickets.id, id));
+  return { ok: true };
+}
+
+/** Vuelve a enviar el comprobante al correo del comprador */
+export async function reenviarComprobante(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+  const [t] = await db.select().from(eventTickets).where(eq(eventTickets.id, id)).limit(1);
+  if (!t || t.status !== "sold") throw new Error("Ese boleto no está vendido");
+  if (!t.buyerEmail) throw new Error("Este boleto no tiene correo. Agrégalo primero en «Corregir datos».");
+  const [ev] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
+  const [tipo] = t.ticketTypeId ? await db.select().from(ticketTypes).where(eq(ticketTypes.id, t.ticketTypeId)).limit(1) : [];
+  const [tienda] = t.storeId ? await db.select().from(stores).where(eq(stores.id, t.storeId)).limit(1) : [];
+  await notifyTicketPurchased(t.buyerEmail, {
+    nombre: t.buyerName ?? "",
+    codigo: t.code,
+    evento: ev?.name ?? "Isekai World Fest",
+    tipo: tipo?.name ?? "",
+    precioUsd: String(parseFloat((t.priceUsd as any) ?? "0")),
+    tienda: tienda?.name,
+    fechas: ev?.startDate ? new Date(ev.startDate).toLocaleDateString("es-VE", { timeZone: "UTC", day: "2-digit", month: "long", year: "numeric" }) : undefined,
+  });
+  return { ok: true, correo: t.buyerEmail };
+}
+
+/** Un boleto con sus ingresos y su EXP, para el detalle del panel */
+export async function listarBoletosPorId(id: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const [t] = await db.select().from(eventTickets).where(eq(eventTickets.id, id)).limit(1);
+  if (!t) return null;
+  const ingresos = await db.select().from(ticketCheckins).where(eq(ticketCheckins.ticketId, id));
+  const [xp] = await db.execute(sql`SELECT COALESCE(SUM(xp), 0) AS xp, COUNT(*) AS n FROM levelGrants WHERE ticketId = ${id}`).catch(() => [[{ xp: 0, n: 0 }]]) as any;
+  return {
+    ingresos: ingresos.map(i => ({ dia: i.eventDay, hora: i.checkedAt, sinConexion: i.offline })).sort((a, b) => a.dia - b.dia),
+    xp: Number(xp?.[0]?.xp ?? 0),
+    actividades: Number(xp?.[0]?.n ?? 0),
+  };
+}
+
+/**
+ * Orden útil de los eventos activos: primero el que está ocurriendo hoy,
+ * luego los próximos (el más cercano primero) y al final los ya pasados.
+ * Antes se tomaba el último creado, y con un evento de prueba o el del año
+ * siguiente activo, la puerta y las tiendas abrían el evento equivocado.
+ */
+export function ordenarEventos<T extends { startDate: Date | string; endDate: Date | string; active: boolean }>(lista: T[]): T[] {
+  const ahora = Date.now();
+  const peso = (e: T) => {
+    if (diaDelEvento(e) !== null) return 0;
+    return new Date(e.startDate).getTime() > ahora ? 1 : 2;
+  };
+  return lista.filter(e => e.active).sort((a, b) => {
+    const pa = peso(a), pb = peso(b);
+    if (pa !== pb) return pa - pb;
+    const da = new Date(a.startDate).getTime(), dbb = new Date(b.startDate).getTime();
+    return pa === 2 ? dbb - da : da - dbb;
+  });
 }
 
 // ─── Listados y totales ───────────────────────────────────────────────────────
@@ -407,7 +519,8 @@ export async function listarBoletos(eventId: number, opts?: { status?: string; s
   if (!db) return [];
 
   const cond: any[] = [eq(eventTickets.eventId, eventId)];
-  if (opts?.status && opts.status !== "all") cond.push(eq(eventTickets.status, opts.status));
+  if (opts?.status === "emitidos") cond.push(inArray(eventTickets.status, ["sold", "void"]));
+  else if (opts?.status && opts.status !== "all") cond.push(eq(eventTickets.status, opts.status));
   if (opts?.storeId) cond.push(eq(eventTickets.storeId, opts.storeId));
 
   const filas = await db.select().from(eventTickets)
@@ -575,7 +688,7 @@ export async function ventasPorDia(eventId: number) {
   const porDia = new Map<string, { dia: string; cantidad: number; usd: number }>();
   for (const t of filas) {
     if (!t.soldAt) continue;
-    const dia = new Date(t.soldAt).toISOString().slice(0, 10);
+    const dia = fechaVE(new Date(t.soldAt));
     const actual = porDia.get(dia) ?? { dia, cantidad: 0, usd: 0 };
     actual.cantidad++;
     actual.usd += parseFloat(t.priceUsd as any) || 0;
@@ -595,16 +708,7 @@ export async function ventasPorDia(eventId: number) {
  * "ya entró ayer", que es lo que impide reusar un boleto de un solo día.
  */
 export function diaDelEvento(evento: { startDate: Date | string; endDate: Date | string }, fecha = new Date()) {
-  const inicio = new Date(evento.startDate);
-  const fin = new Date(evento.endDate);
-
-  const soloFecha = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-  const hoy = soloFecha(fecha);
-  const d1 = soloFecha(inicio);
-  const d2 = soloFecha(fin);
-
-  if (hoy < d1 || hoy > d2) return null;
-  return Math.floor((hoy - d1) / 86400000) + 1;
+  return diaDelEventoVE(evento, fecha);
 }
 
 /** Todo lo que el portero necesita para validar sin conexión */
@@ -667,6 +771,39 @@ export async function registrarIngreso(data: {
   const encontrado = await boletoPorToken(data.token);
   const t = encontrado?.ticket;
   if (!t) return { ok: false, motivo: "inexistente" as const, mensaje: "Ese boleto no existe" };
+  await asegurarIndiceIngresos();
+  // Un boleto a la vez: dos puertas escaneando el mismo no lo dejan pasar dos veces
+  return conCandado(`ingreso:${t.id}`, () => registrarIngresoDe(t, data));
+}
+
+/**
+ * Índice único (boleto, día) en la base: segunda barrera contra ingresos
+ * repetidos. Se crea solo, una vez por arranque; si ya hay repetidos viejos
+ * no se puede crear y se avisa en el registro, sin frenar nada.
+ */
+let indiceListo: Promise<void> | null = null;
+function asegurarIndiceIngresos() {
+  if (!indiceListo) {
+    indiceListo = (async () => {
+      const db = await getDb();
+      if (!db) return;
+      try {
+        const [filas] = await db.execute(sql`SHOW INDEX FROM ticketCheckins WHERE Key_name = 'uq_ingreso_dia'`) as unknown as [unknown[]];
+        if (!filas?.length) {
+          await db.execute(sql`CREATE UNIQUE INDEX uq_ingreso_dia ON ticketCheckins (ticketId, eventDay)`);
+          console.log("[Acceso] Índice único de ingresos creado");
+        }
+      } catch (e) {
+        console.warn("[Acceso] No se pudo crear el índice único de ingresos (¿hay ingresos repetidos?):", (e as Error).message);
+      }
+    })();
+  }
+  return indiceListo;
+}
+
+async function registrarIngresoDe(t: typeof eventTickets.$inferSelect, data: { token: string; userId: number; offline?: boolean; diaForzado?: number }) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
   if (t.status === "void") return { ok: false, motivo: "anulado" as const, mensaje: "Boleto anulado" };
   if (t.status !== "sold") {
     return { ok: false, motivo: "sin_vender" as const, mensaje: "Este boleto no fue vendido" };
@@ -709,12 +846,20 @@ export async function registrarIngreso(data: {
     };
   }
 
-  await db.insert(ticketCheckins).values({
-    ticketId: t.id,
-    eventDay: dia,
-    checkedByUserId: data.userId,
-    offline: Boolean(data.offline),
-  });
+  try {
+    await db.insert(ticketCheckins).values({
+      ticketId: t.id,
+      eventDay: dia,
+      checkedByUserId: data.userId,
+      offline: Boolean(data.offline),
+    });
+  } catch (e: any) {
+    // El índice único lo frenó: alguien lo registró en ese mismo instante
+    if (String(e?.cause?.code ?? e?.code ?? e?.message).includes("DUP")) {
+      return { ok: false, motivo: "ya_entro" as const, mensaje: "Este boleto ya entró hoy", entroA: new Date(), nombre: `${t.buyerName ?? ""} ${t.buyerLastName ?? ""}`.trim(), tipoNombre: tipo?.name };
+    }
+    throw e;
+  }
 
   return {
     ok: true as const,
@@ -826,37 +971,28 @@ export async function esPorteroPorCorreo(email: string): Promise<"gate" | null> 
  * si el rol guardado no coincide, se corrige para que no vuelva a pasar.
  */
 export async function miAccesoPorCorreo(userId: number, email: string, rolActual: string) {
-  const correo = (email ?? "").trim().toLowerCase();
+  const { permisosDe, rolPrincipal } = await import("./permisos");
+  const p = await permisosDe({ id: userId, email, role: rolActual });
+  const rol = rolPrincipal(p);
 
-  if (rolActual === "admin") {
-    return { esTienda: true, esStaff: true, esPortero: true, rol: "admin" };
-  }
-
-  const [rolTienda, rolPortero, rolStaff] = await Promise.all([
-    rolPorCorreo(correo),
-    esPorteroPorCorreo(correo),
-    esStaffPorCorreo(correo),
-  ]);
-
-  const rol = rolTienda ?? rolPortero ?? rolStaff ?? "user";
-
-  // Se corrige el rol guardado si quedó desfasado
-  if (rol !== "user" && rol !== rolActual) {
+  // El rol guardado se mantiene al día (también hacia abajo: si te quitan
+  // el acceso, la cuenta vuelve a ser de usuario normal)
+  if (rolActual !== "admin" && rol !== rolActual) {
     try {
       const db = await getDb();
-      if (db) {
-        await db.update(users).set({ role: rol }).where(eq(users.id, userId));
-        if (rol === "store") await vincularUsuarioTienda(correo, userId);
-      }
+      if (db) await db.update(users).set({ role: rol }).where(eq(users.id, userId));
     } catch (e) {
       console.warn("[Acceso] No se pudo actualizar el rol:", e);
     }
   }
 
   return {
-    esTienda: rol === "store",
-    esStaff: rol === "staff",
-    esPortero: rol === "gate",
+    esTienda: Boolean(p.tienda) || p.admin,
+    tiendaActiva: p.admin || Boolean(p.tienda?.active),
+    esStaff: p.personalXp,
+    esPortero: p.portero,
+    puedeXp: p.xp,
+    esRueda: p.rueda,
     rol,
   };
 }

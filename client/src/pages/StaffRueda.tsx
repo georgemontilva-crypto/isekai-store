@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 import { ListaRueda } from "@/components/rueda/ListaRueda";
+import CambiarHerramienta from "@/components/CambiarHerramienta";
 
 /**
  * Página del staff de la rueda de negocios (/staff/rueda). Se abre en el
@@ -59,6 +60,8 @@ export default function StaffRueda() {
         <ListaRueda
           modo={acceso.esAdmin ? "admin" : "staff"}
           arriba={
+            <>
+            <CambiarHerramienta className="px-5 pt-3" />
             <div className="flex items-center justify-between px-5 pt-3">
               <p className="truncate text-[12px] text-[#6f6878]">{user?.name || user?.email}</p>
               <div className="flex gap-1">
@@ -66,6 +69,7 @@ export default function StaffRueda() {
                 <button onClick={() => logout()} aria-label="Cerrar sesión" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><LogOut size={16} /></button>
               </div>
             </div>
+            </>
           }
         />
       </div>

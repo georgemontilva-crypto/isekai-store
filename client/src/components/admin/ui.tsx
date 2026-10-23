@@ -154,7 +154,7 @@ export function ModalConfirmar() {
   const color = pedido.peligro ? "#f87171" : "#e5007d";
 
   return (
-    <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/70 p-4 backdrop-blur-[2px]" onClick={() => cerrar(false)}>
+    <div className="fixed inset-0 z-[400] flex items-center justify-center bg-black/70 p-4 backdrop-blur-[2px]" onClick={() => cerrar(false)}>
       <div
         role="alertdialog"
         aria-modal="true"

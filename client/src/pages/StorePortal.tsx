@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 import QrScanner from "@/components/admin/QrScanner";
 import { trpc } from "@/lib/trpc";
+import CambiarHerramienta from "@/components/CambiarHerramienta";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 
@@ -184,12 +185,15 @@ export default function StorePortal() {
 
   const { data: eventos = [] } = trpc.tickets.eventosActivos.useQuery(undefined, { enabled: puedeEntrar });
   const evento = eventos[0];
-  const { data: tipos = [] } = trpc.tickets.tipos.useQuery({ eventId: evento?.id ?? 0 }, { enabled: esTienda && !!evento });
-  const tiposActivos = (tipos as any[]).filter(t => t.active);
-
   // ═══ VENDER ═══
   const { data: escaneo, isLoading: buscando, error: errorEscaneo } =
     trpc.tickets.escanear.useQuery({ token }, { enabled: esTienda && token.trim().length >= 4, retry: false });
+
+  // Los tipos salen del evento del boleto escaneado (puede no ser el primero
+  // de la lista si hay más de un evento activo)
+  const eventoDeVenta = escaneo?.ticket?.eventId ?? evento?.id ?? 0;
+  const { data: tipos = [] } = trpc.tickets.tipos.useQuery({ eventId: eventoDeVenta }, { enabled: esTienda && eventoDeVenta > 0 });
+  const tiposActivos = (tipos as any[]).filter(t => t.active);
   const { data: misVentas } = trpc.tickets.misVentas.useQuery({ eventId: evento?.id ?? 0 }, { enabled: esTienda && !!evento });
 
   const [tipoElegido, setTipoElegido] = useState<number | null>(null);
@@ -374,6 +378,7 @@ export default function StorePortal() {
             <Home size={18} />
           </Link>
         </div>
+        <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" ocultar={["vender", "xp"]} />
       </header>
 
       <main className="mx-auto max-w-lg px-4 pt-5">
