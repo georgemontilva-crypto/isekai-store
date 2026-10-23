@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import { Link } from "wouter";
 import {
-  Loader2, Search, Check, Lock, MapPin, Trophy, X, LogOut,
+  Loader2, Search, Check, Lock, MapPin, Trophy, X, Home,
   Swords, User, ScrollText, ChevronLeft, ChevronRight, Copy, Repeat, Camera,
 } from "lucide-react";
 import { Component, type ReactNode } from "react";
@@ -252,7 +252,8 @@ export default function WorldFestPass() {
     const rango = rangoDeXp(xp);
     return {
       codigo: "IW-DEMO",
-      nombre: "Cazador de prueba",
+      // En la demo, el nombre de quien la está viendo
+      nombre: (user?.name && !user.name.includes("@") ? user.name : "") || "Cazador de prueba",
       xpTotal: xp,
       rango,
       siguiente: siguienteDeXp(xp),
@@ -347,6 +348,28 @@ export default function WorldFestPass() {
   };
 
   const color = data ? (COLOR_RANGO[data.rango] ?? "#38bdf8") : "#38bdf8";
+
+  // La cabecera se esconde al bajar y vuelve al subir, como en las apps
+  const [cabOculta, setCabOculta] = useState(false);
+  useEffect(() => {
+    let ultimo = window.scrollY;
+    let pendiente = false;
+    const alMover = () => {
+      if (pendiente) return;
+      pendiente = true;
+      requestAnimationFrame(() => {
+        pendiente = false;
+        const y = window.scrollY;
+        const d = y - ultimo;
+        if (y < 72) setCabOculta(false);
+        else if (d > 8) setCabOculta(true);
+        else if (d < -8) setCabOculta(false);
+        if (Math.abs(d) > 8 || y < 72) ultimo = y;
+      });
+    };
+    window.addEventListener("scroll", alMover, { passive: true });
+    return () => window.removeEventListener("scroll", alMover);
+  }, []);
   const esRangoMaximo = rangoAnunciado === "S";
 
   /**
@@ -665,8 +688,8 @@ export default function WorldFestPass() {
 
       {/* ── Cabecera propia ── */}
       <header
-        className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#040a12]/90 backdrop-blur-md"
-        style={{ paddingTop: "env(safe-area-inset-top)" }}
+        className="sticky top-0 z-40 border-b border-white/[0.06] bg-[#040a12]/90 backdrop-blur-md transition-transform duration-300 ease-out"
+        style={{ paddingTop: "env(safe-area-inset-top)", transform: cabOculta ? "translateY(-100%)" : "none" }}
       >
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 items-center gap-3">
@@ -684,9 +707,9 @@ export default function WorldFestPass() {
               </p>
             </div>
           </div>
-          <button onClick={salir} className="flex h-10 w-10 items-center justify-center rounded-full text-[#5f7f96] hover:text-[#7dd8ff]" aria-label="Cambiar de boleto">
-            <LogOut size={17} />
-          </button>
+          <Link href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.05] text-[#7f9bb2] hover:text-[#7dd8ff]" aria-label="Volver a la web">
+            <Home size={17} />
+          </Link>
         </div>
       </header>
 
@@ -700,8 +723,8 @@ export default function WorldFestPass() {
             <button onClick={reiniciarDemo} className="flex h-9 shrink-0 items-center rounded-full border border-[#fbbf24]/40 px-3 text-[11.5px] font-bold text-[#fbbf24]">
               Reiniciar
             </button>
-            <button onClick={salir} className="flex h-9 shrink-0 items-center rounded-full bg-[#fbbf24] px-3 text-[11.5px] font-bold text-[#1a1405]">
-              Salir
+            <button onClick={salir} aria-label="Cerrar la demo" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#fbbf24]/15 text-[#fbbf24]">
+              <X size={17} />
             </button>
           </div>
         </div>
@@ -806,7 +829,7 @@ export default function WorldFestPass() {
               )}
             </section>
 
-            <CarruselPatrocinantes />
+            <CarruselPatrocinantes muestra={modoDemo} />
 
             {/* Próximas misiones */}
             <section>
@@ -932,12 +955,12 @@ export default function WorldFestPass() {
                 {listaFiltrada.map((a: any, i: number) => (
                   <div key={a.id} className="contents">
                     <TarjetaMision a={a} color={color} onCompletar={modoDemo ? () => completarDemo(a.id) : undefined} />
-                    {i === 2 && listaFiltrada.length > 3 && <CarruselPatrocinantes className="my-2" />}
+                    {i === 2 && listaFiltrada.length > 3 && <CarruselPatrocinantes className="my-2" muestra={modoDemo} />}
                   </div>
                 ))}
               </div>
             )}
-            {listaFiltrada.length > 0 && listaFiltrada.length <= 3 && <CarruselPatrocinantes className="mt-2" />}
+            {listaFiltrada.length > 0 && listaFiltrada.length <= 3 && <CarruselPatrocinantes className="mt-2" muestra={modoDemo} />}
           </div>
         )}
 

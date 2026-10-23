@@ -10,8 +10,17 @@ import { trpc } from "@/lib/trpc";
  */
 const CADA_MS = 5000;
 
-export default function CarruselPatrocinantes({ className = "", etiqueta = "Aliados del evento" }: { className?: string; etiqueta?: string }) {
-  const { data: banners = [] } = trpc.patrocinantes.publicos.useQuery(undefined, { staleTime: 5 * 60_000 });
+/** Espacios de ejemplo: se ven en la demo mientras no haya marcas cargadas */
+const MUESTRAS = [
+  { id: -1, nombre: "Tu marca aquí", color: "#e5007d", texto: "Espacio para patrocinantes" },
+  { id: -2, nombre: "Banner 1200 × 500", color: "#38bdf8", texto: "Se muestra a todos los cazadores" },
+  { id: -3, nombre: "Aliado del evento", color: "#a78bfa", texto: "Pasa solo cada 5 segundos" },
+];
+
+export default function CarruselPatrocinantes({ className = "", etiqueta = "Aliados del evento", muestra = false }: { className?: string; etiqueta?: string; muestra?: boolean }) {
+  const { data: reales = [] } = trpc.patrocinantes.publicos.useQuery(undefined, { staleTime: 5 * 60_000 });
+  const deMuestra = reales.length === 0 && muestra;
+  const banners: { id: number; nombre: string; imagenUrl?: string; enlace?: string | null; color?: string; texto?: string }[] = deMuestra ? MUESTRAS : reales;
   const registrar = trpc.patrocinantes.registrar.useMutation();
   const carril = useRef<HTMLDivElement>(null);
   const [actual, setActual] = useState(0);
@@ -48,7 +57,7 @@ export default function CarruselPatrocinantes({ className = "", etiqueta = "Alia
   // Vista: cuando el banner está en pantalla al menos la mitad (una vez por carga)
   useEffect(() => {
     const el = carril.current;
-    if (!el || banners.length === 0) return;
+    if (!el || banners.length === 0 || deMuestra) return;
     const pendientes: number[] = [];
     let t = 0;
     const io = new IntersectionObserver(entradas => {
@@ -93,7 +102,15 @@ export default function CarruselPatrocinantes({ className = "", etiqueta = "Alia
         onMouseLeave={() => { pausa.current = false; }}
       >
         {banners.map((b, i) => {
-          const img = (
+          const img = !b.imagenUrl ? (
+            <div
+              className="flex h-full w-full flex-col items-center justify-center gap-1 text-center"
+              style={{ background: `radial-gradient(120% 120% at 20% 0%, ${b.color}40, transparent 60%), linear-gradient(135deg, #0a1422, #05070d)`, border: `1px dashed ${b.color}66` }}
+            >
+              <p className="text-[18px] font-bold text-white">{b.nombre}</p>
+              <p className="text-[12px] text-[#9fb4c8]">{b.texto}</p>
+            </div>
+          ) : (
             <img
               src={b.imagenUrl}
               alt={b.nombre}
