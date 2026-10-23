@@ -131,3 +131,18 @@ document.addEventListener('visibilitychange', () => {
 });
 window.addEventListener('pageshow', e => { if (e.persisted) void alVolver(); });
 window.addEventListener('online', () => void alVolver());
+
+/**
+ * Analítica (Umami) solo si está configurada en Railway. Antes iba fija en el
+ * HTML y, sin las variables, pedía «/%VITE_ANALYTICS_ENDPOINT%/umami» en cada
+ * visita: una petición rota que solo restaba velocidad.
+ */
+const umami = import.meta.env.VITE_ANALYTICS_ENDPOINT as string | undefined;
+const umamiId = import.meta.env.VITE_ANALYTICS_WEBSITE_ID as string | undefined;
+if (umami && umamiId) {
+  const s = document.createElement("script");
+  s.defer = true;
+  s.src = `${umami.replace(/\/$/, "")}/umami`;
+  s.dataset.websiteId = umamiId;
+  document.body.appendChild(s);
+}

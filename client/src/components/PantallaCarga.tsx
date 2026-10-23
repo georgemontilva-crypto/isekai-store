@@ -34,25 +34,38 @@ export default function PantallaCarga() {
      * El contador no avanza a ritmo constante: acelera y frena, como una carga
      * real. Un avance perfectamente lineal se percibe como falso.
      */
+    /**
+     * Va al ritmo de la carga real: avanza rápido hasta ~85 y espera a que la
+     * página termine de cargar para completar. Dura como mínimo ~1 s (para que
+     * se vea el efecto) y como máximo ~2,4 s. Antes contaba siempre unos 3 s
+     * aunque la página ya estuviera lista.
+     */
     let actual = 0;
+    const inicio = Date.now();
+    let lista = document.readyState === "complete";
+    const alCargar = () => { lista = true; };
+    window.addEventListener("load", alCargar);
     const id = setInterval(() => {
-      const salto = actual < 60 ? Math.random() * 9 + 3
-                  : actual < 88 ? Math.random() * 4 + 1
-                  : Math.random() * 2 + 0.5;
-      actual = Math.min(100, actual + salto);
+      const t = Date.now() - inicio;
+      const puedeTerminar = (lista && t > 900) || t > 2400;
+      const tope = puedeTerminar ? 100 : 86;
+      const salto = puedeTerminar ? Math.random() * 14 + 10
+                  : actual < 60 ? Math.random() * 10 + 5
+                  : Math.random() * 3 + 1;
+      actual = Math.min(tope, actual + salto);
       setProgreso(Math.floor(actual));
 
       if (actual >= 100) {
         clearInterval(id);
-        setTimeout(() => setSaliendo(true), 280);
+        setTimeout(() => setSaliendo(true), 160);
         setTimeout(() => {
           setVisible(false);
           try { sessionStorage.setItem(CLAVE_VISTA, "1"); } catch { /* ignorado */ }
-        }, 900);
+        }, 620);
       }
-    }, 110);
+    }, 70);
 
-    return () => clearInterval(id);
+    return () => { clearInterval(id); window.removeEventListener("load", alCargar); };
   }, [visible]);
 
   // Con el movimiento reducido activado, no se muestra

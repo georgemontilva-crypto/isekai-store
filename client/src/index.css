@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -1110,7 +1109,6 @@ html.dark .breadcrumb-bar .breadcrumb-current { color: #ff45a0 !important; }
 /* Sección destacada de la home: negro total, sin el degradado gris */
 html.dark .spotlight-veil { background: #000000; }
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;0,800;1,700;1,800&display=swap");
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -4544,3 +4542,19 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
   font-family: Montserrat, Inter, system-ui, sans-serif;
 }
 @media (min-width: 640px) { .rp-modal { border: 1px solid rgba(255, 77, 109, .45); } }
+
+/* Lista de confirmados (panel): hoja redondeada */
+.lc-fondo { background: rgba(3, 2, 6, .72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); animation: lc-aparece .25s ease both; }
+.lc-hoja {
+  background: linear-gradient(180deg, #17141e, #0e0c13);
+  border: 1px solid rgba(255, 255, 255, .08); border-bottom: 0;
+  border-radius: 28px 28px 0 0; box-shadow: 0 -20px 60px -20px rgba(0, 0, 0, .8);
+  animation: lc-sube .38s cubic-bezier(.16, 1, .3, 1) both;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+}
+@media (min-width: 640px) { .lc-hoja { border-radius: 28px; border-bottom: 1px solid rgba(255, 255, 255, .08); } }
+.lc-segmento { background: rgba(255, 255, 255, .05); }
+.lc-tarjeta { background: rgba(255, 255, 255, .035); border: 1px solid rgba(255, 255, 255, .06); }
+@keyframes lc-aparece { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lc-sube { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lc-fondo, .lc-hoja { animation: none; } }

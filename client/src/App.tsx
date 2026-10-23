@@ -14,7 +14,8 @@ import CartDrawer from "./components/CartDrawer";
 import AuthDialog from "./components/AuthDialog";
 import { InstagramChat } from "./components/InstagramChat";
 import { PopupManager } from "./components/PopupManager";
-import Home from "./pages/Home";
+// La tienda se carga al visitarla: la portada es la del evento
+const Home = lazy(() => import("./pages/Home"));
 const Catalog = lazy(() => import("./pages/Catalog"));
 const QuoteView = lazy(() => import("./pages/QuoteView"));
 const Invitacion = lazy(() => import("./pages/Invitacion"));

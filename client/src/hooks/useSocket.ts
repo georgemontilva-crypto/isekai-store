@@ -1,47 +1,37 @@
-import { useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
+import { useEffect, useRef, useState } from "react";
+import type { Socket } from "socket.io-client";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { cargarSocketIo } from "@/lib/socketCliente";
 
 let socketInstance: Socket | null = null;
 
 export function useSocket(): Socket | null {
   const { isAuthenticated } = useAuth();
-  const socketRef = useRef<Socket | null>(null);
+  const [socket, setSocket] = useState<Socket | null>(socketInstance);
 
   useEffect(() => {
     if (!isAuthenticated) {
-      socketRef.current?.disconnect();
-      socketRef.current = null;
+      socketInstance?.disconnect();
       socketInstance = null;
+      setSocket(null);
       return;
     }
+    if (socketInstance) { setSocket(socketInstance); return; }
 
-    if (socketInstance?.connected) {
-      socketRef.current = socketInstance;
-      return;
-    }
-
-    const socket = io(window.location.origin, {
-      transports: ["websocket", "polling"],
-      withCredentials: true,
+    let cancelado = false;
+    // La librería se descarga aquí, solo para quien tiene sesión
+    void cargarSocketIo().then(({ io }) => {
+      if (cancelado) return;
+      if (!socketInstance) {
+        socketInstance = io(window.location.origin, { transports: ["websocket", "polling"], withCredentials: true });
+        socketInstance.on("connect_error", () => { /* socket.io reintenta solo */ });
+      }
+      setSocket(socketInstance);
     });
-
-    socket.on("connect_error", () => {
-      // Socket.io handles reconnection automatically
-    });
-
-    socketInstance = socket;
-    socketRef.current = socket;
+    return () => { cancelado = true; };
   }, [isAuthenticated]);
 
-  useEffect(() => {
-    if (!isAuthenticated && socketInstance) {
-      socketInstance.disconnect();
-      socketInstance = null;
-    }
-  }, [isAuthenticated]);
-
-  return socketRef.current;
+  return socket;
 }
 
 /**

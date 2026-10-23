@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
-import { io, Socket } from "socket.io-client";
+import type { Socket } from "socket.io-client";
+import { cargarSocketIo } from "@/lib/socketCliente";
 
 /**
  * Conexión en vivo con el raid de la landing.
@@ -24,25 +25,30 @@ export function useRaidSocket(
   alReconectar.current = onReconectar;
 
   useEffect(() => {
-    const socket: Socket = io(window.location.origin, {
-      transports: ["websocket", "polling"],
-      auth: { raid: true },
-      reconnectionDelay: 800,
-      reconnectionDelayMax: 5000,
-    });
-
-    socket.on("raid:estado", (e: EstadoRaidVivo) => alEstado.current(e));
-    socket.on("raid:golpe", (g: GolpeRaidVivo) => alGolpe.current(g));
-    // Tras una caída de la conexión se pide el estado de nuevo por si se
-    // perdió algún aviso mientras tanto
-    socket.io.on("reconnect", () => alReconectar.current?.());
-
-    // Al volver a la app: si el canal se cortó en segundo plano, se reconecta
+    let socket: Socket | null = null;
+    let cerrado = false;
     const alVolver = () => {
-      if (!socket.connected) socket.connect();
+      if (socket && !socket.connected) socket.connect();
       alReconectar.current?.();
     };
+    // La librería llega aparte: la portada se pinta primero
+    void cargarSocketIo().then(({ io }) => {
+      if (cerrado) return;
+      socket = io(window.location.origin, {
+        transports: ["websocket", "polling"],
+        auth: { raid: true },
+        reconnectionDelay: 800,
+        reconnectionDelayMax: 5000,
+      });
+      socket.on("raid:estado", (e: EstadoRaidVivo) => alEstado.current(e));
+      socket.on("raid:golpe", (g: GolpeRaidVivo) => alGolpe.current(g));
+      // Tras una caída de la conexión se pide el estado de nuevo por si se
+      // perdió algún aviso mientras tanto
+      socket.io.on("reconnect", () => alReconectar.current?.());
+    });
+
+    // Al volver a la app: si el canal se cortó en segundo plano, se reconecta
     window.addEventListener("iw:volver", alVolver);
-    return () => { window.removeEventListener("iw:volver", alVolver); socket.disconnect(); };
+    return () => { cerrado = true; window.removeEventListener("iw:volver", alVolver); socket?.disconnect(); };
   }, []);
 }
