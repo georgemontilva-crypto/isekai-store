@@ -867,6 +867,9 @@ export const wfPrensaConfirmaciones = mysqlTable("wfPrensaConfirmaciones", {
   email: varchar("email", { length: 320 }),
   whatsapp: varchar("whatsapp", { length: 30 }),
   datosEn: timestamp("datosEn"),
+  /** El día de la rueda: cuándo llegó y quién del staff la marcó */
+  asistioEn: timestamp("asistioEn"),
+  asistioPor: varchar("asistioPor", { length: 150 }),
   creadoEn: timestamp("creadoEn").defaultNow().notNull(),
 });
 

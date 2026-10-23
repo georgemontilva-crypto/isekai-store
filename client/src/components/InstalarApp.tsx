@@ -17,7 +17,7 @@ type EventoInstalar = Event & { prompt: () => Promise<void>; userChoice: Promise
 
 const CLAVE = "iw_instalar_cerrado";
 const DIAS = 14;
-const RUTAS_OCULTAS = ["/admin", "/vender", "/acceso", "/rueda-de-negocios", "/rueda-de-prensa", "/checkout", "/invitacion"];
+const RUTAS_OCULTAS = ["/admin", "/vender", "/acceso", "/rueda-de-negocios", "/rueda-de-prensa", "/checkout", "/invitacion", "/staff/"];
 const CON_BARRA_INFERIOR = ["/worldfest/pass", "/account", "/cosplay/dashboard"];
 
 function yaInstalada() {

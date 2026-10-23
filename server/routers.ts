@@ -33,7 +33,7 @@ import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/ref
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
 import * as patro from "./patrocinantes";
-import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion } from "./ruedaPrensa";
+import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
@@ -140,6 +140,14 @@ const storeProcedure = protectedProcedure.use(({ ctx, next }) => {
     throw new TRPCError({ code: "FORBIDDEN", message: "Solo para tiendas autorizadas" });
   }
   return next({ ctx });
+});
+
+/** Rueda de negocios: el administrador y el staff que él autoriza por correo */
+const ruedaProcedure = protectedProcedure.use(async ({ ctx, next }) => {
+  if (ctx.user.role === "admin") return next({ ctx: { ...ctx, nombreStaff: ctx.user.name || "Administrador" } });
+  const s = await staffRuedaPorCorreo(ctx.user.email);
+  if (!s) throw new TRPCError({ code: "FORBIDDEN", message: "Tu cuenta no tiene acceso a la rueda de negocios" });
+  return next({ ctx: { ...ctx, nombreStaff: s.nombre || ctx.user.name || s.email } });
 });
 
 /** Solo enlaces https (o vacío) */
@@ -1041,7 +1049,7 @@ export const appRouter = router({
     // Public: safe settings only — NEVER exposes instagram_access_token
     getAll: publicProcedure.query(async () => {
       const all = await getAllSettings();
-      const PRIVATE_KEYS = ["instagram_access_token"];
+      const PRIVATE_KEYS = ["instagram_access_token", "rn_staff"];
       return Object.fromEntries(Object.entries(all).filter(([k]) => !PRIVATE_KEYS.includes(k)));
     }),
 
@@ -1168,8 +1176,30 @@ export const appRouter = router({
         whatsapp: z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/).transform(v => v.replace(/[^0-9+]/g, "")),
       }))
       .mutation(({ input }) => completarDatos(input.clave, { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp })),
-    total: adminProcedure.query(() => totalConfirmaciones()),
-    lista: adminProcedure.query(() => listaConfirmaciones()),
+    total: ruedaProcedure.query(() => totalConfirmaciones()),
+    lista: ruedaProcedure.query(() => listaConfirmaciones()),
+    /** ¿Esta cuenta puede entrar a la lista? (para mostrarle el acceso) */
+    miAcceso: protectedProcedure.query(async ({ ctx }) => {
+      if (ctx.user.role === "admin") return { puede: true, esAdmin: true };
+      return { puede: Boolean(await staffRuedaPorCorreo(ctx.user.email)), esAdmin: false };
+    }),
+    marcarAsistencia: ruedaProcedure
+      .input(z.object({ id: z.number().int().positive(), asistio: z.boolean() }))
+      .mutation(({ input, ctx }) => marcarAsistencia(input.id, input.asistio, ctx.nombreStaff)),
+    registrarEnPuerta: ruedaProcedure
+      .input(z.object({
+        tienda: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        email: z.string().trim().toLowerCase().email().max(320).optional().or(z.literal("")),
+        whatsapp: z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/).transform(v => v.replace(/[^0-9+]/g, "")).optional().or(z.literal("")),
+      }))
+      .mutation(({ input, ctx }) => registrarEnPuerta({ tienda: input.tienda, email: input.email || undefined, whatsapp: input.whatsapp || undefined }, ctx.nombreStaff)),
+    staff: adminProcedure.query(() => listarStaffRueda()),
+    agregarStaff: adminProcedure
+      .input(z.object({ email: z.string().trim().toLowerCase().email().max(320), nombre: z.string().trim().max(80).default("") }))
+      .mutation(({ input }) => agregarStaffRueda(input.email, input.nombre)),
+    quitarStaff: adminProcedure
+      .input(z.object({ email: z.string().trim().toLowerCase().email() }))
+      .mutation(({ input }) => quitarStaffRueda(input.email)),
     borrar: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => borrarConfirmacion(input.id)),
   }),
 

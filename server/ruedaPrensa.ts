@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, sql } from "drizzle-orm";
-import { getDb } from "./db";
+import { getDb, getSetting, upsertSetting } from "./db";
+import { nanoid } from "nanoid";
 import { wfPrensaConfirmaciones } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { notifyConfirmacionPrensa } from "./_core/notification";
@@ -74,13 +75,41 @@ export async function completarDatos(clave: string, datos: DatosPrensa):
 
 export type FilaPrensa = {
   id: number; tienda: string | null; email: string | null; whatsapp: string | null;
-  datosEn: Date | null; creadoEn: Date;
+  datosEn: Date | null; creadoEn: Date; asistioEn: Date | null; asistioPor: string | null;
 };
 
-/** Solo administradores: lista de confirmados, los que dejaron datos primero */
+/**
+ * Crea las columnas que falten en la tabla, una sola vez por arranque.
+ * Así la asistencia funciona sin que haya que correr SQL a mano.
+ */
+let columnasListas: Promise<void> | null = null;
+export function asegurarColumnas(): Promise<void> {
+  if (!columnasListas) {
+    columnasListas = (async () => {
+      const db = await getDb();
+      if (!db) throw new Error("sin base de datos");
+      const [filas] = await db.execute(sql`SELECT COLUMN_NAME AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wfPrensaConfirmaciones'`) as unknown as [{ c: string }[]];
+      const hay = new Set((filas ?? []).map(f => f.c));
+      const faltan: [string, string][] = [
+        ["tienda", "varchar(150) NULL"], ["email", "varchar(320) NULL"], ["whatsapp", "varchar(30) NULL"],
+        ["datosEn", "timestamp NULL"], ["asistioEn", "timestamp NULL"], ["asistioPor", "varchar(150) NULL"],
+      ];
+      for (const [col, tipo] of faltan) {
+        if (!hay.has(col)) {
+          await db.execute(sql.raw(`ALTER TABLE wfPrensaConfirmaciones ADD COLUMN \`${col}\` ${tipo}`));
+          console.log(`[Prensa] columna creada: ${col}`);
+        }
+      }
+    })().catch(e => { columnasListas = null; throw e; });
+  }
+  return columnasListas;
+}
+
+/** Administradores y staff de la rueda: lista de confirmados, los que dejaron datos primero */
 export async function listaConfirmaciones(): Promise<FilaPrensa[]> {
   const db = await getDb();
   if (!db) return [];
+  await asegurarColumnas().catch(e => console.warn("[Prensa] columnas:", e));
   return db.select({
     id: wfPrensaConfirmaciones.id,
     tienda: wfPrensaConfirmaciones.tienda,
@@ -88,6 +117,8 @@ export async function listaConfirmaciones(): Promise<FilaPrensa[]> {
     whatsapp: wfPrensaConfirmaciones.whatsapp,
     datosEn: wfPrensaConfirmaciones.datosEn,
     creadoEn: wfPrensaConfirmaciones.creadoEn,
+    asistioEn: wfPrensaConfirmaciones.asistioEn,
+    asistioPor: wfPrensaConfirmaciones.asistioPor,
   }).from(wfPrensaConfirmaciones)
     .orderBy(sql`${wfPrensaConfirmaciones.datosEn} IS NULL`, desc(wfPrensaConfirmaciones.datosEn), desc(wfPrensaConfirmaciones.creadoEn))
     .limit(2000);
@@ -159,4 +190,79 @@ export async function borrarConfirmacion(id: number) {
     io?.to("admin").emit("prensa:confirmacion", conteo);
   } catch { /* aviso opcional */ }
   return { ok: true };
+}
+
+
+// ─── Asistencia el día de la rueda ───────────────────────────────────────────
+
+/** Marca (o desmarca) que la tienda llegó. «quien» es el nombre del staff */
+export async function marcarAsistencia(id: number, asistio: boolean, quien: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  await asegurarColumnas();
+  await db.update(wfPrensaConfirmaciones)
+    .set(asistio ? { asistioEn: new Date(), asistioPor: quien.slice(0, 150) } : { asistioEn: null, asistioPor: null })
+    .where(eq(wfPrensaConfirmaciones.id, id));
+  try { io?.to("admin").emit("prensa:datos", { id }); } catch { /* opcional */ }
+  return { ok: true };
+}
+
+/** Tienda que llega sin haber confirmado: se agrega ya marcada como presente */
+export async function registrarEnPuerta(datos: { tienda: string; email?: string; whatsapp?: string }, quien: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  await asegurarColumnas();
+  const ahora = new Date();
+  await db.insert(wfPrensaConfirmaciones).values({
+    clave: `puerta${nanoid(20).replace(/[^A-Za-z0-9]/g, "x")}`,
+    ip: "puerta",
+    tienda: datos.tienda,
+    email: datos.email || null,
+    whatsapp: datos.whatsapp || null,
+    datosEn: ahora,
+    asistioEn: ahora,
+    asistioPor: quien.slice(0, 150),
+  });
+  try {
+    const conteo = await totalConfirmaciones();
+    io?.to("admin").emit("prensa:confirmacion", conteo);
+  } catch { /* opcional */ }
+  return { ok: true };
+}
+
+// ─── Staff de la rueda: entran solo a la lista y marcan asistencia ───────────
+
+export type StaffRueda = { email: string; nombre: string };
+const CLAVE_STAFF = "rn_staff";
+
+export async function listarStaffRueda(): Promise<StaffRueda[]> {
+  try {
+    const v = await getSetting(CLAVE_STAFF);
+    const lista = v ? JSON.parse(v) : [];
+    return Array.isArray(lista) ? lista.filter(x => x && typeof x.email === "string") : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function agregarStaffRueda(email: string, nombre: string) {
+  const correo = email.trim().toLowerCase();
+  const lista = await listarStaffRueda();
+  if (lista.some(s => s.email === correo)) throw new Error("Esa persona ya está en el staff");
+  lista.push({ email: correo, nombre: nombre.trim() || correo.split("@")[0] });
+  await upsertSetting(CLAVE_STAFF, JSON.stringify(lista));
+  return { ok: true };
+}
+
+export async function quitarStaffRueda(email: string) {
+  const correo = email.trim().toLowerCase();
+  const lista = (await listarStaffRueda()).filter(s => s.email !== correo);
+  await upsertSetting(CLAVE_STAFF, JSON.stringify(lista));
+  return { ok: true };
+}
+
+export async function staffRuedaPorCorreo(email?: string | null): Promise<StaffRueda | null> {
+  if (!email) return null;
+  const correo = email.trim().toLowerCase();
+  return (await listarStaffRueda()).find(s => s.email === correo) ?? null;
 }

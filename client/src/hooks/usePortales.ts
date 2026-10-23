@@ -1,4 +1,4 @@
-import { Swords, ScanLine, Ticket, Zap } from "lucide-react";
+import { Handshake, Swords, ScanLine, Ticket, Zap } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -12,7 +12,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
  *   todos    → Level Pass (con boleto: «Mi Level Pass»; sin él, entra escaneando)
  */
 export type Portal = {
-  clave: "vender" | "xp" | "acceso" | "pass";
+  clave: "vender" | "xp" | "acceso" | "pass" | "rueda";
   href: string;
   texto: string;
   corto: string;
@@ -28,6 +28,7 @@ export function usePortales() {
   const esEquipo = Boolean(acceso?.esTienda || acceso?.esStaff);
   const { data: accesoXp } = trpc.levelPass.miAcceso.useQuery(undefined, { ...opciones, enabled: isAuthenticated && esEquipo });
   const { data: boleto } = trpc.levelPass.miBoleto.useQuery(undefined, opciones);
+  const { data: rueda } = trpc.prensa.miAcceso.useQuery(undefined, opciones);
 
   const roles: Portal[] = [];
   if (acceso?.esTienda) {
@@ -38,6 +39,10 @@ export function usePortales() {
   }
   if (acceso?.esPortero) {
     roles.push({ clave: "acceso", href: "/acceso", texto: "Control de acceso", corto: "Acceso", descripcion: "Valida la entrada en la puerta", icono: ScanLine, color: "#2dd4bf" });
+  }
+  // Staff de la rueda de negocios (el administrador la tiene en su panel)
+  if (rueda?.puede && !rueda.esAdmin) {
+    roles.push({ clave: "rueda", href: "/staff/rueda", texto: "Rueda de negocios", corto: "Rueda", descripcion: "Marca qué tiendas llegaron", icono: Handshake, color: "#ff3d9e" });
   }
   const pase: Portal = {
     clave: "pass",

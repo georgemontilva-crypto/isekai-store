@@ -4076,78 +4076,67 @@ html:not(.iw-ligero) .ev2-barra-golpe { animation-name: ev2-barra-golpe-brillo; 
 
 /* ═══ Panel de administración: inicio (colores fijos, estilo del sitio) ═══ */
 .adm-etiqueta {
-  font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .22em; color: #ff3d9e;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .18em; color: #ff3d9e;
 }
 .adm-tarjeta {
-  background: #0c0b10; border: 1px solid rgba(255, 255, 255, .07);
+  background: rgba(255, 255, 255, .035); border: 1px solid rgba(255, 255, 255, .06); border-radius: 24px;
 }
 .adm-tarjeta-accion { transition: border-color .2s ease, background .2s ease; }
-.adm-tarjeta-accion:hover { border-color: color-mix(in srgb, var(--acento, #ff3d9e) 60%, transparent); background: #111018; }
-.adm-icono { display: flex; height: 38px; width: 38px; flex-shrink: 0; align-items: center; justify-content: center; }
-.adm-estado { align-items: center; border: 1px solid; padding: 3px 9px; font-size: 11px; font-weight: 600; white-space: nowrap; }
+.adm-tarjeta-accion:hover { border-color: color-mix(in srgb, var(--acento, #ff3d9e) 45%, transparent); background: rgba(255, 255, 255, .055); }
+.adm-icono { display: flex; height: 40px; width: 40px; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 9999px; }
+.adm-estado { align-items: center; border: 1px solid; padding: 3px 10px; font-size: 11px; font-weight: 600; white-space: nowrap; border-radius: 9999px; }
 .adm-enlace { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; color: #a39cad; }
 .adm-enlace:hover { color: #fff; }
 .adm-boton-sec {
   display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; font-size: 12px; font-weight: 700;
-  color: #fff; background: #141318; border: 1px solid rgba(255, 255, 255, .12);
+  color: #fff; background: rgba(255, 255, 255, .07); border: 1px solid rgba(255, 255, 255, .08); border-radius: 9999px;
 }
 .adm-boton-sec:hover { border-color: rgba(255, 61, 158, .5); }
-.adm { background: #07060a; border: 1px solid rgba(255, 255, 255, .04); padding: 22px 20px; }
+.adm { background: #07060a; padding: 22px 20px; }
 @media (max-width: 640px) { .adm { padding: 18px 14px; } }
 
 /* Scroll sin barra visible (se sigue desplazando con rueda, trackpad o dedo) */
 .sin-scroll { scrollbar-width: none; -ms-overflow-style: none; }
 .sin-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
 
-/* ═══ Panel de administración (computador): tema común para TODAS las secciones ═══
-   Convierte el estilo anterior (tarjetas y botones redondeados, títulos rosas)
-   al estilo del sitio: tarjetas rectas en negro con borde fino, botones y
-   pastillas biselados, campos oscuros y títulos blancos con la línea de
-   energía. Todo va encerrado en .admin-shell y solo en modo oscuro. */
+/* ═══ Panel de administración: tema común para TODAS las secciones ═══
+   Mismo aspecto de la lista de la rueda de negocios: tarjetas suaves con
+   esquinas redondeadas, botones en píldora, campos redondeados y títulos
+   blancos en Inter. Todo va encerrado en .admin-shell y solo en modo oscuro. */
 html.dark .admin-shell main { background: #07060a; }
 
-/* Títulos de sección: blancos con la línea de energía encima */
-html.dark .admin-shell main h1.text-2xl {
-  color: #fff !important; font-weight: 900; letter-spacing: -0.01em;
-}
-html.dark .admin-shell main h1.text-2xl:not(.adm h1)::before {
-  content: ""; display: block; width: 32px; height: 3px; margin-bottom: 10px;
-  background: linear-gradient(90deg, #e5007d, #a78bfa, #38bdf8);
+/* Títulos de sección: blancos, sin adornos */
+html.dark .admin-shell :is(h1, h2):not(.text-\[\#e5007d\]):not([style*="color"]) {
+  color: #fff !important; font-weight: 700; letter-spacing: -0.015em;
+  font-family: Inter, system-ui, -apple-system, sans-serif;
 }
 
-/* Tarjetas: rectas, negras, borde fino */
-html.dark .admin-shell main :is(.rounded-2xl, .rounded-3xl, .rounded-xl):not(button):not(img):not(input):not(textarea):not(select) {
-  border-radius: 0 !important;
-}
-html.dark .admin-shell main :is(.bg-card, .bg-white) { background-color: #0c0b10 !important; }
-html.dark .admin-shell main :is(.bg-card, .bg-white):is(.border, [class*="border-"]) { border-color: rgba(255, 255, 255, 0.08) !important; }
+/* Tarjetas: fondo apenas más claro que el panel y borde muy fino */
+html.dark .admin-shell main :is(.bg-card, .bg-white) { background-color: rgba(255, 255, 255, 0.035) !important; }
+html.dark .admin-shell main :is(.bg-card, .bg-white):is(.border, [class*="border-"]) { border-color: rgba(255, 255, 255, 0.07) !important; }
+html.dark .admin-shell main :is(div, section, li, article):is(.rounded-md, .rounded-lg) { border-radius: 20px; }
+html.dark .admin-shell main :is(div, section, li, article).rounded-xl { border-radius: 24px; }
 
-/* Botones y enlaces-botón: biselados */
-html.dark .admin-shell main :is(button, a):is(.rounded-full, .rounded-xl, .rounded-lg, .rounded-md, .rounded-2xl):not(.animate-spin) {
-  border-radius: 0 !important;
-  clip-path: polygon(7px 0, 100% 0, 100% calc(100% - 7px), calc(100% - 7px) 100%, 0 100%, 0 7px);
-}
-
-/* Pastillas de filtro y de estado (las que llevan texto con relleno) */
-html.dark .admin-shell main :is(span, div).rounded-full[class*="px-"] { border-radius: 0 !important; }
+/* Botones con esquinas pequeñas: pasan a píldora */
+html.dark .admin-shell main button:is(.rounded, .rounded-md, .rounded-lg):not(.aspect-square):not([class*="text-left"]) { border-radius: 9999px; }
 
 /* Campos de formulario */
-html.dark .admin-shell main :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select) {
-  border-radius: 0 !important;
-  background-color: #0c0b10 !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
+html.dark .admin-shell :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select) {
+  border-radius: 16px !important;
+  background-color: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
 }
 html.dark .admin-shell main :is(input, textarea, select):focus {
-  border-color: #e5007d !important; outline: none; box-shadow: 0 0 0 1px rgba(229, 0, 125, 0.35);
+  border-color: rgba(229, 0, 125, 0.6) !important; outline: none; box-shadow: none;
 }
 
-/* Menú lateral: fondo negro y sección activa con acento rosa */
+/* Menú lateral: fondo negro y sección activa en píldora rosa suave */
 html.dark .admin-shell aside { background: #050407 !important; border-color: rgba(255, 255, 255, 0.06) !important; }
+html.dark .admin-shell aside nav button { border-radius: 14px !important; }
 html.dark .admin-shell aside nav button.bg-\[\#0a0a0a\] {
-  background: linear-gradient(90deg, rgba(229, 0, 125, 0.18), rgba(229, 0, 125, 0.02)) !important;
-  box-shadow: inset 2px 0 0 #e5007d; border-radius: 0 !important;
+  background: rgba(229, 0, 125, 0.16) !important; color: #fff !important;
 }
-html.dark .admin-shell aside nav button { border-radius: 0 !important; }
 
 /* Panel: columnas de las tablas de Pedidos y Pagos (en pantallas grandes) */
 @media (min-width: 1024px) {
@@ -4167,8 +4156,7 @@ html.dark .admin-shell :is(.active\:bg-\[\#f8f8f8\], .active\:bg-\[\#fafafa\], .
 }
 /* Menú lateral: al pasar el mouse, el mismo acento que la sección activa pero más suave */
 html.dark .admin-shell aside nav button:not(.bg-\[\#0a0a0a\]):hover {
-  background: linear-gradient(90deg, rgba(229, 0, 125, 0.10), rgba(229, 0, 125, 0)) !important;
-  box-shadow: inset 2px 0 0 rgba(229, 0, 125, 0.55);
+  background: rgba(255, 255, 255, 0.05) !important;
   color: #fff !important;
 }
 /* En el teléfono, sin el destello gris del navegador al tocar */

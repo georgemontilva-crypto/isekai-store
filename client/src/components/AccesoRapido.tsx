@@ -25,7 +25,7 @@ export default function AccesoRapido() {
   const portales = usePortales();
 
   // No aparece dentro de los propios paneles ni en el admin
-  const rutasOcultas = ["/vender", "/acceso", "/worldfest/pass", "/admin", "/guild/mejoras", "/rueda-de-prensa", "/rueda-de-negocios"];
+  const rutasOcultas = ["/vender", "/acceso", "/worldfest/pass", "/admin", "/guild/mejoras", "/rueda-de-prensa", "/rueda-de-negocios", "/staff/"];
   if (rutasOcultas.some(r => location.startsWith(r))) return null;
   if (!isAuthenticated || cerrado) return null;
 

@@ -81,7 +81,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
       {/* ── Encabezado ── */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="adm-etiqueta mb-1.5">[ Panel de control ]</p>
+          <p className="adm-etiqueta mb-1.5">Panel de control</p>
           <h1 className="text-2xl font-black text-white sm:text-3xl">Dashboard</h1>
           <p className="mt-1 text-sm text-[#8a8494]">{hoy.charAt(0).toUpperCase() + hoy.slice(1)}</p>
         </div>

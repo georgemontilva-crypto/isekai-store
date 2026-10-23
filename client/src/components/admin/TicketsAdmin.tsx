@@ -429,15 +429,15 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         if (!opciones) return null;
 
         return (
-          <div className="grid grid-cols-2 border border-[var(--iw-border)]">
+          <div className="lc-segmento grid grid-cols-2 rounded-full p-1">
             {opciones.map(([id, label]) => (
               <button
                 key={id}
                 onClick={() => { setVista(id as any); setBusqueda(""); }}
-                className={`text-xs font-bold transition-colors ${
-                  vista === id ? "bg-[#e5007d]/15 text-[#ff3d9e]" : "text-[var(--iw-text-muted)]"
+                className={`rounded-full text-[13px] font-semibold transition-colors ${
+                  vista === id ? "bg-[#e5007d] text-white" : "text-[var(--iw-text-muted)]"
                 }`}
-                style={{ minHeight: 42, boxShadow: vista === id ? "inset 0 -2px 0 #e5007d" : undefined }}
+                style={{ minHeight: 40 }}
               >
                 {label}
               </button>
