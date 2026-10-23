@@ -339,7 +339,7 @@ export default function WorldFestPass() {
   };
 
   const salir = () => {
-    if (modoDemo) { reiniciarDemo(); return; }
+    if (modoDemo) { reiniciarDemo(); setSalioDemo(true); setPestana("rango"); return; }
     setConsultado("");
     setCodigo("");
     rangoPrevio.current = null;
@@ -419,6 +419,14 @@ export default function WorldFestPass() {
           >
             Iniciar sesión
           </button>
+          {demoActivo && salioDemo && (
+            <button
+              onClick={() => setSalioDemo(false)}
+              className="mb-3 block w-full rounded-full border border-[#fbbf24]/40 py-3.5 text-sm font-bold text-[#fbbf24]"
+            >
+              Ver la demo otra vez
+            </button>
+          )}
           <Link
             href="/"
             className="block w-full py-2 font-mono text-[11px] uppercase tracking-widest text-[#5f7f96]"
@@ -499,6 +507,15 @@ export default function WorldFestPass() {
             El código está debajo del QR de tu boleto.
           </p>
 
+          {demoActivo && salioDemo && (
+            <button
+              onClick={() => setSalioDemo(false)}
+              className="mx-auto mt-4 flex items-center justify-center rounded-full border border-[#fbbf24]/40 px-4 py-2.5 text-xs font-bold text-[#fbbf24]"
+            >
+              Ver la demo otra vez
+            </button>
+          )}
+
           {/* TEMPORAL: atajo mientras se prueba el sistema (solo administración) */}
           {esDueno && <div className="mt-5 border-t border-[#38bdf8]/12 pt-4">
             <p className="mb-2 text-center font-mono text-[10px] uppercase tracking-widest text-[#5f7f96]">
@@ -523,7 +540,7 @@ export default function WorldFestPass() {
   }
 
   return (
-    <div className="wf-zona ev-grid min-h-screen" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 84px)" }}>
+    <div className="wf-zona ev-grid min-h-screen" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 70px)" }}>
 
       {/* El entorno toma el color del rango: golpe al ascender y tinte suave
           mientras se permanece en él. */}
@@ -682,6 +699,9 @@ export default function WorldFestPass() {
             </p>
             <button onClick={reiniciarDemo} className="flex h-9 shrink-0 items-center rounded-full border border-[#fbbf24]/40 px-3 text-[11.5px] font-bold text-[#fbbf24]">
               Reiniciar
+            </button>
+            <button onClick={salir} className="flex h-9 shrink-0 items-center rounded-full bg-[#fbbf24] px-3 text-[11.5px] font-bold text-[#1a1405]">
+              Salir
             </button>
           </div>
         </div>
@@ -1020,14 +1040,14 @@ export default function WorldFestPass() {
                 key={id}
                 onClick={() => irA(id)}
                 aria-current={activo ? "page" : undefined}
-                className="relative flex flex-1 flex-col items-center justify-center gap-1 py-2.5"
-                style={{ minHeight: 62, WebkitTapHighlightColor: "transparent" }}
+                className="relative flex flex-1 flex-col items-center justify-center gap-0.5 py-1.5"
+                style={{ minHeight: 50, WebkitTapHighlightColor: "transparent" }}
               >
                 <span
-                  className="flex h-8 w-14 items-center justify-center rounded-full transition-colors"
+                  className="flex h-7 w-12 items-center justify-center rounded-full transition-colors"
                   style={{ background: activo ? `${color}22` : "transparent" }}
                 >
-                  <Icono size={19} style={{ color: activo ? color : "#3a5a72" }} />
+                  <Icono size={18} style={{ color: activo ? color : "#3a5a72" }} />
                 </span>
                 <span className="text-[10.5px] font-semibold" style={{ color: activo ? "#e6f6ff" : "#3a5a72" }}>
                   {label}
