@@ -26,7 +26,7 @@ function Plegable({ titulo, children }: { titulo: string; children: React.ReactN
     return (
       <button
         onClick={() => setAbierto(true)}
-        className="ev-notch flex w-full items-center justify-center gap-2 border border-dashed border-[#e5007d]/60 text-sm font-bold text-[#ff3d9e] transition-colors hover:bg-[#e5007d]/10"
+        className="rounded-2xl flex w-full items-center justify-center gap-2 border border-dashed border-[#e5007d]/60 text-sm font-bold text-[#ff3d9e] transition-colors hover:bg-[#e5007d]/10"
         style={{ minHeight: 52, WebkitTapHighlightColor: "transparent" }}
       >
         <Plus size={16} /> {titulo}
@@ -316,8 +316,8 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
 
   // Variables de tema para que funcione igual en claro y oscuro, y `min-w-0`
   // en todos los contenedores para que nada se salga en pantalla estrecha.
-  const tarjeta = "ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4 min-w-0";
-  const campo = "w-full min-w-0 ev-notch border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[var(--iw-text)] outline-none focus:border-[#e5007d]";
+  const tarjeta = "rounded-3xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4 min-w-0";
+  const campo = "w-full min-w-0 rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-4 text-[16px] text-[var(--iw-text)] outline-none focus:border-[#e5007d]";
   const altoCampo = { minHeight: 48 };
 
   return (
@@ -337,7 +337,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         </select>
         <button
           onClick={() => setFormEvento(!formEvento)}
-          className="flex shrink-0 items-center justify-center ev-notch bg-[#e5007d] px-4 text-white"
+          className="flex shrink-0 items-center justify-center rounded-full bg-[#e5007d] px-4 text-white"
           style={altoCampo}
           aria-label="Nuevo evento"
           title="Crear un evento nuevo"
@@ -371,7 +371,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           <button
             onClick={() => crearEvento.mutate(nuevoEvento)}
             disabled={!nuevoEvento.name || !nuevoEvento.startDate || !nuevoEvento.endDate}
-            className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+            className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
             style={{ minHeight: 52 }}
           >
             Crear evento
@@ -399,7 +399,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <button
               key={id}
               onClick={() => { setVista(id as any); setBusqueda(""); }}
-              className={`ev-notch flex items-center gap-2 px-3 text-left text-xs font-bold transition-colors ${
+              className={`rounded-full flex items-center gap-2 px-3 text-left text-xs font-bold transition-colors ${
                 activo
                   ? "bg-[#e5007d] text-white"
                   : "border border-[var(--iw-border)] bg-[var(--iw-input-bg)] text-[var(--iw-text-muted)]"
@@ -581,7 +581,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <div className="iw-areas-carril -mx-1 mb-2 flex gap-2 overflow-x-auto px-1 pb-1">
               <button
                 onClick={() => setFiltroTienda(null)}
-                className={`ev-notch shrink-0 px-3.5 text-[11px] font-bold ${
+                className={`rounded-full shrink-0 px-3.5 text-[11px] font-bold ${
                   filtroTienda === null
                     ? "bg-[#e5007d] text-white"
                     : "border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
@@ -594,7 +594,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 <button
                   key={t.nombre}
                   onClick={() => setFiltroTienda(t.nombre)}
-                  className={`ev-notch shrink-0 px-3.5 text-[11px] font-bold ${
+                  className={`rounded-full shrink-0 px-3.5 text-[11px] font-bold ${
                     filtroTienda === t.nombre
                       ? "bg-[#e5007d] text-white"
                       : "border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
@@ -673,7 +673,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <div className="grid grid-cols-4 gap-2">
               {[50, 100, 500, 1000].map(n => (
                 <button key={n} onClick={() => setCantidad(n)}
-                  className={`ev-notch text-xs font-bold transition-colors ${
+                  className={`rounded-full text-xs font-bold transition-colors ${
                     cantidad === n ? "bg-[#e5007d] text-white" : "bg-[var(--iw-input-bg)] border border-[var(--iw-border)] text-[var(--iw-text-muted)]"
                   }`}
                   style={{ minHeight: 44 }}>
@@ -688,7 +688,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <button
               onClick={() => evento && generar.mutate({ eventId: evento.id, cantidad })}
               disabled={!evento || generar.isPending}
-              className="mt-2 flex w-full items-center justify-center gap-2 ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-2 flex w-full items-center justify-center gap-2 rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               <Download size={16} /> {generar.isPending ? "Generando..." : `Generar ${cantidad} e imprimir`}
@@ -705,7 +705,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             ) : (
               <div className="flex flex-col gap-2">
                 {lotes.map((l: any) => (
-                  <div key={l.lote} className="flex items-center justify-between gap-3 ev-notch border border-[var(--iw-border)] p-3">
+                  <div key={l.lote} className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--iw-border)] p-3">
                     <div className="min-w-0">
                       <p className="font-mono text-sm font-bold text-[var(--iw-text)]">{l.lote}</p>
                       <p className="text-xs text-[var(--iw-text-muted)]">
@@ -828,7 +828,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               </div>
               <button
                 onClick={() => setNuevaAct(f => ({ ...f, repetible: !f.repetible }))}
-                className={`flex items-center gap-3 ev-notch border px-4 py-3 text-left ${
+                className={`flex items-center gap-3 rounded-2xl border px-4 py-3 text-left ${
                   nuevaAct.repetible ? "border-[#e5007d] bg-[#e5007d]/10" : "border-[var(--iw-border)]"
                 }`}
               >
@@ -860,7 +860,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 maxVeces: nuevaAct.repetible ? nuevaAct.maxVeces : undefined,
               })}
               disabled={!nuevaAct.name || crearAct.isPending}
-              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               Añadir actividad
@@ -926,7 +926,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                 puesto: nuevoStaff.puesto || undefined,
               })}
               disabled={!nuevoStaff.name || crearStaff.isPending}
-              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               Autorizar
@@ -1000,7 +1000,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             </div>
           )}
           {/* TEMPORAL: entorno de ensayo */}
-          <div className="ev-notch border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
+          <div className="rounded-2xl border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
             <p className="text-sm font-bold text-[var(--iw-text)]">Entorno de prueba</p>
             <p className="mb-3 mt-1 text-xs leading-relaxed text-[var(--iw-text-muted)]">
               Crea un evento con fechas de hoy, cinco actividades y boletos listos:
@@ -1040,14 +1040,14 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
               <button
                 onClick={() => crearPrueba.mutate()}
                 disabled={crearPrueba.isPending}
-                className="ev-notch bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
+                className="rounded-full bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
                 style={{ minHeight: 44 }}
               >
                 {crearPrueba.isPending ? "Creando..." : "Crear entorno de prueba"}
               </button>
               <button
                 onClick={() => { confirmar({ titulo: "Borrar todos los datos de prueba", mensaje: "Se eliminan los participantes y la experiencia creados para ensayar. Los boletos reales no se tocan.", confirmar: "Borrar", peligro: true }).then(ok => { if (ok) borrarPrueba.mutate(); }); }}
-                className="ev-notch border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)]"
+                className="rounded-full border border-[var(--iw-border)] px-4 text-xs font-bold text-[var(--iw-text-muted)]"
                 style={{ minHeight: 44 }}
               >
                 Borrar pruebas
@@ -1106,7 +1106,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <button
               onClick={() => crearPortero.mutate({ name: nuevoPortero.name, email: nuevoPortero.email || undefined })}
               disabled={!nuevoPortero.name || crearPortero.isPending}
-              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               {crearPortero.isPending ? "Autorizando..." : "Autorizar portero"}
@@ -1169,7 +1169,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
             <button
               onClick={() => evento && crearTipo.mutate({ ...nuevoTipo, eventId: evento.id, perks: nuevoTipo.perks || undefined })}
               disabled={!nuevoTipo.name || !parseFloat(nuevoTipo.priceUsd || "0")}
-              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               Añadir tipo
@@ -1230,7 +1230,7 @@ Al autorizarla le llega un correo con su enlace de acceso y cómo vender. Entra 
                 phone: nuevaTienda.phone || undefined,
               })}
               disabled={!nuevaTienda.name || crearTienda.isPending}
-              className="mt-3 w-full ev-notch bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
+              className="mt-3 w-full rounded-full bg-[#e5007d] text-sm font-bold text-white disabled:opacity-40"
               style={{ minHeight: 52 }}
             >
               {crearTienda.isPending ? "Autorizando..." : "Autorizar"}

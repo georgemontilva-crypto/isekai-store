@@ -49,7 +49,7 @@ export function ContadoresAudiencia() {
   return (
     <div className="mb-5 grid grid-cols-2 gap-2 lg:grid-cols-4">
       {tarjetas.map(k => (
-        <div key={k.t} className="ev-notch border border-white/[0.08] bg-[#0c0b10] p-3.5" title={k.ayuda}>
+        <div key={k.t} className="rounded-2xl border border-white/[0.08] bg-[#0c0b10] p-3.5" title={k.ayuda}>
           <div className="mb-2 flex items-center justify-between">
             <span className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a8494]">{k.t}</span>
             <k.icono size={14} style={{ color: k.color }} />
@@ -163,7 +163,7 @@ function Editor({ inicial, onCerrar }: { inicial: Borrador; onCerrar: () => void
                 </div>
               </div>
             ) : (
-              <button onClick={() => setPicker(true)} className="ev-notch flex w-full flex-col items-center justify-center gap-2 border border-dashed border-[#e5007d]/50 py-8 text-sm font-bold text-[#ff3d9e] hover:bg-[#e5007d]/5">
+              <button onClick={() => setPicker(true)} className="rounded-2xl flex w-full flex-col items-center justify-center gap-2 border border-dashed border-[#e5007d]/50 py-8 text-sm font-bold text-[#ff3d9e] hover:bg-[#e5007d]/5">
                 <ImageIcon size={22} /> Subir o elegir imagen
               </button>
             )}
@@ -219,15 +219,15 @@ function Editor({ inicial, onCerrar }: { inicial: Borrador; onCerrar: () => void
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <button onClick={guardarBorrador} disabled={errores.length > 0 || guardar.isPending}
-              className="ev-notch flex-1 border border-white/15 bg-[#141318] py-3 text-sm font-bold text-white disabled:opacity-40">
+              className="rounded-full flex-1 border border-white/15 bg-[#141318] py-3 text-sm font-bold text-white disabled:opacity-40">
               {guardar.isPending ? "Guardando…" : "Guardar borrador"}
             </button>
             <button onClick={() => prueba.mutate(payload())} disabled={errores.length > 0 || prueba.isPending}
-              className="ev-notch flex-1 border border-[#e5007d]/50 py-3 text-sm font-bold text-[#ff3d9e] disabled:opacity-40">
+              className="rounded-full flex-1 border border-[#e5007d]/50 py-3 text-sm font-bold text-[#ff3d9e] disabled:opacity-40">
               {prueba.isPending ? "Enviando prueba…" : "Enviarme una prueba"}
             </button>
             <button onClick={enviarAhora} disabled={errores.length > 0 || enviar.isPending || !(est?.porSegmento?.[b.segmento])}
-              className="ev-notch flex flex-1 items-center justify-center gap-2 bg-[#e5007d] py-3 text-sm font-bold text-white disabled:opacity-40">
+              className="rounded-full flex flex-1 items-center justify-center gap-2 bg-[#e5007d] py-3 text-sm font-bold text-white disabled:opacity-40">
               <Send size={15} /> Enviar ahora
             </button>
           </div>
@@ -296,7 +296,7 @@ export default function CampanasSection() {
       <ContadoresAudiencia />
       <div className="flex items-center justify-between gap-3">
         <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-[#ff3d9e]">Historial</p>
-        <button onClick={() => setEditando({ ...VACIO })} className="ev-notch flex items-center gap-2 bg-[#e5007d] px-4 py-2.5 text-sm font-bold text-white">
+        <button onClick={() => setEditando({ ...VACIO })} className="rounded-full flex items-center gap-2 bg-[#e5007d] px-4 py-2.5 text-sm font-bold text-white">
           <Plus size={15} /> Nueva campaña
         </button>
       </div>

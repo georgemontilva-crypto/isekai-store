@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
-import { ExternalLink, Link2, Handshake, Users, X, Download, Mail, MessageCircle, Search } from "lucide-react";
+import { ExternalLink, Link2, Handshake, Users, X, Download, Mail, MessageCircle, Search, Trash2 } from "lucide-react";
+import { confirmar } from "./ui";
 import { useSocketEvento } from "@/hooks/useSocket";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
@@ -39,7 +40,7 @@ export default function TarjetaRuedaPrensa() {
   // Colores fijos en línea: el tema claro/oscuro del panel no los altera
   return (
     <div
-      className="ev-notch w-full p-4 sm:p-5"
+      className="rounded-2xl w-full p-4 sm:p-5"
       style={{ background: "#050505", border: "1px solid rgba(229,0,125,0.55)", boxShadow: "0 0 24px -8px rgba(229,0,125,0.45)" }}
     >
       <div className="flex items-start justify-between gap-4">
@@ -72,14 +73,14 @@ export default function TarjetaRuedaPrensa() {
           href="/rueda-de-negocios"
           target="_blank"
           rel="noopener noreferrer"
-          className="ev-notch flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+          className="rounded-full flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
           style={{ background: "#e5007d", color: "#ffffff" }}
         >
           <ExternalLink size={14} /> Abrir invitación
         </a>
         <button
           onClick={copiar}
-          className="ev-notch flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+          className="rounded-full flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
           style={{ background: "#141414", color: "#ffffff", border: "1px solid rgba(255,255,255,0.18)" }}
         >
           <Link2 size={14} /> Copiar enlace
@@ -87,7 +88,7 @@ export default function TarjetaRuedaPrensa() {
       </div>
       <button
         onClick={() => setVerLista(true)}
-        className="ev-notch mt-2 flex w-full items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+        className="rounded-full mt-2 flex w-full items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
         style={{ background: "#141414", color: "#ff3d9e", border: "1px solid rgba(229,0,125,0.45)" }}
       >
         <Users size={14} /> Ver confirmados y sus datos
@@ -133,6 +134,14 @@ function avatar(nombre: string) {
 /** Ventana con todos los confirmados: tienda, correo y WhatsApp */
 function ListaConfirmados({ onCerrar }: { onCerrar: () => void }) {
   const { data, isLoading } = trpc.prensa.lista.useQuery();
+  const utils = trpc.useUtils();
+  const borrar = trpc.prensa.borrar.useMutation({
+    onSuccess: () => { toast.success("Confirmación eliminada"); void utils.prensa.lista.invalidate(); void utils.prensa.total.invalidate(); },
+    onError: e => toast.error(e.message),
+  });
+  const pedirBorrar = async (id: number, nombre: string) => {
+    if (await confirmar({ titulo: "Eliminar confirmación", mensaje: `Se quitará «${nombre}» de la lista y del conteo. No se puede deshacer.`, confirmar: "Eliminar", peligro: true })) borrar.mutate({ id });
+  };
   const [vista, setVista] = useState<"datos" | "sin">("datos");
   const [buscar, setBuscar] = useState("");
   const todos = data ?? [];
@@ -252,6 +261,9 @@ function ListaConfirmados({ onCerrar }: { onCerrar: () => void }) {
                         <p className="truncate text-[15px] font-semibold text-white">{f.tienda}</p>
                         <p className="text-[12px] text-[#7d7688]">Confirmó {hace(f.creadoEn)}</p>
                       </div>
+                      <button onClick={() => pedirBorrar(f.id, f.tienda ?? "esta confirmación")} aria-label="Eliminar" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6f6878] transition-colors hover:bg-[#f87171]/10 hover:text-[#f87171]">
+                        <Trash2 size={16} />
+                      </button>
                     </div>
                     {f.email && (
                       <button onClick={() => copiar(f.email!, "Correo")} className="mt-3 flex w-full items-center gap-2 rounded-2xl bg-white/[0.04] px-3.5 py-2.5 text-left text-[13px] text-[#cfc9d8]">
@@ -287,6 +299,9 @@ function ListaConfirmados({ onCerrar }: { onCerrar: () => void }) {
                     <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[12px] font-semibold text-[#9a93a6]">{sinDatos.length - i}</span>
                     <span className="flex-1 text-[13.5px] text-[#cfc9d8]">Invitado anónimo</span>
                     <span className="text-[12px] text-[#6f6878]">{hace(f.creadoEn)}</span>
+                    <button onClick={() => pedirBorrar(f.id, "este invitado anónimo")} aria-label="Eliminar" className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-[#6f6878] hover:text-[#f87171]">
+                      <Trash2 size={14} />
+                    </button>
                   </li>
                 ))}
               </ul>

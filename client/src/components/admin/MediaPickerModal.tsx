@@ -85,7 +85,7 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="ev-notch flex w-full max-w-4xl flex-col bg-white shadow-2xl"
+        className="rounded-2xl flex w-full max-w-4xl flex-col bg-white shadow-2xl"
         style={{
           // En teléfono ocupa casi toda la pantalla y respeta las zonas del
           // sistema: antes quedaba bajo la cabecera y el botón de subir no
@@ -99,13 +99,13 @@ export default function MediaPickerModal({ onPick, onClose }: Props) {
         <div className="shrink-0 border-b border-[#e8e8ea] px-5 py-4">
           <div className="mb-3 flex items-center justify-between gap-4">
             <h3 className="ev-display text-base uppercase tracking-tight">Elegir archivo</h3>
-            <button onClick={onClose} className="ev-notch p-2 hover:bg-[#f0f0f0]" aria-label="Cerrar">
+            <button onClick={onClose} className="rounded-full p-2 hover:bg-[#f0f0f0]" aria-label="Cerrar">
               <X className="h-4 w-4" />
             </button>
           </div>
 
           <div className="flex items-center gap-2">
-            <label className={`ev-notch ev-press flex flex-1 cursor-pointer items-center justify-center gap-2 bg-[#e5007d] px-4 py-3.5 text-sm font-bold text-white ${uploading ? "opacity-60" : ""}`}>
+            <label className={`rounded-full ev-press flex flex-1 cursor-pointer items-center justify-center gap-2 bg-[#e5007d] px-4 py-3.5 text-sm font-bold text-white ${uploading ? "opacity-60" : ""}`}>
               {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
               {uploading ? "Subiendo..." : "Subir archivo"}
               <input

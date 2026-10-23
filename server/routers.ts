@@ -33,7 +33,7 @@ import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/ref
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
 import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
 import * as patro from "./patrocinantes";
-import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones } from "./ruedaPrensa";
+import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
@@ -1170,6 +1170,7 @@ export const appRouter = router({
       .mutation(({ input }) => completarDatos(input.clave, { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp })),
     total: adminProcedure.query(() => totalConfirmaciones()),
     lista: adminProcedure.query(() => listaConfirmaciones()),
+    borrar: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => borrarConfirmacion(input.id)),
   }),
 
   // ─── World Fest: raid comunitario (landing) ─────────────────────────────────

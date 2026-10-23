@@ -57,14 +57,14 @@ export default function PatrocinantesSection() {
         </p>
         <button
           onClick={() => setBorrador({ ...VACIO })}
-          className="ev-notch inline-flex items-center gap-1.5 px-4 py-2.5 text-xs font-bold"
+          className="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-bold"
           style={{ background: "#e5007d", color: "#fff" }}
         >
           <Plus size={14} /> Nuevo patrocinante
         </button>
       </div>
 
-      <p className="mb-5 border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-relaxed text-[#a39cad]">
+      <p className="mb-5 rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-xs leading-relaxed text-[#a39cad]">
         Los banners rotan en la zona del cazador (<strong className="text-white">/worldfest/pass</strong>), arriba en «Mi rango» y entre las misiones.
         Tamaño ideal de la imagen: <strong className="text-white">1200 × 500 px</strong> (horizontal), con el logo y el mensaje en el centro.
       </p>
@@ -78,8 +78,8 @@ export default function PatrocinantesSection() {
           {data.map((p, i) => {
             const ctr = p.vistas > 0 ? ((p.clics / p.vistas) * 100).toFixed(1) : "0.0";
             return (
-              <div key={p.id} className={`flex flex-col gap-3 border border-white/10 bg-white/[0.02] p-3 sm:flex-row sm:items-center ${p.activo ? "" : "opacity-55"}`}>
-                <img src={p.imagenUrl} alt={p.nombre} className="aspect-[12/5] w-full bg-black object-cover sm:w-48" loading="lazy" />
+              <div key={p.id} className={`flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.02] p-3 sm:flex-row sm:items-center ${p.activo ? "" : "opacity-55"}`}>
+                <img src={p.imagenUrl} alt={p.nombre} className="aspect-[12/5] w-full rounded-2xl bg-black object-cover sm:w-48" loading="lazy" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-bold text-white">{p.nombre}</p>
                   <p className="truncate text-xs text-[#8a8494]">{p.enlace || "Sin enlace"}</p>
@@ -90,24 +90,24 @@ export default function PatrocinantesSection() {
                   </div>
                 </div>
                 <div className="flex shrink-0 flex-wrap items-center gap-1.5">
-                  <button onClick={() => mover(i, -1)} disabled={i === 0} className="border border-white/10 p-2 text-[#bdbdbd] disabled:opacity-30" aria-label="Subir"><ArrowUp size={14} /></button>
-                  <button onClick={() => mover(i, 1)} disabled={i === data.length - 1} className="border border-white/10 p-2 text-[#bdbdbd] disabled:opacity-30" aria-label="Bajar"><ArrowDown size={14} /></button>
+                  <button onClick={() => mover(i, -1)} disabled={i === 0} className="rounded-full border border-white/10 p-2 text-[#bdbdbd] disabled:opacity-30" aria-label="Subir"><ArrowUp size={14} /></button>
+                  <button onClick={() => mover(i, 1)} disabled={i === data.length - 1} className="rounded-full border border-white/10 p-2 text-[#bdbdbd] disabled:opacity-30" aria-label="Bajar"><ArrowDown size={14} /></button>
                   <button
                     onClick={() => alternar.mutate({ id: p.id, nombre: p.nombre, imagenUrl: p.imagenUrl, enlace: p.enlace, activo: !p.activo })}
-                    className="border border-white/10 p-2 text-[#bdbdbd]" aria-label={p.activo ? "Ocultar" : "Mostrar"} title={p.activo ? "Ocultar" : "Mostrar"}
+                    className="rounded-full border border-white/10 p-2 text-[#bdbdbd]" aria-label={p.activo ? "Ocultar" : "Mostrar"} title={p.activo ? "Ocultar" : "Mostrar"}
                   >
                     {p.activo ? <Eye size={14} /> : <EyeOff size={14} />}
                   </button>
-                  <button onClick={() => setBorrador({ id: p.id, nombre: p.nombre, imagenUrl: p.imagenUrl, enlace: p.enlace ?? "", activo: p.activo })} className="border border-white/10 px-3 py-2 text-xs font-bold text-white">Editar</button>
+                  <button onClick={() => setBorrador({ id: p.id, nombre: p.nombre, imagenUrl: p.imagenUrl, enlace: p.enlace ?? "", activo: p.activo })} className="rounded-full border border-white/10 px-3.5 py-2 text-xs font-bold text-white">Editar</button>
                   <button
                     onClick={async () => { if (await confirmar({ titulo: "Poner en cero", mensaje: `Las vistas y toques de «${p.nombre}» vuelven a 0.`, confirmar: "Poner en cero" })) reiniciar.mutate({ id: p.id }); }}
-                    className="border border-white/10 p-2 text-[#bdbdbd]" aria-label="Reiniciar estadísticas" title="Reiniciar estadísticas"
+                    className="rounded-full border border-white/10 p-2 text-[#bdbdbd]" aria-label="Reiniciar estadísticas" title="Reiniciar estadísticas"
                   >
                     <RotateCcw size={14} />
                   </button>
                   <button
                     onClick={async () => { if (await confirmar({ titulo: "Eliminar patrocinante", mensaje: `Se quitará «${p.nombre}» del carrusel.`, confirmar: "Eliminar", peligro: true })) borrar.mutate({ id: p.id }); }}
-                    className="border border-white/10 p-2 text-[#f87171]" aria-label="Eliminar"
+                    className="rounded-full border border-white/10 p-2 text-[#f87171]" aria-label="Eliminar"
                   >
                     <Trash2 size={14} />
                   </button>
@@ -123,7 +123,7 @@ export default function PatrocinantesSection() {
         <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center" style={{ background: "rgba(0,0,0,0.72)" }} onClick={() => setBorrador(null)}>
           <div
             aria-modal="true"
-            className="max-h-[92vh] w-full max-w-lg overflow-y-auto p-5"
+            className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl p-5 sm:rounded-3xl"
             style={{ background: "#0d0b12", border: "1px solid rgba(229,0,125,0.4)", paddingBottom: "calc(env(safe-area-inset-bottom) + 1.25rem)" }}
             onClick={e => e.stopPropagation()}
           >
@@ -132,27 +132,27 @@ export default function PatrocinantesSection() {
               <button onClick={() => setBorrador(null)} className="p-1.5 text-[#bdbdbd]" aria-label="Cerrar"><X size={18} /></button>
             </div>
 
-            <label className="mb-1.5 block text-xs font-semibold text-[#a39cad]">Banner</label>
+            <label className="ui-etq mb-1.5 block text-[#a39cad]">Banner</label>
             {borrador.imagenUrl ? (
               <div className="relative mb-4">
-                <img src={borrador.imagenUrl} alt="" className="aspect-[12/5] w-full bg-black object-cover" />
-                <button onClick={() => setBorrador({ ...borrador, imagenUrl: "" })} className="absolute right-2 top-2 bg-black/70 p-1.5 text-white" aria-label="Quitar imagen"><X size={14} /></button>
+                <img src={borrador.imagenUrl} alt="" className="aspect-[12/5] w-full rounded-2xl bg-black object-cover" />
+                <button onClick={() => setBorrador({ ...borrador, imagenUrl: "" })} className="absolute right-2 top-2 rounded-full bg-black/70 p-1.5 text-white" aria-label="Quitar imagen"><X size={14} /></button>
               </div>
             ) : (
-              <button onClick={() => setPicker(true)} className="mb-4 flex aspect-[12/5] w-full flex-col items-center justify-center gap-2 border border-dashed border-white/20 text-sm text-[#a39cad]">
+              <button onClick={() => setPicker(true)} className="mb-4 flex aspect-[12/5] w-full flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-white/20 text-sm text-[#a39cad]">
                 <ImageIcon size={22} /> Subir o elegir imagen (1200 × 500)
               </button>
             )}
 
-            <label className="mb-1.5 block text-xs font-semibold text-[#a39cad]">Marca</label>
+            <label className="ui-etq mb-1.5 block text-[#a39cad]">Marca</label>
             <input
               value={borrador.nombre}
               onChange={e => setBorrador({ ...borrador, nombre: e.target.value })}
               maxLength={120}
               placeholder="Nombre del patrocinante"
-              className="mb-4 w-full border border-white/15 bg-black/40 px-3 py-3 text-[16px] text-white outline-none focus:border-[#e5007d]"
+              className="mb-4 w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-[16px] text-white outline-none focus:border-[#e5007d]"
             />
-            <label className="mb-1.5 block text-xs font-semibold text-[#a39cad]">Enlace al tocar el banner (opcional)</label>
+            <label className="ui-etq mb-1.5 block text-[#a39cad]">Enlace al tocar el banner (opcional)</label>
             <input
               value={borrador.enlace}
               onChange={e => setBorrador({ ...borrador, enlace: e.target.value.trim() })}
@@ -160,7 +160,7 @@ export default function PatrocinantesSection() {
               inputMode="url"
               autoCapitalize="none"
               placeholder="https://instagram.com/marca"
-              className="mb-4 w-full border border-white/15 bg-black/40 px-3 py-3 text-[16px] text-white outline-none focus:border-[#e5007d]"
+              className="mb-4 w-full rounded-2xl border border-white/15 bg-black/40 px-4 py-3 text-[16px] text-white outline-none focus:border-[#e5007d]"
             />
             <label className="mb-5 flex items-center gap-2 text-sm text-white">
               <input type="checkbox" checked={borrador.activo} onChange={e => setBorrador({ ...borrador, activo: e.target.checked })} className="h-4 w-4 accent-[#e5007d]" />
@@ -170,7 +170,7 @@ export default function PatrocinantesSection() {
             <button
               onClick={enviar}
               disabled={guardar.isPending}
-              className="ev-notch flex w-full items-center justify-center gap-2 py-3.5 text-sm font-bold disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-2 rounded-full py-3.5 text-sm font-bold disabled:opacity-60"
               style={{ background: "#e5007d", color: "#fff" }}
             >
               {guardar.isPending && <Loader2 size={15} className="animate-spin" />} Guardar

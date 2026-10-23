@@ -28,7 +28,7 @@ export default function TarjetaDemoLevelPass() {
 
   return (
     <div
-      className="ev-notch w-full p-4 sm:p-5"
+      className="rounded-2xl w-full p-4 sm:p-5"
       style={{ background: "#050505", border: `1px solid ${activo ? "rgba(251,191,36,0.6)" : "rgba(255,255,255,0.12)"}` }}
     >
       <div className="flex items-start justify-between gap-4">
@@ -65,14 +65,14 @@ export default function TarjetaDemoLevelPass() {
             href="/worldfest/pass"
             target="_blank"
             rel="noopener noreferrer"
-            className="ev-notch flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+            className="rounded-full flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
             style={{ background: "#fbbf24", color: "#111" }}
           >
             <ExternalLink size={14} /> Abrir demo
           </a>
           <button
             onClick={copiar}
-            className="ev-notch flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
+            className="rounded-full flex flex-1 items-center justify-center gap-1.5 py-2.5 text-xs font-bold"
             style={{ background: "#141414", color: "#ffffff", border: "1px solid rgba(255,255,255,0.18)" }}
           >
             <Link2 size={14} /> Copiar enlace

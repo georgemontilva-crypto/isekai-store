@@ -77,7 +77,7 @@ export default function ActivarNotificaciones() {
 
   if (estado === "cargando" || estado === "sinSoporte") return null;
 
-  const caja = "ev-notch mb-5 flex flex-wrap items-center gap-3 border p-3.5";
+  const caja = "rounded-2xl mb-5 flex flex-wrap items-center gap-3 border p-3.5";
   const estiloCaja = { background: "#0c0b10" };
 
   if (estado === "activas") {
@@ -131,7 +131,7 @@ export default function ActivarNotificaciones() {
         Recibe en este dispositivo los pedidos, pagos y avisos al instante, aunque la app esté cerrada.
       </p>
       <button onClick={activar} disabled={trabajando}
-        className="ev-notch flex items-center gap-2 bg-[#e5007d] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60">
+        className="rounded-full flex items-center gap-2 bg-[#e5007d] px-4 py-2.5 text-xs font-bold text-white disabled:opacity-60">
         {trabajando ? <Loader2 size={14} className="animate-spin" /> : <Bell size={14} />} Activar notificaciones
       </button>
     </div>

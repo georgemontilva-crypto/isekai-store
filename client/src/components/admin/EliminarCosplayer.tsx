@@ -50,7 +50,7 @@ export default function EliminarCosplayer({
       onClick={onCerrar}
     >
       <div
-        className="ev-notch w-full max-w-md bg-[var(--iw-surface,#16191f)] p-6"
+        className="rounded-2xl w-full max-w-md bg-[var(--iw-surface,#16191f)] p-6"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 1.5rem)" }}
         onClick={e => e.stopPropagation()}
       >
@@ -80,7 +80,7 @@ export default function EliminarCosplayer({
 
             {/* Lo que tiene que ver con dinero va primero y en rojo */}
             {avisos.length > 0 && (
-              <div className="ev-notch mb-4 border border-red-500/40 bg-red-500/10 p-3.5">
+              <div className="rounded-2xl mb-4 border border-red-500/40 bg-red-500/10 p-3.5">
                 {avisos.map(a => (
                   <p key={a} className="text-xs leading-relaxed text-red-300">{a}</p>
                 ))}
@@ -104,7 +104,7 @@ export default function EliminarCosplayer({
             <div className="flex gap-2">
               <button
                 onClick={onCerrar}
-                className="ev-notch flex-1 border border-[var(--iw-border,#333)] text-sm font-bold text-[var(--iw-text-muted,#aaa)]"
+                className="rounded-full flex-1 border border-[var(--iw-border,#333)] text-sm font-bold text-[var(--iw-text-muted,#aaa)]"
                 style={{ minHeight: 48 }}
               >
                 Cancelar
@@ -112,7 +112,7 @@ export default function EliminarCosplayer({
               <button
                 onClick={() => eliminar.mutate({ cosplayerId })}
                 disabled={eliminar.isPending}
-                className="ev-notch ev-press flex flex-1 items-center justify-center gap-2 bg-red-600 text-sm font-bold text-white disabled:opacity-50"
+                className="rounded-full ev-press flex flex-1 items-center justify-center gap-2 bg-red-600 text-sm font-bold text-white disabled:opacity-50"
                 style={{ minHeight: 48 }}
               >
                 {eliminar.isPending && <Loader2 size={15} className="animate-spin" />}

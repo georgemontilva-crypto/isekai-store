@@ -158,7 +158,7 @@ export function ModalConfirmar() {
       <div
         role="alertdialog"
         aria-modal="true"
-        className="ev-notch relative w-full max-w-md border bg-[#0c0b10] p-6 text-white"
+        className="rounded-2xl relative w-full max-w-md border bg-[#0c0b10] p-6 text-white"
         style={{ borderColor: `${color}66` }}
         onClick={e => e.stopPropagation()}
       >
@@ -170,8 +170,8 @@ export function ModalConfirmar() {
         <p className="mb-2 text-lg font-black leading-snug">{pedido.titulo}</p>
         <p className="mb-6 text-sm leading-relaxed text-[#b8b1c2]">{pedido.mensaje}</p>
         <div className="flex justify-end gap-2">
-          <button onClick={() => cerrar(false)} className="ev-notch border border-white/15 bg-[#141318] px-4 py-2.5 text-xs font-bold text-white">Cancelar</button>
-          <button autoFocus onClick={() => cerrar(true)} className="ev-notch px-4 py-2.5 text-xs font-bold text-white" style={{ background: color }}>
+          <button onClick={() => cerrar(false)} className="rounded-full border border-white/15 bg-[#141318] px-4 py-2.5 text-xs font-bold text-white">Cancelar</button>
+          <button autoFocus onClick={() => cerrar(true)} className="rounded-full px-4 py-2.5 text-xs font-bold text-white" style={{ background: color }}>
             {pedido.confirmar ?? "Confirmar"}
           </button>
         </div>

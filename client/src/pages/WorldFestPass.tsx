@@ -405,7 +405,7 @@ export default function WorldFestPass() {
     return (
       <div className="wf-zona flex min-h-screen flex-col items-center justify-center px-6 text-center">
         <div className="lp-ventana w-full max-w-sm p-8">
-          <p className="mb-3 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
+          <p className="mb-3 ui-etq text-[#7dd8ff]">
             Isekai World Fest
           </p>
           <h1 className="ev-display mb-3 text-[24px] leading-[1.08] text-white">Entra a tu Level Pass</h1>
@@ -415,7 +415,7 @@ export default function WorldFestPass() {
           </p>
           <button
             onClick={openLoginModal}
-            className="mb-3 block w-full rounded-lg bg-[#38bdf8]/15 border border-[#38bdf8]/50 py-3.5 font-mono text-xs uppercase tracking-widest text-[#7dd8ff]"
+            className="mb-3 block w-full rounded-full bg-[#38bdf8] py-4 text-[15px] font-bold text-[#04080f]"
           >
             Iniciar sesión
           </button>
@@ -446,7 +446,7 @@ export default function WorldFestPass() {
         </Link>
 
         <div className="lp-ventana w-full max-w-md p-7 sm:p-9">
-          <p className="mb-2 text-center font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
+          <p className="mb-2 text-center ui-etq text-[#7dd8ff]">
             Isekai World Fest
           </p>
           <h1 className="ev-display mb-3 text-center text-[26px] leading-[1.05] text-white">
@@ -477,13 +477,13 @@ export default function WorldFestPass() {
               onChange={e => setCodigo(e.target.value.toUpperCase())}
               onKeyDown={e => { if (e.key === "Enter") entrar(codigo); }}
               placeholder="IW-XXXXXX"
-              className="w-full ev-notch border border-[#38bdf8]/25 bg-[#050b14] px-4 font-mono uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#3a5a72] focus:border-[#38bdf8]"
+              className="w-full rounded-2xl border border-white/10 bg-white/[0.04] px-4 font-mono text-[16px] uppercase tracking-widest text-white outline-none transition-colors placeholder:text-[#3a5a72] focus:border-[#38bdf8]"
               style={{ minHeight: 54 }}
             />
             <button
               onClick={() => entrar(codigo)}
               disabled={codigo.trim().length < 4}
-              className="shrink-0 ev-notch ev-press border border-[#38bdf8]/50 bg-[#38bdf8]/10 px-5 text-[#7dd8ff] disabled:opacity-40"
+              className="shrink-0 ev-press rounded-2xl bg-[#38bdf8]/15 px-5 text-[#7dd8ff] disabled:opacity-40"
               style={{ minHeight: 54 }}
               aria-label="Entrar"
             >
@@ -509,7 +509,7 @@ export default function WorldFestPass() {
                 <button
                   key={c}
                   onClick={() => entrar(c)}
-                  className="rounded-lg border border-[#38bdf8]/25 px-3 py-2 font-mono text-[11px] text-[#7dd8ff] transition-colors hover:border-[#38bdf8]/60"
+                  className="rounded-full border border-[#38bdf8]/25 px-3.5 py-2 font-mono text-[11px] text-[#7dd8ff] transition-colors hover:border-[#38bdf8]/60"
                 >
                   {c}
                 </button>
@@ -585,7 +585,7 @@ export default function WorldFestPass() {
               <X size={18} />
             </button>
 
-            <p className="lp-linea-1 mb-2 font-mono text-[11px] uppercase tracking-[0.4em] text-[#7dd8ff]">
+            <p className="lp-linea-1 mb-2 ui-etq text-[#7dd8ff]">
               Notificación
             </p>
             <p className="lp-linea-2 mb-7 text-sm text-[#b8e6ff]">Has subido de rango</p>
@@ -617,8 +617,8 @@ export default function WorldFestPass() {
 
             <p className="lp-linea-3 text-lg font-black text-white">RANGO {rangoAnunciado}</p>
             {esRangoMaximo && (
-              <div className="lp-linea-4 mt-4 rounded-lg border border-[#f43f5e]/40 bg-[#f43f5e]/10 p-4">
-                <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#f43f5e]">
+              <div className="lp-linea-4 mt-4 rounded-2xl border border-[#f43f5e]/40 bg-[#f43f5e]/10 p-4">
+                <p className="ui-etq text-[#f43f5e]">
                   Rango máximo
                 </p>
                 <p className="mt-1.5 text-sm leading-relaxed text-[#ffd0d8]">
@@ -630,7 +630,7 @@ export default function WorldFestPass() {
 
             <button
               onClick={() => setRangoAnunciado(null)}
-              className="lp-linea-4 mt-7 w-full ev-notch ev-press border border-[#38bdf8]/50 bg-[#38bdf8]/10 font-mono text-sm font-bold uppercase tracking-widest text-[#7dd8ff] transition-colors hover:bg-[#38bdf8]/20"
+              className="lp-linea-4 mt-7 w-full ev-press rounded-full bg-[#38bdf8] text-[15px] font-bold text-[#04080f] transition-colors"
               style={{ minHeight: 48 }}
             >
               Aceptar
@@ -697,14 +697,14 @@ export default function WorldFestPass() {
                 key={n}
                 onClick={() => darXp.mutate({ codigo: consultado, xp: n })}
                 disabled={darXp.isPending}
-                className="rounded-lg border border-[#fbbf24]/40 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24] disabled:opacity-40"
+                className="rounded-full border border-[#fbbf24]/40 bg-[#fbbf24]/10 px-3.5 py-2 text-xs font-bold text-[#fbbf24] disabled:opacity-40"
               >
                 +{n} EXP
               </button>
             ))}
             <button
               onClick={() => darXp.mutate({ codigo: consultado, xp: -5000 })}
-              className="rounded-lg border border-[#38bdf8]/30 px-3 py-2 text-xs font-bold text-[#7dd8ff]"
+              className="rounded-full border border-[#38bdf8]/30 px-3.5 py-2 text-xs font-bold text-[#7dd8ff]"
             >
               Reiniciar
             </button>
@@ -721,20 +721,20 @@ export default function WorldFestPass() {
             <section className="lp-ventana wfp-heroe overflow-hidden px-5 pb-6 pt-7" style={{ ["--lp-rango" as string]: color }}>
               <div className="flex flex-col items-center text-center">
                 <AnilloRango color={color} progreso={anchoBarra} rango={data.rango} />
-                <p className="mt-4 font-mono text-[10px] uppercase tracking-[0.35em] text-[#7dd8ff]">Rango actual</p>
+                <p className="mt-4 ui-etq text-[#7dd8ff]">Rango actual</p>
                 <p className="mt-1 text-[22px] font-black leading-tight text-white">{NOMBRE_RANGO[data.rango] ?? data.rango}</p>
               </div>
 
               <div className="mt-6 flex items-end justify-between">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#5f7f96]">Experiencia</p>
+                  <p className="ui-etq text-[#5f7f96]">Experiencia</p>
                   <p className="font-mono text-[34px] font-black leading-none text-white tabular-nums">
                     <Contador valor={data.xpTotal} /> <span className="text-sm font-bold" style={{ color }}>EXP</span>
                   </p>
                 </div>
                 {data.siguiente && (
                   <div className="text-right">
-                    <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#5f7f96]">Siguiente</p>
+                    <p className="ui-etq text-[#5f7f96]">Siguiente</p>
                     <p className="font-mono text-lg font-black leading-none" style={{ color: COLOR_RANGO[data.siguiente.rango] }}>
                       {data.siguiente.rango}
                     </p>
@@ -813,7 +813,7 @@ export default function WorldFestPass() {
 
             {/* Escala de rangos en línea */}
             <section className="lp-ventana px-4 py-5" style={{ ["--lp-rango" as string]: color }}>
-              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">El camino al rango S</p>
+              <p className="mb-4 ui-etq text-[#7dd8ff]">El camino al rango S</p>
               <div className="relative">
                 <div className="absolute left-[8%] right-[8%] top-[18px] h-[2px] bg-white/[0.08]" />
                 <div
@@ -857,7 +857,7 @@ export default function WorldFestPass() {
             <section className="lp-ventana px-5 py-5" style={{ ["--lp-rango" as string]: color }}>
               <div className="flex items-end justify-between">
                 <div>
-                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">Misiones</p>
+                  <p className="ui-etq text-[#7dd8ff]">Misiones</p>
                   <p className="mt-1 text-[22px] font-black leading-tight text-white">
                     {hechas} <span className="text-[#5f7f96]">de {data.actividades.length}</span>
                   </p>
@@ -928,7 +928,7 @@ export default function WorldFestPass() {
             <section className="wfp-credencial relative overflow-hidden rounded-2xl p-5" style={{ ["--lp-rango" as string]: color }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">Isekai World Fest · Cazador</p>
+                  <p className="ui-etq text-[#7dd8ff]">Isekai World Fest · Cazador</p>
                   <p className="mt-2 truncate text-[20px] font-black text-white">{data.nombre || "Cazador"}</p>
                   <p className="text-[13px]" style={{ color }}>Rango {data.rango} · {NOMBRE_RANGO[data.rango]}</p>
                 </div>
@@ -942,7 +942,7 @@ export default function WorldFestPass() {
               <div className="wfp-credencial-corte my-4" />
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-mono text-[10px] uppercase tracking-[0.25em] text-[#5f7f96]">Código del boleto</p>
+                  <p className="ui-etq text-[#5f7f96]">Código del boleto</p>
                   <p className="font-mono text-[17px] font-bold tracking-[0.12em] text-white" style={{ overflowWrap: "anywhere" }}>{data.codigo}</p>
                 </div>
                 <button
@@ -969,7 +969,7 @@ export default function WorldFestPass() {
             </div>
 
             <section className="lp-ventana px-5 py-5" style={{ ["--lp-rango" as string]: color }}>
-              <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.3em] text-[#7dd8ff]">Registro de actividad</p>
+              <p className="mb-4 ui-etq text-[#7dd8ff]">Registro de actividad</p>
               {data.historial.length === 0 ? (
                 <p className="py-4 text-center text-sm text-[#5f7f96]">Aquí aparecerá cada misión que completes.</p>
               ) : (

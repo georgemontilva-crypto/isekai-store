@@ -4558,3 +4558,39 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 @keyframes lc-aparece { from { opacity: 0; } to { opacity: 1; } }
 @keyframes lc-sube { from { transform: translateY(40px); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .lc-fondo, .lc-hoja { animation: none; } }
+
+/* ═══ Estilo «app» (zonas del evento: Level Pass, punto de venta, acceso, boletería) ═══
+   Tarjetas redondeadas y suaves, etiquetas en Inter y botones en píldora,
+   como la lista de confirmados. Las ventanas anguladas quedan para la landing. */
+.ui-etq { font-family: Inter, system-ui, -apple-system, sans-serif; font-size: 11px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; }
+.wf-zona .lp-ventana { border-radius: 24px; border-color: color-mix(in srgb, var(--lp-rango) 22%, rgba(255, 255, 255, .06)); box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--lp-rango) 45%, transparent); }
+.wf-zona .lp-ventana::before, .wf-zona .lp-ventana::after { display: none; }
+.wf-zona .lp-anuncio { border-radius: 28px; }
+.ui-hoja { background: linear-gradient(180deg, #17141e, #0e0c13); border: 1px solid rgba(255, 255, 255, .08); border-radius: 28px; }
+.ui-tarjeta { background: rgba(255, 255, 255, .035); border: 1px solid rgba(255, 255, 255, .06); border-radius: 24px; }
+.ui-campo { border-radius: 16px; border: 1px solid rgba(255, 255, 255, .1); background: rgba(255, 255, 255, .04); color: #fff; font-size: 16px; outline: none; transition: border-color .2s; }
+.ui-campo:focus { border-color: rgba(229, 0, 125, .6); }
+.ui-segmento { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 9999px; background: rgba(255, 255, 255, .05); }
+.ui-segmento > button { border-radius: 9999px; padding: 9px 10px; font-size: 13px; font-weight: 600; color: #9a93a6; transition: background .2s, color .2s; white-space: nowrap; }
+.ui-segmento > button[data-activo="1"], .ui-segmento > button[aria-pressed="true"] { background: var(--ui-acento, #e5007d); color: #fff; }
+
+/* Punto de venta, acceso y Level Pass: entrada de pantallas y resultados */
+.sp-entra { animation: wfp-entra .4s cubic-bezier(.16, 1, .3, 1) both; }
+.sp-escanear {
+  position: relative; overflow: hidden;
+  background: radial-gradient(ellipse 80% 90% at 50% 0%, color-mix(in srgb, var(--sp-color) 26%, transparent), transparent 70%), rgba(255, 255, 255, .03);
+  border: 1px solid color-mix(in srgb, var(--sp-color) 45%, transparent);
+  border-radius: 24px;
+  box-shadow: 0 20px 40px -24px var(--sp-color);
+}
+.sp-escanear::after {
+  content: ""; position: absolute; left: 12%; right: 12%; height: 2px; top: 22%;
+  background: linear-gradient(90deg, transparent, var(--sp-color), transparent); opacity: .7;
+  animation: sp-linea 2.4s ease-in-out infinite;
+}
+@keyframes sp-linea { 0%, 100% { transform: translateY(0); opacity: .2; } 50% { transform: translateY(70px); opacity: .8; } }
+.sp-exito { animation: sp-exito .5s cubic-bezier(.16, 1, .3, 1) both; }
+@keyframes sp-exito { from { opacity: 0; transform: translateY(12px) scale(.98); } to { opacity: 1; transform: none; } }
+.sp-exito-check { animation: sp-check .55s cubic-bezier(.34, 1.56, .64, 1) .08s both; }
+@keyframes sp-check { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .sp-entra, .sp-escanear::after, .sp-exito, .sp-exito-check { animation: none; } }

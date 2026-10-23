@@ -85,7 +85,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
           <h1 className="text-2xl font-black text-white sm:text-3xl">Dashboard</h1>
           <p className="mt-1 text-sm text-[#8a8494]">{hoy.charAt(0).toUpperCase() + hoy.slice(1)}</p>
         </div>
-        <a href="/" target="_blank" rel="noopener noreferrer" className="adm-boton-sec ev-notch">
+        <a href="/" target="_blank" rel="noopener noreferrer" className="adm-boton-sec rounded-full">
           <ExternalLink size={14} /> Ver sitio
         </a>
       </div>
@@ -102,10 +102,10 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
               <button
                 key={a.destino}
                 onClick={() => onIr(a.destino)}
-                className={`adm-tarjeta adm-tarjeta-accion ev-notch flex items-center gap-3.5 p-4 text-left ${a.n === 0 ? "opacity-45" : ""}`}
+                className={`adm-tarjeta adm-tarjeta-accion rounded-2xl flex items-center gap-3.5 p-4 text-left ${a.n === 0 ? "opacity-45" : ""}`}
                 style={{ ["--acento" as string]: a.color }}
               >
-                <span className="adm-icono ev-notch" style={{ color: a.color, background: `${a.color}1a` }}>
+                <span className="adm-icono rounded-xl" style={{ color: a.color, background: `${a.color}1a` }}>
                   <a.icono size={18} />
                 </span>
                 <span className="min-w-0 flex-1">
@@ -117,7 +117,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
             ))}
           </div>
         ) : (
-          <div className="adm-tarjeta ev-notch flex items-center gap-3 p-4">
+          <div className="adm-tarjeta rounded-2xl flex items-center gap-3 p-4">
             <CheckCircle2 size={20} className="text-[#4ade80]" />
             <p className="text-sm text-[#d6d0de]">Todo al día: no hay pedidos, pagos ni solicitudes pendientes.</p>
           </div>
@@ -134,7 +134,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
               <Contenedor
                 key={k.etq}
                 {...(k.destino ? { onClick: () => onIr(k.destino!) } : {})}
-                className={`adm-tarjeta ev-notch flex min-w-0 flex-col justify-start p-4 text-left ${k.destino ? "adm-tarjeta-accion" : ""}`}
+                className={`adm-tarjeta rounded-2xl flex min-w-0 flex-col justify-start p-4 text-left ${k.destino ? "adm-tarjeta-accion" : ""}`}
                 style={{ ["--acento" as string]: k.color }}
               >
                 <div className="mb-3 flex w-full items-center justify-between">
@@ -183,7 +183,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
             <Etiqueta>Ventas recientes</Etiqueta>
             <button onClick={() => onIr("orders")} className="adm-enlace -mt-3">Ver todos <ArrowRight size={12} /></button>
           </div>
-          <div className="adm-tarjeta ev-notch overflow-hidden">
+          <div className="adm-tarjeta rounded-2xl overflow-hidden">
             {ventas.length === 0 ? (
               <p className="p-5 text-sm text-[#8a8494]">Aún no hay ventas recientes.</p>
             ) : ventas.map((o: any, i: number) => {
@@ -222,7 +222,7 @@ export default function PanelResumen({ metrics, pendientes, onIr, productos, cat
 
           <section>
             <Etiqueta>Más vendidos</Etiqueta>
-            <div className="adm-tarjeta ev-notch overflow-hidden">
+            <div className="adm-tarjeta rounded-2xl overflow-hidden">
               {masVendidos.length === 0 ? (
                 <p className="p-5 text-sm text-[#8a8494]">Sin ventas todavía.</p>
               ) : masVendidos.map((p: any, i: number) => {

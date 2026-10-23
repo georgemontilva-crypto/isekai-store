@@ -148,3 +148,15 @@ export async function totalConfirmaciones(): Promise<{ total: number; hoy: numbe
   }).from(wfPrensaConfirmaciones);
   return { total: Number(f?.total ?? 0), hoy: Number(f?.hoy ?? 0) };
 }
+
+/** Solo administradores: borra una confirmación (pruebas o duplicados) */
+export async function borrarConfirmacion(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  await db.delete(wfPrensaConfirmaciones).where(eq(wfPrensaConfirmaciones.id, id));
+  try {
+    const conteo = await totalConfirmaciones();
+    io?.to("admin").emit("prensa:confirmacion", conteo);
+  } catch { /* aviso opcional */ }
+  return { ok: true };
+}

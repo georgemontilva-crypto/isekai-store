@@ -69,7 +69,7 @@ export default function MediaSection() {
 
   if (!habilitado) return null;
 
-  const tarjeta = 'ev-notch border border-[var(--iw-border)] bg-[var(--iw-surface)]';
+  const tarjeta = 'rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)]';
 
   return (
     <div className="flex flex-col gap-3 p-4">
@@ -86,7 +86,7 @@ export default function MediaSection() {
       {/* Reprocesado de lo ya subido: las imágenes antiguas se guardaron al
           tamaño original y pesan de más. */}
       {((pendientes?.pendientes ?? 0) > 0 || (pendientes?.pendientesCosplay ?? 0) > 0) && (
-        <div className="ev-notch border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
+        <div className="rounded-2xl border border-[#fbbf24]/30 bg-[#fbbf24]/[0.07] p-4">
           <p className="text-sm font-bold text-[var(--iw-text)]">
             Optimización de imágenes en curso
           </p>
@@ -106,7 +106,7 @@ export default function MediaSection() {
           <button
             onClick={() => reprocesar.mutate({ tanda: 8 })}
             disabled={reprocesar.isPending}
-            className="ev-notch bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
+            className="rounded-full bg-[#fbbf24] px-4 text-xs font-bold text-[#1a1a1a] disabled:opacity-50"
             style={{ minHeight: 44 }}
           >
             {reprocesar.isPending ? "Optimizando..." : "Optimizar 8 imágenes"}
@@ -159,7 +159,7 @@ export default function MediaSection() {
                   const esVideo = url && /\.(mp4|webm)$/i.test(url);
 
                   return (
-                    <div key={e.key} className="ev-notch flex gap-3 border border-[var(--iw-border)] p-3">
+                    <div key={e.key} className="rounded-2xl flex gap-3 border border-[var(--iw-border)] p-3">
                       <div
                         className="iw-preview-alpha flex shrink-0 items-center justify-center overflow-hidden"
                         style={{ width: 56, height: 70 }}
@@ -190,7 +190,7 @@ export default function MediaSection() {
                         <div className="mt-3 flex gap-2">
                           <button
                             onClick={() => setEligiendo(e.key)}
-                            className="ev-notch flex items-center gap-1.5 bg-[#e5007d] px-3 text-[11px] font-bold text-white"
+                            className="rounded-full flex items-center gap-1.5 bg-[#e5007d] px-3 text-[11px] font-bold text-white"
                             style={{ minHeight: 38 }}
                           >
                             <Upload size={12} /> {url ? 'Cambiar' : 'Subir'}
@@ -202,7 +202,7 @@ export default function MediaSection() {
                                   guardar.mutate({ key: e.key, value: '' });
                                 }
                               }}
-                              className="ev-notch border border-[var(--iw-border)] px-3 text-[11px] font-bold text-[var(--iw-text-muted)]"
+                              className="rounded-full border border-[var(--iw-border)] px-3 text-[11px] font-bold text-[var(--iw-text-muted)]"
                               style={{ minHeight: 38 }}
                             >
                               Quitar
