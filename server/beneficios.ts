@@ -22,12 +22,18 @@ export async function asegurarEsquemaBeneficios() {
       ["entregaKit", "varchar(200) NULL"],
       ["bonos", "int NOT NULL DEFAULT 0"],
       ["color", "varchar(20) NULL"],
+      ["archivado", "boolean NOT NULL DEFAULT false"],
     ];
     for (const [c, tipo] of columnas) {
       if (!hay.has(c)) {
         await db.execute(sql.raw(`ALTER TABLE ticketTypes ADD COLUMN \`${c}\` ${tipo}`));
         console.log(`[Boletos] columna creada: ticketTypes.${c}`);
       }
+    }
+    const [colTiendas] = await db.execute(sql`SELECT COLUMN_NAME AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'stores' AND COLUMN_NAME = 'archivado'`) as unknown as [unknown[]];
+    if (!colTiendas?.length) {
+      await db.execute(sql`ALTER TABLE stores ADD COLUMN archivado boolean NOT NULL DEFAULT false`);
+      console.log("[Boletos] columna creada: stores.archivado");
     }
     await db.execute(sql`CREATE TABLE IF NOT EXISTS ticketCanjes (
       id int AUTO_INCREMENT PRIMARY KEY,

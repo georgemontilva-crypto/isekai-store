@@ -54,7 +54,7 @@ function Plegable({ titulo, children }: { titulo: string; children: React.ReactN
 export default function TicketsAdmin({ compact = false, vistaFija }: {
   compact?: boolean;
   /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
-  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass" | "equipo";
+  vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass" | "equipo" | "sorteo";
 }) {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
@@ -69,7 +69,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
     return [b.code, b.buyerName, b.buyerLastName, b.buyerPhone, `${b.buyerName ?? ""} ${b.buyerLastName ?? ""}`]
       .some(v => String(v ?? "").toLowerCase().includes(q));
   };
-  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass" | "equipo">("resumen");
+  const [vistaLocal, setVistaLocal] = useState<"resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass" | "equipo" | "sorteo">("resumen");
 
   /**
    * La vista puede venir de la barra inferior del teléfono, pero en cuanto se
@@ -86,10 +86,18 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
   }, [vistaFija]);
 
   const { data: eventos = [] } = trpc.tickets.eventos.useQuery(undefined, { enabled: habilitado });
-  const evento = eventos.find((e: any) => e.id === eventoId) ?? eventos[0];
+  // Por defecto, el evento en curso o el próximo (no el último creado)
+  const eventoPorDefecto = (() => {
+    const hoy = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Caracas" }).format(new Date());
+    const dia = (d: any) => new Date(d).toISOString().slice(0, 10);
+    const vigentes = (eventos as any[]).filter(e => e.active !== false && dia(e.endDate) >= hoy)
+      .sort((a, b) => dia(a.startDate).localeCompare(dia(b.startDate)));
+    return vigentes[0] ?? eventos[0];
+  })();
+  const evento = eventos.find((e: any) => e.id === eventoId) ?? eventoPorDefecto;
 
   useEffect(() => {
-    if (!eventoId && eventos.length) setEventoId(eventos[0].id);
+    if (!eventoId && eventos.length && eventoPorDefecto) setEventoId(eventoPorDefecto.id);
   }, [eventos, eventoId]);
 
   const { data: resumen } = trpc.tickets.resumen.useQuery(
@@ -327,29 +335,52 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
 
   return (
     <div className={compact ? "p-4 flex flex-col gap-4" : "flex flex-col gap-5"}>
-      {/* Selector de evento */}
-      <div className="flex min-w-0 gap-2">
-        <select
-          value={evento?.id ?? ""}
-          onChange={e => setEventoId(Number(e.target.value))}
-          className={`${campo} flex-1 font-bold`}
-          style={altoCampo}
-        >
-          {eventos.map((e: any) => (
-            <option key={e.id} value={e.id}>{e.name}</option>
-          ))}
-          {eventos.length === 0 && <option>Sin eventos</option>}
-        </select>
-        <button
-          onClick={() => setFormEvento(!formEvento)}
-          className="flex shrink-0 items-center justify-center rounded-full bg-[#e5007d] px-4 text-white"
-          style={altoCampo}
-          aria-label="Nuevo evento"
-          title="Crear un evento nuevo"
-        >
-          <Plus size={16} /><span className="ml-1 text-xs font-bold">Evento</span>
-        </button>
-      </div>
+      {/* ── Evento: de qué evento se está hablando, de un vistazo ── */}
+      {(() => {
+        const ev = evento as any;
+        const fecha = (d: any) => new Date(d).toLocaleDateString("es-VE", { timeZone: "UTC", day: "numeric", month: "short", year: "numeric" });
+        const estado = (() => {
+          if (!ev) return null;
+          const hoy = new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Caracas" }).format(new Date())).getTime();
+          const ini = new Date(new Date(ev.startDate).toISOString().slice(0, 10)).getTime();
+          const fin = new Date(new Date(ev.endDate).toISOString().slice(0, 10)).getTime();
+          if (hoy < ini) { const d = Math.round((ini - hoy) / 86400000); return { t: d === 1 ? "Es mañana" : `Faltan ${d} días`, c: "#38bdf8" }; }
+          if (hoy > fin) return { t: "Terminó", c: "#8a8494" };
+          return { t: `En curso · día ${Math.round((hoy - ini) / 86400000) + 1}`, c: "#4ade80" };
+        })();
+        return (
+          <div className="rounded-3xl border border-white/[0.06] bg-white/[0.035] p-4">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#ff3d9e]">Evento</p>
+                <p className="mt-1 truncate text-[18px] font-bold text-[var(--iw-text)]">{ev?.name ?? "Sin eventos"}</p>
+                {ev && <p className="mt-0.5 text-[12.5px] text-[var(--iw-text-muted)]">{fecha(ev.startDate)}{fecha(ev.endDate) !== fecha(ev.startDate) ? ` – ${fecha(ev.endDate)}` : ""}{ev.location ? ` · ${ev.location}` : ""}</p>}
+              </div>
+              {estado && <span className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ background: `${estado.c}1f`, color: estado.c }}>{estado.t}</span>}
+            </div>
+            <div className="mt-3 flex gap-2">
+              {eventos.length > 1 && (
+                <select
+                  value={evento?.id ?? ""}
+                  onChange={e => setEventoId(Number(e.target.value))}
+                  className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.05] px-4 text-[13px] font-semibold text-[var(--iw-text)] outline-none"
+                  style={{ minHeight: 40 }}
+                  aria-label="Cambiar de evento"
+                >
+                  {eventos.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}
+                </select>
+              )}
+              <button
+                onClick={() => setFormEvento(!formEvento)}
+                className={`flex shrink-0 items-center justify-center gap-1 rounded-full px-4 text-[13px] font-semibold ${eventos.length > 1 ? "" : "flex-1"}`}
+                style={{ minHeight: 40, background: formEvento ? "rgba(255,255,255,0.07)" : "rgba(229,0,125,0.14)", color: formEvento ? "var(--iw-text)" : "#ff3d9e" }}
+              >
+                {formEvento ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Nuevo evento</>}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {formEvento && (
         <div className={tarjeta}>
@@ -384,91 +415,63 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         </div>
       )}
 
-      {/* Pestañas */}
-      {/* Cuatro apartados en un carril horizontal. Cada uno abre su propia
-          pantalla: antes eran siete pestañas y el contenido se mezclaba. */}
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-5">
-        {([
-          ["resumen",   "Resumen", BarChart3],
-          ["codigos",   "Generar boletos", Ticket],
-          ["equipo",    "Equipo", Users],
-          ["tipos",     "Tipos de boleto", Settings2],
-          ["levelpass", "Durante el evento", Zap],
-        ] as const).map(([id, label, Icono]) => {
-          // Cada apartado se marca activo también desde sus sub-secciones
-          const activo =
-            (id === "resumen"   && (vista === "resumen" || vista === "boletos")) ||
-            (id === "codigos"   && vista === "codigos") ||
-            (id === "equipo"    && (vista === "equipo" || vista === "tiendas")) ||
-            (id === "tipos"     && vista === "tipos") ||
-            (id === "levelpass" && (vista === "levelpass" || vista === "acceso"));
-          return (
-            <button
-              key={id}
-              onClick={() => { setVista(id as any); setBusqueda(""); }}
-              className={`rounded-full flex items-center gap-2 px-3 text-left text-xs font-bold transition-colors ${
-                activo
-                  ? "bg-[#e5007d] text-white"
-                  : "border border-[var(--iw-border)] bg-[var(--iw-input-bg)] text-[var(--iw-text-muted)]"
-              }`}
-              style={{ minHeight: 50, WebkitTapHighlightColor: "transparent" }}
-            >
-              <Icono size={16} className="shrink-0" />
-              <span className="leading-tight">{label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Sub-secciones del apartado abierto, cuando tiene más de una */}
+      {/*
+        Tres apartados en el orden en que se trabaja:
+          Preparar → qué se vende, imprimir los boletos y quién trabaja
+          Ventas   → cómo va, quién compró y cuánto lleva cada tienda
+          En vivo  → la puerta, el Level Pass y el sorteo VIP
+      */}
       {(() => {
-        const subs: Record<string, [string, string][]> = {
-          resumen:   [["resumen", "Ventas"], ["boletos", "Vendidos"]],
-          equipo:    [["equipo", "Personas"], ["tiendas", "Ventas por tienda"]],
-          levelpass: [["levelpass", "Level Pass"], ["acceso", "Control de acceso"]],
+        const GRUPOS = [
+          { id: "preparar", label: "Preparar", Icono: Settings2, subs: [["tipos", "Boletos"], ["codigos", "Imprimir"], ["equipo", "Equipo"]] },
+          { id: "ventas",   label: "Ventas",   Icono: BarChart3, subs: [["resumen", "Resumen"], ["boletos", "Vendidos"], ["tiendas", "Por tienda"]] },
+          { id: "envivo",   label: "En vivo",  Icono: Zap,       subs: [["acceso", "Puerta"], ["levelpass", "Level Pass"], ["sorteo", "Sorteo VIP"]] },
+        ] as const;
+        const grupo = GRUPOS.find(g => g.subs.some(([id]) => id === vista)) ?? GRUPOS[1];
+        const AYUDA: Record<string, string> = {
+          tipos: "Qué se vende, a qué precio, cuántos días y qué incluye",
+          codigos: "Crea boletos en blanco para imprimir y reimprime lotes",
+          equipo: "Tiendas, porteros, personal de EXP y staff de la rueda",
+          resumen: "Cómo van las ventas del evento",
+          boletos: "Quién compró cada boleto. Tócalo para corregirlo o anularlo",
+          tiendas: "Lo que lleva cada tienda y si puede dar EXP",
+          acceso: "Asistencia por día en la puerta",
+          levelpass: "Misiones y progreso de los asistentes",
+          sorteo: "Ganador de la pieza a tamaño real entre los VIP",
         };
-        const grupo =
-          vista === "boletos" ? "resumen"
-          : vista === "tiendas" ? "equipo"
-          : vista === "acceso" ? "levelpass"
-          : vista;
-        const opciones = subs[grupo];
-        if (!opciones) return null;
-
         return (
-          <div className="lc-segmento grid grid-cols-2 rounded-full p-1">
-            {opciones.map(([id, label]) => (
-              <button
-                key={id}
-                onClick={() => { setVista(id as any); setBusqueda(""); }}
-                className={`rounded-full text-[13px] font-semibold transition-colors ${
-                  vista === id ? "bg-[#e5007d] text-white" : "text-[var(--iw-text-muted)]"
-                }`}
-                style={{ minHeight: 40 }}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
-        );
-      })()}
-
-      {/* Título de la sección: sin esto, al entrar en una pestaña costaba
-          saber qué se estaba viendo. */}
-      {(() => {
-        const titulos: Record<string, [string, string]> = {
-          resumen:   ["Resumen", "Cómo van las ventas del evento"],
-          boletos:   ["Boletos vendidos", "Quién compró cada boleto y en qué tienda"],
-          codigos:   ["Generar boletos", "Crea boletos en blanco y reimprime lotes anteriores"],
-          tipos:     ["Tipos de boleto", "Qué se vende, a qué precio y para cuántos días"],
-          equipo:    ["Equipo del evento", "Tiendas, porteros, personal de EXP y staff de la rueda"],
-          tiendas:   ["Ventas por tienda", "Lo que lleva cada tienda y si puede dar experiencia"],
-          acceso:    ["Control de acceso", "Asistencia por día en la puerta"],
-          levelpass: ["Level Pass", "Actividades, colaboradores y progreso de los asistentes"],
-        };
-        const [titulo, descripcion] = titulos[vista] ?? ["", ""];
-        return (
-          <p className="text-xs text-[var(--iw-text-muted)]" title={titulo}>{descripcion}</p>
+          <>
+            <div className="grid grid-cols-3 gap-2">
+              {GRUPOS.map(g => {
+                const on = g.id === grupo.id;
+                return (
+                  <button
+                    key={g.id}
+                    onClick={() => { setVista(g.subs[0][0] as any); setBusqueda(""); }}
+                    className="flex flex-col items-center justify-center gap-1 rounded-2xl text-[12.5px] font-bold transition-colors"
+                    style={{ minHeight: 62, WebkitTapHighlightColor: "transparent", ...(on ? { background: "#e5007d", color: "#fff" } : { background: "rgba(255,255,255,0.04)", color: "var(--iw-text-muted)", border: "1px solid rgba(255,255,255,0.06)" }) }}
+                    aria-pressed={on}
+                  >
+                    <g.Icono size={18} /> {g.label}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="lc-segmento grid grid-cols-3 rounded-full p-1">
+              {grupo.subs.map(([id, label]) => (
+                <button
+                  key={id}
+                  onClick={() => { setVista(id as any); setBusqueda(""); }}
+                  className={`rounded-full text-[13px] font-semibold transition-colors ${vista === id ? "bg-white/[0.12] text-white" : "text-[var(--iw-text-muted)]"}`}
+                  style={{ minHeight: 40 }}
+                  aria-pressed={vista === id}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            <p className="-mt-1 px-1 text-[12.5px] text-[var(--iw-text-muted)]">{AYUDA[vista] ?? ""}</p>
+          </>
         );
       })()}
 
@@ -778,7 +781,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Level Pass ── */}
       {vista === "levelpass" && (
         <>
-          {evento && <SorteoVip eventId={evento.id} />}
+
           {lpResumen && (
             <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
               {[
@@ -1072,6 +1075,8 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Tipos ── */}
       {vista === "tipos" && <TiposBoleto evento={evento} />}
 
+      {vista === "sorteo" && evento && <SorteoVip eventId={evento.id} />}
+
       {/* ── Equipo: todas las funciones en un solo lugar ── */}
       {vista === "equipo" && <EquipoEvento />}
 
@@ -1088,7 +1093,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           </button>
 
           <div className="flex flex-col gap-2">
-            {tiendas.map((s: any) => (
+            {(tiendas as any[]).filter(s => !s.archivado).map((s: any) => (
               <div key={s.id} className={`${tarjeta} ${s.active ? "" : "opacity-50"}`}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div className="min-w-0">

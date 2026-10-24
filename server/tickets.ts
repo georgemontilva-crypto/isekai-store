@@ -91,7 +91,7 @@ export async function listarTipos(eventId: number) {
 
 export async function editarTipo(id: number, data: Partial<{
   name: string; priceUsd: string; days: number; perks: string; active: boolean; sortOrder: number;
-  cupo: number | null; esVip: boolean; entregaKit: string | null; bonos: number; color: string | null;
+  cupo: number | null; esVip: boolean; entregaKit: string | null; bonos: number; color: string | null; archivado: boolean;
 }>) {
   const db = await getDb();
   if (!db) return;
@@ -105,8 +105,9 @@ export async function borrarTipo(id: number) {
   const [usado] = await db.select({ n: sql<number>`count(*)` })
     .from(eventTickets).where(eq(eventTickets.ticketTypeId, id));
   if ((usado?.n ?? 0) > 0) {
-    await db.update(ticketTypes).set({ active: false }).where(eq(ticketTypes.id, id));
-    return { desactivado: true };
+    // Tiene boletos: se archiva (deja de verse) y se conserva para esos boletos
+    await db.update(ticketTypes).set({ active: false, archivado: true }).where(eq(ticketTypes.id, id));
+    return { desactivado: true, archivado: true };
   }
   await db.delete(ticketTypes).where(eq(ticketTypes.id, id));
   return { desactivado: false };
@@ -173,7 +174,7 @@ export async function listarTiendas() {
   return db.select().from(stores).orderBy(desc(stores.id));
 }
 
-export async function editarTienda(id: number, data: Partial<{ name: string; phone: string; contactName: string; active: boolean; puedeOtorgarXp: boolean }>) {
+export async function editarTienda(id: number, data: Partial<{ name: string; phone: string; contactName: string; active: boolean; puedeOtorgarXp: boolean; archivado: boolean }>) {
   const db = await getDb();
   if (!db) return;
   await db.update(stores).set(data as any).where(eq(stores.id, id));
@@ -653,7 +654,8 @@ export async function borrarTienda(id: number) {
     .from(eventTickets).where(eq(eventTickets.storeId, id));
 
   if ((conVentas?.n ?? 0) > 0) {
-    await db.update(stores).set({ active: false }).where(eq(stores.id, id));
+    // Ya vendió: sale del equipo, pero sus ventas siguen en los reportes
+    await db.update(stores).set({ active: false, archivado: true }).where(eq(stores.id, id));
     return { desactivada: true };
   }
   await db.delete(stores).where(eq(stores.id, id));

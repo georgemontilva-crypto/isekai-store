@@ -1719,6 +1719,7 @@ export const appRouter = router({
         entregaKit: z.string().trim().max(200).nullable().optional(),
         bonos: z.number().int().min(0).max(50).optional(),
         color: z.string().regex(/^#[0-9a-fA-F]{6}$/).nullable().optional(),
+        archivado: z.boolean().optional(),
       }))
       .mutation(({ input }) => { const { id, ...d } = input; return editarTipo(id, d); }),
     /** Carga en un toque los cuatro boletos del Isekai World Fest 2027 */

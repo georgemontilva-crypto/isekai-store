@@ -52,6 +52,7 @@ export async function listarEquipo(): Promise<Persona[]> {
   };
 
   for (const t of ts) {
+    if (t.archivado) continue; // eliminada (con ventas): ya no es del equipo
     const p = persona(clave(t.email, `tienda-${t.id}`), t.contactName || t.name);
     p.tienda = { id: t.id, nombre: t.name, activa: t.active, daXp: t.puedeOtorgarXp };
     p.telefono = p.telefono ?? t.phone ?? null;
@@ -109,7 +110,7 @@ export async function asignarRol(data: {
       const [t] = await db.select().from(stores).where(eq(stores.email, correo)).limit(1);
       if (data.activo) {
         if (t) {
-          await editarTienda(t.id, { active: true, ...(data.daXp !== undefined ? { puedeOtorgarXp: data.daXp } : {}) });
+          await editarTienda(t.id, { active: true, archivado: false, ...(data.daXp !== undefined ? { puedeOtorgarXp: data.daXp } : {}) });
         } else {
           await crearTienda({ name: (data.nombreTienda || nombre).trim(), email: correo, contactName: nombre, phone: data.telefono });
           if (data.daXp) {

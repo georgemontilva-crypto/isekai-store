@@ -12,7 +12,15 @@ export default function SorteoVip({ eventId }: { eventId: number }) {
   const [ganador, setGanador] = useState<(typeof lista)[number] | null>(null);
   const [girando, setGirando] = useState<string | null>(null);
 
-  if (!lista.length) return null;
+  if (!lista.length) {
+    return (
+      <div className="rounded-3xl border border-[#fbbf24]/20 bg-[#fbbf24]/[0.04] p-5 text-center">
+        <Crown size={22} className="mx-auto mb-2 text-[#fbbf24]" />
+        <p className="text-[14px] font-semibold text-[var(--iw-text)]">Todavía no hay boletos VIP vendidos</p>
+        <p className="mt-1 text-[12.5px] text-[var(--iw-text-muted)]">Cada VIP que se venda entra solo al sorteo.</p>
+      </div>
+    );
+  }
 
   const sortear = async () => {
     if (ganador && !(await confirmar({ titulo: "Volver a sortear", mensaje: "Se elegirá otro ganador al azar.", confirmar: "Sortear de nuevo" }))) return;

@@ -53,7 +53,8 @@ export async function permisosDe(u: Usuario): Promise<Permisos> {
       staffRuedaPorCorreo(correo).catch(() => null),
     ]);
     // Si hay varias tiendas con ese correo, manda la activa
-    const t = tiendas.find(x => x.active) ?? tiendas[0];
+    const vigentes = tiendas.filter(x => !x.archivado);
+    const t = vigentes.find(x => x.active) ?? vigentes[0];
     p = {
       admin: false,
       tienda: t ? { id: t.id, name: t.name, active: t.active, puedeOtorgarXp: t.puedeOtorgarXp } : null,

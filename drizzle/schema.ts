@@ -297,6 +297,8 @@ export const ticketTypes = mysqlTable("ticketTypes", {
   bonos: int("bonos").notNull().default(0),
   /** Color con que se reconoce el tipo en la puerta */
   color: varchar("color", { length: 20 }),
+  /** Eliminado con ventas: no se muestra, pero se conserva para esos boletos */
+  archivado: boolean("archivado").notNull().default(false),
 });
 
 /** Canjes de beneficios de un boleto: bonos en tiendas y entrega del kit */
@@ -322,6 +324,8 @@ export const stores = mysqlTable("stores", {
   /** Autorizada a otorgar experiencia del Level Pass durante el evento */
   puedeOtorgarXp: boolean("puedeOtorgarXp").notNull().default(false),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
+  /** Eliminada con ventas: sale del equipo, pero sus ventas se conservan */
+  archivado: boolean("archivado").notNull().default(false),
 });
 
 /**

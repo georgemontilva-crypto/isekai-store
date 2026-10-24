@@ -19,7 +19,7 @@ const COLORES = ["#38bdf8", "#a78bfa", "#fbbf24", "#e5007d", "#4ade80", "#2dd4bf
 type Tipo = {
   id: number; name: string; priceUsd: string; days: number; perks: string | null; active: boolean;
   cupo: number | null; esVip: boolean; entregaKit: string | null; bonos: number; color: string | null;
-  vendidos?: number; quedan?: number | null;
+  archivado?: boolean; vendidos?: number; quedan?: number | null;
 };
 
 export default function TiposBoleto({ evento }: { evento: { id: number; name: string } | undefined }) {
@@ -32,12 +32,20 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
     onError: e => toast.error(e.message),
   });
   const borrar = trpc.tickets.borrarTipo.useMutation({
-    onSuccess: r => { toast.success(r?.desactivado ? "Tiene ventas: quedó desactivado" : "Tipo eliminado"); refrescar(); },
+    onSuccess: () => { toast.success("Tipo eliminado"); refrescar(); },
+    onError: e => toast.error(e.message),
+  });
+  const restaurar = trpc.tickets.editarTipo.useMutation({
+    onSuccess: () => { toast.success("Tipo restaurado"); refrescar(); },
+    onError: e => toast.error(e.message),
   });
 
   if (!evento) return <p className="py-8 text-center text-sm text-[var(--iw-text-muted)]">Crea o elige un evento primero.</p>;
 
-  const lista = tipos as Tipo[];
+  const todos = tipos as Tipo[];
+  // Los eliminados con ventas se archivan: no estorban, pero se pueden recuperar
+  const lista = todos.filter(t => !t.archivado);
+  const archivados = todos.filter(t => t.archivado);
   const faltan2027 = !["general 1 día", "general 2 días", "vip 2 días", "isekai fanbox"].every(n => lista.some(t => t.name.toLowerCase() === n));
 
   return (
@@ -110,7 +118,7 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
                     <Pencil size={14} /> Editar
                   </button>
                   <button
-                    onClick={async () => { if (await confirmar({ titulo: `Eliminar «${t.name}»`, mensaje: (t.vendidos ?? 0) > 0 ? "Ya tiene ventas: se desactiva en vez de borrarse." : "No tiene ventas: se borra.", confirmar: "Eliminar", peligro: true })) borrar.mutate({ id: t.id }); }}
+                    onClick={async () => { if (await confirmar({ titulo: `Eliminar «${t.name}»`, mensaje: (t.vendidos ?? 0) > 0 ? `Deja de venderse y sale de la lista. Los ${t.vendidos} boletos ya vendidos siguen valiendo.` : "Se borra por completo.", confirmar: "Eliminar", peligro: true })) borrar.mutate({ id: t.id }); }}
                     className="flex h-10 w-10 items-center justify-center rounded-full text-[var(--iw-text-muted)] hover:text-[#f87171]"
                     aria-label="Eliminar tipo"
                   >
@@ -121,6 +129,21 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
             );
           })}
         </ul>
+      )}
+
+      {archivados.length > 0 && (
+        <details className="rounded-3xl bg-white/[0.02] px-4 py-3">
+          <summary className="cursor-pointer text-[13px] font-semibold text-[var(--iw-text-muted)]">Eliminados con ventas · {archivados.length}</summary>
+          <p className="mt-2 text-[12px] leading-relaxed text-[var(--iw-text-muted)]">Ya no se venden. Se guardan porque hay boletos vendidos con ellos, que siguen valiendo en la puerta.</p>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {archivados.map(t => (
+              <li key={t.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white/[0.03] px-4 py-2.5">
+                <span className="min-w-0 truncate text-[13.5px] text-[var(--iw-text)]">{t.name} · {t.vendidos ?? 0} vendido{(t.vendidos ?? 0) === 1 ? "" : "s"}</span>
+                <button onClick={() => restaurar.mutate({ id: t.id, archivado: false, active: true })} className="shrink-0 rounded-full bg-white/[0.07] px-3 py-1.5 text-[12px] font-semibold text-[var(--iw-text)]">Restaurar</button>
+              </li>
+            ))}
+          </ul>
+        </details>
       )}
 
       <button onClick={() => setEditando({ days: 1, active: true, esVip: false, bonos: 0, color: COLORES[lista.length % COLORES.length] })} className="flex w-full items-center justify-center gap-2 rounded-full border border-dashed border-white/15 py-3.5 text-[14px] font-semibold text-[var(--iw-text-muted)]">
