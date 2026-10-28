@@ -4582,3 +4582,10 @@ html.dark .admin-shell button, html.dark .admin-shell a { -webkit-tap-highlight-
 .sp-exito-check { animation: sp-check .55s cubic-bezier(.34, 1.56, .64, 1) .08s both; }
 @keyframes sp-check { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .sp-entra, .sp-escanear::after, .sp-exito, .sp-exito-check { animation: none; } }
+
+/* Rueda de negocios: el paso obligatorio se nota (pulso suave, sin cansar) */
+.rp-paso-activo { animation: rp-paso 1.6s ease-in-out infinite; }
+@keyframes rp-paso { 50% { opacity: .35; } }
+.rp-obligatorio { animation: rp-obl 2.4s ease-in-out infinite; }
+@keyframes rp-obl { 50% { box-shadow: 0 0 0 4px rgba(255, 77, 109, .14); } }
+@media (prefers-reduced-motion: reduce) { .rp-paso-activo, .rp-obligatorio { animation: none; } }
