@@ -53,6 +53,12 @@ function avatar(nombre: string) {
 
 type Vista = "faltan" | "llegaron" | "sin";
 
+/** Igual que en el servidor: sin mayúsculas, acentos, espacios ni signos */
+function nombreComparable(n: string | null | undefined) {
+  return (n ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/\b(c\.?\s?a\.?|s\.?\s?a\.?|tienda|store)\b/g, "").replace(/[^a-z0-9]/g, "");
+}
+
 /** Contenido de la lista: cabecera, selector, tarjetas y pie */
 export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"; onCerrar?: () => void; arriba?: ReactNode }) {
   const esAdmin = modo === "admin";
@@ -88,6 +94,18 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
   const base = vista === "faltan" ? faltan : vista === "llegaron" ? [...llegaron].sort((a, b) => +new Date(b.asistioEn!) - +new Date(a.asistioEn!)) : sinDatos;
   const visibles = base.filter(f => !q || `${f.tienda ?? ""} ${f.email ?? ""} ${f.whatsapp ?? ""}`.toLowerCase().includes(q));
   const pct = conDatos.length ? Math.round((llegaron.length / conDatos.length) * 100) : 0;
+
+  // Tiendas que quedaron dos veces (registros de antes de la verificación)
+  const repetidas = (() => {
+    const vistos = new Map<string, number>();
+    const marcados = new Set<number>();
+    for (const f of [...conDatos].sort((a, b) => +new Date(a.creadoEn) - +new Date(b.creadoEn))) {
+      for (const k of [f.email ? `@${f.email.trim().toLowerCase()}` : "", nombreComparable(f.tienda).length >= 3 ? `#${nombreComparable(f.tienda)}` : ""].filter(Boolean)) {
+        if (vistos.has(k)) marcados.add(f.id); else vistos.set(k, f.id);
+      }
+    }
+    return marcados;
+  })();
 
   const pedirBorrar = async (id: number, nombre: string) => {
     if (await confirmar({ titulo: "Eliminar confirmación", mensaje: `Se quitará «${nombre}» de la lista y del conteo. No se puede deshacer.`, confirmar: "Eliminar", peligro: true })) borrar.mutate({ id });
@@ -230,7 +248,10 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
                       {a.ini}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-[15px] font-semibold text-white">{f.tienda}</p>
+                      <p className="flex items-center gap-1.5 truncate text-[15px] font-semibold text-white">
+                        <span className="truncate">{f.tienda}</span>
+                        {esAdmin && repetidas.has(f.id) && <span className="shrink-0 rounded-full bg-[#fbbf24]/15 px-2 py-0.5 text-[10px] font-bold text-[#fbbf24]">Repetida</span>}
+                      </p>
                       <p className="truncate text-[12px]" style={{ color: llego ? VERDE : "#7d7688" }}>
                         {llego ? `Llegó ${hora(f.asistioEn)}${f.asistioPor ? ` · ${f.asistioPor}` : ""}` : `Confirmó ${hace(f.creadoEn)}`}
                       </p>
@@ -364,8 +385,8 @@ function RegistroPuerta({ onCerrar }: { onCerrar: () => void }) {
   const [whatsapp, setWhatsapp] = useState("");
   const [email, setEmail] = useState("");
   const registrar = trpc.prensa.registrarEnPuerta.useMutation({
-    onSuccess: () => {
-      toast.success(`${tienda.trim()} registrada y marcada ✓`);
+    onSuccess: r => {
+      toast.success(r.yaEstaba ? `${r.yaEstaba} ya estaba en la lista: quedó marcada ✓` : `${tienda.trim()} registrada y marcada ✓`);
       void utils.prensa.lista.invalidate();
       void utils.prensa.total.invalidate();
       onCerrar();

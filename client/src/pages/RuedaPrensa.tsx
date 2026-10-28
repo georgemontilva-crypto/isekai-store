@@ -91,13 +91,15 @@ function Separador({ className = "" }: { className?: string }) {
   );
 }
 
-type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosTienda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosEditar" | "datosInvalido" | "datosError", string>;
+type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosTienda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosYaRegistrado" | "datosEditar" | "datosInvalido" | "datosError", string>;
 
 /**
  * Datos de quien confirmó (tienda, correo y WhatsApp) en una ventana que se
  * abre sola al confirmar. Al enviarlos la ventana se cierra y no vuelve.
  * Si la cierra sin enviar, queda un botón para abrirla de nuevo.
  */
+const CLAVE_REGISTRADA = "rp_tienda_registrada";
+
 function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: boolean; t: TextosDatos }) {
   const utils = trpc.useUtils();
   const [abierto, setAbierto] = useState(!conDatos);
@@ -105,9 +107,14 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [aviso, setAviso] = useState("");
+  const [yaRegistrado, setYaRegistrado] = useState(false);
   const guardar = trpc.prensa.completarDatos.useMutation({
     onSuccess: r => {
       if (r.ok) {
+        if ("yaRegistrado" in r && r.yaRegistrado) {
+          setYaRegistrado(true);
+          try { localStorage.setItem(CLAVE_REGISTRADA, "1"); } catch { /* */ }
+        }
         utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: true });
         setAbierto(false);
         setAviso("");
@@ -142,7 +149,7 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
   if (conDatos) {
     return (
       <p className="rp-sistema mx-auto mt-10 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[#f1c7d0]/80">
-        <Check size={13} strokeWidth={2} className="text-[#ff6b86]" /> {t.datosListo}
+        <Check size={13} strokeWidth={2} className="text-[#ff6b86]" /> {yaRegistrado ? t.datosYaRegistrado : t.datosListo}
       </p>
     );
   }
@@ -244,7 +251,11 @@ export default function RuedaPrensa() {
 
   const clave = useMemo(claveNavegador, []);
   const utils = trpc.useUtils();
-  const { data: estado } = trpc.prensa.estado.useQuery({ clave });
+  const { data: estadoServidor } = trpc.prensa.estado.useQuery({ clave });
+  // Si su tienda ya estaba registrada desde otro teléfono, este lo recuerda
+  // y no vuelve a ofrecer confirmar
+  const registradaAntes = useMemo(() => { try { return localStorage.getItem(CLAVE_REGISTRADA) === "1"; } catch { return false; } }, []);
+  const estado = registradaAntes ? { confirmado: true, conDatos: true } : estadoServidor;
   const confirmar = trpc.prensa.confirmar.useMutation({
     onSuccess: r => { if (r.ok) utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: false }); },
   });

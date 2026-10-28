@@ -552,6 +552,7 @@ export const es = {
     datosEnviar: "Enviar datos",
     datosEnviando: "Enviando…",
     datosListo: "Datos recibidos. ¡Gracias!",
+    datosYaRegistrado: "Tu tienda ya estaba registrada. ¡Te esperamos!",
     datosEditar: "Corregir mis datos",
     datosInvalido: "Revise los datos: el nombre, un correo válido y un WhatsApp con al menos 7 números.",
     datosError: "No se pudieron guardar sus datos. Inténtelo de nuevo.",

@@ -542,6 +542,7 @@ export const en: Translations = {
     datosEnviar: "Send details",
     datosEnviando: "Sending…",
     datosListo: "Details received. Thank you!",
+    datosYaRegistrado: "Your store was already registered. See you there!",
     datosEditar: "Edit my details",
     datosInvalido: "Please check your details: the name, a valid email and a WhatsApp with at least 7 digits.",
     datosError: "Your details couldn't be saved. Please try again.",

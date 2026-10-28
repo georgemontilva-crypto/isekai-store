@@ -43,13 +43,50 @@ export type DatosPrensa = { tienda: string; email: string; whatsapp: string };
  * WhatsApp. Solo funciona con una clave que ya confirmó (nadie puede crear
  * filas nuevas por aquí) y puede corregir sus datos las veces que quiera.
  */
+/** Nombre de tienda comparable: sin mayúsculas, acentos, espacios ni signos */
+export function nombreComparable(n: string | null | undefined): string {
+  return (n ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+    .replace(/\b(c\.?\s?a\.?|s\.?\s?a\.?|tienda|store)\b/g, "").replace(/[^a-z0-9]/g, "");
+}
+
+/**
+ * ¿Ya hay otra tienda registrada con ese correo o ese nombre?
+ * Pasaba que la misma tienda confirmaba desde dos teléfonos (o volvía días
+ * después desde otro navegador) y aparecía dos veces en la lista.
+ */
+export async function buscarDuplicado(datos: { tienda: string; email?: string | null }, excluirId?: number) {
+  const db = await getDb();
+  if (!db) return null;
+  const correo = (datos.email ?? "").trim().toLowerCase();
+  const nombre = nombreComparable(datos.tienda);
+  const filas = await db.select({ id: wfPrensaConfirmaciones.id, tienda: wfPrensaConfirmaciones.tienda, email: wfPrensaConfirmaciones.email })
+    .from(wfPrensaConfirmaciones).where(sql`${wfPrensaConfirmaciones.datosEn} IS NOT NULL`);
+  return filas.find(x => x.id !== excluirId && (
+    (correo && (x.email ?? "").trim().toLowerCase() === correo) ||
+    (nombre.length >= 3 && nombreComparable(x.tienda) === nombre)
+  )) ?? null;
+}
+
 export async function completarDatos(clave: string, datos: DatosPrensa):
-  Promise<{ ok: true } | { ok: false; motivo: "noConfirmado" | "error" }> {
+  Promise<{ ok: true; yaRegistrado?: boolean } | { ok: false; motivo: "noConfirmado" | "error" | "duplicado" }> {
   const db = await getDb();
   if (!db) return { ok: false, motivo: "error" };
   const [f] = await db.select({ id: wfPrensaConfirmaciones.id, datosEn: wfPrensaConfirmaciones.datosEn })
     .from(wfPrensaConfirmaciones).where(eq(wfPrensaConfirmaciones.clave, clave)).limit(1);
   if (!f) return { ok: false, motivo: "noConfirmado" };
+
+  // Misma tienda ya registrada: no se duplica. Esta confirmación sobra y se
+  // quita, así el conteo tampoco cuenta dos veces a la misma tienda.
+  const repetida = await buscarDuplicado({ tienda: datos.tienda, email: datos.email }, f.id).catch(() => null);
+  if (repetida) {
+    if (f.datosEn) return { ok: false, motivo: "duplicado" };
+    await db.delete(wfPrensaConfirmaciones).where(eq(wfPrensaConfirmaciones.id, f.id)).catch(() => {});
+    try {
+      const conteo = await totalConfirmaciones();
+      io?.to("admin").emit("prensa:confirmacion", conteo);
+    } catch { /* opcional */ }
+    return { ok: true, yaRegistrado: true };
+  }
   const primeraVez = !f.datosEn;
   try {
     await db.update(wfPrensaConfirmaciones)
@@ -213,6 +250,13 @@ export async function registrarEnPuerta(datos: { tienda: string; email?: string;
   if (!db) throw new Error("Base de datos no disponible");
   await asegurarColumnas();
   const ahora = new Date();
+  // Si ya estaba en la lista (confirmó antes), se marca esa en vez de crear otra
+  const repetida = await buscarDuplicado({ tienda: datos.tienda, email: datos.email });
+  if (repetida) {
+    await db.update(wfPrensaConfirmaciones).set({ asistioEn: ahora, asistioPor: quien.slice(0, 150) })
+      .where(eq(wfPrensaConfirmaciones.id, repetida.id));
+    return { ok: true, yaEstaba: repetida.tienda };
+  }
   await db.insert(wfPrensaConfirmaciones).values({
     clave: `puerta${nanoid(20).replace(/[^A-Za-z0-9]/g, "x")}`,
     ip: "puerta",
@@ -227,7 +271,7 @@ export async function registrarEnPuerta(datos: { tienda: string; email?: string;
     const conteo = await totalConfirmaciones();
     io?.to("admin").emit("prensa:confirmacion", conteo);
   } catch { /* opcional */ }
-  return { ok: true };
+  return { ok: true, yaEstaba: null as string | null };
 }
 
 // ─── Staff de la rueda: entran solo a la lista y marcan asistencia ───────────
