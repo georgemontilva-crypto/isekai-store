@@ -53,6 +53,8 @@ function avatar(nombre: string) {
 
 type Vista = "faltan" | "llegaron" | "sin";
 
+const CLAVE_VISTO = "rueda_lista_vista";
+
 /** Igual que en el servidor: sin mayúsculas, acentos, espacios ni signos */
 function nombreComparable(n: string | null | undefined) {
   return (n ?? "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -68,6 +70,14 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
   const [vista, setVista] = useState<Vista>("faltan");
   const [buscar, setBuscar] = useState("");
   const [enPuerta, setEnPuerta] = useState(false);
+
+  /**
+   * «Nueva»: las tiendas que se registraron desde la última vez que se abrió
+   * la lista en este teléfono. Se guarda la hora al cerrar la lista.
+   */
+  const [vistoAntes] = useState(() => { try { return Number(localStorage.getItem(CLAVE_VISTO) ?? 0); } catch { return 0; } });
+  useEffect(() => () => { try { localStorage.setItem(CLAVE_VISTO, String(Date.now())); } catch { /* */ } }, []);
+  const esNueva = (f: { datosEn: Date | string | null }) => Boolean(vistoAntes && f.datosEn && +new Date(f.datosEn) > vistoAntes);
 
   const borrar = trpc.prensa.borrar.useMutation({
     onSuccess: () => { toast.success("Confirmación eliminada"); void utils.prensa.lista.invalidate(); void utils.prensa.total.invalidate(); },
@@ -86,10 +96,12 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
   });
 
   const todos = data ?? [];
-  const conDatos = todos.filter(f => f.datosEn);
+  // Las más recientes primero, por la hora en que dejaron sus datos
+  const conDatos = todos.filter(f => f.datosEn).sort((a, b) => +new Date(b.datosEn!) - +new Date(a.datosEn!));
   const llegaron = conDatos.filter(f => f.asistioEn);
   const faltan = conDatos.filter(f => !f.asistioEn);
-  const sinDatos = todos.filter(f => !f.datosEn);
+  const sinDatos = todos.filter(f => !f.datosEn).sort((a, b) => +new Date(b.creadoEn) - +new Date(a.creadoEn));
+  const nuevas = conDatos.filter(esNueva).length;
   const q = buscar.trim().toLowerCase();
   const base = vista === "faltan" ? faltan : vista === "llegaron" ? [...llegaron].sort((a, b) => +new Date(b.asistioEn!) - +new Date(a.asistioEn!)) : sinDatos;
   const visibles = base.filter(f => !q || `${f.tienda ?? ""} ${f.email ?? ""} ${f.whatsapp ?? ""}`.toLowerCase().includes(q));
@@ -152,7 +164,7 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#ff3d9e" }}>Rueda de negocios</p>
           <p className="mt-1 text-[21px] font-bold leading-tight text-white">{esAdmin ? "Confirmados" : "Asistencia"}</p>
           <p className="mt-1 text-[13px] text-[#9a93a6]">
-            {isLoading ? "Cargando…" : `${conDatos.length} tiendas · ${llegaron.length} llegaron`}
+            {isLoading ? "Cargando…" : `${conDatos.length} tiendas · ${llegaron.length} llegaron${nuevas ? ` · ${nuevas} nueva${nuevas === 1 ? "" : "s"}` : ""}`}
           </p>
         </div>
         {onCerrar && (
@@ -250,10 +262,11 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 truncate text-[15px] font-semibold text-white">
                         <span className="truncate">{f.tienda}</span>
+                        {!llego && esNueva(f) && <span className="shrink-0 rounded-full bg-[#e5007d] px-2 py-0.5 text-[10px] font-bold text-white">Nueva</span>}
                         {esAdmin && repetidas.has(f.id) && <span className="shrink-0 rounded-full bg-[#fbbf24]/15 px-2 py-0.5 text-[10px] font-bold text-[#fbbf24]">Repetida</span>}
                       </p>
                       <p className="truncate text-[12px]" style={{ color: llego ? VERDE : "#7d7688" }}>
-                        {llego ? `Llegó ${hora(f.asistioEn)}${f.asistioPor ? ` · ${f.asistioPor}` : ""}` : `Confirmó ${hace(f.creadoEn)}`}
+                        {llego ? `Llegó ${hora(f.asistioEn)}${f.asistioPor ? ` · ${f.asistioPor}` : ""}` : `Se registró ${hace(f.datosEn)}`}
                       </p>
                     </div>
                     {esAdmin && (
