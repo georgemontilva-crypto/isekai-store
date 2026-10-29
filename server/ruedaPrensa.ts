@@ -67,13 +67,17 @@ export async function buscarDuplicado(datos: { tienda: string; email?: string | 
   )) ?? null;
 }
 
-export async function completarDatos(clave: string, datos: DatosPrensa):
+export async function completarDatos(clave: string, datos: DatosPrensa, ip = "desconocida"):
   Promise<{ ok: true; yaRegistrado?: boolean } | { ok: false; motivo: "noConfirmado" | "error" | "duplicado" }> {
   const db = await getDb();
   if (!db) return { ok: false, motivo: "error" };
   const [f] = await db.select({ id: wfPrensaConfirmaciones.id, datosEn: wfPrensaConfirmaciones.datosEn })
     .from(wfPrensaConfirmaciones).where(eq(wfPrensaConfirmaciones.clave, clave)).limit(1);
-  if (!f) return { ok: false, motivo: "noConfirmado" };
+  // Página vieja: como «confirmar» ya no crea la fila, se registra aquí todo junto
+  if (!f) {
+    const r = await registrarConDatos(clave, ip, datos);
+    return r.ok ? r : { ok: false, motivo: "error" };
+  }
 
   // Misma tienda ya registrada: no se duplica. Esta confirmación sobra y se
   // quita, así el conteo tampoco cuenta dos veces a la misma tienda.
@@ -170,6 +174,13 @@ export async function confirmarAsistencia(clave: string, ip: string):
   Promise<{ ok: true; yaEstaba: boolean } | { ok: false; motivo: "limite" | "error" }> {
   const db = await getDb();
   if (!db) return { ok: false, motivo: "error" };
+  /**
+   * Ya no se guarda nada al tocar «Confirmar»: la asistencia se registra al
+   * enviar los datos (ver registrarConDatos). Esta ruta queda solo para los
+   * teléfonos que aún tienen la versión vieja de la página abierta: les
+   * responde que sí, les muestra el formulario, y sus datos crean la fila.
+   */
+  if (!SOLO_CON_DATOS) {
 
   const [ya] = await db.select({ id: wfPrensaConfirmaciones.id }).from(wfPrensaConfirmaciones)
     .where(eq(wfPrensaConfirmaciones.clave, clave)).limit(1);
@@ -209,7 +220,13 @@ export async function confirmarAsistencia(clave: string, ip: string):
     console.warn("[Prensa] aviso en vivo:", e);
   }
   return { ok: true, yaEstaba: false };
+  }
+  void ip;
+  const [ya] = await db.select({ id: wfPrensaConfirmaciones.id }).from(wfPrensaConfirmaciones)
+    .where(eq(wfPrensaConfirmaciones.clave, clave)).limit(1).catch(() => []);
+  return { ok: true, yaEstaba: Boolean(ya) };
 }
+const SOLO_CON_DATOS = true;
 
 /** Solo para administradores: total y confirmaciones de hoy (hora de Venezuela) */
 export async function totalConfirmaciones(): Promise<{ total: number; hoy: number }> {

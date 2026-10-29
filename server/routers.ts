@@ -1209,7 +1209,7 @@ export const appRouter = router({
         email: z.string().trim().toLowerCase().email().max(320),
         whatsapp: z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/).transform(v => v.replace(/[^0-9+]/g, "")),
       }))
-      .mutation(({ input }) => completarDatos(input.clave, { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp })),
+      .mutation(({ input, ctx }) => completarDatos(input.clave, { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp }, clientIp(ctx.req))),
     total: ruedaProcedure.query(() => totalConfirmaciones()),
     lista: ruedaProcedure.query(() => listaConfirmaciones()),
     /** ¿Esta cuenta puede entrar a la lista? (para mostrarle el acceso) */
