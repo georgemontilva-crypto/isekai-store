@@ -21,10 +21,10 @@ export default function TarjetaRuedaPrensa() {
   const [verLista, setVerLista] = useState(false);
   const [verStaff, setVerStaff] = useState(false);
 
-  useSocketEvento<{ total: number; hoy: number }>("prensa:confirmacion", conteo => {
-    utils.prensa.total.setData(undefined, conteo);
+  useSocketEvento<{ total: number; hoy: number; tienda?: string }>("prensa:confirmacion", conteo => {
+    utils.prensa.total.setData(undefined, { total: conteo.total, hoy: conteo.hoy });
     setDestello(d => d + 1);
-    toast.success(`🎟️ Nueva confirmación · ya son ${conteo.total}`);
+    toast.success(conteo.tienda ? `🏪 ${conteo.tienda} confirmó · ya son ${conteo.total}` : `🎟️ Ya son ${conteo.total} confirmados`);
     void utils.prensa.lista.invalidate();
   });
   useSocketEvento("prensa:datos", () => { void utils.prensa.lista.invalidate(); });

@@ -36,7 +36,7 @@ import * as patro from "./patrocinantes";
 import { permisosDe, esDelEquipo, limpiarPermisos } from "./permisos";
 import { listarEquipo, asignarRol, quitarDelEquipo, pausarRol } from "./equipo";
 import { cargarPlantilla2027, vendidosPorTipo, beneficiosDe, canjearBono, entregarKit, participantesSorteo } from "./beneficios";
-import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
+import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, registrarConDatos, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
@@ -1190,6 +1190,17 @@ export const appRouter = router({
     confirmar: publicProcedure
       .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/) }))
       .mutation(({ input, ctx }) => confirmarAsistencia(input.clave, clientIp(ctx.req))),
+    /** Confirmar con los datos en un solo paso (nada se guarda sin datos) */
+    registrar: publicProcedure
+      .input(z.object({
+        clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/),
+        tienda: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        email: z.string().trim().toLowerCase().email().max(320),
+        // Tolerante: se aceptan puntos, guiones y espacios; cuentan los dígitos
+        whatsapp: z.string().trim().max(40).transform(v => (v.trim().startsWith("+") ? "+" : "") + v.replace(/[^0-9]/g, ""))
+          .refine(v => { const d = v.replace(/\D/g, "").length; return d >= 7 && d <= 20; }, "WhatsApp inválido"),
+      }))
+      .mutation(({ input, ctx }) => registrarConDatos(input.clave, clientIp(ctx.req), { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp })),
     /** Quien ya confirmó deja su tienda, correo y WhatsApp */
     completarDatos: publicProcedure
       .input(z.object({

@@ -91,7 +91,7 @@ function Separador({ className = "" }: { className?: string }) {
   );
 }
 
-type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosTienda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosYaRegistrado" | "datosObligatorio" | "datosPaso" | "datosEditar" | "datosInvalido" | "datosError", string>;
+type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosTienda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosYaRegistrado" | "datosObligatorio" | "datosPaso" | "datosCancelar" | "datosLimite" | "datosEditar" | "datosInvalido" | "datosError", string>;
 
 /**
  * Datos de quien confirmó (tienda, correo y WhatsApp) en una ventana que se
@@ -100,7 +100,7 @@ type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosTien
  */
 const CLAVE_REGISTRADA = "rp_tienda_registrada";
 
-function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: boolean; t: TextosDatos }) {
+function FormularioDatos({ clave, conDatos, t, onCancelar }: { clave: string; conDatos: boolean; t: TextosDatos; onCancelar?: () => void }) {
   const utils = trpc.useUtils();
   const [abierto, setAbierto] = useState(!conDatos);
   const [tienda, setTienda] = useState("");
@@ -108,7 +108,7 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
   const [whatsapp, setWhatsapp] = useState("");
   const [aviso, setAviso] = useState("");
   const [yaRegistrado, setYaRegistrado] = useState(false);
-  const guardar = trpc.prensa.completarDatos.useMutation({
+  const guardar = trpc.prensa.registrar.useMutation({
     onSuccess: r => {
       if (r.ok) {
         if ("yaRegistrado" in r && r.yaRegistrado) {
@@ -118,9 +118,9 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
         utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: true });
         setAbierto(false);
         setAviso("");
-      } else setAviso(t.datosError);
+      } else setAviso(r.motivo === "limite" ? t.datosLimite : t.datosError);
     },
-    onError: () => setAviso(t.datosError),
+    onError: e => setAviso(/whatsapp/i.test(e.message) || /email/i.test(e.message) ? t.datosInvalido : t.datosError),
   });
 
   // Mientras la ventana está abierta, la página de atrás no se desplaza
@@ -135,8 +135,7 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
   const enviar = (e: React.FormEvent) => {
     e.preventDefault();
     const digitos = whatsapp.replace(/[^0-9]/g, "").length;
-    if (tienda.trim().length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()) || digitos < 7 || digitos > 20
-      || !/^\+?[0-9 ()-]{7,24}$/.test(whatsapp.trim())) {
+    if (tienda.trim().length < 2 || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim()) || digitos < 7 || digitos > 20) {
       setAviso(t.datosInvalido);
       return;
     }
@@ -225,6 +224,11 @@ function FormularioDatos({ clave, conDatos, t }: { clave: string; conDatos: bool
               {guardar.isPending ? t.datosEnviando : t.datosEnviar}
             </button>
             {aviso && <p className="mx-auto mt-4 max-w-xs text-center text-sm text-[#ff9aac]">{aviso}</p>}
+            {onCancelar && (
+              <button type="button" onClick={onCancelar} className="mx-auto mt-5 block py-2 text-[12px] text-[#8d7b83] underline-offset-4 hover:underline">
+                {t.datosCancelar}
+              </button>
+            )}
           </motion.form>
         </div>,
         document.body,
@@ -256,6 +260,7 @@ export default function RuedaPrensa() {
     onSuccess: r => { if (r.ok) utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: false }); },
   });
   const confirmado = estado?.confirmado === true;
+  const [pidiendoDatos, setPidiendoDatos] = useState(false);
   const fallo = confirmar.data && !confirmar.data.ok
     ? (confirmar.data.motivo === "limite" ? t.limite : t.error)
     : confirmar.isError ? t.error : "";
@@ -346,14 +351,15 @@ export default function RuedaPrensa() {
             {!confirmado ? (
               <div>
                 <button
-                  onClick={() => confirmar.mutate({ clave })}
-                  disabled={confirmar.isPending}
+                  onClick={() => setPidiendoDatos(true)}
                   className="rp-boton rp-sistema ev-notch ev-press inline-flex items-center gap-3 whitespace-nowrap px-8 py-[18px] text-[12px] font-semibold uppercase tracking-[0.26em] text-white sm:px-12 sm:tracking-[0.35em] disabled:opacity-70"
                 >
                   {confirmar.isPending ? <Loader2 size={16} className="animate-spin" /> : null}
                   {confirmar.isPending ? t.confirmando : t.cta}
                 </button>
                 {fallo && <p className="mx-auto mt-4 max-w-xs text-sm text-[#ff9aac]">{fallo}</p>}
+                {/* La asistencia se registra al enviar los datos, todo junto */}
+                {pidiendoDatos && <FormularioDatos clave={clave} conDatos={false} t={t} onCancelar={() => setPidiendoDatos(false)} />}
               </div>
             ) : (
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7 }} className="mx-auto max-w-md">
@@ -427,8 +433,7 @@ export default function RuedaPrensa() {
             <p className="rp-serif mx-auto mb-10 max-w-sm text-[18px] font-light leading-relaxed text-[#f1c7d0]">{t.cierre}</p>
             {!confirmado && (
               <button
-                onClick={() => { confirmar.mutate({ clave }); document.getElementById("confirmar")?.scrollIntoView({ behavior: "smooth" }); }}
-                disabled={confirmar.isPending}
+                onClick={() => { document.getElementById("confirmar")?.scrollIntoView({ behavior: "smooth" }); setPidiendoDatos(true); }}
                 className="rp-boton rp-sistema ev-notch ev-press inline-flex items-center gap-3 whitespace-nowrap px-8 py-[18px] text-[12px] font-semibold uppercase tracking-[0.26em] text-white sm:px-12 sm:tracking-[0.35em]"
               >
                 {t.cta}

@@ -544,6 +544,8 @@ export const es = {
     webBoton: "Conocer nuestra web",
     datosEtq: "[ Un último paso ]",
     datosPaso: "Paso 2 de 2 · Obligatorio",
+    datosLimite: "Se alcanzó el máximo de registros desde esta conexión. Inténtelo más tarde.",
+    datosCancelar: "Ahora no",
     datosObligatorio: "Obligatorio: su asistencia no queda confirmada hasta que envíe estos datos.",
     datosTitulo: "Complete su registro",
     datosTexto: "Indíquenos el nombre de su tienda o marca, su correo y su WhatsApp para enviarle la información del día.",

@@ -534,6 +534,8 @@ export const en: Translations = {
     webBoton: "Explore our website",
     datosEtq: "[ One last step ]",
     datosPaso: "Step 2 of 2 · Required",
+    datosLimite: "Too many registrations from this connection. Please try again later.",
+    datosCancelar: "Not now",
     datosObligatorio: "Required: your attendance is not confirmed until you submit these details.",
     datosTitulo: "Complete your registration",
     datosTexto: "Tell us your store or brand name, your email and your WhatsApp so we can send you the event details.",

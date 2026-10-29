@@ -310,3 +310,67 @@ export async function staffRuedaPorCorreo(email?: string | null): Promise<StaffR
   const correo = email.trim().toLowerCase();
   return (await listarStaffRueda()).find(s => s.email === correo) ?? null;
 }
+
+
+/**
+ * Confirmar y dejar los datos en un solo paso.
+ *
+ * Antes la confirmación se guardaba al tocar el botón y los datos después: si
+ * la persona cerraba la página en medio, quedaba una «confirmación sin datos»
+ * y el aviso al admin llegaba sin nombre. Ahora no se guarda nada hasta que
+ * envía la tienda, el correo y el WhatsApp juntos.
+ */
+export async function registrarConDatos(clave: string, ip: string, datos: DatosPrensa):
+  Promise<{ ok: true; yaRegistrado?: boolean } | { ok: false; motivo: "limite" | "error" }> {
+  const db = await getDb();
+  if (!db) return { ok: false, motivo: "error" };
+  await asegurarColumnas().catch(e => console.warn("[Prensa] columnas:", e));
+
+  const [propia] = await db.select({ id: wfPrensaConfirmaciones.id, datosEn: wfPrensaConfirmaciones.datosEn })
+    .from(wfPrensaConfirmaciones).where(eq(wfPrensaConfirmaciones.clave, clave)).limit(1);
+  if (propia?.datosEn) return { ok: true, yaRegistrado: true };
+
+  // Misma tienda ya registrada (por correo o nombre): no se duplica
+  const repetida = await buscarDuplicado({ tienda: datos.tienda, email: datos.email }, propia?.id).catch(() => null);
+  if (repetida) {
+    if (propia) await db.delete(wfPrensaConfirmaciones).where(eq(wfPrensaConfirmaciones.id, propia.id)).catch(() => {});
+    return { ok: true, yaRegistrado: true };
+  }
+
+  const ahora = new Date();
+  try {
+    if (propia) {
+      // Confirmó con la versión anterior (sin datos): se completa esa misma fila
+      await db.update(wfPrensaConfirmaciones)
+        .set({ tienda: datos.tienda, email: datos.email, whatsapp: datos.whatsapp, datosEn: ahora })
+        .where(eq(wfPrensaConfirmaciones.id, propia.id));
+    } else {
+      const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const [{ n }] = await db.select({ n: sql<number>`COUNT(*)` }).from(wfPrensaConfirmaciones)
+        .where(and(eq(wfPrensaConfirmaciones.ip, ip), gte(wfPrensaConfirmaciones.creadoEn, hace24h)));
+      if (Number(n) >= MAX_POR_IP_DIA) return { ok: false, motivo: "limite" };
+      await db.insert(wfPrensaConfirmaciones).values({
+        clave, ip, tienda: datos.tienda, email: datos.email, whatsapp: datos.whatsapp, datosEn: ahora,
+      });
+    }
+  } catch (e) {
+    console.error("[Prensa] registrar:", e);
+    return { ok: false, motivo: "error" };
+  }
+
+  // Aviso al admin, ahora con el nombre de la tienda
+  try {
+    const conteo = await totalConfirmaciones();
+    io?.to("admin").emit("prensa:confirmacion", { ...conteo, tienda: datos.tienda });
+    void notifyConfirmacionPrensa(conteo.total, conteo.hoy, datos).catch(e => console.warn("[Prensa] correo:", e));
+    void import("./push").then(m => m.enviarPushAdmins({
+      titulo: `🏪 ${datos.tienda} · rueda de negocios`,
+      cuerpo: `Confirmó asistencia. Ya son ${conteo.total} tiendas.`,
+      url: "/admin",
+      etiqueta: "prensa",
+    }));
+  } catch (e) {
+    console.warn("[Prensa] aviso:", e);
+  }
+  return { ok: true };
+}

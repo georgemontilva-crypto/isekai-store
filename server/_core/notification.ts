@@ -729,7 +729,11 @@ export async function notifyMisionAceptada(email: string): Promise<boolean> {
  * Aviso al dueño cada vez que alguien confirma asistencia a la rueda de
  * prensa. Va a OWNER_EMAIL; si no está configurado, a los administradores.
  */
-export async function notifyConfirmacionPrensa(total: number, hoy: number): Promise<void> {
+function escHtml(v: string) {
+  return v.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+}
+
+export async function notifyConfirmacionPrensa(total: number, hoy: number, datos?: { tienda: string; email: string; whatsapp: string }): Promise<void> {
   let destinos: string[] = ENV.ownerEmail ? [ENV.ownerEmail] : [];
   if (destinos.length === 0) {
     try {
@@ -748,9 +752,10 @@ export async function notifyConfirmacionPrensa(total: number, hoy: number): Prom
   const hora = new Date().toLocaleString("es-VE", { timeZone: "America/Caracas", dateStyle: "long", timeStyle: "short" });
   const content = `
     <p style="font-size:12px;letter-spacing:.3em;color:#a78bfa;margin:0 0 8px">[ RUEDA DE NEGOCIOS ]</p>
-    <h1>🎟️ Nueva confirmación de asistencia</h1>
-    <p>Alguien acaba de confirmar que asistirá a la rueda de negocios del <span class="highlight">Isekai World Fest 2027</span>.</p>
+    <h1>🎟️ ${datos ? escHtml(datos.tienda) : "Nueva confirmación de asistencia"}</h1>
+    <p>${datos ? "Confirmó" : "Alguien acaba de confirmar"} que asistirá a la rueda de negocios del <span class="highlight">Isekai World Fest 2027</span>.</p>
     <div class="order-box">
+      ${datos ? `<p><strong>Tienda:</strong> ${escHtml(datos.tienda)}</p><p><strong>Correo:</strong> ${escHtml(datos.email)}</p><p><strong>WhatsApp:</strong> ${escHtml(datos.whatsapp)}</p>` : ""}
       <p><strong>Confirmados en total:</strong> ${total}</p>
       <p><strong>Confirmados hoy:</strong> ${hoy}</p>
       <p><strong>Hora:</strong> ${hora}</p>
@@ -759,7 +764,7 @@ export async function notifyConfirmacionPrensa(total: number, hoy: number): Prom
     <div style="text-align:center"><a href="${APP_URL}/admin" class="btn">Ver en el panel →</a></div>
   `;
   for (const to of destinos) {
-    await sendEmail(to, `🎟️ Confirmación #${total} — Rueda de negocios`, content, `Ya son ${total} confirmados para la rueda de negocios.`);
+    await sendEmail(to, datos ? `🏪 ${datos.tienda} confirmó — Rueda de negocios (#${total})` : `🎟️ Confirmación #${total} — Rueda de negocios`, content, `Ya son ${total} confirmados para la rueda de negocios.`);
   }
 }
 
