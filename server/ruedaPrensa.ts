@@ -137,6 +137,11 @@ export function asegurarColumnas(): Promise<void> {
           console.log(`[Prensa] columna creada: ${col}`);
         }
       }
+      // Rescate: si alguna fila tiene tienda, correo o WhatsApp pero quedó sin
+      // marca de «datos recibidos», se marca para que salga con sus datos
+      const [res] = await db.execute(sql`UPDATE wfPrensaConfirmaciones SET datosEn = creadoEn
+        WHERE datosEn IS NULL AND (COALESCE(tienda, '') <> '' OR COALESCE(email, '') <> '' OR COALESCE(whatsapp, '') <> '')`) as any;
+      if (res?.affectedRows) console.log(`[Prensa] ${res.affectedRows} confirmaciones con datos recuperadas`);
     })().catch(e => { columnasListas = null; throw e; });
   }
   return columnasListas;
