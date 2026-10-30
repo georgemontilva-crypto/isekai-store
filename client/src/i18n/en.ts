@@ -286,7 +286,7 @@ export const en: Translations = {
 
     bienvenidaT1: "YOU'RE NOT HERE TO WATCH THE WORLD.",
     bienvenidaT2: "YOU'RE HERE TO ENTER IT.",
-    bienvenidaP1: "Isekai World Fest is an immersive entertainment experience that turns the event into a universe inspired by anime, video games, cosplay and geek culture.",
+    bienvenidaP1: "Isekai World Fest is an immersive entertainment experience inspired by the Solo Leveling universe, where anime, video games, cosplay and geek culture come to life.",
     bienvenidaP2: "For two days the venue will be completely transformed into an experience where every visitor can explore, play, compete, discover characters, live stories and become part of the world.",
     bienvenidaFrase1: "Here you're not a spectator.",
     bienvenidaFrase2: "You're part of the story.",
