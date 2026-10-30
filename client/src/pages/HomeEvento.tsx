@@ -751,26 +751,26 @@ export default function HomeEvento() {
             <span className="hidden lg:inline"><NumSeccion n={1} /></span>
           </div>
 
-          {/* Escenario: la puerta con la figura dentro. En teléfono ocupa el
-              centro de la pantalla, sin texto encima; en computador va a la
-              derecha y el texto a la izquierda. */}
+          {/* Escenario: la figura con su aura. En teléfono ocupa el centro de
+              la pantalla, sin texto encima; en computador va a la derecha y el
+              texto a la izquierda. */}
           <div className="sl-escenario relative z-[1] min-h-0 flex-1 lg:absolute lg:inset-0">
-            <div className="sl-puerta" aria-hidden="true">
-             <motion.div className="absolute inset-0" style={escenaFija ? { scale: puertaEscala } : undefined}>
-              <div className="sl-puerta-abre absolute inset-0">
-                <span className="sl-puerta-halo" />
-                <span className="sl-puerta-suelo" />
-                <span className="sl-puerta-remolino" />
-                <span className="sl-puerta-remolino sl-puerta-remolino-2" />
-                <span className="sl-puerta-vacio" />
-                <span className="sl-puerta-nucleo" />
-                <span className="sl-puerta-borde" />
-                <span className="sl-puerta-rayo" />
+            {/* Escena del Monarca de las Sombras: título gigante calado al
+                fondo, aura de sombras que sube desde sus pies y un charco de
+                sombra en el suelo. Sin marcos: la figura es la protagonista. */}
+            <motion.div className="absolute inset-0" style={escenaFija ? { scale: puertaEscala, transformOrigin: "70% 85%" } : undefined} aria-hidden="true">
+              <div className="sl-eco">
+                {e.heroTitulo1.split(" ").map((p, k, todas) => (
+                  <span key={k} className={`block ${k < todas.length - 1 ? "hidden lg:block" : ""}`}>{p}</span>
+                ))}
               </div>
-             </motion.div>
-            </div>
+              <span className="sl-contraluz" />
+              <span className="sl-charco"><i /><i /><i /></span>
+              <span className="sl-sombra-pies" />
+              <span className="sl-relampago" />
+            </motion.div>
 
-            {/* Figura de pie dentro de la puerta (mantener presionada abre la Zona de Sombras) */}
+            {/* Figura sobre su sombra (mantener presionada abre la Zona de Sombras) */}
             {heroFigura && figura.estado !== "cargando" && (
               <div className="sl-figura">
                 <motion.div
@@ -780,16 +780,38 @@ export default function HomeEvento() {
                   transition={{ duration: 1.1, delay: 0.9 }}
                   style={escenaFija ? { scale: figuraEscala, opacity: figuraOpacidad, transformOrigin: "50% 100%" } : undefined}
                 >
-                  <img src={figura.src} alt="" />
+                  {/* Aura de sombras: copias de la silueta distorsionadas como
+                      fuego, que se alternan para que las llamas parpadeen */}
+                  {!reducirMov && (
+                    <div className="sl-aura" aria-hidden="true">
+                      <img src={figura.src} alt="" className="sl-aura-capa sl-aura-1" />
+                      <img src={figura.src} alt="" className="sl-aura-capa sl-aura-2" />
+                      {!ligero && <img src={figura.src} alt="" className="sl-aura-capa sl-aura-3" />}
+                    </div>
+                  )}
+                  <img src={figura.src} alt="" className="sl-figura-img" />
                 </motion.div>
               </div>
             )}
+            {/* Filtros de las llamas (fuera de la vista) */}
+            <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
+              <defs>
+                {[[3, "#8b5cf6", 34], [11, "#5b21b6", 46], [23, "#4fc3ff", 26]].map(([semilla, color, escala], k) => (
+                  <filter key={k} id={`sl-llama-${k + 1}`} x="-40%" y="-40%" width="180%" height="180%" colorInterpolationFilters="sRGB">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.045" numOctaves={2} seed={semilla as number} result="ruido" />
+                    <feDisplacementMap in="SourceAlpha" in2="ruido" scale={escala as number} xChannelSelector="R" yChannelSelector="G" result="forma" />
+                    <feFlood floodColor={color as string} />
+                    <feComposite in2="forma" operator="in" result="color" />
+                    <feGaussianBlur in="color" stdDeviation={4} />
+                  </filter>
+                ))}
+              </defs>
+            </svg>
             {heroFigura && (
               <div className="absolute left-1/2 top-[8%] z-[2] h-[84%] w-[56%] -translate-x-1/2 lg:left-[70%] lg:top-[10%] lg:h-[80%] lg:w-[34%]">
                 <ZonaSombras onRevelar={() => setSombras(true)} />
               </div>
             )}
-            <span className="sl-anillo-suelo" aria-hidden="true" />
           </div>
 
           {/* Título y misión */}

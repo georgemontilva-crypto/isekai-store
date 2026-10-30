@@ -4854,3 +4854,81 @@ html.dark .sl-home.sl-home h2.ev2-inv-titulo { color: transparent !important; }
   .sl-hero .sl-btn-marca { padding-top: 13px; padding-bottom: 13px; }
 }
 @media (max-width: 1023px) { .sl-hero { min-height: 520px; } }
+
+/* ═══ Portada: el Monarca de las Sombras (sin la puerta ovalada) ═══ */
+/* Título gigante calado detrás de la figura, estilo afiche */
+.sl-eco { position: absolute; z-index: 0; pointer-events: none; user-select: none;
+  font-family: "Montserrat", sans-serif; font-weight: 900; text-transform: uppercase; line-height: .82; letter-spacing: -.04em;
+  color: transparent; -webkit-text-stroke: 1.2px rgba(167,139,250,.32);
+  left: 50%; top: 2%; transform: translateX(-50%); text-align: center; font-size: 23vw; white-space: nowrap;
+  mask-image: linear-gradient(180deg, #000 30%, rgba(0,0,0,.25) 90%); -webkit-mask-image: linear-gradient(180deg, #000 30%, rgba(0,0,0,.25) 90%);
+  animation: sl-eco-entra 1.6s cubic-bezier(.2,.9,.2,1) .2s both; }
+.sl-eco span:last-child { -webkit-text-stroke-color: rgba(229,0,125,.38); }
+@media (min-width: 1024px) { .sl-eco { left: auto; right: 2%; top: 12%; transform: none; text-align: right; font-size: 13vw; } }
+@keyframes sl-eco-entra { from { opacity: 0; letter-spacing: .1em; filter: blur(10px); } to { opacity: 1; letter-spacing: -.04em; filter: none; } }
+
+/* Contraluz detrás de la figura */
+.sl-contraluz { position: absolute; z-index: 0; left: 50%; bottom: 0; width: 120%; height: 90%; transform: translateX(-50%);
+  background: radial-gradient(45% 55% at 50% 72%, rgba(139,92,246,.55), rgba(79,195,255,.18) 45%, transparent 72%);
+  filter: blur(6px); animation: sl-respira 4.5s ease-in-out infinite; }
+@media (min-width: 1024px) { .sl-contraluz { left: 70%; width: 60%; height: 100%; } }
+
+/* Charco de sombra con ondas a los pies */
+.sl-charco { position: absolute; z-index: 2; left: 50%; bottom: 1%; width: 92%; height: 64px; transform: translateX(-50%); border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(2,1,10,.95), rgba(20,8,48,.8) 55%, rgba(91,33,182,.25) 80%, transparent);
+  box-shadow: 0 0 40px rgba(139,92,246,.35); }
+.sl-charco i { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(167,139,250,.55);
+  animation: sl-onda 3.6s ease-out infinite; opacity: 0; }
+.sl-charco i:nth-child(2) { animation-delay: 1.2s; }
+.sl-charco i:nth-child(3) { animation-delay: 2.4s; border-color: rgba(79,195,255,.5); }
+@keyframes sl-onda { 0% { transform: scale(.35); opacity: .9; } 100% { transform: scale(1.15); opacity: 0; } }
+@media (min-width: 1024px) { .sl-charco { left: 70%; width: 40%; bottom: -2%; height: 90px; } }
+
+/* Relámpago ocasional que ilumina la escena */
+.sl-relampago { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0;
+  background: radial-gradient(60% 70% at 50% 40%, rgba(196,181,253,.55), rgba(79,195,255,.15) 50%, transparent 75%);
+  animation: sl-relampago 7s linear infinite 2.5s; mix-blend-mode: screen; }
+@media (min-width: 1024px) { .sl-relampago { background: radial-gradient(40% 70% at 70% 40%, rgba(196,181,253,.55), rgba(79,195,255,.15) 50%, transparent 75%); } }
+@keyframes sl-relampago { 0%, 90%, 100% { opacity: 0; } 91% { opacity: .9; } 92% { opacity: .1; } 93.5% { opacity: .75; } 96% { opacity: 0; } }
+
+/* La figura: contraluz violeta y azul, y sus pies se funden en la sombra */
+.sl-figura img { filter: drop-shadow(0 0 2px rgba(196,181,253,.9)) drop-shadow(0 0 16px rgba(139,92,246,.75)) drop-shadow(0 0 50px rgba(79,195,255,.35)) contrast(1.06);
+  mask-image: linear-gradient(180deg, #000 82%, transparent 100%); -webkit-mask-image: linear-gradient(180deg, #000 82%, transparent 100%); }
+@media (max-width: 1023px) {
+  .sl-figura { bottom: 3%; height: 90%; }
+  .sl-figura img { filter: drop-shadow(0 0 2px rgba(196,181,253,.9)) drop-shadow(0 0 14px rgba(139,92,246,.75)) drop-shadow(0 0 36px rgba(79,195,255,.3)); }
+}
+@media (prefers-reduced-motion: reduce) { .sl-eco, .sl-charco i, .sl-relampago, .sl-contraluz { animation: none; } .sl-eco { opacity: 1; } }
+.iw-ligero .sl-relampago { display: none; }
+
+/* ═══ Aura de sombras que sigue la silueta de la figura ═══ */
+.sl-figura > div { position: relative; }
+.sl-figura-img { position: relative; z-index: 2; }
+.sl-aura { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.sl-aura-capa { position: absolute !important; inset: 0; height: 100% !important; width: 100% !important; object-fit: contain; object-position: bottom;
+  mask-image: none !important; -webkit-mask-image: none !important; opacity: 0;
+  transform-origin: 50% 100%; will-change: opacity, transform; }
+.sl-aura-1 { filter: url(#sl-llama-1) !important; animation: sl-llama 2.4s ease-in-out infinite; }
+.sl-aura-2 { filter: url(#sl-llama-2) !important; animation: sl-llama 2.4s ease-in-out infinite .8s; }
+.sl-aura-3 { filter: url(#sl-llama-3) !important; animation: sl-llama 2.4s ease-in-out infinite 1.6s; }
+@keyframes sl-llama {
+  0% { opacity: 0; transform: scale(1.05, 1.06) translateY(0); }
+  35% { opacity: .95; }
+  70% { opacity: .55; }
+  100% { opacity: 0; transform: scale(1.09, 1.14) translateY(-3%); } }
+/* Sin el canvas, el contraluz es lo único detrás: más suave y sin bordes */
+.sl-contraluz { background: radial-gradient(40% 50% at 50% 70%, rgba(139,92,246,.42), rgba(79,195,255,.12) 50%, transparent 75%); filter: blur(10px); }
+@media (min-width: 1024px) { .sl-contraluz { background: radial-gradient(45% 50% at 50% 70%, rgba(139,92,246,.42), rgba(79,195,255,.12) 50%, transparent 75%); } }
+
+/* Título calado: en computador, vertical al borde derecho detrás de la figura */
+@media (min-width: 1024px) {
+  .sl-eco { right: 1.5%; top: 9%; font-size: 13vh; writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); text-align: left; line-height: .9;
+    mask-image: linear-gradient(0deg, #000 40%, rgba(0,0,0,.3) 100%); -webkit-mask-image: linear-gradient(0deg, #000 40%, rgba(0,0,0,.3) 100%); }
+}
+.iw-ligero .sl-aura-capa { animation-duration: 3.6s; }
+/* Sin máscara en la figura: recortaba el brillo en línea recta (se veía un
+   rectángulo). Los pies se funden con una sombra que sube del suelo. */
+.sl-figura img, .sl-figura-img { mask-image: none !important; -webkit-mask-image: none !important; }
+.sl-sombra-pies { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 16%; pointer-events: none;
+  background: linear-gradient(0deg, rgba(3,2,8,.95), rgba(10,4,26,.6) 45%, transparent); }
+@media (min-width: 1024px) { .sl-sombra-pies { left: 45%; height: 18%; } }
