@@ -5683,3 +5683,6 @@ html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -we
 .pk-dentro-fondo::after { background: radial-gradient(60% 50% at 50% 45%, transparent, rgba(5,6,12,.85) 75%), linear-gradient(0deg, rgba(5,6,12,.92), transparent 30%); }
 .pk-dentro-cab span, .pk-dentro-cab { color: #9fd8ff; border-color: rgba(111,240,255,.28); }
 .pk-salida-gate { z-index: 0; }
+/* Dentro de la mazmorra el fondo es el Gate: se quita el cielo gris del raid */
+.pk-dentro-raid .rj-fondo { display: none; }
+.pk-dentro-raid > section::before, .pk-dentro-raid > section::after { opacity: .25; }
