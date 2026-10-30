@@ -69,36 +69,49 @@ const RANGOS_ESTILO = [
 ];
 
 /**
- * Flechas de un carril. Solo en escritorio: en teléfono se desliza con el
- * dedo y unos botones ahí estorbarían.
+ * Barra de navegación del carril al estilo de las webs de juegos:
+ * ◀ ANTERIOR · 01 / 07 · SIGUIENTE ▶. Funciona en teléfono y computador, y el
+ * contador sigue al deslizar con el dedo.
  */
-function FlechasCarril({ id, anterior, siguiente }: { id: string; anterior: string; siguiente: string }) {
-  const mover = (dir: number) => {
+function BarraCarril({ id, total, anterior, siguiente }: { id: string; total: number; anterior: string; siguiente: string }) {
+  const [actual, setActual] = useState(0);
+  useEffect(() => {
     const el = document.getElementById(id);
     if (!el) return;
-    el.scrollBy({ left: dir * el.clientWidth * 0.8, behavior: "smooth" });
+    const medir = () => {
+      const primera = el.children[0] as HTMLElement | undefined;
+      if (!primera) return;
+      const paso = primera.offsetWidth + 20;
+      const fin = el.scrollLeft + el.clientWidth >= el.scrollWidth - 4;
+      setActual(fin ? total - 1 : Math.min(total - 1, Math.round(el.scrollLeft / paso)));
+    };
+    medir();
+    el.addEventListener("scroll", medir, { passive: true });
+    return () => el.removeEventListener("scroll", medir);
+  }, [id, total]);
+  const mover = (dir: number) => {
+    const el = document.getElementById(id);
+    const primera = el?.children[0] as HTMLElement | undefined;
+    if (!el || !primera) return;
+    el.scrollBy({ left: dir * (primera.offsetWidth + 20), behavior: "smooth" });
   };
-
   return (
-    <>
-      <button
-        onClick={() => mover(-1)}
-        aria-label={anterior}
-        className="absolute -left-4 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#0d0620]/90 text-white/70 shadow-xl backdrop-blur transition-colors hover:border-[#a78bfa]/60 hover:text-white lg:flex"
-      >
-        <ChevronLeft size={19} />
+    <div className="sl-carril-barra">
+      <button onClick={() => mover(-1)} disabled={actual === 0} aria-label={anterior}>
+        <ChevronLeft size={16} /> <span>{anterior}</span>
       </button>
-      <button
-        onClick={() => mover(1)}
-        aria-label={siguiente}
-        className="absolute -right-4 top-1/2 z-10 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/15 bg-[#0d0620]/90 text-white/70 shadow-xl backdrop-blur transition-colors hover:border-[#a78bfa]/60 hover:text-white lg:flex"
-      >
-        <ChevronRight size={19} />
+      <p aria-live="polite"><b>{String(actual + 1).padStart(2, "0")}</b> / {String(total).padStart(2, "0")}</p>
+      <button onClick={() => mover(1)} disabled={actual >= total - 1} aria-label={siguiente}>
+        <span>{siguiente}</span> <ChevronRight size={16} />
       </button>
-    </>
+    </div>
   );
 }
 
+/** Esquinas de visor (como el marco de una cámara) para tarjetas e imágenes */
+function Visor() {
+  return <span className="sl-visor" aria-hidden="true"><i /><i /><i /><i /></span>;
+}
 
 /** Fecha de apertura del Fest (hora de Venezuela, UTC−4) */
 const APERTURA = new Date("2027-08-14T00:00:00-04:00").getTime();
@@ -217,6 +230,7 @@ function Cabecera({ n, etiqueta, titulo, centro = false, color = "#9be7ff" }: { 
         {etiqueta && <p className="sl-orbitron text-[10.5px] font-bold uppercase tracking-[0.32em]" style={{ color }}>{etiqueta}</p>}
         {!centro && <span className="sl-cabecera-linea hidden sm:block" aria-hidden="true" />}
         <span className="hidden sm:inline"><NumSeccion n={n} /></span>
+        {!centro && <span className="sl-rayas" aria-hidden="true">//////</span>}
       </div>
       {titulo && <TituloTerminal><h2 className="sl-h2 text-[34px] sm:text-6xl lg:text-7xl">{titulo}</h2></TituloTerminal>}
     </motion.div>
@@ -994,8 +1008,8 @@ export default function HomeEvento() {
           </h2>
 
           <div className="grid gap-6 border-l-2 border-[#4fc3ff]/40 pl-5 sm:grid-cols-2 sm:gap-10 sm:pl-8">
-            <p className="text-[16px] leading-[1.75] text-[#c5bfdc] sm:text-[17px]">{e.bienvenidaP1}</p>
-            <p className="text-[16px] leading-[1.75] text-[#c5bfdc] sm:text-[17px]">{e.bienvenidaP2}</p>
+            <p className="font-mono text-[14px] leading-[1.8] text-[#c5bfdc] sm:text-[15px]">{e.bienvenidaP1}</p>
+            <p className="font-mono text-[14px] leading-[1.8] text-[#c5bfdc] sm:text-[15px]">{e.bienvenidaP2}</p>
           </div>
 
           <p className="sl-frase mt-14 text-[30px] sm:text-5xl">
@@ -1032,7 +1046,6 @@ export default function HomeEvento() {
               bloque que apretándolos en una rejilla. En escritorio se pasa con
               flechas; en teléfono, deslizando. */}
           <div className="relative">
-            <FlechasCarril anterior={e.v2.anterior} siguiente={e.v2.siguiente} id="carril-mundo" />
             <div id="carril-mundo" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
             {TRANSFORMACION.map((x, i) => {
               const Icono = x.icono;
@@ -1043,6 +1056,7 @@ export default function HomeEvento() {
                   className="sl-panel iw-card-grande p-8 sm:p-10"
                   style={{ ["--gc" as string]: x.color }}
                 >
+                  <Visor />
                   <span className="sl-panel-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
                   <p className="sl-orbitron mb-6 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: x.color }}>
                     {e.v2.gate} {String(i + 1).padStart(2, "0")}
@@ -1053,29 +1067,26 @@ export default function HomeEvento() {
                   <h3 className="ev-card-title mb-3 uppercase text-white">
                     {x.titulo}
                   </h3>
-                  <p className="text-[15px] leading-relaxed text-[#b4abcc]">{x.texto}</p>
+                  <p className="font-mono text-[13.5px] leading-relaxed text-[#b4abcc]">{x.texto}</p>
                 </div>
               );
             })}
             </div>
-            <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0] lg:hidden">
-              {e.v2.desliza} →
-            </p>
+            <BarraCarril id="carril-mundo" total={TRANSFORMACION.length} anterior={e.v2.anterior} siguiente={e.v2.siguiente} />
           </div>
         </div>
       </section>
 
       {/* ═══ 4. EXPLORA EL FEST ═══ */}
-      <section data-piso="4" className="ev2-diferida relative z-[1] px-6 py-20 lg:px-16 lg:py-28">
+      <section data-piso="4" className="sl-claro ev2-diferida relative z-[1] px-6 py-20 lg:px-16 lg:py-28">
         <div className="mx-auto max-w-6xl">
           <Cabecera n={4} etiqueta={e.exploraEtiqueta} titulo={e.exploraTitulo} />
-          <p className="mb-12 mt-5 max-w-2xl text-[16px] leading-relaxed text-[#b4abcc]">
+          <p className="sl-claro-texto mb-12 mt-5 max-w-2xl font-mono text-[14px] leading-relaxed text-[#b4abcc]">
             {e.exploraTexto}
           </p>
 
           {/* En teléfono se desliza: con siete áreas, apilarlas sería eterno */}
           <div className="relative">
-            <FlechasCarril anterior={e.v2.anterior} siguiente={e.v2.siguiente} id="carril-areas" />
             <div id="carril-areas" className="iw-areas-carril flex gap-5 overflow-x-auto pb-3">
             {AREAS.map((a, i) => {
               const Icono = a.icono;
@@ -1086,6 +1097,7 @@ export default function HomeEvento() {
                   className="sl-panel iw-card-grande p-8 sm:p-10"
                   style={{ ["--gc" as string]: a.color }}
                 >
+                  <Visor />
                   <span className="sl-panel-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
                   <p className="sl-orbitron mb-6 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: a.color }}>
                     {e.v2.gate} {String(i + 1).padStart(2, "0")}
@@ -1096,7 +1108,7 @@ export default function HomeEvento() {
                   <h3 className="ev-card-title mb-3 uppercase text-white">
                     {a.titulo}
                   </h3>
-                  <p className="mb-6 text-[15px] leading-relaxed text-[#b4abcc]">{a.texto}</p>
+                  <p className="mb-6 font-mono text-[13.5px] leading-relaxed text-[#b4abcc]">{a.texto}</p>
                   <p
                     className="sl-orbitron text-[10px] font-bold uppercase tracking-[0.25em]"
                     style={{ color: `${a.color}aa` }}
@@ -1107,9 +1119,7 @@ export default function HomeEvento() {
               );
             })}
             </div>
-            <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0] lg:hidden">
-              {e.v2.desliza} →
-            </p>
+            <BarraCarril id="carril-areas" total={AREAS.length} anterior={e.v2.anterior} siguiente={e.v2.siguiente} />
           </div>
 
         </div>
@@ -1492,7 +1502,7 @@ export default function HomeEvento() {
       </div>
 
       {/* ═══ 8. EL PREMIO ═══ */}
-      <section data-piso="8" className="ev2-diferida relative z-[1] px-6 py-20 lg:px-16 lg:py-28">
+      <section data-piso="8" className="sl-claro ev2-diferida relative z-[1] px-6 py-20 lg:px-16 lg:py-28">
         <div className="sl-panel sl-boveda relative mx-auto max-w-5xl" style={{ ["--gc" as string]: "#f43f5e" }}>
           <span className="sl-cadena top-6" aria-hidden="true" />
           <span className="sl-cadena bottom-6" aria-hidden="true" />
