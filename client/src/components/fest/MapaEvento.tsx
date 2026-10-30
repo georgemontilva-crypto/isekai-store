@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, X, DoorOpen, ScanLine, Star, Moon, Gamepad2, Mic, Camera, Store, Crown } from "lucide-react";
+import { ChevronLeft, ChevronRight, X, DoorOpen, ScanLine, Star, Moon, Gamepad2, Mic, Camera, Store } from "lucide-react";
 import ManaParticulas from "@/components/fest/ManaParticulas";
 
 /**
@@ -49,9 +49,6 @@ export const ZONAS: Zona[] = [
   { id: "comercial", color: "#8b5cf6", icono: Store, x: 158, y: 30, w: 222, h: 326,
     es: ["Zona Comercial", "Tiendas, artistas, coleccionables, impresión 3D y marcas aliadas. Comprar en un stand habilitado también te da experiencia."],
     en: ["Market Zone", "Shops, artists, collectibles, 3D printing and partner brands. Buying at an enabled stand also gives you experience."] },
-  { id: "vip", color: "#e8c46a", icono: Crown, x: 1112, y: 222, w: 146, h: 308,
-    es: ["Zona VIP", "Mesa en la zona VIP, ingreso una hora antes de la apertura y fotos exclusivas con los invitados internacionales. Solo 20 boletos."],
-    en: ["VIP Zone", "A table in the VIP zone, entry one hour before opening and exclusive photos with the international guests. Only 20 tickets."] },
 ];
 
 export default function MapaEvento({ en, imagenes }: { en: boolean; imagenes: Record<string, string> }) {

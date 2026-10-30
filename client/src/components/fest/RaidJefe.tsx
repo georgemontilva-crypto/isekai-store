@@ -161,8 +161,15 @@ function JefeSilueta({ caido }: { caido: boolean }) {
 type Revelacion = "no" | "grieta" | "estallido" | "revelada";
 
 export default function RaidJefe({
-  t, imagen, recompensa, recompensaImg, numero,
-}: { t: T; imagen: string; recompensa: string; recompensaImg: string; numero: React.ReactNode }) {
+  t, imagen, recompensa, recompensaImg, numero, onEstado,
+}: {
+  t: T; imagen: string; recompensa: string; recompensaImg: string; numero: React.ReactNode;
+  /**
+   * Avisa si la persona ya puede salir (dentro de la mazmorra de /propuesta):
+   * terminó su ronda, ya atacó hoy, el jefe cayó, no hay raid o no tiene cuenta.
+   */
+  onEstado?: (puedeSalir: boolean) => void;
+}) {
   /** Para atacar hace falta cuenta: cada ataque queda a nombre del usuario */
   const { isAuthenticated, user } = useAuth();
   /** Marca aleatoria de esta pestaña: reconoce su propio aviso en vivo */
@@ -442,6 +449,14 @@ export default function RaidJefe({
     const id = window.setTimeout(() => document.getElementById("raid")?.scrollIntoView({ block: "start" }), 400);
     return () => window.clearTimeout(id);
   }, [listo]);
+
+  useEffect(() => {
+    if (!onEstado) return;
+    if (!data || !data.activo) { onEstado(true); return; }
+    const ronda = fase === "cuenta" || fase === "jugando" || fase === "enviando";
+    const leToca = !data.derrotado && !data.yaAtaco && fase === "listo" && isAuthenticated;
+    onEstado(!ronda && !leToca);
+  }, [onEstado, data, fase, isAuthenticated]);
 
   if (!data || !data.activo) return null;
 

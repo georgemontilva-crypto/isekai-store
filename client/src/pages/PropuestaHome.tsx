@@ -452,6 +452,21 @@ export default function PropuestaHome() {
                   <span className="pk-mono pk-glosa-num">{n3(i + 1)}</span>
                   <b className="pk-cond">{t}</b>
                   <p className="pk-mono">{d}</p>
+                  {/* Los Gates del Fest: las 8 zonas del evento */}
+                  {i === 0 && (
+                    <div className="pk-glosa-zonas">
+                      {ZONAS.map((z, k) => {
+                        const Ico = z.icono;
+                        return (
+                          <button key={z.id} onClick={() => ir("pk-evento")} style={{ ["--c" as string]: z.color }}>
+                            <span className="pk-mono">{String(k + 1).padStart(2, "0")}</span>
+                            <Ico size={14} />
+                            {en ? z.en[0] : z.es[0]}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -475,8 +490,8 @@ export default function PropuestaHome() {
           <Titulo claro n={5} intro={en ? "Tap a zone on the map to enter it." : "Toca una zona del plano para entrar en ella."}>{capitulos[4][1]}</Titulo>
           <p className="pk-mono mb-6 max-w-2xl text-[13px] leading-relaxed text-[#3b3450]">
             {en
-              ? "The venue is divided into areas with their own identity. Each one gives you experience when you visit it."
-              : "El recinto se divide en áreas con identidad propia. Cada una te da experiencia al visitarla."}
+              ? "The venue is divided into eight zones with their own identity. Each one gives you experience when you visit it."
+              : "El recinto se divide en ocho zonas con identidad propia. Cada una te da experiencia al visitarla."}
           </p>
           <div className="pk-rev"><MapaEvento en={en} imagenes={Object.fromEntries(ZONAS.map(z => [z.id, s(`wf_zona_${z.id}_img`)]))} /></div>
         </div>
@@ -639,13 +654,14 @@ export default function PropuestaHome() {
           </div>
         </div>
         <MazmorraJefe en={en} imagen={s("wf_raid_jefe")}>
-          <RaidJefe
+          {onEstado => <RaidJefe
+            onEstado={onEstado}
             t={e.v2}
             imagen={s("wf_raid_jefe")}
             recompensa={(en ? s("wf_raid_recompensa_en") : s("wf_raid_recompensa"))}
             recompensaImg={s("wf_raid_recompensa_img")}
             numero={<span className="pk-mono text-[10px] text-[#8b84a3]">008</span>}
-          />
+          />}
         </MazmorraJefe>
       </div>
 
