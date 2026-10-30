@@ -556,7 +556,9 @@ export default function HomeEvento() {
    * (reducir movimiento o gama baja) la portada es una pantalla normal.
    */
   const reducirMov = useReducedMotion();
-  const escenaFija = !reducirMov && !ligero;
+  // En teléfono no hay cruce: la portada es una pantalla limpia que se desliza normal
+  const [anchoGrande] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches);
+  const escenaFija = !reducirMov && !ligero && anchoGrande;
   const heroMarcoRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress: cruce } = useScroll({ target: heroMarcoRef, offset: ["start start", "end end"] });
   const puertaEscala = useTransform(cruce, [0, 1], [1, 2.6]);
@@ -727,7 +729,7 @@ export default function HomeEvento() {
         <section
           ref={heroRef}
           onPointerMove={moverFigura}
-          className="sl-hero"
+          className="sl-hero flex flex-col lg:block"
           style={escenaFija ? { position: "sticky", top: 0 } : undefined}
           data-piso="1"
         >
@@ -738,78 +740,91 @@ export default function HomeEvento() {
           <div className="sl-hero-velo" aria-hidden="true" />
           <div className="sl-hero-rejilla" aria-hidden="true" />
 
-          {/* La puerta */}
-          <div className="sl-puerta" aria-hidden="true">
-           <motion.div className="absolute inset-0" style={escenaFija ? { scale: puertaEscala } : undefined}>
-            <span className="sl-puerta-halo" />
-            <span className="sl-puerta-suelo" />
-            <span className="sl-puerta-remolino" />
-            <span className="sl-puerta-remolino sl-puerta-remolino-2" />
-            <span className="sl-puerta-nucleo" />
-            <span className="sl-puerta-borde" />
-            <span className="sl-puerta-rayo" />
-           </motion.div>
-          </div>
-
           <ManaParticulas className="absolute inset-0 z-0 h-full w-full" ligero={ligero} cantidad={52} />
 
-          {/* Figura delante de la puerta (mantener presionada abre la Zona de Sombras) */}
-          {heroFigura && figura.estado !== "cargando" && (
-            <div className="sl-figura">
-              <motion.div
-                className="ev2-parallax h-full"
-                initial={{ opacity: 0, y: 40 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 1.1, delay: 0.25 }}
-                style={escenaFija ? { scale: figuraEscala, opacity: figuraOpacidad, transformOrigin: "50% 100%" } : undefined}
-              >
-                <img src={figura.src} alt="" />
-              </motion.div>
-            </div>
-          )}
-          {heroFigura && (
-            <div className="absolute left-1/2 top-[18%] z-[2] h-[46%] w-[60%] -translate-x-1/2 lg:left-[70%] lg:top-[10%] lg:h-[80%] lg:w-[34%]">
-              <ZonaSombras onRevelar={() => setSombras(true)} />
-            </div>
-          )}
-
-          {/* HUD superior */}
-          <div className="absolute inset-x-0 top-0 z-[3] mx-auto flex max-w-7xl items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+5.2rem)] lg:px-10 lg:pt-28">
-            <p className="sl-orbitron text-[10px] font-bold uppercase tracking-[0.35em] text-[#9be7ff]">
+          {/* HUD superior. Teléfono: va en el flujo, arriba de la puerta */}
+          <div className="relative z-[3] mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+4.6rem)] lg:absolute lg:inset-x-0 lg:top-0 lg:px-10 lg:pt-28">
+            <p className="sl-orbitron whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.2em] text-[#9be7ff] min-[380px]:text-[10px] min-[380px]:tracking-[0.35em]">
               {e.v2.hudSistema} <span className="ev2-cursor">_</span>
             </p>
-            <NumSeccion n={1} />
+            <p className="sl-orbitron text-[9px] font-bold uppercase tracking-[0.18em] text-[#c4b5fd] min-[380px]:text-[10px] min-[380px]:tracking-[0.3em] lg:hidden">{e.etiquetaAnio}</p>
+            <span className="hidden lg:inline"><NumSeccion n={1} /></span>
+          </div>
+
+          {/* Escenario: la puerta con la figura dentro. En teléfono ocupa el
+              centro de la pantalla, sin texto encima; en computador va a la
+              derecha y el texto a la izquierda. */}
+          <div className="sl-escenario relative z-[1] min-h-0 flex-1 lg:absolute lg:inset-0">
+            <div className="sl-puerta" aria-hidden="true">
+             <motion.div className="absolute inset-0" style={escenaFija ? { scale: puertaEscala } : undefined}>
+              <div className="sl-puerta-abre absolute inset-0">
+                <span className="sl-puerta-halo" />
+                <span className="sl-puerta-suelo" />
+                <span className="sl-puerta-remolino" />
+                <span className="sl-puerta-remolino sl-puerta-remolino-2" />
+                <span className="sl-puerta-vacio" />
+                <span className="sl-puerta-nucleo" />
+                <span className="sl-puerta-borde" />
+                <span className="sl-puerta-rayo" />
+              </div>
+             </motion.div>
+            </div>
+
+            {/* Figura de pie dentro de la puerta (mantener presionada abre la Zona de Sombras) */}
+            {heroFigura && figura.estado !== "cargando" && (
+              <div className="sl-figura">
+                <motion.div
+                  className="ev2-parallax h-full"
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1.1, delay: 0.9 }}
+                  style={escenaFija ? { scale: figuraEscala, opacity: figuraOpacidad, transformOrigin: "50% 100%" } : undefined}
+                >
+                  <img src={figura.src} alt="" />
+                </motion.div>
+              </div>
+            )}
+            {heroFigura && (
+              <div className="absolute left-1/2 top-[8%] z-[2] h-[84%] w-[56%] -translate-x-1/2 lg:left-[70%] lg:top-[10%] lg:h-[80%] lg:w-[34%]">
+                <ZonaSombras onRevelar={() => setSombras(true)} />
+              </div>
+            )}
+            <span className="sl-anillo-suelo" aria-hidden="true" />
           </div>
 
           {/* Título y misión */}
           <motion.div
-            className="absolute inset-x-0 bottom-0 z-[3] mx-auto max-w-7xl px-5 pb-[calc(env(safe-area-inset-bottom)+2.2rem)] lg:inset-y-0 lg:flex lg:flex-col lg:justify-center lg:px-10 lg:pb-0"
+            className="relative z-[3] mx-auto w-full max-w-7xl px-5 pb-[calc(env(safe-area-inset-bottom)+1.6rem)] text-center lg:absolute lg:inset-y-0 lg:left-0 lg:right-0 lg:flex lg:flex-col lg:justify-center lg:px-10 lg:pb-0 lg:text-left"
             style={escenaFija ? { opacity: contenidoOpacidad, y: contenidoY } : undefined}
           >
             <div className="lg:max-w-[60%]">
-              <p className="sl-orbitron mb-4 text-[11px] font-bold uppercase tracking-[0.45em] text-[#c4b5fd] lg:text-xs">
+              <p className="sl-orbitron mb-4 hidden text-xs font-bold uppercase tracking-[0.45em] text-[#c4b5fd] lg:block">
                 {e.etiquetaAnio}
               </p>
-              <h1 className="sl-titulo sl-titan mb-5 text-[44px] [hyphens:none] sm:text-7xl lg:text-[84px] xl:text-[96px]">
-                <span className="sl-texto-marca block"><LetrasEntrada texto={e.heroTitulo1} retraso={0.15} /></span>
-                <span className="sl-texto-sistema block"><LetrasEntrada texto={e.heroTitulo2} retraso={0.15 + e.heroTitulo1.length * 0.035} /></span>
+              <h1 className="sl-titulo sl-titan mb-4 text-[31px] [hyphens:none] min-[380px]:text-[38px] min-[400px]:text-[42px] sm:text-7xl lg:mb-5 lg:text-[84px] xl:text-[96px]">
+                <span className="sl-texto-marca block"><LetrasEntrada texto={e.heroTitulo1} retraso={0.5} /></span>
+                <span className="sl-texto-sistema block"><LetrasEntrada texto={e.heroTitulo2} retraso={0.5 + e.heroTitulo1.length * 0.035} /></span>
               </h1>
 
               <motion.div
                 initial={{ opacity: 0, y: 14 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 1.1 }}
+                transition={{ duration: 0.7, delay: 1.4 }}
               >
-                <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold text-[#e7e3f5] sm:text-sm">
+                <div className="mb-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[13px] font-semibold text-[#e7e3f5] sm:text-sm lg:mb-6 lg:justify-start">
                   <span className="flex items-center gap-2"><Calendar size={15} className="text-[#4fc3ff]" /> {e.heroFecha}</span>
                   <span className="flex items-center gap-2"><MapPin size={15} className="text-[#4fc3ff]" /> {e.heroLugar}</span>
                 </div>
-                <div className="flex flex-col gap-3 sm:flex-row">
-                  <button onClick={irALista} className="sl-btn sl-btn-marca px-8 py-[17px] text-[13px]">
+                <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-center lg:justify-start">
+                  <button onClick={irALista} className="sl-btn sl-btn-marca px-8 py-[16px] text-[12.5px]">
                     {e.ctaAviso}
                   </button>
-                  <a href="#el-mundo" className="sl-btn sl-btn-sistema px-8 py-[17px] text-[13px]">
+                  <a href="#el-mundo" className="sl-btn sl-btn-sistema sl-solo-ancho px-8 py-[16px] text-[12.5px]">
                     {e.ctaDescubrir}
+                  </a>
+                  {/* Teléfono: enlace compacto, para que todo quepa en la pantalla */}
+                  <a href="#el-mundo" className="sl-orbitron mx-auto mt-1 inline-flex items-center gap-1.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.28em] text-[#9be7ff] sm:hidden">
+                    {e.ctaDescubrir} <ChevronRight size={13} className="rotate-90" />
                   </a>
                 </div>
               </motion.div>
