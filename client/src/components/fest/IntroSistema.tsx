@@ -18,7 +18,7 @@ export function introPendiente() {
 
 type Fase = "carga" | "logo" | "sale";
 
-export default function IntroSistema({ logo, cargando, onAbre, onFin, textoCarga = "Cargando" }: {
+export default function IntroSistema({ logo, cargando, onAbre, onFin, textoCarga = "Cargando", siempre = false }: {
   /** URL del logo; undefined mientras llegan los ajustes */
   logo?: string | null;
   /** true mientras los ajustes todavía no llegan */
@@ -28,6 +28,8 @@ export default function IntroSistema({ logo, cargando, onAbre, onFin, textoCarga
   /** Terminó el fundido: ya se puede quitar */
   onFin: () => void;
   textoCarga?: string;
+  /** Sale en cada visita (no recuerda que ya se vio) */
+  siempre?: boolean;
 }) {
   const reducir = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
   const [fase, setFase] = useState<Fase>("carga");
@@ -38,7 +40,7 @@ export default function IntroSistema({ logo, cargando, onAbre, onFin, textoCarga
   const terminar = () => {
     if (terminado.current) return;
     terminado.current = true;
-    try { sessionStorage.setItem(CLAVE, "1"); } catch { /* sin almacenamiento */ }
+    if (!siempre) { try { sessionStorage.setItem(CLAVE, "1"); } catch { /* sin almacenamiento */ } }
     setFase("sale");
     onAbre();
     window.setTimeout(onFin, reducir ? 250 : 750);
