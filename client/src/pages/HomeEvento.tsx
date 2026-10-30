@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
-import { motion, useScroll, useSpring, useReducedMotion } from "framer-motion";
+import { motion, useScroll, useSpring, useReducedMotion, useTransform } from "framer-motion";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
   Trophy, Lock, MapPin, Calendar, Star, ChevronLeft, ChevronRight,
@@ -16,6 +16,7 @@ import ChispasEnergia from "@/components/fest/ChispasEnergia";
 import { esGamaBaja } from "@/lib/gamaBaja";
 import RaidJefe from "@/components/fest/RaidJefe";
 import { ZonaSombras, RevelacionSombras } from "@/components/fest/SombrasSecretas";
+import ManaParticulas from "@/components/fest/ManaParticulas";
 
 /**
  * Isekai World Fest — landing del evento (portada del sitio).
@@ -133,6 +134,31 @@ function Escritura({ texto }: { texto: string }) {
   );
 }
 
+/**
+ * Título que entra letra por letra con un pequeño «glitch» de color. El lector
+ * de pantalla recibe la frase completa; las letras sueltas son decorativas.
+ */
+function LetrasEntrada({ texto, retraso = 0 }: { texto: string; retraso?: number }) {
+  return (
+    <>
+      <span className="sr-only">{texto}</span>
+      <span aria-hidden="true">
+        {texto.split(" ").map((palabra, w, palabras) => {
+          const antes = palabras.slice(0, w).join(" ").length + (w ? 1 : 0);
+          return (
+            <span key={w} className="inline-block whitespace-nowrap">
+              {Array.from(palabra).map((ch, k) => (
+                <span key={k} className="sl-letra" style={{ animationDelay: `${retraso + (antes + k) * 0.035}s` }}>{ch}</span>
+              ))}
+              {w < palabras.length - 1 && <span className="inline-block">&nbsp;</span>}
+            </span>
+          );
+        })}
+      </span>
+    </>
+  );
+}
+
 /** Cuenta regresiva a la apertura en cajas biseladas tipo HUD */
 function CuentaRegresiva({ etiquetas }: { etiquetas: [string, string, string, string] }) {
   const [ahora, setAhora] = useState(() => Date.now());
@@ -150,15 +176,11 @@ function CuentaRegresiva({ etiquetas }: { etiquetas: [string, string, string, st
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-2 sm:max-w-md">
+    <div className="grid grid-cols-4 gap-2">
       {valores.map((v, i) => (
-        <div
-          key={i}
-          className={`ev-notch ev2-hud py-2.5 text-center ${i === 3 ? "ev2-hud-rosa" : ""}`}
-          style={{ clipPath: "polygon(10px 0,100% 0,100% calc(100% - 10px),calc(100% - 10px) 100%,0 100%,0 10px)" }}
-        >
-          <div className={`ev-display text-xl tabular-nums sm:text-2xl ${i === 3 ? "text-[#ff5fb1]" : "text-white"}`}>{v}</div>
-          <div className={`font-mono text-[10px] uppercase tracking-[0.2em] ${i === 3 ? "text-[#ff5fb1]" : "text-[#a78bfa]"}`}>
+        <div key={i} className={`sl-reloj py-3 text-center ${i === 3 ? "sl-reloj-rosa" : ""}`}>
+          <div className={`sl-orbitron text-2xl font-black tabular-nums sm:text-3xl ${i === 3 ? "text-[#ff5fb1]" : "text-white"}`}>{v}</div>
+          <div className={`mt-0.5 font-mono text-[9.5px] uppercase tracking-[0.2em] ${i === 3 ? "text-[#ff5fb1]" : "text-[#9be7ff]/80"}`}>
             {etiquetas[i]}
           </div>
         </div>
@@ -176,13 +198,44 @@ function NumSeccion({ n, total = 9 }: { n: number; total?: number }) {
   );
 }
 
+/**
+ * Cabecera de cada sección: hexágono con el número del «piso», etiqueta del
+ * Sistema y un título blanco metálico. Mismo texto de siempre, otra piel.
+ */
+function Cabecera({ n, etiqueta, titulo, centro = false, color = "#9be7ff" }: { n: number; etiqueta?: string; titulo?: React.ReactNode; centro?: boolean; color?: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 26 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-60px" }}
+      transition={{ duration: 0.7, ease: [0.2, 0.9, 0.2, 1] }}
+      className={centro ? "text-center" : ""}
+    >
+      <div className={`mb-5 flex items-center gap-4 ${centro ? "justify-center" : ""}`}>
+        <span className="sl-hex"><span className="sl-orbitron text-[13px] font-black text-white">{String(n).padStart(2, "0")}</span></span>
+        {etiqueta && <p className="sl-orbitron text-[10.5px] font-bold uppercase tracking-[0.32em]" style={{ color }}>{etiqueta}</p>}
+        {!centro && <span className="sl-cabecera-linea hidden sm:block" aria-hidden="true" />}
+        <span className="hidden sm:inline"><NumSeccion n={n} /></span>
+      </div>
+      {titulo && <h2 className="sl-h2 text-[34px] sm:text-6xl lg:text-7xl">{titulo}</h2>}
+    </motion.div>
+  );
+}
+
 /** Franja inclinada que se desliza con los nombres de las áreas */
 function Franja({ items }: { items: string[] }) {
   const linea = items.map(x => x.toUpperCase()).join("  ◆  ") + "  ◆  ";
+  // Dos cintas cruzadas: la de la marca y la del Sistema, en sentidos opuestos
   return (
-    <div className="overflow-hidden py-4" aria-hidden="true">
-      <div className="ev2-franja -mx-8 bg-[#e5007d] py-2.5">
-        <div className="ev2-franja-pista font-mono text-xs font-bold tracking-[0.18em] text-white sm:text-sm">
+    <div className="relative z-[1] overflow-hidden py-8" aria-hidden="true">
+      <div className="sl-cinta ev2-franja bg-gradient-to-r from-[#ff2e93] via-[#e5007d] to-[#a1005a] py-3 shadow-[0_0_40px_rgba(229,0,125,0.45)]">
+        <div className="ev2-franja-pista sl-orbitron text-[12px] font-bold tracking-[0.22em] text-white sm:text-sm">
+          <span className="whitespace-pre">{linea}</span>
+          <span className="whitespace-pre">{linea}</span>
+        </div>
+      </div>
+      <div className="sl-cinta sl-cinta-2 ev2-franja border-y border-[#9be7ff]/40 bg-[#07102a]/95 py-2.5">
+        <div className="ev2-franja-pista sl-orbitron text-[11px] font-bold tracking-[0.3em] text-[#9be7ff] sm:text-xs" style={{ animationDirection: "reverse" }}>
           <span className="whitespace-pre">{linea}</span>
           <span className="whitespace-pre">{linea}</span>
         </div>
@@ -343,6 +396,37 @@ function NombreDescifrando({ etiqueta, semilla }: { etiqueta: string; semilla: n
   );
 }
 
+/**
+ * Indicador de piso (solo pantallas anchas): un rombo por sección que se
+ * enciende en la que estás. Tocarlo te lleva a esa sección.
+ */
+function IndicadorPisos() {
+  const [activo, setActivo] = useState(1);
+  useEffect(() => {
+    const secciones = Array.from(document.querySelectorAll<HTMLElement>("[data-piso]"));
+    const io = new IntersectionObserver(entradas => {
+      for (const en of entradas) if (en.isIntersecting) setActivo(Number(en.target.getAttribute("data-piso")));
+    }, { rootMargin: "-45% 0px -50% 0px" });
+    secciones.forEach(s => io.observe(s));
+    return () => io.disconnect();
+  }, []);
+  return (
+    <nav className="sl-pisos" aria-label="Secciones">
+      {Array.from({ length: 9 }, (_, i) => i + 1).map(n => (
+        <button
+          key={n}
+          className="sl-piso"
+          data-activo={activo === n ? "1" : "0"}
+          onClick={() => document.querySelector(`[data-piso="${n}"]`)?.scrollIntoView({ behavior: "smooth" })}
+          aria-label={`${n}`}
+        >
+          {activo === n && <span>{String(n).padStart(2, "0")}</span>}<i />
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 /** Silueta genérica para invitados aún sin revelar */
 function Silueta() {
   return (
@@ -466,6 +550,25 @@ export default function HomeEvento() {
     }
   };
 
+  /**
+   * Cruce de la puerta: la portada queda fija mientras se baja, la puerta
+   * crece, la figura se acerca y un destello «te mete» en el Fest. Sin esto
+   * (reducir movimiento o gama baja) la portada es una pantalla normal.
+   */
+  const reducirMov = useReducedMotion();
+  const escenaFija = !reducirMov && !ligero;
+  const heroMarcoRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress: cruce } = useScroll({ target: heroMarcoRef, offset: ["start start", "end end"] });
+  const puertaEscala = useTransform(cruce, [0, 1], [1, 2.6]);
+  const figuraEscala = useTransform(cruce, [0, 1], [1, 1.25]);
+  const figuraOpacidad = useTransform(cruce, [0.35, 0.7], [1, 0]);
+  const contenidoOpacidad = useTransform(cruce, [0, 0.3], [1, 0]);
+  const contenidoY = useTransform(cruce, [0, 0.35], [0, -60]);
+  const cruceOpacidad = useTransform(cruce, [0.6, 0.86, 1], [0, 1, 0]);
+  const tunelOpacidad = useTransform(cruce, [0.2, 0.55, 0.85], [0, 1, 0]);
+  const tunelEscala = useTransform(cruce, [0.2, 0.9], [0.6, 2.2]);
+  const [notificacionVisible, setNotificacionVisible] = useState(false);
+
   /** Parallax de la figura (solo tiene efecto con mouse) */
   const heroRef = useRef<HTMLElement>(null);
   const moverFigura = (ev: RPointerEvent<HTMLElement>) => {
@@ -483,11 +586,18 @@ export default function HomeEvento() {
   });
   const energia = useSpring(avanceEscalera, { stiffness: 120, damping: 30 });
 
+  /** Barra de energía a la izquierda: se llena al recorrer la página */
+  const { scrollYProgress: avancePagina } = useScroll();
+  const energiaPagina = useSpring(avancePagina, { stiffness: 140, damping: 30 });
+
   const irALista = () =>
     document.getElementById("lista-acceso")?.scrollIntoView({ behavior: "smooth" });
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#06040d] text-white">
+    <div className="sl-home relative min-h-screen overflow-x-clip text-white">
+      <div className="sl-cielo" aria-hidden="true" />
+      <motion.div className="sl-energia" style={{ scaleY: energiaPagina }} aria-hidden="true" />
+      <IndicadorPisos />
 
       {/* El entorno se tiñe del color del rango actual: un golpe fuerte al
           ascender y después un tinte suave que permanece. */}
@@ -609,190 +719,178 @@ export default function HomeEvento() {
       )}
 
       {/* ═══ 1. EL SISTEMA HA DESPERTADO ═══
-          Teléfono: la figura arriba dentro del portal y el texto montado
-          sobre su base. Escritorio: texto a la izquierda, figura y portal a
-          la derecha, con un leve movimiento que sigue al mouse. */}
-      <section
-        ref={heroRef}
-        onPointerMove={moverFigura}
-        className="relative overflow-hidden lg:flex lg:min-h-[680px] lg:items-center"
-      >
-        {heroBg && (
-          <img src={heroBg} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        )}
-        {heroVideo && (
-          <video
-            src={heroVideo}
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster={heroBg || undefined}
-            className="absolute inset-0 h-full w-full object-cover"
-            style={{ opacity: 0.45 }}
-          />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-b from-[#06040d]/75 via-[#0d0620]/70 to-[#06040d]" />
-        <div className="absolute inset-0 hidden bg-gradient-to-r from-[#06040d] via-[#06040d]/40 to-transparent lg:block" />
-        <div className="ev-grid absolute inset-0 opacity-70" />
-        <div className="ev-halo absolute -left-40 top-1/4 h-[520px] w-[520px]" />
+          Escena 1: la puerta de maná con la figura delante y el título.
+          Al bajar, la puerta crece y se «cruza» con un destello de luz.
+          Escena 2: aparece la notificación del Sistema con el texto, la
+          fecha, la cuenta regresiva y la misión. */}
+      <div ref={heroMarcoRef} className="sl-hero-marco" style={{ height: escenaFija ? "150svh" : undefined }}>
+        <section
+          ref={heroRef}
+          onPointerMove={moverFigura}
+          className="sl-hero"
+          style={escenaFija ? { position: "sticky", top: 0 } : undefined}
+          data-piso="1"
+        >
+          <div className="sl-hero-fondo" aria-hidden="true">
+            {heroBg && <img src={heroBg} alt="" />}
+            {heroVideo && <video src={heroVideo} autoPlay muted loop playsInline poster={heroBg || undefined} style={{ opacity: 0.6 }} />}
+          </div>
+          <div className="sl-hero-velo" aria-hidden="true" />
+          <div className="sl-hero-rejilla" aria-hidden="true" />
 
-        {Array.from({ length: 14 }, (_, i) => (
-          <span
-            key={i}
-            className="iw-particula-sistema"
-            style={{
-              left: `${5 + i * 7}%`,
-              animationDelay: `${i * 0.55}s`,
-              animationDuration: `${5 + (i % 4)}s`,
-            }}
-          />
-        ))}
-
-        <div className="relative z-10 mx-auto grid w-full max-w-7xl grid-cols-1 lg:grid-cols-[54fr_46fr] lg:gap-4 lg:px-10">
-          {/* Figura + portal. Va primero en el DOM para quedar arriba en
-              teléfono; en escritorio pasa a la segunda columna. */}
-          <div className="relative h-[52svh] min-h-[320px] max-h-[520px] lg:order-2 lg:h-auto lg:max-h-none lg:min-h-[680px] lg:self-stretch">
-            <div className="ev2-portal left-1/2 top-[46%] w-[82vw] max-w-[420px] -translate-x-1/2 -translate-y-1/2 lg:w-[88%] lg:max-w-[560px]">
-              <span className="ev2-portal-anillo" />
-              <span className="ev2-portal-anillo ev2-portal-anillo-2" />
-              <span className="ev2-portal-anillo ev2-portal-anillo-3" />
-              <span className="ev2-portal-nucleo" />
-            </div>
-
-            {heroFigura && figura.estado !== "cargando" && (
-              <motion.div
-                initial={{ opacity: 0, y: 30 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.9 }}
-                className="ev2-parallax pointer-events-none absolute inset-x-0 bottom-0 top-4 lg:top-8"
-              >
-                <img
-                  src={figura.src}
-                  alt=""
-                  className={`iw-hero-figura h-full w-full object-bottom ${
-                    figura.estado === "recortada" ? "object-contain" : "object-cover"
-                  }`}
-                />
-              </motion.div>
-            )}
-
-            {/* Zona de Sombras: mantener presionada la figura 3 segundos */}
-            {heroFigura && <ZonaSombras onRevelar={() => setSombras(true)} />}
-
-            {/* La base de la figura se funde con el texto que sube encima */}
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-[#06040d] to-transparent lg:h-24" />
-
-            <p className="absolute left-5 top-4 font-mono text-[11px] tracking-[0.2em] text-[#7dd8ff] lg:hidden">
-              {e.v2.hudSistema} <span className="ev2-cursor">_</span>
-            </p>
-            <p className="absolute right-5 top-4 lg:hidden"><NumSeccion n={1} /></p>
+          {/* La puerta */}
+          <div className="sl-puerta" aria-hidden="true">
+           <motion.div className="absolute inset-0" style={escenaFija ? { scale: puertaEscala } : undefined}>
+            <span className="sl-puerta-halo" />
+            <span className="sl-puerta-suelo" />
+            <span className="sl-puerta-remolino" />
+            <span className="sl-puerta-remolino sl-puerta-remolino-2" />
+            <span className="sl-puerta-nucleo" />
+            <span className="sl-puerta-borde" />
+            <span className="sl-puerta-rayo" />
+           </motion.div>
           </div>
 
-          {/* Texto */}
+          <ManaParticulas className="absolute inset-0 z-0 h-full w-full" ligero={ligero} cantidad={52} />
+
+          {/* Figura delante de la puerta (mantener presionada abre la Zona de Sombras) */}
+          {heroFigura && figura.estado !== "cargando" && (
+            <div className="sl-figura">
+              <motion.div
+                className="ev2-parallax h-full"
+                initial={{ opacity: 0, y: 40 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.1, delay: 0.25 }}
+                style={escenaFija ? { scale: figuraEscala, opacity: figuraOpacidad, transformOrigin: "50% 100%" } : undefined}
+              >
+                <img src={figura.src} alt="" />
+              </motion.div>
+            </div>
+          )}
+          {heroFigura && (
+            <div className="absolute left-1/2 top-[18%] z-[2] h-[46%] w-[60%] -translate-x-1/2 lg:left-[70%] lg:top-[10%] lg:h-[80%] lg:w-[34%]">
+              <ZonaSombras onRevelar={() => setSombras(true)} />
+            </div>
+          )}
+
+          {/* HUD superior */}
+          <div className="absolute inset-x-0 top-0 z-[3] mx-auto flex max-w-7xl items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+5.2rem)] lg:px-10 lg:pt-28">
+            <p className="sl-orbitron text-[10px] font-bold uppercase tracking-[0.35em] text-[#9be7ff]">
+              {e.v2.hudSistema} <span className="ev2-cursor">_</span>
+            </p>
+            <NumSeccion n={1} />
+          </div>
+
+          {/* Título y misión */}
           <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="relative z-10 -mt-16 min-w-0 px-5 pb-14 sm:px-6 lg:order-1 lg:mt-0 lg:self-center lg:px-0 lg:py-14"
+            className="absolute inset-x-0 bottom-0 z-[3] mx-auto max-w-7xl px-5 pb-[calc(env(safe-area-inset-bottom)+2.2rem)] lg:inset-y-0 lg:flex lg:flex-col lg:justify-center lg:px-10 lg:pb-0"
+            style={escenaFija ? { opacity: contenidoOpacidad, y: contenidoY } : undefined}
           >
-            <div className="mb-4 flex items-center gap-4">
-              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.4em] text-[#a78bfa]">
+            <div className="lg:max-w-[60%]">
+              <p className="sl-orbitron mb-4 text-[11px] font-bold uppercase tracking-[0.45em] text-[#c4b5fd] lg:text-xs">
                 {e.etiquetaAnio}
               </p>
-              <span className="hidden lg:inline"><NumSeccion n={1} /></span>
+              <h1 className="sl-titulo sl-titan mb-5 text-[44px] [hyphens:none] sm:text-7xl lg:text-[84px] xl:text-[96px]">
+                <span className="sl-texto-marca block"><LetrasEntrada texto={e.heroTitulo1} retraso={0.15} /></span>
+                <span className="sl-texto-sistema block"><LetrasEntrada texto={e.heroTitulo2} retraso={0.15 + e.heroTitulo1.length * 0.035} /></span>
+              </h1>
+
+              <motion.div
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, delay: 1.1 }}
+              >
+                <div className="mb-6 flex flex-wrap gap-x-5 gap-y-2 text-[13px] font-semibold text-[#e7e3f5] sm:text-sm">
+                  <span className="flex items-center gap-2"><Calendar size={15} className="text-[#4fc3ff]" /> {e.heroFecha}</span>
+                  <span className="flex items-center gap-2"><MapPin size={15} className="text-[#4fc3ff]" /> {e.heroLugar}</span>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <button onClick={irALista} className="sl-btn sl-btn-marca px-8 py-[17px] text-[13px]">
+                    {e.ctaAviso}
+                  </button>
+                  <a href="#el-mundo" className="sl-btn sl-btn-sistema px-8 py-[17px] text-[13px]">
+                    {e.ctaDescubrir}
+                  </a>
+                </div>
+              </motion.div>
             </div>
+          </motion.div>
 
-            <h1 className="ev-display mb-6 text-[40px] leading-[0.95] [hyphens:none] [overflow-wrap:normal] sm:text-6xl lg:text-[56px] xl:text-[64px]">
-              <span className="text-[#e5007d]">{e.heroTitulo1}</span>
-              <br />
-              <span className="iw-texto-sistema">{e.heroTitulo2}</span>
-            </h1>
+          {/* Bajar */}
+          <div className="absolute bottom-6 right-6 z-[3] hidden flex-col items-center gap-2 lg:flex" aria-hidden="true">
+            <span className="sl-bajar" />
+          </div>
 
-            {/* Ventana del Sistema con el texto del hero */}
-            <div className="ev-notch ev2-ventana mb-6 max-w-xl p-4 sm:p-5">
-              <p className="mb-2 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#7dd8ff]">
-                {e.v2.sistemaAlerta}
-              </p>
-              <p className="min-h-[7.5em] text-[15px] leading-relaxed text-[#dbeafe] sm:min-h-[5.2em] sm:text-base">
-                <Escritura texto={e.heroTexto} />
-              </p>
-            </div>
+          {/* Destello al cruzar la puerta */}
+          {escenaFija && <motion.div className="sl-tunel" style={{ opacity: tunelOpacidad, scale: tunelEscala }} aria-hidden="true" />}
+          {escenaFija && <motion.div className="sl-cruce" style={{ opacity: cruceOpacidad }} aria-hidden="true" />}
+        </section>
+      </div>
 
-            <div className="mb-5 flex flex-wrap gap-x-6 gap-y-2 font-mono text-sm text-[#d8d0ea]">
-              <span className="flex items-center gap-2">
-                <Calendar size={15} className="text-[#a78bfa]" /> {e.heroFecha}
-              </span>
-              <span className="flex items-center gap-2">
-                <MapPin size={15} className="text-[#a78bfa]" /> {e.heroLugar}
-              </span>
-            </div>
+      {/* ═══ Notificación del Sistema (continuación de la portada) ═══ */}
+      <section className="relative z-[1] px-5 pb-16 pt-14 lg:pb-24 lg:pt-20">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 24 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.6, ease: [0.2, 0.9, 0.2, 1] }}
+          onViewportEnter={() => setNotificacionVisible(true)}
+          className="sl-ventana mx-auto max-w-2xl"
+        >
+          <span className="sl-esquinas" aria-hidden="true" />
+          <div className="sl-ventana-cab">
+            <span className="sl-ventana-icono">!</span>
+            <p className="sl-orbitron text-[10.5px] font-bold uppercase tracking-[0.3em] text-[#e9fbff]">{e.v2.sistemaAlerta}</p>
+          </div>
+          <div className="p-5 sm:p-8">
+            <p className="min-h-[7.5em] text-[16px] leading-relaxed text-[#e3f4ff] sm:min-h-[5.2em] sm:text-[17px]">
+              {notificacionVisible ? <Escritura texto={e.heroTexto} /> : <span className="sr-only">{e.heroTexto}</span>}
+            </p>
 
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.3em] text-[#7c6fa0]">
+            <p className="sl-orbitron mb-3 mt-7 text-[10px] font-bold uppercase tracking-[0.35em] text-[#9be7ff]/80">
               {e.v2.cuentaEtiqueta}
             </p>
-            <div className="mb-7">
-              <CuentaRegresiva etiquetas={[e.v2.dias, e.v2.horas, e.v2.minutos, e.v2.segundos]} />
-            </div>
+            <CuentaRegresiva etiquetas={[e.v2.dias, e.v2.horas, e.v2.minutos, e.v2.segundos]} />
 
-            <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <button
-                onClick={irALista}
-                className="ev-notch ev-press ev2-latido bg-[#e5007d] px-8 py-4 text-sm font-bold uppercase tracking-wider text-white"
-              >
-                {e.ctaAviso}
-              </button>
-              <a
-                href="#el-mundo"
-                className="ev-press ev2-corchetes px-8 py-4 text-center text-sm font-bold uppercase tracking-wider text-white transition-colors hover:bg-white/10"
-              >
-                {e.ctaDescubrir}
-              </a>
-            </div>
-
-            <p className="font-mono text-xs text-[#7c6fa0]">
+            <p className="mt-7 border-t border-[#9be7ff]/20 pt-5 font-mono text-xs text-[#a9b8d6]">
               {e.tuRango}{" "}
-              <span className="text-[#a78bfa]">E → D → C → B → A → S</span>
+              <span className="sl-orbitron font-bold tracking-[0.2em] text-[#9be7ff]">E → D → C → B → A → S</span>
             </p>
-          </motion.div>
-        </div>
+          </div>
+        </motion.div>
       </section>
 
       <Franja items={AREAS.map(a => a.titulo)} />
 
       {/* ═══ 2. BIENVENIDO AL ISEKAI ═══ */}
-      <section className="ev2-diferida mx-auto max-w-4xl px-6 py-20 text-left sm:text-center lg:py-28">
+      <section data-piso="2" className="ev2-diferida relative z-[1] mx-auto max-w-5xl px-6 py-24 lg:py-32">
+        <Cabecera n={2} />
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.8 }}
         >
-          <p className="mb-6"><NumSeccion n={2} /></p>
-          <h2 className="ev-display mb-8 text-[26px] leading-[1.08] sm:text-5xl">
-            {e.bienvenidaT1}
+          <h2 className="sl-frase mb-10 text-[40px] sm:text-7xl lg:text-[88px]">
+            <span className="sl-h2">{e.bienvenidaT1}</span>
             <br />
-            <span className="text-[#a78bfa]">{e.bienvenidaT2}</span>
+            <span className="sl-texto-sistema">{e.bienvenidaT2}</span>
           </h2>
 
-          <p className="mx-auto mb-5 max-w-3xl text-[15px] leading-relaxed text-[#b9b0d4] sm:text-base">
-            {e.bienvenidaP1}
-          </p>
-          <p className="mx-auto mb-10 max-w-3xl text-[15px] leading-relaxed text-[#b9b0d4] sm:text-base">
-            {e.bienvenidaP2}
-          </p>
+          <div className="grid gap-6 border-l-2 border-[#4fc3ff]/40 pl-5 sm:grid-cols-2 sm:gap-10 sm:pl-8">
+            <p className="text-[16px] leading-[1.75] text-[#c5bfdc] sm:text-[17px]">{e.bienvenidaP1}</p>
+            <p className="text-[16px] leading-[1.75] text-[#c5bfdc] sm:text-[17px]">{e.bienvenidaP2}</p>
+          </div>
 
-          <p className="text-xl font-black text-white sm:text-2xl">
-            {e.bienvenidaFrase1}{" "}
-            <span className="text-[#e5007d]">{e.bienvenidaFrase2}</span>
+          <p className="sl-frase mt-14 text-[30px] sm:text-5xl">
+            <span className="text-white">{e.bienvenidaFrase1}</span>{" "}
+            <span className="sl-texto-marca">{e.bienvenidaFrase2}</span>
           </p>
         </motion.div>
       </section>
 
-      <div className="ev-linea" />
-
       {/* ═══ 3. EL MUNDO HA CAMBIADO ═══ */}
-      <section id="el-mundo" className="ev2-diferida ev-grid relative overflow-hidden border-y border-white/[0.06] bg-white/[0.015] px-6 py-20 lg:px-16 lg:py-24">
+      <section id="el-mundo" data-piso="3" className="ev2-diferida relative z-[1] overflow-hidden px-6 py-20 lg:px-16 lg:py-28">
         {/* Fondo opcional. Va bajo un velo oscuro y se apaga hacia los bordes
             de arriba y abajo, para que las tarjetas se lean y la sección
             se funda con las de alrededor en vez de cortar de golpe. */}
@@ -811,10 +909,8 @@ export default function HomeEvento() {
         )}
 
         <div className="relative mx-auto max-w-6xl">
-          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            <NumSeccion n={3} />&nbsp;&nbsp;{e.mundoEtiqueta}
-          </p>
-          <h2 className="ev-display mb-12 text-[26px] leading-[1.05] sm:text-5xl">{e.mundoTitulo}</h2>
+          <Cabecera n={3} etiqueta={e.mundoEtiqueta} titulo={e.mundoTitulo} />
+          <div className="mb-12" />
 
           {/* Carril horizontal: con tarjetas más grandes se lee mejor cada
               bloque que apretándolos en una rejilla. En escritorio se pasa con
@@ -828,26 +924,20 @@ export default function HomeEvento() {
                 <div
                   key={x.titulo}
                   onPointerMove={moverLuz}
-                  className="ev-notch ev2-gate iw-card-grande border p-8 sm:p-10"
-                  style={{
-                    ["--gc" as string]: x.color,
-                    borderColor: `${x.color}40`,
-                    background: `linear-gradient(150deg, ${x.color}0d, rgba(6,4,13,0.7))`,
-                  }}
+                  className="sl-panel iw-card-grande p-8 sm:p-10"
+                  style={{ ["--gc" as string]: x.color }}
                 >
-                  <p className="mb-5 font-mono text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: x.color }}>
+                  <span className="sl-panel-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  <p className="sl-orbitron mb-6 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: x.color }}>
                     {e.v2.gate} {String(i + 1).padStart(2, "0")}
                   </p>
-                  <div
-                    className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl"
-                    style={{ background: `${x.color}1f`, border: `1px solid ${x.color}44` }}
-                  >
+                  <div className="sl-panel-icono mb-7">
                     <Icono size={26} style={{ color: x.color }} />
                   </div>
                   <h3 className="ev-card-title mb-3 uppercase text-white">
                     {x.titulo}
                   </h3>
-                  <p className="text-[15px] leading-relaxed text-[#a99fc4]">{x.texto}</p>
+                  <p className="text-[15px] leading-relaxed text-[#b4abcc]">{x.texto}</p>
                 </div>
               );
             })}
@@ -860,13 +950,10 @@ export default function HomeEvento() {
       </section>
 
       {/* ═══ 4. EXPLORA EL FEST ═══ */}
-      <section className="ev2-diferida px-6 py-20 lg:px-16 lg:py-24">
+      <section data-piso="4" className="ev2-diferida relative z-[1] px-6 py-20 lg:px-16 lg:py-28">
         <div className="mx-auto max-w-6xl">
-          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            <NumSeccion n={4} />&nbsp;&nbsp;{e.exploraEtiqueta}
-          </p>
-          <h2 className="ev-display mb-3 text-[26px] leading-[1.05] sm:text-5xl">{e.exploraTitulo}</h2>
-          <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#a99fc4]">
+          <Cabecera n={4} etiqueta={e.exploraEtiqueta} titulo={e.exploraTitulo} />
+          <p className="mb-12 mt-5 max-w-2xl text-[16px] leading-relaxed text-[#b4abcc]">
             {e.exploraTexto}
           </p>
 
@@ -880,23 +967,22 @@ export default function HomeEvento() {
                 <div
                   key={a.titulo}
                   onPointerMove={moverLuz}
-                  className="ev-notch ev2-gate iw-card-grande relative overflow-hidden border p-8 sm:p-10"
-                  style={{
-                    ["--gc" as string]: a.color,
-                    borderColor: `${a.color}40`,
-                    background: `linear-gradient(160deg, ${a.color}0f, rgba(6,4,13,0.8))`,
-                  }}
+                  className="sl-panel iw-card-grande p-8 sm:p-10"
+                  style={{ ["--gc" as string]: a.color }}
                 >
-                  <p className="mb-5 font-mono text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: a.color }}>
+                  <span className="sl-panel-num" aria-hidden="true">{String(i + 1).padStart(2, "0")}</span>
+                  <p className="sl-orbitron mb-6 text-[10px] font-bold uppercase tracking-[0.3em]" style={{ color: a.color }}>
                     {e.v2.gate} {String(i + 1).padStart(2, "0")}
                   </p>
-                  <Icono size={30} style={{ color: a.color }} className="mb-6" />
+                  <div className="sl-panel-icono mb-7">
+                    <Icono size={28} style={{ color: a.color }} />
+                  </div>
                   <h3 className="ev-card-title mb-3 uppercase text-white">
                     {a.titulo}
                   </h3>
-                  <p className="mb-6 text-[15px] leading-relaxed text-[#a99fc4]">{a.texto}</p>
+                  <p className="mb-6 text-[15px] leading-relaxed text-[#b4abcc]">{a.texto}</p>
                   <p
-                    className="font-mono text-[10px] uppercase tracking-[0.25em]"
+                    className="sl-orbitron text-[10px] font-bold uppercase tracking-[0.25em]"
                     style={{ color: `${a.color}aa` }}
                   >
                     {e.proximamente}
@@ -917,7 +1003,12 @@ export default function HomeEvento() {
           Solo los dos artistas internacionales, en grande. Su nombre no se
           muestra: el Sistema lo está «descifrando». Para revelarlo algún día,
           poner wf_invitado_N_revelado = 1 (y su nombre) en los ajustes. */}
-      <section className="ev2-diferida ev2-inv-seccion relative overflow-hidden px-6 py-20 lg:px-16 lg:py-28">
+      <section data-piso="5" className="ev2-diferida ev2-inv-seccion relative z-[1] overflow-hidden px-6 py-24 lg:px-16 lg:py-32">
+        <div className="absolute inset-x-0 top-0 z-[2]" aria-hidden="true">
+          <div className="sl-alerta" />
+          <p className="sl-orbitron sl-alerta-texto bg-[#14040a]/90 py-1.5 text-center text-[10px] font-black uppercase tracking-[0.5em] text-[#ff5d7a]">⚠ S ⚠ S ⚠ S ⚠</p>
+        </div>
+        <div className="absolute inset-x-0 bottom-0 z-[2]" aria-hidden="true"><div className="sl-alerta" /></div>
         <div className="ev2-inv-fondo pointer-events-none absolute inset-0" aria-hidden="true">
           <img src="/fest/invitados-fondo.webp" alt="" loading="lazy" decoding="async" className="ev2-inv-imagen" />
           <span className="ev2-inv-aura ev2-inv-aura-1" />
@@ -927,13 +1018,11 @@ export default function HomeEvento() {
         </div>
 
         <div className="relative mx-auto max-w-5xl">
-          <div className="mb-5 flex items-center justify-center gap-3">
+          <div className="mb-6 flex items-center justify-center gap-3">
             <span className="ev2-inv-punto" aria-hidden="true" />
-            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#ff6bb5]">
-              <NumSeccion n={5} />&nbsp;&nbsp;{e.invitadosTransmision}
-            </p>
+            <Cabecera n={5} etiqueta={e.invitadosTransmision} centro color="#ff6bb5" />
           </div>
-          <h2 className="ev-display ev2-inv-titulo mx-auto mb-5 max-w-4xl text-center text-[34px] leading-[1.02] sm:text-6xl lg:text-7xl">
+          <h2 className="sl-titan ev2-inv-titulo mx-auto mb-6 max-w-4xl text-center text-[30px] leading-[1] [overflow-wrap:anywhere] min-[400px]:text-[34px] sm:text-7xl lg:text-[92px]">
             {e.invitadosTitulo}
           </h2>
           <p className="mx-auto mb-12 max-w-2xl text-center text-[15px] leading-relaxed text-[#b9aed6] sm:text-[17px]">
@@ -1013,20 +1102,12 @@ export default function HomeEvento() {
         </div>
       </section>
 
-      <div className="ev-linea" />
-
-      <div className="ev-linea" />
-
       {/* ═══ 6. LA MECÁNICA Y LOS RANGOS ═══ */}
-      <section className="ev2-diferida ev-grid relative border-y border-[#a78bfa]/20 bg-gradient-to-b from-[#0d0620] to-[#06040d] px-6 py-20 lg:px-16 lg:py-28">
-        <div className="mx-auto max-w-5xl">
-          <p className="mb-3 text-center font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
-            <NumSeccion n={6} />&nbsp;&nbsp;{e.sistemaEtiqueta}
-          </p>
-          <h2 className="mb-6 text-center text-3xl font-black sm:text-5xl">
-            {e.sistemaTitulo}
-          </h2>
-          <p className="mx-auto mb-12 max-w-2xl text-center text-[15px] leading-relaxed text-[#b9b0d4]">
+      <section data-piso="6" className="ev2-diferida relative z-[1] overflow-hidden px-6 py-24 lg:px-16 lg:py-32">
+        <div className="pointer-events-none absolute inset-0" aria-hidden="true" style={{ background: "radial-gradient(70% 50% at 50% 0%, rgba(91,33,182,.28), transparent 70%)" }} />
+        <div className="relative mx-auto max-w-5xl">
+          <Cabecera n={6} etiqueta={e.sistemaEtiqueta} centro color="#c4b5fd" titulo={e.sistemaTitulo} />
+          <p className="mx-auto mb-14 mt-6 max-w-2xl text-center text-[16px] leading-relaxed text-[#c5bfdc]">
             {e.sistemaTexto}
           </p>
 
@@ -1257,8 +1338,8 @@ export default function HomeEvento() {
                   }}
                 >
                   <span
-                    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border font-mono text-lg font-black"
-                    style={{ borderColor: `${x.color}66`, color: x.color }}
+                    className="sl-rango-letra flex h-14 w-14 shrink-0 items-center justify-center text-[30px] sm:h-16 sm:w-16 sm:text-[36px]"
+                    style={{ color: x.color, textShadow: `0 0 18px ${x.color}, 0 0 2px #fff`, clipPath: "polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)", background: `${x.color}1a` }}
                   >
                     {x.r}
                   </span>
@@ -1273,15 +1354,15 @@ export default function HomeEvento() {
             ))}
           </div>
 
-          <p className="mt-14 text-center text-2xl font-black sm:text-4xl">
-            {e.serasCapaz1} <span className="text-[#f43f5e]">{e.serasCapaz2}</span>?
+          <p className="sl-frase mt-16 text-center text-[32px] sm:text-6xl">
+            <span className="text-white">{e.serasCapaz1}</span>{" "}
+            <span style={{ color: "#ff3d5e", textShadow: "0 0 30px rgba(244,63,94,.7)" }}>{e.serasCapaz2}</span><span className="text-white">?</span>
           </p>
         </div>
       </section>
 
-      <div className="ev-linea" />
-
       {/* ═══ 7. RAID COMUNITARIO ═══ */}
+      <div data-piso="7" className="relative z-[1]">
       <RaidJefe
         t={e.v2}
         imagen={raidJefe}
@@ -1289,17 +1370,18 @@ export default function HomeEvento() {
         recompensaImg={raidRecompensaImg}
         numero={<NumSeccion n={7} />}
       />
+      </div>
 
       {/* ═══ 8. EL PREMIO ═══ */}
-      <section className="ev2-diferida px-6 py-20 lg:px-16 lg:py-24">
-        <div className="ev-notch mx-auto max-w-5xl overflow-hidden border border-[#f43f5e]/25 bg-gradient-to-br from-[#1a0a14] to-[#06040d]">
+      <section data-piso="8" className="ev2-diferida relative z-[1] px-6 py-20 lg:px-16 lg:py-28">
+        <div className="sl-panel sl-boveda relative mx-auto max-w-5xl" style={{ ["--gc" as string]: "#f43f5e" }}>
+          <span className="sl-cadena top-6" aria-hidden="true" />
+          <span className="sl-cadena bottom-6" aria-hidden="true" />
           <div className="grid lg:grid-cols-2">
             <div className="p-8 sm:p-12">
-              <Trophy size={30} className="mb-6 text-[#f43f5e]" />
-              <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#f43f5e]">
-                <NumSeccion n={8} />&nbsp;&nbsp;{e.premioEtiqueta}
-              </p>
-              <h2 className="mb-5 text-2xl font-black leading-tight sm:text-4xl">
+              <Trophy size={34} className="mb-6 text-[#f43f5e]" style={{ filter: "drop-shadow(0 0 12px rgba(244,63,94,.8))" }} />
+              <Cabecera n={8} etiqueta={e.premioEtiqueta} color="#ff6b85" />
+              <h2 className="sl-h2 mb-6 text-[34px] sm:text-5xl">
                 {e.premioTitulo1}
                 <br />
                 {e.premioTitulo2}
@@ -1375,7 +1457,7 @@ export default function HomeEvento() {
       </section>
 
       {/* ═══ Lista de acceso ═══ */}
-      <section id="lista-acceso" className="ev2-diferida relative overflow-hidden px-6 py-20 lg:py-28">
+      <section id="lista-acceso" data-piso="9" className="ev2-diferida relative z-[1] overflow-hidden px-6 py-24 lg:py-32">
         {/* Fondo opcional: video o imagen, siempre bajo un velo para que el
             formulario se lea. */}
         {listaImg && (
@@ -1399,16 +1481,26 @@ export default function HomeEvento() {
           </>
         )}
 
-        <div className="ev-notch ev2-ventana relative z-10 mx-auto max-w-xl p-6 text-center sm:p-9">
-          <p className="mb-1 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#7dd8ff]">
-            {e.v2.nuevaMision}
-          </p>
-          <p className="ev-display mb-6 text-xl text-white sm:text-2xl">{e.v2.aceptasMision}</p>
-          <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.35em] text-[#a78bfa]">
+        <ManaParticulas className="absolute inset-0 h-full w-full" ligero={ligero} cantidad={30} />
+        <motion.div
+          initial={{ opacity: 0, scale: 0.94, y: 20 }}
+          whileInView={{ opacity: 1, scale: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }}
+          transition={{ duration: 0.6, ease: [0.2, 0.9, 0.2, 1] }}
+          className="sl-ventana relative z-10 mx-auto max-w-xl text-center"
+        >
+          <span className="sl-esquinas" aria-hidden="true" />
+          <div className="sl-ventana-cab justify-center">
+            <span className="sl-ventana-icono">!</span>
+            <p className="sl-orbitron text-[10.5px] font-bold uppercase tracking-[0.3em] text-[#e9fbff]">{e.v2.nuevaMision}</p>
+          </div>
+          <div className="p-6 sm:p-9">
+          <p className="sl-titan mb-7 text-2xl text-white sm:text-3xl">{e.v2.aceptasMision}</p>
+          <p className="sl-orbitron mb-3 text-[10px] font-bold uppercase tracking-[0.35em] text-[#9be7ff]">
             <NumSeccion n={9} />&nbsp;&nbsp;{e.listaEtiqueta}
           </p>
-          <h2 className="mb-4 text-2xl font-black sm:text-4xl">{e.listaTitulo}</h2>
-          <p className="mb-8 text-[15px] leading-relaxed text-[#a99fc4]">
+          <h2 className="sl-h2 mb-4 text-3xl sm:text-5xl">{e.listaTitulo}</h2>
+          <p className="mb-8 text-[15px] leading-relaxed text-[#c3cde4]">
             {e.listaTexto}
           </p>
 
@@ -1431,20 +1523,21 @@ export default function HomeEvento() {
                 onChange={e => setEmail(e.target.value)}
                 placeholder={e.v2.correo}
                 required
-                className="min-w-0 flex-1 border border-white/15 bg-white/[0.06] px-4 text-sm text-white outline-none placeholder:text-white/35 focus:border-[#a78bfa]"
-                style={{ minHeight: 54 }}
+                className="min-w-0 flex-1 border border-[#9be7ff]/30 bg-[#07102a]/80 px-4 text-[16px] text-white outline-none placeholder:text-white/40 focus:border-[#9be7ff]"
+                style={{ minHeight: 56 }}
               />
               <button
                 type="submit"
                 disabled={suscribir.isPending}
-                className="ev-notch ev2-latido shrink-0 bg-[#e5007d] px-7 text-sm font-bold uppercase tracking-wider text-white disabled:opacity-50"
-                style={{ minHeight: 54 }}
+                className="sl-btn sl-btn-marca shrink-0 px-6 text-[12px] disabled:opacity-50"
+                style={{ minHeight: 56 }}
               >
                 {suscribir.isPending ? "..." : e.listaBoton}
               </button>
             </form>
           )}
-        </div>
+          </div>
+        </motion.div>
       </section>
 
       <AvisoPropiedadIntelectual />
