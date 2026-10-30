@@ -22,7 +22,7 @@ export function InstagramChat() {
   if (!username || carritoAbierto) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="iw-ig-flotante fixed bottom-6 right-6 z-50">
       <div className="relative flex items-center justify-center w-20 h-20">
 
         {/* Texto en arco sobre el botón */}

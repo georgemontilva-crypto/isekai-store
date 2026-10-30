@@ -4932,3 +4932,94 @@ html.dark .sl-home.sl-home h2.ev2-inv-titulo { color: transparent !important; }
 .sl-sombra-pies { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 16%; pointer-events: none;
   background: linear-gradient(0deg, rgba(3,2,8,.95), rgba(10,4,26,.6) 45%, transparent); }
 @media (min-width: 1024px) { .sl-sombra-pies { left: 45%; height: 18%; } }
+
+/* ═══ Home estilo «web de juego»: intro de carga, póster, barra fija,
+   títulos de terminal y sellos CLEAR! ═══ */
+
+/* Intro: el logo sale borroso y se enfoca, luego se abre la web */
+.iw-intro { position: fixed; inset: 0; z-index: 400; display: flex; align-items: center; justify-content: center;
+  background: #030207;
+  transition: opacity .75s ease, transform .75s cubic-bezier(.2,.8,.2,1); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.iw-intro-sale { opacity: 0; transform: scale(1.05); pointer-events: none; }
+.iw-intro-logo { position: relative; width: min(66vw, 360px); display: flex; justify-content: center;
+  opacity: 0; filter: blur(24px); transform: scale(1.14);
+  transition: opacity .9s ease, filter 1.5s cubic-bezier(.2,.8,.2,1), transform 1.9s cubic-bezier(.2,.8,.2,1); }
+.iw-intro-logo-on { opacity: 1; filter: blur(0); transform: scale(1); }
+.iw-intro-logo img { width: 100%; height: auto; max-height: 38vh; object-fit: contain;
+  filter: drop-shadow(0 0 22px rgba(229,0,125,.35)) drop-shadow(0 0 50px rgba(139,92,246,.25)); }
+.iw-intro-nombre { display: block; text-align: center; font-family: "Montserrat", sans-serif; font-weight: 900; line-height: .9;
+  letter-spacing: .03em; font-size: clamp(42px, 13vw, 88px); color: #fff; text-shadow: 0 0 30px rgba(229,0,125,.55), 0 0 60px rgba(139,92,246,.35); }
+.iw-intro-carga { position: absolute; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 70px); text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; letter-spacing: .32em; text-transform: uppercase; color: #9be7ff; opacity: .85; }
+.iw-intro-puntos i { font-style: normal; animation: iw-intro-punto 1.2s infinite; opacity: 0; }
+.iw-intro-puntos i:nth-child(2) { animation-delay: .2s; }
+.iw-intro-puntos i:nth-child(3) { animation-delay: .4s; }
+@keyframes iw-intro-punto { 0%, 20% { opacity: 0; } 40%, 80% { opacity: 1; } 100% { opacity: 0; } }
+.iw-intro-linea { position: absolute; left: 50%; bottom: calc(env(safe-area-inset-bottom) + 56px); width: 128px; height: 1px; transform: translateX(-50%);
+  background: rgba(155,231,255,.14); overflow: hidden; }
+.iw-intro-linea::after { content: ""; position: absolute; top: 0; bottom: 0; width: 45%; left: -45%;
+  background: linear-gradient(90deg, transparent, #e5007d, #9be7ff, transparent); animation: iw-intro-corre 1.3s cubic-bezier(.6,0,.4,1) infinite; }
+@keyframes iw-intro-corre { to { left: 100%; } }
+.iw-intro-quieta, .iw-intro-quieta .iw-intro-logo { transition-duration: .25s; }
+.iw-intro-quieta .iw-intro-logo { filter: none; transform: none; }
+
+/* Barra fija abajo con el botón principal */
+.sl-barra { position: fixed; left: 0; right: 0; bottom: 0; z-index: 60; padding: 10px 0 calc(env(safe-area-inset-bottom) + 10px);
+  background: linear-gradient(180deg, rgba(10,6,22,.84), rgba(4,2,10,.97)); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border-top: 1px solid rgba(155,231,255,.2); box-shadow: 0 -12px 40px rgba(0,0,0,.55);
+  transform: translateY(110%); transition: transform .45s cubic-bezier(.2,.9,.2,1); }
+.sl-barra::before { content: ""; position: absolute; top: -1px; left: -40%; height: 1px; width: 40%;
+  background: linear-gradient(90deg, transparent, #e5007d, #9be7ff, transparent); animation: sl-barra-luz 4.5s linear infinite; }
+@keyframes sl-barra-luz { to { left: 100%; } }
+.sl-barra-on { transform: none; }
+html.iw-barra-fija .iw-ig-flotante { bottom: calc(env(safe-area-inset-bottom) + 82px); }
+.iw-ig-flotante { transition: bottom .35s ease; }
+
+/* Portada tipo póster en teléfono: la figura llena la pantalla y el título
+   va abajo sobre un degradado, encima de la barra fija */
+.sl-hero-pie { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; height: 30%; pointer-events: none;
+  background: linear-gradient(0deg, rgba(5,3,11,.9), transparent); }
+@media (max-width: 1023px) {
+  /* La barra de navegación (65 px) va arriba en el flujo: el póster ocupa el resto */
+  .sl-hero { height: calc(100svh - 65px); min-height: 470px; }
+  .sl-escenario { position: absolute !important; inset: 0; min-height: 0; margin-top: 0; }
+  .sl-figura { bottom: 25%; height: 64%; }
+  .sl-charco { bottom: 22.5%; height: 54px; }
+  .sl-sombra-pies { display: none; }
+  .sl-hero-pie { height: 56%; background: linear-gradient(0deg, #05030b 22%, rgba(5,3,11,.88) 46%, rgba(5,3,11,.4) 72%, transparent); }
+  .sl-hero-texto { position: absolute !important; left: 0; right: 0; bottom: calc(env(safe-area-inset-bottom) + 84px); padding-bottom: 0 !important; }
+}
+@media (max-width: 1023px) and (max-height: 700px) {
+  .sl-figura { bottom: 31%; height: 56%; }
+  .sl-charco { bottom: 29%; }
+}
+
+/* Títulos que se escriben como en una terminal */
+.sl-tecla { position: relative; display: inline-block; max-width: 100%; }
+.sl-tecla > h2 { clip-path: inset(0 100% 0 0); }
+.sl-tecla-on > h2 { animation: sl-tecla-txt 1s cubic-bezier(.75,0,.2,1) forwards; }
+.sl-tecla::before { content: ""; position: absolute; z-index: 2; top: 4%; bottom: 8%; left: 0; width: 0; pointer-events: none;
+  background: linear-gradient(90deg, #e5007d, #8b5cf6); box-shadow: 0 0 26px rgba(229,0,125,.5); }
+.sl-tecla-on::before { animation: sl-tecla-bloque 1s cubic-bezier(.75,0,.2,1) forwards; }
+.sl-tecla::after { content: ""; position: absolute; right: -14px; bottom: 14%; width: 7px; height: 62%; background: #ff3d9e;
+  box-shadow: 0 0 12px #e5007d; opacity: 0; pointer-events: none; }
+.sl-tecla-on::after { animation: sl-tecla-cursor .8s steps(1) 1s 4 both; }
+@keyframes sl-tecla-bloque { 0% { left: 0; width: 0; } 45% { left: 0; width: 100%; } 100% { left: 100%; width: 0; } }
+@keyframes sl-tecla-txt { 0%, 45% { clip-path: inset(0 100% 0 0); } 100% { clip-path: inset(0 0 0 0); } }
+@keyframes sl-tecla-cursor { 0% { opacity: 1; } 50%, 100% { opacity: 0; } }
+
+/* Sello CLEAR! en cada rango alcanzado de la simulación */
+.sl-clear { position: absolute; top: 8px; right: 12px; z-index: 2; font-size: 10px; font-weight: 900; letter-spacing: .16em;
+  padding: 3px 12px 3px 8px; color: #05030b; background: var(--c); box-shadow: 0 0 16px var(--c);
+  clip-path: polygon(0 0, 100% 0, 90% 100%, 0 100%); transform: rotate(-7deg);
+  animation: sl-clear-entra .5s cubic-bezier(.2,1.5,.4,1) both; }
+@keyframes sl-clear-entra { from { opacity: 0; transform: rotate(-7deg) scale(2.4); } to { opacity: 1; transform: rotate(-7deg) scale(1); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .sl-tecla > h2 { clip-path: none; animation: none !important; }
+  .sl-tecla::before, .sl-tecla::after { display: none; }
+  .sl-barra::before, .iw-intro-linea::after, .iw-intro-puntos i { animation: none; }
+  .iw-intro-puntos i { opacity: 1; }
+  .sl-clear { animation: none; }
+}
+html.iw-barra-fija .ia-hoja { bottom: calc(env(safe-area-inset-bottom) + 84px) !important; }

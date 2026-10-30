@@ -17,6 +17,7 @@ import { esGamaBaja } from "@/lib/gamaBaja";
 import RaidJefe from "@/components/fest/RaidJefe";
 import { ZonaSombras, RevelacionSombras } from "@/components/fest/SombrasSecretas";
 import ManaParticulas from "@/components/fest/ManaParticulas";
+import IntroSistema, { introPendiente } from "@/components/fest/IntroSistema";
 
 /**
  * Isekai World Fest — landing del evento (portada del sitio).
@@ -217,8 +218,66 @@ function Cabecera({ n, etiqueta, titulo, centro = false, color = "#9be7ff" }: { 
         {!centro && <span className="sl-cabecera-linea hidden sm:block" aria-hidden="true" />}
         <span className="hidden sm:inline"><NumSeccion n={n} /></span>
       </div>
-      {titulo && <h2 className="sl-h2 text-[34px] sm:text-6xl lg:text-7xl">{titulo}</h2>}
+      {titulo && <TituloTerminal><h2 className="sl-h2 text-[34px] sm:text-6xl lg:text-7xl">{titulo}</h2></TituloTerminal>}
     </motion.div>
+  );
+}
+
+/**
+ * Título que «se escribe» como en una terminal: un bloque de color barre de
+ * izquierda a derecha, deja el texto detrás y queda un cursor parpadeando.
+ */
+function TituloTerminal({ children }: { children: React.ReactNode }) {
+  const [on, setOn] = useState(false);
+  return (
+    <motion.div
+      className={`sl-tecla ${on ? "sl-tecla-on" : ""}`}
+      onViewportEnter={() => setOn(true)}
+      viewport={{ once: true, margin: "-40px" }}
+    >
+      {children}
+    </motion.div>
+  );
+}
+
+/**
+ * Barra fija abajo con el botón principal, como la de «Download now» de las
+ * webs de juegos. En teléfono está siempre (la portada no repite el botón);
+ * en computador aparece al pasar la portada. Se esconde al llegar a la lista,
+ * donde ya está el formulario.
+ */
+function BarraEntrada({ fecha, lugar, cta, onClick, oculta }: { fecha: string; lugar: string; cta: string; onClick: () => void; oculta: boolean }) {
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const revisar = () => {
+      const lista = document.getElementById("lista-acceso");
+      const llego = lista ? lista.getBoundingClientRect().top < window.innerHeight * 0.85 : false;
+      const ancho = window.innerWidth >= 1024;
+      const paso = window.scrollY > window.innerHeight * 0.7;
+      setVisible(!llego && (!ancho || paso));
+    };
+    revisar();
+    window.addEventListener("scroll", revisar, { passive: true });
+    window.addEventListener("resize", revisar);
+    return () => { window.removeEventListener("scroll", revisar); window.removeEventListener("resize", revisar); };
+  }, []);
+  const ver = visible && !oculta;
+  useEffect(() => {
+    document.documentElement.classList.toggle("iw-barra-fija", ver);
+    return () => document.documentElement.classList.remove("iw-barra-fija");
+  }, [ver]);
+  return (
+    <div className={`sl-barra ${ver ? "sl-barra-on" : ""}`} aria-hidden={!ver}>
+      <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 sm:px-6">
+        <div className="hidden min-w-0 flex-1 min-[370px]:block">
+          <p className="sl-orbitron text-[9.5px] font-bold uppercase leading-snug tracking-[0.1em] text-[#9be7ff]">{fecha}</p>
+          <p className="mt-0.5 truncate font-mono text-[10px] text-[#a99fc4]">{lugar}</p>
+        </div>
+        <button onClick={onClick} tabIndex={ver ? 0 : -1} className="sl-btn sl-btn-marca flex-1 px-4 py-[13px] text-[11px] min-[370px]:flex-none sm:px-7 sm:text-[11.5px]">
+          {cta}
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -448,7 +507,14 @@ export default function HomeEvento() {
   const TRANSFORMACION = MUNDO_ESTILO.map((x, i) => ({ ...x, ...e.mundoItems[i] }));
   const AREAS = AREAS_ESTILO.map((x, i) => ({ ...x, ...e.areasItems[i] }));
   const RANGOS = RANGOS_ESTILO.map((x, i) => ({ ...x, ...e.rangosItems[i] }));
-  const { data: settings } = trpc.settings.getAll.useQuery();
+  const { data: settings, isLoading: cargandoAjustes } = trpc.settings.getAll.useQuery();
+  /**
+   * Intro de carga con el logo (una vez por sesión). Mientras está, la
+   * portada espera: sus animaciones de entrada arrancan cuando se abre.
+   */
+  const [intro, setIntro] = useState(introPendiente);
+  const [portadaLista, setPortadaLista] = useState(() => !introPendiente());
+  const logoIntro = settings ? (settings["store_logo_dark_url"] || settings["store_logo_url"] || null) : undefined;
   // Tutorial de la simulación de experiencia
   const tutoVentanaRef = useRef<HTMLDivElement>(null);
   const tutoRangoRef = useRef<HTMLDivElement>(null);
@@ -600,6 +666,16 @@ export default function HomeEvento() {
       <div className="sl-cielo" aria-hidden="true" />
       <motion.div className="sl-energia" style={{ scaleY: energiaPagina }} aria-hidden="true" />
       <IndicadorPisos />
+      {intro && (
+        <IntroSistema
+          logo={logoIntro}
+          cargando={cargandoAjustes}
+          textoCarga={lang === "en" ? "Loading" : "Cargando"}
+          onAbre={() => setPortadaLista(true)}
+          onFin={() => setIntro(false)}
+        />
+      )}
+      {portadaLista && <BarraEntrada fecha={e.heroFecha} lugar={e.heroLugar} cta={e.ctaAviso} onClick={irALista} oculta={!!ascensoDemo} />}
 
       {/* El entorno se tiñe del color del rango actual: un golpe fuerte al
           ascender y después un tinte suave que permanece. */}
@@ -743,7 +819,7 @@ export default function HomeEvento() {
           <ManaParticulas className="absolute inset-0 z-0 h-full w-full" ligero={ligero} cantidad={52} />
 
           {/* HUD superior. Teléfono: va en el flujo, arriba de la puerta */}
-          <div className="relative z-[3] mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-[calc(env(safe-area-inset-top)+4.6rem)] lg:absolute lg:inset-x-0 lg:top-0 lg:px-10 lg:pt-28">
+          <div className="relative z-[3] mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-5 lg:absolute lg:inset-x-0 lg:top-0 lg:px-10 lg:pt-28">
             <p className="sl-orbitron whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.2em] text-[#9be7ff] min-[380px]:text-[10px] min-[380px]:tracking-[0.35em]">
               {e.v2.hudSistema} <span className="ev2-cursor">_</span>
             </p>
@@ -759,11 +835,11 @@ export default function HomeEvento() {
                 fondo, aura de sombras que sube desde sus pies y un charco de
                 sombra en el suelo. Sin marcos: la figura es la protagonista. */}
             <motion.div className="absolute inset-0" style={escenaFija ? { scale: puertaEscala, transformOrigin: "70% 85%" } : undefined} aria-hidden="true">
-              <div className="sl-eco">
+              {portadaLista && <div className="sl-eco">
                 {e.heroTitulo1.split(" ").map((p, k, todas) => (
                   <span key={k} className={`block ${k < todas.length - 1 ? "hidden lg:block" : ""}`}>{p}</span>
                 ))}
-              </div>
+              </div>}
               <span className="sl-contraluz" />
               <span className="sl-charco"><i /><i /><i /></span>
               <span className="sl-sombra-pies" />
@@ -771,7 +847,7 @@ export default function HomeEvento() {
             </motion.div>
 
             {/* Figura sobre su sombra (mantener presionada abre la Zona de Sombras) */}
-            {heroFigura && figura.estado !== "cargando" && (
+            {heroFigura && portadaLista && figura.estado !== "cargando" && (
               <div className="sl-figura">
                 <motion.div
                   className="ev2-parallax h-full"
@@ -814,9 +890,12 @@ export default function HomeEvento() {
             )}
           </div>
 
+          {/* Pie del póster: oscurece la parte baja para que el título se lea */}
+          <div className="sl-hero-pie" aria-hidden="true" />
+
           {/* Título y misión */}
           <motion.div
-            className="relative z-[3] mx-auto w-full max-w-7xl px-5 pb-[calc(env(safe-area-inset-bottom)+1.6rem)] text-center lg:absolute lg:inset-y-0 lg:left-0 lg:right-0 lg:flex lg:flex-col lg:justify-center lg:px-10 lg:pb-0 lg:text-left"
+            className="sl-hero-texto relative z-[3] mx-auto w-full max-w-7xl px-5 pb-[calc(env(safe-area-inset-bottom)+1.6rem)] text-center lg:absolute lg:inset-y-0 lg:left-0 lg:right-0 lg:flex lg:flex-col lg:justify-center lg:px-10 lg:pb-0 lg:text-left"
             style={escenaFija ? { opacity: contenidoOpacidad, y: contenidoY } : undefined}
           >
             <div className="lg:max-w-[60%]">
@@ -824,28 +903,28 @@ export default function HomeEvento() {
                 {e.etiquetaAnio}
               </p>
               <h1 className="sl-titulo sl-titan mb-4 text-[31px] [hyphens:none] min-[380px]:text-[38px] min-[400px]:text-[42px] sm:text-7xl lg:mb-5 lg:text-[84px] xl:text-[96px]">
-                <span className="sl-texto-marca block"><LetrasEntrada texto={e.heroTitulo1} retraso={0.5} /></span>
-                <span className="sl-texto-sistema block"><LetrasEntrada texto={e.heroTitulo2} retraso={0.5 + e.heroTitulo1.length * 0.035} /></span>
+                <span className="sl-texto-marca block">{portadaLista ? <LetrasEntrada texto={e.heroTitulo1} retraso={0.35} /> : <span className="opacity-0">{e.heroTitulo1}</span>}</span>
+                <span className="sl-texto-sistema block">{portadaLista ? <LetrasEntrada texto={e.heroTitulo2} retraso={0.35 + e.heroTitulo1.length * 0.035} /> : <span className="opacity-0">{e.heroTitulo2}</span>}</span>
               </h1>
 
               <motion.div
                 initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.7, delay: 1.4 }}
+                animate={portadaLista ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
+                transition={{ duration: 0.7, delay: 1.1 }}
               >
                 <div className="mb-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[13px] font-semibold text-[#e7e3f5] sm:text-sm lg:mb-6 lg:justify-start">
                   <span className="flex items-center gap-2"><Calendar size={15} className="text-[#4fc3ff]" /> {e.heroFecha}</span>
                   <span className="flex items-center gap-2"><MapPin size={15} className="text-[#4fc3ff]" /> {e.heroLugar}</span>
                 </div>
                 <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-center lg:justify-start">
-                  <button onClick={irALista} className="sl-btn sl-btn-marca px-8 py-[16px] text-[12.5px]">
+                  <button onClick={irALista} className="sl-btn sl-btn-marca sl-solo-ancho px-8 py-[16px] text-[12.5px]">
                     {e.ctaAviso}
                   </button>
                   <a href="#el-mundo" className="sl-btn sl-btn-sistema sl-solo-ancho px-8 py-[16px] text-[12.5px]">
                     {e.ctaDescubrir}
                   </a>
                   {/* Teléfono: enlace compacto, para que todo quepa en la pantalla */}
-                  <a href="#el-mundo" className="sl-orbitron mx-auto mt-1 inline-flex items-center gap-1.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.28em] text-[#9be7ff] sm:hidden">
+                  <a href="#el-mundo" className="sl-orbitron mx-auto mt-1 hidden items-center gap-1.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.28em] text-[#9be7ff]">
                     {e.ctaDescubrir} <ChevronRight size={13} className="rotate-90" />
                   </a>
                 </div>
@@ -1368,7 +1447,7 @@ export default function HomeEvento() {
                   style={{ background: x.color, boxShadow: `0 0 10px ${x.color}` }}
                 />
                 <div
-                  className="ev-notch flex w-full items-center gap-4 border p-4 sm:gap-6 sm:p-5"
+                  className="ev-notch relative flex w-full items-center gap-4 border p-4 sm:gap-6 sm:p-5"
                   style={{
                     borderColor: `${x.color}2e`,
                     background: `linear-gradient(90deg, ${x.color}0f, transparent 60%)`,
@@ -1380,6 +1459,9 @@ export default function HomeEvento() {
                   >
                     {x.r}
                   </span>
+                  {i > 0 && xpDemo >= UMBRALES[i] && (
+                    <span className="sl-clear sl-orbitron" style={{ ["--c" as string]: x.color }} aria-hidden="true">CLEAR!</span>
+                  )}
                   <div className="min-w-0">
                     <p className="text-sm font-black uppercase tracking-wide" style={{ color: x.color }}>
                       {x.nombre}

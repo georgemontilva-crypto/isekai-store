@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 import { trpc } from "@/lib/trpc";
+import { useLang } from "@/i18n/LangContext";
+import { introPendiente } from "@/components/fest/IntroSistema";
 
 /**
  * Pantalla de carga inicial.
@@ -9,8 +11,41 @@ import { trpc } from "@/lib/trpc";
  * navegación sería un estorbo, no una experiencia.
  */
 const CLAVE_VISTA = "iw_carga_vista";
+/** La portada del Fest tiene su propia intro con el logo */
+const esPortada = () => typeof window !== "undefined" && ["/", "/evento"].includes(window.location.pathname);
+
+/**
+ * En la portada, mientras llega el código del home, se muestra lo mismo que
+ * el primer instante de su intro (negro con «Cargando…»). Cuando la intro
+ * aparece, esta se quita sin fundido: el cambio no se nota.
+ */
+function CargaPortada() {
+  const [visible, setVisible] = useState(true);
+  const { lang } = useLang();
+  useEffect(() => {
+    const quitar = () => setVisible(false);
+    if ((window as unknown as { __iwIntro?: boolean }).__iwIntro) quitar();
+    window.addEventListener("iw-intro-montada", quitar);
+    const tope = window.setTimeout(quitar, 8000);
+    return () => { window.removeEventListener("iw-intro-montada", quitar); window.clearTimeout(tope); };
+  }, []);
+  if (!visible) return null;
+  const en = lang === "en";
+  return (
+    <div className="iw-intro" style={{ zIndex: 401 }} aria-hidden="true">
+      <p className="iw-intro-carga">{en ? "Loading" : "Cargando"}<span className="iw-intro-puntos"><i>.</i><i>.</i><i>.</i></span></p>
+      <span className="iw-intro-linea" />
+    </div>
+  );
+}
 
 export default function PantallaCarga() {
+  const [portada] = useState(() => esPortada() && introPendiente());
+  if (portada) return <CargaPortada />;
+  return <PantallaCargaTienda />;
+}
+
+function PantallaCargaTienda() {
   const { data: settings } = trpc.settings.getAll.useQuery();
   /** Textura de fondo, opcional: se sube desde Medios */
   const textura = settings?.["carga_textura"] ?? null;
@@ -22,7 +57,7 @@ export default function PantallaCarga() {
    */
   const [visible, setVisible] = useState(() => {
     if (typeof window === "undefined") return false;
-    if (window.innerWidth >= 768) return false;
+    if (window.innerWidth >= 768 || esPortada()) return false;
     try { return !sessionStorage.getItem(CLAVE_VISTA); } catch { return true; }
   });
   const [saliendo, setSaliendo] = useState(false);
