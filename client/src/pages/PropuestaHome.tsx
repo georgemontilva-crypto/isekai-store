@@ -10,7 +10,7 @@ import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
 import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
 import IntroSistema from "@/components/fest/IntroSistema";
-import ManaParticulas from "@/components/fest/ManaParticulas";
+import PortadaPoster from "@/components/fest/PortadaPoster";
 import RaidJefe from "@/components/fest/RaidJefe";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 
@@ -59,10 +59,113 @@ const APERTURA = new Date("2027-08-14T00:00:00-04:00").getTime();
 const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-silueta.png" };
 const n3 = (n: number) => String(n).padStart(3, "0");
 
+/**
+ * Textos que explican la mecánica. Resumen lo que ya dice el home (boleto,
+ * misiones, EXP, rangos E→S, raid y batalla final) en pasos cortos.
+ */
+const PASOS = {
+  es: [
+    ["Consigue tu boleto", "Tu entrada es tu licencia de cazador. Al escanearla en la puerta, el Sistema te registra en Rango E."],
+    ["Entra a los Gates", "Cada área del Fest es un Gate: zona gamer, red carpet, stands, shows. Recórrelos todos."],
+    ["Cumple misiones", "Retos, combates, desfiles y zonas ocultas. Cada misión completada te da EXP."],
+    ["Sube de rango", "E → D → C → B → A → S. Tu progreso se ve en vivo en tu Level Pass."],
+    ["Llega a Rango S", "Los cazadores que alcancen el Rango S entran a la batalla final por una recompensa única."],
+  ],
+  en: [
+    ["Get your ticket", "Your ticket is your hunter license. When it's scanned at the door, the System registers you at Rank E."],
+    ["Enter the Gates", "Every area of the Fest is a Gate: gaming zone, red carpet, stands, shows. Explore them all."],
+    ["Complete missions", "Challenges, battles, catwalks and hidden zones. Every mission completed gives you EXP."],
+    ["Rank up", "E → D → C → B → A → S. You see your progress live in your Level Pass."],
+    ["Reach Rank S", "Hunters who reach Rank S enter the final battle for a unique reward."],
+  ],
+};
+
+const UNIVERSO = {
+  es: {
+    intro: "Isekai World Fest toma el universo de Solo Leveling —la historia del cazador que empezó como el más débil y terminó siendo el más fuerte— y lo convierte en un evento real. Aquí el cazador eres tú.",
+    items: [
+      ["Gates", "Las puertas a otro mundo. En el Fest, cada área es un Gate con sus propios retos."],
+      ["Cazador", "Tú. Tu boleto es tu licencia y empiezas desde abajo, en Rango E."],
+      ["El Sistema", "La voz que te da misiones y registra tu experiencia. En el Fest es tu Level Pass."],
+      ["Rangos", "E, D, C, B, A y S. Con EXP subes; solo los mejores llegan a S."],
+      ["Raid", "Un jefe tan fuerte que solo se derrota entre todos. Cada ataque de la comunidad cuenta."],
+      ["Sombras", "Zonas y secretos ocultos que solo encuentran los que buscan bien."],
+    ],
+  },
+  en: {
+    intro: "Isekai World Fest takes the Solo Leveling universe —the story of the hunter who started as the weakest and became the strongest— and turns it into a real event. Here, the hunter is you.",
+    items: [
+      ["Gates", "Doors to another world. At the Fest, every area is a Gate with its own challenges."],
+      ["Hunter", "You. Your ticket is your license and you start at the bottom, Rank E."],
+      ["The System", "The voice that gives you missions and tracks your experience. At the Fest, it's your Level Pass."],
+      ["Ranks", "E, D, C, B, A and S. EXP makes you rise; only the best reach S."],
+      ["Raid", "A boss so strong it can only be defeated together. Every community attack counts."],
+      ["Shadows", "Hidden zones and secrets that only those who search carefully will find."],
+    ],
+  },
+};
+const UNIVERSO_ICONOS = [Sparkles, Swords, Gamepad2, Star, Trophy, Lock];
+
 /* ───────────── Piezas pequeñas ───────────── */
 
+/** Cinta que se desliza entre capítulos */
+function Cinta({ items, claro = false }: { items: string[]; claro?: boolean }) {
+  const linea = items.join("   ◆   ") + "   ◆   ";
+  return (
+    <div className={`pk-cinta ${claro ? "pk-cinta-claro" : ""}`} aria-hidden="true">
+      <div className="pk-cinta-pista pk-cond"><span>{linea}</span><span>{linea}</span></div>
+    </div>
+  );
+}
+
+/** Anima la entrada de todo lo marcado con .pk-rev al aparecer en pantalla */
+function useRevelar(dep: unknown) {
+  useEffect(() => {
+    const els = Array.from(document.querySelectorAll<HTMLElement>(".pk-rev:not(.pk-rev-on)"));
+    const io = new IntersectionObserver(ents => {
+      ents.forEach(en => { if (en.isIntersecting) { en.target.classList.add("pk-rev-on"); io.unobserve(en.target); } });
+    }, { rootMargin: "0px 0px -8% 0px" });
+    els.forEach(el => io.observe(el));
+    return () => io.disconnect();
+  }, [dep]);
+}
+
+/** Línea de tiempo «Cómo funciona»: la línea de energía se llena al bajar */
+function ComoFunciona({ pasos }: { pasos: string[][] }) {
+  const ref = useRef<HTMLOListElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let raf = 0;
+    const f = () => {
+      raf = 0;
+      const r = el.getBoundingClientRect();
+      const p = Math.min(1, Math.max(0, (window.innerHeight * 0.75 - r.top) / r.height));
+      el.style.setProperty("--avance", String(p));
+      el.querySelectorAll<HTMLElement>("li").forEach((li, i) => li.classList.toggle("pk-paso-on", p >= (i + 0.35) / pasos.length));
+    };
+    const alBajar = () => { if (!raf) raf = requestAnimationFrame(f); };
+    f();
+    window.addEventListener("scroll", alBajar, { passive: true });
+    return () => { window.removeEventListener("scroll", alBajar); if (raf) cancelAnimationFrame(raf); };
+  }, [pasos.length]);
+  return (
+    <ol ref={ref} className="pk-pasos">
+      {pasos.map(([t, d], i) => (
+        <li key={i}>
+          <span className="pk-paso-num pk-cond">{String(i + 1).padStart(2, "0")}</span>
+          <div>
+            <b className="pk-cond">{t}</b>
+            <p className="pk-mono">{d}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
 /** Título de capítulo: un bloque de color lo barre y queda escrito, con cursor */
-function Titulo({ children, claro = false }: { children: React.ReactNode; claro?: boolean }) {
+function Titulo({ children, claro = false, n, intro }: { children: React.ReactNode; claro?: boolean; n?: number; intro?: string }) {
   const ref = useRef<HTMLHeadingElement>(null);
   const [on, setOn] = useState(false);
   useEffect(() => {
@@ -73,9 +176,13 @@ function Titulo({ children, claro = false }: { children: React.ReactNode; claro?
     return () => io.disconnect();
   }, []);
   return (
-    <h2 ref={ref} className={`pk-titulo ${claro ? "pk-titulo-claro" : ""} ${on ? "pk-titulo-on" : ""}`}>
-      <span>{children}</span>
-    </h2>
+    <div className={`pk-cap ${on ? "pk-cap-on" : ""} ${claro ? "pk-cap-claro" : ""}`}>
+      {n !== undefined && <span className="pk-cap-num pk-cond" aria-hidden="true">{n3(n)}</span>}
+      <h2 ref={ref} className={`pk-titulo ${claro ? "pk-titulo-claro" : ""} ${on ? "pk-titulo-on" : ""}`}>
+        <span>{children}</span>
+      </h2>
+      {intro && <p className="pk-cap-intro pk-mono">{intro}</p>}
+    </div>
   );
 }
 
@@ -151,15 +258,6 @@ export default function PropuestaHome() {
     document.head.appendChild(m);
     return () => m.remove();
   }, []);
-  // Tipografías de la propuesta: condensada para títulos y monoespaciada para textos
-  useEffect(() => {
-    const l = document.createElement("link");
-    l.rel = "stylesheet";
-    l.href = "https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap";
-    document.head.appendChild(l);
-    return () => l.remove();
-  }, []);
-
   /* Intro (sale en cada visita: es una propuesta para mostrar) */
   const [intro, setIntro] = useState(true);
   const [lista, setLista] = useState(false);
@@ -186,6 +284,7 @@ export default function PropuestaHome() {
   const capitulos = useMemo(() => ([
     ["pk-sistema", en ? "SYSTEM" : "SISTEMA"],
     ["pk-concepto", en ? "CONCEPT" : "CONCEPTO"],
+    ["pk-universo", en ? "UNIVERSE" : "UNIVERSO"],
     ["pk-mundo", en ? "WORLD" : "EL MUNDO"],
     ["pk-areas", en ? "AREAS" : "ÁREAS"],
     ["pk-invitados", en ? "GUESTS" : "INVITADOS"],
@@ -196,11 +295,29 @@ export default function PropuestaHome() {
   ] as const), [en]);
   const ir = (id: string) => { setMenu(false); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); };
 
-  /* El mundo: pestaña abierta */
+  useRevelar(lista);
+
+  /* El mundo: pestaña abierta. Avanza sola hasta que la persona toque una */
   const [mundoSel, setMundoSel] = useState(0);
+  const [mundoTocado, setMundoTocado] = useState(false);
+  useEffect(() => {
+    if (mundoTocado) return;
+    const id = window.setInterval(() => setMundoSel(x => (x + 1) % MUNDO_ESTILO.length), 4200);
+    return () => window.clearInterval(id);
+  }, [mundoTocado]);
+  const elegirMundo = (i: number) => { setMundoTocado(true); setMundoSel(i); };
 
   /* Áreas: visor con anterior / siguiente y «ver todo» */
   const [areaSel, setAreaSel] = useState(0);
+  const [areaTocada, setAreaTocada] = useState(false);
+  useEffect(() => {
+    if (areaTocada) return;
+    const id = window.setTimeout(() => setAreaSel(x => (x + 1) % AREAS_ESTILO.length), 5000);
+    return () => window.clearTimeout(id);
+  }, [areaSel, areaTocada]);
+  const moverArea = (d: number) => { setAreaTocada(true); setAreaSel(x => (x + d + AREAS_ESTILO.length) % AREAS_ESTILO.length); };
+  // Deslizar el visor con el dedo
+  const toqueX = useRef<number | null>(null);
   const [verTodo, setVerTodo] = useState(false);
   const area = AREAS[areaSel];
   const AreaIcono = area.icono;
@@ -278,35 +395,24 @@ export default function PropuestaHome() {
       </div>
 
       {/* ═══ Portada: póster a pantalla completa ═══ */}
-      <section className="pk-hero">
-        <div className="pk-hero-arte" aria-hidden="true">
-          {heroBg && <img src={heroBg} alt="" className="pk-hero-fondo" />}
-          <span className="pk-hero-luz" />
-          {figura.estado !== "cargando" && figura.src && <img src={figura.src} alt="" className={`pk-hero-figura ${lista ? "pk-entra" : ""}`} />}
-          <span className="pk-hero-velo" />
-        </div>
-        <ManaParticulas className="absolute inset-0 z-[1] h-full w-full" cantidad={36} />
-
-        <button className="pk-insignia" onClick={() => ir("pk-rangos")}>
-          <span className="pk-mono">{e.etiquetaAnio}</span>
-          <b>LEVEL PASS</b>
-          <ChevronRight size={12} />
-        </button>
-
-        <div className={`pk-hero-pie ${lista ? "pk-entra-pie" : ""}`}>
-          {logo
-            ? <img src={logo} alt="Isekai World" className="pk-hero-logo" />
-            : <p className="pk-cond pk-hero-logo-txt">ISEKAI WORLD</p>}
-          <p className="pk-lema">{e.heroTitulo1} <span>{e.heroTitulo2}</span></p>
-          <p className="pk-mono pk-hero-dato">{e.heroFecha} &nbsp;/&nbsp; {e.heroLugar}</p>
-        </div>
-      </section>
+      <PortadaPoster
+        fondo={heroBg}
+        figura={figura.estado !== "cargando" ? figura.src : undefined}
+        logo={logo}
+        lema1={e.heroTitulo1}
+        lema2={e.heroTitulo2}
+        fecha={e.heroFecha}
+        lugar={e.heroLugar}
+        etiqueta={e.etiquetaAnio}
+        lista={lista}
+        onInsignia={() => ir("pk-rangos")}
+      />
 
       {/* ═══ 001 SISTEMA ═══ */}
       <section id="pk-sistema" className="pk-sec pk-oscuro">
         <div className="pk-ancho">
-          <Titulo>{capitulos[0][1]}</Titulo>
-          <div className="pk-ventana">
+          <Titulo n={1} intro={en ? "How the Fest works, step by step." : "Así funciona el Fest, paso a paso."}>{capitulos[0][1]}</Titulo>
+          <div className="pk-ventana pk-rev">
             <Visor />
             <p className="pk-mono pk-ventana-cab">! {e.v2.sistemaAlerta}</p>
             <p className="pk-texto mb-7">{e.heroTexto}</p>
@@ -314,6 +420,8 @@ export default function PropuestaHome() {
             <Cuenta et={[e.v2.dias, e.v2.horas, e.v2.minutos, e.v2.segundos]} />
             <p className="pk-mono mt-6 text-[12px] text-[#8b84a3]">{e.tuRango} <b className="text-[#6ff0ff]">E → D → C → B → A → S</b></p>
           </div>
+          <p className="pk-mono pk-etq mb-4 mt-14">{en ? "[ HOW IT WORKS ]" : "[ CÓMO FUNCIONA ]"}</p>
+          <ComoFunciona pasos={PASOS[en ? "en" : "es"]} />
         </div>
       </section>
 
@@ -321,9 +429,9 @@ export default function PropuestaHome() {
       <section id="pk-concepto" className="pk-sec pk-concepto">
         {mundoBg && <img src={mundoBg} alt="" loading="lazy" className="pk-concepto-fondo" aria-hidden="true" />}
         <div className="pk-ancho relative">
-          <Titulo>{capitulos[1][1]}</Titulo>
-          <p className="pk-cond pk-concepto-titular">{e.bienvenidaT1}<br /><span>{e.bienvenidaT2}</span></p>
-          <div className="pk-concepto-cuerpo">
+          <Titulo n={2}>{capitulos[1][1]}</Titulo>
+          <p className="pk-cond pk-concepto-titular pk-rev">{e.bienvenidaT1}<br /><span>{e.bienvenidaT2}</span></p>
+          <div className="pk-concepto-cuerpo pk-rev" style={{ ["--d" as string]: "150ms" }}>
             <p className="pk-texto">{e.bienvenidaP1}</p>
             <p className="pk-texto">{e.bienvenidaP2}</p>
             <p className="pk-texto pk-concepto-frase">{e.bienvenidaFrase1} <b>{e.bienvenidaFrase2}</b></p>
@@ -331,27 +439,52 @@ export default function PropuestaHome() {
         </div>
       </section>
 
+      <Cinta items={en ? ["GATE OPEN", "RANK E → S", "+EXP", "RAID BOSS", "SHADOW ZONES", "AUG 14—15 2027"] : ["GATE ABIERTO", "RANGO E → S", "+EXP", "JEFE DE RAID", "ZONAS DE SOMBRA", "14—15 AGO 2027"]} />
+
+      {/* ═══ 003 UNIVERSO: qué tomamos de Solo Leveling ═══ */}
+      <section id="pk-universo" className="pk-sec pk-universo">
+        <div className="pk-ancho">
+          <Titulo n={3} intro={en ? "Inspired by Solo Leveling." : "Inspirado en Solo Leveling."}>{capitulos[2][1]}</Titulo>
+          <p className="pk-texto pk-rev mb-9 max-w-2xl text-[14.5px] text-[#e5e0f2]">{UNIVERSO[en ? "en" : "es"].intro}</p>
+          <div className="pk-glosario pk-rev pk-rev-hijos">
+            {UNIVERSO[en ? "en" : "es"].items.map(([t, d], i) => {
+              const Ico = UNIVERSO_ICONOS[i];
+              return (
+                <div key={i} className="pk-glosa" style={{ ["--d" as string]: `${i * 90}ms` }}>
+                  <Visor />
+                  <span className="pk-glosa-ico"><Ico size={22} /></span>
+                  <span className="pk-mono pk-glosa-num">{n3(i + 1)}</span>
+                  <b className="pk-cond">{t}</b>
+                  <p className="pk-mono">{d}</p>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
       {/* ═══ 003 EL MUNDO: pestañas verticales numeradas ═══ */}
       <section id="pk-mundo" className="pk-sec pk-oscuro">
         <div className="pk-ancho">
-          <Titulo>{capitulos[2][1]}</Titulo>
+          <Titulo n={4} intro={en ? "How the venue transforms. Tap each number." : "Así se transforma el Palacio de Eventos. Toca cada número."}>{capitulos[3][1]}</Titulo>
           <p className="pk-mono pk-etq mb-5">{e.mundoEtiqueta} — {e.mundoTitulo}</p>
-          <div className="pk-pestanas">
+          <div className="pk-pestanas pk-rev">
             {MUNDO.map((m, i) => {
               const Ico = m.icono;
               const abierta = i === mundoSel;
               return (
-                <button key={i} className={`pk-pestana ${abierta ? "pk-pestana-on" : ""}`} style={{ ["--c" as string]: m.color }} onClick={() => setMundoSel(i)} aria-expanded={abierta}>
+                <button key={i} className={`pk-pestana ${abierta ? "pk-pestana-on" : ""}`} style={{ ["--c" as string]: m.color }} onClick={() => elegirMundo(i)} aria-expanded={abierta}>
                   <span className="pk-pestana-num pk-mono">{n3(i + 1)}</span>
+                  {abierta && !mundoTocado && <span className="pk-pestana-avance" aria-hidden="true" />}
                   <span className="pk-pestana-arte"><Ico size={abierta ? 54 : 22} /></span>
                 </button>
               );
             })}
           </div>
-          <ul className="pk-lista-mundo">
+          <ul className="pk-lista-mundo pk-rev" style={{ ["--d" as string]: "120ms" }}>
             {MUNDO.map((m, i) => (
               <li key={i} className={i === mundoSel ? "pk-lm-on" : ""} style={{ ["--c" as string]: m.color }}>
-                <button onClick={() => setMundoSel(i)}>
+                <button onClick={() => elegirMundo(i)}>
                   <span className="pk-mono pk-lm-num">{n3(i + 1)}</span>
                   <span className="min-w-0 flex-1 text-left">
                     <b className="pk-cond">{m.titulo}</b>
@@ -365,26 +498,40 @@ export default function PropuestaHome() {
         </div>
       </section>
 
+      <Cinta claro items={AREAS.map(a => a.titulo.toUpperCase())} />
+
       {/* ═══ 004 ÁREAS: visor tipo «System» sobre papel milimetrado ═══ */}
       <section id="pk-areas" className="pk-sec pk-claro">
         <div className="pk-ancho">
-          <div className="flex items-end justify-between gap-3">
-            <Titulo claro>{capitulos[3][1]}</Titulo>
+          <div className="flex items-start justify-between gap-3">
+            <Titulo claro n={5} intro={en ? "Each area is a different Gate. Use PREV / NEXT or swipe." : "Cada área es un Gate distinto. Pasa con ANTERIOR / SIGUIENTE o desliza."}>{capitulos[4][1]}</Titulo>
             <button className="pk-ver-todo pk-mono" onClick={() => setVerTodo(true)}><LayoutGrid size={14} /> {en ? "VIEW ALL" : "VER TODO"}</button>
           </div>
           <p className="pk-mono mb-4 text-[13px] text-[#4b4460]">{e.exploraTexto}</p>
           <p className="pk-area-sub"><span className="pk-mono">{n3(areaSel + 1)}</span> <b className="pk-cond">{area.titulo}</b></p>
-          <div className="pk-area-visor" style={{ ["--c" as string]: area.color }} key={areaSel}>
+          <div
+            className="pk-area-visor"
+            style={{ ["--c" as string]: area.color }}
+            key={areaSel}
+            onTouchStart={ev => { toqueX.current = ev.touches[0].clientX; }}
+            onTouchEnd={ev => {
+              if (toqueX.current === null) return;
+              const dx = ev.changedTouches[0].clientX - toqueX.current;
+              toqueX.current = null;
+              if (Math.abs(dx) > 40) moverArea(dx < 0 ? 1 : -1);
+            }}
+          >
+            {!areaTocada && <span className="pk-area-avance" aria-hidden="true" />}
             <Visor />
             <span className="pk-area-rejilla" />
             <AreaIcono size={92} className="pk-area-icono" />
             <span className="pk-mono pk-area-gate">{e.v2.gate} {String(areaSel + 1).padStart(2, "0")}</span>
             <span className="pk-mono pk-area-pronto">{e.proximamente}</span>
           </div>
-          <div className="pk-area-texto pk-mono">{area.texto}</div>
+          <div className="pk-area-texto pk-mono" key={`t${areaSel}`}>{area.texto}</div>
           <div className="pk-navbar">
-            <button onClick={() => setAreaSel((areaSel - 1 + AREAS.length) % AREAS.length)}><ChevronLeft size={16} /> {en ? "PREV" : "ANTERIOR"}</button>
-            <button onClick={() => setAreaSel((areaSel + 1) % AREAS.length)}>{en ? "NEXT" : "SIGUIENTE"} <ChevronRight size={16} /></button>
+            <button onClick={() => moverArea(-1)}><ChevronLeft size={16} /> {en ? "PREV" : "ANTERIOR"}</button>
+            <button onClick={() => moverArea(1)}>{en ? "NEXT" : "SIGUIENTE"} <ChevronRight size={16} /></button>
             <span className="pk-navbar-sig"><span className="pk-mono">{n3(((areaSel + 1) % AREAS.length) + 1)}</span> {sigArea.titulo}</span>
           </div>
         </div>
@@ -396,7 +543,7 @@ export default function PropuestaHome() {
             {AREAS.map((a, i) => {
               const Ico = a.icono;
               return (
-                <button key={i} className="pk-panel-fila" onClick={() => { setAreaSel(i); setVerTodo(false); }}>
+                <button key={i} className="pk-panel-fila" onClick={() => { setAreaTocada(true); setAreaSel(i); setVerTodo(false); }}>
                   <span className="pk-panel-mini" style={{ ["--c" as string]: a.color }}><Ico size={22} /></span>
                   <span className="text-left"><span className="pk-mono block text-[10px] text-[#8b84a3]">{n3(i + 1)}</span><b className="pk-cond text-[20px] leading-tight">{a.titulo}</b></span>
                 </button>
@@ -410,7 +557,7 @@ export default function PropuestaHome() {
       {/* ═══ 005 INVITADOS: fichas de personaje ═══ */}
       <section id="pk-invitados" className="pk-sec pk-claro">
         <div className="pk-ancho">
-          <Titulo claro>{capitulos[4][1]}</Titulo>
+          <Titulo claro n={6} intro={en ? "Tap a card to see their file." : "Toca una ficha para ver su información."}>{capitulos[5][1]}</Titulo>
           <p className="pk-mono pk-etq-claro mb-2">● {e.invitadosTransmision}</p>
           <p className="pk-cond mb-3 text-[30px] leading-[0.95] text-[#0b0814] sm:text-5xl">{e.invitadosTitulo}</p>
           <p className="pk-mono mb-6 text-[13px] leading-relaxed text-[#4b4460]">{e.invitadosTexto}</p>
@@ -421,7 +568,7 @@ export default function PropuestaHome() {
           </div>
 
           {!vistaRejilla ? (
-            <div className="pk-cartas">
+            <div className="pk-cartas pk-rev">
               {invitados.map((g, i) => (
                 <button key={g.n} className="pk-carta" onClick={() => setFicha(i)}>
                   <span className="pk-carta-arte">
@@ -483,12 +630,12 @@ export default function PropuestaHome() {
       {/* ═══ 006 RANGOS: metas con sello CLEAR! ═══ */}
       <section id="pk-rangos" className="pk-sec pk-oscuro">
         <div className="pk-ancho">
-          <Titulo>{capitulos[5][1]}</Titulo>
+          <Titulo n={7} intro={en ? "Try it: tap the missions and watch your rank go up." : "Pruébalo: toca las misiones y mira cómo subes de rango."}>{capitulos[6][1]}</Titulo>
           <p className="pk-mono pk-etq mb-2">{e.sistemaEtiqueta}</p>
           <p className="pk-cond mb-3 text-[30px] leading-[0.95] text-white sm:text-5xl">{e.sistemaTitulo}</p>
           <p className="pk-texto mb-7">{e.sistemaTexto}</p>
 
-          <div className="pk-sim">
+          <div className="pk-sim pk-rev">
             <div className="pk-sim-cab">
               <span className="pk-cond pk-sim-letra" style={{ color: RANGOS[nivel].color }}>{RANGOS[nivel].r}</span>
               <div className="min-w-0 flex-1">
@@ -517,9 +664,9 @@ export default function PropuestaHome() {
             {hechas.length > 0 && <button className="pk-mono pk-reiniciar" onClick={() => setHechas([])}>{e.reiniciar}</button>}
           </div>
 
-          <div className="pk-metas">
+          <div className="pk-metas pk-rev pk-rev-hijos">
             {RANGOS.map((x, i) => (
-              <div key={x.r} className={`pk-meta ${xp >= UMBRALES[i] && i > 0 ? "pk-meta-ok" : ""}`} style={{ ["--c" as string]: x.color }}>
+              <div key={x.r} className={`pk-meta ${xp >= UMBRALES[i] && i > 0 ? "pk-meta-ok" : ""}`} style={{ ["--c" as string]: x.color, ["--d" as string]: `${i * 80}ms` }}>
                 {xp >= UMBRALES[i] && i > 0 && <span className="pk-clear pk-cond">CLEAR!</span>}
                 <span className="pk-cond pk-meta-letra">{x.r}</span>
                 <span className="min-w-0 flex-1">
@@ -541,24 +688,24 @@ export default function PropuestaHome() {
           imagen={s("wf_raid_jefe")}
           recompensa={(en ? s("wf_raid_recompensa_en") : s("wf_raid_recompensa"))}
           recompensaImg={s("wf_raid_recompensa_img")}
-          numero={<span className="pk-mono text-[10px] text-[#8b84a3]">007</span>}
+          numero={<span className="pk-mono text-[10px] text-[#8b84a3]">008</span>}
         />
       </div>
 
       {/* ═══ 008 PREMIO: ficha técnica ═══ */}
       <section id="pk-premio" className="pk-sec pk-oscuro">
         <div className="pk-ancho">
-          <Titulo>{capitulos[7][1]}</Titulo>
+          <Titulo n={9}>{capitulos[8][1]}</Titulo>
           <p className="pk-mono pk-etq mb-2">{e.premioEtiqueta}</p>
           <p className="pk-cond mb-4 text-[30px] leading-[0.95] text-white sm:text-5xl">{e.premioTitulo1} {e.premioTitulo2}</p>
           <p className="pk-texto mb-8">{e.premioTexto}</p>
-          <div className="pk-premio-caja">
+          <div className="pk-premio-caja pk-rev">
             {premioImg && <img src={premioImg} alt="" loading="lazy" />}
             <span className="pk-premio-candado"><Lock size={28} /></span>
             <span className="pk-mono pk-premio-clas">{e.clasificado}</span>
             <Visor />
           </div>
-          <dl className="pk-spec">
+          <dl className="pk-spec pk-rev" style={{ ["--d" as string]: "120ms" }}>
             <div><dt>{en ? "Piece" : "Pieza"}</dt><dd>{e.premioPieza}</dd></div>
             <div><dt>{en ? "Details" : "Detalle"}</dt><dd>{e.premioPiezaTexto}</dd></div>
             <div><dt>{en ? "Value" : "Valor"}</dt><dd className="text-[#ff5d7a]">{e.premioValor}</dd></div>
@@ -570,8 +717,8 @@ export default function PropuestaHome() {
       {/* ═══ 009 ACCESO ═══ */}
       <section id="pk-acceso" className="pk-sec pk-acceso">
         <div className="pk-ancho">
-          <Titulo>{capitulos[8][1]}</Titulo>
-          <div className="pk-ventana">
+          <Titulo n={10}>{capitulos[9][1]}</Titulo>
+          <div className="pk-ventana pk-rev">
             <Visor />
             <p className="pk-mono pk-ventana-cab">{e.listaEtiqueta}</p>
             <p className="pk-cond mb-3 text-[30px] leading-[0.95] text-white sm:text-5xl">{e.listaTitulo}</p>

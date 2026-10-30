@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
-import { motion, useScroll, useSpring, useReducedMotion, useTransform } from "framer-motion";
+import { motion, useScroll, useSpring, useReducedMotion } from "framer-motion";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
   Trophy, Lock, MapPin, Calendar, Star, ChevronLeft, ChevronRight,
@@ -18,6 +18,7 @@ import RaidJefe from "@/components/fest/RaidJefe";
 import { ZonaSombras, RevelacionSombras } from "@/components/fest/SombrasSecretas";
 import ManaParticulas from "@/components/fest/ManaParticulas";
 import IntroSistema, { introPendiente } from "@/components/fest/IntroSistema";
+import PortadaPoster from "@/components/fest/PortadaPoster";
 
 /**
  * Isekai World Fest — landing del evento (portada del sitio).
@@ -630,35 +631,7 @@ export default function HomeEvento() {
     }
   };
 
-  /**
-   * Cruce de la puerta: la portada queda fija mientras se baja, la puerta
-   * crece, la figura se acerca y un destello «te mete» en el Fest. Sin esto
-   * (reducir movimiento o gama baja) la portada es una pantalla normal.
-   */
-  const reducirMov = useReducedMotion();
-  // En teléfono no hay cruce: la portada es una pantalla limpia que se desliza normal
-  const [anchoGrande] = useState(() => typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches);
-  const escenaFija = !reducirMov && !ligero && anchoGrande;
-  const heroMarcoRef = useRef<HTMLDivElement>(null);
-  const { scrollYProgress: cruce } = useScroll({ target: heroMarcoRef, offset: ["start start", "end end"] });
-  const puertaEscala = useTransform(cruce, [0, 1], [1, 2.6]);
-  const figuraEscala = useTransform(cruce, [0, 1], [1, 1.25]);
-  const figuraOpacidad = useTransform(cruce, [0.35, 0.7], [1, 0]);
-  const contenidoOpacidad = useTransform(cruce, [0, 0.3], [1, 0]);
-  const contenidoY = useTransform(cruce, [0, 0.35], [0, -60]);
-  const cruceOpacidad = useTransform(cruce, [0.6, 0.86, 1], [0, 1, 0]);
-  const tunelOpacidad = useTransform(cruce, [0.2, 0.55, 0.85], [0, 1, 0]);
-  const tunelEscala = useTransform(cruce, [0.2, 0.9], [0.6, 2.2]);
   const [notificacionVisible, setNotificacionVisible] = useState(false);
-
-  /** Parallax de la figura (solo tiene efecto con mouse) */
-  const heroRef = useRef<HTMLElement>(null);
-  const moverFigura = (ev: RPointerEvent<HTMLElement>) => {
-    if (ev.pointerType !== "mouse" || !heroRef.current) return;
-    const r = heroRef.current.getBoundingClientRect();
-    heroRef.current.style.setProperty("--ev2-px", String((ev.clientX - r.left) / r.width - 0.5));
-    heroRef.current.style.setProperty("--ev2-py", String((ev.clientY - r.top) / r.height - 0.5));
-  };
 
   /** Línea de energía de la escalera de rangos: se llena al bajar */
   const escaleraRef = useRef<HTMLDivElement>(null);
@@ -810,151 +783,31 @@ export default function HomeEvento() {
         </div>
       )}
 
-      {/* ═══ 1. EL SISTEMA HA DESPERTADO ═══
-          Escena 1: la puerta de maná con la figura delante y el título.
-          Al bajar, la puerta crece y se «cruza» con un destello de luz.
-          Escena 2: aparece la notificación del Sistema con el texto, la
-          fecha, la cuenta regresiva y la misión. */}
-      <div ref={heroMarcoRef} className="sl-hero-marco" style={{ height: escenaFija ? "150svh" : undefined }}>
-        <section
-          ref={heroRef}
-          onPointerMove={moverFigura}
-          className="sl-hero flex flex-col lg:block"
-          style={escenaFija ? { position: "sticky", top: 0 } : undefined}
-          data-piso="1"
-        >
-          <div className="sl-hero-fondo" aria-hidden="true">
-            {heroBg && <img src={heroBg} alt="" />}
-            {heroVideo && <video src={heroVideo} autoPlay muted loop playsInline poster={heroBg || undefined} style={{ opacity: 0.6 }} />}
-          </div>
-          <div className="sl-hero-velo" aria-hidden="true" />
-          <div className="sl-hero-rejilla" aria-hidden="true" />
-
-          <ManaParticulas className="absolute inset-0 z-0 h-full w-full" ligero={ligero} cantidad={52} />
-
-          {/* HUD superior. Teléfono: va en el flujo, arriba de la puerta */}
-          <div className="relative z-[3] mx-auto flex w-full max-w-7xl items-center justify-between px-5 pt-5 lg:absolute lg:inset-x-0 lg:top-0 lg:px-10 lg:pt-28">
-            <p className="sl-orbitron whitespace-nowrap text-[9px] font-bold uppercase tracking-[0.2em] text-[#9be7ff] min-[380px]:text-[10px] min-[380px]:tracking-[0.35em]">
-              {e.v2.hudSistema} <span className="ev2-cursor">_</span>
-            </p>
-            <p className="sl-orbitron text-[9px] font-bold uppercase tracking-[0.18em] text-[#c4b5fd] min-[380px]:text-[10px] min-[380px]:tracking-[0.3em] lg:hidden">{e.etiquetaAnio}</p>
-            <span className="hidden lg:inline"><NumSeccion n={1} /></span>
-          </div>
-
-          {/* Escenario: la figura con su aura. En teléfono ocupa el centro de
-              la pantalla, sin texto encima; en computador va a la derecha y el
-              texto a la izquierda. */}
-          <div className="sl-escenario relative z-[1] min-h-0 flex-1 lg:absolute lg:inset-0">
-            {/* Escena del Monarca de las Sombras: título gigante calado al
-                fondo, aura de sombras que sube desde sus pies y un charco de
-                sombra en el suelo. Sin marcos: la figura es la protagonista. */}
-            <motion.div className="absolute inset-0" style={escenaFija ? { scale: puertaEscala, transformOrigin: "70% 85%" } : undefined} aria-hidden="true">
-              {portadaLista && <div className="sl-eco">
-                {e.heroTitulo1.split(" ").map((p, k, todas) => (
-                  <span key={k} className={`block ${k < todas.length - 1 ? "hidden lg:block" : ""}`}>{p}</span>
-                ))}
-              </div>}
-              <span className="sl-contraluz" />
-              <span className="sl-charco"><i /><i /><i /></span>
-              <span className="sl-sombra-pies" />
-              <span className="sl-relampago" />
-            </motion.div>
-
-            {/* Figura sobre su sombra (mantener presionada abre la Zona de Sombras) */}
-            {heroFigura && portadaLista && figura.estado !== "cargando" && (
-              <div className="sl-figura">
-                <motion.div
-                  className="ev2-parallax h-full"
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1.1, delay: 0.9 }}
-                  style={escenaFija ? { scale: figuraEscala, opacity: figuraOpacidad, transformOrigin: "50% 100%" } : undefined}
-                >
-                  {/* Aura de sombras: copias de la silueta distorsionadas como
-                      fuego, que se alternan para que las llamas parpadeen */}
-                  {!reducirMov && (
-                    <div className="sl-aura" aria-hidden="true">
-                      <img src={figura.src} alt="" className="sl-aura-capa sl-aura-1" />
-                      <img src={figura.src} alt="" className="sl-aura-capa sl-aura-2" />
-                      {!ligero && <img src={figura.src} alt="" className="sl-aura-capa sl-aura-3" />}
-                    </div>
-                  )}
-                  <img src={figura.src} alt="" className="sl-figura-img" />
-                </motion.div>
-              </div>
-            )}
-            {/* Filtros de las llamas (fuera de la vista) */}
-            <svg width="0" height="0" className="absolute" aria-hidden="true" focusable="false">
-              <defs>
-                {[[3, "#8b5cf6", 34], [11, "#5b21b6", 46], [23, "#4fc3ff", 26]].map(([semilla, color, escala], k) => (
-                  <filter key={k} id={`sl-llama-${k + 1}`} x="-40%" y="-40%" width="180%" height="180%" colorInterpolationFilters="sRGB">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.012 0.045" numOctaves={2} seed={semilla as number} result="ruido" />
-                    <feDisplacementMap in="SourceAlpha" in2="ruido" scale={escala as number} xChannelSelector="R" yChannelSelector="G" result="forma" />
-                    <feFlood floodColor={color as string} />
-                    <feComposite in2="forma" operator="in" result="color" />
-                    <feGaussianBlur in="color" stdDeviation={4} />
-                  </filter>
-                ))}
-              </defs>
-            </svg>
-            {heroFigura && (
-              <div className="absolute left-1/2 top-[8%] z-[2] h-[84%] w-[56%] -translate-x-1/2 lg:left-[70%] lg:top-[10%] lg:h-[80%] lg:w-[34%]">
-                <ZonaSombras onRevelar={() => setSombras(true)} />
-              </div>
-            )}
-          </div>
-
-          {/* Pie del póster: oscurece la parte baja para que el título se lea */}
-          <div className="sl-hero-pie" aria-hidden="true" />
-
-          {/* Título y misión */}
-          <motion.div
-            className="sl-hero-texto relative z-[3] mx-auto w-full max-w-7xl px-5 pb-[calc(env(safe-area-inset-bottom)+1.6rem)] text-center lg:absolute lg:inset-y-0 lg:left-0 lg:right-0 lg:flex lg:flex-col lg:justify-center lg:px-10 lg:pb-0 lg:text-left"
-            style={escenaFija ? { opacity: contenidoOpacidad, y: contenidoY } : undefined}
-          >
-            <div className="lg:max-w-[60%]">
-              <p className="sl-orbitron mb-4 hidden text-xs font-bold uppercase tracking-[0.45em] text-[#c4b5fd] lg:block">
-                {e.etiquetaAnio}
-              </p>
-              <h1 className="sl-titulo sl-titan mb-4 text-[31px] [hyphens:none] min-[380px]:text-[38px] min-[400px]:text-[42px] sm:text-7xl lg:mb-5 lg:text-[84px] xl:text-[96px]">
-                <span className="sl-texto-marca block">{portadaLista ? <LetrasEntrada texto={e.heroTitulo1} retraso={0.35} /> : <span className="opacity-0">{e.heroTitulo1}</span>}</span>
-                <span className="sl-texto-sistema block">{portadaLista ? <LetrasEntrada texto={e.heroTitulo2} retraso={0.35 + e.heroTitulo1.length * 0.035} /> : <span className="opacity-0">{e.heroTitulo2}</span>}</span>
-              </h1>
-
-              <motion.div
-                initial={{ opacity: 0, y: 14 }}
-                animate={portadaLista ? { opacity: 1, y: 0 } : { opacity: 0, y: 14 }}
-                transition={{ duration: 0.7, delay: 1.1 }}
-              >
-                <div className="mb-5 flex flex-wrap justify-center gap-x-5 gap-y-1.5 text-[13px] font-semibold text-[#e7e3f5] sm:text-sm lg:mb-6 lg:justify-start">
-                  <span className="flex items-center gap-2"><Calendar size={15} className="text-[#4fc3ff]" /> {e.heroFecha}</span>
-                  <span className="flex items-center gap-2"><MapPin size={15} className="text-[#4fc3ff]" /> {e.heroLugar}</span>
-                </div>
-                <div className="flex flex-col gap-2.5 sm:flex-row sm:justify-center lg:justify-start">
-                  <button onClick={irALista} className="sl-btn sl-btn-marca sl-solo-ancho px-8 py-[16px] text-[12.5px]">
-                    {e.ctaAviso}
-                  </button>
-                  <a href="#el-mundo" className="sl-btn sl-btn-sistema sl-solo-ancho px-8 py-[16px] text-[12.5px]">
-                    {e.ctaDescubrir}
-                  </a>
-                  {/* Teléfono: enlace compacto, para que todo quepa en la pantalla */}
-                  <a href="#el-mundo" className="sl-orbitron mx-auto mt-1 hidden items-center gap-1.5 py-1.5 text-[10.5px] font-bold uppercase tracking-[0.28em] text-[#9be7ff]">
-                    {e.ctaDescubrir} <ChevronRight size={13} className="rotate-90" />
-                  </a>
-                </div>
-              </motion.div>
+      {/* ═══ 1. PORTADA ═══
+          Póster a pantalla completa (la misma de /propuesta): ilustración,
+          figura al centro y abajo el logo, el lema y la fecha. Mantener
+          presionada la figura abre la Zona de Sombras. */}
+      <div data-piso="1">
+        <PortadaPoster
+          conBarra
+          fondo={heroBg}
+          video={heroVideo}
+          figura={heroFigura && figura.estado !== "cargando" ? figura.src : undefined}
+          logo={logoIntro}
+          lema1={e.heroTitulo1}
+          lema2={e.heroTitulo2}
+          fecha={e.heroFecha}
+          lugar={e.heroLugar}
+          etiqueta={e.etiquetaAnio}
+          lista={portadaLista}
+          ligero={ligero}
+          onInsignia={() => document.querySelector('[data-piso="6"]')?.scrollIntoView({ behavior: "smooth" })}
+          superpuesto={heroFigura ? (
+            <div className="absolute left-1/2 top-[14%] z-[2] h-[62%] w-[56%] -translate-x-1/2">
+              <ZonaSombras onRevelar={() => setSombras(true)} />
             </div>
-          </motion.div>
-
-          {/* Bajar */}
-          <div className="absolute bottom-6 right-6 z-[3] hidden flex-col items-center gap-2 lg:flex" aria-hidden="true">
-            <span className="sl-bajar" />
-          </div>
-
-          {/* Destello al cruzar la puerta */}
-          {escenaFija && <motion.div className="sl-tunel" style={{ opacity: tunelOpacidad, scale: tunelEscala }} aria-hidden="true" />}
-          {escenaFija && <motion.div className="sl-cruce" style={{ opacity: cruceOpacidad }} aria-hidden="true" />}
-        </section>
+          ) : undefined}
+        />
       </div>
 
       {/* ═══ Notificación del Sistema (continuación de la portada) ═══ */}

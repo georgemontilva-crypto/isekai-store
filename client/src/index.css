@@ -5361,3 +5361,91 @@ html.dark .sl-home.sl-home .sl-claro .sl-tecla > h2.sl-h2 { background: none; co
 /* La regla global pinta los h2 de rosa: en la propuesta, celeste sobre oscuro y negro sobre claro */
 html.dark .pk h2.pk-titulo, .pk h2.pk-titulo { color: var(--pk-cian) !important; -webkit-text-fill-color: var(--pk-cian); }
 html.dark .pk h2.pk-titulo.pk-titulo-claro, .pk h2.pk-titulo.pk-titulo-claro { color: #0b0814 !important; -webkit-text-fill-color: #0b0814; }
+
+/* ═══ Portada póster compartida (home y propuesta) ═══ */
+.pk-hero { --pk-cian: #6ff0ff; --pk-rosa: #e5007d; background: #07060b; color: #fff; }
+.pk-hero-capa-fondo, .pk-hero-capa-figura { position: absolute; inset: 0; will-change: transform; }
+.pk-hero-capa-fondo { transform: translateY(calc(var(--pp-y, 0) * .35px)); }
+.pk-hero-capa-figura { z-index: 1; transform: translateY(calc(var(--pp-y, 0) * .12px)); }
+html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -webkit-text-fill-color: #fff; font-weight: 400; }
+.pk-hero h1.pk-lema span { color: #fff; }
+@media (max-width: 1023px) { .pk-hero.pk-hero-conbarra { height: calc(100svh - 65px); min-height: 500px; } }
+.pk-hero-bajar { display: none; }
+@media (min-width: 1024px) {
+  .pk-hero.pk-hero-conbarra { height: calc(100vh - 65px); }
+  .pk-hero-bajar { display: block; position: absolute; z-index: 4; left: 50%; bottom: 22px; width: 1px; height: 46px; overflow: hidden; background: rgba(111,240,255,.18); }
+  .pk-hero-bajar::after { content: ""; position: absolute; left: 0; top: -50%; width: 1px; height: 50%; background: #6ff0ff; animation: pk-bajar 1.8s cubic-bezier(.6,0,.4,1) infinite; }
+}
+@keyframes pk-bajar { to { top: 100%; } }
+@media (prefers-reduced-motion: reduce) { .pk-hero-capa-fondo, .pk-hero-capa-figura { transform: none; } }
+
+/* ═══ Propuesta: más movimiento y explicación ═══ */
+/* Entrada al aparecer en pantalla */
+.pk-rev { opacity: 0; transform: translateY(26px); transition: opacity .7s ease var(--d, 0ms), transform .8s cubic-bezier(.2,.9,.2,1) var(--d, 0ms); }
+.pk-rev.pk-rev-on { opacity: 1; transform: none; }
+.pk-rev-hijos { opacity: 1; transform: none; }
+.pk-rev-hijos > * { opacity: 0; transform: translateX(-22px); transition: opacity .6s ease var(--d, 0ms), transform .7s cubic-bezier(.2,.9,.2,1) var(--d, 0ms); }
+.pk-rev-hijos.pk-rev-on > * { opacity: 1; transform: none; }
+
+/* Cabecera de capítulo: número calado gigante + línea que explica */
+.pk-cap { position: relative; margin-bottom: 26px; }
+.pk-cap .pk-titulo { margin-bottom: 0; }
+.pk-cap-num { position: absolute; right: -4px; top: -26px; font-size: clamp(90px, 30vw, 220px); line-height: .8; color: transparent;
+  -webkit-text-stroke: 1.5px rgba(111,240,255,.16); pointer-events: none; user-select: none; transform: translateX(30px); opacity: 0;
+  transition: transform 1.2s cubic-bezier(.2,.9,.2,1), opacity 1s ease; }
+.pk-cap-claro .pk-cap-num { -webkit-text-stroke-color: rgba(11,8,20,.13); }
+.pk-cap-on .pk-cap-num { transform: none; opacity: 1; }
+.pk-cap-intro { position: relative; margin-top: 12px; padding-left: 12px; border-left: 3px solid var(--pk-rosa); font-size: 12.5px; line-height: 1.6; color: #b9b2cc;
+  opacity: 0; transform: translateY(8px); transition: opacity .6s ease 1s, transform .6s ease 1s; }
+.pk-cap-claro .pk-cap-intro { color: #3b3450; }
+.pk-cap-on .pk-cap-intro { opacity: 1; transform: none; }
+
+/* Cinta deslizante entre capítulos */
+.pk-cinta { overflow: hidden; background: var(--pk-rosa); color: #fff; padding: 9px 0; transform: rotate(-1.5deg) scale(1.04); position: relative; z-index: 2;
+  box-shadow: 0 0 30px rgba(229,0,125,.4); }
+.pk-cinta-claro { background: #0b0814; color: var(--pk-cian); box-shadow: none; transform: rotate(1.2deg) scale(1.04); }
+.pk-cinta-pista { display: flex; width: max-content; font-size: 18px; letter-spacing: .08em; white-space: pre; animation: pk-cinta 26s linear infinite; }
+.pk-cinta-claro .pk-cinta-pista { animation-direction: reverse; animation-duration: 32s; }
+@keyframes pk-cinta { to { transform: translateX(-50%); } }
+
+/* Cómo funciona: línea de energía que se llena al bajar */
+.pk-pasos { position: relative; display: flex; flex-direction: column; gap: 4px; padding-left: 4px; }
+.pk-pasos::before, .pk-pasos::after { content: ""; position: absolute; left: 25px; top: 20px; bottom: 20px; width: 2px; }
+.pk-pasos::before { background: rgba(255,255,255,.1); }
+.pk-pasos::after { background: linear-gradient(180deg, #6ff0ff, #a78bfa, #e5007d); transform-origin: top; transform: scaleY(var(--avance, 0)); box-shadow: 0 0 12px rgba(111,240,255,.6); }
+.pk-pasos li { position: relative; display: flex; gap: 16px; padding: 12px 0; opacity: .35; transition: opacity .5s ease; }
+.pk-pasos li.pk-paso-on { opacity: 1; }
+.pk-paso-num { position: relative; z-index: 1; flex-shrink: 0; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; font-size: 19px;
+  color: #6f6888; background: #07060b; border: 2px solid rgba(255,255,255,.15); clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); transition: color .4s, border-color .4s, background .4s; }
+.pk-paso-on .pk-paso-num { color: #05040a; background: #6ff0ff; box-shadow: 0 0 18px #6ff0ff; }
+.pk-pasos b { display: block; font-size: 23px; line-height: 1; color: #fff; padding-top: 4px; }
+.pk-paso-on b { color: #6ff0ff; }
+.pk-pasos p { margin-top: 6px; font-size: 12.5px; line-height: 1.65; color: #b9b2cc; }
+
+/* Universo: glosario de Solo Leveling */
+.pk-universo { background: radial-gradient(80% 50% at 80% 0%, rgba(91,33,182,.35), transparent 70%), radial-gradient(60% 40% at 0% 100%, rgba(79,195,255,.12), transparent 70%), #07060b; }
+.pk-glosario { display: grid; grid-template-columns: 1fr; gap: 14px; }
+@media (min-width: 640px) { .pk-glosario { grid-template-columns: 1fr 1fr; } }
+@media (min-width: 1024px) { .pk-glosario { grid-template-columns: 1fr 1fr 1fr; } }
+.pk-glosa { position: relative; color: #a78bfa; padding: 18px 16px 18px 16px; background: linear-gradient(160deg, rgba(139,92,246,.14), rgba(7,6,11,.9) 60%); border: 1px solid rgba(167,139,250,.25); }
+.pk-glosa:nth-child(even) { color: #6ff0ff; background: linear-gradient(160deg, rgba(111,240,255,.1), rgba(7,6,11,.9) 60%); border-color: rgba(111,240,255,.22); }
+.pk-glosa-ico { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border: 1px solid currentColor; margin-bottom: 12px; filter: drop-shadow(0 0 10px currentColor); }
+.pk-glosa-num { position: absolute; right: 14px; top: 14px; font-size: 10px; color: #6f6888; }
+.pk-glosa b { display: block; font-size: 26px; line-height: 1; color: #fff; margin-bottom: 6px; }
+.pk-glosa p { font-size: 12.5px; line-height: 1.65; color: #cfc9de; }
+
+/* El mundo: barra de avance de la pestaña abierta */
+.pk-pestana-avance { position: absolute; left: 0; bottom: 0; height: 3px; width: 100%; background: var(--c); transform-origin: left; animation: pk-avance 4.2s linear both; box-shadow: 0 0 10px var(--c); }
+@keyframes pk-avance { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Áreas: avance automático y texto que entra */
+.pk-area-avance { position: absolute; z-index: 4; left: 0; top: 0; height: 3px; width: 100%; background: var(--c); transform-origin: left; animation: pk-avance 5s linear both; }
+.pk-area-texto { animation: pk-aparece .45s ease both; }
+.pk-area-icono { animation: pk-icono .8s cubic-bezier(.2,1.4,.4,1) both; }
+@keyframes pk-icono { from { transform: scale(.4) rotate(-12deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-rev, .pk-rev-hijos > * { opacity: 1 !important; transform: none !important; transition: none; }
+  .pk-cap-num, .pk-cap-intro { opacity: 1; transform: none; transition: none; }
+  .pk-cinta-pista, .pk-pestana-avance, .pk-area-avance, .pk-area-icono { animation: none; }
+}
+.pk-ver-todo { white-space: nowrap; margin-top: 14px; margin-bottom: 0; }
