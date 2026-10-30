@@ -5449,3 +5449,146 @@ html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -we
   .pk-cinta-pista, .pk-pestana-avance, .pk-area-avance, .pk-area-icono { animation: none; }
 }
 .pk-ver-todo { white-space: nowrap; margin-top: 14px; margin-bottom: 0; }
+
+/* ═══ Propuesta: ¿Qué es? ═══ */
+.pk-que-es { background: radial-gradient(60% 40% at 100% 0%, rgba(229,0,125,.18), transparent 70%), #07060b; }
+.pk-que-es-palabra { font-size: clamp(40px, 12vw, 92px); line-height: .9; color: #fff; margin-bottom: 18px; }
+.pk-que-es-palabra span { color: transparent; -webkit-text-stroke: 1.5px #6ff0ff; }
+.pk-pilares { display: flex; flex-wrap: wrap; gap: 8px; }
+.pk-pilares span { padding: 8px 14px; font-size: 22px; color: #05040a; background: #6ff0ff; clip-path: polygon(0 0, 100% 0, 100% 70%, calc(100% - 10px) 100%, 0 100%); }
+.pk-pilares span:nth-child(even) { background: #ff3d9e; color: #fff; }
+
+/* ═══ Propuesta: plano interactivo ═══ */
+.pk-mapa { position: relative; overflow: hidden; background: #05050c; border: 1px solid #0b0814; aspect-ratio: 1303 / 740; box-shadow: 0 24px 50px -24px rgba(11,8,20,.7); }
+@media (max-width: 639px) { .pk-mapa { aspect-ratio: auto; height: 300px; } .pk-mapa-lienzo { width: 165%; left: -34%; } }
+.pk-mapa-lienzo { position: absolute; inset: 0; transition: transform .75s cubic-bezier(.6,0,.2,1); }
+.pk-mapa-svg { width: 100%; height: 100%; display: block; }
+.pk-mapa-ruta { fill: none; stroke: #b9a8ff; stroke-width: 2.4; stroke-dasharray: 8 8; opacity: .55; animation: pk-ruta 1.6s linear infinite; }
+@keyframes pk-ruta { to { stroke-dashoffset: -32; } }
+.pk-mapa-zona { cursor: pointer; outline: none; }
+.pk-mapa-zona rect { fill: color-mix(in srgb, var(--c) 22%, transparent); stroke: var(--c); stroke-width: 2.5; filter: drop-shadow(0 0 8px var(--c));
+  opacity: 0; animation: pk-zona-in .6s ease forwards var(--d); transition: fill .25s; }
+.pk-mapa-zona:hover rect, .pk-mapa-zona:focus-visible rect { fill: color-mix(in srgb, var(--c) 45%, transparent); }
+@keyframes pk-zona-in { from { opacity: 0; } to { opacity: 1; } }
+.pk-mapa-pin { fill: #05050c; stroke: var(--c); stroke-width: 3; }
+.pk-mapa-pulso { fill: none; stroke: var(--c); stroke-width: 2; transform-box: fill-box; transform-origin: center; animation: pk-pulso 2.2s ease-out infinite var(--d); }
+@keyframes pk-pulso { 0% { transform: scale(.9); opacity: .9; } 100% { transform: scale(2.3); opacity: 0; } }
+.pk-mapa-num { font-family: "Barlow Condensed", "Montserrat", sans-serif; font-weight: 800; font-size: 24px; fill: #fff; pointer-events: none; }
+.pk-mapa-nombre { font-family: "Barlow Condensed", "Montserrat", sans-serif; font-weight: 800; font-size: 19px; letter-spacing: .04em; fill: #fff; pointer-events: none; paint-order: stroke; stroke: #05050c; stroke-width: 5px; }
+@media (max-width: 639px) { .pk-mapa-nombre { display: none; } }
+.pk-mapa-destello { position: absolute; inset: 0; pointer-events: none; opacity: 0; background: radial-gradient(circle, #fff, rgba(167,139,250,.9) 35%, rgba(5,5,12,0) 75%); transition: opacity .3s ease; }
+.pk-mapa-destello-on { opacity: 1; }
+.pk-mapa-esquinas i { position: absolute; width: 18px; height: 18px; border: 0 solid #6ff0ff; pointer-events: none; }
+.pk-mapa-esquinas i:nth-child(1) { left: 8px; top: 8px; border-width: 2px 0 0 2px; }
+.pk-mapa-esquinas i:nth-child(2) { right: 8px; top: 8px; border-width: 2px 2px 0 0; }
+.pk-mapa-esquinas i:nth-child(3) { left: 8px; bottom: 8px; border-width: 0 0 2px 2px; }
+.pk-mapa-esquinas i:nth-child(4) { right: 8px; bottom: 8px; border-width: 0 2px 2px 0; }
+.pk-mapa-toca { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); padding: 5px 10px; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: #05040a; background: #6ff0ff; white-space: nowrap; animation: pk-parpadeo 1.6s ease-in-out infinite; pointer-events: none; }
+@keyframes pk-parpadeo { 50% { opacity: .55; } }
+.pk-mapa-chips { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 12px; }
+@media (min-width: 768px) { .pk-mapa-chips { grid-template-columns: repeat(3, 1fr); } }
+.pk-mapa-chips button { display: flex; align-items: center; gap: 8px; padding: 10px 10px; text-align: left; background: #0b0814; color: #fff; border-left: 3px solid var(--c); transition: transform .2s, background .2s; }
+.pk-mapa-chips button:active { transform: scale(.97); background: color-mix(in srgb, var(--c) 30%, #0b0814); }
+.pk-mapa-chips span { font-size: 10px; color: #8b84a3; } .pk-mapa-chips svg { color: var(--c); flex-shrink: 0; }
+.pk-mapa-chips b { font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 15px; text-transform: uppercase; line-height: 1.05; }
+
+/* La zona a pantalla completa: como entrar al espacio */
+.pk-zona { position: fixed; inset: 0; z-index: 96; background: #05040a; color: #fff; display: flex; flex-direction: column; animation: pk-zona-abre .5s ease both; }
+@keyframes pk-zona-abre { from { opacity: 0; } to { opacity: 1; } }
+.pk-zona-sale { animation: pk-zona-cierra .38s ease forwards; }
+@keyframes pk-zona-cierra { to { opacity: 0; transform: scale(1.06); } }
+.pk-zona-escena { position: absolute; inset: 0; overflow: hidden; animation: pk-entra-espacio 1.4s cubic-bezier(.2,.8,.2,1) both; }
+@keyframes pk-entra-espacio { from { transform: scale(1.45) translateX(calc(var(--dir, 1) * 4%)); filter: blur(12px) brightness(1.8); } to { transform: none; filter: none; } }
+.pk-zona-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; animation: pk-avanza 16s ease-out both; }
+@keyframes pk-avanza { to { transform: scale(1.12); } }
+.pk-zona-ambiente { position: absolute; inset: 0; perspective: 600px; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(70% 55% at 50% 38%, color-mix(in srgb, var(--c) 45%, transparent), transparent 70%), linear-gradient(180deg, #05040a, color-mix(in srgb, var(--c) 18%, #05040a)); }
+.pk-zona-suelo { position: absolute; left: -50%; right: -50%; bottom: -10%; height: 70%; transform: rotateX(72deg); transform-origin: 50% 100%;
+  background-image: linear-gradient(color-mix(in srgb, var(--c) 70%, transparent) 2px, transparent 2px), linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, transparent) 2px, transparent 2px);
+  background-size: 70px 70px; animation: pk-suelo 1.1s linear infinite; mask-image: linear-gradient(0deg, #000 30%, transparent); -webkit-mask-image: linear-gradient(0deg, #000 30%, transparent); }
+@keyframes pk-suelo { to { background-position: 0 70px; } }
+.pk-zona-niebla { position: absolute; inset: 0; background: radial-gradient(40% 30% at 50% 60%, rgba(255,255,255,.12), transparent 70%); animation: pk-respira 5s ease-in-out infinite alternate; }
+.pk-zona-ico { position: relative; top: -12%; color: var(--c); filter: drop-shadow(0 0 30px var(--c)); animation: pk-flota 3s ease-in-out infinite; }
+.pk-zona-velo { position: absolute; inset: 0; background: linear-gradient(0deg, #05040a 8%, rgba(5,4,10,.75) 35%, transparent 62%), linear-gradient(180deg, rgba(5,4,10,.65), transparent 25%); }
+.pk-zona-cab { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; padding: calc(env(safe-area-inset-top) + 14px) 16px 0; }
+.pk-zona-cab span { font-size: 11px; letter-spacing: .2em; color: var(--c); }
+.pk-zona-cab button { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,.3); background: rgba(5,4,10,.5); }
+.pk-zona-info { position: relative; z-index: 2; margin-top: auto; padding: 0 18px 18px; max-width: 720px; animation: pk-pie 1s cubic-bezier(.2,.9,.2,1) .55s both; }
+.pk-zona-etq { font-size: 10.5px; letter-spacing: .25em; color: var(--c); margin-bottom: 6px; }
+.pk-zona-titulo { font-size: clamp(46px, 13vw, 96px); line-height: .88; text-shadow: 0 0 30px color-mix(in srgb, var(--c) 70%, transparent); }
+.pk-zona-texto { margin-top: 12px; font-size: 13.5px; line-height: 1.7; color: #e5e0f2; }
+.pk-zona-exp { margin-top: 12px; display: inline-block; padding: 4px 8px; font-size: 10.5px; font-weight: 700; color: #05040a; background: var(--c); }
+.pk-zona-nav { position: relative; z-index: 2; display: grid; grid-template-columns: 1fr 1fr; background: #fff; color: #0b0814; padding-bottom: env(safe-area-inset-bottom); }
+.pk-zona-nav button { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 52px; padding: 0 10px; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 15px; text-transform: uppercase; }
+.pk-zona-nav button:first-child { border-right: 1px solid #c9c6d3; }
+
+/* ═══ Propuesta: recompensa de Rango S ═══ */
+.pk-recompensa { position: relative; color: #ff5d7a; margin-top: 28px; padding: 18px 16px; border: 1px solid rgba(255,93,122,.35); background: linear-gradient(160deg, rgba(244,63,94,.12), rgba(7,6,11,.9) 55%); }
+.pk-recompensa-etq { font-size: 11px; letter-spacing: .22em; margin-bottom: 14px; }
+.pk-recompensa-grid { display: grid; gap: 18px; }
+@media (min-width: 900px) { .pk-recompensa-grid { grid-template-columns: 1fr 1.3fr; align-items: center; } }
+.pk-recompensa .pk-premio-caja { margin: 0; }
+
+/* ═══ Propuesta: la mazmorra del jefe ═══ */
+.pk-mazmorra { position: relative; overflow: hidden; padding: 30px 0 90px; text-align: center; background: radial-gradient(60% 50% at 50% 40%, rgba(244,63,94,.18), transparent 70%), #07060b; }
+.pk-mazmorra-suelo { position: absolute; left: -40%; right: -40%; bottom: -20%; height: 55%; transform: perspective(500px) rotateX(70deg); opacity: .5;
+  background-image: linear-gradient(rgba(244,63,94,.5) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(244,63,94,.5) 1.5px, transparent 1.5px); background-size: 60px 60px;
+  mask-image: linear-gradient(0deg, #000, transparent); -webkit-mask-image: linear-gradient(0deg, #000, transparent); animation: pk-suelo 2s linear infinite; }
+.pk-mazmorra-aviso { display: inline-block; padding: 6px 12px; font-size: 11px; letter-spacing: .18em; color: #fff; background: #b8002f; animation: pk-parpadeo 1.2s ease-in-out infinite; }
+.pk-mazmorra-puerta { position: relative; width: min(70vw, 300px); aspect-ratio: 3 / 4; margin: 26px auto 22px; }
+.pk-mazmorra-marco { position: absolute; inset: 0; border: 3px solid #ff5d7a; clip-path: polygon(50% 0, 100% 18%, 100% 100%, 0 100%, 0 18%); background: #05040a;
+  box-shadow: 0 0 40px rgba(244,63,94,.6); }
+.pk-mazmorra-marco::after { content: ""; position: absolute; inset: 0; border: 3px solid #ff5d7a; clip-path: inherit; }
+.pk-mazmorra-remolino { position: absolute; inset: 8% 10% 4%; clip-path: polygon(50% 0, 100% 18%, 100% 100%, 0 100%, 0 18%); overflow: hidden;
+  background: conic-gradient(from 0deg, #2a0010, #f43f5e, #5b0a2a, #a78bfa, #2a0010, #f43f5e, #2a0010); filter: blur(10px); animation: pk-gira 4s linear infinite; }
+@keyframes pk-gira { to { transform: rotate(360deg) scale(1.4); } }
+.pk-mazmorra-ojos { position: absolute; left: 50%; top: 46%; transform: translate(-50%, -50%); display: flex; gap: 22px; }
+.pk-mazmorra-ojos i { width: 26px; height: 7px; background: #fff; border-radius: 50%; box-shadow: 0 0 14px #ff2a55, 0 0 28px #ff2a55; animation: pk-ojos 3.4s ease-in-out infinite; }
+@keyframes pk-ojos { 0%, 40%, 100% { opacity: 1; transform: scaleY(1); } 44% { transform: scaleY(.1); } 48% { transform: scaleY(1); } }
+.pk-mazmorra-calavera { position: absolute; left: 50%; bottom: 10%; transform: translateX(-50%); color: rgba(255,93,122,.6); }
+.pk-mazmorra-titulo { font-size: clamp(38px, 11vw, 80px); line-height: .9; color: #fff; }
+.pk-mazmorra-texto { max-width: 520px; margin: 12px auto 22px; font-size: 13px; line-height: 1.7; color: #d8d2e8; }
+.pk-mazmorra-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 28px; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 22px;
+  text-transform: uppercase; color: #fff; background: linear-gradient(90deg, #b8002f, #f43f5e); box-shadow: 0 0 30px rgba(244,63,94,.6); clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
+  animation: pk-latido 1.4s ease-in-out infinite; }
+@keyframes pk-latido { 50% { transform: scale(1.05); box-shadow: 0 0 50px rgba(244,63,94,.9); } }
+
+/* Secuencia de entrada a la mazmorra */
+.pk-entrada { position: fixed; inset: 0; z-index: 97; background: #000; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; animation: pk-temblor .4s linear 6; }
+@keyframes pk-temblor { 0%, 100% { transform: translate(0, 0); } 20% { transform: translate(-6px, 3px); } 40% { transform: translate(5px, -4px); } 60% { transform: translate(-4px, -2px); } 80% { transform: translate(4px, 4px); } }
+.pk-entrada-jefe { animation: pk-temblor .3s linear 3; }
+.pk-tunel { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.pk-tunel i { position: absolute; width: 60px; height: 80px; border: 3px solid #a78bfa; clip-path: polygon(50% 0, 100% 18%, 100% 100%, 0 100%, 0 18%); box-shadow: 0 0 20px #f43f5e;
+  animation: pk-tunel 1.5s cubic-bezier(.6,0,1,1) infinite both; opacity: 0; }
+.pk-tunel i:nth-child(odd) { border-color: #f43f5e; }
+@keyframes pk-tunel { 0% { transform: scale(.2); opacity: 0; } 30% { opacity: 1; } 100% { transform: scale(14); opacity: 0; } }
+.pk-franjas { position: absolute; left: 0; right: 0; top: 18%; height: 26px; background: repeating-linear-gradient(-45deg, #b8002f 0 18px, #05040a 18px 36px); opacity: .9; animation: pk-franjas .6s linear infinite; }
+.pk-franjas::after { content: ""; position: absolute; left: 0; right: 0; top: calc(64vh - 18vh); height: 26px; background: inherit; }
+@keyframes pk-franjas { to { background-position: 51px 0; } }
+.pk-advertencia { position: relative; font-size: clamp(54px, 17vw, 140px); line-height: .9; color: #ff2a55; text-shadow: 0 0 30px #ff2a55; animation: pk-glitch .35s steps(2) infinite; }
+.pk-advertencia::before, .pk-advertencia::after, .pk-jefe-nombre::before, .pk-jefe-nombre::after { content: attr(data-t); position: absolute; inset: 0; }
+.pk-advertencia::before, .pk-jefe-nombre::before { color: #6ff0ff; transform: translate(-3px, 0); clip-path: inset(0 0 55% 0); opacity: .8; }
+.pk-advertencia::after, .pk-jefe-nombre::after { color: #fff; transform: translate(3px, 0); clip-path: inset(55% 0 0 0); opacity: .7; }
+@keyframes pk-glitch { 0% { transform: translate(0); } 50% { transform: translate(-2px, 1px) skewX(-4deg); } 100% { transform: translate(2px, -1px); } }
+.pk-advertencia-sub { position: relative; margin-top: 10px; font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #fff; }
+.pk-jefe-luz { position: absolute; inset: 0; background: radial-gradient(45% 40% at 50% 45%, rgba(244,63,94,.65), rgba(91,33,182,.3) 50%, transparent 75%); animation: pk-respira 1.2s ease-in-out infinite alternate; }
+.pk-jefe-figura { position: relative; height: 52vh; display: flex; align-items: flex-end; justify-content: center; color: #ff5d7a; animation: pk-jefe-sube 1.3s cubic-bezier(.2,1.2,.3,1) both; }
+.pk-jefe-figura img { height: 100%; width: auto; object-fit: contain; filter: drop-shadow(0 0 30px rgba(244,63,94,.9)); }
+@keyframes pk-jefe-sube { 0% { transform: translateY(60%) scale(.6); opacity: 0; filter: brightness(4) blur(8px); } 60% { opacity: 1; filter: brightness(1.6); } 100% { transform: none; filter: none; } }
+.pk-jefe-pie { position: relative; width: min(86vw, 520px); text-align: center; animation: pk-pie .8s ease .9s both; }
+.pk-jefe-nombre { position: relative; font-size: clamp(40px, 12vw, 90px); line-height: .9; color: #fff; text-shadow: 0 0 24px #f43f5e; animation: pk-glitch .4s steps(2) 4; }
+.pk-jefe-vida { display: block; height: 14px; margin: 14px 0 10px; border: 2px solid #fff; background: #1a0008; clip-path: polygon(8px 0, 100% 0, calc(100% - 8px) 100%, 0 100%); }
+.pk-jefe-vida i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #b8002f, #ff2a55); box-shadow: 0 0 14px #ff2a55; animation: pk-vida 1.4s cubic-bezier(.2,.9,.2,1) 1.2s forwards; }
+@keyframes pk-vida { to { width: 100%; } }
+.pk-jefe-listo { font-size: 12px; letter-spacing: .2em; text-transform: uppercase; color: #ffd0d8; animation: pk-parpadeo 1s ease-in-out infinite; }
+.pk-entrada-flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; animation: pk-flash .5s ease 1.9s; }
+.pk-entrada-jefe .pk-entrada-flash { animation: pk-flash .6s ease 0s; }
+@keyframes pk-flash { 0% { opacity: 0; } 30% { opacity: 1; } 100% { opacity: 0; } }
+.pk-raid-dentro { animation: pk-aparece .6s ease both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-mapa-ruta, .pk-mapa-pulso, .pk-mapa-toca, .pk-zona-escena, .pk-zona-img, .pk-zona-suelo, .pk-zona-ico, .pk-mazmorra-suelo, .pk-mazmorra-remolino, .pk-mazmorra-ojos i, .pk-mazmorra-btn, .pk-mazmorra-aviso { animation: none; }
+  .pk-mapa-zona rect { opacity: 1; animation: none; }
+}
+.pk-titulo > span { padding-top: .1em; }
+.pk-advertencia { font-size: clamp(44px, 12.5vw, 130px); }

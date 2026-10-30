@@ -11,6 +11,8 @@ import { useAntiSpam } from "@/hooks/useAntiSpam";
 import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
 import IntroSistema from "@/components/fest/IntroSistema";
 import PortadaPoster from "@/components/fest/PortadaPoster";
+import MapaEvento, { ZONAS } from "@/components/fest/MapaEvento";
+import MazmorraJefe from "@/components/fest/MazmorraJefe";
 import RaidJefe from "@/components/fest/RaidJefe";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 
@@ -105,6 +107,22 @@ const UNIVERSO = {
   },
 };
 const UNIVERSO_ICONOS = [Sparkles, Swords, Gamepad2, Star, Trophy, Lock];
+
+/** «¿Qué es Isekai World Fest?», tomado del brochure (p. 3) */
+const QUE_ES = {
+  es: {
+    palabra: "«otro mundo»",
+    p1: "Isekai World Fest es la puerta a ese mundo: dos días en los que Maracaibo se abre a los universos que nos formaron, y cada persona que la cruza se convierte en protagonista de su propia historia.",
+    p2: "Es un lugar para todos. Para el niño que ve por primera vez a un personaje gigante, para el joven que encuentra a su gente y para el adulto que vuelve a sentirse protagonista. Quien ya ama el anime viene a vivirlo en primera persona; quien nunca ha visto una serie llega a un mundo nuevo por descubrir.",
+    pilares: ["Inspirar", "Conectar", "Unir", "Vivir", "Trascender"],
+  },
+  en: {
+    palabra: "“another world”",
+    p1: "Isekai World Fest is the door to that world: two days when Maracaibo opens up to the universes that shaped us, and everyone who walks through it becomes the main character of their own story.",
+    p2: "It's a place for everyone. For the kid seeing a giant character for the first time, for the teen who finds their people and for the adult who feels like the hero again. Anime fans come to live it firsthand; someone who has never watched a series arrives at a new world to discover.",
+    pilares: ["Inspire", "Connect", "Unite", "Live", "Transcend"],
+  },
+};
 
 /* ───────────── Piezas pequeñas ───────────── */
 
@@ -282,46 +300,19 @@ export default function PropuestaHome() {
   }, [barra, lista]);
 
   const capitulos = useMemo(() => ([
-    ["pk-sistema", en ? "SYSTEM" : "SISTEMA"],
+    ["pk-que-es", en ? "WHAT IS IT" : "¿QUÉ ES?"],
     ["pk-concepto", en ? "CONCEPT" : "CONCEPTO"],
     ["pk-universo", en ? "UNIVERSE" : "UNIVERSO"],
-    ["pk-mundo", en ? "WORLD" : "EL MUNDO"],
-    ["pk-areas", en ? "AREAS" : "ÁREAS"],
+    ["pk-como", en ? "HOW IT WORKS" : "CÓMO FUNCIONA"],
+    ["pk-evento", en ? "THE EVENT" : "EL EVENTO"],
     ["pk-invitados", en ? "GUESTS" : "INVITADOS"],
     ["pk-rangos", en ? "RANKS" : "RANGOS"],
-    ["pk-raid", "RAID"],
-    ["pk-premio", en ? "REWARD" : "PREMIO"],
+    ["pk-raid", en ? "THE BOSS" : "EL JEFE"],
     ["pk-acceso", en ? "ACCESS" : "ACCESO"],
   ] as const), [en]);
   const ir = (id: string) => { setMenu(false); document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); };
 
   useRevelar(lista);
-
-  /* El mundo: pestaña abierta. Avanza sola hasta que la persona toque una */
-  const [mundoSel, setMundoSel] = useState(0);
-  const [mundoTocado, setMundoTocado] = useState(false);
-  useEffect(() => {
-    if (mundoTocado) return;
-    const id = window.setInterval(() => setMundoSel(x => (x + 1) % MUNDO_ESTILO.length), 4200);
-    return () => window.clearInterval(id);
-  }, [mundoTocado]);
-  const elegirMundo = (i: number) => { setMundoTocado(true); setMundoSel(i); };
-
-  /* Áreas: visor con anterior / siguiente y «ver todo» */
-  const [areaSel, setAreaSel] = useState(0);
-  const [areaTocada, setAreaTocada] = useState(false);
-  useEffect(() => {
-    if (areaTocada) return;
-    const id = window.setTimeout(() => setAreaSel(x => (x + 1) % AREAS_ESTILO.length), 5000);
-    return () => window.clearTimeout(id);
-  }, [areaSel, areaTocada]);
-  const moverArea = (d: number) => { setAreaTocada(true); setAreaSel(x => (x + d + AREAS_ESTILO.length) % AREAS_ESTILO.length); };
-  // Deslizar el visor con el dedo
-  const toqueX = useRef<number | null>(null);
-  const [verTodo, setVerTodo] = useState(false);
-  const area = AREAS[areaSel];
-  const AreaIcono = area.icono;
-  const sigArea = AREAS[(areaSel + 1) % AREAS.length];
 
   /* Invitados: carril o rejilla, y ficha abierta */
   const [vistaRejilla, setVistaRejilla] = useState(false);
@@ -354,10 +345,10 @@ export default function PropuestaHome() {
 
   // Bloquea el fondo con un panel abierto
   useEffect(() => {
-    const abierto = menu || verTodo || ficha !== null;
+    const abierto = menu || ficha !== null;
     document.body.style.overflow = abierto ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
-  }, [menu, verTodo, ficha]);
+  }, [menu, ficha]);
 
   return (
     <div className="pk">
@@ -408,20 +399,25 @@ export default function PropuestaHome() {
         onInsignia={() => ir("pk-rangos")}
       />
 
-      {/* ═══ 001 SISTEMA ═══ */}
-      <section id="pk-sistema" className="pk-sec pk-oscuro">
+      {/* ═══ 001 ¿QUÉ ES? (del brochure) ═══ */}
+      <section id="pk-que-es" className="pk-sec pk-oscuro pk-que-es">
         <div className="pk-ancho">
-          <Titulo n={1} intro={en ? "How the Fest works, step by step." : "Así funciona el Fest, paso a paso."}>{capitulos[0][1]}</Titulo>
-          <div className="pk-ventana pk-rev">
+          <Titulo n={1}>{capitulos[0][1]}</Titulo>
+          <p className="pk-cond pk-que-es-palabra pk-rev"><span>ISEKAI</span> = {QUE_ES[en ? "en" : "es"].palabra}</p>
+          <p className="pk-texto pk-rev mb-5 max-w-2xl text-[15px] text-[#ece8f7]" style={{ ["--d" as string]: "120ms" }}>{QUE_ES[en ? "en" : "es"].p1}</p>
+          <p className="pk-texto pk-rev mb-9 max-w-2xl" style={{ ["--d" as string]: "220ms" }}>{QUE_ES[en ? "en" : "es"].p2}</p>
+          <div className="pk-pilares pk-rev pk-rev-hijos">
+            {QUE_ES[en ? "en" : "es"].pilares.map((x, i) => (
+              <span key={x} className="pk-cond" style={{ ["--d" as string]: `${i * 120}ms` }}>{x}</span>
+            ))}
+          </div>
+          <div className="pk-ventana pk-rev mt-12">
             <Visor />
             <p className="pk-mono pk-ventana-cab">! {e.v2.sistemaAlerta}</p>
             <p className="pk-texto mb-7">{e.heroTexto}</p>
             <p className="pk-mono pk-etq mb-3">{e.v2.cuentaEtiqueta}</p>
             <Cuenta et={[e.v2.dias, e.v2.horas, e.v2.minutos, e.v2.segundos]} />
-            <p className="pk-mono mt-6 text-[12px] text-[#8b84a3]">{e.tuRango} <b className="text-[#6ff0ff]">E → D → C → B → A → S</b></p>
           </div>
-          <p className="pk-mono pk-etq mb-4 mt-14">{en ? "[ HOW IT WORKS ]" : "[ CÓMO FUNCIONA ]"}</p>
-          <ComoFunciona pasos={PASOS[en ? "en" : "es"]} />
         </div>
       </section>
 
@@ -463,96 +459,28 @@ export default function PropuestaHome() {
         </div>
       </section>
 
-      {/* ═══ 003 EL MUNDO: pestañas verticales numeradas ═══ */}
-      <section id="pk-mundo" className="pk-sec pk-oscuro">
+      {/* ═══ 004 CÓMO FUNCIONA ═══ */}
+      <section id="pk-como" className="pk-sec pk-oscuro">
         <div className="pk-ancho">
-          <Titulo n={4} intro={en ? "How the venue transforms. Tap each number." : "Así se transforma el Palacio de Eventos. Toca cada número."}>{capitulos[3][1]}</Titulo>
-          <p className="pk-mono pk-etq mb-5">{e.mundoEtiqueta} — {e.mundoTitulo}</p>
-          <div className="pk-pestanas pk-rev">
-            {MUNDO.map((m, i) => {
-              const Ico = m.icono;
-              const abierta = i === mundoSel;
-              return (
-                <button key={i} className={`pk-pestana ${abierta ? "pk-pestana-on" : ""}`} style={{ ["--c" as string]: m.color }} onClick={() => elegirMundo(i)} aria-expanded={abierta}>
-                  <span className="pk-pestana-num pk-mono">{n3(i + 1)}</span>
-                  {abierta && !mundoTocado && <span className="pk-pestana-avance" aria-hidden="true" />}
-                  <span className="pk-pestana-arte"><Ico size={abierta ? 54 : 22} /></span>
-                </button>
-              );
-            })}
-          </div>
-          <ul className="pk-lista-mundo pk-rev" style={{ ["--d" as string]: "120ms" }}>
-            {MUNDO.map((m, i) => (
-              <li key={i} className={i === mundoSel ? "pk-lm-on" : ""} style={{ ["--c" as string]: m.color }}>
-                <button onClick={() => elegirMundo(i)}>
-                  <span className="pk-mono pk-lm-num">{n3(i + 1)}</span>
-                  <span className="min-w-0 flex-1 text-left">
-                    <b className="pk-cond">{m.titulo}</b>
-                    <span className="pk-mono">{m.texto}</span>
-                  </span>
-                  <span className="pk-mas pk-mono">{i === mundoSel ? "—" : "MORE+"}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
+          <Titulo n={4} intro={en ? "Your ticket, the Gates, missions, ranks and the final battle, step by step." : "Tu boleto, los Gates, las misiones, los rangos y la batalla final, paso a paso."}>{capitulos[3][1]}</Titulo>
+          <ComoFunciona pasos={PASOS[en ? "en" : "es"]} />
         </div>
       </section>
 
-      <Cinta claro items={AREAS.map(a => a.titulo.toUpperCase())} />
+      <Cinta claro items={ZONAS.map(z => (en ? z.en[0] : z.es[0]).toUpperCase())} />
 
-      {/* ═══ 004 ÁREAS: visor tipo «System» sobre papel milimetrado ═══ */}
-      <section id="pk-areas" className="pk-sec pk-claro">
+      {/* ═══ 005 EL EVENTO: plano interactivo con las zonas ═══ */}
+      <section id="pk-evento" className="pk-sec pk-claro">
         <div className="pk-ancho">
-          <div className="flex items-start justify-between gap-3">
-            <Titulo claro n={5} intro={en ? "Each area is a different Gate. Use PREV / NEXT or swipe." : "Cada área es un Gate distinto. Pasa con ANTERIOR / SIGUIENTE o desliza."}>{capitulos[4][1]}</Titulo>
-            <button className="pk-ver-todo pk-mono" onClick={() => setVerTodo(true)}><LayoutGrid size={14} /> {en ? "VIEW ALL" : "VER TODO"}</button>
-          </div>
-          <p className="pk-mono mb-4 text-[13px] text-[#4b4460]">{e.exploraTexto}</p>
-          <p className="pk-area-sub"><span className="pk-mono">{n3(areaSel + 1)}</span> <b className="pk-cond">{area.titulo}</b></p>
-          <div
-            className="pk-area-visor"
-            style={{ ["--c" as string]: area.color }}
-            key={areaSel}
-            onTouchStart={ev => { toqueX.current = ev.touches[0].clientX; }}
-            onTouchEnd={ev => {
-              if (toqueX.current === null) return;
-              const dx = ev.changedTouches[0].clientX - toqueX.current;
-              toqueX.current = null;
-              if (Math.abs(dx) > 40) moverArea(dx < 0 ? 1 : -1);
-            }}
-          >
-            {!areaTocada && <span className="pk-area-avance" aria-hidden="true" />}
-            <Visor />
-            <span className="pk-area-rejilla" />
-            <AreaIcono size={92} className="pk-area-icono" />
-            <span className="pk-mono pk-area-gate">{e.v2.gate} {String(areaSel + 1).padStart(2, "0")}</span>
-            <span className="pk-mono pk-area-pronto">{e.proximamente}</span>
-          </div>
-          <div className="pk-area-texto pk-mono" key={`t${areaSel}`}>{area.texto}</div>
-          <div className="pk-navbar">
-            <button onClick={() => moverArea(-1)}><ChevronLeft size={16} /> {en ? "PREV" : "ANTERIOR"}</button>
-            <button onClick={() => moverArea(1)}>{en ? "NEXT" : "SIGUIENTE"} <ChevronRight size={16} /></button>
-            <span className="pk-navbar-sig"><span className="pk-mono">{n3(((areaSel + 1) % AREAS.length) + 1)}</span> {sigArea.titulo}</span>
-          </div>
+          <Titulo claro n={5} intro={en ? "Tap a zone on the map to enter it." : "Toca una zona del plano para entrar en ella."}>{capitulos[4][1]}</Titulo>
+          <p className="pk-mono mb-6 max-w-2xl text-[13px] leading-relaxed text-[#3b3450]">
+            {en
+              ? "The venue is divided into areas with their own identity. Each one gives you experience when you visit it."
+              : "El recinto se divide en áreas con identidad propia. Cada una te da experiencia al visitarla."}
+          </p>
+          <div className="pk-rev"><MapaEvento en={en} imagenes={Object.fromEntries(ZONAS.map(z => [z.id, s(`wf_zona_${z.id}_img`)]))} /></div>
         </div>
       </section>
-
-      {verTodo && (
-        <div className="pk-panel" onClick={() => setVerTodo(false)}>
-          <div className="pk-panel-caja" onClick={ev => ev.stopPropagation()}>
-            {AREAS.map((a, i) => {
-              const Ico = a.icono;
-              return (
-                <button key={i} className="pk-panel-fila" onClick={() => { setAreaTocada(true); setAreaSel(i); setVerTodo(false); }}>
-                  <span className="pk-panel-mini" style={{ ["--c" as string]: a.color }}><Ico size={22} /></span>
-                  <span className="text-left"><span className="pk-mono block text-[10px] text-[#8b84a3]">{n3(i + 1)}</span><b className="pk-cond text-[20px] leading-tight">{a.titulo}</b></span>
-                </button>
-              );
-            })}
-            <button className="pk-panel-x" onClick={() => setVerTodo(false)} aria-label={en ? "Close" : "Cerrar"}><X size={18} /></button>
-          </div>
-        </div>
-      )}
 
       {/* ═══ 005 INVITADOS: fichas de personaje ═══ */}
       <section id="pk-invitados" className="pk-sec pk-claro">
@@ -677,47 +605,54 @@ export default function PropuestaHome() {
               </div>
             ))}
           </div>
+          {/* Lo que se llevan al llegar al último rango */}
+          <div className="pk-recompensa pk-rev">
+            <Visor />
+            <p className="pk-mono pk-recompensa-etq">{en ? "[ WHAT YOU GET AT RANK S ]" : "[ LO QUE TE LLEVAS EN RANGO S ]"}</p>
+            <div className="pk-recompensa-grid">
+              <div className="pk-premio-caja">
+                {premioImg && <img src={premioImg} alt="" loading="lazy" />}
+                <span className="pk-premio-candado"><Lock size={28} /></span>
+                <span className="pk-mono pk-premio-clas">{e.clasificado}</span>
+              </div>
+              <div>
+                <p className="pk-cond mb-3 text-[28px] leading-[0.95] text-white sm:text-4xl">{e.premioTitulo1} {e.premioTitulo2}</p>
+                <p className="pk-texto mb-5">{e.premioTexto}</p>
+                <dl className="pk-spec">
+                  <div><dt>{en ? "Piece" : "Pieza"}</dt><dd>{e.premioPieza} — {e.premioPiezaTexto}</dd></div>
+                  <div><dt>{en ? "Value" : "Valor"}</dt><dd className="text-[#ff5d7a]">{e.premioValor}</dd></div>
+                  <div><dt>{en ? "Which one?" : "¿Cuál?"}</dt><dd>{e.premioQue} <b className="text-[#ff5d7a]">{e.premioSistema}</b></dd></div>
+                </dl>
+              </div>
+            </div>
+          </div>
+
           <p className="pk-cond mt-12 text-center text-[34px] leading-none text-white sm:text-6xl">{e.serasCapaz1} <span className="text-[#ff3d5e]">{e.serasCapaz2}</span>?</p>
         </div>
       </section>
 
-      {/* ═══ 007 RAID ═══ */}
+      {/* ═══ 008 EL JEFE: entrar a la mazmorra ═══ */}
       <div id="pk-raid" className="pk-raid">
-        <RaidJefe
-          t={e.v2}
-          imagen={s("wf_raid_jefe")}
-          recompensa={(en ? s("wf_raid_recompensa_en") : s("wf_raid_recompensa"))}
-          recompensaImg={s("wf_raid_recompensa_img")}
-          numero={<span className="pk-mono text-[10px] text-[#8b84a3]">008</span>}
-        />
-      </div>
-
-      {/* ═══ 008 PREMIO: ficha técnica ═══ */}
-      <section id="pk-premio" className="pk-sec pk-oscuro">
-        <div className="pk-ancho">
-          <Titulo n={9}>{capitulos[8][1]}</Titulo>
-          <p className="pk-mono pk-etq mb-2">{e.premioEtiqueta}</p>
-          <p className="pk-cond mb-4 text-[30px] leading-[0.95] text-white sm:text-5xl">{e.premioTitulo1} {e.premioTitulo2}</p>
-          <p className="pk-texto mb-8">{e.premioTexto}</p>
-          <div className="pk-premio-caja pk-rev">
-            {premioImg && <img src={premioImg} alt="" loading="lazy" />}
-            <span className="pk-premio-candado"><Lock size={28} /></span>
-            <span className="pk-mono pk-premio-clas">{e.clasificado}</span>
-            <Visor />
+        <div className="pk-sec pk-oscuro pb-0">
+          <div className="pk-ancho">
+            <Titulo n={8} intro={en ? "Enter the dungeon and face the boss with the whole community." : "Entra a la mazmorra y enfrenta al jefe junto a toda la comunidad."}>{capitulos[7][1]}</Titulo>
           </div>
-          <dl className="pk-spec pk-rev" style={{ ["--d" as string]: "120ms" }}>
-            <div><dt>{en ? "Piece" : "Pieza"}</dt><dd>{e.premioPieza}</dd></div>
-            <div><dt>{en ? "Details" : "Detalle"}</dt><dd>{e.premioPiezaTexto}</dd></div>
-            <div><dt>{en ? "Value" : "Valor"}</dt><dd className="text-[#ff5d7a]">{e.premioValor}</dd></div>
-            <div><dt>{en ? "Status" : "Estado"}</dt><dd>{e.premioQue} <b className="text-[#ff5d7a]">{e.premioSistema}</b></dd></div>
-          </dl>
         </div>
-      </section>
+        <MazmorraJefe en={en} imagen={s("wf_raid_jefe")}>
+          <RaidJefe
+            t={e.v2}
+            imagen={s("wf_raid_jefe")}
+            recompensa={(en ? s("wf_raid_recompensa_en") : s("wf_raid_recompensa"))}
+            recompensaImg={s("wf_raid_recompensa_img")}
+            numero={<span className="pk-mono text-[10px] text-[#8b84a3]">008</span>}
+          />
+        </MazmorraJefe>
+      </div>
 
       {/* ═══ 009 ACCESO ═══ */}
       <section id="pk-acceso" className="pk-sec pk-acceso">
         <div className="pk-ancho">
-          <Titulo n={10}>{capitulos[9][1]}</Titulo>
+          <Titulo n={9}>{capitulos[8][1]}</Titulo>
           <div className="pk-ventana pk-rev">
             <Visor />
             <p className="pk-mono pk-ventana-cab">{e.listaEtiqueta}</p>
