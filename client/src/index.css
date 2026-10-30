@@ -5661,3 +5661,25 @@ html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -we
 .pk-salida-sub { position: relative; z-index: 2; margin-top: 8px; font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: #d8b4fe; animation: pk-parpadeo 1s ease-in-out infinite; }
 .pk-salida-flash { position: absolute; inset: 0; background: #fff; opacity: 0; animation: pk-flash .5s ease 1.6s; }
 .pk-salida-titulo { font-size: clamp(34px, 9vw, 80px); text-align: center; padding: 0 16px; }
+
+/* ═══ Gate (portal de energía en WebGL) ═══ */
+.pk-gate { position: absolute; inset: 0; width: 100%; height: 100%; display: block; pointer-events: none; }
+.pk-gate-quieto { position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(ellipse 34% 48% at 50% 50%, #cfefff 0 4%, #2a6cff 30%, #0b1640 62%, rgba(111,240,255,.95) 66%, rgba(42,108,255,.35) 72%, transparent 82%); }
+.pk-mazmorra-puerta { position: relative; width: min(94vw, 460px); aspect-ratio: 4 / 5; margin: 6px auto 4px; }
+.pk-mazmorra { background: radial-gradient(55% 45% at 50% 38%, rgba(42,108,255,.22), transparent 70%), #05060c; }
+.pk-mazmorra-suelo { background-image: linear-gradient(rgba(79,140,255,.45) 1.5px, transparent 1.5px), linear-gradient(90deg, rgba(79,140,255,.45) 1.5px, transparent 1.5px); }
+/* Entrada fluida: la pantalla se oscurece alrededor del Gate y la cámara entra */
+.pk-entrada { animation: pk-oscurece .55s ease both; background: #000; }
+@keyframes pk-oscurece { from { background: rgba(0,0,0,0); } to { background: #000; } }
+.pk-entrada-jefe { animation: pk-temblor .3s linear 3; }
+.pk-entrada-gate { z-index: 0; }
+.pk-entrada .pk-advertencia { animation: pk-glitch .35s steps(2) infinite, pk-aparece-adv .35s ease 1.35s forwards; }
+.pk-entrada .pk-advertencia-sub { animation: pk-aparece-adv .35s ease 1.55s forwards; }
+.pk-entrada .pk-entrada-flash { display: none; }
+.pk-entrada-jefe .pk-entrada-flash { display: block; animation: pk-flash-sale .7s ease forwards; }
+@keyframes pk-flash-sale { from { opacity: 1; } to { opacity: 0; } }
+.pk-dentro-gate { opacity: .38; }
+.pk-dentro-fondo::after { background: radial-gradient(60% 50% at 50% 45%, transparent, rgba(5,6,12,.85) 75%), linear-gradient(0deg, rgba(5,6,12,.92), transparent 30%); }
+.pk-dentro-cab span, .pk-dentro-cab { color: #9fd8ff; border-color: rgba(111,240,255,.28); }
+.pk-salida-gate { z-index: 0; }
