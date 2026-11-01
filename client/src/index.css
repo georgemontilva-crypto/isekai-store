@@ -5686,3 +5686,13 @@ html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -we
 /* Dentro de la mazmorra el fondo es el Gate: se quita el cielo gris del raid */
 .pk-dentro-raid .rj-fondo { display: none; }
 .pk-dentro-raid > section::before, .pk-dentro-raid > section::after { opacity: .25; }
+
+/* Mapa del Fest dentro de /propuesta: sin su propio encabezado (ya está el
+   del capítulo) y con la ficha por encima de la cabecera y la barra fija */
+.pk-evento { padding-bottom: 40px; }
+.pk-evento .fest-map { background: transparent; }
+.pk-evento .fest-map .wrap { padding-top: 0; }
+.pk-evento .fest-map .head { display: none; }
+.pk-evento .fest-map .overlay { z-index: 95; }
+.pk-evento .fest-map .tip { z-index: 96; }
+html.dark .fest-map .info h2 { color: var(--ink) !important; -webkit-text-fill-color: var(--ink); }

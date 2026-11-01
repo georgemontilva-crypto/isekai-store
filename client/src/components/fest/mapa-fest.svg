@@ -1,0 +1,643 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" class="fest-map-svg" viewBox="0 30 1344 830" preserveAspectRatio="xMidYMid meet">
+<title>Mapa Isekai World Fest</title>
+<defs><marker id="flecha" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4.2" markerHeight="4.2" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#1a1a1a"/></marker></defs>
+<g id="edificio" inkscape:groupmode="layer" inkscape:label="Planta del edificio">
+<rect x="0" y="0" width="1344" height="860" fill="#0A0712" id="fondo"/>
+<polygon points="167,42 538,42 539,171 1320,171 1320,664 671,664 670,784 144,784 13,416" fill="#140F22" id="contorno" stroke="#6D5BA8" stroke-width="1.6"/>
+<polygon points="180,52 528,52 529,181 1310,181 1310,654 661,654 660,774 152,774 24,416" fill="none" id="muro_interior" stroke="#3A3060" stroke-width="1"/>
+<g id="ventanales">
+<path d="M200,86 L211.0,80 L222.0,92 L233.0,80 L244.0,92 L255.0,80 L266.0,92 L277.0,80 L288.0,92 L299.0,80 L310.0,92 L321.0,80 L332.0,92 L343.0,80 L354.0,92 L365.0,80 L376.0,92 L387.0,80 L398.0,92 L409.0,80 L420.0,92 L431.0,80 L442.0,92 L453.0,80 L464.0,92 L475.0,80 L486.0,92 L497.0,80 L508.0,92 L519.0,80" fill="none" stroke="#3A3060" stroke-width="0.8"/>
+<line x1="200" y1="86" x2="520" y2="86" stroke="#3A3060" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M200,745 L211.0,739 L222.0,751 L233.0,739 L244.0,751 L255.0,739 L266.0,751 L277.0,739 L288.0,751 L299.0,739 L310.0,751 L321.0,739 L332.0,751 L343.0,739 L354.0,751 L365.0,739 L376.0,751 L387.0,739 L398.0,751 L409.0,739 L420.0,751 L431.0,739 L442.0,751 L453.0,739 L464.0,751 L475.0,739 L486.0,751 L497.0,739 L508.0,751 L519.0,739 L530.0,751 L541.0,739 L552.0,751 L563.0,739 L574.0,751 L585.0,739 L596.0,751 L607.0,739 L618.0,751 L629.0,739 L640.0,751 L651.0,739" fill="none" stroke="#3A3060" stroke-width="0.8"/>
+<line x1="200" y1="745" x2="655" y2="745" stroke="#3A3060" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M1130,190 L1141.0,184 L1152.0,196 L1163.0,184 L1174.0,196 L1185.0,184 L1196.0,196 L1207.0,184 L1218.0,196 L1229.0,184 L1240.0,196 L1251.0,184 L1262.0,196 L1273.0,184 L1284.0,196 L1295.0,184" fill="none" stroke="#3A3060" stroke-width="0.8"/>
+<line x1="1130" y1="190" x2="1300" y2="190" stroke="#3A3060" stroke-width="0.8" stroke-dasharray="4 3"/>
+<path d="M680,640 L691.0,634 L702.0,646 L713.0,634 L724.0,646 L735.0,634 L746.0,646 L757.0,634 L768.0,646 L779.0,634 L790.0,646 L801.0,634 L812.0,646 L823.0,634 L834.0,646 L845.0,634 L856.0,646 L867.0,634 L878.0,646 L889.0,634 L900.0,646 L911.0,634 L922.0,646 L933.0,634 L944.0,646 L955.0,634 L966.0,646 L977.0,634 L988.0,646 L999.0,634 L1010.0,646 L1021.0,634 L1032.0,646 L1043.0,634 L1054.0,646 L1065.0,634 L1076.0,646 L1087.0,634 L1098.0,646 L1109.0,634 L1120.0,646 L1131.0,634 L1142.0,646 L1153.0,634 L1164.0,646 L1175.0,634 L1186.0,646 L1197.0,634 L1208.0,646 L1219.0,634 L1230.0,646 L1241.0,634 L1252.0,646 L1263.0,634 L1274.0,646 L1285.0,634 L1296.0,646" fill="none" stroke="#3A3060" stroke-width="0.8"/>
+<line x1="680" y1="640" x2="1300" y2="640" stroke="#3A3060" stroke-width="0.8" stroke-dasharray="4 3"/>
+</g>
+</g>
+<g id="columnas" inkscape:groupmode="layer" inkscape:label="Columnas">
+<g><circle cx="62" cy="190" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="50" y1="190" x2="74" y2="190" stroke="#3A3060" stroke-width="0.9"/><line x1="62" y1="178" x2="62" y2="202" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="195" cy="192" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="183" y1="192" x2="207" y2="192" stroke="#3A3060" stroke-width="0.9"/><line x1="195" y1="180" x2="195" y2="204" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="307" cy="193" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="295" y1="193" x2="319" y2="193" stroke="#3A3060" stroke-width="0.9"/><line x1="307" y1="181" x2="307" y2="205" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="418" cy="193" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="406" y1="193" x2="430" y2="193" stroke="#3A3060" stroke-width="0.9"/><line x1="418" y1="181" x2="418" y2="205" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="196" cy="303" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="184" y1="303" x2="208" y2="303" stroke="#3A3060" stroke-width="0.9"/><line x1="196" y1="291" x2="196" y2="315" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="307" cy="303" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="295" y1="303" x2="319" y2="303" stroke="#3A3060" stroke-width="0.9"/><line x1="307" y1="291" x2="307" y2="315" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="418" cy="303" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="406" y1="303" x2="430" y2="303" stroke="#3A3060" stroke-width="0.9"/><line x1="418" y1="291" x2="418" y2="315" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="62" cy="414" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="50" y1="414" x2="74" y2="414" stroke="#3A3060" stroke-width="0.9"/><line x1="62" y1="402" x2="62" y2="426" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="195" cy="415" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="183" y1="415" x2="207" y2="415" stroke="#3A3060" stroke-width="0.9"/><line x1="195" y1="403" x2="195" y2="427" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="307" cy="415" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="295" y1="415" x2="319" y2="415" stroke="#3A3060" stroke-width="0.9"/><line x1="307" y1="403" x2="307" y2="427" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="62" cy="640" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="50" y1="640" x2="74" y2="640" stroke="#3A3060" stroke-width="0.9"/><line x1="62" y1="628" x2="62" y2="652" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="307" cy="526" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="295" y1="526" x2="319" y2="526" stroke="#3A3060" stroke-width="0.9"/><line x1="307" y1="514" x2="307" y2="538" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="307" cy="640" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="295" y1="640" x2="319" y2="640" stroke="#3A3060" stroke-width="0.9"/><line x1="307" y1="628" x2="307" y2="652" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="418" cy="640" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="406" y1="640" x2="430" y2="640" stroke="#3A3060" stroke-width="0.9"/><line x1="418" y1="628" x2="418" y2="652" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="113" cy="752" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="101" y1="752" x2="125" y2="752" stroke="#3A3060" stroke-width="0.9"/><line x1="113" y1="740" x2="113" y2="764" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="531" cy="305" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="519" y1="305" x2="543" y2="305" stroke="#3A3060" stroke-width="0.9"/><line x1="531" y1="293" x2="531" y2="317" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="643" cy="305" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="631" y1="305" x2="655" y2="305" stroke="#3A3060" stroke-width="0.9"/><line x1="643" y1="293" x2="643" y2="317" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="531" cy="416" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="519" y1="416" x2="543" y2="416" stroke="#3A3060" stroke-width="0.9"/><line x1="531" y1="404" x2="531" y2="428" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="593" cy="416" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="581" y1="416" x2="605" y2="416" stroke="#3A3060" stroke-width="0.9"/><line x1="593" y1="404" x2="593" y2="428" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="531" cy="530" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="519" y1="530" x2="543" y2="530" stroke="#3A3060" stroke-width="0.9"/><line x1="531" y1="518" x2="531" y2="542" stroke="#3A3060" stroke-width="0.9"/></g>
+<g><circle cx="643" cy="530" r="8" fill="none" stroke="#3A3060" stroke-width="0.9"/><line x1="631" y1="530" x2="655" y2="530" stroke="#3A3060" stroke-width="0.9"/><line x1="643" y1="518" x2="643" y2="542" stroke="#3A3060" stroke-width="0.9"/></g>
+</g>
+<g id="estructura" inkscape:groupmode="layer" inkscape:label="Muros interiores y puertas">
+<path d="M479,300 L479,250 L524,205 L524,188 L640,188" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M469,300 L469,245 L514,200 L514,180 L640,180" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M444,532 L444,580 L523,650 L640,650" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M434,532 L434,585 L518,660 L640,660" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M485,532 L485,560 L530,605" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<line x1="405" y1="300" x2="405" y2="530" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,312 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,338 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,364 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,390 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,416 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,442 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,468 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M405,494 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<line x1="488" y1="300" x2="488" y2="530" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,312 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,338 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,364 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,390 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,416 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,442 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,468 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M488,494 q-14,6 0,14 q-14,6 0,12" fill="none" stroke="#3A3060" stroke-width="0.9"/>
+<path d="M600,535 A125,125 0 0,1 690,290" fill="none" stroke="#666" stroke-width="0.8" stroke-dasharray="5 4"/>
+<path d="M1060,605 L1080,640" fill="none" stroke="#666" stroke-width="0.8" stroke-dasharray="5 4"/>
+<line x1="413" y1="479" x2="608" y2="479" stroke="#6D5BA8" stroke-linecap="butt" stroke-width="0"/>
+<path d="M1075,263 L713.5,263 L713.5,568.5 L1048,568.5" fill="none" stroke="#6D5BA8" stroke-linecap="butt" stroke-width="5"/>
+<path d="M1129,290 L1129,223 L1272,223 L1272,262" fill="none" stroke="#6D5BA8" stroke-width="3"/>
+<line x1="1108" y1="582" x2="1273" y2="582" stroke="#6D5BA8" stroke-width="3"/>
+<line x1="1282" y1="250" x2="1300" y2="250" stroke="#3A3060" stroke-width="0.7"/>
+<line x1="1282" y1="255" x2="1300" y2="255" stroke="#3A3060" stroke-width="0.7"/>
+<line x1="1282" y1="260" x2="1300" y2="260" stroke="#3A3060" stroke-width="0.7"/>
+<line x1="1282" y1="265" x2="1300" y2="265" stroke="#3A3060" stroke-width="0.7"/>
+<line x1="1282" y1="270" x2="1300" y2="270" stroke="#3A3060" stroke-width="0.7"/>
+<line x1="1282" y1="275" x2="1300" y2="275" stroke="#3A3060" stroke-width="0.7"/>
+<line x1="1282" y1="280" x2="1300" y2="280" stroke="#3A3060" stroke-width="0.7"/>
+<line x1="1282" y1="285" x2="1300" y2="285" stroke="#3A3060" stroke-width="0.7"/>
+<rect x="1282" y="248" width="18" height="40" fill="none" stroke="#3A3060" stroke-width="0.7"/>
+</g>
+<g id="zonas" inkscape:groupmode="layer" inkscape:label="Zonas del Fest">
+<rect x="222" y="750" width="72" height="12" fill="#7C3AED" id="portal" rx="3"/>
+<g id="corredor_del_despertar"><line x1="225" y1="750" x2="225" y2="648" stroke="#4C1D95" stroke-width="5"/><line x1="291" y1="750" x2="291" y2="648" stroke="#4C1D95" stroke-width="5"/><line x1="225" y1="648" x2="205" y2="630" stroke="#4C1D95" stroke-width="5"/><line x1="291" y1="648" x2="311" y2="630" stroke="#4C1D95" stroke-width="5"/><rect x="227.5" y="648" width="61" height="102" fill="#231A3F"/></g>
+<g id="activacion_boletos">
+<rect x="179" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_1" rx="2"/>
+<rect x="199" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_2" rx="2"/>
+<rect x="219" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_3" rx="2"/>
+<rect x="239" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_4" rx="2"/>
+<rect x="259" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_5" rx="2"/>
+<rect x="279" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_6" rx="2"/>
+<rect x="299" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_7" rx="2"/>
+<rect x="319" y="600" width="17" height="11" fill="#E8185F" id="puesto_activacion_8" rx="2"/>
+</g>
+<rect x="146" y="662" width="62" height="84" fill="#F59E0B" id="merch_oficial" rx="4"/>
+<rect x="510" y="342" width="150" height="62" fill="#BAE6FD" id="frost_zone" rx="5" stroke="#38BDF8" stroke-width="2"/>
+<rect x="510" y="428" width="150" height="98" fill="#1E1B2E" id="shadow_zone" rx="5"/>
+<polygon points="486,297 660,297 660,204 540,204 540,224 486,279" fill="#7C2D12" id="room_of_the_monarch"/>
+<g id="dungeons">
+<polygon points="487,536 632,536 632,550 487,550" fill="#111827" id="dungeons_marca"/>
+<polygon points="487,550 535,550 535,603 487,555" fill="#DC2626" id="dungeon_fuerza"/>
+<polygon points="535,550 584,550 584,625 539,625 539,607 535,603" fill="#2563EB" id="dungeon_destreza_mental"/>
+<polygon points="584,550 632,550 632,625 584,625" fill="#16A34A" id="dungeon_destreza_fisica"/>
+<line x1="535" y1="550" x2="535" y2="603" stroke="#140F22" stroke-width="1.5"/><line x1="584" y1="550" x2="584" y2="625" stroke="#140F22" stroke-width="1.5"/>
+</g>
+<rect x="792" y="347" width="266" height="136" fill="#231A3F" id="publico_gran_salon" rx="6"/>
+<rect x="671" y="346" width="40" height="141" fill="#2C2545" id="produccion_primeros_auxilios"/>
+<rect x="1066" y="428" width="62" height="144" fill="#231A3F" id="publico_escenario" rx="4"/>
+<rect x="1132" y="265" width="141" height="309" fill="#6D28D9" id="escenario"/>
+<rect x="1088" y="284" width="40" height="136" fill="#FACC15" id="zona_vip" rx="4"/>
+<g id="stream_zone"><rect x="1111" y="586" width="111" height="52" fill="#FEE2E2"/><rect x="1111" y="586" width="111" height="52" fill="none" stroke="#DC2626" stroke-width="2.2" stroke-dasharray="2 4" stroke-linecap="round"/><circle cx="1111" cy="586" r="2.6" fill="#DC2626"/><circle cx="1222" cy="586" r="2.6" fill="#DC2626"/><circle cx="1111" cy="638" r="2.6" fill="#DC2626"/><circle cx="1222" cy="638" r="2.6" fill="#DC2626"/><circle cx="1166" cy="586" r="2.6" fill="#DC2626"/><circle cx="1166" cy="638" r="2.6" fill="#DC2626"/></g>
+<rect x="533" y="651" width="109" height="89" fill="#0EA5E9" id="zona_gamer"/>
+<polygon points="108,562 139,648 186,642 148,555" fill="#EAB308" id="photo_spot"/>
+</g>
+<g id="stands" inkscape:groupmode="layer" inkscape:label="Stands comerciales">
+<g id="general_1">
+<rect x="710" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="744" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_2">
+<rect x="752" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="786" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_3">
+<rect x="794" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="828" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_4">
+<rect x="836" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="870" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_5">
+<rect x="878" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="912" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_6">
+<rect x="921" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="955" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_7">
+<rect x="963" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="997" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_8">
+<rect x="1005" y="572" width="34" height="13" fill="#7B1FF2" />
+<rect x="1039" y="572" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_9">
+<rect x="654" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="688" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_10">
+<rect x="696" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="730" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_11">
+<rect x="739" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="773" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_12">
+<rect x="781" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="815" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_13">
+<rect x="823" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="857" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_14">
+<rect x="866" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="900" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_15">
+<rect x="908" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="942" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_16">
+<rect x="950" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="984" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_17">
+<rect x="993" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="1027" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_18">
+<rect x="1035" y="619" width="34" height="15" fill="#7B1FF2" />
+<rect x="1069" y="619" width="9" height="15" fill="#E8185F" />
+</g>
+<g id="general_19">
+<rect x="696" y="527" width="15" height="33" fill="#7B1FF2" />
+<rect x="696" y="560" width="15" height="9" fill="#E8185F" />
+</g>
+<g id="general_20">
+<rect x="200" y="421" width="34" height="13" fill="#7B1FF2" />
+<rect x="234" y="421" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_21">
+<rect x="243" y="421" width="34" height="13" fill="#7B1FF2" />
+<rect x="277" y="421" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_22">
+<rect x="286" y="421" width="34" height="13" fill="#7B1FF2" />
+<rect x="320" y="421" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_23">
+<rect x="329" y="421" width="34" height="13" fill="#7B1FF2" />
+<rect x="363" y="421" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_24">
+<rect x="372" y="421" width="34" height="13" fill="#7B1FF2" />
+<rect x="406" y="421" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_25">
+<rect x="415" y="421" width="34" height="13" fill="#7B1FF2" />
+<rect x="449" y="421" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_26">
+<rect x="445" y="421" width="34" height="13" fill="#7B1FF2" />
+<rect x="479" y="421" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_27">
+<rect x="95" y="497" width="34" height="13" fill="#7B1FF2" />
+<rect x="129" y="497" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_28">
+<rect x="138" y="497" width="34" height="13" fill="#7B1FF2" />
+<rect x="172" y="497" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_29">
+<rect x="181" y="497" width="34" height="13" fill="#7B1FF2" />
+<rect x="215" y="497" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_30">
+<rect x="300" y="497" width="34" height="13" fill="#7B1FF2" />
+<rect x="334" y="497" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_31">
+<rect x="343" y="497" width="34" height="13" fill="#7B1FF2" />
+<rect x="377" y="497" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_32">
+<rect x="386" y="497" width="34" height="13" fill="#7B1FF2" />
+<rect x="420" y="497" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_33">
+<rect x="429" y="497" width="34" height="13" fill="#7B1FF2" />
+<rect x="463" y="497" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_34">
+<rect x="95" y="511" width="34" height="13" fill="#7B1FF2" />
+<rect x="129" y="511" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_35">
+<rect x="138" y="511" width="34" height="13" fill="#7B1FF2" />
+<rect x="172" y="511" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_36">
+<rect x="181" y="511" width="34" height="13" fill="#7B1FF2" />
+<rect x="215" y="511" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_37">
+<rect x="300" y="511" width="34" height="13" fill="#7B1FF2" />
+<rect x="334" y="511" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_38">
+<rect x="343" y="511" width="34" height="13" fill="#7B1FF2" />
+<rect x="377" y="511" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_39">
+<rect x="386" y="511" width="34" height="13" fill="#7B1FF2" />
+<rect x="420" y="511" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_40">
+<rect x="429" y="511" width="34" height="13" fill="#7B1FF2" />
+<rect x="463" y="511" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_41">
+<rect x="308" y="672" width="34" height="13" fill="#7B1FF2" />
+<rect x="342" y="672" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_42">
+<rect x="351" y="672" width="34" height="13" fill="#7B1FF2" />
+<rect x="385" y="672" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_43">
+<rect x="394" y="672" width="34" height="13" fill="#7B1FF2" />
+<rect x="428" y="672" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_44">
+<rect x="308" y="686" width="34" height="13" fill="#7B1FF2" />
+<rect x="342" y="686" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_45">
+<rect x="351" y="686" width="34" height="13" fill="#7B1FF2" />
+<rect x="385" y="686" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_46">
+<rect x="394" y="686" width="34" height="13" fill="#7B1FF2" />
+<rect x="428" y="686" width="9" height="13" fill="#E8185F" />
+</g>
+</g>
+<g id="gran_salon_stands" inkscape:groupmode="layer" inkscape:label="Gran Salón - stands por modalidad">
+<g id="gs_mercader_borde">
+<g id="general_47">
+<rect x="760" y="268" width="34" height="13" fill="#7B1FF2" />
+<rect x="794" y="268" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_48">
+<rect x="803" y="268" width="34" height="13" fill="#7B1FF2" />
+<rect x="837" y="268" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_49">
+<rect x="846" y="268" width="34" height="13" fill="#7B1FF2" />
+<rect x="880" y="268" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_50">
+<rect x="889" y="268" width="34" height="13" fill="#7B1FF2" />
+<rect x="923" y="268" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_51">
+<rect x="932" y="268" width="34" height="13" fill="#7B1FF2" />
+<rect x="966" y="268" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_52">
+<rect x="975" y="268" width="34" height="13" fill="#7B1FF2" />
+<rect x="1009" y="268" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_53">
+<rect x="1018" y="268" width="34" height="13" fill="#7B1FF2" />
+<rect x="1052" y="268" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_54">
+<rect x="760" y="551" width="34" height="13" fill="#7B1FF2" />
+<rect x="794" y="551" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_55">
+<rect x="803" y="551" width="34" height="13" fill="#7B1FF2" />
+<rect x="837" y="551" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_56">
+<rect x="846" y="551" width="34" height="13" fill="#7B1FF2" />
+<rect x="880" y="551" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_57">
+<rect x="889" y="551" width="34" height="13" fill="#7B1FF2" />
+<rect x="923" y="551" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_58">
+<rect x="932" y="551" width="34" height="13" fill="#7B1FF2" />
+<rect x="966" y="551" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_59">
+<rect x="975" y="551" width="34" height="13" fill="#7B1FF2" />
+<rect x="1009" y="551" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_60">
+<rect x="1018" y="551" width="34" height="13" fill="#7B1FF2" />
+<rect x="1052" y="551" width="9" height="13" fill="#E8185F" />
+</g>
+<g id="general_61">
+<rect x="719" y="300" width="13" height="34" fill="#7B1FF2" />
+<rect x="719" y="334" width="13" height="9" fill="#E8185F" />
+</g>
+<g id="general_62">
+<rect x="719" y="343" width="13" height="34" fill="#7B1FF2" />
+<rect x="719" y="377" width="13" height="9" fill="#E8185F" />
+</g>
+<g id="general_63">
+<rect x="719" y="386" width="13" height="34" fill="#7B1FF2" />
+<rect x="719" y="420" width="13" height="9" fill="#E8185F" />
+</g>
+<g id="general_64">
+<rect x="719" y="429" width="13" height="34" fill="#7B1FF2" />
+<rect x="719" y="463" width="13" height="9" fill="#E8185F" />
+</g>
+<g id="general_65">
+<rect x="719" y="472" width="13" height="34" fill="#7B1FF2" />
+<rect x="719" y="506" width="13" height="9" fill="#E8185F" />
+</g>
+</g><g id="gs_gremio">
+<g id="gremio_1">
+<rect x="790" y="328" width="34" height="13" fill="#F59E0B" />
+<rect x="824" y="328" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_2">
+<rect x="833" y="328" width="34" height="13" fill="#F59E0B" />
+<rect x="867" y="328" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_3">
+<rect x="876" y="328" width="34" height="13" fill="#F59E0B" />
+<rect x="910" y="328" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_4">
+<rect x="920" y="328" width="34" height="13" fill="#F59E0B" />
+<rect x="954" y="328" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_5">
+<rect x="963" y="328" width="34" height="13" fill="#F59E0B" />
+<rect x="997" y="328" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_6">
+<rect x="1006" y="328" width="34" height="13" fill="#F59E0B" />
+<rect x="1040" y="328" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_7">
+<rect x="790" y="490" width="34" height="13" fill="#F59E0B" />
+<rect x="824" y="490" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_8">
+<rect x="833" y="490" width="34" height="13" fill="#F59E0B" />
+<rect x="867" y="490" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_9">
+<rect x="876" y="490" width="34" height="13" fill="#F59E0B" />
+<rect x="910" y="490" width="9" height="13" fill="#FDE68A" />
+</g>
+<g id="gremio_10">
+<rect x="771" y="352" width="13" height="34" fill="#F59E0B" />
+<rect x="771" y="386" width="13" height="9" fill="#FDE68A" />
+</g>
+<g id="gremio_11">
+<rect x="771" y="395" width="13" height="34" fill="#F59E0B" />
+<rect x="771" y="429" width="13" height="9" fill="#FDE68A" />
+</g>
+<g id="gremio_12">
+<rect x="771" y="438" width="13" height="34" fill="#F59E0B" />
+<rect x="771" y="472" width="13" height="9" fill="#FDE68A" />
+</g>
+</g><g id="gs_gran_gremio">
+<g id="gran_gremio_1">
+<rect x="920" y="490" width="34" height="13" fill="#E8185F" />
+<rect x="954" y="490" width="9" height="13" fill="#FACC15" />
+</g>
+<g id="gran_gremio_2">
+<rect x="963" y="490" width="34" height="13" fill="#E8185F" />
+<rect x="997" y="490" width="9" height="13" fill="#FACC15" />
+</g>
+<g id="gran_gremio_3">
+<rect x="1006" y="490" width="34" height="13" fill="#E8185F" />
+<rect x="1040" y="490" width="9" height="13" fill="#FACC15" />
+</g>
+</g>
+</g>
+<g id="artist_alley" inkscape:groupmode="layer" inkscape:label="Artist Alley (con backdrop)">
+<rect x="665" y="197" width="215" height="6" fill="#134E4A" id="backdrop_artistas_norte"/>
+<rect x="716" y="259" width="215" height="4" fill="#134E4A" id="backdrop_artistas_sur"/>
+<g id="artist_1">
+<rect x="665" y="204" width="34" height="13" fill="#0D9488" />
+<rect x="699" y="204" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_2">
+<rect x="708" y="204" width="34" height="13" fill="#0D9488" />
+<rect x="742" y="204" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_3">
+<rect x="751" y="204" width="34" height="13" fill="#0D9488" />
+<rect x="785" y="204" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_4">
+<rect x="794" y="204" width="34" height="13" fill="#0D9488" />
+<rect x="828" y="204" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_5">
+<rect x="837" y="204" width="34" height="13" fill="#0D9488" />
+<rect x="871" y="204" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_6">
+<rect x="716" y="245" width="34" height="13" fill="#0D9488" />
+<rect x="750" y="245" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_7">
+<rect x="759" y="245" width="34" height="13" fill="#0D9488" />
+<rect x="793" y="245" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_8">
+<rect x="802" y="245" width="34" height="13" fill="#0D9488" />
+<rect x="836" y="245" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_9">
+<rect x="845" y="245" width="34" height="13" fill="#0D9488" />
+<rect x="879" y="245" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="artist_10">
+<rect x="888" y="245" width="34" height="13" fill="#0D9488" />
+<rect x="922" y="245" width="9" height="13" fill="#5EEAD4" />
+</g>
+<g id="meet_greet_invitados">
+<rect x="944" y="199" width="61" height="25" fill="#22D3EE" id="stand_invitado_1" rx="3" stroke="#0E7490" stroke-width="1.6"/>
+<rect x="1011" y="199" width="61" height="25" fill="#22D3EE" id="stand_invitado_2" rx="3" stroke="#0E7490" stroke-width="1.6"/>
+<rect x="944" y="196" width="61" height="4" fill="#22D3EE" id="backdrop_invitado_1"/>
+<rect x="1011" y="196" width="61" height="4" fill="#22D3EE" id="backdrop_invitado_2"/>
+<rect x="946" y="227" width="57" height="16" fill="none" id="fila_invitado_1" stroke="#0E7490" stroke-width="1.3" stroke-dasharray="4 3"/>
+<rect x="1013" y="227" width="57" height="16" fill="none" id="fila_invitado_2" stroke="#0E7490" stroke-width="1.3" stroke-dasharray="4 3"/>
+</g>
+</g>
+<g id="mesas" inkscape:groupmode="layer" inkscape:label="Zona de comidas">
+<rect x="181" y="119" width="43" height="43" fill="#4B3F78" />
+<rect x="235" y="119" width="43" height="43" fill="#4B3F78" />
+<rect x="133" y="205" width="43" height="43" fill="#4B3F78" />
+<rect x="123" y="257" width="43" height="43" fill="#4B3F78" />
+<rect x="107" y="306" width="43" height="43" fill="#4B3F78" />
+<rect x="96" y="358" width="43" height="43" fill="#4B3F78" />
+<g><rect x="327.5" y="121.5" width="13" height="13" fill="#4B3F78"/><circle cx="334" cy="117" r="2.6" fill="#4B3F78"/><circle cx="334" cy="139" r="2.6" fill="#4B3F78"/><circle cx="323" cy="128" r="2.6" fill="#4B3F78"/><circle cx="345" cy="128" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="389.5" y="122.5" width="13" height="13" fill="#4B3F78"/><circle cx="396" cy="118" r="2.6" fill="#4B3F78"/><circle cx="396" cy="140" r="2.6" fill="#4B3F78"/><circle cx="385" cy="129" r="2.6" fill="#4B3F78"/><circle cx="407" cy="129" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="358.5" y="149.5" width="13" height="13" fill="#4B3F78"/><circle cx="365" cy="145" r="2.6" fill="#4B3F78"/><circle cx="365" cy="167" r="2.6" fill="#4B3F78"/><circle cx="354" cy="156" r="2.6" fill="#4B3F78"/><circle cx="376" cy="156" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="324.5" y="165.5" width="13" height="13" fill="#4B3F78"/><circle cx="331" cy="161" r="2.6" fill="#4B3F78"/><circle cx="331" cy="183" r="2.6" fill="#4B3F78"/><circle cx="320" cy="172" r="2.6" fill="#4B3F78"/><circle cx="342" cy="172" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="395.5" y="166.5" width="13" height="13" fill="#4B3F78"/><circle cx="402" cy="162" r="2.6" fill="#4B3F78"/><circle cx="402" cy="184" r="2.6" fill="#4B3F78"/><circle cx="391" cy="173" r="2.6" fill="#4B3F78"/><circle cx="413" cy="173" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="358.5" y="188.5" width="13" height="13" fill="#4B3F78"/><circle cx="365" cy="184" r="2.6" fill="#4B3F78"/><circle cx="365" cy="206" r="2.6" fill="#4B3F78"/><circle cx="354" cy="195" r="2.6" fill="#4B3F78"/><circle cx="376" cy="195" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="326.5" y="201.5" width="13" height="13" fill="#4B3F78"/><circle cx="333" cy="197" r="2.6" fill="#4B3F78"/><circle cx="333" cy="219" r="2.6" fill="#4B3F78"/><circle cx="322" cy="208" r="2.6" fill="#4B3F78"/><circle cx="344" cy="208" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="389.5" y="201.5" width="13" height="13" fill="#4B3F78"/><circle cx="396" cy="197" r="2.6" fill="#4B3F78"/><circle cx="396" cy="219" r="2.6" fill="#4B3F78"/><circle cx="385" cy="208" r="2.6" fill="#4B3F78"/><circle cx="407" cy="208" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="192.5" y="213.5" width="13" height="13" fill="#4B3F78"/><circle cx="199" cy="209" r="2.6" fill="#4B3F78"/><circle cx="199" cy="231" r="2.6" fill="#4B3F78"/><circle cx="188" cy="220" r="2.6" fill="#4B3F78"/><circle cx="210" cy="220" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="254.5" y="213.5" width="13" height="13" fill="#4B3F78"/><circle cx="261" cy="209" r="2.6" fill="#4B3F78"/><circle cx="261" cy="231" r="2.6" fill="#4B3F78"/><circle cx="250" cy="220" r="2.6" fill="#4B3F78"/><circle cx="272" cy="220" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="357.5" y="228.5" width="13" height="13" fill="#4B3F78"/><circle cx="364" cy="224" r="2.6" fill="#4B3F78"/><circle cx="364" cy="246" r="2.6" fill="#4B3F78"/><circle cx="353" cy="235" r="2.6" fill="#4B3F78"/><circle cx="375" cy="235" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="223.5" y="240.5" width="13" height="13" fill="#4B3F78"/><circle cx="230" cy="236" r="2.6" fill="#4B3F78"/><circle cx="230" cy="258" r="2.6" fill="#4B3F78"/><circle cx="219" cy="247" r="2.6" fill="#4B3F78"/><circle cx="241" cy="247" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="300.5" y="242.5" width="13" height="13" fill="#4B3F78"/><circle cx="307" cy="238" r="2.6" fill="#4B3F78"/><circle cx="307" cy="260" r="2.6" fill="#4B3F78"/><circle cx="296" cy="249" r="2.6" fill="#4B3F78"/><circle cx="318" cy="249" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="189.5" y="256.5" width="13" height="13" fill="#4B3F78"/><circle cx="196" cy="252" r="2.6" fill="#4B3F78"/><circle cx="196" cy="274" r="2.6" fill="#4B3F78"/><circle cx="185" cy="263" r="2.6" fill="#4B3F78"/><circle cx="207" cy="263" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="259.5" y="257.5" width="13" height="13" fill="#4B3F78"/><circle cx="266" cy="253" r="2.6" fill="#4B3F78"/><circle cx="266" cy="275" r="2.6" fill="#4B3F78"/><circle cx="255" cy="264" r="2.6" fill="#4B3F78"/><circle cx="277" cy="264" r="2.6" fill="#4B3F78"/></g>
+<g><rect x="222.5" y="279.5" width="13" height="13" fill="#4B3F78"/><circle cx="229" cy="275" r="2.6" fill="#4B3F78"/><circle cx="229" cy="297" r="2.6" fill="#4B3F78"/><circle cx="218" cy="286" r="2.6" fill="#4B3F78"/><circle cx="240" cy="286" r="2.6" fill="#4B3F78"/></g>
+</g>
+<g id="divisores" inkscape:groupmode="layer" inkscape:label="Divisor comidas / lobby">
+<line x1="60" y1="417" x2="78" y2="417" stroke="#6D5BA8" stroke-width="5"/>
+<line x1="196" y1="417" x2="488" y2="417" stroke="#6D5BA8" stroke-width="5"/>
+</g>
+<g id="recorrido" inkscape:groupmode="layer" inkscape:label="Recorrido en un solo sentido">
+<defs><marker id="fr" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="3.6" markerHeight="3.6" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#E8185F"/></marker></defs>
+<path d="M258,782 L258,640" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M258,594 L258,478 Q258,466 270,466 L478,466 Q500,466 500,452 L500,425 Q500,416 512,416 L578,416 L578,432" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M200,590 L200,550 L84,550 Q72,550 72,538 L72,478 Q72,466 84,466 L190,466" fill="none" stroke="#E8185F" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4" opacity="0.8" marker-end="url(#fr)"/>
+<path d="M352,592 L460,592 Q474,592 474,580 L474,545 Q474,536 462,536 L300,536" fill="none" stroke="#E8185F" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4" opacity="0.8" marker-end="url(#fr)"/>
+<path d="M360,622 L460,622 Q470,622 470,640 L470,700 Q470,712 458,712 L310,712 Q298,712 298,700 L298,660" fill="none" stroke="#E8185F" stroke-width="2" stroke-linecap="round" stroke-dasharray="4 4" opacity="0.8" marker-end="url(#fr)"/>
+<path d="M578,520 L578,532" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M636,598 L1078,598 Q1092,598 1092,584 L1092,524" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M648,603 L648,652" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M1084,527 L760,527 Q751,527 751,518 L751,313 Q751,304 760,304 L1072,304 Q1080,304 1080,294 L1080,262" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M1080,252 L942,252 Q934,252 934,244 L934,240 Q934,232 926,232 L692,232 Q680,232 680,244 L680,312 Q680,322 668,322 L330,322" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M575,322 L575,300" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<path d="M200,322 Q140,322 140,372 L137,440 Q135,470 105,474 L48,478" fill="none" stroke="#E8185F" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="10 6" marker-end="url(#fr)"/>
+<g id="paso_1"><circle cx="310" cy="768" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="310" y="772.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">1</text></g>
+<g id="paso_2"><circle cx="258" cy="700" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="258" y="704.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">2</text></g>
+<g id="paso_3"><circle cx="258" cy="584" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="258" y="588.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">3</text></g>
+<g id="paso_4"><circle cx="258" cy="540" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="258" y="544.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">4</text></g>
+<g id="paso_5"><circle cx="512" cy="395" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="512" y="399.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">5</text></g>
+<g id="paso_6"><circle cx="650" cy="440" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="650" y="444.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">6</text></g>
+<g id="paso_7"><circle cx="500" cy="590" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="500" y="594.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">7</text></g>
+<g id="paso_8"><circle cx="662" cy="640" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="662" y="644.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">8</text></g>
+<g id="paso_9"><circle cx="990" cy="598" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="990" y="602.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">9</text></g>
+<g id="paso_10"><circle cx="1092" cy="560" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="1092" y="564.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">10</text></g>
+<g id="paso_11"><circle cx="860" cy="527" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="860" y="531.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">11</text></g>
+<g id="paso_12"><circle cx="880" cy="232" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="880" y="236.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">12</text></g>
+<g id="paso_13"><circle cx="620" cy="322" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="620" y="326.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">13</text></g>
+<g id="paso_14"><circle cx="300" cy="322" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="300" y="326.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">14</text></g>
+<g id="paso_15"><circle cx="60" cy="478" r="11" fill="#1C1530" stroke="#E8185F" stroke-width="2"/><text x="60" y="482.2" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff">15</text></g>
+<g id="misiones_level_pass">
+<polygon points="420.0,552.0 422.1,557.1 427.6,557.5 423.4,561.1 424.7,566.5 420.0,563.6 415.3,566.5 416.6,561.1 412.4,557.5 417.9,557.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="648.0,344.0 650.1,349.1 655.6,349.5 651.4,353.1 652.7,358.5 648.0,355.6 643.3,358.5 644.6,353.1 640.4,349.5 645.9,349.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="522.0,432.0 524.1,437.1 529.6,437.5 525.4,441.1 526.7,446.5 522.0,443.6 517.3,446.5 518.6,441.1 514.4,437.5 519.9,437.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="618.0,604.0 620.1,609.1 625.6,609.5 621.4,613.1 622.7,618.5 618.0,615.6 613.3,618.5 614.6,613.1 610.4,609.5 615.9,609.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="1250.0,537.0 1252.1,542.1 1257.6,542.5 1253.4,546.1 1254.7,551.5 1250.0,548.6 1245.3,551.5 1246.6,546.1 1242.4,542.5 1247.9,542.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="1040.0,362.0 1042.1,367.1 1047.6,367.5 1043.4,371.1 1044.7,376.5 1040.0,373.6 1035.3,376.5 1036.6,371.1 1032.4,367.5 1037.9,367.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="625.0,660.0 627.1,665.1 632.6,665.5 628.4,669.1 629.7,674.5 625.0,671.6 620.3,674.5 621.6,669.1 617.4,665.5 622.9,665.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="1110.0,214.0 1112.1,219.1 1117.6,219.5 1113.4,223.1 1114.7,228.5 1110.0,225.6 1105.3,228.5 1106.6,223.1 1102.4,219.5 1107.9,219.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="650.0,205.0 652.1,210.1 657.6,210.5 653.4,214.1 654.7,219.5 650.0,216.6 645.3,219.5 646.6,214.1 642.4,210.5 647.9,210.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+<polygon points="170.0,132.0 172.1,137.1 177.6,137.5 173.4,141.1 174.7,146.5 170.0,143.6 165.3,146.5 166.6,141.1 162.4,137.5 167.9,137.1" fill="#FACC15" stroke="#111" stroke-width="1"/>
+</g>
+</g>
+<g id="textos" inkscape:groupmode="layer" inkscape:label="Textos">
+<text x="258" y="790" font-family="Montserrat, Arial, sans-serif" font-size="10.5" font-weight="800" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" stroke="#140F22" stroke-width="2.3" stroke-linejoin="round" paint-order="stroke">ENTRADA</text>
+<text x="258" y="759.5" font-family="Montserrat, Arial, sans-serif" font-size="8" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="1.5">PORTAL</text>
+<text x="258" y="664" font-family="Montserrat, Arial, sans-serif" font-size="6.5" font-weight="800" text-anchor="middle" fill="#C4B5FD" letter-spacing="0" stroke="#140F22" stroke-width="1.4" stroke-linejoin="round" paint-order="stroke">CORREDOR DEL</text>
+<text x="258" y="673" font-family="Montserrat, Arial, sans-serif" font-size="6.5" font-weight="800" text-anchor="middle" fill="#C4B5FD" letter-spacing="0" stroke="#140F22" stroke-width="1.4" stroke-linejoin="round" paint-order="stroke">DESPERTAR</text>
+<text x="258" y="728" font-family="Montserrat, Arial, sans-serif" font-size="6" font-weight="600" text-anchor="middle" fill="#6D28D9" letter-spacing="0" stroke="#140F22" stroke-width="1.3" stroke-linejoin="round" paint-order="stroke">murales · pantallas</text>
+<text x="258" y="624" font-family="Montserrat, Arial, sans-serif" font-size="8.5" font-weight="800" text-anchor="middle" fill="#E8185F" letter-spacing="0">ACTIVACIÓN DE BOLETOS · 8 puestos</text>
+<text x="177" y="700" font-family="Montserrat, Arial, sans-serif" font-size="9" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">MERCH</text>
+<text x="177" y="711" font-family="Montserrat, Arial, sans-serif" font-size="9" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">OFICIAL</text>
+<text x="177" y="722" font-family="Montserrat, Arial, sans-serif" font-size="7" font-weight="600" text-anchor="middle" fill="#fff" letter-spacing="0">del Fest</text>
+<text x="258" y="562" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" stroke="#140F22" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke">MERCADO DEL LOBBY</text>
+<text x="372" y="664" font-family="Montserrat, Arial, sans-serif" font-size="8" font-weight="700" text-anchor="middle" fill="#F3F0FF" letter-spacing="0">Tiendas</text>
+<text x="585" y="371" font-family="Montserrat, Arial, sans-serif" font-size="12" font-weight="800" text-anchor="middle" fill="#075985" letter-spacing="0">FROST ZONE</text>
+<text x="585" y="384" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="600" text-anchor="middle" fill="#075985" letter-spacing="0">Zona de hielo tematizada</text>
+<text x="585" y="470" font-family="Montserrat, Arial, sans-serif" font-size="12" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">SHADOW ZONE</text>
+<text x="585" y="483" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="600" text-anchor="middle" fill="#C4B5FD" letter-spacing="0">Beru tamaño real · dummies</text>
+<text x="585" y="494" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="600" text-anchor="middle" fill="#C4B5FD" letter-spacing="0">· decoración</text>
+<text x="590" y="247" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#FDE68A" letter-spacing="0">ROOM OF THE</text>
+<text x="590" y="261" font-family="Montserrat, Arial, sans-serif" font-size="13" font-weight="800" text-anchor="middle" fill="#FDE68A" letter-spacing="0">MONARCH</text>
+<text x="590" y="274" font-family="Montserrat, Arial, sans-serif" font-size="7" font-weight="600" text-anchor="middle" fill="#FDE68A" letter-spacing="0">Cuarto del Monarca · figuras</text>
+<text x="559" y="546.5" font-family="Montserrat, Arial, sans-serif" font-size="6.6" font-weight="800" text-anchor="middle" fill="#FACC15" letter-spacing="0">DUNGEONS · MARCA PATROCINADORA</text>
+<text x="518" y="563" font-family="Montserrat, Arial, sans-serif" font-size="6.6" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">FUERZA</text>
+<text x="560" y="584" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">DESTREZA</text>
+<text x="560" y="594" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">MENTAL</text>
+<text x="608" y="584" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">DESTREZA</text>
+<text x="608" y="594" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">FÍSICA</text>
+<text x="925" y="412" font-family="Montserrat, Arial, sans-serif" font-size="16" font-weight="800" text-anchor="middle" fill="#C4B5FD" letter-spacing="0">PÚBLICO</text>
+<text x="925" y="428" font-family="Montserrat, Arial, sans-serif" font-size="9" font-weight="700" text-anchor="middle" fill="#C4B5FD" letter-spacing="0">frente al escenario →</text>
+<text x="974.5" y="211" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="800" text-anchor="middle" fill="#083344" letter-spacing="0">INVITADO 1</text>
+<text x="974.5" y="220" font-family="Montserrat, Arial, sans-serif" font-size="6" font-weight="700" text-anchor="middle" fill="#083344" letter-spacing="0">Internacional</text>
+<text x="1041.5" y="211" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="800" text-anchor="middle" fill="#083344" letter-spacing="0">INVITADO 2</text>
+<text x="1041.5" y="220" font-family="Montserrat, Arial, sans-serif" font-size="6" font-weight="700" text-anchor="middle" fill="#083344" letter-spacing="0">Internacional</text>
+<text x="974.5" y="238" font-family="Montserrat, Arial, sans-serif" font-size="6.5" font-weight="700" text-anchor="middle" fill="#22D3EE" letter-spacing="0">fila</text>
+<text x="1041.5" y="238" font-family="Montserrat, Arial, sans-serif" font-size="6.5" font-weight="700" text-anchor="middle" fill="#22D3EE" letter-spacing="0">fila</text>
+<text x="905" y="296" font-family="Montserrat, Arial, sans-serif" font-size="9" font-weight="800" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" stroke="#140F22" stroke-width="2.0" stroke-linejoin="round" paint-order="stroke">GRAN SALÓN</text>
+<text x="1202" y="405" font-family="Montserrat, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">ESCENARIO</text>
+<text x="1202" y="424" font-family="Montserrat, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">PRINCIPAL</text>
+<text x="1202" y="442" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="600" text-anchor="middle" fill="#E9D5FF" letter-spacing="0">Obra teatral · Shows · Concursos</text>
+<text x="1202" y="454" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="600" text-anchor="middle" fill="#E9D5FF" letter-spacing="0">← mirando hacia el público</text>
+<text x="1112" y="500" font-family="Montserrat, Arial, sans-serif" font-size="10" font-weight="800" text-anchor="middle" fill="#C4B5FD" letter-spacing="1" transform="rotate(-90 1112 500)">PÚBLICO</text>
+<text x="1112" y="352" font-family="Montserrat, Arial, sans-serif" font-size="10" font-weight="800" text-anchor="middle" fill="#713F12" letter-spacing="1" transform="rotate(-90 1112 352)">ZONA VIP</text>
+<text x="1166" y="607" font-family="Montserrat, Arial, sans-serif" font-size="10.5" font-weight="800" text-anchor="middle" fill="#991B1B" letter-spacing="0">STREAM ZONE</text>
+<text x="1166" y="619" font-family="Montserrat, Arial, sans-serif" font-size="7" font-weight="700" text-anchor="middle" fill="#991B1B" letter-spacing="0">Acordonada · acceso</text>
+<text x="1166" y="629" font-family="Montserrat, Arial, sans-serif" font-size="7" font-weight="700" text-anchor="middle" fill="#991B1B" letter-spacing="0">exclusivo (1 streamer)</text>
+<text x="1200" y="240" font-family="Montserrat, Arial, sans-serif" font-size="9.5" font-weight="600" text-anchor="middle" fill="#F3F0FF" letter-spacing="0">Backstage · acceso VIP</text>
+<text x="691" y="416" font-family="Montserrat, Arial, sans-serif" font-size="7.5" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0.5" transform="rotate(-90 691 416)">PRODUCCIÓN · STAFF</text>
+<text x="587" y="697" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#fff" letter-spacing="0">ZONA GAMER</text>
+<text x="587" y="710" font-family="Montserrat, Arial, sans-serif" font-size="8" font-weight="600" text-anchor="middle" fill="#fff" letter-spacing="0">Arena Panter</text>
+<text x="150" y="603" font-family="Montserrat, Arial, sans-serif" font-size="9" font-weight="700" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" transform="rotate(-70 150 603)">Photo Spot</text>
+<text x="775" y="165" font-family="Montserrat, Arial, sans-serif" font-size="10.5" font-weight="800" text-anchor="middle" fill="#5EEAD4" letter-spacing="0">ARTIST ALLEY · artistas con backdrop de fondo</text>
+<text x="1008" y="165" font-family="Montserrat, Arial, sans-serif" font-size="10.5" font-weight="800" text-anchor="middle" fill="#22D3EE" letter-spacing="0">MEET &amp; GREET · invitados</text>
+<text x="860" y="614" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" stroke="#140F22" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke">MERCADO SUR · TIENDAS</text>
+<text x="262" y="365" font-family="Montserrat, Arial, sans-serif" font-size="17" font-weight="800" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" stroke="#140F22" stroke-width="3.7" stroke-linejoin="round" paint-order="stroke">ZONA DE COMIDAS</text>
+<text x="262" y="381" font-family="Montserrat, Arial, sans-serif" font-size="9" font-weight="600" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" stroke="#140F22" stroke-width="2.0" stroke-linejoin="round" paint-order="stroke">Descanso · puestos de comida</text>
+<text x="70" y="498" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" text-anchor="middle" fill="#F3F0FF" letter-spacing="0" stroke="#140F22" stroke-width="2.4" stroke-linejoin="round" paint-order="stroke">SALIDA</text>
+</g>
+<g id="red_carpet_afuera">
+<rect x="236" y="792" width="44" height="58" fill="#DC2626" stroke="#FACC15" stroke-width="2" rx="2"/>
+<text x="296" y="818" font-family="Montserrat, Arial, sans-serif" font-size="11" font-weight="800" fill="#FCA5A5">RED CARPET</text>
+<text x="296" y="831" font-family="Montserrat, Arial, sans-serif" font-size="8" font-weight="600" fill="#FCA5A5">afuera · apertura y set de fotos</text>
+</g>
+<g id="zonas-clicables">
+<g class="hot" data-zone="comidas" tabindex="0" role="button"><polygon points="175,52 470,52 470,410 60,410 30,416"/></g>
+<g class="hot" data-zone="activacion" tabindex="0" role="button"><rect x="60" y="420" width="430" height="345" rx="6"/></g>
+<g class="hot" data-zone="portal" tabindex="0" role="button"><rect x="205" y="600" width="106" height="168" rx="6"/></g>
+<g class="hot" data-zone="monarch" tabindex="0" role="button"><polygon points="486,297 660,297 660,204 540,204 540,224 486,279"/></g>
+<g class="hot" data-zone="frost" tabindex="0" role="button"><rect x="510" y="342" width="150" height="62" rx="6"/></g>
+<g class="hot" data-zone="shadow" tabindex="0" role="button"><rect x="510" y="428" width="150" height="98" rx="6"/></g>
+<g class="hot" data-zone="dungeons" tabindex="0" role="button"><polygon points="487,536 632,536 632,625 539,625 539,607 487,555"/></g>
+<g class="hot" data-zone="gamer" tabindex="0" role="button"><rect x="533" y="651" width="109" height="89" rx="6"/></g>
+<g class="hot" data-zone="mercado-sur" tabindex="0" role="button"><rect x="650" y="568" width="450" height="72" rx="6"/></g>
+<g class="hot" data-zone="gran-salon" tabindex="0" role="button"><rect x="716" y="266" width="359" height="300" rx="6"/></g>
+<g class="hot" data-zone="artist-alley" tabindex="0" role="button"><rect x="665" y="194" width="272" height="70" rx="6"/></g>
+<g class="hot" data-zone="meet-greet" tabindex="0" role="button"><rect x="942" y="194" width="132" height="52" rx="6"/></g>
+<g class="hot" data-zone="escenario" tabindex="0" role="button"><rect x="1066" y="265" width="207" height="309" rx="6"/></g>
+<g class="hot" data-zone="stream" tabindex="0" role="button"><rect x="1111" y="586" width="111" height="52" rx="6"/></g>
+<g class="hot" data-zone="red-carpet" tabindex="0" role="button"><rect x="232" y="788" width="52" height="66" rx="6"/></g>
+</g>
+</svg>

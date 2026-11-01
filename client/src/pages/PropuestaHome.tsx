@@ -11,7 +11,8 @@ import { useAntiSpam } from "@/hooks/useAntiSpam";
 import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
 import IntroSistema from "@/components/fest/IntroSistema";
 import PortadaPoster from "@/components/fest/PortadaPoster";
-import MapaEvento, { ZONAS } from "@/components/fest/MapaEvento";
+import { ZONAS } from "@/components/fest/MapaEvento";
+import FestMap from "@/components/fest/FestMap";
 import MazmorraJefe from "@/components/fest/MazmorraJefe";
 import RaidJefe from "@/components/fest/RaidJefe";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
@@ -484,17 +485,14 @@ export default function PropuestaHome() {
 
       <Cinta claro items={ZONAS.map(z => (en ? z.en[0] : z.es[0]).toUpperCase())} />
 
-      {/* ═══ 005 EL EVENTO: plano interactivo con las zonas ═══ */}
-      <section id="pk-evento" className="pk-sec pk-claro">
+      {/* ═══ 005 EL EVENTO: el mapa del Fest (plano real del recinto) ═══
+          Toca una zona y se abre su ficha con el render, lo que se vive ahí y
+          cómo puede sumar una marca. */}
+      <section id="pk-evento" className="pk-sec pk-oscuro pk-evento">
         <div className="pk-ancho">
-          <Titulo claro n={5} intro={en ? "Tap a zone on the map to enter it." : "Toca una zona del plano para entrar en ella."}>{capitulos[4][1]}</Titulo>
-          <p className="pk-mono mb-6 max-w-2xl text-[13px] leading-relaxed text-[#3b3450]">
-            {en
-              ? "The venue is divided into eight zones with their own identity. Each one gives you experience when you visit it."
-              : "El recinto se divide en ocho zonas con identidad propia. Cada una te da experiencia al visitarla."}
-          </p>
-          <div className="pk-rev"><MapaEvento en={en} imagenes={Object.fromEntries(ZONAS.map(z => [z.id, s(`wf_zona_${z.id}_img`)]))} /></div>
+          <Titulo n={5} intro={en ? "Tap a zone on the map to see what it will look like." : "Toca una zona del mapa para ver cómo se verá."}>{capitulos[4][1]}</Titulo>
         </div>
+        <div className="pk-rev"><FestMap /></div>
       </section>
 
       {/* ═══ 005 INVITADOS: fichas de personaje ═══ */}
