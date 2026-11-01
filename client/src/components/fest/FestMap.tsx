@@ -13,10 +13,23 @@ import "./FestMap.css";
  */
 const IMG_BASE = "/fest/renders/";
 
+/**
+ * Indicación de «toca aquí»: una mano que toca la Shadow Zone con ondas, hasta
+ * que la persona toca su primera zona. Va dentro del SVG para que siga a la
+ * zona aunque el mapa se deslice de lado en el teléfono.
+ */
+const MANO = `<g class="fm-mano" aria-hidden="true" transform="translate(585 470)">
+  <circle class="fm-onda" r="14"/><circle class="fm-onda fm-onda-2" r="14"/>
+  <g class="fm-dedo"><path d="M-3 -2 V-22 a5 5 0 0 1 10 0 V-6 l2 -1 a5 5 0 0 1 6 2 l1 2 a5 5 0 0 1 6 3 l1 3 a5 5 0 0 1 6 4 V16 q0 14 -14 18 H4 q-10 0 -16 -9 l-12 -18 a5 5 0 0 1 8 -6 Z" /></g>
+</g>`;
+const SVG_CON_MANO = mapaSvg.replace(/<\/svg>\s*$/, `${MANO}</svg>`);
+
 type Origin = { x: string; y: string };
 
 export default function FestMap() {
   const [current, setCurrent] = useState<number>(-1);
+  /** Ya tocó alguna zona: se quita la indicación */
+  const [tocado, setTocado] = useState(false);
   const [origin, setOrigin] = useState<Origin>({ x: "50%", y: "50%" });
   const [animKey, setAnimKey] = useState(0);
   const [tip, setTip] = useState<{ text: string; x: number; y: number } | null>(null);
@@ -37,6 +50,7 @@ export default function FestMap() {
   const openZone = useCallback((id: string, clientX?: number, clientY?: number) => {
     const idx = byId[id];
     if (idx === undefined) return;
+    setTocado(true);
     setTip(null);
     const hot = mapRef.current?.querySelector<SVGGElement>(`.hot[data-zone="${id}"]`);
     if (hot) { hot.classList.remove("is-pulse"); void hot.getBoundingClientRect(); hot.classList.add("is-pulse"); }
@@ -104,7 +118,7 @@ export default function FestMap() {
     : "#";
 
   return (
-    <section className="fest-map" aria-label="Mapa interactivo del Isekai World Fest">
+    <section className={`fest-map ${tocado ? "fm-tocado" : ""}`} aria-label="Mapa interactivo del Isekai World Fest">
       <div className="wrap">
         <header className="head">
           <div className="eyebrow">Isekai World Fest 2027 · 14 y 15 de agosto · Maracaibo</div>
@@ -116,7 +130,7 @@ export default function FestMap() {
         </header>
 
         <div className="map-card">
-          <div className="hint">Toca una zona</div>
+          <div className="hint"><span className="hint-punto" aria-hidden="true" />Toca una zona para ver su detalle</div>
           <div
             className="map-scroll"
             ref={mapRef}
@@ -124,7 +138,7 @@ export default function FestMap() {
             onKeyDown={onMapKey}
             onMouseMove={onMapMove}
             onMouseLeave={() => setTip(null)}
-            dangerouslySetInnerHTML={{ __html: mapaSvg }}
+            dangerouslySetInnerHTML={{ __html: SVG_CON_MANO }}
           />
         </div>
 

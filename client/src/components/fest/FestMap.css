@@ -103,3 +103,63 @@
 .fest-map .overlay.open .panel, .fest-map .overlay.open .media img, .fest-map .overlay.open .ring, .fest-map .overlay.open .info > *, .fest-map .hot.is-pulse rect, .fest-map .hot.is-pulse polygon { animation: none !important; }
 }
 
+
+/* La ficha nunca se desborda de lado: el anillo de la animación crece hasta
+   1400 px y, dentro de un panel con scroll, dejaba moverlo horizontalmente */
+.fest-map .panel { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); }
+.fest-map .info, .fest-map .media { min-width: 0; }
+.fest-map .info p, .fest-map .info li, .fest-map .info h2 { overflow-wrap: anywhere; }
+.fest-map .ring { max-width: none; }
+@media (max-width: 820px) { .fest-map .panel { grid-template-columns: minmax(0, 1fr); } }
+
+/* ═══ Invitación a tocar las zonas ═══ */
+/* Las zonas se encienden una tras otra, en ola, hasta el primer toque */
+.fest-map .hot rect, .fest-map .hot polygon { animation: fm-invita 4.8s ease-in-out infinite; }
+.fest-map .hot:nth-child(2) rect, .fest-map .hot:nth-child(2) polygon { animation-delay: .3s; }
+.fest-map .hot:nth-child(3) rect, .fest-map .hot:nth-child(3) polygon { animation-delay: .6s; }
+.fest-map .hot:nth-child(4) rect, .fest-map .hot:nth-child(4) polygon { animation-delay: .9s; }
+.fest-map .hot:nth-child(5) rect, .fest-map .hot:nth-child(5) polygon { animation-delay: 1.2s; }
+.fest-map .hot:nth-child(6) rect, .fest-map .hot:nth-child(6) polygon { animation-delay: 1.5s; }
+.fest-map .hot:nth-child(7) rect, .fest-map .hot:nth-child(7) polygon { animation-delay: 1.8s; }
+.fest-map .hot:nth-child(8) rect, .fest-map .hot:nth-child(8) polygon { animation-delay: 2.1s; }
+.fest-map .hot:nth-child(9) rect, .fest-map .hot:nth-child(9) polygon { animation-delay: 2.4s; }
+.fest-map .hot:nth-child(10) rect, .fest-map .hot:nth-child(10) polygon { animation-delay: 2.7s; }
+.fest-map .hot:nth-child(11) rect, .fest-map .hot:nth-child(11) polygon { animation-delay: 3s; }
+.fest-map .hot:nth-child(12) rect, .fest-map .hot:nth-child(12) polygon { animation-delay: 3.3s; }
+.fest-map .hot:nth-child(13) rect, .fest-map .hot:nth-child(13) polygon { animation-delay: 3.6s; }
+.fest-map .hot:nth-child(14) rect, .fest-map .hot:nth-child(14) polygon { animation-delay: 3.9s; }
+.fest-map .hot:nth-child(15) rect, .fest-map .hot:nth-child(15) polygon { animation-delay: 4.2s; }
+@keyframes fm-invita {
+  0%, 22%, 100% { fill: rgba(232,24,95,0); stroke: rgba(255,61,134,0); }
+  8% { fill: rgba(232,24,95,.2); stroke: rgba(255,61,134,.95); }
+}
+.fest-map.fm-tocado .hot rect, .fest-map.fm-tocado .hot polygon { animation: none; }
+.fest-map .hot:hover rect, .fest-map .hot:hover polygon { animation: none; }
+
+/* La mano que toca, con ondas */
+.fest-map .fm-mano { pointer-events: none; }
+.fest-map .fm-dedo { animation: fm-toca 1.6s ease-in-out infinite; transform-box: fill-box; transform-origin: 30% 10%; }
+.fest-map .fm-dedo path { fill: #fff; stroke: #140F22; stroke-width: 2.2; stroke-linejoin: round; filter: drop-shadow(0 0 6px rgba(255,61,134,.9)); }
+@keyframes fm-toca { 0%, 100% { transform: translate(6px, 10px) scale(1); } 40% { transform: translate(0, 0) scale(.9); } 55% { transform: translate(0, 0) scale(.9); } }
+.fest-map .fm-onda { fill: none; stroke: #FF3D86; stroke-width: 2.5; opacity: 0; transform-box: fill-box; transform-origin: center; animation: fm-onda 1.6s ease-out infinite .55s; }
+.fest-map .fm-onda-2 { animation-delay: .85s; }
+@keyframes fm-onda { 0% { transform: scale(.3); opacity: 1; } 100% { transform: scale(3); opacity: 0; } }
+.fest-map.fm-tocado .fm-mano { display: none; }
+
+/* Aviso «Toca una zona», también en teléfono */
+.fest-map .hint { display: inline-flex; align-items: center; gap: 8px; z-index: 2; animation: fm-hint 2s ease-in-out infinite; }
+.fest-map .hint-punto { width: 8px; height: 8px; border-radius: 50%; background: #FF3D86; box-shadow: 0 0 0 0 rgba(255,61,134,.7); animation: fm-punto 1.6s ease-out infinite; }
+@keyframes fm-punto { 0% { box-shadow: 0 0 0 0 rgba(255,61,134,.7); } 100% { box-shadow: 0 0 0 10px rgba(255,61,134,0); } }
+@keyframes fm-hint { 50% { transform: translateY(-2px); } }
+.fest-map.fm-tocado .hint { animation: none; opacity: .75; }
+@media (max-width: 820px) { .fest-map .hint { display: inline-flex; left: 50%; right: auto; top: auto; bottom: 18px; transform: translateX(-50%); animation: none; white-space: nowrap; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .fest-map .hot rect, .fest-map .hot polygon, .fest-map .fm-dedo, .fest-map .fm-onda, .fest-map .hint, .fest-map .hint-punto { animation: none !important; }
+}
+/* En teléfono la imagen no puede ensancharse: con alto mínimo + 16/9 quedaba más ancha que la ficha */
+@media (max-width: 820px) { .fest-map .media { min-height: 0; width: 100%; aspect-ratio: 16 / 9; } }
+/* El anillo del portal vuelve a su tamaño al terminar, para no dejar nada fuera de la ficha */
+@keyframes fm-ring { 0% { opacity: 1; width: 40px; height: 40px; } 99% { opacity: 0; width: 1400px; height: 1400px; } 100% { opacity: 0; width: 0; height: 0; } }
+/* En teléfono el aviso va arriba del mapa (abajo lo tapaba la barra fija) */
+@media (max-width: 820px) { .fest-map .hint { top: 22px; bottom: auto; } }
