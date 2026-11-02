@@ -36,6 +36,8 @@ export default function FestMap() {
   const mapRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const lastFocus = useRef<HTMLElement | null>(null);
+  /** Mientras la ficha se abre (180 ms) no se vuelve a mostrar la etiqueta */
+  const abriendo = useRef(false);
 
   const byId = useMemo(() => Object.fromEntries(FEST_ZONES.map((z, i) => [z.id, i])), []);
   const zone = current >= 0 ? FEST_ZONES[current] : null;
@@ -52,6 +54,7 @@ export default function FestMap() {
     if (idx === undefined) return;
     setTocado(true);
     setTip(null);
+    abriendo.current = true;
     const hot = mapRef.current?.querySelector<SVGGElement>(`.hot[data-zone="${id}"]`);
     if (hot) { hot.classList.remove("is-pulse"); void hot.getBoundingClientRect(); hot.classList.add("is-pulse"); }
     if (current < 0) lastFocus.current = document.activeElement as HTMLElement;
@@ -60,11 +63,13 @@ export default function FestMap() {
       setOrigin(originFrom(clientX, clientY));
       setCurrent(idx);
       setAnimKey(k => k + 1);
+      abriendo.current = false;
     }, delay);
   }, [byId, current]);
 
   const closeZone = useCallback(() => {
     setCurrent(-1);
+    setTip(null);
     mapRef.current?.querySelectorAll(".hot.is-pulse").forEach(h => h.classList.remove("is-pulse"));
     lastFocus.current?.focus?.({ preventScroll: true });
   }, []);
@@ -107,7 +112,7 @@ export default function FestMap() {
     if (h?.dataset.zone && (e.key === "Enter" || e.key === " ")) { e.preventDefault(); openZone(h.dataset.zone); }
   };
   const onMapMove = (e: ReactMouseEvent) => {
-    if (current >= 0) return;
+    if (current >= 0 || abriendo.current) return;
     const h = hotFrom(e.target);
     const i = h ? byId[h.dataset.zone ?? ""] : undefined;
     setTip(i !== undefined ? { text: FEST_ZONES[i].nombre, x: e.clientX, y: e.clientY } : null);
@@ -142,16 +147,10 @@ export default function FestMap() {
           />
         </div>
 
-        <nav className="chips" aria-label="Zonas del recorrido">
-          {FEST_ZONES.map(z => (
-            <button key={z.id} type="button" className="chip" onClick={e => openZone(z.id, e.clientX, e.clientY)}>
-              <b>{z.paso.replace("Paso ", "").replace("Antes de entrar", "0")}</b>{z.nombre}
-            </button>
-          ))}
-        </nav>
+        <ChipsZonas onOpen={openZone} />
       </div>
 
-      {tip && <div className="tip on" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
+      {tip && current < 0 && <div className="tip on" style={{ left: tip.x, top: tip.y }}>{tip.text}</div>}
 
       {zone && (
         <div className="overlay open" key={animKey} onClick={e => { if (e.target === e.currentTarget) closeZone(); }}>
@@ -193,3 +192,55 @@ export default function FestMap() {
   );
 }
 
+
+/**
+ * Carril de zonas: se desliza con el dedo sin barra de desplazamiento y
+ * abajo lleva puntos que marcan en qué parte del carril vas (y llevan ahí).
+ */
+function ChipsZonas({ onOpen }: { onOpen: (id: string, x: number, y: number) => void }) {
+  const ref = useRef<HTMLElement>(null);
+  const [paginas, setPaginas] = useState(1);
+  const [activa, setActiva] = useState(0);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const medir = () => {
+      const n = Math.max(1, Math.ceil(el.scrollWidth / Math.max(1, el.clientWidth) - 0.05));
+      setPaginas(n);
+      const max = el.scrollWidth - el.clientWidth;
+      setActiva(max > 0 ? Math.round((el.scrollLeft / max) * (n - 1)) : 0);
+    };
+    medir();
+    el.addEventListener("scroll", medir, { passive: true });
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => { el.removeEventListener("scroll", medir); ro.disconnect(); };
+  }, []);
+
+  const ir = (i: number) => {
+    const el = ref.current;
+    if (!el) return;
+    const max = el.scrollWidth - el.clientWidth;
+    el.scrollTo({ left: paginas > 1 ? (max * i) / (paginas - 1) : 0, behavior: "smooth" });
+  };
+
+  return (
+    <>
+      <nav className="chips" aria-label="Zonas del recorrido" ref={ref}>
+        {FEST_ZONES.map(z => (
+          <button key={z.id} type="button" className="chip" onClick={e => onOpen(z.id, e.clientX, e.clientY)}>
+            <b>{z.paso.replace("Paso ", "").replace("Antes de entrar", "0")}</b>{z.nombre}
+          </button>
+        ))}
+      </nav>
+      {paginas > 1 && (
+        <div className="chips-dots">
+          {Array.from({ length: paginas }, (_, i) => (
+            <button key={i} type="button" className={i === activa ? "on" : ""} aria-label={`Zonas, parte ${i + 1} de ${paginas}`} aria-current={i === activa} onClick={() => ir(i)} />
+          ))}
+        </div>
+      )}
+    </>
+  );
+}

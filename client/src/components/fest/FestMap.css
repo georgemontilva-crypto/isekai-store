@@ -24,7 +24,7 @@
   radial-gradient(1200px 500px at 70% 0%, rgba(124,58,237,.18), transparent 60%),
   radial-gradient(800px 400px at 10% 100%, rgba(232,24,95,.12), transparent 60%), var(--surface);
   padding: 14px; overflow: hidden; }
-.fest-map .map-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.fest-map .map-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
 .fest-map .map-scroll svg { display: block; width: 100%; min-width: 760px; height: auto; }
 .fest-map .hint { position: absolute; right: 18px; top: 16px; font-size: 12px; font-weight: 700; color: var(--ink);
   background: rgba(232,24,95,.18); border: 1px solid rgba(232,24,95,.55); padding: 6px 10px; border-radius: 999px; pointer-events: none; }
@@ -38,7 +38,13 @@
 .fest-map .tip { position: fixed; z-index: 30; pointer-events: none; padding: 6px 10px; border-radius: 8px; font-size: 12px; font-weight: 800;
   background: #1C1530; border: 1px solid var(--accent); color: var(--ink); transform: translate(-50%, -140%); opacity: 0; transition: opacity .12s; white-space: nowrap; }
 .fest-map .tip.on { opacity: 1; }
-.fest-map .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+.fest-map .chips { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; -ms-overflow-style: none; scroll-snap-type: x proximity; -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 28px), transparent 100%); mask-image: linear-gradient(90deg, transparent 0, #000 18px, #000 calc(100% - 28px), transparent 100%); padding-inline: 4px; }
+.fest-map .chips::-webkit-scrollbar, .fest-map .map-scroll::-webkit-scrollbar { display: none; }
+.fest-map .chip { scroll-snap-align: start; }
+.fest-map .chips-dots { display: flex; justify-content: center; gap: 8px; margin-top: 12px; }
+.fest-map .chips-dots button { width: 8px; height: 8px; padding: 0; border: 0; border-radius: 999px; background: #3A2F63; cursor: pointer; transition: width .3s ease, background .3s ease; position: relative; }
+.fest-map .chips-dots button::after { content: ""; position: absolute; inset: -8px; }
+.fest-map .chips-dots button.on { width: 24px; background: var(--accent); box-shadow: 0 0 10px rgba(232,24,95,.6); }
 .fest-map .chip { flex: none; display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--surface); color: var(--ink);
   border-radius: 999px; padding: 8px 14px 8px 8px; font: 700 13px var(--body); cursor: pointer; transition: border-color .2s, background .2s; }
 .fest-map .chip:hover, .fest-map .chip:focus-visible { border-color: var(--accent); background: #1C1530; outline: none; }
