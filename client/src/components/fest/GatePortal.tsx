@@ -50,6 +50,8 @@ void main(){
   float radio = 0.34 * max(uEscala, 0.001);
   float r = length(e) / radio;
   float a = atan(e.y, e.x);
+  // Dirección en vez de ángulo: así el ruido no deja una costura a la izquierda
+  vec2 dir = e / max(length(e), 1e-4);
 
   // Remolino: el ángulo gira más cerca del centro
   float t = uT * (0.55 + uGiro);
@@ -60,7 +62,7 @@ void main(){
   float bandas = sin((ang * 3.0 + r * 9.0 - t * 2.0) + n * 4.0) * 0.5 + 0.5;
 
   // Borde ondulado del óvalo
-  float borde = 1.0 + (fbm(vec2(a * 2.2, t * 0.9)) - 0.5) * 0.09;
+  float borde = 1.0 + (fbm(dir * 1.6 + vec2(t * 0.9, -t * 0.5)) - 0.5) * 0.09;
   float dentro = smoothstep(borde + 0.02, borde - 0.05, r);
 
   vec3 hondo = vec3(0.005, 0.02, 0.09);
@@ -78,7 +80,7 @@ void main(){
 
   // Borde brillante
   float filo = exp(-pow((r - borde) * 13.0, 2.0));
-  float chispa = 0.75 + 0.5 * fbm(vec2(a * 6.0, uT * 2.5));
+  float chispa = 0.75 + 0.5 * fbm(dir * 4.0 + vec2(uT * 2.5, uT * 1.3));
   col += mix(cian, vec3(1.0), 0.55) * filo * 1.7 * chispa;
 
   // Halo exterior
@@ -87,7 +89,7 @@ void main(){
   col += azul * halo * 0.6 + violeta * halo * 0.25 * n;
 
   // Descargas eléctricas alrededor
-  float arco = fbm(vec2(a * 9.0 + uT * 0.6, r * 5.0 - uT * 3.2));
+  float arco = fbm(dir * 6.0 + vec2(r * 5.0 - uT * 3.2, uT * 0.6));
   float rayos = smoothstep(0.69, 0.74, arco) * smoothstep(1.85, 1.05, r) * step(borde, r);
   col += mix(cian, vec3(1.0), 0.4) * rayos * 1.5;
 
@@ -95,7 +97,14 @@ void main(){
   col = mix(col, vec3(0.92, 0.97, 1.0), smoothstep(0.78, 1.0, uZoom));
 
   float alfa = clamp(max(col.r, max(col.g, col.b)) * 1.15 + dentro, 0.0, 1.0);
-  gl_FragColor = vec4(col, alfa);
+
+  // Sin «cuadro»: el halo y los rayos se apagan antes de llegar a los bordes
+  // del lienzo. Al entrar, el desvanecido se abre hasta llenar la pantalla.
+  vec2 s = gl_FragCoord.xy / uRes * 2.0 - 1.0;
+  float esquina = length(s * vec2(1.0, 0.92));
+  float suave = smoothstep(1.0, 0.62, esquina) * smoothstep(1.0, 0.86, max(abs(s.x), abs(s.y)));
+  suave = mix(suave, 1.0, smoothstep(0.25, 0.75, uZoom));
+  gl_FragColor = vec4(col * suave, alfa * suave);
 }`;
 
 type Modo = "quieto" | "entrar" | "salir";
