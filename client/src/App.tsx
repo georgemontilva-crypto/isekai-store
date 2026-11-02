@@ -24,7 +24,6 @@ import AccesoRapido from "@/components/AccesoRapido";
 import InstalarApp from "@/components/InstalarApp";
 import InsigniaApp from "@/components/InsigniaApp";
 const HomeEvento = lazy(() => import("./pages/HomeEvento"));
-const PropuestaHome = lazy(() => import("./pages/PropuestaHome"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
 const GuildFeedback = lazy(() => import("./pages/GuildFeedback"));
@@ -122,8 +121,8 @@ function Router() {
             ya compartidos. */}
         <Route path="/" component={HomeEvento} />
         <Route path="/evento" component={HomeEvento} />
-        {/* Propuesta alternativa del home (solo por enlace, no se indexa) */}
-        <Route path="/propuesta" component={PropuestaHome} />
+        {/* La propuesta ya es la portada: los enlaces viejos llevan allí */}
+        <Route path="/propuesta">{() => { window.location.replace("/"); return null; }}</Route>
         {/* La vista previa del rediseño ya es la portada: los enlaces viejos
             a /fest-preview llevan a la portada */}
         <Route path="/fest-preview">{() => { window.location.replace("/"); return null; }}</Route>
@@ -183,7 +182,6 @@ function Layout() {
    */
   /** Páginas sin navbar: viven solas, se llega a ellas por enlace directo */
   const esPaginaSola =
-    location.startsWith("/propuesta") ||
     location.startsWith("/invitacion") ||
     location.startsWith("/rueda-de-prensa") ||
     location.startsWith("/rueda-de-negocios") ||
@@ -193,6 +191,8 @@ function Layout() {
     location.startsWith("/staff/") ||
     location.startsWith("/equipo") ||
     location.startsWith("/acceso");
+
+  const esPortadaFest = location === "/" || location === "/evento";
 
   /**
    * Pantallas que funcionan como app (paneles con su propia barra inferior):
@@ -222,7 +222,8 @@ function Layout() {
       <InsigniaApp />
       <ScrollToTop />
       <WelcomeToastHandler />
-      {!esPaginaSola && <Navbar />}
+      {/* La portada del Fest trae su propia cabecera */}
+      {!esPaginaSola && !esPortadaFest && <Navbar />}
       <main className="min-h-screen">
         <Router />
       </main>
