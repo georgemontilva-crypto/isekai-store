@@ -1195,12 +1195,13 @@ export const appRouter = router({
       .input(z.object({
         clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/),
         tienda: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        tipo: z.enum(["tienda", "medio"]).default("tienda"),
         email: z.string().trim().toLowerCase().email().max(320),
         // Tolerante: se aceptan puntos, guiones y espacios; cuentan los dígitos
         whatsapp: z.string().trim().max(40).transform(v => (v.trim().startsWith("+") ? "+" : "") + v.replace(/[^0-9]/g, ""))
           .refine(v => { const d = v.replace(/\D/g, "").length; return d >= 7 && d <= 20; }, "WhatsApp inválido"),
       }))
-      .mutation(({ input, ctx }) => registrarConDatos(input.clave, clientIp(ctx.req), { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp })),
+      .mutation(({ input, ctx }) => registrarConDatos(input.clave, clientIp(ctx.req), { tienda: input.tienda, tipo: input.tipo, email: input.email, whatsapp: input.whatsapp })),
     /** Quien ya confirmó deja su tienda, correo y WhatsApp */
     completarDatos: publicProcedure
       .input(z.object({

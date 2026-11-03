@@ -733,7 +733,7 @@ function escHtml(v: string) {
   return v.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
 }
 
-export async function notifyConfirmacionPrensa(total: number, hoy: number, datos?: { tienda: string; email: string; whatsapp: string }): Promise<void> {
+export async function notifyConfirmacionPrensa(total: number, hoy: number, datos?: { tienda: string; email: string; whatsapp: string; tipo?: string }): Promise<void> {
   let destinos: string[] = ENV.ownerEmail ? [ENV.ownerEmail] : [];
   if (destinos.length === 0) {
     try {
@@ -755,7 +755,7 @@ export async function notifyConfirmacionPrensa(total: number, hoy: number, datos
     <h1>🎟️ ${datos ? escHtml(datos.tienda) : "Nueva confirmación de asistencia"}</h1>
     <p>${datos ? "Confirmó" : "Alguien acaba de confirmar"} que asistirá a la rueda de negocios del <span class="highlight">Isekai World Fest 2027</span>.</p>
     <div class="order-box">
-      ${datos ? `<p><strong>Tienda:</strong> ${escHtml(datos.tienda)}</p><p><strong>Correo:</strong> ${escHtml(datos.email)}</p><p><strong>WhatsApp:</strong> ${escHtml(datos.whatsapp)}</p>` : ""}
+      ${datos ? `<p><strong>${datos.tipo === "medio" ? "Medio de comunicación" : "Tienda o marca"}:</strong> ${escHtml(datos.tienda)}</p><p><strong>Correo:</strong> ${escHtml(datos.email)}</p><p><strong>WhatsApp:</strong> ${escHtml(datos.whatsapp)}</p>` : ""}
       <p><strong>Confirmados en total:</strong> ${total}</p>
       <p><strong>Confirmados hoy:</strong> ${hoy}</p>
       <p><strong>Hora:</strong> ${hora}</p>

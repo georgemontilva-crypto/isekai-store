@@ -138,7 +138,7 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
 
   const descargar = () => {
     const esc = (v: string) => `"${v.replace(/"/g, '""')}"`;
-    const filas = [["Tienda", "Correo", "WhatsApp", "Confirmó", "Asistió", "Marcó"], ...conDatos.map(f => [f.tienda ?? "", f.email ?? "", f.whatsapp ?? "", fecha(f.creadoEn), f.asistioEn ? fecha(f.asistioEn) : "No", f.asistioPor ?? ""])];
+    const filas = [["Nombre", "Tipo", "Correo", "WhatsApp", "Confirmó", "Asistió", "Marcó"], ...conDatos.map(f => [f.tienda ?? "", f.tipo === "medio" ? "Medio de comunicación" : "Tienda o marca", f.email ?? "", f.whatsapp ?? "", fecha(f.creadoEn), f.asistioEn ? fecha(f.asistioEn) : "No", f.asistioPor ?? ""])];
     const csv = "﻿" + filas.map(r => r.map(esc).join(",")).join("\r\n");
     const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
     const a = document.createElement("a");
@@ -262,6 +262,7 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
                     <div className="min-w-0 flex-1">
                       <p className="flex items-center gap-1.5 truncate text-[15px] font-semibold text-white">
                         <span className="truncate">{f.tienda}</span>
+                        {f.tipo === "medio" && <span className="shrink-0 rounded-full bg-[#38bdf8]/15 px-2 py-0.5 text-[10px] font-bold text-[#7dd3fc]">Medio</span>}
                         {!llego && esNueva(f) && <span className="shrink-0 rounded-full bg-[#e5007d] px-2 py-0.5 text-[10px] font-bold text-white">Nueva</span>}
                         {esAdmin && repetidas.has(f.id) && <span className="shrink-0 rounded-full bg-[#fbbf24]/15 px-2 py-0.5 text-[10px] font-bold text-[#fbbf24]">Repetida</span>}
                       </p>

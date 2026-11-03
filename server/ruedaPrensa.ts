@@ -36,7 +36,9 @@ export async function estadoConfirmacion(clave?: string): Promise<{ confirmado: 
   }
 }
 
-export type DatosPrensa = { tienda: string; email: string; whatsapp: string };
+/** «tienda»: tienda o marca · «medio»: medio de comunicación */
+export type TipoAsistente = "tienda" | "medio";
+export type DatosPrensa = { tienda: string; email: string; whatsapp: string; tipo?: TipoAsistente };
 
 /**
  * La persona que ya confirmó deja el nombre de su tienda, su correo y su
@@ -115,7 +117,7 @@ export async function completarDatos(clave: string, datos: DatosPrensa, ip = "de
 }
 
 export type FilaPrensa = {
-  id: number; tienda: string | null; email: string | null; whatsapp: string | null;
+  id: number; tienda: string | null; tipo: string | null; email: string | null; whatsapp: string | null;
   datosEn: Date | null; creadoEn: Date; asistioEn: Date | null; asistioPor: string | null;
 };
 
@@ -132,7 +134,7 @@ export function asegurarColumnas(): Promise<void> {
       const [filas] = await db.execute(sql`SELECT COLUMN_NAME AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'wfPrensaConfirmaciones'`) as unknown as [{ c: string }[]];
       const hay = new Set((filas ?? []).map(f => f.c));
       const faltan: [string, string][] = [
-        ["tienda", "varchar(150) NULL"], ["email", "varchar(320) NULL"], ["whatsapp", "varchar(30) NULL"],
+        ["tienda", "varchar(150) NULL"], ["tipo", "varchar(20) NULL"], ["email", "varchar(320) NULL"], ["whatsapp", "varchar(30) NULL"],
         ["datosEn", "timestamp NULL"], ["asistioEn", "timestamp NULL"], ["asistioPor", "varchar(150) NULL"],
       ];
       for (const [col, tipo] of faltan) {
@@ -159,6 +161,7 @@ export async function listaConfirmaciones(): Promise<FilaPrensa[]> {
   return db.select({
     id: wfPrensaConfirmaciones.id,
     tienda: wfPrensaConfirmaciones.tienda,
+    tipo: wfPrensaConfirmaciones.tipo,
     email: wfPrensaConfirmaciones.email,
     whatsapp: wfPrensaConfirmaciones.whatsapp,
     datosEn: wfPrensaConfirmaciones.datosEn,
@@ -364,7 +367,7 @@ export async function registrarConDatos(clave: string, ip: string, datos: DatosP
     if (propia) {
       // Confirmó con la versión anterior (sin datos): se completa esa misma fila
       await db.update(wfPrensaConfirmaciones)
-        .set({ tienda: datos.tienda, email: datos.email, whatsapp: datos.whatsapp, datosEn: ahora })
+        .set({ tienda: datos.tienda, tipo: datos.tipo ?? "tienda", email: datos.email, whatsapp: datos.whatsapp, datosEn: ahora })
         .where(eq(wfPrensaConfirmaciones.id, propia.id));
     } else {
       const hace24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
@@ -372,7 +375,7 @@ export async function registrarConDatos(clave: string, ip: string, datos: DatosP
         .where(and(eq(wfPrensaConfirmaciones.ip, ip), gte(wfPrensaConfirmaciones.creadoEn, hace24h)));
       if (Number(n) >= MAX_POR_IP_DIA) return { ok: false, motivo: "limite" };
       await db.insert(wfPrensaConfirmaciones).values({
-        clave, ip, tienda: datos.tienda, email: datos.email, whatsapp: datos.whatsapp, datosEn: ahora,
+        clave, ip, tienda: datos.tienda, tipo: datos.tipo ?? "tienda", email: datos.email, whatsapp: datos.whatsapp, datosEn: ahora,
       });
     }
   } catch (e) {
@@ -386,8 +389,8 @@ export async function registrarConDatos(clave: string, ip: string, datos: DatosP
     io?.to("admin").emit("prensa:confirmacion", { ...conteo, tienda: datos.tienda });
     void notifyConfirmacionPrensa(conteo.total, conteo.hoy, datos).catch(e => console.warn("[Prensa] correo:", e));
     void import("./push").then(m => m.enviarPushAdmins({
-      titulo: `🏪 ${datos.tienda} · rueda de negocios`,
-      cuerpo: `Confirmó asistencia. Ya son ${conteo.total} tiendas.`,
+      titulo: `${datos.tipo === "medio" ? "📰" : "🏪"} ${datos.tienda} · rueda de negocios`,
+      cuerpo: `${datos.tipo === "medio" ? "Medio de comunicación · confirmó" : "Confirmó"} asistencia. Ya son ${conteo.total} confirmados.`,
       url: "/admin",
       etiqueta: "prensa",
     }));

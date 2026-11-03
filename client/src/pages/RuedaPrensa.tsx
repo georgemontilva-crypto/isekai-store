@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
-import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Loader2, ArrowRight, Store, Mail, MessageCircle, X } from "lucide-react";
+import { Calendar, Clock, MapPin, Check, CalendarPlus, Navigation, Ticket, Loader2, ArrowRight, Store, Mail, MessageCircle, X, Newspaper } from "lucide-react";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
@@ -91,7 +91,7 @@ function Separador({ className = "" }: { className?: string }) {
   );
 }
 
-type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosTienda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosYaRegistrado" | "datosObligatorio" | "datosPaso" | "datosCancelar" | "datosLimite" | "datosEditar" | "datosInvalido" | "datosError", string>;
+type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosQuien" | "datosOpTienda" | "datosOpMedio" | "datosTienda" | "datosTiendaAyuda" | "datosMedio" | "datosMedioAyuda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosYaRegistrado" | "datosObligatorio" | "datosPaso" | "datosCancelar" | "datosLimite" | "datosEditar" | "datosInvalido" | "datosError", string>;
 
 /**
  * Datos de quien confirmó (tienda, correo y WhatsApp) en una ventana que se
@@ -104,6 +104,7 @@ function FormularioDatos({ clave, conDatos, t, onCancelar }: { clave: string; co
   const utils = trpc.useUtils();
   const [abierto, setAbierto] = useState(!conDatos);
   const [tienda, setTienda] = useState("");
+  const [tipo, setTipo] = useState<"tienda" | "medio">("tienda");
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [aviso, setAviso] = useState("");
@@ -140,7 +141,7 @@ function FormularioDatos({ clave, conDatos, t, onCancelar }: { clave: string; co
       return;
     }
     setAviso("");
-    guardar.mutate({ clave, tienda: tienda.trim(), email: email.trim(), whatsapp: whatsapp.trim() });
+    guardar.mutate({ clave, tienda: tienda.trim(), tipo, email: email.trim(), whatsapp: whatsapp.trim() });
   };
 
   // Ya dejó sus datos: solo una confirmación discreta, sin formulario
@@ -192,12 +193,35 @@ function FormularioDatos({ clave, conDatos, t, onCancelar }: { clave: string; co
               <p className="text-[13px] font-medium leading-snug text-[#ffd6de]">{t.datosObligatorio}</p>
             </div>
 
+            {/* ¿Tienda o medio? Cambia la pregunta del nombre */}
+            <fieldset className="mb-5">
+              <legend className="rp-sistema mb-2 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosQuien} <span className="text-[#ff6b86]">*</span></legend>
+              <div className="rp-tipo grid grid-cols-2 gap-2" role="radiogroup">
+                {([["tienda", Store, t.datosOpTienda], ["medio", Newspaper, t.datosOpMedio]] as const).map(([valor, Icono, texto]) => (
+                  <button
+                    key={valor}
+                    type="button"
+                    role="radio"
+                    aria-checked={tipo === valor}
+                    onClick={() => setTipo(valor)}
+                    className={`rp-tipo-op flex items-center gap-2 border px-3 py-3 text-left text-[13px] leading-tight transition-colors ${tipo === valor ? "rp-tipo-on border-[#ff4d6d] bg-[#ff4d6d]/[0.14] text-[#f6e3e7]" : "border-[#f1c7d0]/15 bg-transparent text-[#bfaeb5]"}`}
+                  >
+                    <Icono size={16} strokeWidth={1.5} className={`shrink-0 ${tipo === valor ? "text-[#ff6b86]" : "text-[#8d7b83]"}`} />
+                    <span>{texto}</span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+
             <label className="mb-5 block">
-              <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosTienda} <span className="text-[#ff6b86]">*</span></span>
+              <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{tipo === "medio" ? t.datosMedio : t.datosTienda} <span className="text-[#ff6b86]">*</span></span>
               <span className="relative block">
-                <Store size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
+                {tipo === "medio"
+                  ? <Newspaper size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />
+                  : <Store size={15} strokeWidth={1.4} className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-[#ff6b86]" />}
                 <input value={tienda} onChange={e => setTienda(e.target.value)} maxLength={150} autoComplete="organization" className={campo} />
               </span>
+              <span className="mt-1.5 block text-[11.5px] font-light text-[#8d7b83]">{tipo === "medio" ? t.datosMedioAyuda : t.datosTiendaAyuda}</span>
             </label>
             <label className="mb-5 block">
               <span className="rp-sistema mb-1.5 block text-[9.5px] uppercase tracking-[0.2em] text-[#f1c7d0]/75">{t.datosEmail} <span className="text-[#ff6b86]">*</span></span>
