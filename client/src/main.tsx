@@ -88,6 +88,8 @@ createRoot(document.getElementById("root")!).render(
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {});
+    // La web cargó: se reinicia la cuenta de reintentos de «sin conexión»
+    try { sessionStorage.removeItem('iw_reintentos'); } catch { /* */ }
     if ('caches' in window) {
       // Se conserva solo la pantalla de «sin conexión» del service worker
       caches.keys().then(claves => Promise.all(claves.filter(k => k !== 'iw-offline-v1').map(k => caches.delete(k)))).catch(() => {});

@@ -104,7 +104,11 @@ async function startServer() {
 
   // Cache headers for static file extensions
   app.use((req, res, next) => {
-    if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2)$/)) {
+    // El service worker y la pantalla sin conexión no se guardan: así cada
+    // arreglo en ellos llega enseguida a todos los teléfonos
+    if (req.path === '/sw.js' || req.path === '/offline.html') {
+      res.setHeader('Cache-Control', 'no-cache');
+    } else if (req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff|woff2)$/)) {
       res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
     }
     next();

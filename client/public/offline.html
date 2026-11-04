@@ -31,6 +31,17 @@
     <p>El Sistema no puede alcanzar Isekai World. Revisa tus datos o el wifi y vuelve a intentarlo.</p>
     <button onclick="location.reload()">Reintentar</button>
   </div>
-  <script>window.addEventListener('online', function () { location.reload(); });</script>
+  <script>
+    // Vuelve a intentar sola: al recuperar la red y cada pocos segundos
+    window.addEventListener('online', function () { location.reload(); });
+    (function () {
+      var n = 0;
+      try { n = parseInt(sessionStorage.getItem('iw_reintentos') || '0', 10) || 0; } catch (e) {}
+      if (n < 6) setTimeout(function () {
+        try { sessionStorage.setItem('iw_reintentos', String(n + 1)); } catch (e) {}
+        location.reload();
+      }, 4000 + n * 2000);
+    })();
+  </script>
 </body>
 </html>

@@ -7,6 +7,7 @@
  * página no hay internet, en vez del dinosaurio o la pantalla en blanco.
  */
 const CACHE_OFFLINE = 'iw-offline-v1';
+const VERSION_SW = 2; // subir al cambiar este archivo
 const PAGINA_OFFLINE = '/offline.html';
 
 self.addEventListener('install', (event) => {
@@ -22,19 +23,37 @@ self.addEventListener('activate', (event) => {
     // Borra cualquier caché de versiones anteriores (menos la de sin conexión)
     const claves = await caches.keys();
     await Promise.all(claves.filter((k) => k !== CACHE_OFFLINE).map((k) => caches.delete(k)));
-    if (self.registration.navigationPreload) await self.registration.navigationPreload.enable().catch(() => {});
+    // Sin «navigation preload»: en algunos Android y navegadores dentro de
+    // apps (Instagram, WhatsApp) falla sin motivo y mostraba «sin conexión»
+    if (self.registration.navigationPreload) await self.registration.navigationPreload.disable().catch(() => {});
     await self.clients.claim();
   })());
 });
 
-// Solo se intercepta la apertura de páginas, y solo para el caso sin internet
+// Solo se intercepta la apertura de páginas, y solo para el caso sin internet.
+// Si la primera petición falla (un corte de un segundo, la red del teléfono
+// cambiando de wifi a datos, el servidor reiniciándose al publicar), se
+// reintenta dos veces antes de mostrar la pantalla de «sin conexión».
+const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+async function pedirConReintentos(request) {
+  const pausas = [0, 900, 2200];
+  let error;
+  for (const ms of pausas) {
+    if (ms) await espera(ms);
+    try {
+      return await fetch(request);
+    } catch (e) {
+      error = e;
+    }
+  }
+  throw error;
+}
+
 self.addEventListener('fetch', (event) => {
   if (event.request.mode !== 'navigate') return;
   event.respondWith((async () => {
     try {
-      const previa = await event.preloadResponse;
-      if (previa) return previa;
-      return await fetch(event.request);
+      return await pedirConReintentos(event.request);
     } catch {
       const c = await caches.open(CACHE_OFFLINE);
       return (await c.match(PAGINA_OFFLINE)) || new Response('Sin conexión', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
