@@ -33,6 +33,8 @@ type ActiveMenu = "collections"|"explore"|null;
  * clic no hacía nada (ya estaba en esa página o no era su destino).
  */
 function destinoNotificacion(n: { type: string; body: string; title?: string }, esAdmin: boolean) {
+  // Comisión de un cosplayer por su código de referido: a su billetera
+  if (n.type === "referral") return { href: "/cosplay/dashboard", label: "Ver mi billetera" };
   if (!esAdmin) return { href: "/account", label: "Ver en mi cuenta" };
 
   switch (n.type) {

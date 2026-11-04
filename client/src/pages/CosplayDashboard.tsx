@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { Link } from "wouter";
 import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle, ChevronRight } from "lucide-react";
 import { getLoginUrl } from "@/const";
+import ActivarNotificaciones from "@/components/admin/ActivarNotificaciones";
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
 
 const TIER_MULTIPLIERS: Record<string, number> = { bronce: 1, plata: 1.5, oro: 2, diamante: 3, platino: 5 };
@@ -845,6 +846,12 @@ export default function CosplayDashboard() {
             {/* ── BILLETERA ── */}
             {activeTab === "wallet" && (
               <div className="max-w-2xl mx-auto">
+
+                {/* Aviso al teléfono cuando alguien compra con su código */}
+                <div className="mb-6">
+                  <p className="mb-2 text-xs text-[#888]">Recibe un aviso en este teléfono cada vez que alguien compre con tu código.</p>
+                  <ActivarNotificaciones />
+                </div>
 
                 {/* Historial del código: comprueba que se está usando, sin
                     exponer quién compró. */}

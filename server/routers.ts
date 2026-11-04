@@ -83,7 +83,7 @@ import {
   createCosplayActivity, getAllCosplayActivities, toggleCosplayActivity,
   deleteCosplayActivity, updateCosplayActivity,
   evaluateCosplaySubmission, getAllCosplaySubmissions, addEvidenceToSubmission, getAdminUsers,
-  getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals, revisarComisiones, historialDeCodigo,
+  getCosplayerByReferralCode, creditCashToReferrer, getCashWithdrawals, revisarComisiones, historialDeCodigo, marcarPedidoPagado,
   checkReferralEligibility, isCosplayerEmail, getMyActivityProgress,
   processWithdrawal, getUserById, requestCashWithdrawal, deductCosplayerCash,
   deleteCosplayer, resumenAntesDeEliminar, grantTicketsManually, findUserByEmail, getDb,
@@ -464,11 +464,19 @@ export const appRouter = router({
         // camino, se falla aquí y no queda un pedido de algo inexistente.
         await descontarStock(validado.items);
 
+        // El cosplayer se saca del código ya validado en el servidor. Antes se
+        // usaba el id que mandaba el navegador: si el código se descartaba,
+        // la comisión se pagaba igual, y cualquiera podía poner otro id.
+        const referidor = referralCode ? await getCosplayerByReferralCode(referralCode) : null;
+        if (!referidor) referralCode = undefined;
+
         let order;
         try {
           order = await createOrder({
             ...input,
             referralCode,
+            referralCosplayerId: referidor?.id,
+            hasSecretGift: !!referidor,
             userId: ctx.user?.id,
             items: validado.items,
             subtotal: validado.subtotal,
@@ -681,27 +689,9 @@ export const appRouter = router({
           await notifyCustomerOrderStatus(order.customerEmail, order.customerName, order.orderNumber, title, body);
         } catch { /* non-critical */ }
 
-        // La comisión se paga solo cuando el pedido queda cancelado por
-        // completo: con un abono parcial el cliente todavía debe.
-        if (input.approved && resultado?.completo && (order as any).referralCosplayerId) {
-          try {
-            const orderTotal = parseFloat(order.total);
-            const cashReward = getReferralCash(orderTotal);
-            const ticketReward = getReferralTickets(orderTotal);
-            await creditCashToReferrer((order as any).referralCosplayerId, cashReward, order.orderNumber, ticketReward);
-            const cosplayer = await getCosplayerById((order as any).referralCosplayerId);
-            if (cosplayer?.userId) {
-              if (io) {
-                io.to(`user:${cosplayer.userId}`).emit("notification:new");
-                io.to(`user:${cosplayer.userId}`).emit("order:updated", {});
-              }
-              const referrerUser = await getUserById(cosplayer.userId);
-              if (referrerUser?.email) {
-                await notifyCosplayReferralEarned(referrerUser.email, cosplayer.artisticName, cashReward, order.orderNumber);
-              }
-            }
-          } catch (e) { console.error("[Referral] Failed to credit referral cash:", e); }
-        }
+        // La comisión del cosplayer ya la pagó verifyOrderPayment (pasa por el
+        // punto único marcarPedidoPagado, que además le avisa). Antes se volvía
+        // a pagar aquí y el cosplayer cobraba DOS veces el mismo pedido.
 
         // Red de seguridad: si por cualquier motivo el pago anterior no llegó
         // a acreditarse, esto lo detecta y lo salda en el momento.
@@ -790,35 +780,11 @@ export const appRouter = router({
           });
         }
 
-        // Acreditar la comisión por tramo al cosplayer referidor
+        // Comisión del cosplayer: por el punto único de pago (paga una sola vez
+        // y le avisa por la web, el teléfono y el correo)
         if (input.paymentStatus === 'approved' && referralCosplayer) {
-          try {
-            const orderTotal = parseFloat(input.total);
-            const cashReward = getReferralCash(orderTotal);
-            const ticketReward = getReferralTickets(orderTotal);
-            await creditCashToReferrer(referralCosplayer.id, cashReward, orderNumber, ticketReward);
-            const cosplayerFull = await getCosplayerById(referralCosplayer.id);
-            if (cosplayerFull?.userId) {
-              const user = await getUserById(cosplayerFull.userId);
-              if (user?.email) {
-                await sendEmail(
-                  user.email,
-                  '¡Ganaste cash por referido!',
-                  `<h1>¡Nuevo ingreso en tu billetera!</h1>
-                   <p>Hola <strong>${cosplayerFull.artisticName}</strong>, alguien usó tu código de referido y realizó una compra.</p>
-                   <div class="order-box">
-                     <p><strong>Cash acreditado:</strong> <span class="highlight">$${cashReward.toFixed(2)} USD</span></p>
-                     <p><strong>Orden:</strong> ${orderNumber}</p>
-                   </div>
-                   <div style="text-align:center">
-                     <a href="https://isekaiworld.co/cosplay/dashboard" class="btn">Ver mi billetera →</a>
-                   </div>`,
-                  `+$${cashReward.toFixed(2)} USD en tu billetera`
-                );
-              }
-              io.to(`user:${cosplayerFull.userId}`).emit('notification:new');
-            }
-          } catch (e) { console.error('[createManual] Failed to credit referral cash:', e); }
+          try { await marcarPedidoPagado(newOrder.id, { forzarCompleto: true }); }
+          catch (e) { console.error('[createManual] Failed to credit referral cash:', e); }
         }
 
         // Email al cliente

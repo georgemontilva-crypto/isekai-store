@@ -3365,16 +3365,7 @@ export async function marcarPedidoPagado(
         await creditCashToReferrer((pedido as any).referralCosplayerId, comision, pedido.orderNumber, tickets);
         comisionPagada = comision;
 
-        const cosplayer = await getCosplayerById((pedido as any).referralCosplayerId);
-        if (cosplayer?.userId) {
-          try {
-            io?.to(`user:${cosplayer.userId}`).emit("notification:new");
-            const usuario = await getUserById(cosplayer.userId);
-            if (usuario?.email) {
-              await notifyCosplayReferralEarned(usuario.email, cosplayer.artisticName, comision, pedido.orderNumber);
-            }
-          } catch { /* el aviso no es crítico */ }
-        }
+        await avisarComisionCosplayer((pedido as any).referralCosplayerId, comision, tickets, { id: pedido.id, orderNumber: pedido.orderNumber, total });
       } catch (e) {
         console.error(`[Comisiones] No se pudo acreditar ${pedido.orderNumber}:`, e);
       }
@@ -3388,6 +3379,39 @@ export async function marcarPedidoPagado(
     saldo: Math.max(0, Math.round((total - pagado) * 100) / 100),
     comisionPagada,
   };
+}
+
+/**
+ * Aviso al cosplayer de que ganó una comisión: queda en sus notificaciones
+ * de la web (la campanita), le llega al teléfono si activó los avisos y
+ * recibe un correo. Ninguno de los tres frena el pago si falla.
+ */
+export async function avisarComisionCosplayer(
+  cosplayerId: number,
+  comision: number,
+  tickets: number,
+  pedido: { id: number; orderNumber: string; total: number },
+) {
+  try {
+    const cosplayer = await getCosplayerById(cosplayerId);
+    if (!cosplayer?.userId) return;
+    const titulo = `💵 +$${comision.toFixed(2)} por tu código de referido`;
+    const cuerpo = `Alguien compró con tu código (pedido de $${pedido.total.toFixed(2)}). Ganaste $${comision.toFixed(2)} USD${tickets > 0 ? ` y ${tickets} tickets` : ""}.`;
+    try {
+      await insertOrderNotification({ userId: cosplayer.userId, orderId: pedido.id, orderNumber: pedido.orderNumber, type: "referral", title: titulo, body: cuerpo });
+    } catch (e) { console.warn("[Comisiones] aviso en la web:", e); }
+    io?.to(`user:${cosplayer.userId}`).emit("notification:new");
+    io?.to(`user:${cosplayer.userId}`).emit("order:updated", {});
+    void import("./push").then(m => m.enviarPushAUsuarios([cosplayer.userId!], {
+      titulo, cuerpo, url: "/cosplay/dashboard", etiqueta: `comision-${pedido.orderNumber}`,
+    })).catch(e => console.warn("[Comisiones] push:", e));
+    const usuario = await getUserById(cosplayer.userId);
+    if (usuario?.email) {
+      await notifyCosplayReferralEarned(usuario.email, cosplayer.artisticName, comision, pedido.orderNumber).catch(e => console.warn("[Comisiones] correo:", e));
+    }
+  } catch (e) {
+    console.warn("[Comisiones] aviso:", e);
+  }
 }
 
 /**
