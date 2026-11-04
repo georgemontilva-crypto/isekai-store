@@ -1,7 +1,7 @@
 import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { nanoid } from "nanoid";
 import { getDb } from "./db";
-import { diaDelEventoVE, fechaVE } from "@shared/diaEvento";
+import { diaDelEventoVE, fechaVE, fechaDeEvento } from "@shared/diaEvento";
 import { conCandado } from "./candado";
 import { notifyTicketPurchased } from "./_core/notification";
 import {
@@ -394,9 +394,9 @@ async function completarVenta(
       const [tienda] = await db.select().from(stores).where(eq(stores.id, data.storeId)).limit(1);
 
       const fechas = ev?.startDate
-        ? `${new Date(ev.startDate).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" })}` +
+        ? `${new Date(ev.startDate).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" })}` +
           (ev.endDate && new Date(ev.endDate).getTime() !== new Date(ev.startDate).getTime()
-            ? ` — ${new Date(ev.endDate).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric" })}`
+            ? ` — ${new Date(ev.endDate).toLocaleDateString("es-VE", { day: "2-digit", month: "long", year: "numeric", timeZone: "UTC" })}`
             : "")
         : undefined;
 
@@ -540,9 +540,14 @@ export function ordenarEventos<T extends { startDate: Date | string; endDate: Da
     if (diaDelEvento(e) !== null) return 0;
     return new Date(e.startDate).getTime() > ahora ? 1 : 2;
   };
+  // Un evento de ensayo «[PRUEBA]» nunca le gana al real: si los dos están
+  // en curso el mismo día, la puerta y las estaciones abren el real
+  const esPrueba = (e: T) => /^\s*\[PRUEBA\]/i.test(String((e as any).name ?? ""));
   return lista.filter(e => e.active).sort((a, b) => {
     const pa = peso(a), pb = peso(b);
     if (pa !== pb) return pa - pb;
+    const xa = esPrueba(a) ? 1 : 0, xb = esPrueba(b) ? 1 : 0;
+    if (xa !== xb) return xa - xb;
     const da = new Date(a.startDate).getTime(), dbb = new Date(b.startDate).getTime();
     return pa === 2 ? dbb - da : da - dbb;
   });
@@ -761,7 +766,13 @@ export async function paqueteAcceso(eventId: number) {
   const vendidos = await db.select().from(eventTickets)
     .where(and(eq(eventTickets.eventId, eventId), eq(eventTickets.status, "sold")));
 
-  const ingresos = await db.select().from(ticketCheckins);
+  // Solo los ingresos de los boletos de ESTE evento (antes se leían todos)
+  const ingresos = vendidos.length
+    ? await db.select({ ticketId: ticketCheckins.ticketId, eventDay: ticketCheckins.eventDay })
+        .from(ticketCheckins)
+        .innerJoin(eventTickets, eq(eventTickets.id, ticketCheckins.ticketId))
+        .where(eq(eventTickets.eventId, eventId))
+    : [];
   const porBoleto = new Map<number, number[]>();
   for (const i of ingresos) {
     porBoleto.set(i.ticketId, [...(porBoleto.get(i.ticketId) ?? []), i.eventDay]);
@@ -853,7 +864,15 @@ async function registrarIngresoDe(t: typeof eventTickets.$inferSelect, data: { t
   const [evento] = await db.select().from(events).where(eq(events.id, t.eventId)).limit(1);
   if (!evento) return { ok: false, motivo: "sin_evento" as const, mensaje: "El evento no existe" };
 
-  const dia = data.diaForzado ?? diaDelEvento(evento);
+  // El día forzado solo llega al sincronizar ingresos sin conexión, y no
+  // puede ser mayor que los días que dura el evento
+  const diaA = (f: string) => Date.UTC(+f.slice(0, 4), +f.slice(5, 7) - 1, +f.slice(8, 10)) / 86_400_000;
+  const duracion = Math.max(1, diaA(fechaDeEvento(evento.endDate)) - diaA(fechaDeEvento(evento.startDate)) + 1);
+  if (data.offline && data.diaForzado && data.diaForzado > duracion) {
+    return { ok: false, motivo: "fuera_de_fecha" as const, mensaje: `El evento no tiene día ${data.diaForzado}` };
+  }
+  const forzado = data.offline && data.diaForzado ? data.diaForzado : undefined;
+  const dia = forzado ?? diaDelEvento(evento);
   if (!dia) {
     return { ok: false, motivo: "fuera_de_fecha" as const, mensaje: "Hoy no hay evento" };
   }
@@ -883,16 +902,30 @@ async function registrarIngresoDe(t: typeof eventTickets.$inferSelect, data: { t
    * orden que la persona quiera. Antes un boleto de 1 día solo valía el
    * primer día, y quien lo compraba para el domingo era rechazado.
    */
-  const previosTodos = await db.select().from(ticketCheckins).where(eq(ticketCheckins.ticketId, t.id));
+  // La antigüedad se calcula en la base (misma zona horaria que guardó la
+  // hora), no comparando con el reloj del servidor
+  const previosTodos = await db.select({
+    id: ticketCheckins.id, eventDay: ticketCheckins.eventDay, checkedAt: ticketCheckins.checkedAt,
+    checkedByUserId: ticketCheckins.checkedByUserId,
+    segundos: sql<number>`TIMESTAMPDIFF(SECOND, ${ticketCheckins.checkedAt}, NOW())`,
+  }).from(ticketCheckins).where(eq(ticketCheckins.ticketId, t.id));
   const previos = previosTodos.filter(p => p.eventDay === dia);
   const diasUsados = Array.from(new Set(previosTodos.map(p => p.eventDay))).sort();
 
   if (previos.length) {
+    /**
+     * El mismo portero lo acaba de registrar (hace menos de 90 s): es el mismo
+     * escaneo repetido porque la respuesta tardó o la cámara lo leyó dos
+     * veces. No es un colado: se avisa para que la puerta muestre «Adelante».
+     */
+    const reciente = previos[0].checkedByUserId === data.userId &&
+      Number(previos[0].segundos) < 90;
     return {
       ok: false,
       motivo: "ya_entro" as const,
-      mensaje: "Este boleto ya entró hoy",
+      mensaje: reciente ? "Ya quedó registrado hace un momento" : "Este boleto ya entró hoy",
       entroA: previos[0].checkedAt,
+      repeticionPropia: reciente,
       ...extra,
     };
   }

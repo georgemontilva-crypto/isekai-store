@@ -352,13 +352,27 @@ export default function StorePortal() {
       try { navigator.vibrate?.(r.subioDeRango ? [40, 60, 120] : 40); } catch { /* */ }
       if (continuo) window.setTimeout(() => setCamara("xp"), 1400);
     },
-    onError: e => { setErrorXp(e.message); setResultadoXp(null); try { navigator.vibrate?.([80, 40, 80]); } catch { /* */ } },
+    onError: e => {
+      // Sin respuesta (red de la sede saturada): el registro pudo hacerse.
+      // Volver a escanear es seguro: el servidor no suma dos veces en 1 minuto.
+      const sinRed = !(e as any)?.data?.httpStatus || /fetch|network|tiempo/i.test(e.message);
+      setErrorXp(sinRed ? "No llegó la respuesta. Vuelve a escanear: si ya se registró, no se suma dos veces." : e.message);
+      setResultadoXp(null); try { navigator.vibrate?.([80, 40, 80]); } catch { /* */ }
+    },
   });
   const darXp = (t: string) => {
-    if (!actividadId) return;
+    if (!actividadId || otorgar.isPending) return;
     setUltimoEscaneo(t); setResultadoXp(null); setErrorXp("");
     otorgar.mutate({ token: t, activityId: actividadId });
   };
+  // Si la respuesta no llega en 12 s, se avisa en vez de dejar la pantalla esperando
+  useEffect(() => {
+    if (!otorgar.isPending) return;
+    const id = window.setTimeout(() => {
+      setErrorXp("La red está lenta. Si no aparece el resultado, vuelve a escanear: no se suma dos veces.");
+    }, 12_000);
+    return () => window.clearTimeout(id);
+  }, [otorgar.isPending]);
   const actividadesFiltradas = useMemo(() => {
     const q = buscarAct.trim().toLowerCase();
     const l = actividades as any[];
@@ -787,7 +801,7 @@ export default function StorePortal() {
                     style={{ borderColor: resultadoXp.subioDeRango ? `${COLOR_RANGO[resultadoXp.rango] ?? CIAN}66` : "rgba(74,222,128,0.3)", background: resultadoXp.subioDeRango ? `${COLOR_RANGO[resultadoXp.rango] ?? CIAN}14` : "rgba(74,222,128,0.06)" }}
                   >
                     <p className="sp-exito-check font-mono text-[44px] font-black leading-none" style={{ color: resultadoXp.subioDeRango ? COLOR_RANGO[resultadoXp.rango] : "#4ade80" }}>+{resultadoXp.xpGanada}</p>
-                    <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.25em] text-[#a39cad]">EXP entregada</p>
+                    <p className="mt-1 text-[12px] font-semibold uppercase tracking-[0.25em] text-[#a39cad]">{(resultadoXp as any).yaRegistrado ? "Ya estaba registrada · no se sumó de nuevo" : "EXP entregada"}</p>
                     <p className="mt-4 flex items-center justify-center gap-2 text-[18px] font-black"><User size={17} className="text-[#a39cad]" /> {resultadoXp.nombre}</p>
                     <p className="mt-1 text-[13px] text-[#a39cad]">Total {resultadoXp.xpTotal} EXP · Rango {resultadoXp.rango}</p>
                     {resultadoXp.subioDeRango && (

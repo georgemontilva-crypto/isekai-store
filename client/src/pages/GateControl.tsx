@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
   Loader2, Check, X, AlertTriangle, ShieldCheck, WifiOff, Wifi,
   RefreshCw, Camera, Home,
@@ -42,7 +42,20 @@ type Veredicto = {
   bonos?: { usados: number; total: number } | null;
   diasRestantes?: number;
   token?: string;
+  repeticionPropia?: boolean;
 };
+
+/** Tiempo máximo de espera de la validación en línea antes de usar la lista */
+const ESPERA_MS = 7000;
+/** Ingresos por envío al sincronizar (el servidor acepta hasta 500) */
+const LOTE_SYNC = 200;
+
+/** ¿El fallo es de red (sin respuesta del servidor) o del servidor caído? */
+function esFalloDeRed(e: any): boolean {
+  if (e?.name === "AbortError" || e?.message === "tiempo") return true;
+  const status = e?.data?.httpStatus ?? e?.shape?.data?.httpStatus;
+  return status === undefined || status >= 500;
+}
 
 export default function GateControl() {
   const { user, isAuthenticated, loading } = useAuth();
@@ -57,6 +70,12 @@ export default function GateControl() {
   const [escaneando, setEscaneando] = useState(false);
   const [veredicto, setVeredicto] = useState<Veredicto | null>(null);
   const [codigoManual, setCodigoManual] = useState("");
+  /** Una validación en curso: mientras tanto se ignoran otros escaneos */
+  const [procesando, setProcesando] = useState(false);
+  const procesandoRef = useRef(false);
+  // La cola también en un ref: la sincronización y la validación sin señal
+  // trabajan con la última versión aunque el estado aún no se haya pintado
+  const colaRef = useRef<Array<{ token: string; dia: number; hora: string }>>([]);
 
   const { data: eventos = [] } = trpc.tickets.eventosParaAcceso.useQuery(undefined, { enabled: esPortero });
   const evento = eventos[0];
@@ -83,11 +102,12 @@ export default function GateControl() {
       const p = localStorage.getItem(CLAVE_PAQUETE);
       if (p) setPaquete(JSON.parse(p));
       const c = localStorage.getItem(CLAVE_COLA);
-      if (c) setCola(JSON.parse(c));
+      if (c) { const v = JSON.parse(c); colaRef.current = v; setCola(v); }
     } catch { /* almacenamiento no disponible */ }
   }, []);
 
   const guardarCola = useCallback((nueva: typeof cola) => {
+    colaRef.current = nueva;
     setCola(nueva);
     try { localStorage.setItem(CLAVE_COLA, JSON.stringify(nueva)); } catch { /* ignorado */ }
   }, []);
@@ -121,29 +141,58 @@ export default function GateControl() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [evento?.id, enLinea]);
 
-  /** Envía los ingresos guardados mientras no había conexión */
-  const enviarPendientes = useCallback(async () => {
-    if (!cola.length || !enLinea) return;
+  /**
+   * Envía los ingresos guardados sin conexión, por partes. Solo se borran de
+   * la cola los que el servidor contestó (aceptados o rechazados con motivo);
+   * los que fallaron por error y los escaneados mientras se enviaba se quedan
+   * para el siguiente intento. Antes se vaciaba la cola entera.
+   */
+  const enviando = useRef(false);
+  const enviarPendientes = useCallback(async (silencioso = false) => {
+    if (enviando.current || !colaRef.current.length || !navigator.onLine) return;
+    enviando.current = true;
+    let aceptados = 0, conProblemas = 0, fallo = false;
     try {
-      const r = await sincronizar.mutateAsync({
-        ingresos: cola.map(c => ({ token: c.token, dia: c.dia })),
-      });
-      guardarCola([]);
-      if (r.rechazados.length) {
-        toast.warning(`${r.aceptados} sincronizados · ${r.rechazados.length} con problemas`);
-      } else {
-        toast.success(`${r.aceptados} ingresos sincronizados`);
+      while (colaRef.current.length) {
+        const lote = colaRef.current.slice(0, LOTE_SYNC);
+        const r = await sincronizar.mutateAsync({ ingresos: lote.map(c => ({ token: c.token, dia: c.dia })) });
+        const resueltos = new Set(
+          (r.resultados as Array<{ token: string; ok: boolean; motivo: string }>)
+            .filter(x => x.ok || x.motivo !== "error")
+            .map(x => x.token),
+        );
+        aceptados += r.aceptados;
+        conProblemas += (r.resultados as any[]).filter(x => !x.ok && x.motivo !== "error").length;
+        const enviados = new Set(lote.map(c => `${c.token}|${c.dia}`));
+        const quedan = colaRef.current.filter(c => !(enviados.has(`${c.token}|${c.dia}`) && resueltos.has(c.token)));
+        guardarCola(quedan);
+        // Si en este lote nada se resolvió, se para para no girar en vacío
+        if (!resueltos.size) { fallo = true; break; }
       }
     } catch {
-      toast.error("No se pudieron sincronizar. Se reintentará.");
+      fallo = true;
+    } finally {
+      enviando.current = false;
     }
-  }, [cola, enLinea, sincronizar, guardarCola]);
+    if (silencioso && !fallo) return;
+    if (aceptados || conProblemas) {
+      if (conProblemas) toast.warning(`${aceptados} sincronizados · ${conProblemas} ya habían entrado o no eran válidos`);
+      else toast.success(`${aceptados} ingresos sincronizados`);
+    }
+    if (fallo && !silencioso) toast.error("No se pudieron enviar todos. Se reintentará solo.");
+  }, [sincronizar, guardarCola]);
 
-  // Al recuperar la señal se envía lo pendiente
+  // Al recuperar la señal se envía lo pendiente, y además se reintenta cada
+  // 30 s mientras haya cola: el teléfono puede creer que tiene señal y aun
+  // así haber fallado los envíos anteriores
   useEffect(() => {
-    if (enLinea && cola.length) void enviarPendientes();
+    if (enLinea && colaRef.current.length) void enviarPendientes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enLinea]);
+  useEffect(() => {
+    const id = window.setInterval(() => { if (colaRef.current.length) void enviarPendientes(true); }, 30_000);
+    return () => window.clearInterval(id);
+  }, [enviarPendientes]);
 
   /** Valida contra la lista descargada, sin red */
   const validarLocalmente = (token: string): Veredicto => {
@@ -162,6 +211,7 @@ export default function GateControl() {
     if (!b) return { ok: false, motivo: "inexistente", mensaje: "No está en la lista descargada. Si se vendió hace poco, valídalo cuando vuelva la señal." };
 
     const info = { nombre: b.nombre, tipoNombre: b.tipoNombre, color: b.color, esVip: b.esVip, entregaKit: b.entregaKit, token: b.token };
+    const cola = colaRef.current;
     const yaHoy = (b.diasUsados ?? []).includes(dia) ||
       cola.some(c => c.token === b.token && c.dia === dia);
     if (yaHoy) {
@@ -186,15 +236,44 @@ export default function GateControl() {
   };
 
   const procesar = async (token: string) => {
-    if (!enLinea) { setVeredicto(validarLocalmente(token)); return; }
+    // Un escaneo a la vez: un segundo escaneo mientras se valida el primero
+    // daba «Ya entró» a una persona que sí había pagado
+    if (procesandoRef.current) return;
+    procesandoRef.current = true;
+    setProcesando(true);
     try {
-      const r = await validar.mutateAsync({ token });
-      setVeredicto({ ...(r as Veredicto), token });
-    } catch {
-      // Si la red falla en mitad del escaneo, se resuelve con la lista local
-      setVeredicto(validarLocalmente(token));
+      if (!navigator.onLine) { setVeredicto(validarLocalmente(token)); return; }
+      try {
+        const r = await Promise.race([
+          validar.mutateAsync({ token }),
+          new Promise<never>((_, no) => setTimeout(() => no(new Error("tiempo")), ESPERA_MS)),
+        ]);
+        const v = r as Veredicto;
+        // El mismo portero lo acaba de registrar: es el mismo escaneo repetido
+        if (!v.ok && v.motivo === "ya_entro" && v.repeticionPropia) {
+          setVeredicto({ ...v, ok: true, motivo: "ok", token });
+        } else {
+          setVeredicto({ ...v, token });
+        }
+      } catch (e: any) {
+        if (esFalloDeRed(e)) {
+          // Sin respuesta a tiempo (o el servidor caído): se resuelve con la
+          // lista del teléfono y se envía después
+          setVeredicto(validarLocalmente(token));
+        } else {
+          setVeredicto({ ok: false, motivo: "error", mensaje: e?.message ?? "No se pudo validar. Intenta otra vez." });
+        }
+      }
+    } finally {
+      procesandoRef.current = false;
+      setProcesando(false);
     }
   };
+
+  const alDetectar = useCallback((t: string) => { setEscaneando(false); void procesar(t); },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [paquete, enLinea]);
+  const alCerrarEscaner = useCallback(() => setEscaneando(false), []);
 
   if (loading) {
     return (
@@ -232,11 +311,17 @@ export default function GateControl() {
 
   return (
     <div className="min-h-screen bg-[#08070c] text-white" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}>
-      {escaneando && (
-        <QrScanner
-          onDetectado={(t) => { setEscaneando(false); void procesar(t); }}
-          onCerrar={() => setEscaneando(false)}
-        />
+      {escaneando && !procesando && (
+        <QrScanner onDetectado={alDetectar} onCerrar={alCerrarEscaner} />
+      )}
+
+      {/* Validando: pantalla completa para que no se escanee de nuevo */}
+      {procesando && (
+        <div className="fixed inset-0 z-[310] flex flex-col items-center justify-center gap-4 bg-[#08070c]/95">
+          <Loader2 className="h-12 w-12 animate-spin text-[#2dd4bf]" />
+          <p className="text-[18px] font-bold text-white">Validando…</p>
+          <p className="text-[13px] text-[#8a8494]">No escanees de nuevo</p>
+        </div>
       )}
 
       {/* ── Cabecera ── */}
@@ -385,11 +470,11 @@ export default function GateControl() {
               />
               <button
                 type="submit"
-                disabled={codigoManual.trim().length < 4 || validar.isPending}
+                disabled={codigoManual.trim().length < 4 || procesando}
                 className="shrink-0 rounded-2xl px-6 font-bold text-[#04110f] disabled:opacity-40"
                 style={{ minHeight: 54, background: TURQUESA }}
               >
-                {validar.isPending ? <Loader2 size={18} className="animate-spin" /> : "Validar"}
+                {procesando ? <Loader2 size={18} className="animate-spin" /> : "Validar"}
               </button>
             </form>
           </section>

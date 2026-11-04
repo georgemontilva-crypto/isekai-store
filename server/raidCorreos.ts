@@ -279,8 +279,12 @@ export async function enviarPremio(): Promise<number> {
     .orderBy(desc(wfRaid.id)).limit(1);
   if (!r) return 0;
 
-  // Reserva: se marca antes de enviar para no repetirlo nunca
-  await db.update(wfRaid).set({ premioEnviadoEn: new Date() }).where(eq(wfRaid.id, r.id));
+  // Reserva: se marca antes de enviar para no repetirlo nunca. Solo gana
+  // quien la marque primero: si dos revisiones coinciden (o dos copias del
+  // servidor durante una publicación), la segunda no vuelve a enviar.
+  const [res] = await db.update(wfRaid).set({ premioEnviadoEn: new Date() })
+    .where(and(eq(wfRaid.id, r.id), sql`${wfRaid.premioEnviadoEn} IS NULL`)) as any;
+  if (!res?.affectedRows) return 0;
 
   await refrescarLogoCorreo();
   const todos = await participantes(r.id); // incluye a quien pidió baja de recordatorios

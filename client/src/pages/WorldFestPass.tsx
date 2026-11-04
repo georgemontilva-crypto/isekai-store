@@ -237,7 +237,9 @@ export default function WorldFestPass() {
 
   const { data: real, isLoading, error } = trpc.levelPass.estado.useQuery(
     { codigo: consultado },
-    { enabled: consultado.length >= 4, retry: false, refetchInterval: 15000 },
+    // Respaldo cada 60 s: los puntos llegan al instante por la conexión en
+    // vivo. Con miles de teléfonos abiertos, cada 15 s cargaba de más el servidor.
+    { enabled: consultado.length >= 4, retry: false, refetchInterval: 60_000 },
   );
 
   // ── Demo (se enciende desde el panel) ──
@@ -304,7 +306,10 @@ export default function WorldFestPass() {
    * Los puntos llegan al instante por conexión en vivo. La consulta cada 15
    * segundos se mantiene como respaldo por si la conexión se cae.
    */
-  useBoletoSocket(consultado, (aviso) => {
+  // El canal en vivo va con el código oficial que devuelve el servidor
+  // (IW-XXXXXX). Antes se usaba lo escrito o el token del QR, y si no
+  // coincidía con el código los avisos nunca llegaban.
+  useBoletoSocket((real as any)?.codigo ?? "", (aviso) => {
     /**
      * El aviso ya trae los puntos y el rango, así que se aplican de inmediato
      * sobre lo que hay en pantalla. Antes se pedían de nuevo al servidor, y

@@ -1450,7 +1450,8 @@ export const appRouter = router({
         if (!acceso.puede) {
           throw new TRPCError({ code: "FORBIDDEN", message: "No tienes permiso para otorgar experiencia" });
         }
-        if (!limitarPorUsuario(`xp:${ctx.user.id}`, 300, 10 * 60 * 1000)) {
+        // Holgado: una estación con fila (photocall, tienda) escanea seguido
+        if (!limitarPorUsuario(`xp:${ctx.user.id}`, 900, 10 * 60 * 1000)) {
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados registros seguidos" });
         }
         const r = await otorgarExperiencia({
@@ -1831,8 +1832,8 @@ export const appRouter = router({
         if (!ctx.permisos.admin && !ctx.permisos.tienda?.active) {
           throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está suspendida. Escríbenos para reactivarla." });
         }
-        // Freno al sondeo de tokens: 60 escaneos cada 10 minutos por usuario
-        if (!limitarPorUsuario(`scan:${ctx.user.id}`, 60, 10 * 60 * 1000)) {
+        // Freno al sondeo de tokens, holgado para una taquilla con fila
+        if (!limitarPorUsuario(`scan:${ctx.user.id}`, 300, 10 * 60 * 1000)) {
           throw new TRPCError({
             code: "TOO_MANY_REQUESTS",
             message: "Demasiados escaneos seguidos. Espera un momento.",
@@ -1845,6 +1846,16 @@ export const appRouter = router({
               code: "NOT_FOUND",
               message: `No encontramos ningún boleto con ese código (${input.token.slice(0, 24)})`,
             });
+          }
+          // Un boleto vendido por OTRA tienda: solo lo necesario para ver que
+          // ya está vendido. Sin correo, teléfono, precio ni el token del QR.
+          const ajeno = !ctx.permisos.admin && r.ticket.status !== "blank" && r.ticket.storeId !== ctx.permisos.tienda?.id;
+          if (ajeno) {
+            const t = r.ticket;
+            return {
+              ticket: { id: t.id, code: t.code, status: t.status, eventId: t.eventId, ticketTypeId: t.ticketTypeId, buyerName: t.buyerName, buyerLastName: t.buyerLastName, soldAt: t.soldAt } as typeof r.ticket,
+              evento: r.evento, tipo: r.tipo, tienda: r.tienda ? { id: r.tienda.id, name: r.tienda.name } : undefined, ingresos: [],
+            };
           }
           return r;
         } catch (e: any) {
@@ -1962,10 +1973,13 @@ export const appRouter = router({
         diaForzado: z.number().int().min(1).max(7).optional(),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (!limitarPorUsuario(`acceso:${ctx.user.id}`, 400, 10 * 60 * 1000)) {
+        // Holgado para la apertura de puertas: una puerta con fila puede pasar
+        // ~2 personas por minuto por portero, y a veces se comparte la cuenta
+        if (!limitarPorUsuario(`acceso:${ctx.user.id}`, 2000, 10 * 60 * 1000)) {
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados escaneos seguidos" });
         }
-        return registrarIngreso({ ...input, userId: ctx.user.id });
+        // El día forzado es solo para sincronizar lo guardado sin conexión
+        return registrarIngreso({ token: input.token, userId: ctx.user.id });
       }),
 
     /**
@@ -1999,6 +2013,9 @@ export const appRouter = router({
           total: resultados.length,
           aceptados: resultados.filter(r => r.ok).length,
           rechazados: resultados.filter(r => !r.ok),
+          // Lo que contestó el servidor para cada uno: la puerta borra de su
+          // cola solo los resueltos y reintenta los que fallaron
+          resultados: resultados.map(r => ({ token: r.token, ok: r.ok, motivo: r.motivo })),
         };
       }),
 

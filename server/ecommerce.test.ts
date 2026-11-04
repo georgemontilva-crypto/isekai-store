@@ -24,6 +24,8 @@ vi.mock("./db", () => ({
   upsertProductVariant: vi.fn().mockResolvedValue(undefined),
   deleteProductVariant: vi.fn().mockResolvedValue(undefined),
   getCartItems: vi.fn().mockResolvedValue([]),
+  getCartItem: vi.fn().mockResolvedValue({ id: 1, userId: 1 }),
+  insertAdminNotification: vi.fn().mockResolvedValue(undefined),
   upsertCartItem: vi.fn().mockResolvedValue(undefined),
   removeCartItem: vi.fn().mockResolvedValue(undefined),
   clearCart: vi.fn().mockResolvedValue(undefined),

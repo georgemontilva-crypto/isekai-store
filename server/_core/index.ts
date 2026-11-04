@@ -53,6 +53,8 @@ async function startServer() {
     const { asegurarEsquemaBeneficios } = await import("../beneficios");
     await asegurarEsquemaBeneficios();
   } catch (e) { console.error("[Arranque] Esquema de boletería:", e); }
+  // Índices para la puerta y las estaciones de EXP (en segundo plano)
+  void import("../indices").then(m => m.asegurarIndices()).catch(e => console.error("[Arranque] Índices:", e));
   const app = express();
   const server = createServer(app);
 

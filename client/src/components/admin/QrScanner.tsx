@@ -22,6 +22,12 @@ export default function QrScanner({
   const escanerRef = useRef<Html5Qrcode | null>(null);
   const [estado, setEstado] = useState<"iniciando" | "listo" | "error">("iniciando");
   const [mensaje, setMensaje] = useState("");
+  // La función de aviso va en un ref: si la pantalla de atrás se vuelve a
+  // pintar (refresco de la lista, cambio de señal), la cámara NO se reinicia.
+  // Antes se apagaba y encendía, y en iPhone podía quedar en negro.
+  const avisoRef = useRef(onDetectado);
+  avisoRef.current = onDetectado;
+  const leido = useRef(false);
 
   useEffect(() => {
     let cancelado = false;
@@ -54,7 +60,10 @@ export default function QrScanner({
           const token = extraerToken(texto);
           // Se detiene antes de avisar, para no leer el mismo código dos veces
           try { escaner.stop().catch(() => {}); } catch { /* ya detenido */ }
-          onDetectado(token);
+          // Un solo aviso por apertura: la cámara lee el mismo QR varias veces seguidas
+          if (leido.current) return;
+          leido.current = true;
+          avisoRef.current(token);
         },
         () => { /* lecturas fallidas: normales mientras enfoca */ },
       )
@@ -91,7 +100,7 @@ export default function QrScanner({
         }
       } catch { /* el escáner no llegó a iniciarse */ }
     };
-  }, [onDetectado]);
+  }, []);
 
   return (
     <div className="fixed inset-0 z-[300] flex flex-col bg-black">

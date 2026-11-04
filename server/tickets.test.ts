@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { diaDelEventoVE } from "../shared/diaEvento";
 
 /**
  * Pruebas de la lógica crítica de boletería.
@@ -174,30 +175,26 @@ describe("límite de intentos", () => {
 });
 
 // ─── Día del evento ───────────────────────────────────────────────────────────
-function diaDelEvento(ev: { startDate: string; endDate: string }, fecha: Date) {
-  const f = (d: Date) => Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-  const hoy = f(fecha), d1 = f(new Date(ev.startDate)), d2 = f(new Date(ev.endDate));
-  if (hoy < d1 || hoy > d2) return null;
-  return Math.floor((hoy - d1) / 86400000) + 1;
-}
-
-describe("día del evento", () => {
+// Se prueba la función REAL que usan el servidor y la puerta (hora de
+// Venezuela), no una copia: así el resultado no depende de la zona horaria
+// de la máquina donde corren las pruebas.
+describe("día del evento (hora de Venezuela)", () => {
   const ev = { startDate: "2027-08-14", endDate: "2027-08-15" };
 
-  it("el primer día es el 1", () => {
-    expect(diaDelEvento(ev, new Date("2027-08-14T10:00:00"))).toBe(1);
+  it("el primer día es el 1, desde la medianoche de Venezuela", () => {
+    expect(diaDelEventoVE(ev, new Date("2027-08-14T04:00:00Z"))).toBe(1);
   });
 
-  it("el segundo día es el 2", () => {
-    expect(diaDelEvento(ev, new Date("2027-08-15T23:00:00"))).toBe(2);
+  it("el último día de noche sigue siendo el 2 (en UTC ya es el 16)", () => {
+    expect(diaDelEventoVE(ev, new Date("2027-08-16T02:30:00Z"))).toBe(2);
   });
 
-  it("antes del evento no hay día", () => {
-    expect(diaDelEvento(ev, new Date("2027-08-13T23:59:00"))).toBeNull();
+  it("la víspera a las 11:59 p. m. de Venezuela no hay día", () => {
+    expect(diaDelEventoVE(ev, new Date("2027-08-14T03:59:00Z"))).toBeNull();
   });
 
   it("después del evento no hay día", () => {
-    expect(diaDelEvento(ev, new Date("2027-08-16T00:01:00"))).toBeNull();
+    expect(diaDelEventoVE(ev, new Date("2027-08-16T04:01:00Z"))).toBeNull();
   });
 });
 

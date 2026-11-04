@@ -139,13 +139,15 @@ export async function buscarBoleto(valorCrudo: string) {
 
   // Tolerante: se comparan solo letras y números, por si llega con guiones
   // de más, espacios o sin el prefijo.
+  // Antes se cargaban TODOS los boletos para comparar; ahora se arma el
+  // código limpio y se busca directo por su índice.
   const normalizar = (t: string) =>
     t.toUpperCase().replace(/[^A-Z0-9]/g, "").replace(/^IW/, "");
   const buscado = normalizar(valor);
   if (buscado.length < 3) return undefined;
-
-  const todos = await db.select().from(eventTickets);
-  return todos.find(t => normalizar(t.code) === buscado);
+  [ticket] = await db.select().from(eventTickets)
+    .where(eq(eventTickets.code, `IW-${buscado}`)).limit(1);
+  return ticket;
 }
 
 // ─── Progreso ─────────────────────────────────────────────────────────────────
@@ -159,7 +161,10 @@ export async function progresoDeBoleto(ticketId: number, eventId: number) {
     .where(eq(levelProgress.ticketId, ticketId)).limit(1);
   if (existente) return existente;
 
-  await db.insert(levelProgress).values({ ticketId, eventId, xpTotal: 0, rango: "E" });
+  // Si dos consultas llegan a la vez (su pantalla y el primer escaneo), la
+  // segunda no falla con «Duplicate entry»: simplemente no inserta
+  await db.insert(levelProgress).values({ ticketId, eventId, xpTotal: 0, rango: "E" })
+    .onDuplicateKeyUpdate({ set: { ticketId } });
   const [creado] = await db.select().from(levelProgress)
     .where(eq(levelProgress.ticketId, ticketId)).limit(1);
   return creado;
@@ -198,9 +203,45 @@ async function otorgarA(ticket: NonNullable<Awaited<ReturnType<typeof buscarBole
   if (!actividad || !actividad.active) throw new Error("Esa actividad no está disponible");
   if (actividad.eventId !== ticket.eventId) throw new Error("La actividad no es de este evento");
 
+  // La EXP solo se da durante los días del evento (hora de Venezuela). Antes
+  // solo la pantalla lo impedía: el servidor aceptaba cualquier fecha.
+  const [evento] = await db.select().from(events).where(eq(events.id, ticket.eventId)).limit(1);
+  if (!evento || diaDelEvento(evento) === null) {
+    throw new Error("La experiencia solo se puede dar durante los días del evento");
+  }
+
   // Cuántas veces se le ha dado ya esta actividad a este boleto
-  const previas = await db.select().from(levelGrants)
+  const previas = await db.select({
+    id: levelGrants.id, xp: levelGrants.xp, createdAt: levelGrants.createdAt,
+    // Segundos desde que se dio, calculado en la base (misma zona horaria)
+    segundos: sql<number>`TIMESTAMPDIFF(SECOND, ${levelGrants.createdAt}, NOW())`,
+  }).from(levelGrants)
     .where(and(eq(levelGrants.ticketId, ticket.id), eq(levelGrants.activityId, actividad.id)));
+
+  /**
+   * Reescaneo inmediato: si esta misma actividad se le dio hace menos de un
+   * minuto, es el mismo registro (se cayó la respuesta y el staff volvió a
+   * escanear, o la cámara lo leyó dos veces). No se suma otra vez y se
+   * responde como registrado, en vez de dar EXP doble o un error confuso.
+   */
+  const ultima = previas.reduce<typeof previas[number] | null>((a, p) => (!a || Number(p.segundos) < Number(a.segundos) ? p : a), null);
+  if (ultima && Number(ultima.segundos) < 60) {
+    const prog = await progresoDeBoleto(ticket.id, ticket.eventId);
+    const xp = prog?.xpTotal ?? 0;
+    return {
+      ok: true,
+      yaRegistrado: true,
+      codigo: ticket.code,
+      nombre: `${ticket.buyerName ?? ""} ${ticket.buyerLastName ?? ""}`.trim(),
+      actividad: actividad.name,
+      xpGanada: ultima.xp,
+      xpTotal: xp,
+      rangoAnterior: prog?.rango ?? "E",
+      rango: prog?.rango ?? "E",
+      subioDeRango: false,
+      siguiente: siguienteRango(xp),
+    };
+  }
 
   const tope = actividad.repetible ? actividad.maxVeces : 1;
   if (previas.length >= tope) {
@@ -223,15 +264,20 @@ async function otorgarA(ticket: NonNullable<Awaited<ReturnType<typeof buscarBole
     storeId: data.storeId,
   });
 
-  const xpDespues = xpAntes + actividad.xp;
+  // La suma se hace en la base (xpTotal + n): aunque algo falle entre medias,
+  // nunca se pisa un total con uno viejo
+  await db.update(levelProgress).set({ xpTotal: sql`${levelProgress.xpTotal} + ${actividad.xp}` })
+    .where(eq(levelProgress.ticketId, ticket.id));
+  const [tras] = await db.select().from(levelProgress).where(eq(levelProgress.ticketId, ticket.id)).limit(1);
+  const xpDespues = tras?.xpTotal ?? xpAntes + actividad.xp;
   const rangoDespues = rangoPara(xpDespues);
   const subio = rangoDespues !== rangoAntes;
-
-  await db.update(levelProgress).set({
-    xpTotal: xpDespues,
-    rango: rangoDespues,
-    ...(subio ? { ultimoAscenso: new Date() } : {}),
-  }).where(eq(levelProgress.ticketId, ticket.id));
+  if (rangoDespues !== tras?.rango) {
+    await db.update(levelProgress).set({
+      rango: rangoDespues,
+      ...(subio ? { ultimoAscenso: new Date() } : {}),
+    }).where(eq(levelProgress.ticketId, ticket.id));
+  }
 
   if (subio) {
     await db.insert(levelRankUps).values({
@@ -638,9 +684,10 @@ export async function miBoletoPorCorreo(email: string) {
   if (!db || !email) return null;
 
   const correo = email.trim().toLowerCase();
-  const vendidos = await db.select().from(eventTickets)
-    .where(eq(eventTickets.status, "sold"));
+  // Búsqueda directa por correo (con índice), no todos los boletos vendidos
+  const candidatos = await db.select().from(eventTickets)
+    .where(and(eq(eventTickets.buyerEmail, correo), eq(eventTickets.status, "sold"))).limit(5);
 
-  const suyo = vendidos.find(t => (t.buyerEmail ?? "").trim().toLowerCase() === correo);
+  const suyo = candidatos.find(t => (t.buyerEmail ?? "").trim().toLowerCase() === correo);
   return suyo ? { codigo: suyo.code, eventId: suyo.eventId } : null;
 }
