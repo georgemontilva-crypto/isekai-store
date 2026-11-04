@@ -12,7 +12,7 @@ import { introPendiente } from "@/components/fest/IntroSistema";
  */
 const CLAVE_VISTA = "iw_carga_vista";
 /** La portada del Fest tiene su propia intro con el logo */
-const esPortada = () => typeof window !== "undefined" && ["/", "/evento"].includes(window.location.pathname);
+const esPortada = () => typeof window !== "undefined" && ["/", "/evento", "/mapa"].includes(window.location.pathname);
 
 /**
  * En la portada, mientras llega el código del home, se muestra lo mismo que

@@ -121,6 +121,8 @@ function Router() {
             ya compartidos. */}
         <Route path="/" component={HomeEvento} />
         <Route path="/evento" component={HomeEvento} />
+        {/* Enlace para compartir: abre el home directo en el mapa del evento */}
+        <Route path="/mapa" component={HomeEvento} />
         {/* La propuesta ya es la portada: los enlaces viejos llevan allí */}
         <Route path="/propuesta">{() => { window.location.replace("/"); return null; }}</Route>
         {/* La vista previa del rediseño ya es la portada: los enlaces viejos
@@ -192,7 +194,7 @@ function Layout() {
     location.startsWith("/equipo") ||
     location.startsWith("/acceso");
 
-  const esPortadaFest = location === "/" || location === "/evento";
+  const esPortadaFest = location === "/" || location === "/evento" || location === "/mapa";
 
   /**
    * Pantallas que funcionan como app (paneles con su propia barra inferior):

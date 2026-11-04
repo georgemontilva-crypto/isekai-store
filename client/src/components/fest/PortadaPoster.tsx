@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Map as MapaIcono } from "lucide-react";
 import ManaParticulas from "@/components/fest/ManaParticulas";
 
 /**
@@ -26,12 +26,14 @@ export function useFuentesJuego() {
 
 export default function PortadaPoster({
   fondo, video, figura, logo, lema1, lema2, fecha, lugar, etiqueta, lista, ligero = false,
-  conBarra = false, onInsignia, superpuesto,
+  conBarra = false, onInsignia, superpuesto, onMapa, textoMapa,
 }: {
   fondo?: string; video?: string; figura?: string; logo?: string | null;
   lema1: string; lema2: string; fecha: string; lugar: string; etiqueta: string;
   lista: boolean; ligero?: boolean; conBarra?: boolean;
   onInsignia?: () => void;
+  /** Botón «Ver el mapa del evento» bajo la fecha */
+  onMapa?: () => void; textoMapa?: string;
   /** Capa encima de la figura (por ejemplo, la Zona de Sombras) */
   superpuesto?: React.ReactNode;
 }) {
@@ -83,6 +85,11 @@ export default function PortadaPoster({
           : <p className="pk-cond pk-hero-logo-txt">ISEKAI WORLD</p>}
         <h1 className="pk-lema">{lema1} <span>{lema2}</span></h1>
         <p className="pk-mono pk-hero-dato">{fecha} &nbsp;/&nbsp; {lugar}</p>
+        {onMapa && (
+          <button className="pk-mono pk-hero-mapa" onClick={onMapa}>
+            <MapaIcono size={14} strokeWidth={1.8} /> {textoMapa}
+          </button>
+        )}
       </div>
       <span className="pk-hero-bajar" aria-hidden="true" />
     </section>

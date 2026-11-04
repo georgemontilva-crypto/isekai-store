@@ -13,7 +13,15 @@ import { useEffect, useRef, useState } from "react";
 const CLAVE = "iw_intro_visto";
 
 export function introPendiente() {
+  // Quien entra por el enlace del mapa va directo, sin intro
+  if (vieneAlMapa()) return false;
   try { return !sessionStorage.getItem(CLAVE); } catch { return false; }
+}
+
+/** Enlace directo al mapa del evento: isekaiworld.co/mapa (o /#mapa) */
+export function vieneAlMapa() {
+  if (typeof window === "undefined") return false;
+  return window.location.pathname === "/mapa" || window.location.hash === "#mapa";
 }
 
 type Fase = "carga" | "logo" | "sale";

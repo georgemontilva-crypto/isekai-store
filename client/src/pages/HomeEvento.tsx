@@ -2,14 +2,14 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
-  Trophy, Lock, Star, ChevronLeft, ChevronRight, X, Menu, LayoutGrid, Square, ShoppingBag,
+  Trophy, Lock, Star, ChevronLeft, ChevronRight, X, Menu, LayoutGrid, Square, ShoppingBag, Share2, Check,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useLang } from "@/i18n/LangContext";
 import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
 import { useFiguraRecortada } from "@/hooks/useFiguraRecortada";
-import IntroSistema, { introPendiente } from "@/components/fest/IntroSistema";
+import IntroSistema, { introPendiente, vieneAlMapa } from "@/components/fest/IntroSistema";
 import PortadaPoster from "@/components/fest/PortadaPoster";
 import { FEST_ZONES } from "@/components/fest/festZones";
 import FestMap from "@/components/fest/FestMap";
@@ -276,6 +276,32 @@ export default function HomeEvento() {
   const [intro, setIntro] = useState(introPendiente);
   const [lista, setLista] = useState(() => !introPendiente());
 
+  /* Enlace directo al mapa (isekaiworld.co/mapa): baja a la sección sola.
+     Se reajusta un par de veces mientras cargan las imágenes de arriba,
+     salvo que la persona ya se haya movido. */
+  useEffect(() => {
+    if (!vieneAlMapa()) return;
+    try { sessionStorage.setItem("iw_intro_visto", "1"); } catch { /* */ }
+    let tocado = false;
+    const marca = () => { tocado = true; };
+    window.addEventListener("wheel", marca, { passive: true, once: true });
+    window.addEventListener("touchstart", marca, { passive: true, once: true });
+    const bajar = () => { if (!tocado) document.getElementById("pk-evento")?.scrollIntoView({ block: "start" }); };
+    const ts = [60, 500, 1200, 2200].map(ms => window.setTimeout(bajar, ms));
+    return () => { ts.forEach(clearTimeout); window.removeEventListener("wheel", marca); window.removeEventListener("touchstart", marca); };
+  }, []);
+
+  /* Compartir el enlace del mapa */
+  const [mapaCopiado, setMapaCopiado] = useState(false);
+  const compartirMapa = async () => {
+    const url = "https://isekaiworld.co/mapa";
+    const titulo = en ? "Isekai World Fest map" : "Mapa del Isekai World Fest";
+    try {
+      if (navigator.share) { await navigator.share({ title: titulo, url }); return; }
+    } catch { return; /* canceló */ }
+    try { await navigator.clipboard.writeText(url); setMapaCopiado(true); window.setTimeout(() => setMapaCopiado(false), 2200); } catch { /* */ }
+  };
+
   /* Cabecera: se vuelve sólida al bajar */
   const [bajo, setBajo] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -392,6 +418,8 @@ export default function HomeEvento() {
         etiqueta={e.etiquetaAnio}
         lista={lista}
         onInsignia={() => ir("pk-rangos")}
+        onMapa={() => ir("pk-evento")}
+        textoMapa={en ? "See the event map" : "Ver el mapa del evento"}
       />
 
       {/* ═══ 001 ¿QUÉ ES? (del brochure) ═══ */}
@@ -481,6 +509,10 @@ export default function HomeEvento() {
       <section id="pk-evento" className="pk-sec pk-oscuro pk-evento">
         <div className="pk-ancho">
           <Titulo n={5} intro={en ? "Tap a zone on the map to see what it will look like." : "Toca una zona del mapa para ver cómo se verá."}>{capitulos[4][1]}</Titulo>
+          <button className="pk-mono pk-compartir-mapa" onClick={compartirMapa}>
+            {mapaCopiado ? <Check size={14} /> : <Share2 size={14} />}
+            {mapaCopiado ? (en ? "Link copied" : "Enlace copiado") : (en ? "Share the map" : "Compartir el mapa")}
+          </button>
         </div>
         <div className="pk-rev"><FestMap /></div>
       </section>
