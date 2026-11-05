@@ -1,13 +1,9 @@
 /**
- * Service worker de Isekai World: notificaciones push y pantalla sin conexión.
- *
- * La web NO se guarda en caché: cada página se pide siempre a la red, así que
- * nunca aparece una versión vieja (el problema de antes). Lo único guardado es
- * una pantalla pequeña de «sin conexión», que solo se muestra si al abrir una
- * página no hay internet, en vez del dinosaurio o la pantalla en blanco.
+ * Service worker de Isekai World: solo notificaciones push y el número rojo
+ * sobre el ícono de la app. No intercepta páginas ni guarda la web en caché.
  */
 const CACHE_OFFLINE = 'iw-offline-v1';
-const VERSION_SW = 2; // subir al cambiar este archivo
+const VERSION_SW = 3; // subir al cambiar este archivo
 const PAGINA_OFFLINE = '/offline.html';
 
 self.addEventListener('install', (event) => {
@@ -30,36 +26,18 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-// Solo se intercepta la apertura de páginas, y solo para el caso sin internet.
-// Si la primera petición falla (un corte de un segundo, la red del teléfono
-// cambiando de wifi a datos, el servidor reiniciándose al publicar), se
-// reintenta dos veces antes de mostrar la pantalla de «sin conexión».
-const espera = (ms) => new Promise((r) => setTimeout(r, ms));
-async function pedirConReintentos(request) {
-  const pausas = [0, 900, 2200];
-  let error;
-  for (const ms of pausas) {
-    if (ms) await espera(ms);
-    try {
-      return await fetch(request);
-    } catch (e) {
-      error = e;
-    }
-  }
-  throw error;
-}
-
-self.addEventListener('fetch', (event) => {
-  if (event.request.mode !== 'navigate') return;
-  event.respondWith((async () => {
-    try {
-      return await pedirConReintentos(event.request);
-    } catch {
-      const c = await caches.open(CACHE_OFFLINE);
-      return (await c.match(PAGINA_OFFLINE)) || new Response('Sin conexión', { status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
-    }
-  })());
-});
+/**
+ * El service worker YA NO intercepta la apertura de páginas.
+ *
+ * Antes, si al abrir la web la petición fallaba dentro del service worker,
+ * se mostraba la pantalla «Te quedaste sin conexión» aunque hubiera internet:
+ * en algunos teléfonos (sobre todo iPhone) esa petición falla por motivos del
+ * navegador y no de la red, y la persona quedaba atrapada en esa pantalla.
+ * Ahora el navegador abre la web directamente, como cualquier página: si de
+ * verdad no hay internet, muestra su propio aviso.
+ *
+ * Este service worker solo queda para las notificaciones push.
+ */
 
 /**
  * Número rojo sobre el ícono de la app (como las demás apps).
