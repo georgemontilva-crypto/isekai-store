@@ -266,7 +266,7 @@ const ROMANOS = ["I", "II", "III", "IV"];
 export default function RuedaPrensa() {
   const { t: tr } = useLang();
   const t = tr.prensa;
-  useSEO({ title: t.seoTitulo, description: t.seoDesc, url: "https://isekaiworld.co/rueda-de-negocios" });
+  useSEO({ title: t.seoTitulo, description: t.seoDesc, url: "https://www.isekaiworld.co/rueda-de-negocios" });
 
   const { data: settings } = trpc.settings.getAll.useQuery();
   const fondo = settings?.["rp_fondo"] ?? "";

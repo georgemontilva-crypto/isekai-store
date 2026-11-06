@@ -11,7 +11,8 @@ export let io: Server;
 export function initSocket(httpServer: HttpServer): Server {
   io = new Server(httpServer, {
     cors: {
-      origin: ENV.appUrl || 'https://isekaiworld.co',
+      // La web vive en www; el dominio sin www redirige ahí
+      origin: [ENV.appUrl, 'https://www.isekaiworld.co', 'https://isekaiworld.co'].filter(Boolean),
       credentials: true,
     },
     transports: ["websocket", "polling"],

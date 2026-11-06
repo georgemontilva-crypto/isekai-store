@@ -32,7 +32,7 @@ type Borrador = {
   id?: number; asunto: string; preheader: string; titulo: string; cuerpo: string;
   imagenUrl: string; botonTexto: string; botonUrl: string; segmento: Segmento;
 };
-const VACIO: Borrador = { asunto: "", preheader: "", titulo: "", cuerpo: "", imagenUrl: "", botonTexto: "", botonUrl: "https://isekaiworld.co", segmento: "todos" };
+const VACIO: Borrador = { asunto: "", preheader: "", titulo: "", cuerpo: "", imagenUrl: "", botonTexto: "", botonUrl: "https://www.isekaiworld.co", segmento: "todos" };
 
 const campo = "w-full border border-[var(--iw-border)] bg-[var(--iw-input-bg)] px-3 py-2.5 text-sm text-[var(--iw-text)] outline-none focus:border-[#e5007d]";
 const etiqueta = "mb-1.5 block text-[11px] font-bold uppercase tracking-[0.12em] text-[var(--iw-text-muted)]";
@@ -187,7 +187,7 @@ function Editor({ inicial, onCerrar }: { inicial: Borrador; onCerrar: () => void
             </div>
             <div>
               <label className={etiqueta}>Enlace del botón</label>
-              <input className={campo} maxLength={500} value={b.botonUrl} onChange={e => set("botonUrl", e.target.value)} placeholder="https://isekaiworld.co/…" inputMode="url" />
+              <input className={campo} maxLength={500} value={b.botonUrl} onChange={e => set("botonUrl", e.target.value)} placeholder="https://www.isekaiworld.co/…" inputMode="url" />
             </div>
           </div>
 
@@ -288,7 +288,7 @@ export default function CampanasSection() {
   const aBorrador = (c: any, copia = false): Borrador => ({
     ...(copia ? {} : { id: c.id }),
     asunto: copia ? `${c.asunto} (copia)`.slice(0, 150) : c.asunto, preheader: c.preheader ?? "", titulo: c.titulo, cuerpo: c.cuerpo,
-    imagenUrl: c.imagenUrl ?? "", botonTexto: c.botonTexto ?? "", botonUrl: c.botonUrl ?? "https://isekaiworld.co", segmento: c.segmento,
+    imagenUrl: c.imagenUrl ?? "", botonTexto: c.botonTexto ?? "", botonUrl: c.botonUrl ?? "https://www.isekaiworld.co", segmento: c.segmento,
   });
 
   return (

@@ -11,7 +11,7 @@ import { trpc } from "@/lib/trpc";
  * Muestra cuántos confirmaron asistencia (en tiempo real), abre la
  * invitación y copia su enlace para compartirlo o ponerlo en un QR.
  */
-const URL_INVITACION = "https://isekaiworld.co/rueda-de-negocios";
+const URL_INVITACION = "https://www.isekaiworld.co/rueda-de-negocios";
 
 export default function TarjetaRuedaPrensa() {
   const utils = trpc.useUtils();
@@ -107,7 +107,7 @@ export default function TarjetaRuedaPrensa() {
   );
 }
 
-const URL_STAFF = "https://isekaiworld.co/staff/rueda";
+const URL_STAFF = "https://www.isekaiworld.co/staff/rueda";
 
 /**
  * Personas que ayudan en la entrada de la rueda. Solo ven la lista y marcan

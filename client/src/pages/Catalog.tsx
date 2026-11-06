@@ -17,7 +17,7 @@ export default function Catalog() {
   useSEO({
     title: 'Tienda — Figuras 3D Anime y Gaming',
     description: 'Explora nuestra colección de figuras impresas en 3D. Pokémon, Star Wars, Stranger Things y más.',
-    url: 'https://isekaiworld.co/catalog',
+    url: 'https://www.isekaiworld.co/catalog',
   });
 
   const sortOptions = [

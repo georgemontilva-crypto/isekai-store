@@ -7,7 +7,7 @@ export default function Collections() {
   useSEO({
     title: "Universos — Isekai World",
     description: "Explora todas nuestras colecciones de figuras 3D de anime y gaming.",
-    url: "https://isekaiworld.co/collections",
+    url: "https://www.isekaiworld.co/collections",
   });
 
   const { data: categories = [] } = trpc.categories.list.useQuery();

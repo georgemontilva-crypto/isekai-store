@@ -7,7 +7,7 @@ import { ENV } from "./env";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-export const APP_URL  = 'https://isekaiworld.co';
+export const APP_URL  = 'https://www.isekaiworld.co';
 const INSTAGRAM = 'https://instagram.com/isekaistore';
 const INSTAGRAM_DM = 'https://ig.me/m/isekaistore';
 
@@ -455,7 +455,7 @@ export async function notifyStoreActivated(
   storeName: string,
   eventName?: string,
 ): Promise<boolean> {
-  const url = "https://isekaiworld.co/vender";
+  const url = "https://www.isekaiworld.co/vender";
   const content = `
     <h1>Tu tienda ya puede vender boletos</h1>
     <p>Hola <strong>${storeName}</strong>, quedaste autorizada como punto de venta
@@ -517,7 +517,7 @@ export async function notifyQuoteReady(
     expiresAt?: Date | string | null;
   },
 ): Promise<boolean> {
-  const url = `https://isekaiworld.co/cotizacion/${datos.token}`;
+  const url = `https://www.isekaiworld.co/cotizacion/${datos.token}`;
   const total = parseFloat(datos.total) || 0;
   const pct = datos.depositPercent ?? 100;
   const abono = pct < 100 ? Math.round(total * (pct / 100) * 100) / 100 : null;
@@ -573,7 +573,7 @@ export async function notifyStaffActivated(
   eventName?: string,
 ): Promise<boolean> {
   const esPuerta = tipo === "puerta";
-  const url = esPuerta ? "https://isekaiworld.co/acceso" : "https://isekaiworld.co/vender";
+  const url = esPuerta ? "https://www.isekaiworld.co/acceso" : "https://www.isekaiworld.co/vender";
 
   const pasos = esPuerta
     ? `1. Antes de que abra el evento, entra y pulsa <strong>Descargar</strong> para tener la lista de boletos.<br>
@@ -674,13 +674,13 @@ export async function notifyTicketPurchased(
         experiencia y subir de rango — y solo quienes lleguen a rango S entran en el sorteo final.
       </p>
       <p style="margin-top:8px">
-        Entra en <a href="https://isekaiworld.co/worldfest/pass">isekaiworld.co/worldfest/pass</a>
+        Entra en <a href="https://www.isekaiworld.co/worldfest/pass">isekaiworld.co/worldfest/pass</a>
         con <strong>este mismo correo</strong> para ver tu progreso.
       </p>
     </div>
 
     <p style="margin-top:20px">
-      <a href="https://isekaiworld.co/worldfest/pass" class="btn">Ver mi perfil de cazador</a>
+      <a href="https://www.isekaiworld.co/worldfest/pass" class="btn">Ver mi perfil de cazador</a>
     </p>
 
     <p style="color:#888; font-size:13px; margin-top:16px">

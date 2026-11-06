@@ -39,7 +39,7 @@ export default function ProductDetail() {
     title: product?.name ?? 'Producto',
     description: product?.description?.slice(0, 160),
     image: product?.images?.[0]?.url,
-    url: `https://isekaiworld.co/product/${product?.slug}`,
+    url: `https://www.isekaiworld.co/product/${product?.slug}`,
     type: 'product',
   });
 
@@ -61,7 +61,7 @@ export default function ProductDetail() {
         availability: (product.stock ?? 0) > 0
           ? 'https://schema.org/InStock'
           : 'https://schema.org/OutOfStock',
-        url: `https://isekaiworld.co/product/${product.slug}`,
+        url: `https://www.isekaiworld.co/product/${product.slug}`,
       },
     });
     document.head.appendChild(script);

@@ -10,7 +10,7 @@ export default function Blog() {
   useSEO({
     title: 'Blog — Noticias, tutoriales y cosplay | Isekai World',
     description: 'Artículos sobre impresión 3D, cosplay, anime y gaming. Tutoriales, noticias y más de Isekai World.',
-    url: 'https://isekaiworld.co/blog',
+    url: 'https://www.isekaiworld.co/blog',
   });
 
   const { data: posts = [] } = trpc.blog.getPosts.useQuery({

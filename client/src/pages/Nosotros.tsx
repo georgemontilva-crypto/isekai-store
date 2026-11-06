@@ -48,7 +48,7 @@ export default function Nosotros() {
   useSEO({
     title: 'Sobre Nosotros — Estudio de Impresión 3D',
     description: 'Creamos eventos temáticos y experiencias inmersivas de anime, gaming y cultura geek, con talleres propios de impresión 3D para fabricar escenarios y piezas a medida.',
-    url: 'https://isekaiworld.co/nosotros',
+    url: 'https://www.isekaiworld.co/nosotros',
   });
 
   const [offsetY, setOffsetY] = useState(0);

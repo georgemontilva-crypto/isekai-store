@@ -28,7 +28,7 @@ export default function BlogPost() {
     title: (post as any)?.metaTitle ?? (post as any)?.title ?? 'Artículo | Isekai World',
     description: (post as any)?.metaDescription ?? (post as any)?.excerpt ?? '',
     image: (post as any)?.coverImage,
-    url: `https://isekaiworld.co/blog/${slug}`,
+    url: `https://www.isekaiworld.co/blog/${slug}`,
     type: 'article',
   });
 

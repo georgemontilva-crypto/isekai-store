@@ -514,7 +514,7 @@ export const appRouter = router({
       ${referralCode ? `<p><strong>Código referido:</strong> ${referralCode}</p>` : ''}
     </div>
     <div style="text-align:center">
-      <a href="https://isekaiworld.co/admin" class="btn">Ver en el panel →</a>
+      <a href="https://www.isekaiworld.co/admin" class="btn">Ver en el panel →</a>
     </div>
   `,
           });
@@ -807,7 +807,7 @@ export const appRouter = router({
         </div>
         <p>Puedes seguir el estado de tu pedido en tiempo real desde tu cuenta.</p>
         <div style="text-align:center">
-          <a href="https://isekaiworld.co/account" class="btn">Ver mi pedido →</a>
+          <a href="https://www.isekaiworld.co/account" class="btn">Ver mi pedido →</a>
         </div>
       `,
           `Tu pedido ${orderNumber} fue confirmado`
@@ -1609,7 +1609,7 @@ export const appRouter = router({
               ${input.valoracion ? `<p><strong>Valoración:</strong> ${input.valoracion} de 5</p>` : ""}
               <p><strong>Mensaje:</strong></p>
               <blockquote>${input.mensaje}</blockquote>
-              <p style="margin-top:16px"><a href="https://isekaiworld.co/admin?tab=feedback">Ver en el panel</a></p>
+              <p style="margin-top:16px"><a href="https://www.isekaiworld.co/admin?tab=feedback">Ver en el panel</a></p>
             `,
           });
           const admins = await getAdminUsers();
@@ -2340,7 +2340,7 @@ export const appRouter = router({
               <p><strong>Abonó:</strong> $${parseFloat(input.amount).toFixed(2)} USD</p>
               ${input.paymentReference ? `<p><strong>Referencia:</strong> ${input.paymentReference}</p>` : ""}
               ${input.receiptUrl ? `<p><a href="${input.receiptUrl}">Ver comprobante</a></p>` : "<p>Sin comprobante adjunto</p>"}
-              <p style="margin-top:16px"><a href="https://isekaiworld.co/admin?tab=finanzas">Verificar en Finanzas</a></p>
+              <p style="margin-top:16px"><a href="https://www.isekaiworld.co/admin?tab=finanzas">Verificar en Finanzas</a></p>
             `,
           });
           const admins = await getAdminUsers();
@@ -2736,7 +2736,7 @@ export const appRouter = router({
               <p><strong>Progreso:</strong> ${r.fase} de ${r.totalFases}${r.completada ? ' — COMPLETADA' : ''}</p>
               <p><strong>Publicación:</strong> <a href="${r.evidenceUrl}">${r.evidenceUrl}</a></p>
               <p style="margin-top:16px">
-                <a href="https://isekaiworld.co/admin?tab=cosplay&sub=evaluations">Revisar en el panel</a>
+                <a href="https://www.isekaiworld.co/admin?tab=cosplay&sub=evaluations">Revisar en el panel</a>
               </p>
             `,
           });
@@ -3113,7 +3113,7 @@ export const appRouter = router({
               <p><strong>Comentario:</strong></p>
               <blockquote>${input.content}</blockquote>
               <p style="margin-top:16px">
-                <a href="https://isekaiworld.co/admin?tab=blog&sub=comments">Revisar y publicar</a>
+                <a href="https://www.isekaiworld.co/admin?tab=blog&sub=comments">Revisar y publicar</a>
               </p>
               <p style="color:#888;font-size:13px">Queda pendiente hasta que lo apruebes.</p>
             `,

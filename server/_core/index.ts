@@ -56,6 +56,21 @@ async function startServer() {
   // Índices para la puerta y las estaciones de EXP (en segundo plano)
   void import("../indices").then(m => m.asegurarIndices()).catch(e => console.error("[Arranque] Índices:", e));
   const app = express();
+
+  /**
+   * isekaiworld.co (sin www) → www.isekaiworld.co. La web oficial vive en www:
+   * así todos los enlaces viejos, los QR impresos y los correos terminan en
+   * la misma dirección. Se conserva la ruta y los parámetros (?boleto=…).
+   * 301 para abrir páginas; 308 para envíos (POST) para no perder el cuerpo.
+   */
+  app.use((req, res, next) => {
+    const host = (req.headers.host ?? '').toLowerCase().split(':')[0];
+    if (host === 'isekaiworld.co') {
+      const codigo = req.method === 'GET' || req.method === 'HEAD' ? 301 : 308;
+      return res.redirect(codigo, `https://www.isekaiworld.co${req.originalUrl}`);
+    }
+    next();
+  });
   const server = createServer(app);
 
 
@@ -215,14 +230,14 @@ async function startServer() {
       const items = (products as any)?.items ?? products ?? [];
       const cats = Array.isArray(categories) ? categories : [];
       const urls = [
-        { loc: 'https://isekaiworld.co/', priority: '1.0' },
-        { loc: 'https://isekaiworld.co/catalog', priority: '0.9' },
-        { loc: 'https://isekaiworld.co/blog', priority: '0.8' },
-        { loc: 'https://isekaiworld.co/nosotros', priority: '0.7' },
-        { loc: 'https://isekaiworld.co/faq', priority: '0.6' },
-        ...items.map((p: any) => ({ loc: `https://isekaiworld.co/product/${p.slug}`, priority: '0.8' })),
-        ...cats.map((c: any) => ({ loc: `https://isekaiworld.co/catalog?category=${c.slug}`, priority: '0.7' })),
-        ...(blogPostsData as any[]).map((p: any) => ({ loc: `https://isekaiworld.co/blog/${p.slug}`, priority: '0.7' })),
+        { loc: 'https://www.isekaiworld.co/', priority: '1.0' },
+        { loc: 'https://www.isekaiworld.co/catalog', priority: '0.9' },
+        { loc: 'https://www.isekaiworld.co/blog', priority: '0.8' },
+        { loc: 'https://www.isekaiworld.co/nosotros', priority: '0.7' },
+        { loc: 'https://www.isekaiworld.co/faq', priority: '0.6' },
+        ...items.map((p: any) => ({ loc: `https://www.isekaiworld.co/product/${p.slug}`, priority: '0.8' })),
+        ...cats.map((c: any) => ({ loc: `https://www.isekaiworld.co/catalog?category=${c.slug}`, priority: '0.7' })),
+        ...(blogPostsData as any[]).map((p: any) => ({ loc: `https://www.isekaiworld.co/blog/${p.slug}`, priority: '0.7' })),
       ];
       const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <priority>${u.priority}</priority>\n    <changefreq>weekly</changefreq>\n  </url>`).join('\n')}\n</urlset>`;
       res.header('Content-Type', 'application/xml');

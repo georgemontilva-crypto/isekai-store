@@ -196,7 +196,7 @@ export default function Home() {
   useSEO({
     title: 'Tienda — Figuras y props de cosplay a medida',
     description: 'Figuras, props y piezas de cosplay impresas en 3D, hechas a medida para que tu personaje se vea como lo imaginaste.',
-    url: 'https://isekaiworld.co/tienda',
+    url: 'https://www.isekaiworld.co/tienda',
   });
 
   const { t } = useLang();

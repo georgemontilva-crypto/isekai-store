@@ -270,7 +270,7 @@ export default function HomeEvento() {
     description: en
       ? "August 14–15, 2027 in Maracaibo, Venezuela. Two days where anime, video games and cosplay come to life."
       : "14 y 15 de agosto de 2027 en Maracaibo, Venezuela. Dos días donde el anime, los videojuegos y el cosplay cobran vida.",
-    url: "https://isekaiworld.co/",
+    url: "https://www.isekaiworld.co/",
   });
   /* Intro con el logo: una vez por sesión */
   const [intro, setIntro] = useState(introPendiente);
@@ -294,7 +294,7 @@ export default function HomeEvento() {
   /* Compartir el enlace del mapa */
   const [mapaCopiado, setMapaCopiado] = useState(false);
   const compartirMapa = async () => {
-    const url = "https://isekaiworld.co/mapa";
+    const url = "https://www.isekaiworld.co/mapa";
     const titulo = en ? "Isekai World Fest map" : "Mapa del Isekai World Fest";
     try {
       if (navigator.share) { await navigator.share({ title: titulo, url }); return; }

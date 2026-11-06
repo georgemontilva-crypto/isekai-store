@@ -7,7 +7,7 @@ import { trpc } from "@/lib/trpc";
  * /worldfest/pass sin boleto ve un cazador de prueba con misiones que puede
  * completar tocándolas (no se guarda nada). Sirve para presentaciones.
  */
-const URL_DEMO = "https://isekaiworld.co/worldfest/pass";
+const URL_DEMO = "https://www.isekaiworld.co/worldfest/pass";
 
 export default function TarjetaDemoLevelPass() {
   const utils = trpc.useUtils();

@@ -1619,7 +1619,7 @@ export async function evaluateCosplaySubmission(input: { submissionId: number; p
               </div>
               <p>Canjea tus tickets por códigos de descuento desde tu dashboard.</p>
               <div style="text-align:center">
-                <a href="https://isekaiworld.co/cosplay/dashboard" class="btn">Ver mi billetera →</a>
+                <a href="https://www.isekaiworld.co/cosplay/dashboard" class="btn">Ver mi billetera →</a>
               </div>
             `,
             `+${finalPoints} tickets acreditados en tu billetera`,

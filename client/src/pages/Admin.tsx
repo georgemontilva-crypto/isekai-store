@@ -3973,9 +3973,9 @@ export default function Admin() {
 
                 {/* Copy link banner */}
                 <div className="flex items-center gap-3 mb-6 p-4 bg-[#f8f8f8] rounded-xl border border-border/50">
-                  <p className="text-sm font-mono text-[#999] flex-1">https://isekaiworld.co/links</p>
+                  <p className="text-sm font-mono text-[#999] flex-1">https://www.isekaiworld.co/links</p>
                   <button
-                    onClick={() => { navigator.clipboard.writeText("https://isekaiworld.co/links"); toast.success("Link copiado"); }}
+                    onClick={() => { navigator.clipboard.writeText("https://www.isekaiworld.co/links"); toast.success("Link copiado"); }}
                     className="text-sm font-semibold bg-[#111] text-white px-4 py-2 rounded-lg hover:bg-[#333] transition-colors"
                   >
                     Copiar

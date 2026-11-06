@@ -43,7 +43,7 @@ export default function FAQ() {
   useSEO({
     title: 'Preguntas Frecuentes',
     description: 'Respuestas sobre pedidos, envíos, pagos y el proceso de impresión 3D en Isekai World.',
-    url: 'https://isekaiworld.co/faq',
+    url: 'https://www.isekaiworld.co/faq',
   });
 
   const { data: items = [] } = trpc.faq.list.useQuery();
