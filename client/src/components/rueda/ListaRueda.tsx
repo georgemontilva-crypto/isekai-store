@@ -4,6 +4,7 @@ import { Check, Download, Loader2, Mail, MessageCircle, Plus, Search, Store, Tra
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { confirmar } from "@/components/admin/ui";
+import RecordatorioWhatsapp from "@/components/rueda/RecordatorioWhatsapp";
 
 /**
  * Lista de la rueda de negocios. La usan el administrador (en una ventana
@@ -105,6 +106,8 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
   const q = buscar.trim().toLowerCase();
   const base = vista === "faltan" ? faltan : vista === "llegaron" ? [...llegaron].sort((a, b) => +new Date(b.asistioEn!) - +new Date(a.asistioEn!)) : sinDatos;
   const visibles = base.filter(f => !q || `${f.tienda ?? ""} ${f.email ?? ""} ${f.whatsapp ?? ""}`.toLowerCase().includes(q));
+  const [recordar, setRecordar] = useState(false);
+  const conWhatsapp = conDatos.filter(f => (f.whatsapp ?? "").replace(/\D/g, "").length >= 7);
   const pct = conDatos.length ? Math.round((llegaron.length / conDatos.length) * 100) : 0;
 
   // Tiendas que quedaron dos veces (registros de antes de la verificación)
@@ -173,6 +176,20 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
           </button>
         )}
       </div>
+
+      {/* Recordatorio masivo por WhatsApp (solo admin) */}
+      {esAdmin && conWhatsapp.length > 0 && (
+        <div className="px-5 pb-3">
+          <button
+            onClick={() => setRecordar(true)}
+            className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-[14px] font-bold active:scale-[0.98]"
+            style={{ background: "rgba(37,211,102,0.14)", color: "#4ade80", border: "1px solid rgba(37,211,102,0.35)" }}
+          >
+            <MessageCircle size={16} /> Recordatorio por WhatsApp · {conWhatsapp.length}
+          </button>
+        </div>
+      )}
+      {recordar && <RecordatorioWhatsapp destinos={conWhatsapp} onCerrar={() => setRecordar(false)} />}
 
       {conDatos.length > 0 && (
         <div className="px-5 pb-4">
