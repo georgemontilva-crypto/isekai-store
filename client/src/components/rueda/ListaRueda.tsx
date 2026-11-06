@@ -96,7 +96,15 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
     onSettled: () => { void utils.prensa.lista.invalidate(); },
   });
 
-  const todos = data ?? [];
+  const todosSinFiltro = data ?? [];
+  // Filtro por tipo: tiendas o medios de comunicación (prensa)
+  const [tipoFiltro, setTipoFiltro] = useState<"todos" | "tienda" | "medio">("todos");
+  const esMedio = (f: { tipo?: string | null }) => f.tipo === "medio";
+  const conDatosTodos = todosSinFiltro.filter(f => f.datosEn);
+  const totalMedios = conDatosTodos.filter(esMedio).length;
+  const totalTiendas = conDatosTodos.length - totalMedios;
+  const todos = tipoFiltro === "todos" ? todosSinFiltro
+    : todosSinFiltro.filter(f => !f.datosEn || (tipoFiltro === "medio" ? esMedio(f) : !esMedio(f)));
   // Las más recientes primero, por la hora en que dejaron sus datos
   const conDatos = todos.filter(f => f.datosEn).sort((a, b) => +new Date(b.datosEn!) - +new Date(a.datosEn!));
   const llegaron = conDatos.filter(f => f.asistioEn);
@@ -167,7 +175,7 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em]" style={{ color: "#ff3d9e" }}>Rueda de negocios</p>
           <p className="mt-1 text-[21px] font-bold leading-tight text-white">{esAdmin ? "Confirmados" : "Asistencia"}</p>
           <p className="mt-1 text-[13px] text-[#9a93a6]">
-            {isLoading ? "Cargando…" : `${conDatos.length} tiendas · ${llegaron.length} llegaron${nuevas ? ` · ${nuevas} nueva${nuevas === 1 ? "" : "s"}` : ""}`}
+            {isLoading ? "Cargando…" : `${totalTiendas} tiendas · ${totalMedios} de prensa · ${llegaron.length} llegaron${nuevas ? ` · ${nuevas} nueva${nuevas === 1 ? "" : "s"}` : ""}`}
           </p>
         </div>
         {onCerrar && (
@@ -196,6 +204,25 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
           <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
             <div className="h-full rounded-full transition-[width] duration-500" style={{ width: `${pct}%`, background: VERDE }} />
           </div>
+        </div>
+      )}
+
+      {/* Filtro: todos, solo tiendas o solo prensa */}
+      {conDatosTodos.length > 0 && (
+        <div className="flex gap-2 px-5 pb-3">
+          {([["todos", `Todos · ${conDatosTodos.length}`], ["tienda", `Tiendas · ${totalTiendas}`], ["medio", `Prensa · ${totalMedios}`]] as const).map(([id, txt]) => (
+            <button
+              key={id}
+              onClick={() => setTipoFiltro(id)}
+              aria-pressed={tipoFiltro === id}
+              className="rounded-full px-3.5 py-2 text-[12.5px] font-semibold transition-colors"
+              style={tipoFiltro === id
+                ? { background: id === "medio" ? "#0ea5e9" : "#ffffff", color: id === "medio" ? "#fff" : "#0d0b12" }
+                : { background: "rgba(255,255,255,0.06)", color: "#9a93a6" }}
+            >
+              {txt}
+            </button>
+          ))}
         </div>
       )}
 
