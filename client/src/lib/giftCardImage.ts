@@ -160,7 +160,7 @@ export async function generarImagenTarjeta(
   ctx.textAlign = "right";
   ctx.fillStyle = "rgba(255,255,255,0.4)";
   ctx.font = "600 24px Inter, system-ui, sans-serif";
-  ctx.fillText("isekaiworld.co", ANCHO - 70, ALTO - 268);
+  ctx.fillText("www.isekaiworld.co", ANCHO - 70, ALTO - 268);
 
   return canvas.toDataURL("image/png");
 }

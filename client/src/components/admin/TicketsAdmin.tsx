@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { urlPublica } from "@/const";
 import QRCode from "qrcode";
 import { Plus, Download, Store, Ticket, Trash2, Mail, Check, BarChart3, Settings2, Zap, Search, X, Users } from "lucide-react";
 import { confirmar } from "./ui";
@@ -290,7 +291,8 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
    * de un servicio externo.
    */
   const descargarQrs = async (lista: any[], lote: string) => {
-    const origen = window.location.origin;
+    // Los QR impresos siempre con www: la dirección que nunca falla
+    const origen = urlPublica();
     const tarjetas = await Promise.all(lista.map(async (b: any) => {
       const url = `${origen}/vender/${b.token}`;
       const dataUrl = await QRCode.toDataURL(url, { width: 320, margin: 1 });

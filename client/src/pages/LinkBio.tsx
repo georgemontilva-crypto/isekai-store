@@ -99,7 +99,7 @@ export default function LinkBio() {
         )}
 
         {/* Footer */}
-        <p className="text-[#555] text-xs mt-8 text-center">isekaiworld.co</p>
+        <p className="text-[#555] text-xs mt-8 text-center">www.isekaiworld.co</p>
       </div>
 
       {me?.role === 'admin' && (

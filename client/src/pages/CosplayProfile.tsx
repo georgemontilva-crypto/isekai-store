@@ -253,7 +253,7 @@ export default function CosplayProfile() {
         )}
 
         {/* Footer */}
-        <p className="mt-10 text-[#444] text-xs mb-10">isekaiworld.co/cosplay/guild</p>
+        <p className="mt-10 text-[#444] text-xs mb-10">www.isekaiworld.co/cosplay/guild</p>
       </div>
     </div>
   );

@@ -137,7 +137,7 @@ function StaffRueda({ onCerrar }: { onCerrar: () => void }) {
           Pásales este enlace. Inician sesión con el <strong className="text-white">mismo correo</strong> que agregues aquí.
         </p>
         <button onClick={copiarEnlace} className="mt-3 flex w-full items-center gap-2 rounded-full bg-white/[0.07] px-4 py-3 text-left text-[13px] text-white">
-          <span className="min-w-0 flex-1 truncate">isekaiworld.co/staff/rueda</span>
+          <span className="min-w-0 flex-1 truncate">www.isekaiworld.co/staff/rueda</span>
           <Copy size={15} className="shrink-0 text-[#9a93a6]" />
         </button>
       </div>

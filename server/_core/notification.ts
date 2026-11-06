@@ -464,7 +464,7 @@ export async function notifyStoreActivated(
     <div class="order-box">
       <p><strong>Cómo entrar</strong></p>
       <p style="margin-top:8px">
-        Entra en <a href="${url}">isekaiworld.co/vender</a> con <strong>este mismo correo</strong>
+        Entra en <a href="${url}">www.isekaiworld.co/vender</a> con <strong>este mismo correo</strong>
         (${storeEmail}). No necesitas contraseña: te llegará un enlace de acceso a tu buzón.
       </p>
     </div>

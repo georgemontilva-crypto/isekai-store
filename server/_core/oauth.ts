@@ -112,7 +112,8 @@ export function registerOAuthRoutes(app: Express): void {
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
       await db.createAuthToken({ token, email, type: "magic_link", expiresAt });
 
-      const verifyUrl = `${ENV.appUrl}/api/auth/verify?token=${token}`;
+      // Enlace del correo siempre con www (la dirección que nunca falla)
+      const verifyUrl = `https://www.isekaiworld.co/api/auth/verify?token=${token}`;
 
       if (!ENV.resendApiKey) {
         return res.status(503).json({ error: "El servicio de email no está disponible en este momento" });

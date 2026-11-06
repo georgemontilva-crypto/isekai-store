@@ -13,7 +13,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useCart } from "@/contexts/CartContext";
 import ProductCard from "@/components/ProductCard";
 import { toast } from "sonner";
-import { openLoginModal } from "@/const";
+import { openLoginModal, urlPublica } from "@/const";
 import { useSEO } from "@/hooks/useSEO";
 import { PopupManager } from "@/components/PopupManager";
 
@@ -293,7 +293,7 @@ export default function ProductDetail() {
                   <Heart className={`w-4 h-4 ${wishlisted ? "fill-current" : ""}`} />
                 </button>
                 <button
-                  onClick={() => { navigator.clipboard.writeText(window.location.href); toast.success("Enlace copiado"); }}
+                  onClick={() => { navigator.clipboard.writeText(urlPublica() + window.location.pathname + window.location.search); toast.success("Enlace copiado"); }}
                   className="p-2 rounded-xl border border-[#ebebeb] text-[#888] hover:border-[#ccc] hover:text-[#1a1a1a] transition-all duration-200"
                 >
                   <Share2 className="w-4 h-4" />

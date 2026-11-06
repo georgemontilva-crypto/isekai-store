@@ -28,7 +28,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
-import { getLoginUrl } from "@/const";
+import { getLoginUrl, urlPublica } from "@/const";
 
 type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards" | "campanas" | "patrocinantes";
 
@@ -2687,7 +2687,7 @@ export default function Admin() {
                 <h1 className="mb-1 text-2xl font-bold">Sugerencias del Guild</h1>
                 <p className="mb-6 text-sm text-[#666]">
                   Lo que los cosplayers proponen para mejorar. Comparte el enlace{" "}
-                  <strong className="text-[#111]">isekaiworld.co/guild/mejoras</strong> con ellos.
+                  <strong className="text-[#111]">www.isekaiworld.co/guild/mejoras</strong> con ellos.
                 </p>
                 <FeedbackSection />
               </motion.div>
@@ -2877,7 +2877,7 @@ export default function Admin() {
                       ) : (
                       <div className="divide-y divide-white/[0.05] border border-white/[0.08]">
                         {visibles.map((q: any) => {
-                          const enlace = `${window.location.origin}/cotizacion/${q.token}`;
+                          const enlace = `${urlPublica()}/cotizacion/${q.token}`;
                           const e = est[estadoDe(q)];
                           const f = fechaRelativa(q.createdAt);
                           return (

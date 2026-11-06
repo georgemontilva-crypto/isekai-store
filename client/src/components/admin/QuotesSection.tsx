@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { urlPublica } from "@/const";
 import { COLORES, Estado, ChipFiltro, confirmar, dinero } from "./ui";
 import { Plus, Copy, ExternalLink, Trash2, FileText, Loader2, Check } from 'lucide-react';
 import { toast } from 'sonner';
@@ -44,7 +45,7 @@ export default function QuotesSection({ enPanelGrande = false }: { enPanelGrande
       setAbierto(false);
       vacio();
       // Se copia el enlace de una vez: es lo primero que vas a querer hacer
-      const enlace = `${window.location.origin}/cotizacion/${q?.token}`;
+      const enlace = `${urlPublica()}/cotizacion/${q?.token}`;
       // Si hay correo, el enlace ya salió solo hacia el cliente
       const enviado = Boolean(q?.customerEmail);
       try {
@@ -344,7 +345,7 @@ export default function QuotesSection({ enPanelGrande = false }: { enPanelGrande
         (quotes as any[])
           .filter((q: any) => filtroEstado === "todas" || (q.status === "paid" || q.status === "partial" || q.status === "cancelled" ? q.status : "sent") === filtroEstado)
           .map((q: any) => {
-          const enlace = `${window.location.origin}/cotizacion/${q.token}`;
+          const enlace = `${urlPublica()}/cotizacion/${q.token}`;
           return (
             <div key={q.id} className="rounded-2xl border border-[var(--iw-border)] bg-[var(--iw-surface)] p-4">
               <div className="flex items-start justify-between gap-3 mb-2">
