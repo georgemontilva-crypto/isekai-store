@@ -2,9 +2,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
-  Trophy, Lock, Star, ChevronLeft, ChevronRight, X, Menu, LayoutGrid, Square, ShoppingBag, Share2, Check,
+  Trophy, Lock, Star, ChevronLeft, ChevronRight, X, Menu, LayoutGrid, Square, ShoppingBag, Share2, Check, User, LogIn,
 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
+import { openLoginModal } from "@/const";
 import { useLang } from "@/i18n/LangContext";
 import { useSEO } from "@/hooks/useSEO";
 import { useAntiSpam } from "@/hooks/useAntiSpam";
@@ -275,6 +277,8 @@ export default function HomeEvento() {
   /* Intro con el logo: una vez por sesión */
   const [intro, setIntro] = useState(introPendiente);
   const [lista, setLista] = useState(() => !introPendiente());
+  const { user, isAuthenticated } = useAuth();
+  const primerNombre = (user?.name ?? "").trim().split(/\s+/)[0] || (en ? "Profile" : "Perfil");
 
   /* Enlace directo al mapa (isekaiworld.co/mapa): baja a la sección sola.
      Se reajusta un par de veces mientras cargan las imágenes de arriba,
@@ -389,8 +393,22 @@ export default function HomeEvento() {
         <button className="pk-cab-btn" onClick={() => setMenu(true)} aria-label={en ? "Chapters" : "Capítulos"}><Menu size={20} /></button>
         <button className="pk-cab-idioma" onClick={() => setLang(en ? "es" : "en")}>{en ? "ES" : "EN"}</button>
         <div className="flex-1" />
-        <Link href="/tienda" className="pk-cab-tienda"><ShoppingBag size={14} /> {en ? "Store" : "Tienda"}</Link>
-        <button onClick={() => ir("pk-acceso")} className="pk-cab-cta">{en ? "Access list" : "Lista de acceso"} <ChevronRight size={13} /></button>
+        <Link href="/tienda" className="pk-cab-tienda" aria-label={en ? "Store" : "Tienda"}><ShoppingBag size={14} /> <span className="pk-cab-txt">{en ? "Store" : "Tienda"}</span></Link>
+        {/* Sesión: entrar, o ir a tu perfil si ya entraste */}
+        {isAuthenticated ? (
+          <Link href="/account" className="pk-cab-sesion" aria-label={en ? "My profile" : "Mi perfil"}>
+            <User size={14} /> <span className="pk-cab-txt">{primerNombre}</span>
+          </Link>
+        ) : (
+          <button onClick={openLoginModal} className="pk-cab-sesion pk-cab-entrar">
+            <LogIn size={14} /> <span>{en ? "Sign in" : "Entrar"}</span>
+          </button>
+        )}
+        <button onClick={() => ir("pk-acceso")} className="pk-cab-cta">
+          <span className="pk-cta-largo">{en ? "Access list" : "Lista de acceso"}</span>
+          <span className="pk-cta-corto">{en ? "List" : "Lista"}</span>
+          <ChevronRight size={13} />
+        </button>
       </header>
 
       {/* Menú de capítulos */}
