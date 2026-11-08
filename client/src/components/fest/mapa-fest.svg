@@ -356,25 +356,25 @@
 <rect x="1018" y="551" width="34" height="13" fill="#7B1FF2" />
 <rect x="1052" y="551" width="9" height="13" fill="#E8185F" />
 </g>
-<g id="gran_gremio_4">
-<rect x="719" y="300" width="13" height="34" fill="#E8185F" />
-<rect x="719" y="334" width="13" height="9" fill="#FACC15" />
+<g id="gremio_8">
+<rect x="719" y="300" width="13" height="34" fill="#F59E0B" />
+<rect x="719" y="334" width="13" height="9" fill="#FDE68A" />
 </g>
-<g id="gran_gremio_5">
-<rect x="719" y="343" width="13" height="34" fill="#E8185F" />
-<rect x="719" y="377" width="13" height="9" fill="#FACC15" />
+<g id="gremio_9">
+<rect x="719" y="343" width="13" height="34" fill="#F59E0B" />
+<rect x="719" y="377" width="13" height="9" fill="#FDE68A" />
 </g>
-<g id="gran_gremio_6">
-<rect x="719" y="386" width="13" height="34" fill="#E8185F" />
-<rect x="719" y="420" width="13" height="9" fill="#FACC15" />
+<g id="gremio_10">
+<rect x="719" y="386" width="13" height="34" fill="#F59E0B" />
+<rect x="719" y="420" width="13" height="9" fill="#FDE68A" />
 </g>
-<g id="gran_gremio_7">
-<rect x="719" y="429" width="13" height="34" fill="#E8185F" />
-<rect x="719" y="463" width="13" height="9" fill="#FACC15" />
+<g id="gremio_11">
+<rect x="719" y="429" width="13" height="34" fill="#F59E0B" />
+<rect x="719" y="463" width="13" height="9" fill="#FDE68A" />
 </g>
-<g id="gran_gremio_8">
-<rect x="719" y="472" width="13" height="34" fill="#E8185F" />
-<rect x="719" y="506" width="13" height="9" fill="#FACC15" />
+<g id="gremio_12">
+<rect x="719" y="472" width="13" height="34" fill="#F59E0B" />
+<rect x="719" y="506" width="13" height="9" fill="#FDE68A" />
 </g>
 </g><g id="gs_gremio">
 <g id="gremio_1">
@@ -385,56 +385,56 @@
 <rect x="833" y="328" width="34" height="13" fill="#F59E0B" />
 <rect x="867" y="328" width="9" height="13" fill="#FDE68A" />
 </g>
-<g id="gremio_3">
-<rect x="876" y="328" width="34" height="13" fill="#F59E0B" />
-<rect x="910" y="328" width="9" height="13" fill="#FDE68A" />
+<g id="gran_gremio_1">
+<rect x="876" y="328" width="34" height="13" fill="#E8185F" />
+<rect x="910" y="328" width="9" height="13" fill="#FACC15" />
 </g>
-<g id="gremio_4">
-<rect x="920" y="328" width="34" height="13" fill="#F59E0B" />
-<rect x="954" y="328" width="9" height="13" fill="#FDE68A" />
+<g id="gran_gremio_2">
+<rect x="920" y="328" width="34" height="13" fill="#E8185F" />
+<rect x="954" y="328" width="9" height="13" fill="#FACC15" />
 </g>
-<g id="gremio_5">
-<rect x="963" y="328" width="34" height="13" fill="#F59E0B" />
-<rect x="997" y="328" width="9" height="13" fill="#FDE68A" />
+<g id="gran_gremio_3">
+<rect x="963" y="328" width="34" height="13" fill="#E8185F" />
+<rect x="997" y="328" width="9" height="13" fill="#FACC15" />
+</g>
+<g id="gran_gremio_4">
+<rect x="1006" y="328" width="34" height="13" fill="#E8185F" />
+<rect x="1040" y="328" width="9" height="13" fill="#FACC15" />
 </g>
 <g id="gremio_6">
-<rect x="1006" y="328" width="34" height="13" fill="#F59E0B" />
-<rect x="1040" y="328" width="9" height="13" fill="#FDE68A" />
-</g>
-<g id="gremio_7">
 <rect x="790" y="490" width="34" height="13" fill="#F59E0B" />
 <rect x="824" y="490" width="9" height="13" fill="#FDE68A" />
 </g>
-<g id="gremio_8">
+<g id="gremio_7">
 <rect x="833" y="490" width="34" height="13" fill="#F59E0B" />
 <rect x="867" y="490" width="9" height="13" fill="#FDE68A" />
 </g>
-<g id="gremio_9">
-<rect x="876" y="490" width="34" height="13" fill="#F59E0B" />
-<rect x="910" y="490" width="9" height="13" fill="#FDE68A" />
+<g id="gran_gremio_5">
+<rect x="876" y="490" width="34" height="13" fill="#E8185F" />
+<rect x="910" y="490" width="9" height="13" fill="#FACC15" />
 </g>
-<g id="gremio_10">
+<g id="gremio_3">
 <rect x="771" y="352" width="13" height="34" fill="#F59E0B" />
 <rect x="771" y="386" width="13" height="9" fill="#FDE68A" />
 </g>
-<g id="gremio_11">
+<g id="gremio_4">
 <rect x="771" y="395" width="13" height="34" fill="#F59E0B" />
 <rect x="771" y="429" width="13" height="9" fill="#FDE68A" />
 </g>
-<g id="gremio_12">
+<g id="gremio_5">
 <rect x="771" y="438" width="13" height="34" fill="#F59E0B" />
 <rect x="771" y="472" width="13" height="9" fill="#FDE68A" />
 </g>
 </g><g id="gs_gran_gremio">
-<g id="gran_gremio_1">
+<g id="gran_gremio_6">
 <rect x="920" y="490" width="34" height="13" fill="#E8185F" />
 <rect x="954" y="490" width="9" height="13" fill="#FACC15" />
 </g>
-<g id="gran_gremio_2">
+<g id="gran_gremio_7">
 <rect x="963" y="490" width="34" height="13" fill="#E8185F" />
 <rect x="997" y="490" width="9" height="13" fill="#FACC15" />
 </g>
-<g id="gran_gremio_3">
+<g id="gran_gremio_8">
 <rect x="1006" y="490" width="34" height="13" fill="#E8185F" />
 <rect x="1040" y="490" width="9" height="13" fill="#FACC15" />
 </g>

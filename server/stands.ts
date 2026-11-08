@@ -30,7 +30,7 @@ export const TIPOS_STAND: Record<TipoStand, { nombre: string; precio: number; pr
   },
   gran_gremio: {
     nombre: "Gran Gremio", precio: 499, prefijo: "GG", cantidad: 8, color: "#fbbf24",
-    incluye: ["Mesa en el Gran Salón, frente al escenario", "Punto oficial de venta de boletería", "Recuperas el 100% del valor del stand + 10% en ventas de boletos", "2 misiones en el Level Pass: tu stand da experiencia"],
+    incluye: ["Mesa en primera fila del Gran Salón, bordeando al público frente al escenario", "Punto oficial de venta de boletería", "Recuperas el 100% del valor del stand + 10% en ventas de boletos", "2 misiones en el Level Pass: tu stand da experiencia"],
   },
 };
 
@@ -39,27 +39,30 @@ export const TIPOS_STAND: Record<TipoStand, { nombre: string; precio: number; pr
  * las mesas dibujadas en mapa-fest.svg. Se aplica sola a las mesas que aún no
  * tienen punto; si el admin mueve una mesa, se respeta su cambio.
  */
+/** Subir al cambiar la distribución: reubica todas las mesas una vez */
+export const VERSION_PLANO = "v2-gran-gremio-frente";
+
 export const PLANO_STANDS: [string, TipoStand, number, number][] = [
-  ["GG-01", "gran_gremio", 70.05, 56.2],
-  ["GG-02", "gran_gremio", 73.25, 56.2],
-  ["GG-03", "gran_gremio", 76.45, 56.2],
-  ["GG-04", "gran_gremio", 53.98, 35.12],
-  ["GG-05", "gran_gremio", 53.98, 40.3],
-  ["GG-06", "gran_gremio", 53.98, 45.48],
-  ["GG-07", "gran_gremio", 53.98, 50.66],
-  ["GG-08", "gran_gremio", 53.98, 55.84],
+  ["GG-01", "gran_gremio", 66.78, 36.69],
+  ["GG-02", "gran_gremio", 70.05, 36.69],
+  ["GG-03", "gran_gremio", 73.25, 36.69],
+  ["GG-04", "gran_gremio", 76.45, 36.69],
+  ["GG-05", "gran_gremio", 66.78, 56.2],
+  ["GG-06", "gran_gremio", 70.05, 56.2],
+  ["GG-07", "gran_gremio", 73.25, 56.2],
+  ["GG-08", "gran_gremio", 76.45, 56.2],
   ["G-01", "gremio", 60.38, 36.69],
   ["G-02", "gremio", 63.58, 36.69],
-  ["G-03", "gremio", 66.78, 36.69],
-  ["G-04", "gremio", 70.05, 36.69],
-  ["G-05", "gremio", 73.25, 36.69],
-  ["G-06", "gremio", 76.45, 36.69],
-  ["G-07", "gremio", 60.38, 56.2],
-  ["G-08", "gremio", 63.58, 56.2],
-  ["G-09", "gremio", 66.78, 56.2],
-  ["G-10", "gremio", 57.85, 41.39],
-  ["G-11", "gremio", 57.85, 46.57],
-  ["G-12", "gremio", 57.85, 51.75],
+  ["G-03", "gremio", 57.85, 41.39],
+  ["G-04", "gremio", 57.85, 46.57],
+  ["G-05", "gremio", 57.85, 51.75],
+  ["G-06", "gremio", 60.38, 56.2],
+  ["G-07", "gremio", 63.58, 56.2],
+  ["G-08", "gremio", 53.98, 35.12],
+  ["G-09", "gremio", 53.98, 40.3],
+  ["G-10", "gremio", 53.98, 45.48],
+  ["G-11", "gremio", 53.98, 50.66],
+  ["G-12", "gremio", 53.98, 55.84],
   ["M-01", "mercader", 54.43, 66.08],
   ["M-02", "mercader", 57.55, 66.08],
   ["M-03", "mercader", 60.68, 66.08],
@@ -184,9 +187,19 @@ export async function asegurarTablasStands() {
       }
       console.log("[Stands] Mesas creadas: 60 Mercader, 12 Gremio, 8 Gran Gremio");
     }
-    // Cada mesa en su lugar del plano (solo las que aún no tienen punto)
+    // Cada mesa en su lugar del plano. Cuando cambia la versión del plano se
+    // reubican todas una vez; después solo las que no tienen punto, así se
+    // respetan los cambios que haga el admin.
+    await db.execute(sql`CREATE TABLE IF NOT EXISTS festStandsMeta (clave varchar(40) PRIMARY KEY, valor varchar(100) NOT NULL)`);
+    const [[meta]] = await db.execute(sql`SELECT valor FROM festStandsMeta WHERE clave = 'plano'`) as unknown as [[{ valor: string } | undefined]];
+    const forzar = meta?.valor !== VERSION_PLANO;
     for (const [numero, , x, y] of PLANO_STANDS) {
-      await db.execute(sql`UPDATE festStands SET x = ${x}, y = ${y} WHERE numero = ${numero} AND x IS NULL`);
+      if (forzar) await db.execute(sql`UPDATE festStands SET x = ${x}, y = ${y} WHERE numero = ${numero}`);
+      else await db.execute(sql`UPDATE festStands SET x = ${x}, y = ${y} WHERE numero = ${numero} AND x IS NULL`);
+    }
+    if (forzar) {
+      await db.execute(sql`INSERT INTO festStandsMeta (clave, valor) VALUES ('plano', ${VERSION_PLANO}) ON DUPLICATE KEY UPDATE valor = ${VERSION_PLANO}`);
+      console.log(`[Stands] Plano ${VERSION_PLANO}: mesas reubicadas`);
     }
   } catch (e) {
     console.error("[Stands] No se pudieron preparar las tablas:", e);
