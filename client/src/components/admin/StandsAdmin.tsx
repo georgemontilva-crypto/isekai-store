@@ -70,6 +70,8 @@ export default function StandsAdmin() {
         ))}
       </div>
 
+      <VentaDirecta stands={stands} onListo={refrescar} />
+
       {vista === "revisar" && (
         <div className="space-y-3">
           {!pendientes.length && <p className="rounded-2xl border border-dashed border-[#ddd] bg-white p-8 text-center text-[14px] text-[#888]">No hay pagos por revisar.</p>}
@@ -165,6 +167,80 @@ function FilaReserva({ r, conCobro, onRegistrar, onAnular }: { r: any; conCobro:
           <button onClick={() => { const n = parseFloat(monto.replace(",", ".")); if (n > 0) { onRegistrar(n, metodo, ref); setAbierto(false); } }} className="rounded-lg bg-[#16a34a] px-3 py-2 text-[14px] font-bold text-white">Guardar</button>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Para quien ya pagó (por ejemplo en efectivo): se registra y la mesa queda tomada al instante */
+function VentaDirecta({ stands, onListo }: { stands: any[]; onListo: () => void }) {
+  const PRECIO: Record<string, number> = { mercader: 299, gremio: 399, gran_gremio: 499 };
+  const [abierto, setAbierto] = useState(false);
+  const [standId, setStandId] = useState("");
+  const [negocio, setNegocio] = useState("");
+  const [contacto, setContacto] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
+  const [email, setEmail] = useState("");
+  const [monto, setMonto] = useState("");
+  const [metodo, setMetodo] = useState("efectivo");
+  const [referencia, setReferencia] = useState("");
+  const venta = trpc.stands.ventaDirecta.useMutation({
+    onSuccess: r => {
+      toast.success(r.completo ? "Venta registrada · stand pagado" : "Venta registrada · stand apartado con saldo pendiente");
+      setAbierto(false); setStandId(""); setNegocio(""); setContacto(""); setWhatsapp(""); setEmail(""); setMonto(""); setReferencia("");
+      onListo();
+    },
+    onError: e => toast.error(e.message),
+  });
+  const libres = stands.filter(s => s.estado === "libre");
+  const sel = stands.find(s => String(s.id) === standId);
+  const precio = sel ? PRECIO[sel.tipo] : 0;
+  const campoAdm = "rounded-lg border border-[#e8e8ea] bg-white px-3 py-2.5 text-[15px] text-[#111]";
+  const n = parseFloat(monto.replace(",", "."));
+
+  if (!abierto) {
+    return (
+      <button onClick={() => setAbierto(true)} className="w-full rounded-2xl border-2 border-dashed border-[#e5007d]/40 bg-white py-3.5 text-[14px] font-bold text-[#e5007d]">
+        + Registrar venta (efectivo u otro pago ya recibido)
+      </button>
+    );
+  }
+  return (
+    <div className="rounded-2xl border border-[#e8e8ea] bg-white p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-[15px] font-bold text-[#111]">Registrar venta</p>
+        <button onClick={() => setAbierto(false)} className="text-[#999]" aria-label="Cerrar"><X size={18} /></button>
+      </div>
+      <div className="grid gap-2 sm:grid-cols-2">
+        <select value={standId} onChange={e => { setStandId(e.target.value); const s = stands.find(x => String(x.id) === e.target.value); if (s) setMonto(String(PRECIO[s.tipo])); }} className={campoAdm}>
+          <option value="">Mesa libre…</option>
+          {(["mercader", "gremio", "gran_gremio"] as const).map(t => (
+            <optgroup key={t} label={`${NOMBRE[t]} · $${PRECIO[t]}`}>
+              {libres.filter(s => s.tipo === t).map(s => <option key={s.id} value={s.id}>{s.numero}</option>)}
+            </optgroup>
+          ))}
+        </select>
+        <input value={negocio} onChange={e => setNegocio(e.target.value)} placeholder="Tienda o marca *" className={campoAdm} />
+        <input value={contacto} onChange={e => setContacto(e.target.value)} placeholder="Persona de contacto *" className={campoAdm} />
+        <input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="WhatsApp" inputMode="tel" className={campoAdm} />
+        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Correo (le llega la confirmación)" type="email" className={campoAdm} />
+        <div className="flex gap-2">
+          <input value={monto} onChange={e => setMonto(e.target.value)} placeholder="Monto recibido USD *" inputMode="decimal" className={`${campoAdm} min-w-0 flex-1`} />
+          {precio > 0 && <button type="button" onClick={() => setMonto(String(Math.round(precio * 30) / 100))} className="shrink-0 rounded-lg border border-[#e8e8ea] px-2 text-[12px] font-semibold">30%</button>}
+          {precio > 0 && <button type="button" onClick={() => setMonto(String(precio))} className="shrink-0 rounded-lg border border-[#e8e8ea] px-2 text-[12px] font-semibold">Todo</button>}
+        </div>
+        <select value={metodo} onChange={e => setMetodo(e.target.value)} className={campoAdm}>
+          {Object.entries(METODO).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+        </select>
+        <input value={referencia} onChange={e => setReferencia(e.target.value)} placeholder={metodo === "efectivo" ? "Quién lo recibió / n.º de recibo" : "Referencia"} className={campoAdm} />
+      </div>
+      {sel && n > 0 && <p className="mt-2 text-[13px] text-[#555]">{sel.numero} · {NOMBRE[sel.tipo]} ${precio} · {n >= precio ? "queda pagado" : `queda apartado, debe $${(precio - n).toFixed(2)}`}</p>}
+      <button
+        disabled={!sel || negocio.trim().length < 2 || contacto.trim().length < 2 || !(n > 0) || venta.isPending}
+        onClick={() => venta.mutate({ standId: sel!.id, negocio, contacto, whatsapp: whatsapp || undefined, email, monto: n, metodo, referencia: referencia || undefined })}
+        className="mt-3 w-full rounded-full bg-[#16a34a] py-3 text-[14px] font-bold text-white disabled:opacity-40"
+      >
+        {venta.isPending ? "Guardando…" : "Registrar venta y tomar la mesa"}
+      </button>
     </div>
   );
 }

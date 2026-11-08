@@ -1194,6 +1194,22 @@ export const appRouter = router({
         try { return await (await import("./stands")).registrarPagoAdmin(input.reservaId, input.monto, input.metodo, input.referencia); }
         catch (e: any) { throw new TRPCError({ code: "CONFLICT", message: e.message }); }
       }),
+    /** Venta registrada a mano (ya pagó, por ejemplo en efectivo) */
+    ventaDirecta: adminProcedure
+      .input(z.object({
+        standId: z.number().int().positive(),
+        negocio: z.string().trim().min(2).max(150),
+        contacto: z.string().trim().min(2).max(150),
+        email: z.string().trim().toLowerCase().email().max(320).optional().or(z.literal("")),
+        whatsapp: z.string().trim().max(40).optional(),
+        monto: z.number().positive().max(100000),
+        metodo: z.string().trim().min(2).max(30),
+        referencia: z.string().trim().max(120).optional(),
+      }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./stands")).ventaDirecta({ ...input, email: input.email || undefined }); }
+        catch (e: any) { throw new TRPCError({ code: "CONFLICT", message: e.message }); }
+      }),
     cambiarMesa: adminProcedure.input(z.object({ reservaId: z.number().int().positive(), standId: z.number().int().positive() }))
       .mutation(async ({ input }) => {
         try { return await (await import("./stands")).cambiarMesa(input.reservaId, input.standId); }

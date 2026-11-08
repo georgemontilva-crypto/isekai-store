@@ -164,7 +164,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
   const [email, setEmail] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [rif, setRif] = useState("");
-  const [metodo, setMetodo] = useState<"pago_movil" | "crypto">("pago_movil");
+  const [metodo, setMetodo] = useState<"pago_movil" | "crypto" | "efectivo">("pago_movil");
   const [referencia, setReferencia] = useState("");
   const [comprobanteUrl, setComprobanteUrl] = useState("");
   const [subiendo, setSubiendo] = useState(false);
@@ -198,7 +198,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
     finally { setSubiendo(false); }
   };
 
-  const listo = negocio.trim().length >= 2 && contacto.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && whatsapp.replace(/\D/g, "").length >= 7 && referencia.trim().length >= 3;
+  const listo = negocio.trim().length >= 2 && contacto.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && whatsapp.replace(/\D/g, "").length >= 7 && (metodo === "efectivo" || referencia.trim().length >= 3);
 
   return (
     <div id="stand-formulario" className="mt-10 scroll-mt-20 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-7">
@@ -232,8 +232,8 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
       </div>
 
       <p className={`${etiqueta} mt-6`}>Paga {dinero(monto)} por:</p>
-      <div className="grid grid-cols-2 gap-2">
-        {([["pago_movil", "Pago Móvil"], ["crypto", "Binance Pay"]] as const).map(([id, n]) => (
+      <div className="grid grid-cols-3 gap-2">
+        {([["pago_movil", "Pago Móvil"], ["crypto", "Binance Pay"], ["efectivo", "Efectivo"]] as const).map(([id, n]) => (
           <button key={id} type="button" onClick={() => setMetodo(id)} className="rounded-xl border px-3 py-3 text-[14px] font-bold"
             style={metodo === id ? { borderColor: "#ff3d9e", background: "rgba(255,61,158,0.12)" } : { borderColor: "rgba(255,255,255,0.12)" }}>{n}</button>
         ))}
@@ -247,6 +247,11 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
             {montoBs > 0 && <Dato k="Monto en Bs" v={montoBs.toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} copiar={copiar} />}
             {montoBs > 0 && <p className="mt-1 text-[12px] text-[#9a93a6]">Tasa del día: Bs {tasa.toLocaleString("es-VE", { minimumFractionDigits: 2 })} por USD</p>}
           </>
+        ) : metodo === "efectivo" ? (
+          <>
+            <p className="font-semibold text-white">Pago en efectivo: {dinero(monto)}</p>
+            <p className="mt-1 text-[13px] text-[#bfb8c9]">Entrégalo a un agente de ventas de Isekai World o coordínalo con nosotros por WhatsApp. Si ya lo pagaste, indica abajo a quién se lo entregaste. La mesa queda reservada cuando confirmemos que recibimos el efectivo.</p>
+          </>
         ) : (
           <>
             <Dato k="Binance Pay ID" v={BINANCE_PAY_ID} copiar={copiar} />
@@ -257,7 +262,10 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
-        <label><span className={etiqueta}>Número de referencia *</span><input value={referencia} onChange={e => setReferencia(e.target.value)} maxLength={120} className={campo} /></label>
+        <label>
+          <span className={etiqueta}>{metodo === "efectivo" ? "¿A quién le entregaste el efectivo? (opcional)" : "Número de referencia *"}</span>
+          <input value={referencia} onChange={e => setReferencia(e.target.value)} maxLength={120} placeholder={metodo === "efectivo" ? "Nombre del agente o n.º de recibo" : ""} className={campo} />
+        </label>
         <label>
           <span className={etiqueta}>Comprobante (opcional)</span>
           <span className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 px-3 py-3 text-[14px] text-[#cfc9d8]">
@@ -270,7 +278,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
 
       <button
         disabled={!listo || solicitar.isPending || subiendo}
-        onClick={() => solicitar.mutate({ standId: mesa.id, negocio, contacto, email, whatsapp, rif: rif || undefined, modalidad, metodo, referencia, comprobanteUrl: comprobanteUrl || undefined })}
+        onClick={() => solicitar.mutate({ standId: mesa.id, negocio, contacto, email, whatsapp, rif: rif || undefined, modalidad, metodo, referencia: referencia.trim() || (metodo === "efectivo" ? "Efectivo por entregar" : referencia), comprobanteUrl: comprobanteUrl || undefined })}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#ff3d9e] py-4 text-[16px] font-black disabled:opacity-40"
       >
         {solicitar.isPending ? <Loader2 size={18} className="animate-spin" /> : <Store size={18} />} Reportar pago y reservar {mesa.numero}

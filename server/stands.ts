@@ -304,6 +304,7 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
   // Correo al cliente con su mesa confirmada y el saldo
   try {
     const [s] = filas<any>(await db.execute(sql`SELECT numero FROM festStands WHERE id = ${reserva.standId}`));
+    if (!reserva.email) throw new Error("sin correo");
     const { sendEmail } = await import("./_core/notification");
     const t = TIPOS_STAND[reserva.tipo as TipoStand];
     const saldo = Math.max(0, Number(reserva.precio) - pagado);
@@ -332,6 +333,33 @@ export async function rechazarPago(pagoId: number) {
     await db.execute(sql`UPDATE festStandReservas SET estado = 'rechazada' WHERE id = ${r.id}`);
   }
   return { ok: true };
+}
+
+/**
+ * Venta registrada por el admin o un agente: para quien ya pagó (por ejemplo
+ * en efectivo). Crea la reserva y aprueba el pago en un paso: la mesa queda
+ * tomada al instante si sigue libre.
+ */
+export async function ventaDirecta(d: {
+  standId: number; negocio: string; contacto: string; email?: string; whatsapp?: string;
+  monto: number; metodo: string; referencia?: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  const [stand] = filas<{ id: number; numero: string; tipo: TipoStand; estado: string }>(
+    await db.execute(sql`SELECT id, numero, tipo, estado FROM festStands WHERE id = ${d.standId} LIMIT 1`),
+  );
+  if (!stand) throw new Error("Ese stand no existe");
+  if (stand.estado !== "libre") throw new Error(`El stand ${stand.numero} no está libre`);
+  const t = TIPOS_STAND[stand.tipo];
+  const modalidad = d.monto + 0.009 >= t.precio ? "completo" : "abono";
+  const res = await db.execute(sql`INSERT INTO festStandReservas
+    (standId, tipo, precio, negocio, contacto, email, whatsapp, modalidad, notas)
+    VALUES (${stand.id}, ${stand.tipo}, ${t.precio}, ${d.negocio}, ${d.contacto}, ${d.email ?? ""}, ${d.whatsapp ?? ""}, ${modalidad}, ${"Venta registrada en el admin"})`);
+  const reservaId = Number((res as any)?.[0]?.insertId);
+  const p = await db.execute(sql`INSERT INTO festStandPagos (reservaId, monto, metodo, referencia) VALUES (${reservaId}, ${d.monto}, ${d.metodo}, ${d.referencia ?? ""})`);
+  const pagoId = Number((p as any)?.[0]?.insertId);
+  return aprobarPago(pagoId);
 }
 
 /** El admin registra un pago recibido (abono siguiente o el resto) */
