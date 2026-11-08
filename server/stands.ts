@@ -34,6 +34,94 @@ export const TIPOS_STAND: Record<TipoStand, { nombre: string; precio: number; pr
   },
 };
 
+/**
+ * Ubicación de cada mesa en el plano oficial (x, y en % del plano), sacada de
+ * las mesas dibujadas en mapa-fest.svg. Se aplica sola a las mesas que aún no
+ * tienen punto; si el admin mueve una mesa, se respeta su cambio.
+ */
+export const PLANO_STANDS: [string, TipoStand, number, number][] = [
+  ["GG-01", "gran_gremio", 70.05, 56.2],
+  ["GG-02", "gran_gremio", 73.25, 56.2],
+  ["GG-03", "gran_gremio", 76.45, 56.2],
+  ["GG-04", "gran_gremio", 53.98, 35.12],
+  ["GG-05", "gran_gremio", 53.98, 40.3],
+  ["GG-06", "gran_gremio", 53.98, 45.48],
+  ["GG-07", "gran_gremio", 53.98, 50.66],
+  ["GG-08", "gran_gremio", 53.98, 55.84],
+  ["G-01", "gremio", 60.38, 36.69],
+  ["G-02", "gremio", 63.58, 36.69],
+  ["G-03", "gremio", 66.78, 36.69],
+  ["G-04", "gremio", 70.05, 36.69],
+  ["G-05", "gremio", 73.25, 36.69],
+  ["G-06", "gremio", 76.45, 36.69],
+  ["G-07", "gremio", 60.38, 56.2],
+  ["G-08", "gremio", 63.58, 56.2],
+  ["G-09", "gremio", 66.78, 56.2],
+  ["G-10", "gremio", 57.85, 41.39],
+  ["G-11", "gremio", 57.85, 46.57],
+  ["G-12", "gremio", 57.85, 51.75],
+  ["M-01", "mercader", 54.43, 66.08],
+  ["M-02", "mercader", 57.55, 66.08],
+  ["M-03", "mercader", 60.68, 66.08],
+  ["M-04", "mercader", 63.8, 66.08],
+  ["M-05", "mercader", 66.93, 66.08],
+  ["M-06", "mercader", 70.13, 66.08],
+  ["M-07", "mercader", 73.25, 66.08],
+  ["M-08", "mercader", 76.38, 66.08],
+  ["M-09", "mercader", 50.26, 71.87],
+  ["M-10", "mercader", 53.39, 71.87],
+  ["M-11", "mercader", 56.58, 71.87],
+  ["M-12", "mercader", 59.71, 71.87],
+  ["M-13", "mercader", 62.83, 71.87],
+  ["M-14", "mercader", 66.03, 71.87],
+  ["M-15", "mercader", 69.16, 71.87],
+  ["M-16", "mercader", 72.28, 71.87],
+  ["M-17", "mercader", 75.48, 71.87],
+  ["M-18", "mercader", 78.61, 71.87],
+  ["M-19", "mercader", 52.34, 62.41],
+  ["M-20", "mercader", 16.48, 47.89],
+  ["M-21", "mercader", 19.68, 47.89],
+  ["M-22", "mercader", 22.88, 47.89],
+  ["M-23", "mercader", 26.08, 47.89],
+  ["M-24", "mercader", 29.28, 47.89],
+  ["M-25", "mercader", 32.48, 47.89],
+  ["M-26", "mercader", 34.71, 47.89],
+  ["M-27", "mercader", 8.67, 57.05],
+  ["M-28", "mercader", 11.87, 57.05],
+  ["M-29", "mercader", 15.07, 57.05],
+  ["M-30", "mercader", 23.92, 57.05],
+  ["M-31", "mercader", 27.12, 57.05],
+  ["M-32", "mercader", 30.32, 57.05],
+  ["M-33", "mercader", 33.52, 57.05],
+  ["M-34", "mercader", 8.67, 58.73],
+  ["M-35", "mercader", 11.87, 58.73],
+  ["M-36", "mercader", 15.07, 58.73],
+  ["M-37", "mercader", 23.92, 58.73],
+  ["M-38", "mercader", 27.12, 58.73],
+  ["M-39", "mercader", 30.32, 58.73],
+  ["M-40", "mercader", 33.52, 58.73],
+  ["M-41", "mercader", 24.52, 78.13],
+  ["M-42", "mercader", 27.72, 78.13],
+  ["M-43", "mercader", 30.92, 78.13],
+  ["M-44", "mercader", 24.52, 79.82],
+  ["M-45", "mercader", 27.72, 79.82],
+  ["M-46", "mercader", 30.92, 79.82],
+  ["M-47", "mercader", 58.15, 29.46],
+  ["M-48", "mercader", 61.35, 29.46],
+  ["M-49", "mercader", 64.55, 29.46],
+  ["M-50", "mercader", 67.75, 29.46],
+  ["M-51", "mercader", 70.94, 29.46],
+  ["M-52", "mercader", 74.14, 29.46],
+  ["M-53", "mercader", 77.34, 29.46],
+  ["M-54", "mercader", 58.15, 63.55],
+  ["M-55", "mercader", 61.35, 63.55],
+  ["M-56", "mercader", 64.55, 63.55],
+  ["M-57", "mercader", 67.75, 63.55],
+  ["M-58", "mercader", 70.94, 63.55],
+  ["M-59", "mercader", 74.14, 63.55],
+  ["M-60", "mercader", 77.34, 63.55],
+];
+
 /** Porcentaje del abono para apartar */
 export const ABONO_PCT = 30;
 
@@ -95,6 +183,10 @@ export async function asegurarTablasStands() {
         }
       }
       console.log("[Stands] Mesas creadas: 60 Mercader, 12 Gremio, 8 Gran Gremio");
+    }
+    // Cada mesa en su lugar del plano (solo las que aún no tienen punto)
+    for (const [numero, , x, y] of PLANO_STANDS) {
+      await db.execute(sql`UPDATE festStands SET x = ${x}, y = ${y} WHERE numero = ${numero} AND x IS NULL`);
     }
   } catch (e) {
     console.error("[Stands] No se pudieron preparar las tablas:", e);

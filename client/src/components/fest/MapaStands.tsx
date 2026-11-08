@@ -57,10 +57,11 @@ export default function MapaStands({
             onClick={e => { e.stopPropagation(); if (m.libre || modoAdmin) onElegir?.(m); }}
             disabled={!m.libre && !modoAdmin}
             aria-label={`Stand ${m.numero}${m.libre ? "" : " (reservado)"}`}
+            title={`Stand ${m.numero}`}
             className="absolute -translate-x-1/2 -translate-y-1/2 rounded-[5px] font-bold leading-none transition-transform"
             style={{
               left: `${m.x}%`, top: `${m.y}%`,
-              fontSize: "clamp(7px, 1.15vw, 11px)", padding: "3px 4px",
+              fontSize: "clamp(7px, 0.85vw, 10px)", padding: "2px 3px", minWidth: "1.9em", textAlign: "center",
               background: m.libre ? (activa ? "#ffffff" : color) : "#3a3542",
               color: m.libre ? "#06050a" : "#8a8494",
               opacity: apagada ? 0.35 : 1,
@@ -70,7 +71,8 @@ export default function MapaStands({
               boxShadow: m.libre ? `0 0 10px ${color}88` : undefined,
             }}
           >
-            {m.numero}
+            {/* En el plano solo el número: el color dice el tipo (M, G o GG) */}
+            {m.numero.split("-")[1] ?? m.numero}
           </button>
         );
       })}

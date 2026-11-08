@@ -102,7 +102,7 @@ export const FEST_ZONES: FestZone[] = [
   },
   {
     id: "gran-salon", paso: "Paso 11", nombre: "Gran Salón · Gremio y Gran Gremio", img: null,
-    resumen: "El corazón comercial del Fest: 15 stands Gremio y Gran Gremio, que son puntos oficiales de venta de boletería, rodean el área de público frente al escenario. Los stands Mercader ocupan el borde.",
+    resumen: "El corazón comercial del Fest: 20 stands Gremio y Gran Gremio, que son puntos oficiales de venta de boletería, rodean el área de público frente al escenario. Los stands Mercader ocupan el borde.",
     marca: [
       "La ubicación con más tráfico del evento.",
       "Punto oficial de venta de boletería con comisión por boleto.",
