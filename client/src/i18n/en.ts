@@ -557,5 +557,9 @@ export const en: Translations = {
     datosInvalido: "Please check your details: the name, a valid email and a WhatsApp with at least 7 digits.",
     datosError: "Your details couldn't be saved. Please try again.",
     adminTotal: "Only you can see this: {n} confirmations ({h} today)",
+    cerradaEtq: "Registration closed",
+    cerradaTitulo: "The business meeting has taken place",
+    cerradaTexto: "Thank you to every store, brand and media outlet that joined us. Registration is now closed. We will share the latest Isekai World Fest 2027 news very soon.",
+    cerradaBoton: "Discover Isekai World Fest",
   },
 };

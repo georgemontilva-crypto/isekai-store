@@ -567,6 +567,10 @@ export const es = {
     datosInvalido: "Revise los datos: el nombre, un correo válido y un WhatsApp con al menos 7 números.",
     datosError: "No se pudieron guardar sus datos. Inténtelo de nuevo.",
     adminTotal: "Solo tú lo ves: {n} confirmaciones ({h} hoy)",
+    cerradaEtq: "Inscripciones cerradas",
+    cerradaTitulo: "La rueda de negocios ya se realizó",
+    cerradaTexto: "Gracias a todas las tiendas, marcas y medios de comunicación que nos acompañaron. Las inscripciones están cerradas. Muy pronto compartiremos las novedades de Isekai World Fest 2027.",
+    cerradaBoton: "Conocer Isekai World Fest",
   },
 };
 

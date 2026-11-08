@@ -36,7 +36,7 @@ import * as patro from "./patrocinantes";
 import { permisosDe, esDelEquipo, limpiarPermisos } from "./permisos";
 import { listarEquipo, asignarRol, quitarDelEquipo, pausarRol } from "./equipo";
 import { cargarPlantilla2027, vendidosPorTipo, beneficiosDe, canjearBono, entregarKit, participantesSorteo } from "./beneficios";
-import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, cambiarTipoConfirmacion, registrarConDatos, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
+import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, cambiarTipoConfirmacion, ruedaCerrada, registrarConDatos, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
@@ -1152,10 +1152,10 @@ export const appRouter = router({
   prensa: router({
     estado: publicProcedure
       .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/).optional() }).optional())
-      .query(({ input }) => estadoConfirmacion(input?.clave)),
+      .query(async ({ input }) => ({ ...(await estadoConfirmacion(input?.clave)), cerrada: ruedaCerrada() })),
     confirmar: publicProcedure
       .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/) }))
-      .mutation(({ input, ctx }) => confirmarAsistencia(input.clave, clientIp(ctx.req))),
+      .mutation(({ input, ctx }) => { if (ruedaCerrada()) throw new TRPCError({ code: "FORBIDDEN", message: "Las inscripciones de la rueda de negocios ya cerraron" }); return confirmarAsistencia(input.clave, clientIp(ctx.req)); }),
     /** Confirmar con los datos en un solo paso (nada se guarda sin datos) */
     registrar: publicProcedure
       .input(z.object({
@@ -1167,7 +1167,7 @@ export const appRouter = router({
         whatsapp: z.string().trim().max(40).transform(v => (v.trim().startsWith("+") ? "+" : "") + v.replace(/[^0-9]/g, ""))
           .refine(v => { const d = v.replace(/\D/g, "").length; return d >= 7 && d <= 20; }, "WhatsApp inválido"),
       }))
-      .mutation(({ input, ctx }) => registrarConDatos(input.clave, clientIp(ctx.req), { tienda: input.tienda, tipo: input.tipo, email: input.email, whatsapp: input.whatsapp })),
+      .mutation(({ input, ctx }) => { if (ruedaCerrada()) throw new TRPCError({ code: "FORBIDDEN", message: "Las inscripciones de la rueda de negocios ya cerraron" }); return registrarConDatos(input.clave, clientIp(ctx.req), { tienda: input.tienda, tipo: input.tipo, email: input.email, whatsapp: input.whatsapp }); }),
     /** Quien ya confirmó deja su tienda, correo y WhatsApp */
     completarDatos: publicProcedure
       .input(z.object({
@@ -1176,7 +1176,7 @@ export const appRouter = router({
         email: z.string().trim().toLowerCase().email().max(320),
         whatsapp: z.string().trim().regex(/^\+?[0-9 ()-]{7,24}$/).transform(v => v.replace(/[^0-9+]/g, "")),
       }))
-      .mutation(({ input, ctx }) => completarDatos(input.clave, { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp }, clientIp(ctx.req))),
+      .mutation(({ input, ctx }) => { if (ruedaCerrada()) throw new TRPCError({ code: "FORBIDDEN", message: "Las inscripciones de la rueda de negocios ya cerraron" }); return completarDatos(input.clave, { tienda: input.tienda, email: input.email, whatsapp: input.whatsapp }, clientIp(ctx.req)); }),
     total: ruedaProcedure.query(() => totalConfirmaciones()),
     lista: ruedaProcedure.query(() => listaConfirmaciones()),
     /** ¿Esta cuenta puede entrar a la lista? (para mostrarle el acceso) */

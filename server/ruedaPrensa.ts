@@ -14,6 +14,10 @@ import { notifyConfirmacionPrensa } from "./_core/notification";
  */
 const MAX_POR_IP_DIA = 6;
 
+/** La rueda fue el sábado 7 de noviembre de 2026 a las 4:30 p. m. (Venezuela): desde ahí no hay más inscripciones */
+export const CIERRE_RUEDA = new Date("2026-11-07T20:30:00Z");
+export const ruedaCerrada = () => Date.now() >= CIERRE_RUEDA.getTime();
+
 export async function estadoConfirmacion(clave?: string): Promise<{ confirmado: boolean; conDatos: boolean }> {
   if (!clave) return { confirmado: false, conDatos: false };
   try {

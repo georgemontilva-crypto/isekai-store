@@ -93,6 +93,9 @@ function Separador({ className = "" }: { className?: string }) {
 
 type TextosDatos = Record<"datosEtq" | "datosTitulo" | "datosTexto" | "datosQuien" | "datosOpTienda" | "datosOpMedio" | "datosTienda" | "datosTiendaAyuda" | "datosMedio" | "datosMedioAyuda" | "datosEmail" | "datosWhatsapp" | "datosWhatsappAyuda" | "datosEnviar" | "datosEnviando" | "datosListo" | "datosYaRegistrado" | "datosObligatorio" | "datosPaso" | "datosCancelar" | "datosLimite" | "datosEditar" | "datosInvalido" | "datosError", string>;
 
+/** Desde el sábado 7 de noviembre de 2026, 4:30 p. m. (Venezuela), la inscripción queda cerrada */
+const CIERRE_RUEDA = Date.parse("2026-11-07T20:30:00Z");
+
 /**
  * Datos de quien confirmó (tienda, correo y WhatsApp) en una ventana que se
  * abre sola al confirmar. Al enviarlos la ventana se cierra y no vuelve.
@@ -116,7 +119,7 @@ function FormularioDatos({ clave, conDatos, t, onCancelar }: { clave: string; co
           setYaRegistrado(true);
           try { localStorage.setItem(CLAVE_REGISTRADA, "1"); } catch { /* */ }
         }
-        utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: true });
+        utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: true, cerrada: false });
         setAbierto(false);
         setAviso("");
       } else setAviso(r.motivo === "limite" ? t.datosLimite : t.datosError);
@@ -281,9 +284,11 @@ export default function RuedaPrensa() {
   const registradaAntes = useMemo(() => { try { return localStorage.getItem(CLAVE_REGISTRADA) === "1"; } catch { return false; } }, []);
   const estado = registradaAntes ? { confirmado: true, conDatos: true } : estadoServidor;
   const confirmar = trpc.prensa.confirmar.useMutation({
-    onSuccess: r => { if (r.ok) utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: false }); },
+    onSuccess: r => { if (r.ok) utils.prensa.estado.setData({ clave }, { confirmado: true, conDatos: false, cerrada: false }); },
   });
   const confirmado = estado?.confirmado === true;
+  // La rueda ya pasó: no se aceptan más inscripciones
+  const cerrada = Date.now() >= CIERRE_RUEDA || estadoServidor?.cerrada === true;
   const [pidiendoDatos, setPidiendoDatos] = useState(false);
   const fallo = confirmar.data && !confirmar.data.ok
     ? (confirmar.data.motivo === "limite" ? t.limite : t.error)
@@ -369,6 +374,16 @@ export default function RuedaPrensa() {
 
           {/* ═══ Cuenta atrás y confirmación ═══ */}
           <section id="confirmar" className="scroll-mt-20 pt-14 text-center">
+            {cerrada ? (
+              <div className="mx-auto max-w-md">
+                <p className="rp-sistema mb-5 text-[10px] uppercase tracking-[0.3em] text-[#ff6b86]">{t.cerradaEtq}</p>
+                <p className="rp-serif mb-3 text-[26px] font-light leading-tight text-[#f6e3e7]">{t.cerradaTitulo}</p>
+                <p className="mb-8 text-[15px] font-light leading-[1.8] text-[#bfaeb5]">{t.cerradaTexto}</p>
+                <a href="/" className="rp-boton rp-sistema ev-notch ev-press inline-flex items-center gap-3 whitespace-nowrap px-8 py-[18px] text-[12px] font-semibold uppercase tracking-[0.26em] text-white sm:px-12">
+                  {t.cerradaBoton}
+                </a>
+              </div>
+            ) : (<>
             <p className="rp-sistema mb-5 text-[10px] uppercase tracking-[0.3em] text-[#ff6b86]">{t.faltan}</p>
             <div className="mb-12"><CuentaAtras t={t} /></div>
 
@@ -411,6 +426,7 @@ export default function RuedaPrensa() {
                 <FormularioDatos clave={clave} conDatos={estado?.conDatos === true} t={t} />
               </motion.div>
             )}
+            </>)}
 
             {esAdmin && total && (
               <p className="rp-sistema mx-auto mt-8 inline-block border border-[#fbbf24]/30 px-4 py-2 text-[11px] tracking-wider text-[#fde68a]">
