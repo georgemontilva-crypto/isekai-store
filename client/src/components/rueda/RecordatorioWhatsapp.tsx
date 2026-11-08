@@ -32,7 +32,7 @@ function guardar(clave: string, valor: unknown) {
   try { localStorage.setItem(clave, JSON.stringify(valor)); } catch { /* sin almacenamiento */ }
 }
 
-export default function RecordatorioWhatsapp({ destinos, onCerrar }: { destinos: Destino[]; onCerrar: () => void }) {
+export default function RecordatorioWhatsapp({ destinos, grupo, onCerrar }: { destinos: Destino[]; grupo: string; onCerrar: () => void }) {
   const [mensaje, setMensaje] = useState<string>(() => leer(CLAVE_MENSAJE, MENSAJE_BASE));
   const [enviados, setEnviados] = useState<number[]>(() => leer(CLAVE_ENVIADOS, [] as number[]));
 
@@ -65,7 +65,7 @@ export default function RecordatorioWhatsapp({ destinos, onCerrar }: { destinos:
       >
         <div className="flex items-start justify-between gap-3 px-5 pb-3 pt-5">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#4ade80]">Recordatorio</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#4ade80]">Mensaje · {grupo}</p>
             <p className="mt-1 text-[20px] font-bold leading-tight text-white">Enviar por WhatsApp</p>
             <p className="mt-1 text-[13px] text-[#9a93a6]">
               {lista.length} con WhatsApp · {lista.length - pendientes.length} enviados · {pendientes.length} por enviar

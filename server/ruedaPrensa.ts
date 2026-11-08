@@ -243,6 +243,14 @@ export async function totalConfirmaciones(): Promise<{ total: number; hoy: numbe
 }
 
 /** Solo administradores: borra una confirmación (pruebas o duplicados) */
+/** Cambia si la confirmación es de una tienda o de un medio (prensa) */
+export async function cambiarTipoConfirmacion(id: number, tipo: TipoAsistente) {
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  await db.update(wfPrensaConfirmaciones).set({ tipo }).where(eq(wfPrensaConfirmaciones.id, id));
+  return { ok: true };
+}
+
 export async function borrarConfirmacion(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Base de datos no disponible");

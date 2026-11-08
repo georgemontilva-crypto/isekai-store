@@ -84,6 +84,10 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
     onSuccess: () => { toast.success("Confirmación eliminada"); void utils.prensa.lista.invalidate(); void utils.prensa.total.invalidate(); },
     onError: e => toast.error(e.message),
   });
+  const cambiarTipo = trpc.prensa.cambiarTipo.useMutation({
+    onSuccess: (_r, v) => { toast.success(v.tipo === "medio" ? "Marcado como prensa" : "Marcado como tienda"); void utils.prensa.lista.invalidate(); },
+    onError: e => toast.error(e.message),
+  });
   const marcar = trpc.prensa.marcarAsistencia.useMutation({
     // Se ve marcada al instante; si falla, vuelve como estaba
     onMutate: async ({ id, asistio }) => {
@@ -193,11 +197,11 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
             className="flex w-full items-center justify-center gap-2 rounded-full py-3 text-[14px] font-bold active:scale-[0.98]"
             style={{ background: "rgba(37,211,102,0.14)", color: "#4ade80", border: "1px solid rgba(37,211,102,0.35)" }}
           >
-            <MessageCircle size={16} /> Recordatorio por WhatsApp · {conWhatsapp.length}
+            <MessageCircle size={16} /> {tipoFiltro === "medio" ? "WhatsApp solo a la prensa" : tipoFiltro === "tienda" ? "WhatsApp solo a tiendas" : "WhatsApp a todos"} · {conWhatsapp.length}
           </button>
         </div>
       )}
-      {recordar && <RecordatorioWhatsapp destinos={conWhatsapp} onCerrar={() => setRecordar(false)} />}
+      {recordar && <RecordatorioWhatsapp destinos={conWhatsapp} grupo={tipoFiltro === "medio" ? "Solo prensa" : tipoFiltro === "tienda" ? "Solo tiendas" : "Todos"} onCerrar={() => setRecordar(false)} />}
 
       {conDatos.length > 0 && (
         <div className="px-5 pb-4">
@@ -314,6 +318,16 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
                         {llego ? `Llegó ${hora(f.asistioEn)}${f.asistioPor ? ` · ${f.asistioPor}` : ""}` : `Se registró ${hace(f.datosEn)}`}
                       </p>
                     </div>
+                    {esAdmin && (
+                      <button
+                        onClick={() => cambiarTipo.mutate({ id: f.id, tipo: f.tipo === "medio" ? "tienda" : "medio" })}
+                        disabled={cambiarTipo.isPending}
+                        className="shrink-0 rounded-full px-2.5 py-1.5 text-[11px] font-bold"
+                        style={f.tipo === "medio" ? { background: "rgba(255,255,255,0.07)", color: "#cfc9d8" } : { background: "rgba(56,189,248,0.14)", color: "#7dd3fc" }}
+                      >
+                        {f.tipo === "medio" ? "Es tienda" : "Es prensa"}
+                      </button>
+                    )}
                     {esAdmin && (
                       <button onClick={() => pedirBorrar(f.id, f.tienda ?? "esta confirmación")} aria-label="Eliminar" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[#6f6878] transition-colors hover:bg-[#f87171]/10 hover:text-[#f87171]">
                         <Trash2 size={16} />

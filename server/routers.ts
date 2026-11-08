@@ -36,7 +36,7 @@ import * as patro from "./patrocinantes";
 import { permisosDe, esDelEquipo, limpiarPermisos } from "./permisos";
 import { listarEquipo, asignarRol, quitarDelEquipo, pausarRol } from "./equipo";
 import { cargarPlantilla2027, vendidosPorTipo, beneficiosDe, canjearBono, entregarKit, participantesSorteo } from "./beneficios";
-import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, registrarConDatos, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
+import { estadoConfirmacion, confirmarAsistencia, totalConfirmaciones, completarDatos, listaConfirmaciones, borrarConfirmacion, cambiarTipoConfirmacion, registrarConDatos, marcarAsistencia, registrarEnPuerta, listarStaffRueda, agregarStaffRueda, quitarStaffRueda, staffRuedaPorCorreo } from "./ruedaPrensa";
 import { clavePublicaPush, guardarSuscripcion, borrarSuscripcion, enviarPushAUsuarios } from "./push";
 import { SEGMENTOS, estadisticasAudiencia, listarCampanas, guardarCampana, borrarCampana, vistaPrevia as vistaPreviaCampana, enviarPrueba as enviarPruebaCampana, lanzarCampana } from "./campanas";
 
@@ -1202,6 +1202,10 @@ export const appRouter = router({
       .input(z.object({ email: z.string().trim().toLowerCase().email() }))
       .mutation(({ input }) => quitarStaffRueda(input.email)),
     borrar: adminProcedure.input(z.object({ id: z.number().int().positive() })).mutation(({ input }) => borrarConfirmacion(input.id)),
+    // Marcar a alguien como prensa o tienda (los registrados antes de existir la opción)
+    cambiarTipo: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), tipo: z.enum(["tienda", "medio"]) }))
+      .mutation(({ input }) => cambiarTipoConfirmacion(input.id, input.tipo)),
   }),
 
   // ─── Equipo del evento: todas las funciones en un solo lugar ───────────────
