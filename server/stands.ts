@@ -26,11 +26,11 @@ export const TIPOS_STAND: Record<TipoStand, { nombre: string; precio: number; pr
   },
   gremio: {
     nombre: "Gremio", precio: 399, prefijo: "G", cantidad: 12, color: "#a78bfa",
-    incluye: ["Mesa en el Gran Salón", "Punto oficial de venta de boletería", "Recuperas el 60% del valor del stand en ventas de boletos", "Misión en el Level Pass"],
+    incluye: ["Mesa en el Gran Salón", "Punto oficial de venta de boletería", "Recuperas el 60% del valor del stand en ventas de boletos", "2 misiones en el Level Pass: tu stand da experiencia"],
   },
   gran_gremio: {
     nombre: "Gran Gremio", precio: 499, prefijo: "GG", cantidad: 8, color: "#fbbf24",
-    incluye: ["Mesa en el Gran Salón, frente al escenario", "Punto oficial de venta de boletería", "Recuperas el 100% del valor del stand + 10% en ventas de boletos", "Misión en el Level Pass"],
+    incluye: ["Mesa en el Gran Salón, frente al escenario", "Punto oficial de venta de boletería", "Recuperas el 100% del valor del stand + 10% en ventas de boletos", "2 misiones en el Level Pass: tu stand da experiencia"],
   },
 };
 
