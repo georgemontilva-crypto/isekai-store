@@ -30,6 +30,9 @@ export const PAGO_MOVIL = {
   phone: "04220386380",
 } as const;
 
+/** Binance Pay: ID de cuenta para recibir pagos (stands del Fest) */
+export const BINANCE_PAY_ID = "94008443";
+
 /** Datos de pago en cripto */
 export const CRYPTO = {
   asset: "USDT",

@@ -11,7 +11,7 @@ import { confirmar, dinero, fechaRelativa } from "./ui";
  * que falta por cobrar a cada tienda y ubicar las mesas en el plano.
  */
 const NOMBRE: Record<string, string> = { mercader: "Mercader", gremio: "Gremio", gran_gremio: "Gran Gremio" };
-const METODO: Record<string, string> = { pago_movil: "Pago Móvil", crypto: "USDT", efectivo: "Efectivo", otro: "Otro", transferencia: "Transferencia", zelle: "Zelle" };
+const METODO: Record<string, string> = { pago_movil: "Pago Móvil", crypto: "Binance Pay", efectivo: "Efectivo", otro: "Otro", transferencia: "Transferencia", zelle: "Zelle" };
 type Vista = "revisar" | "cobrar" | "pagados" | "plano";
 
 export default function StandsAdmin() {

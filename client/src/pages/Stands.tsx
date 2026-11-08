@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useSEO } from "@/hooks/useSEO";
 import MapaStands, { COLOR_TIPO, type MesaPlano } from "@/components/fest/MapaStands";
-import { PAGO_MOVIL, CRYPTO } from "@shared/payment";
+import { PAGO_MOVIL, BINANCE_PAY_ID } from "@shared/payment";
 
 /**
  * Tienda de stands del Isekai World Fest (/stands).
@@ -233,7 +233,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
 
       <p className={`${etiqueta} mt-6`}>Paga {dinero(monto)} por:</p>
       <div className="grid grid-cols-2 gap-2">
-        {([["pago_movil", "Pago Móvil"], ["crypto", "USDT (TRC20)"]] as const).map(([id, n]) => (
+        {([["pago_movil", "Pago Móvil"], ["crypto", "Binance Pay"]] as const).map(([id, n]) => (
           <button key={id} type="button" onClick={() => setMetodo(id)} className="rounded-xl border px-3 py-3 text-[14px] font-bold"
             style={metodo === id ? { borderColor: "#ff3d9e", background: "rgba(255,61,158,0.12)" } : { borderColor: "rgba(255,255,255,0.12)" }}>{n}</button>
         ))}
@@ -249,9 +249,9 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
           </>
         ) : (
           <>
-            <Dato k="Red" v={CRYPTO.network} copiar={copiar} />
-            <Dato k="Dirección" v={CRYPTO.address} copiar={copiar} />
+            <Dato k="Binance Pay ID" v={BINANCE_PAY_ID} copiar={copiar} />
             <Dato k="Monto" v={`${monto} USDT`} copiar={copiar} />
+            <p className="mt-1 text-[12px] text-[#9a93a6]">En Binance: Pagar → Enviar → Binance Pay ID. Coloca el número de orden como referencia.</p>
           </>
         )}
       </div>
