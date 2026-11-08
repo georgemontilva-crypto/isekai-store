@@ -1,5 +1,11 @@
 import { sql } from "drizzle-orm";
 import { getDb } from "./db";
+import { io } from "./_core/socket";
+
+/** Aviso en vivo: la página de stands y el admin se actualizan solos */
+function avisarCambio() {
+  try { io?.to("stands").emit("stands:cambio"); io?.to("admin").emit("stands:cambio"); } catch { /* sin canal en vivo */ }
+}
 
 /**
  * Venta de stands del Isekai World Fest.
@@ -254,6 +260,7 @@ export async function crearSolicitud(d: DatosSolicitud) {
     const { enviarPushAdmins } = await import("./push");
     await enviarPushAdmins({ titulo: `🏪 Stand ${stand.numero} · ${d.negocio}`, cuerpo: `${t.nombre} · reportó $${monto}. Revisa el pago.`, url: "/admin?tab=stands", etiqueta: `stand-${reservaId}` });
   } catch (e) { console.warn("[Stands] aviso al admin:", e); }
+  avisarCambio();
   return { ok: true, reservaId, numero: stand.numero, monto, tipo: t.nombre };
 }
 
@@ -308,15 +315,26 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
     const { sendEmail } = await import("./_core/notification");
     const t = TIPOS_STAND[reserva.tipo as TipoStand];
     const saldo = Math.max(0, Number(reserva.precio) - pagado);
-    await sendEmail(reserva.email, `Tu stand ${s?.numero} en Isekai World Fest 2027`, `
-      <h2>¡Tu stand está ${completo ? "pagado" : "apartado"}!</h2>
-      <p>Hola, ${reserva.contacto}. Confirmamos el pago de <strong>$${monto.toFixed(2)}</strong> para <strong>${reserva.negocio}</strong>.</p>
-      <p><strong>Stand:</strong> ${s?.numero} · ${t?.nombre ?? reserva.tipo}<br/>
-      <strong>Total pagado:</strong> $${pagado.toFixed(2)} de $${Number(reserva.precio).toFixed(2)}<br/>
-      ${saldo > 0 ? `<strong>Saldo pendiente:</strong> $${saldo.toFixed(2)}` : "<strong>Pagado por completo.</strong>"}</p>
-      <p>Esta mesa es tuya: nadie más puede apartarla.</p>
-      <p>Isekai World Fest 2027 · 14 y 15 de agosto · Maracaibo</p>`, `Stand ${s?.numero} ${completo ? "pagado" : "apartado"}`);
+    const fila = (k: string, v: string) => `<tr><td style="padding:8px 0;color:#9a93a6">${k}</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${v}</td></tr>`;
+    const asunto = completo
+      ? `✅ Tu stand ${s?.numero} está pagado · Isekai World Fest 2027`
+      : `✅ Tu lugar quedó apartado: stand ${s?.numero} · Isekai World Fest 2027`;
+    await sendEmail(reserva.email, asunto, `
+      <h2>${completo ? "¡Tu stand está pagado!" : "¡Tu lugar quedó apartado!"}</h2>
+      <p>Hola, ${reserva.contacto}. Confirmamos el pago de <strong>$${monto.toFixed(2)}</strong> de <strong>${reserva.negocio}</strong>.
+      ${completo ? "Tu stand está pagado por completo." : "Tu mesa ya está reservada a tu nombre."} Nadie más puede apartarla.</p>
+      <table style="width:100%;border-collapse:collapse;margin:16px 0;border-top:1px solid #2a2433;border-bottom:1px solid #2a2433">
+        ${fila("Stand", `${s?.numero ?? ""} · ${t?.nombre ?? reserva.tipo}`)}
+        ${fila("Precio del stand", `$${Number(reserva.precio).toFixed(2)}`)}
+        ${fila("Pagado hasta hoy", `$${pagado.toFixed(2)}`)}
+        ${fila(saldo > 0 ? "Saldo pendiente" : "Saldo", saldo > 0 ? `$${saldo.toFixed(2)}` : "Pagado ✓")}
+      </table>
+      ${saldo > 0 ? `<p>El saldo de <strong>$${saldo.toFixed(2)}</strong> lo puedes pagar cuando quieras antes del evento. Escríbenos a <a href="mailto:ventas@isekaiworld.co">ventas@isekaiworld.co</a> para coordinarlo.</p>` : ""}
+      <div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/stands" class="btn">Ver el plano de stands →</a></div>
+      <p style="color:#9a93a6">Isekai World Fest 2027 · 14 y 15 de agosto · Maracaibo, Venezuela</p>`,
+      completo ? `Stand ${s?.numero} pagado por completo` : `Tu stand ${s?.numero} quedó apartado a tu nombre`);
   } catch (e) { console.warn("[Stands] correo al cliente:", e); }
+  avisarCambio();
   return { ok: true, completo, pagado };
 }
 
@@ -332,6 +350,7 @@ export async function rechazarPago(pagoId: number) {
   if (r && r.estado === "pendiente" && Number(r.pagado) === 0) {
     await db.execute(sql`UPDATE festStandReservas SET estado = 'rechazada' WHERE id = ${r.id}`);
   }
+  avisarCambio();
   return { ok: true };
 }
 
@@ -389,6 +408,7 @@ export async function cambiarMesa(reservaId: number, standId: number) {
   // El precio sigue al tipo de la mesa nueva
   const precio = TIPOS_STAND[nueva.tipo as TipoStand]?.precio ?? Number(r.precio);
   await db.execute(sql`UPDATE festStandReservas SET standId = ${standId}, tipo = ${nueva.tipo}, precio = ${precio} WHERE id = ${reservaId}`);
+  avisarCambio();
   return { ok: true };
 }
 
@@ -399,6 +419,7 @@ export async function anularReserva(reservaId: number) {
   await db.execute(sql`UPDATE festStands SET estado = 'libre', reservaId = NULL WHERE reservaId = ${reservaId}`);
   await db.execute(sql`UPDATE festStandReservas SET estado = 'rechazada' WHERE id = ${reservaId}`);
   await db.execute(sql`UPDATE festStandPagos SET estado = 'rechazado', revisadoEn = NOW() WHERE reservaId = ${reservaId} AND estado = 'pendiente'`);
+  avisarCambio();
   return { ok: true };
 }
 
@@ -407,6 +428,7 @@ export async function ubicarStand(standId: number, x: number | null, y: number |
   const db = await getDb();
   if (!db) throw new Error("Base de datos no disponible");
   await db.execute(sql`UPDATE festStands SET x = ${x}, y = ${y} WHERE id = ${standId}`);
+  avisarCambio();
   return { ok: true };
 }
 
@@ -416,5 +438,6 @@ export async function bloquearStand(standId: number, bloquear: boolean) {
   if (!db) throw new Error("Base de datos no disponible");
   if (bloquear) await db.execute(sql`UPDATE festStands SET estado = 'bloqueado' WHERE id = ${standId} AND estado = 'libre'`);
   else await db.execute(sql`UPDATE festStands SET estado = 'libre' WHERE id = ${standId} AND estado = 'bloqueado'`);
+  avisarCambio();
   return { ok: true };
 }

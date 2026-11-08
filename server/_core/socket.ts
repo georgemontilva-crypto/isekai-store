@@ -33,6 +33,11 @@ export function initSocket(httpServer: HttpServer): Server {
        * Sala del raid de la landing: es pública (los visitantes no tienen
        * cuenta) y solo recibe el estado del jefe, nunca datos personales.
        */
+      // Venta de stands: aviso público de que algo cambió (sin datos personales)
+      if (socket.handshake.auth?.stands === true) {
+        socket.join("stands");
+        return next();
+      }
       if (socket.handshake.auth?.raid === true) {
         // Esta conexión solo escucha al jefe: no necesita (ni valida) sesión,
         // así una cookie vencida no la corta

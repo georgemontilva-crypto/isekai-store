@@ -5,6 +5,7 @@ import { trpc } from "@/lib/trpc";
 import MapaStands, { COLOR_TIPO, type MesaPlano } from "@/components/fest/MapaStands";
 import { enlaceWhatsapp } from "@/components/rueda/ListaRueda";
 import { confirmar, dinero, fechaRelativa } from "./ui";
+import { useStandsSocket } from "@/hooks/useStandsSocket";
 
 /**
  * Admin de la venta de stands: revisar pagos (abono 30% o completo), ver lo
@@ -19,6 +20,8 @@ export default function StandsAdmin() {
   const { data, isLoading } = trpc.stands.panel.useQuery(undefined, { refetchInterval: 30_000 });
   const [vista, setVista] = useState<Vista>("revisar");
   const refrescar = () => { void utils.stands.panel.invalidate(); void utils.stands.publico.invalidate(); };
+  // En vivo: cada comprobante nuevo o cambio aparece sin cerrar ni abrir
+  useStandsSocket(refrescar);
   const aprobar = trpc.stands.aprobarPago.useMutation({ onSuccess: r => { toast.success(r.completo ? "Pago aprobado · stand pagado" : "Pago aprobado · stand apartado"); refrescar(); }, onError: e => toast.error(e.message, { duration: 8000 }) });
   const rechazar = trpc.stands.rechazarPago.useMutation({ onSuccess: () => { toast.success("Pago rechazado"); refrescar(); }, onError: e => toast.error(e.message) });
   const registrar = trpc.stands.registrarPago.useMutation({ onSuccess: r => { toast.success(r.completo ? "Stand pagado por completo" : "Pago registrado"); refrescar(); }, onError: e => toast.error(e.message) });

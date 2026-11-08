@@ -4,6 +4,7 @@ import { ArrowLeft, Check, Copy, Loader2, Map as MapaIcono, Store, Upload } from
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useSEO } from "@/hooks/useSEO";
+import { useStandsSocket } from "@/hooks/useStandsSocket";
 import MapaStands, { COLOR_TIPO, type MesaPlano } from "@/components/fest/MapaStands";
 import { PAGO_MOVIL, BINANCE_PAY_ID } from "@shared/payment";
 
@@ -22,7 +23,10 @@ const etiqueta = "mb-1.5 block text-[12px] font-semibold text-[#cfc9d8]";
 
 export default function Stands() {
   useSEO({ title: "Reserva tu stand — Isekai World Fest 2027", description: "Elige tu stand Mercader, Gremio o Gran Gremio y tu mesa en el plano del Isekai World Fest 2027.", url: "https://www.isekaiworld.co/stands" });
-  const { data, isLoading } = trpc.stands.publico.useQuery(undefined, { refetchInterval: 30_000 });
+  const { data, isLoading } = trpc.stands.publico.useQuery(undefined, { refetchInterval: 60_000 });
+  const utilsPagina = trpc.useUtils();
+  // En vivo: si alguien aparta una mesa, aquí se ve al instante
+  useStandsSocket(() => { void utilsPagina.stands.publico.invalidate(); });
   const { data: settings } = trpc.settings.getAll.useQuery();
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const [mesaId, setMesaId] = useState<number | null>(null);
@@ -210,6 +214,11 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
         </div>
       </div>
 
+      {!mesa.libre && (
+        <p className="mt-4 rounded-xl bg-[#7f1d1d]/40 px-4 py-3 text-[14px] font-semibold text-[#fecaca]">
+          La mesa {mesa.numero} acaba de ser reservada por otra tienda. Elige otra mesa libre, por favor.
+        </p>
+      )}
       <p className={`${etiqueta} mt-6`}>¿Cómo quieres pagar?</p>
       <div className="grid grid-cols-2 gap-2">
         {(["abono", "completo"] as const).map(m => (
@@ -277,7 +286,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
       </div>
 
       <button
-        disabled={!listo || solicitar.isPending || subiendo}
+        disabled={!listo || !mesa.libre || solicitar.isPending || subiendo}
         onClick={() => solicitar.mutate({ standId: mesa.id, negocio, contacto, email, whatsapp, rif: rif || undefined, modalidad, metodo, referencia: referencia.trim() || (metodo === "efectivo" ? "Efectivo por entregar" : referencia), comprobanteUrl: comprobanteUrl || undefined })}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#ff3d9e] py-4 text-[16px] font-black disabled:opacity-40"
       >
