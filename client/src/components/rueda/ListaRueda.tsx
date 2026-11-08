@@ -165,6 +165,39 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
     window.setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
+  /**
+   * Contactos para el teléfono (.vcf): se guardan todos de una vez y luego se
+   * arma la lista de difusión de WhatsApp eligiéndolos. Se descarga el grupo
+   * que esté filtrado (por ejemplo, solo prensa). Cada contacto lleva delante
+   * «Prensa ·» o «Tienda ·» para encontrarlos rápido en WhatsApp.
+   */
+  const descargarContactos = () => {
+    const limpio = (v: string) => v.replace(/[\r\n;,]/g, " ").trim();
+    const tarjetas = conDatos
+      .filter(f => (f.whatsapp ?? "").replace(/\D/g, "").length >= 7)
+      .map(f => {
+        const num = enlaceWhatsapp(f.whatsapp!).replace("https://wa.me/", "+");
+        const nombre = `${f.tipo === "medio" ? "Prensa" : "Tienda"} · ${limpio(f.tienda ?? "Sin nombre")}`;
+        return [
+          "BEGIN:VCARD", "VERSION:3.0",
+          `FN:${nombre}`, `N:${nombre};;;;`,
+          `ORG:${limpio(f.tienda ?? "")}`,
+          `TEL;TYPE=CELL:${num}`,
+          ...(f.email ? [`EMAIL:${limpio(f.email)}`] : []),
+          "NOTE:Rueda de negocios Isekai World Fest 2027",
+          "END:VCARD",
+        ].join("\r\n");
+      });
+    if (!tarjetas.length) { toast.error("Nadie de este grupo dejó WhatsApp"); return; }
+    const url = URL.createObjectURL(new Blob([tarjetas.join("\r\n") + "\r\n"], { type: "text/vcard;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = tipoFiltro === "medio" ? "contactos-prensa.vcf" : tipoFiltro === "tienda" ? "contactos-tiendas.vcf" : "contactos-rueda.vcf";
+    document.body.appendChild(a); a.click(); a.remove();
+    window.setTimeout(() => URL.revokeObjectURL(url), 2000);
+    toast.success(`${tarjetas.length} contactos listos para guardar`);
+  };
+
   const opciones: [Vista, string][] = [
     ["faltan", `Por llegar · ${faltan.length}`],
     ["llegaron", `Llegaron · ${llegaron.length}`],
@@ -378,6 +411,11 @@ export function ListaRueda({ modo, onCerrar, arriba }: { modo: "admin" | "staff"
         {esAdmin && conDatos.length > 0 && (
           <button onClick={descargar} className="flex flex-1 items-center justify-center gap-2 rounded-full py-3.5 text-[14px] font-semibold text-white" style={{ background: ROSA }}>
             <Download size={16} /> Excel
+          </button>
+        )}
+        {esAdmin && conDatos.length > 0 && (
+          <button onClick={descargarContactos} className="flex flex-1 items-center justify-center gap-2 rounded-full py-3.5 text-[14px] font-semibold" style={{ background: "rgba(37,211,102,0.14)", color: "#4ade80" }}>
+            <Users size={16} /> Contactos
           </button>
         )}
       </div>
