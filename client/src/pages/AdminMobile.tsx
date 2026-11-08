@@ -23,10 +23,11 @@ import { useAvisosAdmin } from '@/hooks/useAvisosAdmin';
 import MediaSection from '@/components/admin/MediaSection';
 import FeedbackSection from '@/components/admin/FeedbackSection';
 import TicketsAdmin from '@/components/admin/TicketsAdmin';
+import StandsAdmin from "@/components/admin/StandsAdmin";
 
 // ============ TIPOS ============
 type MobileTab = 'stats' | 'orders' | 'payments' | 'cosplay' | 'products' | 'more'
-               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'colecciones' | 'media' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder' | 'campanas' | 'patrocinantes';
+               | 'categories' | 'faq' | 'users' | 'blog' | 'popups' | 'subscribers' | 'comments' | 'quotes' | 'tasa' | 'finanzas' | 'colecciones' | 'media' | 'giftcards' | 'feedback' | 'boleteria' | 'boleteria-boletos' | 'boleteria-tipos' | 'boleteria-codigos' | 'boleteria-tiendas' | 'newOrder' | 'campanas' | 'patrocinantes' | 'stands';
 
 // ============ HELPERS ============
 const STATUS_LABELS: Record<string, string> = {
@@ -2001,6 +2002,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
       title: 'Ventas',
       items: [
         { label: 'Cotizaciones', tab: 'quotes'    as MobileTab, icon: FileText },
+        { label: 'Stands del Fest', tab: 'stands' as MobileTab, icon: Store },
         { label: 'Boletería',    tab: 'boleteria' as MobileTab, icon: Ticket },
         { label: 'Patrocinantes', tab: 'patrocinantes' as MobileTab, icon: Megaphone },
         { label: 'Tasa del día', tab: 'tasa'      as MobileTab, icon: DollarSign },
@@ -3231,7 +3233,10 @@ function CommentsSection() {
 export default function AdminMobile() {
   // Novedades en vivo: solicitudes, pedidos y pagos sin recargar
   useAvisosAdmin();
-  const [activeTab, setActiveTab] = useState<MobileTab>('stats');
+  const [activeTab, setActiveTab] = useState<MobileTab>(() => {
+    try { const t = new URLSearchParams(window.location.search).get('tab'); if (t) return t as MobileTab; } catch { /* */ }
+    return 'stats';
+  });
 
   /**
    * Barra compacta al bajar, completa al subir.
@@ -3328,13 +3333,13 @@ export default function AdminMobile() {
   const isExtraTab = EXTRA_TABS.includes(activeTab);
   const EXTRA_TITLES: Record<string, string> = {
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups', campanas: 'Campañas', patrocinantes: 'Patrocinantes',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', stands: 'Stands del Fest', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
   const SECTION_TITLES: Record<MobileTab, string> = {
     stats: 'Resumen', orders: 'Pedidos', payments: 'Pagos pendientes',
     cosplay: 'Cosplay Guild', products: 'Productos', more: 'Más',
     categories: 'Categorías', faq: 'FAQ', users: 'Usuarios', blog: 'Blog', popups: 'Popups', campanas: 'Campañas', patrocinantes: 'Patrocinantes',
-    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
+    subscribers: 'Suscriptores', comments: 'Comentarios', quotes: 'Cotizaciones', tasa: 'Tasa del día', finanzas: 'Finanzas', colecciones: 'Colecciones', media: 'Imágenes y video', giftcards: 'Tarjetas de regalo', feedback: 'Sugerencias del Guild', stands: 'Stands del Fest', boleteria: 'Boletería', 'boleteria-boletos': 'Boletos vendidos', 'boleteria-tipos': 'Tipos de boleto', 'boleteria-codigos': 'Códigos generados', 'boleteria-tiendas': 'Tiendas autorizadas', newOrder: 'Nuevo pedido',
   };
 
   return (
@@ -3419,6 +3424,7 @@ export default function AdminMobile() {
             }
           />
         )}
+        {activeTab === 'stands'      && <div className="p-4"><StandsAdmin /></div>}
         {activeTab === 'tasa'        && <TasaSection />}
         {activeTab === 'finanzas'    && <FinanzasSection />}
         {activeTab === 'popups'      && <div className="p-4 text-center text-[#999] text-sm pt-16">Usa el panel de escritorio para gestionar los popups.</div>}

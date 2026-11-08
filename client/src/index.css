@@ -4843,6 +4843,17 @@ html.iw-barra-fija .ia-hoja { bottom: calc(env(safe-area-inset-bottom) + 84px) !
 .pk-lema span { display: block; }
 .pk-hero-dato { margin-top: 10px; font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--pk-cian); }
 /* «Ver el mapa del evento»: lleva a la sección del plano */
+/* Botones de la portada: «Reserva tu stand» (bien visible) y el mapa */
+.pk-hero-acciones { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.pk-hero-acciones .pk-hero-mapa { margin-top: 0; }
+.pk-hero-stands { display: inline-flex; align-items: center; gap: 9px; padding: 14px 20px; color: #fff; font-weight: 900; font-size: 15px;
+  letter-spacing: .02em; background: linear-gradient(135deg, #ff3d9e, #e5007d); border: 1px solid #ff8cc6;
+  clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+  box-shadow: 0 0 0 0 rgba(255,61,158,.6); animation: pk-stands-pulso 2.4s ease-in-out infinite; text-decoration: none; }
+.pk-hero-stands:hover { filter: brightness(1.1); }
+@keyframes pk-stands-pulso { 0%,100% { filter: drop-shadow(0 0 0 rgba(255,61,158,0)); } 50% { filter: drop-shadow(0 0 14px rgba(255,61,158,.75)); } }
+@media (prefers-reduced-motion: reduce) { .pk-hero-stands { animation: none; } }
+.pk-stands-seccion { margin: -6px 10px 18px 0; }
 .pk-hero-mapa { margin-top: 16px; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border: 1px solid rgba(111,240,255,.55);
   background: rgba(5,6,12,.55); backdrop-filter: blur(6px); color: #e9fbff; font-size: 11px; font-weight: 700; letter-spacing: .16em; text-transform: uppercase;
   clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: background .2s, border-color .2s; }

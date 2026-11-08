@@ -1149,6 +1149,65 @@ export const appRouter = router({
   }),
 
   // ─── World Fest: rueda de prensa (confirmar asistencia sin registro) ─────────
+  // ─── Venta de stands del Fest ─────────────────────────────────────────────
+  stands: router({
+    /** Mapa y disponibles (público, sin datos de compradores) */
+    publico: publicProcedure.query(async () => {
+      const { standsPublicos, TIPOS_STAND, ABONO_PCT } = await import("./stands");
+      const r = await standsPublicos();
+      return { ...r, tipos: TIPOS_STAND, abonoPct: ABONO_PCT };
+    }),
+    solicitar: publicProcedure
+      .input(z.object({
+        standId: z.number().int().positive(),
+        negocio: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        contacto: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        email: z.string().trim().toLowerCase().email().max(320),
+        whatsapp: z.string().trim().max(40).transform(v => (v.trim().startsWith("+") ? "+" : "") + v.replace(/[^0-9]/g, ""))
+          .refine(v => { const d = v.replace(/\D/g, "").length; return d >= 7 && d <= 20; }, "WhatsApp inválido"),
+        rif: z.string().trim().max(40).optional(),
+        modalidad: z.enum(["abono", "completo"]),
+        metodo: z.enum(["pago_movil", "crypto", "efectivo", "otro"]),
+        referencia: z.string().trim().min(3).max(120).transform(v => v.replace(/[<>]/g, "")),
+        comprobanteUrl: z.string().url().max(600).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!limitarPorUsuario(`stand:${clientIp(ctx.req)}`, 10, 60 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiadas solicitudes. Intenta más tarde." });
+        }
+        const { crearSolicitud } = await import("./stands");
+        try { return await crearSolicitud(input); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    panel: adminProcedure.query(async () => (await import("./stands")).panelStands()),
+    aprobarPago: adminProcedure
+      .input(z.object({ pagoId: z.number().int().positive(), monto: z.number().positive().max(100000).optional() }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./stands")).aprobarPago(input.pagoId, input.monto); }
+        catch (e: any) { throw new TRPCError({ code: "CONFLICT", message: e.message }); }
+      }),
+    rechazarPago: adminProcedure.input(z.object({ pagoId: z.number().int().positive() }))
+      .mutation(async ({ input }) => (await import("./stands")).rechazarPago(input.pagoId)),
+    registrarPago: adminProcedure
+      .input(z.object({ reservaId: z.number().int().positive(), monto: z.number().positive().max(100000), metodo: z.string().trim().min(2).max(30), referencia: z.string().trim().max(120).default("") }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./stands")).registrarPagoAdmin(input.reservaId, input.monto, input.metodo, input.referencia); }
+        catch (e: any) { throw new TRPCError({ code: "CONFLICT", message: e.message }); }
+      }),
+    cambiarMesa: adminProcedure.input(z.object({ reservaId: z.number().int().positive(), standId: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./stands")).cambiarMesa(input.reservaId, input.standId); }
+        catch (e: any) { throw new TRPCError({ code: "CONFLICT", message: e.message }); }
+      }),
+    anular: adminProcedure.input(z.object({ reservaId: z.number().int().positive() }))
+      .mutation(async ({ input }) => (await import("./stands")).anularReserva(input.reservaId)),
+    ubicar: adminProcedure
+      .input(z.object({ standId: z.number().int().positive(), x: z.number().min(0).max(100).nullable(), y: z.number().min(0).max(100).nullable() }))
+      .mutation(async ({ input }) => (await import("./stands")).ubicarStand(input.standId, input.x, input.y)),
+    bloquear: adminProcedure.input(z.object({ standId: z.number().int().positive(), bloquear: z.boolean() }))
+      .mutation(async ({ input }) => (await import("./stands")).bloquearStand(input.standId, input.bloquear)),
+  }),
+
   prensa: router({
     estado: publicProcedure
       .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{12,64}$/).optional() }).optional())

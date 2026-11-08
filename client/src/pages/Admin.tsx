@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
+import StandsAdmin from "@/components/admin/StandsAdmin";
 import FeedbackSection from "@/components/admin/FeedbackSection";
 import EliminarCosplayer from "@/components/admin/EliminarCosplayer";
 import { useAvisosAdmin } from "@/hooks/useAvisosAdmin";
@@ -11,7 +12,7 @@ import {
   Plus, Pencil, Trash2, Check, X, Upload, ChevronDown, Loader2,
   DollarSign, ArrowUpRight, Lock, CheckCircle2, Settings, Instagram, ExternalLink, Save,
   Facebook, Twitter, Youtube, Megaphone, XCircle, Search, HelpCircle,
-  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText, Download,
+  CreditCard, Eye, CheckCheck, Ban, MessageCircle, Link2, ChevronUp, Sparkles, Gift, Menu, BookOpen, Ticket, Copy, LogOut, Phone, Clock, Archive, ArchiveRestore, FolderOpen, Mail, MapPin, ChevronRight, Image as ImageIcon, RotateCcw, FileText, Download, Store,
 } from "lucide-react";
 import { COLORES, ESTADOS_PEDIDO, PASOS_PEDIDO, ESTADOS_PAGO, dinero, fechaRelativa, Estado, EncabezadoSeccion, EstadoVacio, ChipFiltro, confirmar, ModalConfirmar } from "@/components/admin/ui";
 import PanelResumen from "@/components/admin/PanelResumen";
@@ -30,7 +31,7 @@ import { Link } from "wouter";
 import MediaLibrary from "@/components/admin/MediaLibrary";
 import { getLoginUrl, urlPublica } from "@/const";
 
-type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards" | "campanas" | "patrocinantes";
+type AdminTab = "dashboard" | "products" | "categories" | "orders" | "payments" | "finanzas" | "feedback" | "boleteria" | "quotes" | "subscribers" | "media" | "settings" | "faq" | "linkbio" | "users" | "popups" | "cosplay" | "blog" | "giftcards" | "campanas" | "patrocinantes" | "stands";
 
 // ─── Variant Manager ─────────────────────────────────────────────────────────
 function VariantManager({ productId }: { productId: number }) {
@@ -646,7 +647,7 @@ const GRUPOS_MENU: { titulo: string; ids: string[] }[] = [
   { titulo: "", ids: ["dashboard"] },
   { titulo: "Ventas", ids: ["orders", "payments", "quotes", "giftcards"] },
   { titulo: "Catálogo", ids: ["products", "categories", "media"] },
-  { titulo: "World Fest", ids: ["boleteria", "cosplay"] },
+  { titulo: "World Fest", ids: ["stands", "boleteria", "cosplay"] },
   { titulo: "Comunidad", ids: ["users", "subscribers", "campanas", "feedback"] },
   { titulo: "Contenido", ids: ["blog", "faq", "popups", "linkbio"] },
   { titulo: "Ajustes", ids: ["settings"] },
@@ -658,7 +659,11 @@ export default function Admin() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const utils = trpc.useUtils();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [tab, setTab] = useState<AdminTab>("dashboard");
+  // Se puede abrir directo en una sección: /admin?tab=stands (lo usan los avisos)
+  const [tab, setTab] = useState<AdminTab>(() => {
+    try { const t = new URLSearchParams(window.location.search).get("tab"); if (t) return t as AdminTab; } catch { /* */ }
+    return "dashboard";
+  });
   const handleTabChange = (t: AdminTab) => {
     // Finanzas ahora vive dentro de «Pagos y finanzas»
     if (t === "finanzas") { setTab("payments" as AdminTab); setVistaPagos("movimientos"); return; }
@@ -1235,6 +1240,7 @@ export default function Admin() {
     { id: "payments" as AdminTab, label: "Pagos y finanzas", icon: CreditCard },
     { id: "finanzas" as AdminTab, label: "Finanzas",     icon: DollarSign },
     { id: "feedback" as AdminTab, label: "Sugerencias",  icon: MessageCircle },
+    { id: "stands" as AdminTab, label: "Stands",       icon: Store },
     { id: "boleteria" as AdminTab, label: "Boletería",    icon: Ticket },
     { id: "patrocinantes" as AdminTab, label: "Patrocinantes", icon: Megaphone },
     { id: "quotes" as AdminTab,   label: "Cotizaciones", icon: FileText },
@@ -2690,6 +2696,15 @@ export default function Admin() {
                   <strong className="text-[#111]">www.isekaiworld.co/guild/mejoras</strong> con ellos.
                 </p>
                 <FeedbackSection />
+              </motion.div>
+            )}
+
+          {/* ─── Venta de stands ──────────────────────────────────────────────── */}
+            {tab === "stands" && (
+              <motion.div key="stands" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="w-full overflow-hidden">
+                <h1 className="mb-1 text-2xl font-bold">Stands</h1>
+                <p className="mb-6 text-sm text-[#666]">Pagos por revisar, saldos pendientes de cada tienda y las mesas en el plano. Página pública: www.isekaiworld.co/stands</p>
+                <StandsAdmin />
               </motion.div>
             )}
 

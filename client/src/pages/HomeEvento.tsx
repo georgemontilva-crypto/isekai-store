@@ -438,6 +438,7 @@ export default function HomeEvento() {
         onInsignia={() => ir("pk-rangos")}
         onMapa={() => ir("pk-evento")}
         textoMapa={en ? "See the event map" : "Ver el mapa del evento"}
+        textoStands={en ? "Book your stand" : "Reserva tu stand"}
       />
 
       {/* ═══ 001 ¿QUÉ ES? (del brochure) ═══ */}
@@ -527,6 +528,9 @@ export default function HomeEvento() {
       <section id="pk-evento" className="pk-sec pk-oscuro pk-evento">
         <div className="pk-ancho">
           <Titulo n={5} intro={en ? "Tap a zone on the map to see what it will look like." : "Toca una zona del mapa para ver cómo se verá."}>{capitulos[4][1]}</Titulo>
+          <a href="/stands" className="pk-hero-stands pk-stands-seccion">
+            <Store size={17} strokeWidth={2} /> {en ? "Book your stand on the map" : "Reserva tu stand en el plano"} <ChevronRight size={16} />
+          </a>
           <button className="pk-mono pk-compartir-mapa" onClick={compartirMapa}>
             {mapaCopiado ? <Check size={14} /> : <Share2 size={14} />}
             {mapaCopiado ? (en ? "Link copied" : "Enlace copiado") : (en ? "Share the map" : "Compartir el mapa")}
