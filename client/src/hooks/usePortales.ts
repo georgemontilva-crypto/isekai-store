@@ -1,4 +1,4 @@
-import { Handshake, Swords, ScanLine, Ticket, Zap } from "lucide-react";
+import { Handshake, Store, Swords, ScanLine, Ticket, Zap } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 
@@ -12,7 +12,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
  *   todos    → Level Pass (con boleto: «Mi Level Pass»; sin él, entra escaneando)
  */
 export type Portal = {
-  clave: "vender" | "xp" | "acceso" | "pass" | "rueda";
+  clave: "vender" | "xp" | "acceso" | "pass" | "rueda" | "stands";
   href: string;
   texto: string;
   corto: string;
@@ -36,6 +36,10 @@ export function usePortales() {
   }
   if (acceso?.esPortero) {
     roles.push({ clave: "acceso", href: "/acceso", texto: "Control de acceso", corto: "Acceso", descripcion: "Valida la entrada en la puerta", icono: ScanLine, color: "#2dd4bf" });
+  }
+  // Administrador: acceso directo a la venta de stands del Fest
+  if (acceso?.rol === "admin") {
+    roles.push({ clave: "stands", href: "/admin?tab=stands", texto: "Stands del Fest", corto: "Stands", descripcion: "Pagos por revisar, saldos y mesas", icono: Store, color: "#fbbf24" });
   }
   // Staff de la rueda de negocios (el administrador la tiene en su panel)
   if (acceso?.esRueda) {
