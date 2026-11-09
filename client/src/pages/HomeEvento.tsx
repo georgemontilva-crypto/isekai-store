@@ -138,15 +138,26 @@ function Cinta({ items, claro = false }: { items: string[]; claro?: boolean }) {
   );
 }
 
-/** Anima la entrada de todo lo marcado con .pk-rev al aparecer en pantalla */
+/**
+ * Anima la entrada de todo lo marcado con .pk-rev al aparecer en pantalla.
+ * También vigila lo que se pinta DESPUÉS (cambiar de carril a rejilla y
+ * volver, salir de la mazmorra, cambiar de idioma): antes esos elementos
+ * nuevos nunca se revelaban y se quedaban invisibles.
+ */
 function useRevelar(dep: unknown) {
   useEffect(() => {
-    const els = Array.from(document.querySelectorAll<HTMLElement>(".pk-rev:not(.pk-rev-on)"));
     const io = new IntersectionObserver(ents => {
       ents.forEach(en => { if (en.isIntersecting) { en.target.classList.add("pk-rev-on"); io.unobserve(en.target); } });
     }, { rootMargin: "0px 0px -8% 0px" });
-    els.forEach(el => io.observe(el));
-    return () => io.disconnect();
+    const vigilar = () => document.querySelectorAll<HTMLElement>(".pk-rev:not(.pk-rev-on)").forEach(el => io.observe(el));
+    vigilar();
+    let pendiente = 0;
+    const mo = new MutationObserver(() => {
+      if (pendiente) return;
+      pendiente = requestAnimationFrame(() => { pendiente = 0; vigilar(); });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+    return () => { io.disconnect(); mo.disconnect(); if (pendiente) cancelAnimationFrame(pendiente); };
   }, [dep]);
 }
 
