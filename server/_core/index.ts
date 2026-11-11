@@ -56,6 +56,7 @@ async function startServer() {
   // Tablas de la venta de stands del Fest (se crean solas)
   void import("../stands").then(m => m.asegurarTablasStands())
     .then(() => import("../standTiendas")).then(m => m.asegurarTablasStandTiendas())
+    .then(() => import("../boletosOnline")).then(m => m.asegurarTablasBoletosOnline())
     .catch(e => console.error("[Arranque] Stands:", e));
   // Índices para la puerta y las estaciones de EXP (en segundo plano)
   void import("../indices").then(m => m.asegurarIndices()).catch(e => console.error("[Arranque] Índices:", e));
@@ -164,6 +165,19 @@ async function startServer() {
       return crypto.createHash("sha1").update(fsVersion.readFileSync(ruta)).digest("hex").slice(0, 12);
     } catch { return "dev"; }
   })();
+  // QR de un boleto como imagen: lo usa el correo que lleva el boleto
+  app.get('/api/boleto-qr/:archivo', async (req, res) => {
+    const token = String(req.params.archivo ?? "").replace(/\.png$/i, "");
+    if (!/^[A-Za-z0-9]{20,64}$/.test(token)) { res.status(404).end(); return; }
+    try {
+      const QRCode = (await import("qrcode")).default;
+      const png = await QRCode.toBuffer(`https://www.isekaiworld.co/vender/${token}`, { width: 380, margin: 1 });
+      res.setHeader("Content-Type", "image/png");
+      res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+      res.end(png);
+    } catch { res.status(500).end(); }
+  });
+
   app.get('/api/version', (_req, res) => {
     res.setHeader('Cache-Control', 'no-store');
     res.json({ v: VERSION_SITIO });

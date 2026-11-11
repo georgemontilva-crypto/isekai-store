@@ -317,8 +317,17 @@ export async function comprarMisionesExtra(t: TiendaPlan, d: { cantidad: number;
     if (!estado) throw new Error("Tu tienda no tiene un stand del Fest");
     if (d.cantidad > estado.puedeComprar) throw new Error(estado.puedeComprar > 0 ? `Solo puedes comprar ${estado.puedeComprar} más (el tope es ${MAX_MISIONES} misiones en total)` : `Ya llegaste al tope de ${MAX_MISIONES} misiones`);
     const monto = d.cantidad * PRECIO_MISION_EXTRA;
-    await db.execute(sql`INSERT INTO festMisionExtras (storeId, cantidad, monto, metodo, referencia, comprobanteUrl)
+    const ins = await db.execute(sql`INSERT INTO festMisionExtras (storeId, cantidad, monto, metodo, referencia, comprobanteUrl)
       VALUES (${t.id}, ${d.cantidad}, ${monto}, ${d.metodo}, ${d.referencia}, ${d.comprobanteUrl ?? null})`);
+    // Binance Pay: se verifica solo con el número de transacción
+    if (d.metodo === "crypto") {
+      try {
+        const idExtra = Number((ins as any)?.[0]?.insertId);
+        const { verificarPagoBinance } = await import("./binancePay");
+        const v = await verificarPagoBinance({ transactionId: d.referencia, montoUsd: monto, uso: `mision-extra:${idExtra}` });
+        if (v.ok) { await revisarExtra(idExtra, true); return { ok: true, monto, aprobado: true }; }
+      } catch (e: any) { console.warn("[StandTiendas] verificación Binance:", e?.message ?? e); }
+    }
     try {
       const { insertAdminNotification } = await import("./db");
       await insertAdminNotification({ type: "new_order", title: "Compra de misiones extra", body: `${t.name} · ${d.cantidad} ${d.cantidad === 1 ? "misión" : "misiones"} · $${monto}` });
@@ -326,7 +335,7 @@ export async function comprarMisionesExtra(t: TiendaPlan, d: { cantidad: number;
       await enviarPushAdmins({ titulo: `⚔️ Misiones extra · ${t.name}`, cuerpo: `Reportó $${monto} por ${d.cantidad}. Revisa el pago.`, url: "/boleteria?v=admin", etiqueta: `mision-extra-${t.id}` });
     } catch (e) { console.warn("[StandTiendas] aviso al admin:", e); }
     avisar();
-    return { ok: true, monto };
+    return { ok: true, monto, aprobado: false };
   });
 }
 

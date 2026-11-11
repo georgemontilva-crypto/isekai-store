@@ -1153,6 +1153,55 @@ export const appRouter = router({
 
   // ─── World Fest: rueda de prensa (confirmar asistencia sin registro) ─────────
   // ─── Venta de stands del Fest ─────────────────────────────────────────────
+  /** Compra de boletos por la web */
+  boletosOnline: router({
+    catalogo: publicProcedure.query(async () => (await import("./boletosOnline")).catalogo()),
+    comprar: publicProcedure
+      .input(z.object({
+        ticketTypeId: z.number().int().positive(),
+        cantidad: z.number().int().min(1).max(6),
+        nombre: z.string().trim().min(2).max(100).transform(v => v.replace(/[<>]/g, "")),
+        apellido: z.string().trim().min(2).max(100).transform(v => v.replace(/[<>]/g, "")),
+        telefono: z.string().trim().max(40).transform(v => (v.trim().startsWith("+") ? "+" : "") + v.replace(/[^0-9]/g, ""))
+          .refine(v => { const d = v.replace(/\D/g, "").length; return d >= 7 && d <= 20; }, "Teléfono inválido"),
+        email: z.string().trim().toLowerCase().email().max(320),
+        metodo: z.enum(["pago_movil", "crypto"]),
+        referencia: z.string().trim().min(3).max(120).transform(v => v.replace(/[<>\s]/g, "")),
+        comprobanteUrl: z.string().url().max(600).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!limitarPorUsuario(`boleto-web:${clientIp(ctx.req)}`, 12, 60 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados intentos. Prueba más tarde." });
+        }
+        try { return await (await import("./boletosOnline")).crearOrden(input); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    estado: publicProcedure
+      .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{16,40}$/) }))
+      .query(async ({ input }) => (await import("./boletosOnline")).estadoOrden(input.clave)),
+    verificar: publicProcedure
+      .input(z.object({ clave: z.string().regex(/^[A-Za-z0-9]{16,40}$/), transactionId: z.string().trim().min(8).max(80).transform(v => v.replace(/[<>\s]/g, "")) }))
+      .mutation(async ({ input, ctx }) => {
+        if (!limitarPorUsuario(`boleto-verif:${clientIp(ctx.req)}`, 20, 30 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados intentos. Espera unos minutos." });
+        }
+        try { return await (await import("./boletosOnline")).reintentarVerificacion(input.clave, input.transactionId); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    boleto: publicProcedure
+      .input(z.object({ token: z.string().regex(/^[A-Za-z0-9]{20,64}$/) }))
+      .query(async ({ input }) => (await import("./boletosOnline")).boletoPublico(input.token)),
+    // ── Administrador ──
+    ordenes: adminProcedure.query(async () => (await import("./boletosOnline")).panelOrdenes()),
+    revisar: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), aprobar: z.boolean() }))
+      .mutation(async ({ input }) => {
+        const m = await import("./boletosOnline");
+        try { return input.aprobar ? await m.aprobarOrden(input.id) : await m.rechazarOrden(input.id); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+  }),
+
   /** Tiendas con stand: cupo de boletos, comisión y misiones del Level Pass */
   standTienda: router({
     miPanel: protectedProcedure.query(async ({ ctx }) => {

@@ -8,6 +8,7 @@ import TicketsAdmin from "@/components/admin/TicketsAdmin";
 import StandsAdmin from "@/components/admin/StandsAdmin";
 import CambiarHerramienta from "@/components/CambiarHerramienta";
 import TiendasStandAdmin from "@/components/admin/TiendasStandAdmin";
+import OrdenesBoletosAdmin from "@/components/admin/OrdenesBoletosAdmin";
 import { trpc } from "@/lib/trpc";
 import TutorialGuiado, { type PasoTutorial } from "@/components/TutorialGuiado";
 
@@ -164,7 +165,7 @@ export default function Boleteria() {
         <div className="mb-4" />
 
         {vista === "admin" ? (
-          <div className="flex flex-col gap-4"><TiendasStandAdmin soloPendientes /><TicketsAdmin compact incrustado /></div>
+          <div className="flex flex-col gap-4"><OrdenesBoletosAdmin /><TiendasStandAdmin soloPendientes /><TicketsAdmin compact incrustado /></div>
         ) : vista === "stands" ? (
           <StandsAdmin />
         ) : cargando ? (

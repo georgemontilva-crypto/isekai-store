@@ -169,6 +169,69 @@ export async function crearTienda(data: {
   });
 }
 
+/** Tienda a nombre de la que quedan las compras hechas por la web */
+export const NOMBRE_VENTA_EN_LINEA = "Isekai World (venta en línea)";
+export async function tiendaEnLinea() {
+  const db = await getDb();
+  if (!db) return undefined;
+  return conCandado("tienda-en-linea", async () => {
+    let [t] = await db.select().from(stores).where(eq(stores.name, NOMBRE_VENTA_EN_LINEA)).limit(1);
+    if (!t) {
+      await db.insert(stores).values({ name: NOMBRE_VENTA_EN_LINEA });
+      [t] = await db.select().from(stores).where(eq(stores.name, NOMBRE_VENTA_EN_LINEA)).limit(1);
+    }
+    return t;
+  });
+}
+
+/**
+ * Boletos digitales: nacen ya vendidos (compra por la web). Respeta el cupo
+ * del tipo (VIP, FanBox) dentro del mismo candado que la venta en tienda.
+ */
+export async function emitirBoletosVendidos(d: {
+  ticketTypeId: number; cantidad: number; storeId: number; lote: string;
+  buyerName: string; buyerLastName: string; buyerPhone: string; buyerEmail: string;
+}) {
+  const db = await getDb();
+  if (!db) throw new Error("DB no disponible");
+  const [tipo] = await db.select().from(ticketTypes).where(eq(ticketTypes.id, d.ticketTypeId)).limit(1);
+  if (!tipo) throw new Error("Ese tipo de boleto ya no existe");
+  const [ev] = await db.select().from(events).where(eq(events.id, tipo.eventId)).limit(1);
+  if (!ev) throw new Error("El evento ya no existe");
+
+  return conCandado(`cupo:${tipo.id}`, async () => {
+    if (tipo.cupo != null) {
+      const [{ n }] = await db.select({ n: sql<number>`COUNT(*)` }).from(eventTickets)
+        .where(and(eq(eventTickets.ticketTypeId, tipo.id), eq(eventTickets.status, "sold")));
+      if (Number(n) + d.cantidad > tipo.cupo) throw new Error(`Ya no quedan suficientes boletos «${tipo.name}» (quedan ${Math.max(0, tipo.cupo - Number(n))})`);
+    }
+    const [rateRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, "bs_rate")).limit(1);
+    const tasa = parseFloat(rateRow?.value ?? "0") || 0;
+    const usd = parseFloat(tipo.priceUsd as any);
+    const filas: any[] = [];
+    for (let i = 0; i < d.cantidad; i++) {
+      let code = "";
+      for (let intento = 0; intento < 30; intento++) {
+        code = `IW-${nanoid(intento < 20 ? 6 : 9).toUpperCase().replace(/[^A-Z0-9]/g, "X")}`;
+        const [ya] = await db.select({ id: eventTickets.id }).from(eventTickets).where(eq(eventTickets.code, code)).limit(1);
+        if (!ya && !filas.some(f => f.code === code)) break;
+      }
+      filas.push({
+        eventId: tipo.eventId, token: nuevoToken(), code, status: "sold", batch: d.lote,
+        ticketTypeId: tipo.id, storeId: d.storeId,
+        buyerName: d.buyerName.trim().slice(0, 200), buyerLastName: d.buyerLastName.trim().slice(0, 200),
+        buyerPhone: d.buyerPhone.trim().slice(0, 50), buyerEmail: d.buyerEmail.trim().toLowerCase().slice(0, 320),
+        priceUsd: usd.toFixed(2), rateBs: tasa > 0 ? tasa.toFixed(2) : null,
+        priceBs: tasa > 0 ? (Math.round(usd * tasa * 100) / 100).toFixed(2) : null,
+        soldAt: new Date(),
+      });
+    }
+    await db.insert(eventTickets).values(filas as any);
+    const creados = await db.select().from(eventTickets).where(and(eq(eventTickets.eventId, tipo.eventId), eq(eventTickets.batch, d.lote))).orderBy(eventTickets.id);
+    return { boletos: creados, tipo, evento: ev };
+  });
+}
+
 /**
  * Taquilla propia: la tienda a nombre de la que vende el administrador cuando
  * su cuenta no está ligada a ninguna. Se crea sola la primera vez.

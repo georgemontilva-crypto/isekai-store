@@ -30,7 +30,7 @@ export default function Stands() {
   const { data: settings } = trpc.settings.getAll.useQuery();
   const [tipo, setTipo] = useState<Tipo | null>(null);
   const [mesaId, setMesaId] = useState<number | null>(null);
-  const [hecho, setHecho] = useState<{ numero: string; monto: number; tipo: string } | null>(null);
+  const [hecho, setHecho] = useState<{ numero: string; monto: number; tipo: string; aprobado?: boolean } | null>(null);
 
   const mesas = (data?.stands ?? []) as MesaPlano[];
   const mesa = mesas.find(m => m.id === mesaId) ?? null;
@@ -50,12 +50,14 @@ export default function Stands() {
       <main className="min-h-[100svh] bg-[#06050a] px-5 py-16 text-white">
         <div className="mx-auto max-w-md text-center">
           <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-[#16a34a]/20"><Check size={30} className="text-[#4ade80]" /></div>
-          <h1 className="text-[26px] font-black leading-tight">¡Recibimos tu solicitud!</h1>
+          <h1 className="text-[26px] font-black leading-tight">{hecho.aprobado ? "¡Pago verificado: tu stand está reservado!" : "¡Recibimos tu solicitud!"}</h1>
           <p className="mt-4 text-[15px] leading-relaxed text-[#bfb8c9]">
             Stand <b className="text-white">{hecho.numero}</b> · {hecho.tipo}. Reportaste un pago de <b className="text-white">{dinero(hecho.monto)}</b>.
           </p>
           <p className="mt-3 text-[15px] leading-relaxed text-[#bfb8c9]">
-            En cuanto confirmemos tu pago, la mesa queda <b className="text-white">reservada a tu nombre</b> y te llega un correo. Hasta entonces sigue disponible para otros, así que te avisaremos lo antes posible.
+            {hecho.aprobado
+              ? <>Verificamos tu pago de Binance y la mesa ya quedó <b className="text-white">reservada a tu nombre</b>. Te enviamos un correo con el detalle.</>
+              : <>En cuanto confirmemos tu pago, la mesa queda <b className="text-white">reservada a tu nombre</b> y te llega un correo. Hasta entonces sigue disponible para otros, así que te avisaremos lo antes posible.</>}
           </p>
           <div className="mt-8 flex flex-col gap-3">
             <Link href="/" className="rounded-full bg-[#ff3d9e] py-3.5 font-bold">Volver al Fest</Link>
@@ -159,7 +161,7 @@ export default function Stands() {
 
 function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
   mesa: MesaPlano; tipos: Record<string, { nombre: string; precio: number }>; abonoPct: number; tasa: number;
-  onListo: (r: { numero: string; monto: number; tipo: string }) => void;
+  onListo: (r: { numero: string; monto: number; tipo: string; aprobado?: boolean }) => void;
 }) {
   const t = tipos[mesa.tipo];
   const [modalidad, setModalidad] = useState<"abono" | "completo">("abono");
@@ -175,7 +177,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
   const subir = trpc.orders.uploadReceiptPublic.useMutation();
   const utils = trpc.useUtils();
   const solicitar = trpc.stands.solicitar.useMutation({
-    onSuccess: r => { void utils.stands.publico.invalidate(); onListo({ numero: r.numero, monto: r.monto, tipo: r.tipo }); window.scrollTo({ top: 0 }); },
+    onSuccess: r => { void utils.stands.publico.invalidate(); if (r.aviso) toast.message(r.aviso); onListo({ numero: r.numero, monto: r.monto, tipo: r.tipo, aprobado: r.aprobado }); window.scrollTo({ top: 0 }); },
     onError: e => toast.error(e.message.includes("WhatsApp") ? "Revisa el número de WhatsApp" : e.message.includes("email") ? "Revisa el correo" : e.message),
   });
 
@@ -265,14 +267,14 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
           <>
             <Dato k="Binance Pay ID" v={BINANCE_PAY_ID} copiar={copiar} />
             <Dato k="Monto" v={`${monto} USDT`} copiar={copiar} />
-            <p className="mt-1 text-[12px] text-[#9a93a6]">En Binance: Pagar → Enviar → Binance Pay ID. Coloca el número de orden como referencia.</p>
+            <p className="mt-1 text-[12px] text-[#9a93a6]">En Binance: Pagar → Enviar → Binance Pay ID. Después abre ese pago en tu historial, copia el «ID de la transacción» y pégalo abajo: con ese número verificamos tu pago solos y la mesa queda reservada al momento.</p>
           </>
         )}
       </div>
 
       <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <label>
-          <span className={etiqueta}>{metodo === "efectivo" ? "¿A quién le entregaste el efectivo? (opcional)" : "Número de referencia *"}</span>
+          <span className={etiqueta}>{metodo === "efectivo" ? "¿A quién le entregaste el efectivo? (opcional)" : metodo === "crypto" ? "Número de transacción de Binance *" : "Número de referencia *"}</span>
           <input value={referencia} onChange={e => setReferencia(e.target.value)} maxLength={120} placeholder={metodo === "efectivo" ? "Nombre del agente o n.º de recibo" : ""} className={campo} />
         </label>
         <label>

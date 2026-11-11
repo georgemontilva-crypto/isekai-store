@@ -179,7 +179,7 @@ function ComprarExtra({ max, precio, tope }: { max: number; precio: number; tope
   const tasa = Number.isFinite(tasaLeida) ? tasaLeida : 0;
   const subir = trpc.orders.uploadReceiptPublic.useMutation();
   const comprar = trpc.standTienda.comprarExtra.useMutation({
-    onSuccess: () => { toast.success("Pago reportado. Te avisamos al confirmarlo."); setAbierto(false); setReferencia(""); setComprobanteUrl(""); void utils.standTienda.miPanel.invalidate(); },
+    onSuccess: r => { toast.success(r.aprobado ? "¡Pago verificado! Ya puedes escribir tus misiones." : "Pago reportado. Te avisamos al confirmarlo."); setAbierto(false); setReferencia(""); setComprobanteUrl(""); void utils.standTienda.miPanel.invalidate(); },
     onError: e => toast.error(e.message),
   });
   const n = Math.min(cantidad, max);
@@ -255,12 +255,13 @@ function ComprarExtra({ max, precio, tope }: { max: number; precio: number; tope
           <>
             <Dato k="Binance Pay ID" v={BINANCE_PAY_ID} />
             <Dato k="Monto" v={`${monto} USDT`} />
+            <p className="mt-1 text-[12px] text-[#9a93a6]">Después de pagar, copia el «ID de la transacción» de tu historial de Binance y pégalo abajo: se verifica solo.</p>
           </>
         )}
       </div>
 
       <label className="mt-4 block">
-        <span className={etiqueta}>{metodo === "efectivo" ? "¿A quién le entregaste el efectivo?" : "Número de referencia *"}</span>
+        <span className={etiqueta}>{metodo === "efectivo" ? "¿A quién le entregaste el efectivo?" : metodo === "crypto" ? "Número de transacción de Binance *" : "Número de referencia *"}</span>
         <input value={referencia} onChange={e => setReferencia(e.target.value)} maxLength={120} className={campo} />
       </label>
       <label className="mt-3 block">

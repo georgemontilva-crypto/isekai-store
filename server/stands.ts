@@ -256,8 +256,22 @@ export async function crearSolicitud(d: DatosSolicitud) {
     (standId, tipo, precio, negocio, contacto, email, whatsapp, rif, modalidad)
     VALUES (${stand.id}, ${stand.tipo}, ${t.precio}, ${d.negocio}, ${d.contacto}, ${d.email}, ${d.whatsapp}, ${d.rif ?? null}, ${d.modalidad})`);
   const reservaId = Number((res as any)?.[0]?.insertId);
-  await db.execute(sql`INSERT INTO festStandPagos (reservaId, monto, metodo, referencia, comprobanteUrl)
+  const insPago = await db.execute(sql`INSERT INTO festStandPagos (reservaId, monto, metodo, referencia, comprobanteUrl)
     VALUES (${reservaId}, ${monto}, ${d.metodo}, ${d.referencia}, ${d.comprobanteUrl ?? null})`);
+  // Binance Pay: con el número de transacción se verifica solo. Si coincide,
+  // la mesa queda reservada al instante; si no, sigue a revisión manual.
+  let avisoBinance: string | null = null;
+  if (d.metodo === "crypto") {
+    try {
+      const { verificarPagoBinance, MENSAJE_BINANCE } = await import("./binancePay");
+      const v = await verificarPagoBinance({ transactionId: d.referencia, montoUsd: monto, uso: `stand:${reservaId}` });
+      if (v.ok) {
+        await aprobarPago(Number((insPago as any)?.[0]?.insertId));
+        return { ok: true, reservaId, numero: stand.numero, monto, tipo: t.nombre, aprobado: true, aviso: null as string | null };
+      }
+      avisoBinance = MENSAJE_BINANCE[v.motivo] ?? null;
+    } catch (e: any) { console.warn("[Stands] verificación Binance:", e?.message ?? e); }
+  }
   // Aviso al admin (no frena la solicitud si falla)
   try {
     const { insertAdminNotification } = await import("./db");
@@ -266,7 +280,7 @@ export async function crearSolicitud(d: DatosSolicitud) {
     await enviarPushAdmins({ titulo: `🏪 Stand ${stand.numero} · ${d.negocio}`, cuerpo: `${t.nombre} · reportó $${monto}. Revisa el pago.`, url: "/admin?tab=stands", etiqueta: `stand-${reservaId}` });
   } catch (e) { console.warn("[Stands] aviso al admin:", e); }
   avisarCambio();
-  return { ok: true, reservaId, numero: stand.numero, monto, tipo: t.nombre };
+  return { ok: true, reservaId, numero: stand.numero, monto, tipo: t.nombre, aprobado: false, aviso: avisoBinance };
 }
 
 /** Todo para el admin: mesas, solicitudes y pagos */

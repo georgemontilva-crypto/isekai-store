@@ -449,6 +449,7 @@ export default function HomeEvento() {
         onInsignia={() => ir("pk-rangos")}
         onMapa={() => ir("pk-evento")}
         textoMapa={en ? "See the event map" : "Ver el mapa del evento"}
+        textoBoletos={en ? "Buy your ticket" : "Compra tu boleto"}
         textoStands={en ? "Book your stand" : "Reserva tu stand"}
       />
 
