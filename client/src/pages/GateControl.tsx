@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
+  LayoutGrid,
   Loader2, Check, X, AlertTriangle, ShieldCheck, WifiOff, Wifi,
   RefreshCw, Camera, Home,
 } from "lucide-react";
@@ -340,8 +341,8 @@ export default function GateControl() {
             {enLinea ? <Wifi size={13} /> : <WifiOff size={13} />}
             {enLinea ? "En línea" : "Sin señal"}
           </span>
-          <a href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8a8494]" aria-label="Volver a la web">
-            <Home size={18} />
+          <a href="/boleteria" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8a8494]" aria-label="Volver a Boletería">
+            <LayoutGrid size={18} />
           </a>
         </div>
         <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" ocultar={[]} />

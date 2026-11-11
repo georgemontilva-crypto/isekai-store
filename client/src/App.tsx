@@ -65,7 +65,7 @@ const CosplayLanding = lazy(() => import("./pages/CosplayLanding"));
 const RuedaPrensa = lazy(() => import("./pages/RuedaPrensa"));
 const Stands = lazy(() => import("./pages/Stands"));
 const StaffRueda = lazy(() => import("./pages/StaffRueda"));
-const Equipo = lazy(() => import("./pages/Equipo"));
+const Boleteria = lazy(() => import("./pages/Boleteria"));
 const CosplayApply = lazy(() => import("./pages/CosplayApply"));
 const CosplayGuild = lazy(() => import("./pages/CosplayGuild"));
 const CosplayProfile = lazy(() => import("./pages/CosplayProfile"));
@@ -156,7 +156,8 @@ function Router() {
         <Route path="/rueda-de-negocios" component={RuedaPrensa} />
         <Route path="/stands" component={Stands} />
         <Route path="/staff/rueda" component={StaffRueda} />
-        <Route path="/equipo" component={Equipo} />
+        <Route path="/boleteria" component={Boleteria} />
+        <Route path="/equipo" component={Boleteria} />
         {/* Enlace anterior: las invitaciones ya entregadas lo siguen usando */}
         <Route path="/rueda-de-prensa" component={RuedaPrensa} />
         <Route path="/cosplay" component={CosplayLanding} />
@@ -195,6 +196,7 @@ function Layout() {
     location.startsWith("/vender") ||
     location.startsWith("/staff/") ||
     location.startsWith("/equipo") ||
+    location.startsWith("/boleteria") ||
     location.startsWith("/acceso");
 
   const esPortadaFest = location === "/" || location === "/evento" || location === "/mapa";
@@ -217,6 +219,7 @@ function Layout() {
     location.startsWith("/acceso") ||
     location.startsWith("/staff/") ||
     location.startsWith("/equipo") ||
+    location.startsWith("/boleteria") ||
     location.startsWith("/guild/mejoras") ||
     location.startsWith("/worldfest/pass");
 

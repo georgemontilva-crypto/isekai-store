@@ -1,6 +1,7 @@
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { Link, useLocation, useRoute } from "wouter";
 import {
+  LayoutGrid,
   AlertCircle, ArrowLeft, BadgeCheck, Ban, Camera, Check, ChevronRight, Home, Keyboard, ListChecks,
   Gift, Loader2, MapPin, Receipt, Repeat, Search, Store, Swords, Ticket, User, X, Zap,
 } from "lucide-react";
@@ -473,8 +474,8 @@ export default function StorePortal() {
               {tienda.active ? <><BadgeCheck size={12} /> Activa</> : <><Ban size={12} /> Suspendida</>}
             </span>
           )}
-          <Link href="/" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8a8494]" aria-label="Volver a la web">
-            <Home size={18} />
+          <Link href="/boleteria" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[#8a8494]" aria-label="Volver a Boletería">
+            <LayoutGrid size={18} />
           </Link>
         </div>
         <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" ocultar={["vender", "xp"]} />

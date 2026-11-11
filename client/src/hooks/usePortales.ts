@@ -24,7 +24,7 @@ export type Portal = {
 export function usePortales() {
   const { isAuthenticated } = useAuth();
   const opciones = { enabled: isAuthenticated, staleTime: 60_000, retry: false } as const;
-  const { data: acceso } = trpc.tickets.miAcceso.useQuery(undefined, opciones);
+  const { data: acceso, isLoading: cargando } = trpc.tickets.miAcceso.useQuery(undefined, opciones);
   const { data: boleto } = trpc.levelPass.miBoleto.useQuery(undefined, opciones);
 
   const roles: Portal[] = [];
@@ -54,5 +54,5 @@ export function usePortales() {
     icono: Swords,
     color: "#a78bfa",
   };
-  return { roles, pase, tieneBoleto: Boolean(boleto), todos: [...roles, pase], esAdmin: acceso?.rol === "admin" };
+  return { roles, pase, tieneBoleto: Boolean(boleto), todos: [...roles, pase], esAdmin: acceso?.rol === "admin", cargando: isAuthenticated && cargando };
 }

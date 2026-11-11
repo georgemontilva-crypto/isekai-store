@@ -2029,6 +2029,7 @@ function MoreSection({ onLogout, onNavigate }: { onLogout: () => void; onNavigat
     {
       title: 'Herramientas',
       items: [
+        { label: 'Boletería (interfaz aparte)', tab: null, href: '/boleteria', icon: Ticket },
         { label: 'Stands: pagos y mesas', tab: 'stands' as MobileTab, icon: Store },
         { label: 'Página pública de stands', tab: null, href: '/stands', icon: Eye },
         { label: 'Ver tienda', tab: null, href: '/tienda', icon: Eye },
