@@ -6,8 +6,9 @@ import { REFERRAL_TIERS } from "@shared/referral";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { toast } from "sonner";
 import { Link } from "wouter";
-import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle, ChevronRight } from "lucide-react";
+import { User, Package, Zap, Wallet, Tag, Copy, Check, ExternalLink, X, Plus, Upload, Gift, ClipboardList, Settings, Printer, Sparkles, Truck, CheckCircle, ChevronRight, Camera, ImagePlus } from "lucide-react";
 import { getLoginUrl } from "@/const";
+import RecortarImagen from "@/components/RecortarImagen";
 import ActivarNotificaciones from "@/components/admin/ActivarNotificaciones";
 type Tab = "profile" | "kit" | "activities" | "wallet" | "redeem";
 
@@ -212,19 +213,31 @@ export default function CosplayDashboard() {
     }
   };
 
-  const handleBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  /**
+   * Foto de perfil y portada: al elegir la imagen se abre el encuadre (mover
+   * y acercar), y al tocar «Guardar» se sube recortada y queda guardada.
+   */
+  const [encuadre, setEncuadre] = useState<{ archivo: File; forma: "perfil" | "portada" } | null>(null);
+  const [subiendo, setSubiendo] = useState<"perfil" | "portada" | null>(null);
+  const elegir = (forma: "perfil" | "portada") => (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    await subirYGuardar(file, url => ({ bannerImage: url }), "Portada guardada");
     e.target.value = "";
-  };
-
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
     if (!file) return;
-    await subirYGuardar(file, url => ({ photo: url }), "Foto guardada");
-    e.target.value = "";
+    if (!file.type.startsWith("image/")) { toast.error("Elige una imagen"); return; }
+    setEncuadre({ archivo: file, forma });
   };
+  const guardarEncuadre = async (file: File) => {
+    const forma = encuadre!.forma;
+    setEncuadre(null);
+    setSubiendo(forma);
+    try {
+      await subirYGuardar(file, url => (forma === "perfil" ? { photo: url } : { bannerImage: url }), forma === "perfil" ? "Foto de perfil actualizada" : "Portada actualizada");
+    } finally {
+      setSubiendo(null);
+    }
+  };
+  const handleBannerUpload = elegir("portada");
+  const handlePhotoUpload = elegir("perfil");
 
   const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -399,44 +412,42 @@ export default function CosplayDashboard() {
               <div className="max-w-2xl mx-auto">
 
 
-                {/* Banner editable */}
-                <div className="relative w-full h-36 rounded-2xl overflow-hidden mb-0 bg-[#16191f] border-2 border-dashed border-white/10">
-                  {profileForm.bannerImage && (
-                    <img src={profileForm.bannerImage} className="w-full h-full object-cover" />
-                  )}
-                  {!profileForm.bannerImage && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <p className="text-[#555] text-sm">Sin banner — sube una imagen</p>
-                    </div>
-                  )}
-                  <label className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-3 py-1.5 rounded-full cursor-pointer flex items-center gap-1 hover:bg-black/90 transition-colors">
-                    <Upload size={12} />
-                    {profileForm.bannerImage ? 'Cambiar' : 'Subir banner'}
-                    <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} />
-                  </label>
-                </div>
+                {encuadre && (
+                  <RecortarImagen archivo={encuadre.archivo} forma={encuadre.forma} onListo={guardarEncuadre} onCancelar={() => setEncuadre(null)} />
+                )}
 
-                {/* Foto de perfil centrada sobre el banner */}
-                <div className="flex flex-col items-center -mt-10 mb-4 relative z-10">
-                  <div className="relative w-20 h-20 rounded-full overflow-hidden border-4 border-[#0d0d0d] mb-2"
-                    style={{ outline: `3px solid ${tierColor}` }}>
-                    {profileForm.photo
-                      ? <img src={profileForm.photo} className="w-full h-full object-cover" />
-                      : <div className="w-full h-full bg-white/[0.06] flex items-center justify-center">
-                          <User size={28} className="text-[#555]" />
-                        </div>
-                    }
-                    {uploadImage.isPending && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      </div>
-                    )}
-                  </div>
-                  <label className="bg-[#16191f] border border-white/10 text-white text-xs px-4 py-2 rounded-full cursor-pointer flex items-center gap-2 hover:border-[#e5007d] transition-colors">
-                    <Upload size={12} />
-                    {profileForm.photo ? 'Cambiar foto' : 'Subir foto de perfil'}
-                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} />
+                {/* Portada: toda la franja se toca para cambiarla */}
+                <label className="group relative block w-full cursor-pointer overflow-hidden rounded-2xl border border-white/10 bg-[#16191f]" style={{ aspectRatio: "3 / 1" }}>
+                  {profileForm.bannerImage
+                    ? <img src={profileForm.bannerImage} alt="Tu portada" className="h-full w-full object-cover" />
+                    : <div className="absolute inset-x-0 top-0 flex h-[62%] flex-col items-center justify-center gap-1 text-[#777]"><ImagePlus size={22} /><span className="text-sm">Agrega una portada</span></div>}
+                  <span className="absolute inset-0 bg-black/0 transition-colors group-hover:bg-black/25" />
+                  <span className="absolute right-2 top-2 flex items-center gap-1.5 rounded-full bg-black/70 px-3 py-1.5 text-xs font-semibold text-white backdrop-blur">
+                    {subiendo === "portada" ? <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" /> : <Camera size={13} />}
+                    {subiendo === "portada" ? "Subiendo…" : profileForm.bannerImage ? "Cambiar portada" : "Subir portada"}
+                  </span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleBannerUpload} disabled={subiendo !== null} />
+                </label>
+
+                {/* Foto de perfil: se toca el círculo para cambiarla */}
+                <div className="relative z-10 -mt-12 mb-3 flex flex-col items-center">
+                  <label className="relative block h-24 w-24 cursor-pointer rounded-full" aria-label="Cambiar foto de perfil">
+                    <span className="block h-full w-full overflow-hidden rounded-full border-4 border-[#0d0d0d] bg-[#16191f]" style={{ outline: `3px solid ${tierColor}` }}>
+                      {profileForm.photo
+                        ? <img src={profileForm.photo} alt="Tu foto" className="h-full w-full object-cover" />
+                        : <span className="flex h-full w-full items-center justify-center"><User size={32} className="text-[#555]" /></span>}
+                      {subiendo === "perfil" && (
+                        <span className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                          <span className="h-6 w-6 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                        </span>
+                      )}
+                    </span>
+                    <span className="absolute bottom-0 right-0 flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#0d0d0d] bg-[#e5007d] text-white shadow-lg">
+                      <Camera size={14} />
+                    </span>
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={subiendo !== null} />
                   </label>
+                  <p className="mt-2 text-[12px] text-[#777]">Toca la foto o la portada para cambiarlas</p>
                 </div>
 
                 {/* Nombre artístico — no editable */}
