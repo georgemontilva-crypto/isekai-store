@@ -3,7 +3,7 @@ import { nanoid } from "nanoid";
 import { getDb } from "./db";
 import { diaDelEventoVE, fechaVE, fechaDeEvento } from "@shared/diaEvento";
 import { conCandado } from "./candado";
-import { precioCashea } from "../shared/payment";
+import { precioCashea, aceptaCashea, CASHEA_MINIMO_USD } from "../shared/payment";
 import { notifyTicketPurchased } from "./_core/notification";
 import {
   events, ticketTypes, stores, eventTickets, ticketCheckins, gateUsers, users, siteSettings,
@@ -381,6 +381,7 @@ async function completarVenta(
   const [rateRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, "bs_rate")).limit(1);
   const tasa = parseFloat(rateRow?.value ?? "0") || 0;
   const base = parseFloat(tipo.priceUsd as any);
+  if (data.cashea && !aceptaCashea(base)) throw new Error(`«${tipo.name}» no se puede pagar con Cashea: solo acepta desde $${CASHEA_MINIMO_USD}`);
   const precioUsd = data.cashea ? precioCashea(base) : base;
   const precioBs = tasa > 0 ? Math.round(precioUsd * tasa * 100) / 100 : null;
 

@@ -42,6 +42,11 @@ export const CRYPTO = {
 
 /** Cashea: pago en cuotas. El boleto sube este porcentaje sobre el precio de contado. */
 export const RECARGO_CASHEA_PCT = 8;
+/** Cashea solo acepta compras desde este monto (el General 1 día no entra) */
+export const CASHEA_MINIMO_USD = 25;
+export function aceptaCashea(usd: number) {
+  return usd >= CASHEA_MINIMO_USD;
+}
 /** Precio con Cashea, redondeado al dólar (25 → 27, 99 → 107) */
 export function precioCashea(usd: number) {
   return Math.round(usd * (1 + RECARGO_CASHEA_PCT / 100));

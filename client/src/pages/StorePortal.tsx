@@ -6,7 +6,7 @@ import {
   Gift, Loader2, MapPin, Receipt, Repeat, Search, Store, Swords, Ticket, User, X, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
-import { precioCashea, RECARGO_CASHEA_PCT } from "@shared/payment";
+import { precioCashea, aceptaCashea, CASHEA_MINIMO_USD, RECARGO_CASHEA_PCT } from "@shared/payment";
 import QrScanner from "@/components/admin/QrScanner";
 import { trpc } from "@/lib/trpc";
 import CambiarHerramienta from "@/components/CambiarHerramienta";
@@ -335,6 +335,9 @@ export default function StorePortal() {
   };
   const hayErrores = Object.values(errores).some(Boolean);
   const tipoSel = tiposActivos.find(t => t.id === tipoElegido);
+  useEffect(() => {
+    if (cashea && tipoSel && !aceptaCashea(parseFloat((tipoSel as any).priceUsd))) setCashea(false);
+  }, [tipoSel, cashea]);
 
   const registrar = () => {
     setIntento(true);
@@ -700,6 +703,11 @@ export default function StorePortal() {
                 {tipoSel && (() => {
                   const contado = parseFloat((tipoSel as any).priceUsd);
                   const conCashea = precioCashea(contado);
+                  if (!aceptaCashea(contado)) return (
+                    <p className="rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-3 text-[12.5px] leading-relaxed text-[#a39cad]">
+                      Este boleto se paga <strong className="text-white">solo de contado (${contado})</strong>. Cashea acepta compras desde ${CASHEA_MINIMO_USD}.
+                    </p>
+                  );
                   return (
                     <div>
                       <p className="mb-2.5 text-[15px] font-bold">¿Cómo paga?</p>

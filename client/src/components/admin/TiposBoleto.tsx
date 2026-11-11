@@ -70,7 +70,7 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
         <div className="rounded-3xl border border-[#fbbf24]/25 bg-[#fbbf24]/[0.06] p-4">
           <p className="flex items-center gap-2 text-[15px] font-bold text-[var(--iw-text)]"><Sparkles size={16} className="text-[#fbbf24]" /> Boletería Isekai World Fest 2027</p>
           <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--iw-text-muted)]">
-            General 1 día ($18) · General 2 días ($25) · VIP 2 días ($99, 45 boletos) · Isekai FanBox ($79, 100 cajas). Con Cashea se suma 8% al vender. Con sus beneficios y cupos ya configurados.
+            General 1 día ($18) · General 2 días ($25) · VIP 2 días ($99, 45 boletos) · Isekai FanBox ($79, 100 cajas). Con Cashea se suma 8% al vender (desde $25: el General 1 día es solo de contado). Con sus beneficios y cupos ya configurados.
           </p>
           <button
             onClick={async () => { if (await confirmar({ titulo: "Cargar boletos 2027", mensaje: `Se cargan los 4 tipos en «${evento.name}». Si alguno ya existe con ese nombre, se actualiza.`, confirmar: "Cargar" })) plantilla.mutate({ eventId: evento.id }); }}
