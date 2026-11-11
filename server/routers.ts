@@ -1200,6 +1200,11 @@ export const appRouter = router({
         catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
       }),
     sincronizar: adminProcedure.mutation(async () => { await (await import("./standTiendas")).sincronizarTiendasDeStands(); return { ok: true }; }),
+    reenviarAviso: adminProcedure.input(z.object({ storeId: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./standTiendas")).reenviarAviso(input.storeId); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
   }),
 
   stands: router({

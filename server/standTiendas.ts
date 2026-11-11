@@ -129,6 +129,15 @@ export async function sincronizarTiendasDeStands() {
 
 async function avisarBienvenida(r: any, p: (typeof PLANES)[Plan], plan: Plan) {
   if (!r.email) return;
+  // Notificación de la app, si esa cuenta ya la tiene activada en su teléfono
+  try {
+    const db = await getDb();
+    const [u] = db ? await db.select().from(users).where(eq(users.email, String(r.email).trim().toLowerCase())).limit(1) : [];
+    if (u) {
+      const { enviarPushAUsuarios } = await import("./push");
+      await enviarPushAUsuarios([u.id], { titulo: "🎟️ Tu panel de Boletería ya está disponible", cuerpo: p.vende ? `${r.negocio}: ya puedes vender boletos y poner tus misiones.` : `${r.negocio}: ya puedes poner la misión de tu stand.`, url: "/boleteria", etiqueta: "boleteria-acceso" });
+    }
+  } catch (e) { console.warn("[StandTiendas] push:", e); }
   const { sendEmail } = await import("./_core/notification");
   await sendEmail(r.email, `🎟️ ${r.negocio}: ya tienes acceso a la Boletería · Isekai World Fest`, `
     <h2>¡Tu stand ${r.numero} está pagado!</h2>
@@ -141,6 +150,19 @@ async function avisarBienvenida(r: any, p: (typeof PLANES)[Plan], plan: Plan) {
     <div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/boleteria" class="btn">Entrar a la Boletería →</a></div>
     <p style="color:#9a93a6">Entra con este mismo correo (${r.email}).</p>`,
     `Tu panel de ${plan === "mercader" ? "misiones" : "boletos y misiones"} ya está activo`);
+}
+
+/** El admin vuelve a mandar el aviso de acceso (correo + notificación) */
+export async function reenviarAviso(storeId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  const [t] = await db.select().from(stores).where(eq(stores.id, storeId)).limit(1);
+  if (!t?.plan || !t.standReservaId) throw new Error("Esa tienda no viene de un stand");
+  if (!t.email) throw new Error("Esa tienda no tiene correo. Agrégaselo en Equipo para que pueda entrar.");
+  const [r] = filas<any>(await db.execute(sql`SELECT r.*, s.numero FROM festStandReservas r JOIN festStands s ON s.id = r.standId WHERE r.id = ${t.standReservaId}`));
+  if (!r) throw new Error("No se encontró la reserva del stand");
+  await avisarBienvenida({ ...r, email: t.email, negocio: t.name }, PLANES[t.plan as Plan], t.plan as Plan);
+  return { ok: true, email: t.email };
 }
 
 // ─── Cupo y comisión ─────────────────────────────────────────────────────────
@@ -196,7 +218,7 @@ export async function comisionesPorTienda() {
     const vendidos = Number(c?.n ?? 0);
     const conComision = t.vendeBoletos;
     return {
-      id: t.id, nombre: t.name, activa: t.active, plan: t.plan as Plan, planNombre: PLANES[t.plan as Plan]?.nombre ?? t.plan,
+      id: t.id, nombre: t.name, email: t.email, activa: t.active, plan: t.plan as Plan, planNombre: PLANES[t.plan as Plan]?.nombre ?? t.plan,
       stand: stands.find(s => Number(s.id) === t.standReservaId)?.numero ?? null,
       vende: t.vendeBoletos, cupo: t.cupoBoletos, vendidos,
       restantes: t.cupoBoletos === null ? null : Math.max(0, t.cupoBoletos - vendidos),

@@ -1,4 +1,4 @@
-import { Check, ExternalLink, Loader2, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useStandsSocket } from "@/hooks/useStandsSocket";
@@ -19,6 +19,10 @@ export default function TiendasStandAdmin({ soloPendientes = false }: { soloPend
   useStandsSocket(refrescar);
   const revisar = trpc.standTienda.revisarExtra.useMutation({
     onSuccess: (_r, v) => { toast.success(v.aprobar ? "Pago aprobado: misiones activadas" : "Pago rechazado"); refrescar(); },
+    onError: e => toast.error(e.message),
+  });
+  const reenviar = trpc.standTienda.reenviarAviso.useMutation({
+    onSuccess: r => toast.success(`Aviso enviado a ${r.email}`),
     onError: e => toast.error(e.message),
   });
   const pendientes = (extras as any[]).filter(e => e.estado === "pendiente");
@@ -86,7 +90,14 @@ export default function TiendasStandAdmin({ soloPendientes = false }: { soloPend
                   <p className="mt-2 text-[12.5px] text-[#bfb8c9]"><strong className="text-white">{t.vendidos}</strong> de {t.cupo} boletos · le quedan {t.restantes}{t.restantes === 0 ? " (venta cerrada)" : ""} · recaudó ${t.recaudadoUsd.toFixed(2)}</p>
                 </>
               ) : <p className="mt-2 text-[12.5px] text-[#9a93a6]">No vende boletos (plan Mercader).</p>}
-              <p className="mt-1 text-[12px] text-[#9a93a6]">Misiones puestas: {t.misiones}</p>
+              <div className="mt-2 flex items-center justify-between gap-3">
+                <p className="min-w-0 truncate text-[12px] text-[#9a93a6]">Misiones puestas: {t.misiones} · {t.email || "sin correo: no puede entrar"}</p>
+                {t.email && t.activa && (
+                  <button disabled={reenviar.isPending} onClick={() => reenviar.mutate({ storeId: t.id })} className="flex shrink-0 items-center gap-1.5 rounded-full bg-white/[0.08] px-3 py-2 text-[12px] font-semibold text-white">
+                    <Send size={12} /> Avisar acceso
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}
