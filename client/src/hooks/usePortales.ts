@@ -43,7 +43,7 @@ export function usePortales() {
   }
   // Administrador: acceso directo a la venta de stands del Fest
   if (acceso?.rol === "admin") {
-    roles.push({ clave: "stands", href: "/admin?tab=stands", texto: "Stands del Fest", corto: "Stands", descripcion: "Pagos por revisar, saldos y mesas", icono: Store, color: "#fbbf24" });
+    roles.push({ clave: "stands", href: "/boleteria?v=stands", texto: "Stands del Fest", corto: "Stands", descripcion: "Pagos por revisar, saldos y mesas", icono: Store, color: "#fbbf24" });
   }
   // Staff de la rueda de negocios (el administrador la tiene en su panel)
   if (acceso?.esRueda) {

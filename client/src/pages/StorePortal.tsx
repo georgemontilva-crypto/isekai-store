@@ -1,5 +1,5 @@
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
-import { Link, useLocation, useRoute } from "wouter";
+import { Link, useLocation, useRoute, useSearch } from "wouter";
 import {
   LayoutGrid,
   AlertCircle, ArrowLeft, BadgeCheck, Ban, Camera, Check, ChevronRight, Home, Keyboard, ListChecks,
@@ -253,6 +253,12 @@ export default function StorePortal() {
     return "vender";
   };
   const [modo, setModo] = useState<Modo>(modoInicial);
+  // La barra de herramientas cambia de modo con el enlace (?modo=xp, ?modo=vender…)
+  const busqueda = useSearch();
+  useEffect(() => {
+    const q = new URLSearchParams(busqueda).get("modo");
+    if (q === "xp" || q === "ventas" || q === "vender" || q === "bonos") setModo(q);
+  }, [busqueda]);
   useEffect(() => {
     if (!acceso) return;
     if (!esTienda && modo !== "xp") setModo("xp");     // el personal solo da EXP
@@ -482,7 +488,7 @@ export default function StorePortal() {
             <LayoutGrid size={18} />
           </Link>
         </div>
-        <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" ocultar={["vender", "xp"]} />
+        <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" />
       </header>
 
       <main className="mx-auto max-w-lg px-4 pt-5">

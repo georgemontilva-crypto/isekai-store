@@ -345,7 +345,7 @@ export default function GateControl() {
             <LayoutGrid size={18} />
           </a>
         </div>
-        <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" ocultar={[]} />
+        <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" />
       </header>
 
       <main className="mx-auto flex max-w-lg flex-col gap-4 px-4 pt-5">

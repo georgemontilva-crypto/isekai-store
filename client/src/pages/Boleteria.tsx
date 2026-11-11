@@ -1,10 +1,12 @@
-import { useMemo, useRef, useState, type RefObject } from "react";
-import { ChevronRight, Gift, Home, Loader2, LogOut, Receipt, Settings2, Ticket } from "lucide-react";
-import { Link } from "wouter";
+import { useMemo, useRef, type RefObject } from "react";
+import { ChevronRight, Gift, Home, LayoutDashboard, Loader2, LogOut, Receipt, Settings2, Ticket } from "lucide-react";
+import { Link, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 import { usePortales, type Portal } from "@/hooks/usePortales";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
+import StandsAdmin from "@/components/admin/StandsAdmin";
+import CambiarHerramienta from "@/components/CambiarHerramienta";
 import TiendasStandAdmin from "@/components/admin/TiendasStandAdmin";
 import { trpc } from "@/lib/trpc";
 import TutorialGuiado, { type PasoTutorial } from "@/components/TutorialGuiado";
@@ -77,12 +79,9 @@ export default function Boleteria() {
   const { user, isAuthenticated, loading, logout } = useAuth();
   const { roles, esAdmin, pase, tieneBoleto, cargando, planStand } = usePortales();
   const { data: panel } = trpc.standTienda.miPanel.useQuery(undefined, { enabled: isAuthenticated && Boolean(planStand), refetchInterval: 60_000 });
-  const [vista, setVistaLocal] = useState<"operar" | "admin">(() =>
-    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("v") === "admin" ? "admin" : "operar");
-  const setVista = (v: "operar" | "admin") => {
-    setVistaLocal(v);
-    try { const u = new URL(window.location.href); v === "admin" ? u.searchParams.set("v", "admin") : u.searchParams.delete("v"); window.history.replaceState(null, "", u.pathname + u.search); } catch { /* */ }
-  };
+  // La vista la manda la barra de arriba (?v=admin, ?v=stands)
+  const v = new URLSearchParams(useSearch()).get("v");
+  const vista: "operar" | "admin" | "stands" = esAdmin && (v === "admin" || v === "stands") ? v : "operar";
 
   // Tutorial de la primera vez (tiendas con stand): explica cada parte
   const refResumen = useRef<HTMLElement | null>(null);
@@ -137,14 +136,19 @@ export default function Boleteria() {
   ] : [];
   // El día del evento: puerta y estaciones de experiencia
   const evento: Tarjeta[] = [acceso, xp].filter(Boolean) as Tarjeta[];
-  const otras: Tarjeta[] = roles.filter(r => r.clave === "rueda" || r.clave === "stands");
+  const otras: Tarjeta[] = roles.filter(r => r.clave === "rueda" || (!esAdmin && r.clave === "stands"));
+  const gestion: Tarjeta[] = esAdmin ? [
+    { clave: "gestion", href: "/boleteria?v=admin", texto: "Gestión de boletería", descripcion: "Evento, códigos, ventas, tiendas, puerta y Level Pass", icono: Settings2, color: "#e5007d" },
+    ...roles.filter(r => r.clave === "stands"),
+    { clave: "panel", href: "/admin", texto: "Panel general", descripcion: "Tienda, pedidos, cosplayers y todo lo demás", icono: LayoutDashboard, color: "#94a3b8" },
+  ] : [];
   const stand: Tarjeta[] = roles.filter(r => r.clave === "misiones");
   const levelPass: Tarjeta[] = tieneBoleto ? [pase] : [];
   const sinNada = !esAdmin && !stand.length && !venta.length && !evento.length && !otras.length && !levelPass.length;
 
   return (
     <div className={fondo} style={relleno}>
-      <div className={`mx-auto ${vista === "admin" && esAdmin ? "max-w-3xl" : "max-w-md"}`}>
+      <div className={`mx-auto ${vista !== "operar" ? "max-w-3xl" : "max-w-md"}`}>
         <div className="mb-5 flex items-center justify-between">
           <div className="min-w-0">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#ff3d9e]">Boletería · Isekai World Fest</p>
@@ -156,19 +160,12 @@ export default function Boleteria() {
           </div>
         </div>
 
-        {esAdmin && (
-          <div className="lc-segmento mb-5 grid grid-cols-2 rounded-full p-1">
-            {([["operar", "Operar", Ticket], ["admin", "Administrar", Settings2]] as const).map(([id, texto, Icono]) => (
-              <button key={id} onClick={() => setVista(id)} aria-pressed={vista === id}
-                className={`flex items-center justify-center gap-2 rounded-full text-[14px] font-semibold ${vista === id ? "bg-[#e5007d] text-white" : "text-[#9a93a6]"}`} style={{ minHeight: 44 }}>
-                <Icono size={16} /> {texto}
-              </button>
-            ))}
-          </div>
-        )}
+        <CambiarHerramienta className="sticky top-0 z-30 -mx-4 mb-5 bg-[#07060a]/92 px-4 py-2.5 backdrop-blur-md" />
 
-        {vista === "admin" && esAdmin ? (
+        {vista === "admin" ? (
           <div className="flex flex-col gap-4"><TiendasStandAdmin soloPendientes /><TicketsAdmin compact /></div>
+        ) : vista === "stands" ? (
+          <StandsAdmin />
         ) : cargando ? (
           <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#ff3d9e]" /></div>
         ) : sinNada ? (
@@ -185,6 +182,7 @@ export default function Boleteria() {
             <Grupo titulo="Durante el evento" tarjetas={evento} refs={refs} />
             <Grupo titulo={venta.length || evento.length ? "Como asistente" : "Tu entrada"} tarjetas={levelPass} />
             <Grupo titulo="Otras herramientas" tarjetas={otras} />
+            <Grupo titulo="Administración" tarjetas={gestion} />
             {panel && (
               <>
                 <button onClick={() => abrirTutorial.current?.()} className="mx-auto mt-2 block py-2 text-[13px] font-semibold text-[#7dd8ff]">Ver el tutorial otra vez</button>

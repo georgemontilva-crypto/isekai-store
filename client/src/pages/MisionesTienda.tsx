@@ -7,6 +7,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 import { BINANCE_PAY_ID, PAGO_MOVIL } from "@shared/payment";
 import { useStandsSocket } from "@/hooks/useStandsSocket";
+import CambiarHerramienta from "@/components/CambiarHerramienta";
 
 /**
  * Misiones de la tienda (/boleteria/misiones). Cada tienda con stand escribe
@@ -33,6 +34,7 @@ export default function MisionesTienda() {
             <p className="truncate text-[21px] font-bold">Mis misiones</p>
           </div>
         </div>
+        <CambiarHerramienta className="mb-4" />
         {hijos}
       </div>
     </div>
