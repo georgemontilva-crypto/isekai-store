@@ -18,7 +18,7 @@ import { staffRuedaPorCorreo } from "./ruedaPrensa";
  */
 export type Permisos = {
   admin: boolean;
-  tienda: { id: number; name: string; active: boolean; puedeOtorgarXp: boolean } | null;
+  tienda: { id: number; name: string; active: boolean; puedeOtorgarXp: boolean; plan: string | null; vende: boolean } | null;
   portero: boolean;
   personalXp: boolean;
   rueda: boolean;
@@ -57,7 +57,7 @@ export async function permisosDe(u: Usuario): Promise<Permisos> {
     const t = vigentes.find(x => x.active) ?? vigentes[0];
     p = {
       admin: false,
-      tienda: t ? { id: t.id, name: t.name, active: t.active, puedeOtorgarXp: t.puedeOtorgarXp } : null,
+      tienda: t ? { id: t.id, name: t.name, active: t.active, puedeOtorgarXp: t.puedeOtorgarXp, plan: t.plan ?? null, vende: t.vendeBoletos !== false } : null,
       portero: porteros.some(g => g.active),
       personalXp: personal.some(s => s.active),
       rueda: Boolean(rueda),

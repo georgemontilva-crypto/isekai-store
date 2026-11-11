@@ -66,6 +66,7 @@ const RuedaPrensa = lazy(() => import("./pages/RuedaPrensa"));
 const Stands = lazy(() => import("./pages/Stands"));
 const StaffRueda = lazy(() => import("./pages/StaffRueda"));
 const Boleteria = lazy(() => import("./pages/Boleteria"));
+const MisionesTienda = lazy(() => import("./pages/MisionesTienda"));
 const CosplayApply = lazy(() => import("./pages/CosplayApply"));
 const CosplayGuild = lazy(() => import("./pages/CosplayGuild"));
 const CosplayProfile = lazy(() => import("./pages/CosplayProfile"));
@@ -156,6 +157,7 @@ function Router() {
         <Route path="/rueda-de-negocios" component={RuedaPrensa} />
         <Route path="/stands" component={Stands} />
         <Route path="/staff/rueda" component={StaffRueda} />
+        <Route path="/boleteria/misiones" component={MisionesTienda} />
         <Route path="/boleteria" component={Boleteria} />
         <Route path="/equipo" component={Boleteria} />
         {/* Enlace anterior: las invitaciones ya entregadas lo siguen usando */}

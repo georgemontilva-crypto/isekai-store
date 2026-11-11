@@ -54,7 +54,9 @@ async function startServer() {
     await asegurarEsquemaBeneficios();
   } catch (e) { console.error("[Arranque] Esquema de boletería:", e); }
   // Tablas de la venta de stands del Fest (se crean solas)
-  void import("../stands").then(m => m.asegurarTablasStands()).catch(e => console.error("[Arranque] Stands:", e));
+  void import("../stands").then(m => m.asegurarTablasStands())
+    .then(() => import("../standTiendas")).then(m => m.asegurarTablasStandTiendas())
+    .catch(e => console.error("[Arranque] Stands:", e));
   // Índices para la puerta y las estaciones de EXP (en segundo plano)
   void import("../indices").then(m => m.asegurarIndices()).catch(e => console.error("[Arranque] Índices:", e));
   const app = express();

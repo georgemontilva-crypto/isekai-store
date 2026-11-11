@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { urlPublica } from "@/const";
 import QRCode from "qrcode";
+import TiendasStandAdmin from "./TiendasStandAdmin";
 import { Plus, Download, Store, Ticket, Trash2, Mail, Check, BarChart3, Settings2, Zap, Search, X, Users } from "lucide-react";
 import { confirmar } from "./ui";
 import { toast } from "sonner";
@@ -1085,6 +1086,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Tiendas ── */}
       {vista === "tiendas" && (
         <>
+          <TiendasStandAdmin />
           <button onClick={() => { setVista("equipo" as any); setBusqueda(""); }} className="flex w-full items-center gap-3 rounded-3xl border border-white/[0.06] bg-white/[0.035] p-4 text-left">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#e5007d]/15 text-[#ff3d9e]"><Users size={18} /></span>
             <span className="min-w-0 flex-1">

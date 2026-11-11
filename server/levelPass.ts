@@ -83,10 +83,10 @@ export async function crearActividad(data: {
   });
 }
 
-export async function listarActividades(eventId: number, soloActivas = false) {
+export async function listarActividades(eventId: number, soloActivas = false, deTienda?: number) {
   const db = await getDb();
   if (!db) return [];
-  const cond: any[] = [eq(levelActivities.eventId, eventId)];
+  const cond: any[] = deTienda ? [eq(levelActivities.storeId, deTienda)] : [eq(levelActivities.eventId, eventId)];
   if (soloActivas) cond.push(eq(levelActivities.active, true));
   return db.select().from(levelActivities)
     .where(and(...cond))

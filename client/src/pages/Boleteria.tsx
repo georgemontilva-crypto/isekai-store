@@ -5,6 +5,8 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
 import { usePortales, type Portal } from "@/hooks/usePortales";
 import TicketsAdmin from "@/components/admin/TicketsAdmin";
+import TiendasStandAdmin from "@/components/admin/TiendasStandAdmin";
+import { trpc } from "@/lib/trpc";
 
 /**
  * Boletería (/boleteria): la interfaz propia del evento, aparte de la tienda
@@ -39,9 +41,39 @@ function Grupo({ titulo, tarjetas }: { titulo: string; tarjetas: Tarjeta[] }) {
   );
 }
 
+/** Lo que lleva una tienda con stand: cupo de boletos, comisión y misiones */
+function ResumenStand({ panel }: { panel: { cupo: any; misiones: any } }) {
+  const c = panel.cupo, m = panel.misiones;
+  const pct = c.cupo ? Math.min(100, Math.round((c.vendidos / c.cupo) * 100)) : 0;
+  return (
+    <section className="mb-6 rounded-3xl border border-white/[0.08] bg-white/[0.035] p-5">
+      <p className="text-[12px] font-semibold uppercase tracking-wider text-[#fbbf24]">{m?.tienda} · Stand {c.planNombre}</p>
+      {c.vende ? (
+        <>
+          <div className="mt-3 grid grid-cols-3 gap-2 text-center">
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-[22px] font-black tabular-nums">{c.vendidos}</p><p className="text-[11px] text-[#9a93a6]">Vendidos</p></div>
+            <div className="rounded-2xl bg-white/[0.04] p-3"><p className="text-[22px] font-black tabular-nums">{c.restantes}</p><p className="text-[11px] text-[#9a93a6]">Te quedan</p></div>
+            <div className="rounded-2xl bg-[#4ade80]/10 p-3"><p className="text-[22px] font-black tabular-nums text-[#4ade80]">${c.ganancia}</p><p className="text-[11px] text-[#9a93a6]">Tu ganancia</p></div>
+          </div>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/[0.08]"><div className="h-full rounded-full bg-[#e5007d]" style={{ width: `${pct}%` }} /></div>
+          <p className="mt-2 text-[12.5px] leading-relaxed text-[#9a93a6]">
+            {c.agotado
+              ? `Vendiste tus ${c.cupo} boletos: tu punto de venta ya cerró. ¡Gracias!`
+              : `Cupo de ${c.cupo} boletos · ganas $${c.comisionPorBoleto} por cada uno (hasta $${c.gananciaMaxima}). Al llegar a cero, la venta se cierra sola.`}
+          </p>
+        </>
+      ) : (
+        <p className="mt-2 text-[13px] leading-relaxed text-[#9a93a6]">Tu plan incluye {m?.incluidas ?? 1} misión en el Level Pass. La venta de boletos es para los stands Gremio y Gran Gremio.</p>
+      )}
+      {m && <p className="mt-2 text-[12.5px] text-[#bfb8c9]">Misiones puestas: <strong className="text-white">{m.usadas} de {m.cupo}</strong>{m.libres > 0 ? " · te falta escribir " + m.libres : ""}</p>}
+    </section>
+  );
+}
+
 export default function Boleteria() {
   const { user, isAuthenticated, loading, logout } = useAuth();
-  const { roles, esAdmin, pase, tieneBoleto, cargando } = usePortales();
+  const { roles, esAdmin, pase, tieneBoleto, cargando, planStand } = usePortales();
+  const { data: panel } = trpc.standTienda.miPanel.useQuery(undefined, { enabled: isAuthenticated && Boolean(planStand), refetchInterval: 60_000 });
   const [vista, setVistaLocal] = useState<"operar" | "admin">(() =>
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("v") === "admin" ? "admin" : "operar");
   const setVista = (v: "operar" | "admin") => {
@@ -82,8 +114,9 @@ export default function Boleteria() {
   // El día del evento: puerta y estaciones de experiencia
   const evento: Tarjeta[] = [acceso, xp].filter(Boolean) as Tarjeta[];
   const otras: Tarjeta[] = roles.filter(r => r.clave === "rueda" || r.clave === "stands");
+  const stand: Tarjeta[] = roles.filter(r => r.clave === "misiones");
   const levelPass: Tarjeta[] = tieneBoleto ? [pase] : [];
-  const sinNada = !esAdmin && !venta.length && !evento.length && !otras.length && !levelPass.length;
+  const sinNada = !esAdmin && !stand.length && !venta.length && !evento.length && !otras.length && !levelPass.length;
 
   return (
     <div className={fondo} style={relleno}>
@@ -111,7 +144,7 @@ export default function Boleteria() {
         )}
 
         {vista === "admin" && esAdmin ? (
-          <div className="flex flex-col gap-4"><TicketsAdmin compact /></div>
+          <div className="flex flex-col gap-4"><TiendasStandAdmin soloPendientes /><TicketsAdmin compact /></div>
         ) : cargando ? (
           <div className="flex justify-center py-16"><Loader2 className="animate-spin text-[#ff3d9e]" /></div>
         ) : sinNada ? (
@@ -122,7 +155,9 @@ export default function Boleteria() {
           </div>
         ) : (
           <>
-            <Grupo titulo="Venta de boletos" tarjetas={venta} />
+            {panel && <ResumenStand panel={panel} />}
+            <Grupo titulo="Venta de boletos" tarjetas={panel?.cupo.agotado ? venta.filter(v => v.clave !== "vender") : venta} />
+            <Grupo titulo="Tu stand en el Level Pass" tarjetas={stand} />
             <Grupo titulo="Durante el evento" tarjetas={evento} />
             <Grupo titulo={venta.length || evento.length ? "Como asistente" : "Tu entrada"} tarjetas={levelPass} />
             <Grupo titulo="Otras herramientas" tarjetas={otras} />

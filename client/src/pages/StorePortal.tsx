@@ -277,6 +277,9 @@ export default function StorePortal() {
   const eventoDeVenta = escaneo?.ticket?.eventId ?? evento?.id ?? 0;
   const { data: tipos = [] } = trpc.tickets.tipos.useQuery({ eventId: eventoDeVenta }, { enabled: esTienda && eventoDeVenta > 0 });
   const tiposActivos = (tipos as any[]).filter(t => t.active);
+  // Tienda con stand: cupo de boletos y comisión
+  const { data: panelStand } = trpc.standTienda.miPanel.useQuery(undefined, { enabled: esTienda && Boolean((acceso as any)?.planStand), refetchInterval: 30_000 });
+  const cupo = panelStand?.cupo;
   const { data: misVentas } = trpc.tickets.misVentas.useQuery({ eventId: evento?.id ?? 0 }, { enabled: esTienda && !!evento });
 
   const [tipoElegido, setTipoElegido] = useState<number | null>(null);
@@ -292,6 +295,7 @@ export default function StorePortal() {
     onSuccess: r => {
       setVendido(r);
       void utils.tickets.misVentas.invalidate();
+      void utils.standTienda.miPanel.invalidate();
       void utils.tickets.escanear.invalidate();
       void utils.tickets.tipos.invalidate();
       try { navigator.vibrate?.([30, 40, 60]); } catch { /* */ }
@@ -483,8 +487,20 @@ export default function StorePortal() {
 
       <main className="mx-auto max-w-lg px-4 pt-5">
         {/* ═════════════ VENDER ═════════════ */}
-        {modo === "vender" && esTienda && (
+        {modo === "vender" && esTienda && cupo?.vende && cupo.agotado && (
+          <div className="sp-entra rounded-3xl border border-[#4ade80]/30 bg-[#4ade80]/[0.07] p-6 text-center">
+            <p className="text-[19px] font-black">¡Vendiste tus {cupo.cupo} boletos!</p>
+            <p className="mt-2 text-[13.5px] leading-relaxed text-[#bfb8c9]">Tu cupo llegó a cero, así que la venta en tu punto quedó cerrada. Tu ganancia por comisión es de <strong className="text-[#4ade80]">${cupo.ganancia}</strong>.</p>
+          </div>
+        )}
+        {modo === "vender" && esTienda && !(cupo?.vende && cupo.agotado) && (
           <div className="sp-entra">
+            {cupo?.vende && cupo.cupo !== null && (
+              <p className="mb-4 flex items-center justify-between rounded-2xl border border-white/[0.07] bg-white/[0.03] px-4 py-2.5 text-[12.5px] text-[#bfb8c9]">
+                <span>Te quedan <strong className="text-white">{cupo.restantes}</strong> de {cupo.cupo} boletos</span>
+                <span className="font-bold text-[#4ade80]">Ganancia ${cupo.ganancia}</span>
+              </p>
+            )}
             {/* Guía de pasos */}
             <ol className="mb-5 grid grid-cols-3 gap-2" aria-label="Pasos de la venta">
               {["Escanear", "Tipo", "Comprador"].map((p, i) => {
@@ -852,6 +868,13 @@ export default function StorePortal() {
         {/* ═════════════ VENTAS ═════════════ */}
         {modo === "ventas" && esTienda && (
           <div className="sp-entra flex flex-col gap-4">
+            {cupo?.vende && cupo.cupo !== null && (
+              <div className="rounded-3xl border border-[#4ade80]/25 bg-[#4ade80]/[0.07] p-5">
+                <p className="text-[12px] font-semibold uppercase tracking-wider text-[#86efac]">Tu ganancia por comisión</p>
+                <p className="mt-1 text-[34px] font-black leading-none tabular-nums text-[#4ade80]">${cupo.ganancia}</p>
+                <p className="mt-1.5 text-[13px] text-[#a39cad]">${cupo.comisionPorBoleto} por boleto · {cupo.vendidos} de {cupo.cupo} vendidos · te quedan {cupo.restantes}</p>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-2.5">
               <div className="col-span-2 rounded-3xl border border-[#a78bfa]/25 bg-[#a78bfa]/[0.07] p-5">
                 <p className="text-[12px] font-semibold uppercase tracking-wider text-[#c4b5fd]">Total vendido</p>

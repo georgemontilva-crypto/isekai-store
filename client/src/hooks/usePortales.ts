@@ -12,7 +12,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
  *   todos    → Level Pass (con boleto: «Mi Level Pass»; sin él, entra escaneando)
  */
 export type Portal = {
-  clave: "vender" | "xp" | "acceso" | "pass" | "rueda" | "stands";
+  clave: "vender" | "xp" | "acceso" | "pass" | "rueda" | "stands" | "misiones";
   href: string;
   texto: string;
   corto: string;
@@ -37,6 +37,10 @@ export function usePortales() {
   if (acceso?.esPortero) {
     roles.push({ clave: "acceso", href: "/acceso", texto: "Control de acceso", corto: "Acceso", descripcion: "Valida la entrada en la puerta", icono: ScanLine, color: "#2dd4bf" });
   }
+  // Tienda con stand en el Fest: escribe las misiones de su stand
+  if (acceso?.planStand) {
+    roles.push({ clave: "misiones", href: "/boleteria/misiones", texto: "Mis misiones", corto: "Misiones", descripcion: "Las misiones de tu stand en el Level Pass", icono: Swords, color: "#a78bfa" });
+  }
   // Administrador: acceso directo a la venta de stands del Fest
   if (acceso?.rol === "admin") {
     roles.push({ clave: "stands", href: "/admin?tab=stands", texto: "Stands del Fest", corto: "Stands", descripcion: "Pagos por revisar, saldos y mesas", icono: Store, color: "#fbbf24" });
@@ -54,5 +58,5 @@ export function usePortales() {
     icono: Swords,
     color: "#a78bfa",
   };
-  return { roles, pase, tieneBoleto: Boolean(boleto), todos: [...roles, pase], esAdmin: acceso?.rol === "admin", cargando: isAuthenticated && cargando };
+  return { roles, pase, tieneBoleto: Boolean(boleto), todos: [...roles, pase], planStand: acceso?.planStand ?? null, esAdmin: acceso?.rol === "admin", cargando: isAuthenticated && cargando };
 }

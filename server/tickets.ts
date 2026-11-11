@@ -1100,9 +1100,12 @@ export async function miAccesoPorCorreo(userId: number, email: string, rolActual
   }
 
   return {
-    esTienda: Boolean(p.tienda) || p.admin,
+    // Vende boletos: una tienda Mercader tiene tienda pero solo da EXP
+    esTienda: Boolean(p.tienda?.vende) || p.admin,
     tiendaActiva: p.admin || Boolean(p.tienda?.active),
-    esStaff: p.personalXp,
+    esStaff: p.personalXp || Boolean(p.tienda && !p.tienda.vende && p.xp),
+    /** Tienda con stand del Fest: tiene misiones propias (y cupo si vende) */
+    planStand: p.tienda?.plan ?? null,
     esPortero: p.portero,
     puedeXp: p.xp,
     esRueda: p.rueda,

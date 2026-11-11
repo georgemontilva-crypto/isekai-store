@@ -164,7 +164,10 @@ const ruedaProcedure = protectedProcedure.use(async ({ ctx, next }) => {
 async function accesoXp(u: { id: number; email?: string | null; role: string }) {
   const p = await permisosDe(u);
   const storeId = !p.admin && p.tienda?.active && p.tienda.puedeOtorgarXp ? p.tienda.id : undefined;
-  return { puede: p.xp, storeId };
+  // Una tienda con stand solo entrega la EXP de sus propias misiones (salvo
+  // que además sea personal del evento)
+  const soloTienda = !p.admin && !p.personalXp && p.tienda?.plan ? p.tienda.id : undefined;
+  return { puede: p.xp, storeId, soloTienda };
 }
 
 /** Tienda de la sesión, leída completa con los datos actuales */
@@ -1150,6 +1153,55 @@ export const appRouter = router({
 
   // ─── World Fest: rueda de prensa (confirmar asistencia sin registro) ─────────
   // ─── Venta de stands del Fest ─────────────────────────────────────────────
+  /** Tiendas con stand: cupo de boletos, comisión y misiones del Level Pass */
+  standTienda: router({
+    miPanel: protectedProcedure.query(async ({ ctx }) => {
+      const p = await permisosDe(ctx.user);
+      const t = await tiendaDeSesion(p);
+      if (!t || !t.plan) return null;
+      const m = await import("./standTiendas");
+      return { cupo: await m.estadoCupo(t), misiones: await m.misMisiones(t), parteParaS: m.PARTE_PARA_RANGO_S };
+    }),
+    crearMision: protectedProcedure
+      .input(z.object({
+        nombre: z.string().trim().min(4).max(80).transform(v => v.replace(/[<>]/g, "")),
+        descripcion: z.string().trim().min(10).max(300).transform(v => v.replace(/[<>]/g, "")),
+        confirmo: z.literal(true),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const t = await tiendaDeSesion(await permisosDe(ctx.user));
+        if (!t || !t.plan) throw new TRPCError({ code: "FORBIDDEN", message: "Solo para tiendas con stand en el Fest" });
+        try { return await (await import("./standTiendas")).crearMision(t, input); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    comprarExtra: protectedProcedure
+      .input(z.object({
+        cantidad: z.number().int().min(1).max(4),
+        metodo: z.enum(["pago_movil", "crypto", "efectivo"]),
+        referencia: z.string().trim().min(3).max(120).transform(v => v.replace(/[<>]/g, "")),
+        comprobanteUrl: z.string().url().max(600).optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        if (!limitarPorUsuario(`mision-extra:${ctx.user.id}`, 10, 60 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiadas solicitudes. Intenta más tarde." });
+        }
+        const t = await tiendaDeSesion(await permisosDe(ctx.user));
+        if (!t || !t.plan) throw new TRPCError({ code: "FORBIDDEN", message: "Solo para tiendas con stand en el Fest" });
+        try { return await (await import("./standTiendas")).comprarMisionesExtra(t, input); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    // ── Administrador ──
+    comisiones: adminProcedure.query(async () => (await import("./standTiendas")).comisionesPorTienda()),
+    extras: adminProcedure.query(async () => (await import("./standTiendas")).panelExtras()),
+    revisarExtra: adminProcedure
+      .input(z.object({ id: z.number().int().positive(), aprobar: z.boolean() }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./standTiendas")).revisarExtra(input.id, input.aprobar); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    sincronizar: adminProcedure.mutation(async () => { await (await import("./standTiendas")).sincronizarTiendasDeStands(); return { ok: true }; }),
+  }),
+
   stands: router({
     /** Mapa y disponibles (público, sin datos de compradores) */
     publico: publicProcedure.query(async () => {
@@ -1498,7 +1550,11 @@ export const appRouter = router({
     /** TEMPORAL: cerrado al público hasta que se abra el Level Pass */
     actividadesPublicas: protectedProcedure
       .input(z.object({ eventId: z.number() }))
-      .query(({ input }) => listarActividades(input.eventId, true)),
+      .query(async ({ ctx, input }) => {
+        const lista = await listarActividades(input.eventId, true);
+        const { soloTienda } = await accesoXp(ctx.user);
+        return soloTienda ? lista.filter(a => a.storeId === soloTienda) : lista;
+      }),
 
     /** ¿Puede este usuario otorgar experiencia, y está el evento en curso? */
     miAcceso: protectedProcedure.query(async ({ ctx }) => {
@@ -1532,6 +1588,10 @@ export const appRouter = router({
         // Holgado: una estación con fila (photocall, tienda) escanea seguido
         if (!limitarPorUsuario(`xp:${ctx.user.id}`, 900, 10 * 60 * 1000)) {
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados registros seguidos" });
+        }
+        if (acceso.soloTienda) {
+          const propias = (await listarActividades(0, false, acceso.soloTienda)).some(a => a.id === input.activityId);
+          if (!propias) throw new TRPCError({ code: "FORBIDDEN", message: "Solo puedes dar la EXP de las misiones de tu tienda" });
         }
         const r = await otorgarExperiencia({
           token: input.token,
@@ -1971,7 +2031,10 @@ export const appRouter = router({
         if (!tienda) throw new TRPCError({ code: "FORBIDDEN", message: "Tu usuario no está asociado a una tienda" });
         if (!tienda.active) throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está desactivada" });
 
-        const r = await venderBoleto({ ...input, storeId: tienda.id, userId: ctx.user.id });
+        const { venderDentroDelCupo } = await import("./standTiendas");
+        let r: Awaited<ReturnType<typeof venderBoleto>>;
+        try { r = await venderDentroDelCupo(tienda, () => venderBoleto({ ...input, storeId: tienda.id, userId: ctx.user.id })); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
 
         // Aviso en vivo al panel: la venta aparece sin recargar
         try {

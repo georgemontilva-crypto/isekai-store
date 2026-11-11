@@ -7,6 +7,11 @@ function avisarCambio() {
   try { io?.to("stands").emit("stands:cambio"); io?.to("admin").emit("stands:cambio"); } catch { /* sin canal en vivo */ }
 }
 
+/** Un stand pagado por completo le da a su tienda acceso a la Boletería */
+function sincronizarTiendas() {
+  void import("./standTiendas").then(m => m.sincronizarTiendasDeStands()).catch(e => console.warn("[Stands] tiendas:", e));
+}
+
 /**
  * Venta de stands del Isekai World Fest.
  *
@@ -335,6 +340,7 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
       completo ? `Stand ${s?.numero} pagado por completo` : `Tu stand ${s?.numero} quedó apartado a tu nombre`);
   } catch (e) { console.warn("[Stands] correo al cliente:", e); }
   avisarCambio();
+  sincronizarTiendas();
   return { ok: true, completo, pagado };
 }
 
@@ -409,6 +415,7 @@ export async function cambiarMesa(reservaId: number, standId: number) {
   const precio = TIPOS_STAND[nueva.tipo as TipoStand]?.precio ?? Number(r.precio);
   await db.execute(sql`UPDATE festStandReservas SET standId = ${standId}, tipo = ${nueva.tipo}, precio = ${precio} WHERE id = ${reservaId}`);
   avisarCambio();
+  sincronizarTiendas();
   return { ok: true };
 }
 
@@ -420,6 +427,7 @@ export async function anularReserva(reservaId: number) {
   await db.execute(sql`UPDATE festStandReservas SET estado = 'rechazada' WHERE id = ${reservaId}`);
   await db.execute(sql`UPDATE festStandPagos SET estado = 'rechazado', revisadoEn = NOW() WHERE reservaId = ${reservaId} AND estado = 'pendiente'`);
   avisarCambio();
+  sincronizarTiendas();
   return { ok: true };
 }
 

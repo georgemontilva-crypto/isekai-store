@@ -30,6 +30,20 @@ export async function asegurarEsquemaBeneficios() {
         console.log(`[Boletos] columna creada: ticketTypes.${c}`);
       }
     }
+    // Tiendas con stand: plan, cupo de boletos y misiones propias
+    for (const [tabla, cols] of [
+      ["stores", [["plan", "varchar(20) NULL"], ["standReservaId", "int NULL"], ["cupoBoletos", "int NULL"], ["vendeBoletos", "boolean NOT NULL DEFAULT true"]]],
+      ["levelActivities", [["storeId", "int NULL"]]],
+    ] as [string, [string, string][]][]) {
+      const [f] = await db.execute(sql`SELECT COLUMN_NAME AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ${tabla}`) as unknown as [{ c: string }[]];
+      const ya = new Set((f ?? []).map(x => x.c));
+      for (const [c, tipo] of cols) {
+        if (!ya.has(c)) {
+          await db.execute(sql.raw(`ALTER TABLE ${tabla} ADD COLUMN \`${c}\` ${tipo}`));
+          console.log(`[Boletos] columna creada: ${tabla}.${c}`);
+        }
+      }
+    }
     const [colTiendas] = await db.execute(sql`SELECT COLUMN_NAME AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'stores' AND COLUMN_NAME = 'archivado'`) as unknown as [unknown[]];
     if (!colTiendas?.length) {
       await db.execute(sql`ALTER TABLE stores ADD COLUMN archivado boolean NOT NULL DEFAULT false`);

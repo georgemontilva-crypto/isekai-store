@@ -186,6 +186,8 @@ export const levelActivities = mysqlTable("levelActivities", {
   maxVeces: int("maxVeces").notNull().default(1),
   active: boolean("active").notNull().default(true),
   sortOrder: int("sortOrder").notNull().default(0),
+  /** Misión puesta por una tienda con stand (null = actividad oficial del evento) */
+  storeId: int("storeId"),
 });
 
 /** Cada vez que alguien completa una actividad */
@@ -326,6 +328,14 @@ export const stores = mysqlTable("stores", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   /** Eliminada con ventas: sale del equipo, pero sus ventas se conservan */
   archivado: boolean("archivado").notNull().default(false),
+  /** Tienda nacida de un stand del Fest: mercader | gremio | gran_gremio */
+  plan: varchar("plan", { length: 20 }),
+  /** Reserva del stand que le dio el acceso */
+  standReservaId: int("standReservaId"),
+  /** Boletos que puede vender como máximo (null = sin tope) */
+  cupoBoletos: int("cupoBoletos"),
+  /** Si es false (plan Mercader) no vende boletos: solo da EXP de sus misiones */
+  vendeBoletos: boolean("vendeBoletos").notNull().default(true),
 });
 
 /**
