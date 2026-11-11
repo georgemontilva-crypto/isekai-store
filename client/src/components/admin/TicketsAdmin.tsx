@@ -53,8 +53,10 @@ function Plegable({ titulo, children }: { titulo: string; children: React.ReactN
   );
 }
 
-export default function TicketsAdmin({ compact = false, vistaFija }: {
+export default function TicketsAdmin({ compact = false, vistaFija, incrustado = false }: {
   compact?: boolean;
+  /** Dentro de Boletería: la página ya trae sus márgenes */
+  incrustado?: boolean;
   /** Cuando la navegación la lleva la barra inferior, la vista viene dada */
   vistaFija?: "resumen" | "boletos" | "codigos" | "tipos" | "tiendas" | "acceso" | "levelpass" | "equipo" | "sorteo";
 }) {
@@ -337,7 +339,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
   const altoCampo = { minHeight: 48 };
 
   return (
-    <div className={compact ? "p-4 flex flex-col gap-4" : "flex flex-col gap-5"}>
+    <div className={incrustado ? "flex flex-col gap-4" : compact ? "p-4 flex flex-col gap-4" : "flex flex-col gap-5"}>
       {/* ── Evento: de qué evento se está hablando, de un vistazo ── */}
       {(() => {
         const ev = evento as any;
@@ -347,39 +349,55 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
           const hoy = new Date(new Intl.DateTimeFormat("en-CA", { timeZone: "America/Caracas" }).format(new Date())).getTime();
           const ini = new Date(new Date(ev.startDate).toISOString().slice(0, 10)).getTime();
           const fin = new Date(new Date(ev.endDate).toISOString().slice(0, 10)).getTime();
-          if (hoy < ini) { const d = Math.round((ini - hoy) / 86400000); return { t: d === 1 ? "Es mañana" : `Faltan ${d} días`, c: "#38bdf8" }; }
-          if (hoy > fin) return { t: "Terminó", c: "#8a8494" };
-          return { t: `En curso · día ${Math.round((hoy - ini) / 86400000) + 1}`, c: "#4ade80" };
+          if (hoy < ini) { const d = Math.round((ini - hoy) / 86400000); return { n: String(d), sub: d === 1 ? "día para el evento" : "días para el evento", t: "Preventa", c: "#38bdf8" }; }
+          if (hoy > fin) return { n: "", sub: "El evento ya terminó", t: "Terminó", c: "#8a8494" };
+          return { n: String(Math.round((hoy - ini) / 86400000) + 1), sub: "día del evento, en curso", t: "En curso", c: "#4ade80" };
         })();
+        // Un boleto: arriba el evento, abajo el talón con la cuenta regresiva.
+        // Las muescas se recortan con degradados para que sirvan sobre cualquier fondo.
+        const S = "var(--iw-surface)";
+        const muescas = (y: "100%" | "0") => ({
+          background: `radial-gradient(circle at 0 ${y}, transparent 9px, ${S} 9.5px) left / 51% 100% no-repeat, radial-gradient(circle at 100% ${y}, transparent 9px, ${S} 9.5px) right / 51% 100% no-repeat`,
+        });
         return (
-          <div className="rounded-3xl border border-white/[0.06] bg-white/[0.035] p-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#ff3d9e]">Evento</p>
-                <p className="mt-1 truncate text-[18px] font-bold text-[var(--iw-text)]">{ev?.name ?? "Sin eventos"}</p>
-                {ev && <p className="mt-0.5 text-[12.5px] text-[var(--iw-text-muted)]">{fecha(ev.startDate)}{fecha(ev.endDate) !== fecha(ev.startDate) ? ` – ${fecha(ev.endDate)}` : ""}{ev.location ? ` · ${ev.location}` : ""}</p>}
+          <div>
+            <div className="rounded-t-3xl px-5 pb-4 pt-5" style={muescas("100%")}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[20px] font-bold leading-tight text-[var(--iw-text)]">{ev?.name ?? "Sin eventos"}</p>
+                  {ev && <p className="mt-1 text-[13px] leading-snug text-[var(--iw-text-muted)]">{fecha(ev.startDate)}{fecha(ev.endDate) !== fecha(ev.startDate) ? ` al ${fecha(ev.endDate)}` : ""}{ev.location ? <><br />{ev.location}</> : ""}</p>}
+                </div>
+                {estado && <span className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ background: `${estado.c}1f`, color: estado.c }}>{estado.t}</span>}
               </div>
-              {estado && <span className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ background: `${estado.c}1f`, color: estado.c }}>{estado.t}</span>}
             </div>
-            <div className="mt-3 flex gap-2">
-              {eventos.length > 1 && (
-                <select
-                  value={evento?.id ?? ""}
-                  onChange={e => setEventoId(Number(e.target.value))}
-                  className="min-w-0 flex-1 rounded-full border border-white/10 bg-white/[0.05] px-4 text-[13px] font-semibold text-[var(--iw-text)] outline-none"
-                  style={{ minHeight: 40 }}
-                  aria-label="Cambiar de evento"
+            <div className="relative flex items-center justify-between gap-3 rounded-b-3xl px-5 pb-4 pt-4" style={muescas("0")}>
+              <span className="absolute left-4 right-4 top-0 border-t border-dashed border-[var(--iw-border)]" aria-hidden="true" />
+              <p className="flex min-w-0 items-baseline gap-2">
+                {estado?.n && <span className="text-[30px] font-black leading-none tabular-nums text-[var(--iw-text)]">{estado.n}</span>}
+                <span className="text-[12.5px] leading-tight text-[var(--iw-text-muted)]">{estado?.sub ?? "Crea tu primer evento"}</span>
+              </p>
+              <div className="flex shrink-0 gap-1.5">
+                {eventos.length > 1 && (
+                  <label className="relative flex items-center rounded-full bg-white/[0.07] px-3.5 text-[12.5px] font-semibold text-[var(--iw-text)]" style={{ minHeight: 38 }}>
+                    Cambiar
+                    <select
+                      value={evento?.id ?? ""}
+                      onChange={e => setEventoId(Number(e.target.value))}
+                      className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                      aria-label="Cambiar de evento"
+                    >
+                      {eventos.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}
+                    </select>
+                  </label>
+                )}
+                <button
+                  onClick={() => setFormEvento(!formEvento)}
+                  className="flex items-center gap-1 rounded-full bg-[#e5007d]/15 px-3.5 text-[12.5px] font-semibold text-[#ff3d9e]"
+                  style={{ minHeight: 38 }}
                 >
-                  {eventos.map((e: any) => <option key={e.id} value={e.id}>{e.name}</option>)}
-                </select>
-              )}
-              <button
-                onClick={() => setFormEvento(!formEvento)}
-                className={`flex shrink-0 items-center justify-center gap-1 rounded-full px-4 text-[13px] font-semibold ${eventos.length > 1 ? "" : "flex-1"}`}
-                style={{ minHeight: 40, background: formEvento ? "rgba(255,255,255,0.07)" : "rgba(229,0,125,0.14)", color: formEvento ? "var(--iw-text)" : "#ff3d9e" }}
-              >
-                {formEvento ? <><X size={14} /> Cancelar</> : <><Plus size={14} /> Nuevo evento</>}
-              </button>
+                  {formEvento ? "Cerrar" : <><Plus size={14} /> Nuevo</>}
+                </button>
+              </div>
             </div>
           </div>
         );
@@ -444,36 +462,39 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
         };
         return (
           <>
-            <div className="grid grid-cols-3 gap-2">
-              {GRUPOS.map(g => {
-                const on = g.id === grupo.id;
-                return (
+            <div className={incrustado ? "sticky z-20 -mx-4 bg-[#07060a]/95 px-4 pb-1 pt-2 backdrop-blur-md" : ""} style={incrustado ? { top: 56 } : undefined}>
+              <div className="lc-segmento grid grid-cols-3 rounded-2xl p-1">
+                {GRUPOS.map(g => {
+                  const on = g.id === grupo.id;
+                  return (
+                    <button
+                      key={g.id}
+                      onClick={() => { setVista(g.subs[0][0] as any); setBusqueda(""); }}
+                      className={`flex items-center justify-center gap-1.5 rounded-xl text-[13.5px] font-semibold transition-colors ${on ? "bg-white/[0.13] text-[var(--iw-text)]" : "text-[var(--iw-text-muted)]"}`}
+                      style={{ minHeight: 42, WebkitTapHighlightColor: "transparent" }}
+                      aria-pressed={on}
+                    >
+                      <g.Icono size={15} /> {g.label}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="mt-1 flex border-b border-[var(--iw-border)]" role="tablist">
+                {grupo.subs.map(([id, label]) => (
                   <button
-                    key={g.id}
-                    onClick={() => { setVista(g.subs[0][0] as any); setBusqueda(""); }}
-                    className="flex flex-col items-center justify-center gap-1 rounded-2xl text-[12.5px] font-bold transition-colors"
-                    style={{ minHeight: 62, WebkitTapHighlightColor: "transparent", ...(on ? { background: "#e5007d", color: "#fff" } : { background: "rgba(255,255,255,0.04)", color: "var(--iw-text-muted)", border: "1px solid rgba(255,255,255,0.06)" }) }}
-                    aria-pressed={on}
+                    key={id}
+                    role="tab"
+                    aria-selected={vista === id}
+                    onClick={() => { setVista(id as any); setBusqueda(""); }}
+                    className={`-mb-px flex-1 border-b-2 text-[13.5px] font-semibold transition-colors ${vista === id ? "border-[#e5007d] text-[var(--iw-text)]" : "border-transparent text-[var(--iw-text-muted)]"}`}
+                    style={{ minHeight: 44 }}
                   >
-                    <g.Icono size={18} /> {g.label}
+                    {label}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-            <div className="lc-segmento grid grid-cols-3 rounded-full p-1">
-              {grupo.subs.map(([id, label]) => (
-                <button
-                  key={id}
-                  onClick={() => { setVista(id as any); setBusqueda(""); }}
-                  className={`rounded-full text-[13px] font-semibold transition-colors ${vista === id ? "bg-white/[0.12] text-white" : "text-[var(--iw-text-muted)]"}`}
-                  style={{ minHeight: 40 }}
-                  aria-pressed={vista === id}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-            <p className="-mt-1 px-1 text-[12.5px] text-[var(--iw-text-muted)]">{AYUDA[vista] ?? ""}</p>
+            <p className="-mt-1 text-[12.5px] text-[var(--iw-text-muted)]">{AYUDA[vista] ?? ""}</p>
           </>
         );
       })()}
@@ -481,20 +502,24 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
       {/* ── Resumen ── */}
       {vista === "resumen" && resumen && (
         <>
-          <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
-            {[
-              { l: "Vendidos", v: String(resumen.vendidos), c: "text-[#e5007d]" },
-              { l: "Recaudado", v: usd(resumen.totalUsd), c: "text-green-500" },
-              { l: "En bolívares", v: `Bs ${resumen.totalBs.toLocaleString("es-VE")}`, c: "text-[var(--iw-text)]" },
-              { l: "Sin vender", v: String(resumen.enBlanco), c: "text-[var(--iw-text-muted)]" },
-            ].map(c => (
-              <div key={c.l} className={tarjeta}>
-                <p className="text-[11px] text-[var(--iw-text-muted)]">{c.l}</p>
-                <p className={`mt-1 text-base font-black tabular-nums leading-tight ${c.c}`}
-                   style={{ overflowWrap: "anywhere" }}>{c.v}</p>
+          {(() => {
+            const total = resumen.vendidos + resumen.enBlanco;
+            const pct = total > 0 ? Math.round((resumen.vendidos / total) * 100) : 0;
+            return (
+              <div className={`${tarjeta} !p-5`}>
+                <p className="text-[12.5px] text-[var(--iw-text-muted)]">Recaudado</p>
+                <p className="mt-1 text-[40px] font-black leading-none tabular-nums text-[var(--iw-text)]" style={{ overflowWrap: "anywhere" }}>{usd(resumen.totalUsd)}</p>
+                <p className="mt-1.5 text-[13px] tabular-nums text-[var(--iw-text-muted)]">Bs {resumen.totalBs.toLocaleString("es-VE")}</p>
+                <div className="mt-5 h-2.5 overflow-hidden rounded-full bg-[var(--iw-border)]" role="img" aria-label={`${pct}% de los boletos impresos ya se vendió`}>
+                  <div className="h-full rounded-full bg-[#e5007d] transition-all duration-500" style={{ width: `${resumen.vendidos > 0 ? Math.max(3, pct) : 0}%` }} />
+                </div>
+                <div className="mt-2.5 flex items-baseline justify-between text-[13px] text-[var(--iw-text-muted)]">
+                  <span><strong className="text-[17px] font-black tabular-nums text-[var(--iw-text)]">{resumen.vendidos}</strong> vendidos</span>
+                  <span><strong className="text-[17px] font-black tabular-nums text-[var(--iw-text)]">{resumen.enBlanco}</strong> impresos sin vender</span>
+                </div>
               </div>
-            ))}
-          </div>
+            );
+          })()}
 
 
           {/* Por tipo */}
@@ -508,7 +533,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                   <div key={t.id} className="flex items-center justify-between gap-3 border-b border-[var(--iw-border)] pb-2 last:border-0">
                     <div className="min-w-0">
                       <p className="truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
-                      <p className="text-xs text-[var(--iw-text-muted)]">{usd(t.precioUsd)} · {t.dias} día(s)</p>
+                      <p className="text-xs text-[var(--iw-text-muted)]">{usd(t.precioUsd)} · {t.dias === 1 ? "1 día" : `${t.dias} días`}</p>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="font-black text-[var(--iw-text)]">{t.cantidad}</p>
@@ -537,7 +562,7 @@ export default function TicketsAdmin({ compact = false, vistaFija }: {
                         <p className="min-w-0 truncate text-sm font-semibold text-[var(--iw-text)]">{t.nombre}</p>
                         <div className="shrink-0 text-right">
                           <span className="text-sm font-black text-[var(--iw-text)]">{usd(t.totalUsd)}</span>
-                          <span className="ml-2 text-xs text-[var(--iw-text-muted)]">{t.cantidad} boletos</span>
+                          <span className="ml-2 text-xs text-[var(--iw-text-muted)]">{t.cantidad === 1 ? "1 boleto" : `${t.cantidad} boletos`}</span>
                         </div>
                       </div>
                       <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--iw-border)]">

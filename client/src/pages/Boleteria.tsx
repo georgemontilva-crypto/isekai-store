@@ -149,21 +149,21 @@ export default function Boleteria() {
   return (
     <div className={fondo} style={relleno}>
       <div className={`mx-auto ${vista !== "operar" ? "max-w-3xl" : "max-w-md"}`}>
-        <div className="mb-5 flex items-center justify-between">
+        <div className="mb-1 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#ff3d9e]">Boletería · Isekai World Fest</p>
-            <p className="mt-1 truncate text-[22px] font-bold">Hola, {(user?.name || "").split(" ")[0] || "equipo"}</p>
+            <p className="truncate text-[24px] font-bold leading-tight">{vista === "admin" ? "Gestión" : vista === "stands" ? "Stands" : "Boletería"}</p>
+            <p className="truncate text-[12.5px] text-[#9a93a6]">Isekai World Fest · {(user?.name || user?.email || "").split(" ")[0]}</p>
           </div>
-          <div className="flex gap-1.5">
+          <div className="flex shrink-0 gap-1.5">
             <Link href="/" aria-label="Ir a la web" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><Home size={17} /></Link>
             <button onClick={() => logout()} aria-label="Cerrar sesión" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><LogOut size={17} /></button>
           </div>
         </div>
 
-        <CambiarHerramienta className="sticky top-0 z-30 -mx-4 mb-5 bg-[#07060a]/92 px-4 py-2.5 backdrop-blur-md" />
+        <CambiarHerramienta className="sticky top-0 z-30 -mx-4 mb-4 bg-[#07060a]/95 px-4 py-2.5 backdrop-blur-md" />
 
         {vista === "admin" ? (
-          <div className="flex flex-col gap-4"><TiendasStandAdmin soloPendientes /><TicketsAdmin compact /></div>
+          <div className="flex flex-col gap-4"><TiendasStandAdmin soloPendientes /><TicketsAdmin compact incrustado /></div>
         ) : vista === "stands" ? (
           <StandsAdmin />
         ) : cargando ? (
