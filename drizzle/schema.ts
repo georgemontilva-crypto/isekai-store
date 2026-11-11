@@ -365,6 +365,8 @@ export const eventTickets = mysqlTable("eventTickets", {
   priceUsd: decimal("priceUsd", { precision: 10, scale: 2 }),
   rateBs: decimal("rateBs", { precision: 12, scale: 2 }),
   priceBs: decimal("priceBs", { precision: 14, scale: 2 }),
+  /** Vendido con Cashea (cuotas): el precio lleva el recargo */
+  cashea: boolean("cashea").notNull().default(false),
   soldAt: timestamp("soldAt"),
   soldByUserId: int("soldByUserId"),
 

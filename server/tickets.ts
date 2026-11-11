@@ -3,6 +3,7 @@ import { nanoid } from "nanoid";
 import { getDb } from "./db";
 import { diaDelEventoVE, fechaVE, fechaDeEvento } from "@shared/diaEvento";
 import { conCandado } from "./candado";
+import { precioCashea } from "../shared/payment";
 import { notifyTicketPurchased } from "./_core/notification";
 import {
   events, ticketTypes, stores, eventTickets, ticketCheckins, gateUsers, users, siteSettings,
@@ -338,6 +339,8 @@ export async function venderBoleto(data: {
   buyerEmail?: string;
   storeId: number;
   userId: number;
+  /** Pagado con Cashea: lleva el recargo */
+  cashea?: boolean;
 }) {
   const db = await getDb();
   if (!db) throw new Error("DB no disponible");
@@ -371,13 +374,14 @@ async function completarVenta(
   db: NonNullable<Awaited<ReturnType<typeof getDb>>>,
   t: typeof eventTickets.$inferSelect,
   tipo: typeof ticketTypes.$inferSelect,
-  data: { token: string; ticketTypeId: number; buyerName: string; buyerLastName: string; buyerPhone: string; buyerEmail?: string; storeId: number; userId: number },
+  data: { token: string; ticketTypeId: number; buyerName: string; buyerLastName: string; buyerPhone: string; buyerEmail?: string; storeId: number; userId: number; cashea?: boolean },
 ) {
   // La tasa se congela en el momento de la venta: si mañana cambia, este
   // boleto conserva el precio en bolívares con el que se vendió.
   const [rateRow] = await db.select().from(siteSettings).where(eq(siteSettings.key, "bs_rate")).limit(1);
   const tasa = parseFloat(rateRow?.value ?? "0") || 0;
-  const precioUsd = parseFloat(tipo.priceUsd as any);
+  const base = parseFloat(tipo.priceUsd as any);
+  const precioUsd = data.cashea ? precioCashea(base) : base;
   const precioBs = tasa > 0 ? Math.round(precioUsd * tasa * 100) / 100 : null;
 
   // La venta se marca con la condición de que el boleto SIGA en blanco. Si dos
@@ -395,6 +399,7 @@ async function completarVenta(
     priceUsd: precioUsd.toFixed(2),
     rateBs: tasa > 0 ? tasa.toFixed(2) : null,
     priceBs: precioBs != null ? precioBs.toFixed(2) : null,
+    cashea: Boolean(data.cashea),
     soldAt: new Date(),
     soldByUserId: data.userId,
   }).where(and(eq(eventTickets.id, t.id), eq(eventTickets.status, "blank")));
@@ -463,7 +468,7 @@ export async function corregirBoleto(id: number, data: Partial<{
   if (data.ticketTypeId !== undefined && data.ticketTypeId !== t.ticketTypeId) {
     const [tipo] = await db.select().from(ticketTypes).where(eq(ticketTypes.id, data.ticketTypeId)).limit(1);
     if (!tipo || tipo.eventId !== t.eventId) throw new Error("Tipo de boleto inválido");
-    const usd = parseFloat(tipo.priceUsd as any);
+    const usd = (t as any).cashea ? precioCashea(parseFloat(tipo.priceUsd as any)) : parseFloat(tipo.priceUsd as any);
     const tasa = parseFloat((t.rateBs as any) ?? "0") || 0;
     cambios.ticketTypeId = tipo.id;
     cambios.priceUsd = usd.toFixed(2);
@@ -496,7 +501,7 @@ export async function deshacerVenta(id: number) {
   await db.update(eventTickets).set({
     status: "blank", ticketTypeId: null, storeId: null,
     buyerName: null, buyerLastName: null, buyerPhone: null, buyerEmail: null,
-    priceUsd: null, rateBs: null, priceBs: null, soldAt: null, soldByUserId: null,
+    priceUsd: null, rateBs: null, priceBs: null, cashea: false, soldAt: null, soldByUserId: null,
   } as any).where(eq(eventTickets.id, id));
   return { ok: true };
 }

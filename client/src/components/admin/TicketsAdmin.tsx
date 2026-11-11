@@ -364,7 +364,7 @@ export default function TicketsAdmin({ compact = false, vistaFija, incrustado = 
             <div className="rounded-t-3xl px-5 pb-4 pt-5" style={muescas("100%")}>
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="truncate text-[20px] font-bold leading-tight text-[var(--iw-text)]">{ev?.name ?? "Sin eventos"}</p>
+                  <p className="text-[20px] font-bold leading-tight text-[var(--iw-text)]" style={{ overflowWrap: "anywhere" }}>{ev?.name ?? "Sin eventos"}</p>
                   {ev && <p className="mt-1 text-[13px] leading-snug text-[var(--iw-text-muted)]">{fecha(ev.startDate)}{fecha(ev.endDate) !== fecha(ev.startDate) ? ` al ${fecha(ev.endDate)}` : ""}{ev.location ? <><br />{ev.location}</> : ""}</p>}
                 </div>
                 {estado && <span className="shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold" style={{ background: `${estado.c}1f`, color: estado.c }}>{estado.t}</span>}
@@ -372,9 +372,9 @@ export default function TicketsAdmin({ compact = false, vistaFija, incrustado = 
             </div>
             <div className="relative flex items-center justify-between gap-3 rounded-b-3xl px-5 pb-4 pt-4" style={muescas("0")}>
               <span className="absolute left-4 right-4 top-0 border-t border-dashed border-[var(--iw-border)]" aria-hidden="true" />
-              <p className="flex min-w-0 items-baseline gap-2">
-                {estado?.n && <span className="text-[30px] font-black leading-none tabular-nums text-[var(--iw-text)]">{estado.n}</span>}
-                <span className="text-[12.5px] leading-tight text-[var(--iw-text-muted)]">{estado?.sub ?? "Crea tu primer evento"}</span>
+              <p className="flex min-w-0 flex-1 items-center gap-2.5">
+                {estado?.n && <span className="shrink-0 text-[30px] font-black leading-none tabular-nums text-[var(--iw-text)]">{estado.n}</span>}
+                <span className="min-w-0 text-[12.5px] leading-tight text-[var(--iw-text-muted)]">{estado?.sub ?? "Crea tu primer evento"}</span>
               </p>
               <div className="flex shrink-0 gap-1.5">
                 {eventos.length > 1 && (

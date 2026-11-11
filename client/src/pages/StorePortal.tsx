@@ -6,6 +6,7 @@ import {
   Gift, Loader2, MapPin, Receipt, Repeat, Search, Store, Swords, Ticket, User, X, Zap,
 } from "lucide-react";
 import { toast } from "sonner";
+import { precioCashea, RECARGO_CASHEA_PCT } from "@shared/payment";
 import QrScanner from "@/components/admin/QrScanner";
 import { trpc } from "@/lib/trpc";
 import CambiarHerramienta from "@/components/CambiarHerramienta";
@@ -293,6 +294,8 @@ export default function StorePortal() {
   const [apellido, setApellido] = useState("");
   const [telefono, setTelefono] = useState("");
   const [correo, setCorreo] = useState("");
+  /** Forma de pago: de contado o con Cashea (cuotas, con recargo) */
+  const [cashea, setCashea] = useState(false);
   const [intento, setIntento] = useState(false);
   const [vendido, setVendido] = useState<any>(null);
   const datosRef = useRef<HTMLDivElement>(null);
@@ -318,7 +321,7 @@ export default function StorePortal() {
   const limpiarVenta = () => {
     try { localStorage.removeItem("iw_boleto_pendiente"); } catch { /* */ }
     setToken(""); setUltimoEscaneo(""); setTipoElegido(null);
-    setNombre(""); setApellido(""); setTelefono(""); setCorreo(""); setIntento(false); setVendido(null);
+    setNombre(""); setApellido(""); setTelefono(""); setCorreo(""); setCashea(false); setIntento(false); setVendido(null);
     if (params?.token) navigate("/vender", { replace: true });
   };
 
@@ -338,7 +341,7 @@ export default function StorePortal() {
     if (hayErrores) { toast.error("Revisa los datos marcados"); return; }
     vender.mutate({
       token, ticketTypeId: tipoElegido!, buyerName: nombre.trim(), buyerLastName: apellido.trim(),
-      buyerPhone: telefono.trim(), buyerEmail: correo.trim() || undefined,
+      buyerPhone: telefono.trim(), buyerEmail: correo.trim() || undefined, cashea,
     });
   };
 
@@ -694,6 +697,27 @@ export default function StorePortal() {
                   </div>
                 </div>
 
+                {tipoSel && (() => {
+                  const contado = parseFloat((tipoSel as any).priceUsd);
+                  const conCashea = precioCashea(contado);
+                  return (
+                    <div>
+                      <p className="mb-2.5 text-[15px] font-bold">¿Cómo paga?</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {([[false, "De contado", contado, "Pago Móvil, USDT o efectivo"], [true, "Con Cashea", conCashea, `En cuotas · +${RECARGO_CASHEA_PCT}%`]] as const).map(([v, titulo, precio, nota]) => (
+                          <button key={titulo} type="button" onClick={() => setCashea(v)} aria-pressed={cashea === v}
+                            className="rounded-2xl border p-3.5 text-left transition-colors"
+                            style={{ borderColor: cashea === v ? ROSA : "rgba(255,255,255,0.08)", background: cashea === v ? `${ROSA}14` : "rgba(255,255,255,0.025)" }}>
+                            <span className="block text-[13.5px] font-bold">{titulo}</span>
+                            <span className="block text-[22px] font-black leading-tight tabular-nums">${precio}</span>
+                            <span className="block text-[11.5px] text-[#8a8494]">{nota}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 <div ref={datosRef} className="scroll-mt-24">
                   <p className="mb-2.5 text-[15px] font-bold">Datos del comprador</p>
                   <div className="flex flex-col gap-3">
@@ -723,7 +747,7 @@ export default function StorePortal() {
                       {vender.isPending ? <Loader2 size={18} className="animate-spin" /> : <Check size={18} strokeWidth={3} />}
                       Registrar venta
                     </span>
-                    {tipoSel && <span className="text-[15px] font-black">${parseFloat(tipoSel.priceUsd).toFixed(2)}</span>}
+                    {tipoSel && <span className="text-[15px] font-black">${(cashea ? precioCashea(parseFloat(tipoSel.priceUsd)) : parseFloat(tipoSel.priceUsd)).toFixed(2)}{cashea ? " · Cashea" : ""}</span>}
                   </button>
                 </div>
               </section>

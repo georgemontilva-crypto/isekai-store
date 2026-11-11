@@ -40,7 +40,23 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
     onError: e => toast.error(e.message),
   });
 
-  if (!evento) return <p className="py-8 text-center text-sm text-[var(--iw-text-muted)]">Crea o elige un evento primero.</p>;
+  const { data: conteo } = trpc.tickets.conteoReinicio.useQuery();
+  const reiniciar = trpc.tickets.reiniciar2027.useMutation({
+    onSuccess: () => { toast.success("Listo: quedó solo el Isekai World Fest 2027 con sus 4 boletos"); void utils.invalidate(); },
+    onError: e => toast.error(e.message),
+  });
+  const pedirReinicio = async () => {
+    const c = conteo;
+    const detalle = c ? `Se borran para siempre ${c.eventos} ${c.eventos === 1 ? "evento" : "eventos"}, ${c.boletos} boletos generados (${c.vendidos} vendidos, con su asistencia y su EXP), ${c.tipos} tipos de boleto y ${c.actividades} actividades oficiales del Level Pass. ` : "";
+    if (await confirmar({ titulo: "Reiniciar con el Fest 2027", mensaje: `${detalle}Queda un solo evento: Isekai World Fest 2027 (14 y 15 de agosto, Palacio de Eventos) con sus 4 boletos. Las tiendas, el equipo y las misiones de las tiendas se conservan. No se puede deshacer.`, confirmar: "Borrar todo y reiniciar", peligro: true })) reiniciar.mutate({ confirmo: "BORRAR" });
+  };
+  const botonReinicio = (
+    <button onClick={pedirReinicio} disabled={reiniciar.isPending} className="flex w-full items-center justify-center gap-2 rounded-full border border-[#f87171]/40 py-3 text-[13.5px] font-semibold text-[#fca5a5]">
+      {reiniciar.isPending && <Loader2 size={15} className="animate-spin" />} Borrar todos los eventos y dejar solo el Fest 2027
+    </button>
+  );
+
+  if (!evento) return <div className="flex flex-col gap-3"><p className="py-6 text-center text-sm text-[var(--iw-text-muted)]">Crea o elige un evento primero.</p>{botonReinicio}</div>;
 
   const todos = tipos as Tipo[];
   // Los eliminados con ventas se archivan: no estorban, pero se pueden recuperar
@@ -54,7 +70,7 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
         <div className="rounded-3xl border border-[#fbbf24]/25 bg-[#fbbf24]/[0.06] p-4">
           <p className="flex items-center gap-2 text-[15px] font-bold text-[var(--iw-text)]"><Sparkles size={16} className="text-[#fbbf24]" /> Boletería Isekai World Fest 2027</p>
           <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--iw-text-muted)]">
-            General 1 día ($25) · General 2 días ($45) · VIP 2 días ($80, 20 boletos) · Isekai Fanbox ($100, 100 cajas). Con sus beneficios, cupos y bonos ya configurados.
+            General 1 día ($18) · General 2 días ($25) · VIP 2 días ($99, 45 boletos) · Isekai FanBox ($79, 100 cajas). Con Cashea se suma 8% al vender. Con sus beneficios y cupos ya configurados.
           </p>
           <button
             onClick={async () => { if (await confirmar({ titulo: "Cargar boletos 2027", mensaje: `Se cargan los 4 tipos en «${evento.name}». Si alguno ya existe con ese nombre, se actualiza.`, confirmar: "Cargar" })) plantilla.mutate({ eventId: evento.id }); }}
@@ -151,6 +167,7 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
       </button>
 
       {editando && <EditarTipo tipo={editando} eventId={evento.id} onCerrar={() => setEditando(null)} onListo={() => { refrescar(); setEditando(null); }} />}
+      <div className="mt-4">{botonReinicio}</div>
     </div>
   );
 }

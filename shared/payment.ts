@@ -39,3 +39,10 @@ export const CRYPTO = {
   network: "Tron (TRC20)",
   address: "TPWp9WEJAzxYJaHu1XGCcW1suTWbSMovHo",
 } as const;
+
+/** Cashea: pago en cuotas. El boleto sube este porcentaje sobre el precio de contado. */
+export const RECARGO_CASHEA_PCT = 8;
+/** Precio con Cashea, redondeado al dólar (25 → 27, 99 → 107) */
+export function precioCashea(usd: number) {
+  return Math.round(usd * (1 + RECARGO_CASHEA_PCT / 100));
+}

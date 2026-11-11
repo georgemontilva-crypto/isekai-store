@@ -34,6 +34,7 @@ export async function asegurarEsquemaBeneficios() {
     for (const [tabla, cols] of [
       ["stores", [["plan", "varchar(20) NULL"], ["standReservaId", "int NULL"], ["cupoBoletos", "int NULL"], ["vendeBoletos", "boolean NOT NULL DEFAULT true"]]],
       ["levelActivities", [["storeId", "int NULL"]]],
+      ["eventTickets", [["cashea", "boolean NOT NULL DEFAULT false"]]],
     ] as [string, [string, string][]][]) {
       const [f] = await db.execute(sql`SELECT COLUMN_NAME AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ${tabla}`) as unknown as [{ c: string }[]];
       const ya = new Set((f ?? []).map(x => x.c));
@@ -66,22 +67,62 @@ export async function asegurarEsquemaBeneficios() {
 /** Los boletos del Isekai World Fest 2027, listos para cargar en un toque */
 export const PLANTILLA_2027 = [
   {
-    name: "General 1 día", priceUsd: "25", days: 1, cupo: null, esVip: false, entregaKit: null, bonos: 0, color: "#38bdf8", sortOrder: 1,
-    perks: "Acceso a un día del evento\nLevel Pass incluido",
+    name: "General 1 día", priceUsd: "18", days: 1, cupo: null, esVip: false, entregaKit: null, bonos: 0, color: "#38bdf8", sortOrder: 1,
+    perks: "Acceso por un día\nLevel Pass incluido",
   },
   {
-    name: "General 2 días", priceUsd: "45", days: 2, cupo: null, esVip: false, entregaKit: null, bonos: 0, color: "#a78bfa", sortOrder: 2,
-    perks: "Acceso a los dos días del evento\nLevel Pass incluido",
+    name: "General 2 días", priceUsd: "25", days: 2, cupo: null, esVip: false, entregaKit: null, bonos: 0, color: "#a78bfa", sortOrder: 2,
+    perks: "Acceso a los dos días\nLevel Pass incluido",
   },
   {
-    name: "VIP 2 días", priceUsd: "80", days: 2, cupo: 20, esVip: true, entregaKit: null, bonos: 0, color: "#fbbf24", sortOrder: 3,
-    perks: "Acceso a los dos días + Level Pass\nMesa en zona VIP con servicio a la mesa\nIngreso 1 hora antes de la apertura\nZona exclusiva de fotos con los cosplayers internacionales invitados\nParticipación directa en el sorteo de la pieza a tamaño real (día 2)",
+    name: "VIP 2 días", priceUsd: "99", days: 2, cupo: 45, esVip: true, entregaKit: null, bonos: 0, color: "#fbbf24", sortOrder: 3,
+    perks: "Acceso a los dos días\nLevel Pass incluido\nMesa en zona VIP con servicio a la mesa\nIngreso 1 hora antes de la apertura\nZona exclusiva de fotos con los cosplayers internacionales invitados\nParticipación directa en el sorteo de la pieza a tamaño real (día 2)",
   },
   {
-    name: "Isekai Fanbox", priceUsd: "100", days: 2, cupo: 100, esVip: false, entregaKit: "Caja Fanbox + tote bag oficial", bonos: 5, color: "#e5007d", sortOrder: 4,
-    perks: "Entrada general para los dos días + Level Pass\nTote bag oficial del evento\n5 bonos de consumo en tiendas aliadas\nUn obsequio sorpresa (desde un llavero hasta una figura coleccionable)",
+    name: "Isekai FanBox", priceUsd: "79", days: 2, cupo: 100, esVip: false, entregaKit: "Caja FanBox + tote bag oficial", bonos: 3, color: "#e5007d", sortOrder: 4,
+    perks: "Caja coleccionable con entrada general para los dos días\nLevel Pass incluido\nTote bag oficial del evento\n3 cupones de descuento en tiendas aliadas\nObsequio sorpresa: desde un llavero hasta una figura coleccionable (cada caja es distinta)",
   },
 ] as const;
+
+/** El evento oficial */
+export const EVENTO_2027 = { name: "Isekai World Fest 2027", startDate: "2027-08-14", endDate: "2027-08-15", location: "Palacio de Eventos, Maracaibo" };
+
+/** Qué se borraría al reiniciar (para mostrarlo antes de confirmar) */
+export async function conteoReinicio() {
+  const db = await getDb();
+  if (!db) return { eventos: 0, boletos: 0, vendidos: 0, tipos: 0, actividades: 0, misionesTienda: 0 };
+  const n = async (q: ReturnType<typeof sql>) => Number(((await db.execute(q)) as any)?.[0]?.[0]?.n ?? 0);
+  return {
+    eventos: await n(sql`SELECT COUNT(*) AS n FROM events`),
+    boletos: await n(sql`SELECT COUNT(*) AS n FROM eventTickets`),
+    vendidos: await n(sql`SELECT COUNT(*) AS n FROM eventTickets WHERE status = 'sold'`),
+    tipos: await n(sql`SELECT COUNT(*) AS n FROM ticketTypes`),
+    actividades: await n(sql`SELECT COUNT(*) AS n FROM levelActivities WHERE storeId IS NULL`),
+    misionesTienda: await n(sql`SELECT COUNT(*) AS n FROM levelActivities WHERE storeId IS NOT NULL`),
+  };
+}
+
+/**
+ * Borra TODOS los eventos con sus boletos, ventas, ingresos y experiencia, y
+ * deja uno solo: el Isekai World Fest 2027 con sus cuatro boletos.
+ * Se conservan las tiendas, el equipo y las misiones que ya escribieron las
+ * tiendas con stand (pasan al evento nuevo).
+ */
+export async function reiniciarCon2027() {
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  const antes = await conteoReinicio();
+  for (const t of ["levelRankUps", "levelGrants", "levelProgress", "ticketCheckins", "ticketCanjes", "eventTickets", "ticketTypes"]) {
+    await db.execute(sql.raw(`DELETE FROM \`${t}\``));
+  }
+  await db.execute(sql`DELETE FROM levelActivities WHERE storeId IS NULL`);
+  await db.execute(sql`DELETE FROM events`);
+  await db.execute(sql`INSERT INTO events (name, startDate, endDate, location, active) VALUES (${EVENTO_2027.name}, ${EVENTO_2027.startDate + " 12:00:00"}, ${EVENTO_2027.endDate + " 12:00:00"}, ${EVENTO_2027.location}, true)`);
+  const [[ev]] = await db.execute(sql`SELECT id FROM events ORDER BY id DESC LIMIT 1`) as unknown as [[{ id: number }]];
+  await db.execute(sql`UPDATE levelActivities SET eventId = ${ev.id} WHERE storeId IS NOT NULL`);
+  await cargarPlantilla2027(ev.id);
+  return { ok: true, eventId: ev.id, borrado: antes };
+}
 
 /**
  * Carga los cuatro tipos en el evento. Si ya existe uno con el mismo nombre

@@ -1849,6 +1849,14 @@ export const appRouter = router({
     plantilla2027: adminProcedure
       .input(z.object({ eventId: z.number() }))
       .mutation(({ input }) => cargarPlantilla2027(input.eventId)),
+    /** Reinicio: borra todos los eventos y deja solo el Fest 2027 con sus boletos */
+    conteoReinicio: adminProcedure.query(async () => (await import("./beneficios")).conteoReinicio()),
+    reiniciar2027: adminProcedure
+      .input(z.object({ confirmo: z.literal("BORRAR") }))
+      .mutation(async () => {
+        try { return await (await import("./beneficios")).reiniciarCon2027(); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
     /** Participantes del sorteo VIP */
     sorteo: adminProcedure
       .input(z.object({ eventId: z.number() }))
@@ -2023,6 +2031,8 @@ export const appRouter = router({
         buyerPhone: z.string().min(4).max(50),
         /** Con este correo el asistente entra luego a ver su rango */
         buyerEmail: z.string().email().max(320).optional().or(z.literal("")),
+        /** Pagó con Cashea (cuotas): el precio lleva el recargo */
+        cashea: z.boolean().optional(),
       }))
       .mutation(async ({ ctx, input }) => {
         // Holgado: una taquilla con fila el día del evento vende sin parar
