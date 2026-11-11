@@ -55,7 +55,7 @@ export default function StaffRueda() {
   }
 
   return (
-    <div className="flex h-[100dvh] flex-col bg-[#07060a]" style={{ paddingTop: "env(safe-area-inset-top)" }}>
+    <div className="flex h-[100dvh] flex-col bg-[#07060a]" style={{ paddingTop: "env(safe-area-inset-top)", paddingBottom: "calc(env(safe-area-inset-bottom) + 66px)" }}>
       <div className="mx-auto flex h-full w-full max-w-lg flex-col overflow-hidden">
         <ListaRueda
           modo={acceso.esAdmin ? "admin" : "staff"}

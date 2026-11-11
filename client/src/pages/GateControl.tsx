@@ -311,7 +311,7 @@ export default function GateControl() {
     : TURQUESA;
 
   return (
-    <div className="min-h-screen bg-[#08070c] text-white" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 24px)" }}>
+    <div className="min-h-screen bg-[#08070c] text-white" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 90px)" }}>
       {escaneando && !procesando && (
         <QrScanner onDetectado={alDetectar} onCerrar={alCerrarEscaner} />
       )}

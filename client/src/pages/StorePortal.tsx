@@ -445,7 +445,8 @@ export default function StorePortal() {
     esTienda && ["bonos", "Canjear", Gift, VERDE_BONO],
     esTienda && ["ventas", "Ventas", Receipt, "#a78bfa"],
   ].filter(Boolean) as [Modo, string, any, string][]);
-  const conBarra = pestanas.length > 1;
+  // El menú inferior es el del evento (CambiarHerramienta): el mismo en todas las pantallas
+  const conBarra = true;
   const colorModo = modo === "xp" ? CIAN : modo === "ventas" ? "#a78bfa" : modo === "bonos" ? VERDE_BONO : ROSA;
 
   // Paso actual de la venta (para la guía de arriba)
@@ -453,6 +454,7 @@ export default function StorePortal() {
 
   return (
     <div className="sp min-h-screen bg-[#08070c] text-white" style={{ paddingBottom: conBarra ? "calc(env(safe-area-inset-bottom) + 84px)" : "calc(env(safe-area-inset-bottom) + 24px)" }}>
+      <CambiarHerramienta />
       {camara && (
         <EscanerSeguro onFallo={() => { setCamara(null); toast.error("La cámara no funcionó. Escribe el código del boleto."); }}>
           <QrScanner
@@ -488,7 +490,6 @@ export default function StorePortal() {
             <LayoutGrid size={18} />
           </Link>
         </div>
-        <CambiarHerramienta className="mx-auto max-w-lg px-4 pb-2.5" />
       </header>
 
       <main className="mx-auto max-w-lg px-4 pt-5">
@@ -936,29 +937,7 @@ export default function StorePortal() {
       </main>
 
       {/* ── Navegación, estilo app ── */}
-      {conBarra && (
-        <nav className="fixed inset-x-0 bottom-0 z-40 border-t border-white/[0.06] bg-[#08070c]/95 backdrop-blur-md" style={{ paddingBottom: "env(safe-area-inset-bottom)" }} aria-label="Secciones">
-          <div className="mx-auto flex max-w-lg px-2">
-            {pestanas.map(([id, label, Icono, color]) => {
-              const activo = modo === id;
-              return (
-                <button
-                  key={id}
-                  onClick={() => irA(id)}
-                  aria-current={activo ? "page" : undefined}
-                  className="flex flex-1 flex-col items-center justify-center gap-1 py-2.5"
-                  style={{ minHeight: 64, WebkitTapHighlightColor: "transparent" }}
-                >
-                  <span className="flex h-8 w-14 items-center justify-center rounded-full transition-colors" style={{ background: activo ? `${color}26` : "transparent" }}>
-                    <Icono size={19} style={{ color: activo ? color : "#5d5766" }} />
-                  </span>
-                  <span className="text-[11px] font-semibold" style={{ color: activo ? "#ffffff" : "#5d5766" }}>{label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </nav>
-      )}
+
     </div>
   );
 }

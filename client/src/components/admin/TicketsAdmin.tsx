@@ -462,7 +462,7 @@ export default function TicketsAdmin({ compact = false, vistaFija, incrustado = 
         };
         return (
           <>
-            <div className={incrustado ? "sticky z-20 -mx-4 bg-[#07060a]/95 px-4 pb-1 pt-2 backdrop-blur-md" : ""} style={incrustado ? { top: 56 } : undefined}>
+            <div className={incrustado ? "sticky z-20 -mx-4 bg-[#07060a]/95 px-4 pb-1 pt-2 backdrop-blur-md" : ""} style={incrustado ? { top: 0 } : undefined}>
               <div className="lc-segmento grid grid-cols-3 rounded-2xl p-1">
                 {GRUPOS.map(g => {
                   const on = g.id === grupo.id;

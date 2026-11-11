@@ -5247,3 +5247,10 @@ html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -we
 .pk-evento .fest-map .overlay { z-index: 95; }
 .pk-evento .fest-map .tip { z-index: 96; }
 html.dark .fest-map .info h2 { color: var(--ink) !important; -webkit-text-fill-color: var(--ink); }
+
+/* ═══ Menú inferior del evento: carpeta «Más herramientas» ═══ */
+.bh-fondo { animation: bh-fondo .2s ease-out; }
+.bh-carpeta { animation: bh-carpeta .28s cubic-bezier(.2, .9, .3, 1.15); transform-origin: 85% 130%; }
+@keyframes bh-fondo { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bh-carpeta { from { opacity: 0; transform: scale(.35); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .bh-fondo, .bh-carpeta { animation: none; } }

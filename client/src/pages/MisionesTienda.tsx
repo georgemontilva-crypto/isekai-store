@@ -25,7 +25,7 @@ export default function MisionesTienda() {
   const m = data?.misiones;
 
   const marco = (hijos: React.ReactNode) => (
-    <div className="min-h-[100dvh] bg-[#07060a] px-4 text-white" style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)", paddingBottom: "calc(env(safe-area-inset-bottom) + 2.5rem)" }}>
+    <div className="min-h-[100dvh] bg-[#07060a] px-4 text-white" style={{ paddingTop: "calc(env(safe-area-inset-top) + 1rem)", paddingBottom: "calc(env(safe-area-inset-bottom) + 96px)" }}>
       <div className="mx-auto max-w-md">
         <div className="mb-5 flex items-center gap-3">
           <Link href="/boleteria" aria-label="Volver a Boletería" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><ArrowLeft size={18} /></Link>
@@ -34,7 +34,7 @@ export default function MisionesTienda() {
             <p className="truncate text-[21px] font-bold">Mis misiones</p>
           </div>
         </div>
-        <CambiarHerramienta className="mb-4" />
+        <CambiarHerramienta />
         {hijos}
       </div>
     </div>

@@ -105,7 +105,7 @@ export default function Boleteria() {
   }, [vendeStand, agotadoStand, cupoStand, misionesStand]);
 
   const fondo = "min-h-[100dvh] bg-[#07060a] px-4 text-white";
-  const relleno = { paddingTop: "calc(env(safe-area-inset-top) + 1rem)", paddingBottom: "calc(env(safe-area-inset-bottom) + 2rem)" };
+  const relleno = { paddingTop: "calc(env(safe-area-inset-top) + 1rem)", paddingBottom: "calc(env(safe-area-inset-bottom) + 96px)" };
 
   if (loading) return <div className="flex min-h-[100dvh] items-center justify-center bg-[#07060a]"><Loader2 className="animate-spin text-[#ff3d9e]" /></div>;
 
@@ -160,7 +160,8 @@ export default function Boleteria() {
           </div>
         </div>
 
-        <CambiarHerramienta className="sticky top-0 z-30 -mx-4 mb-4 bg-[#07060a]/95 px-4 py-2.5 backdrop-blur-md" />
+        <CambiarHerramienta />
+        <div className="mb-4" />
 
         {vista === "admin" ? (
           <div className="flex flex-col gap-4"><TiendasStandAdmin soloPendientes /><TicketsAdmin compact incrustado /></div>
