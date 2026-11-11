@@ -17,7 +17,7 @@ import { consultarTasaBinance, actualizarTasaAutomatica } from "./binanceRate";
 import {
   crearEvento, listarEventos, editarEvento,
   crearTipoBoleto, listarTipos, editarTipo, borrarTipo,
-  crearTienda, listarTiendas, editarTienda, borrarTienda, tiendaDeUsuario,
+  crearTienda, listarTiendas, tiendaDeLaCasa, editarTienda, borrarTienda, tiendaDeUsuario,
   generarBoletos, boletoPorToken, venderBoleto, corregirBoleto, ordenarEventos, deshacerVenta, reenviarComprobante, listarBoletosPorId,
   listarBoletos, resumenEvento, ventasDeTienda, lotesDeEvento, boletosDeLote, ventasPorDia,
   paqueteAcceso, registrarIngreso, resumenAsistencia, miAccesoPorCorreo, diaDelEvento,
@@ -1960,11 +1960,14 @@ export const appRouter = router({
         buyerEmail: z.string().email().max(320).optional().or(z.literal("")),
       }))
       .mutation(async ({ ctx, input }) => {
-        if (!limitarPorUsuario(`venta:${ctx.user.id}`, 40, 10 * 60 * 1000)) {
+        // Holgado: una taquilla con fila el día del evento vende sin parar
+        if (!limitarPorUsuario(`venta:${ctx.user.id}`, 400, 10 * 60 * 1000)) {
           throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiadas ventas seguidas. Espera un momento." });
         }
 
-        const tienda = await tiendaDeSesion(ctx.permisos);
+        // El administrador que no tiene tienda propia vende por la taquilla
+        // de la casa: antes le salía «no está asociado a una tienda»
+        const tienda = (await tiendaDeSesion(ctx.permisos)) ?? (ctx.permisos.admin ? await tiendaDeLaCasa() : undefined);
         if (!tienda) throw new TRPCError({ code: "FORBIDDEN", message: "Tu usuario no está asociado a una tienda" });
         if (!tienda.active) throw new TRPCError({ code: "FORBIDDEN", message: "Esta tienda está desactivada" });
 
@@ -1991,7 +1994,7 @@ export const appRouter = router({
     misVentas: storeProcedure
       .input(z.object({ eventId: z.number() }))
       .query(async ({ ctx, input }) => {
-        const tienda = await tiendaDeSesion(ctx.permisos);
+        const tienda = (await tiendaDeSesion(ctx.permisos)) ?? (ctx.permisos.admin ? await tiendaDeLaCasa() : undefined);
         if (!tienda) return { cantidad: 0, totalUsd: 0, totalBs: 0, boletos: [] };
         return ventasDeTienda(tienda.id, input.eventId);
       }),

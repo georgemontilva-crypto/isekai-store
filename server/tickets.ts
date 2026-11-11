@@ -168,6 +168,24 @@ export async function crearTienda(data: {
   });
 }
 
+/**
+ * Taquilla propia: la tienda a nombre de la que vende el administrador cuando
+ * su cuenta no está ligada a ninguna. Se crea sola la primera vez.
+ */
+export const NOMBRE_TAQUILLA = "Isekai World (taquilla propia)";
+export async function tiendaDeLaCasa() {
+  const db = await getDb();
+  if (!db) return undefined;
+  return conCandado("taquilla-propia", async () => {
+    let [t] = await db.select().from(stores).where(eq(stores.name, NOMBRE_TAQUILLA)).limit(1);
+    if (!t) {
+      await db.insert(stores).values({ name: NOMBRE_TAQUILLA });
+      [t] = await db.select().from(stores).where(eq(stores.name, NOMBRE_TAQUILLA)).limit(1);
+    }
+    return t;
+  });
+}
+
 export async function listarTiendas() {
   const db = await getDb();
   if (!db) return [];
