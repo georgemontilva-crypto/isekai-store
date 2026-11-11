@@ -21,6 +21,9 @@ const dinero = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDig
 const campo = "w-full rounded-xl border border-white/12 bg-white/[0.04] px-3.5 py-3 text-[16px] text-white outline-none placeholder:text-[#6f6878] focus:border-[#ff3d9e]/70";
 const etiqueta = "mb-1.5 block text-[12px] font-semibold text-[#cfc9d8]";
 
+/** El plano con las mesas se muestra al público solo cuando esté la distribución final */
+const PLANO_DISPONIBLE = false;
+
 export default function Stands() {
   useSEO({ title: "Reserva tu stand — Isekai World Fest 2027", description: "Elige tu stand Mercader, Gremio o Gran Gremio y tu mesa en el plano del Isekai World Fest 2027.", url: "https://www.isekaiworld.co/stands" });
   const { data, isLoading } = trpc.stands.publico.useQuery(undefined, { refetchInterval: 60_000 });
@@ -113,8 +116,16 @@ export default function Stands() {
           })}
         </div>
 
-        {/* Plano */}
-        {hayPlano && (
+        {/* Plano: oculto por ahora, mientras se termina la distribución final */}
+        {!PLANO_DISPONIBLE && (
+          <div className="mt-8 rounded-3xl border border-dashed border-white/15 bg-white/[0.03] px-6 py-9 text-center">
+            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff3d9e]/15 text-[#ff3d9e]"><MapaIcono size={22} /></span>
+            <p className="mt-4 text-[18px] font-bold">Estamos trabajando en el plano</p>
+            <p className="mx-auto mt-2 max-w-sm text-[14px] leading-relaxed text-[#bfb8c9]">Estamos afinando la distribución del evento para darte la mejor ubicación. El plano con las mesas estará disponible muy pronto.</p>
+            <p className="mx-auto mt-3 max-w-sm text-[13px] leading-relaxed text-[#9a93a6]">Mientras tanto puedes apartar tu stand eligiendo tu número aquí abajo.</p>
+          </div>
+        )}
+        {PLANO_DISPONIBLE && hayPlano && (
           <div className="mt-8">
             <p className="mb-2 flex items-center gap-2 text-[13px] font-semibold text-[#cfc9d8]"><MapaIcono size={15} /> Toca una mesa libre en el plano</p>
             <div className="-mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
