@@ -55,6 +55,7 @@ async function startServer() {
   } catch (e) { console.error("[Arranque] Esquema de boletería:", e); }
   // Tablas de la venta de stands del Fest (se crean solas)
   void import("../stands").then(m => m.asegurarTablasStands())
+    .then(() => import("../facturaStand")).then(m => m.asegurarColumnasFactura())
     .then(() => import("../standTiendas")).then(m => m.asegurarTablasStandTiendas())
     .then(() => import("../boletosOnline")).then(m => m.asegurarTablasBoletosOnline())
     .catch(e => console.error("[Arranque] Stands:", e));
@@ -165,6 +166,18 @@ async function startServer() {
       return crypto.createHash("sha1").update(fsVersion.readFileSync(ruta)).digest("hex").slice(0, 12);
     } catch { return "dev"; }
   })();
+  // Factura de un stand pagado: página lista para imprimir o guardar en PDF
+  app.get('/api/factura-stand/:clave', async (req, res) => {
+    try {
+      const html = await (await import("../facturaStand")).htmlFactura(String(req.params.clave ?? ""));
+      if (!html) { res.status(404).type("text/plain").send("Factura no encontrada"); return; }
+      res.setHeader("Content-Type", "text/html; charset=utf-8");
+      res.setHeader("Cache-Control", "private, no-store");
+      res.setHeader("X-Robots-Tag", "noindex, nofollow");
+      res.end(html);
+    } catch (e) { console.error("[Factura]", e); res.status(500).type("text/plain").send("No se pudo generar la factura"); }
+  });
+
   // QR de un boleto como imagen: lo usa el correo que lleva el boleto
   app.get('/api/boleto-qr/:archivo', async (req, res) => {
     const token = String(req.params.archivo ?? "").replace(/\.png$/i, "");

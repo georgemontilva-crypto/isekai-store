@@ -327,6 +327,13 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
   await db.execute(sql`UPDATE festStandReservas SET pagado = ${pagado}, estado = ${completo ? "pagado" : "apartado"},
     confirmadaEn = COALESCE(confirmadaEn, NOW()) WHERE id = ${reserva.id}`);
 
+  // Pagado por completo: se emite la factura (una sola vez)
+  let factura: { numero: string; url: string } | null = null;
+  if (completo) {
+    try { factura = await (await import("./facturaStand")).emitirFactura(reserva.id); }
+    catch (e) { console.warn("[Stands] factura:", e); }
+  }
+
   // Correo al cliente con su mesa confirmada y el saldo
   try {
     const [s] = filas<any>(await db.execute(sql`SELECT numero FROM festStands WHERE id = ${reserva.standId}`));
@@ -347,7 +354,10 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
         ${fila("Precio del stand", `$${Number(reserva.precio).toFixed(2)}`)}
         ${fila("Pagado hasta hoy", `$${pagado.toFixed(2)}`)}
         ${fila(saldo > 0 ? "Saldo pendiente" : "Saldo", saldo > 0 ? `$${saldo.toFixed(2)}` : "Pagado ✓")}
+        ${factura ? fila("Factura", `N.º ${factura.numero}`) : ""}
       </table>
+      ${factura ? `<div style="text-align:center;margin:20px 0 4px"><a href="${factura.url}" class="btn">Ver y descargar tu factura →</a></div>
+      <p style="text-align:center;color:#9a93a6;font-size:13px">Ábrela y toca «Imprimir o guardar en PDF» para conservarla.</p>` : ""}
       ${saldo > 0 ? `<p>El saldo de <strong>$${saldo.toFixed(2)}</strong> lo puedes pagar cuando quieras antes del evento. Escríbenos a <a href="mailto:ventas@isekaiworld.co">ventas@isekaiworld.co</a> para coordinarlo.</p>` : ""}
       <div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/stands" class="btn">Ver el plano de stands →</a></div>
       <p style="color:#9a93a6">Isekai World Fest 2027 · 14 y 15 de agosto · Maracaibo, Venezuela</p>`,
@@ -355,7 +365,7 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
   } catch (e) { console.warn("[Stands] correo al cliente:", e); }
   avisarCambio();
   sincronizarTiendas();
-  return { ok: true, completo, pagado };
+  return { ok: true, completo, pagado, factura };
 }
 
 export async function rechazarPago(pagoId: number) {

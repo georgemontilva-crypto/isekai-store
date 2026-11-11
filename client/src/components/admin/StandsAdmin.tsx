@@ -111,6 +111,7 @@ export default function StandsAdmin() {
                   <button onClick={async () => { const v = prompt("Monto que realmente llegó (USD):", String(p.monto)); const n = v ? parseFloat(v.replace(",", ".")) : NaN; if (n > 0) aprobar.mutate({ pagoId: p.id, monto: n }); }} className="rounded-full border border-[#e8e8ea] px-4 py-2 text-[13px] font-semibold text-[#333]">Aprobar otro monto</button>
                   <button onClick={async () => { if (await confirmar({ titulo: "Rechazar pago", mensaje: `El pago de ${dinero(p.monto)} de «${r.negocio}» se marcará como rechazado.`, confirmar: "Rechazar", peligro: true })) rechazar.mutate({ pagoId: p.id }); }} className="rounded-full border border-[#fecaca] px-4 py-2 text-[13px] font-semibold text-[#dc2626]"><X size={14} className="inline" /> Rechazar</button>
                   <a href={enlaceWhatsapp(r.whatsapp)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#dcfce7] px-4 py-2 text-[13px] font-semibold text-[#15803d]"><MessageCircle size={14} /> WhatsApp</a>
+        {r.facturaClave && <a href={`/api/factura-stand/${r.facturaClave}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#111] px-4 py-2 text-[13px] font-bold text-white">Factura N.º IWF-{String(r.facturaNumero).padStart(4, "0")}</a>}
                 </div>
               </div>
             );
@@ -158,6 +159,7 @@ function FilaReserva({ r, conCobro, onRegistrar, onAnular }: { r: any; conCobro:
       <div className="mt-3 flex flex-wrap gap-2">
         {conCobro && <button onClick={() => setAbierto(a => !a)} className="rounded-full bg-[#111] px-4 py-2 text-[13px] font-bold text-white">Registrar pago</button>}
         <a href={enlaceWhatsapp(r.whatsapp)} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 rounded-full bg-[#dcfce7] px-4 py-2 text-[13px] font-semibold text-[#15803d]"><MessageCircle size={14} /> WhatsApp</a>
+        {r.facturaClave && <a href={`/api/factura-stand/${r.facturaClave}`} target="_blank" rel="noopener noreferrer" className="rounded-full bg-[#111] px-4 py-2 text-[13px] font-bold text-white">Factura N.º IWF-{String(r.facturaNumero).padStart(4, "0")}</a>}
         <button onClick={onAnular} className="rounded-full border border-[#fecaca] px-4 py-2 text-[13px] font-semibold text-[#dc2626]">Anular</button>
       </div>
       {abierto && (
