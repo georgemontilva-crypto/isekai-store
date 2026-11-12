@@ -2,8 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
-  Trophy, Lock, Star, ChevronLeft, ChevronRight, X, Menu, LayoutGrid, Square, ShoppingBag, Share2, Check, User, LogIn,
-} from "lucide-react";
+  Trophy, Lock, Star, ChevronLeft, ChevronRight, X, Menu, LayoutGrid, Square, ShoppingBag, Share2, Check, User, LogIn, Map as MapIcon } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
@@ -261,6 +260,9 @@ function Cuenta({ et }: { et: [string, string, string, string] }) {
 
 /* ───────────── Página ───────────── */
 
+/** El mapa del evento se muestra al público solo cuando esté la distribución final */
+const MAPA_DISPONIBLE: boolean = false;
+
 export default function HomeEvento() {
   const { t, lang, setLang } = useLang();
   const e = t.evento;
@@ -447,8 +449,8 @@ export default function HomeEvento() {
         etiqueta={e.etiquetaAnio}
         lista={lista}
         onInsignia={() => ir("pk-rangos")}
-        onMapa={() => ir("pk-evento")}
-        textoMapa={en ? "See the event map" : "Ver el mapa del evento"}
+        onMapa={MAPA_DISPONIBLE ? () => ir("pk-evento") : undefined}
+        textoMapa={MAPA_DISPONIBLE ? (en ? "See the event map" : "Ver el mapa del evento") : undefined}
         textoStands={en ? "Book your stand" : "Reserva tu stand"}
       />
 
@@ -538,16 +540,26 @@ export default function HomeEvento() {
           cómo puede sumar una marca. */}
       <section id="pk-evento" className="pk-sec pk-oscuro pk-evento">
         <div className="pk-ancho">
-          <Titulo n={5} intro={en ? "Tap a zone on the map to see what it will look like." : "Toca una zona del mapa para ver cómo se verá."}>{capitulos[4][1]}</Titulo>
+          <Titulo n={5} intro={MAPA_DISPONIBLE ? (en ? "Tap a zone on the map to see what it will look like." : "Toca una zona del mapa para ver cómo se verá.") : undefined}>{capitulos[4][1]}</Titulo>
           <a href="/stands" className="pk-hero-stands pk-stands-seccion">
-            <Store size={17} strokeWidth={2} /> {en ? "Book your stand on the map" : "Reserva tu stand en el plano"} <ChevronRight size={16} />
+            <Store size={17} strokeWidth={2} /> {MAPA_DISPONIBLE ? (en ? "Book your stand on the map" : "Reserva tu stand en el plano") : (en ? "Book your stand" : "Reserva tu stand")} <ChevronRight size={16} />
           </a>
-          <button className="pk-mono pk-compartir-mapa" onClick={compartirMapa}>
-            {mapaCopiado ? <Check size={14} /> : <Share2 size={14} />}
-            {mapaCopiado ? (en ? "Link copied" : "Enlace copiado") : (en ? "Share the map" : "Compartir el mapa")}
-          </button>
+          {MAPA_DISPONIBLE && (
+            <button className="pk-mono pk-compartir-mapa" onClick={compartirMapa}>
+              {mapaCopiado ? <Check size={14} /> : <Share2 size={14} />}
+              {mapaCopiado ? (en ? "Link copied" : "Enlace copiado") : (en ? "Share the map" : "Compartir el mapa")}
+            </button>
+          )}
         </div>
-        <div className="pk-rev"><FestMap /></div>
+        {MAPA_DISPONIBLE ? <div className="pk-rev"><FestMap /></div> : (
+          <div className="pk-ancho pk-rev">
+            <div className="mx-auto mt-8 max-w-xl rounded-3xl border border-dashed border-white/20 bg-white/[0.04] px-6 py-10 text-center">
+              <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-[#ff3d9e]/15 text-[#ff3d9e]"><MapIcon size={22} /></span>
+              <p className="mt-4 text-[19px] font-bold text-white">{en ? "We're working on the map" : "Estamos trabajando en el mapa"}</p>
+              <p className="mx-auto mt-2 max-w-sm text-[14.5px] leading-relaxed text-[#cfc9d8]">{en ? "We're fine-tuning the layout of the event to give you the best experience. The map with every zone will be available very soon." : "Estamos afinando la distribución del evento para darte la mejor experiencia. El mapa con todas las zonas estará disponible muy pronto."}</p>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* ═══ 005 INVITADOS: fichas de personaje ═══ */}
