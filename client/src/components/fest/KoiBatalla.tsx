@@ -180,7 +180,7 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
   return (
     <section ref={cajaRef} className={`koi ${e.estado === "derrotado" ? "koi-fin" : ""}`}>
       <div className="koi-cab">
-        <p className="pk-mono koi-rango">{en ? "LIVE BATTLE" : "BATALLA EN VIVO"} · {en ? "RANK" : "RANGO"} S</p>
+        <p className="pk-mono koi-rango">{en ? "LIVE BATTLE" : "BATALLA EN VIVO"} · {en ? "RANK" : "RANGO"} A</p>
         <h3 className="pk-cond koi-nombre">KOI-SAMA</h3>
         <div className="koi-vida" role="img" aria-label={`${en ? "Life" : "Vida"}: ${n(e.vida)} / ${n(e.vidaMax)}`}>
           <i style={{ width: `${pct}%` }} />

@@ -744,7 +744,7 @@ export default function HomeEvento() {
             />,
           },
           {
-            clave: "koi", nombre: "Koi-sama", rango: "S", color: "#22d3ee",
+            clave: "koi", nombre: "Koi-sama", rango: "A", color: "#22d3ee",
             tipo: en ? "Live battle" : "Batalla en vivo",
             detalle: en ? "Everyone at once, no hit limit. The final blow wins." : "Todos a la vez, sin límite de golpes. Gana el golpe final.",
             aparicion: en ? "KOI-SAMA AWAKENS" : "KOI-SAMA DESPIERTA",
