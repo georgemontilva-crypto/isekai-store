@@ -62,7 +62,7 @@ const RANGOS_ESTILO = [
 ];
 const UMBRALES = [0, 60, 140, 240, 360, 500];
 const APERTURA = new Date("2027-08-14T00:00:00-04:00").getTime();
-const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-silueta.png" };
+const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-silueta.png", 3: "/invitados/invitado-3-silueta.png" };
 /**
  * Invitados ya anunciados: salen con su nombre aunque el panel no tenga nada
  * cargado. Para volver a ocultar uno, pon su ajuste wf_invitado_N_revelado en "0".
@@ -370,7 +370,7 @@ export default function HomeEvento() {
   /* Invitados: carril o rejilla, y ficha abierta */
   const [vistaRejilla, setVistaRejilla] = useState(false);
   const [ficha, setFicha] = useState<number | null>(null);
-  const invitados = [1, 2].map(n => {
+  const invitados = [1, 2, 3].map(n => {
     const anunciado = ANUNCIADOS[n];
     const nombre = s(`wf_invitado_${n}_nombre`) || anunciado?.nombre || "";
     const ajuste = s(`wf_invitado_${n}_revelado`);
@@ -390,8 +390,9 @@ export default function HomeEvento() {
       rango: String(s(`wf_invitado_${n}_rango`)).trim().toUpperCase().slice(0, 2) || (anunciado && ajuste !== "0" ? anunciado.rango : "") || "?",
     };
   });
-  // Ocultos en total: dos (el Invitado 01 y una casilla «Clasificado»)
-  const bloqueados = 1;
+  // Ocultos en total: dos (los invitados 01 y 03, en silueta). La casilla
+  // «Clasificado» ya no hace falta: su sitio lo ocupa la silueta del 03.
+  const bloqueados = 0;
 
   /* Rangos: simulación con las misiones de ejemplo */
   const [hechas, setHechas] = useState<number[]>([]);
