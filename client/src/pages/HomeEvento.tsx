@@ -65,7 +65,7 @@ const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-siluet
  * cargado. Para volver a ocultar uno, pon su ajuste wf_invitado_N_revelado en "0".
  */
 const ANUNCIADOS: Record<number, { nombre: string; rango: string; foto: string; es: string; en: string }> = {
-  2: { nombre: "Prince De Guzman", rango: "S", foto: "/invitados/prince-de-guzman.webp", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
+  2: { nombre: "Prince De Guzman", rango: "S", foto: "/invitados/prince-de-guzman-foto.webp", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
 };
 const n3 = (n: number) => String(n).padStart(3, "0");
 
