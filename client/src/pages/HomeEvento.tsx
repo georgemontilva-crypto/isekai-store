@@ -64,8 +64,8 @@ const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-siluet
  * Invitados ya anunciados: salen con su nombre aunque el panel no tenga nada
  * cargado. Para volver a ocultar uno, pon su ajuste wf_invitado_N_revelado en "0".
  */
-const ANUNCIADOS: Record<number, { nombre: string; es: string; en: string }> = {
-  2: { nombre: "Prince De Guzman", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
+const ANUNCIADOS: Record<number, { nombre: string; rango: string; es: string; en: string }> = {
+  2: { nombre: "Prince De Guzman", rango: "S", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
 };
 const n3 = (n: number) => String(n).padStart(3, "0");
 
@@ -374,11 +374,11 @@ export default function HomeEvento() {
       nombre,
       /** Cómo se presenta: «Primer cosplayer invitado» o el genérico */
       titulo: anunciado && ajuste !== "0" ? (en ? anunciado.en : anunciado.es) : "",
-      rango: String(s(`wf_invitado_${n}_rango`)).trim().toUpperCase().slice(0, 2) || "?",
+      rango: String(s(`wf_invitado_${n}_rango`)).trim().toUpperCase().slice(0, 2) || (anunciado && ajuste !== "0" ? anunciado.rango : "") || "?",
     };
   });
-  // Casillas por revelar en la rejilla (como los personajes bloqueados)
-  const bloqueados = 6;
+  // Ocultos en total: dos (el Invitado 01 y una casilla «Clasificado»)
+  const bloqueados = 1;
 
   /* Rangos: simulación con las misiones de ejemplo */
   const [hechas, setHechas] = useState<number[]>([]);
@@ -597,7 +597,7 @@ export default function HomeEvento() {
                   <span className="pk-carta-nombre pk-cond">{g.revelado ? g.nombre : `${e.artistaInvitado} ${String(g.n).padStart(2, "0")}`}</span>
                 </button>
               ))}
-              {Array.from({ length: 2 }, (_, i) => (
+              {Array.from({ length: bloqueados }, (_, i) => (
                 <div key={`b${i}`} className="pk-carta pk-carta-bloq" aria-hidden="true">
                   <span className="pk-carta-arte"><Lock size={34} /></span>
                   <span className="pk-carta-nombre pk-cond">{e.clasificado}</span>

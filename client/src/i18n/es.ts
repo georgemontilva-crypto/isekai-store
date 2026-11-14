@@ -307,8 +307,8 @@ export const es = {
     exploraTitulo: "Las grandes áreas",
     exploraTexto: "Todavía no lo contamos todo. Algunas cosas es mejor descubrirlas allí.",
     proximamente: "Próximamente",
-    nombresOcultos1: "Algunos nombres todavía no pueden ser revelados.",
-    nombresOcultos2: "El Sistema aún está desbloqueándolos.",
+    nombresOcultos1: "Prince De Guzman ya fue desbloqueado.",
+    nombresOcultos2: "Quedan dos invitados ocultos: el Sistema aún los está desbloqueando.",
 
     invitadosTransmision: "Transmisión entrante · Invitados internacionales",
     artistaInvitado: "Artista internacional invitado",

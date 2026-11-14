@@ -297,8 +297,8 @@ export const en: Translations = {
     exploraTitulo: "The main areas",
     exploraTexto: "We're not telling you everything yet. Some things are better discovered there.",
     proximamente: "Coming soon",
-    nombresOcultos1: "Some names can't be revealed yet.",
-    nombresOcultos2: "The System is still unlocking them.",
+    nombresOcultos1: "Prince De Guzman has been unlocked.",
+    nombresOcultos2: "Two guests remain hidden: the System is still unlocking them.",
 
     invitadosTransmision: "Incoming transmission · International guests",
     artistaInvitado: "International guest artist",
