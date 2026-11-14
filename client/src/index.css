@@ -5555,3 +5555,32 @@ canvas.pk-koi-dibujo { width: min(70vw, 420px); height: 100%; }
 .koi-admin-ensayo { display: block; width: 100%; margin-top: 10px; padding: 13px 10px; font-size: 13.5px; font-weight: 700; color: #7df9ff; border: 1px solid rgba(125,249,255,.5); background: rgba(34,211,238,.08); }
 .koi-ensayo-aviso { margin-bottom: 16px; padding: 10px 12px; font-size: 12.5px; line-height: 1.4; color: #05030a; background: #fbbf24; }
 .koi-ensayo-cerrar { margin-top: 22px; }
+
+/* Ficha del invitado en computadora: foto a media pantalla, de borde a borde,
+   y los datos al lado en grande. En teléfono queda como estaba. */
+@media (min-width: 900px) {
+  .pk-ficha { background: #0a0812; }
+  .pk-ficha-cuerpo { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); align-items: stretch; max-width: none; margin: 0; padding: 0; overflow: hidden; }
+  .pk-ficha-rayas { right: 40px; top: 36px; width: 140px; }
+  .pk-ficha-arte { height: 100%; min-height: 0; }
+  .pk-ficha-arte img { max-height: 100%; }
+  .pk-ficha-arte.pk-ficha-arte-completa { height: 100%; margin: 0; border-radius: 0; }
+  .pk-ficha-arte.pk-ficha-arte-completa img { object-position: center 6%; }
+  .pk-ficha-arte:not(.pk-ficha-arte-completa) { align-items: center; background: radial-gradient(50% 50% at 50% 50%, rgba(111,240,255,.1), transparent 70%); }
+  .pk-ficha-arte:not(.pk-ficha-arte-completa) img { height: 84%; }
+  .pk-ficha-arte > span { font-size: min(46vh, 380px); }
+  .pk-ficha-arte.pk-ficha-arte-completa::after { inset: 0 0 0 auto; width: 38%; height: auto; background: linear-gradient(90deg, transparent, #0a0812); }
+  .pk-ficha-info { align-self: center; padding: 40px clamp(40px, 6vw, 110px) 40px clamp(24px, 3vw, 56px); max-width: 720px; }
+  .pk-ficha-info::before { content: ""; display: block; width: 64px; height: 4px; margin-bottom: 26px; background: #ff3d9e; }
+  .pk-ficha-nombre { font-size: clamp(60px, 6.4vw, 108px) !important; line-height: .9 !important; text-shadow: 0 0 34px rgba(111,240,255,.35); }
+  .pk-ficha-chip { margin-top: 18px; padding: 5px 10px; font-size: 12.5px; }
+  .pk-ficha-info .pk-mono.text-\[11px\] { font-size: 12.5px; margin-top: 34px; letter-spacing: .08em; }
+  .pk-ficha-rango { display: inline-flex; align-items: center; justify-content: center; width: 92px; height: 104px; margin-top: 10px; font-size: 64px !important; line-height: 1;
+    color: #0a0812 !important; background: #6ff0ff; clip-path: polygon(50% 0, 100% 25%, 100% 75%, 50% 100%, 0 75%, 0 25%); }
+  .pk-ficha-info .text-\[13px\] { font-size: 17px; margin-top: 6px; }
+  .pk-ficha-texto { font-size: 15px !important; line-height: 1.7 !important; max-width: 46ch; margin-top: 36px; color: #c9c3d6; }
+  .pk-ficha-nav { background: #0a0812; color: #fff; border-top: 1px solid rgba(255,255,255,.14); }
+  .pk-ficha-nav button { padding: 20px 10px; font-size: 13px; letter-spacing: .1em; border-right-color: rgba(255,255,255,.14); transition: background .2s, color .2s; }
+  .pk-ficha-nav button:hover { background: #6ff0ff; color: #0a0812; }
+  .pk-ficha-nav button:nth-child(2) { width: 72px; }
+}

@@ -630,14 +630,14 @@ export default function HomeEvento() {
               <div className={`pk-ficha-arte${g.revelado && g.foto ? " pk-ficha-arte-completa" : ""}`}>{g.foto ? <img src={g.foto} alt={g.revelado ? g.nombre : ""} /> : <span className="pk-cond">?</span>}</div>
               <div className="pk-ficha-info">
                 {g.revelado
-                  ? <p className="pk-cond text-[38px] leading-none text-[#6ff0ff]">{g.nombre}</p>
+                  ? <p className="pk-cond pk-ficha-nombre text-[38px] leading-none text-[#6ff0ff]">{g.nombre}</p>
                   : <div className="text-[#6ff0ff]"><Descifrando etiqueta={e.descifrandoNombre} semilla={g.n} /></div>}
                 <p className="pk-mono pk-ficha-chip">{g.titulo || e.artistaInvitado}</p>
                 <p className="pk-mono mt-5 text-[11px] text-[#b9b2cc]">[ {e.v2.rango} ]</p>
-                <p className="pk-cond text-[30px] text-white">{g.rango}</p>
+                <p className="pk-cond pk-ficha-rango text-[30px] text-white">{g.rango}</p>
                 <p className="pk-mono mt-4 text-[11px] text-[#b9b2cc]">[ {e.v2.estadoCazador} ]</p>
                 <p className="pk-mono text-[13px] text-[#4ade80]">{e.v2.confirmado}</p>
-                <p className="pk-mono mt-5 text-[12.5px] leading-relaxed text-[#d8d2e8]">{e.invitadosTexto}</p>
+                <p className="pk-mono pk-ficha-texto mt-5 text-[12.5px] leading-relaxed text-[#d8d2e8]">{e.invitadosTexto}</p>
               </div>
             </div>
             <div className="pk-ficha-nav">
