@@ -11,7 +11,7 @@ import { Skull, Swords } from "lucide-react";
  *
  * Con «reducir movimiento» se entra directo, sin la secuencia.
  */
-type Fase = "puerta" | "entrando" | "elegir" | "aparece" | "dentro" | "saliendo";
+type Fase = "puerta" | "entrando" | "elegir" | "historia" | "aparece" | "dentro" | "saliendo";
 
 /**
  * Un jefe de la mazmorra. Al entrar se elige entre ellos, como al escoger
@@ -31,6 +31,8 @@ export type JefeMazmorra = {
   color: string;
   /** Texto al aparecer: «JEFE DETECTADO», «KOI-SAMA DESPIERTA»… */
   aparicion: string;
+  /** Historia breve que se cuenta antes de la pelea, una frase por línea */
+  historia?: { titulo: string; lineas: string[]; aceptar: string };
   /** Misión ya cerrada: la tarjeta queda en gris, como completada */
   completado?: boolean;
   render: (onEstado: (puedeSalir: boolean) => void) => React.ReactNode;
@@ -68,9 +70,18 @@ export default function MazmorraJefe({ en, jefes }: { en: boolean; jefes: JefeMa
     setClave(c);
     setPuedeSalir(false);
     try { navigator.vibrate?.([20, 30, 90]); } catch { /* sin vibración */ }
+    const elegido = jefes.find(j => j.clave === c);
+    // Misión ya cerrada: directo al resultado
+    if (elegido?.completado) { setFase("dentro"); return; }
+    // Con historia, primero se cuenta; la pelea empieza al aceptar la misión
+    if (elegido?.historia) { window.setTimeout(() => setFase("historia"), reducir ? 0 : 380); return; }
     if (reducir) { setFase("dentro"); return; }
-    window.setTimeout(() => setFase("aparece"), 380);
-    window.setTimeout(() => setFase("dentro"), 380 + 2900);
+    window.setTimeout(() => aparecer(), 380);
+  };
+  const aparecer = () => {
+    if (reducir) { setFase("dentro"); return; }
+    setFase("aparece");
+    window.setTimeout(() => setFase("dentro"), 2900);
   };
 
   /** Salir: el portal se cierra, destello y vuelves al home en esta sección */
@@ -138,6 +149,23 @@ export default function MazmorraJefe({ en, jefes }: { en: boolean; jefes: JefeMa
             ))}
           </div>
           <button className="pk-elegir-salir pk-mono" onClick={salir}>{en ? "Leave the dungeon" : "Salir de la mazmorra"}</button>
+        </div>
+      )}
+
+      {/* La historia de la misión, antes de que el jefe aparezca */}
+      {fase === "historia" && jefe?.historia && (
+        <div className={`pk-historia pk-tema-${jefe.clave}`} style={{ "--jefe": jefe.color } as React.CSSProperties} role="dialog" aria-modal="true" aria-label={jefe.historia.titulo}>
+          <div className="pk-dentro-fondo" aria-hidden="true"><GatePortal className="pk-dentro-gate" /></div>
+          <div className="pk-historia-caja">
+            <h3 className="pk-cond pk-historia-titulo">{jefe.historia.titulo}</h3>
+            {jefe.historia.lineas.map((l, i) => (
+              <p key={i} className="pk-historia-linea" style={{ animationDelay: `${0.5 + i * 1.7}s` }}>{l}</p>
+            ))}
+            <button className="pk-historia-aceptar" style={{ animationDelay: `${0.5 + jefe.historia.lineas.length * 1.7}s` }} onClick={aparecer}>
+              {jefe.historia.aceptar}
+            </button>
+          </div>
+          <button className="pk-historia-saltar pk-mono" onClick={aparecer}>{en ? "Skip story" : "Saltar historia"}</button>
         </div>
       )}
 

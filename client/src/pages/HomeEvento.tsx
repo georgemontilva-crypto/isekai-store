@@ -755,6 +755,25 @@ export default function HomeEvento() {
               ? (en ? "Freed from corruption. See who landed the final blow." : "Liberado de la corrupción. Mira quién dio el golpe final.")
               : (en ? "A corrupted koi. Everyone at once, no hit limit: free it with the final blow." : "Un koi corrompido. Todos a la vez, sin límite de golpes: libéralo con el golpe final."),
             completado: koiLibre,
+            historia: en ? {
+              titulo: "The corrupted koi",
+              lineas: [
+                "An unknown portal opened above the sacred pond.",
+                "An evil spirit came out of it, seized the spirit koi and corrupted it.",
+                "Its light went out. Now it swims bound to the darkness.",
+                "Hunters: our duty is to fight the evil spirit and free the koi from its chains.",
+              ],
+              aceptar: "Accept the mission",
+            } : {
+              titulo: "El koi corrompido",
+              lineas: [
+                "Un portal desconocido se abrió sobre el estanque sagrado.",
+                "De él salió un espíritu maligno que se apoderó del koi espiritual y lo corrompió.",
+                "Su luz se apagó. Ahora nada atado a la oscuridad.",
+                "Cazadores: nuestro deber es luchar contra ese espíritu maligno y liberar al koi de sus ataduras.",
+              ],
+              aceptar: "Aceptar la misión",
+            },
             aparicion: en ? "KOI-SAMA AWAKENS" : "KOI-SAMA DESPIERTA",
             imagen: s("wf_boss_koi"),
             arte: <KoiVivo posa corrupto className="pk-koi-dibujo" />,

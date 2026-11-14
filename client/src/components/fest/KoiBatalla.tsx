@@ -130,6 +130,15 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
   // Al caer, Koi-sama se libera: se purifica, da una vuelta al estanque y se va.
   // Solo entonces aparece el resultado y la misión queda cerrada.
   const [liberando, setLiberando] = useState(false);
+  /** Vista previa del final, solo para el organizador: no toca la batalla real */
+  const [ensayo, setEnsayo] = useState<null | "liberando" | "fin">(null);
+  const verEnsayo = () => {
+    if (!pez.current) return;
+    setEnsayo("liberando");
+    cajaRef.current?.scrollIntoView({ block: "start", behavior: "smooth" });
+    pez.current.liberar(() => setEnsayo("fin"));
+    window.setTimeout(() => setEnsayo(v => (v === "liberando" ? "fin" : v)), 15000);
+  };
   const estadoPrevio = useRef<string | null>(null);
   const estadoAhora = e?.estado ?? null;
   // En el mismo instante en que cae, el estanque sigue en pantalla: si se
@@ -230,21 +239,23 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
         <p className="pk-mono koi-vida-num"><b>{n(e.vida)}</b> / {n(e.vidaMax)} HP <span><Users size={12} /> {n(e.jugadores)}</span></p>
       </div>
 
-      {e.estado === "derrotado" && !liberando && !cayendo ? (
+      {(e.estado === "derrotado" && !liberando && !cayendo) || ensayo === "fin" ? (
         <div className="koi-ganador">
+          {ensayo === "fin" && <p className="koi-ensayo-aviso">{en ? "Preview: only you see this. The real battle was not touched." : "Vista previa: solo la ves tú. La batalla real no se tocó."}</p>}
           <p className="pk-mono koi-completada">{en ? "MISSION COMPLETE · KOI-SAMA IS FREE" : "MISIÓN COMPLETADA · KOI-SAMA ES LIBRE"}</p>
           <Crown size={44} className="koi-corona" />
           <p className="pk-mono koi-ganador-et">{en ? "FINAL BLOW" : "GOLPE FINAL"}</p>
-          <p className="pk-cond koi-ganador-nombre">{e.ganador ?? "—"}</p>
+          <p className="pk-cond koi-ganador-nombre">{ensayo === "fin" ? (yo?.nombre || (en ? "HUNTER" : "CAZADOR")) : (e.ganador ?? "—")}</p>
           <p className="pk-mono koi-ganador-sub">{yo?.gane ? (en ? "IT WAS YOU. Show this screen to the staff." : "¡FUISTE TÚ! Muestra esta pantalla al equipo.") : (en ? "freed Koi-sama from corruption" : "liberó a Koi-sama de la corrupción")}</p>
+          {ensayo === "fin" && <button className="koi-btn koi-ensayo-cerrar" onClick={() => setEnsayo(null)}>{en ? "Close preview" : "Cerrar vista previa"}</button>}
         </div>
       ) : (
-        <div ref={arena} className={`koi-arena ${liberando || cayendo ? "koi-arena-libre" : "koi-arena-corrupta"}`}>
+        <div ref={arena} className={`koi-arena ${liberando || cayendo || ensayo ? "koi-arena-libre" : "koi-arena-corrupta"}`}>
           <button
             type="button"
             className={`koi-blanco ${activo && registrado ? "koi-blanco-on" : ""}`}
             onPointerDown={golpe}
-            disabled={!activo || !registrado}
+            disabled={!activo || !registrado || !!ensayo}
             aria-label={en ? "Hit Koi-sama" : "Golpear a Koi-sama"}
           >
             <span className="koi-ondas" aria-hidden="true"><i /><i /><i /></span>
@@ -270,10 +281,10 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
             )}
           </button>
 
-          {liberando && (
+          {(liberando || ensayo === "liberando") && (
             <div className="koi-libre" aria-live="polite">
               <p className="pk-cond koi-libre-t">{en ? "KOI-SAMA IS FREE" : "KOI-SAMA ES LIBRE"}</p>
-              <p className="pk-mono koi-libre-s">{en ? "Final blow" : "Golpe final"}: <b>{e.ganador ?? "—"}</b></p>
+              <p className="pk-mono koi-libre-s">{en ? "Final blow" : "Golpe final"}: <b>{ensayo ? (yo?.nombre || (en ? "Hunter" : "Cazador")) : (e.ganador ?? "—")}</b></p>
             </div>
           )}
 
@@ -329,13 +340,13 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
         </div>
       )}
 
-      {data?.admin && <ControlKoi estado={e} en={en} />}
+      {data?.admin && <ControlKoi estado={e} en={en} puedeEnsayar={e.estado === "espera" && !imagen && !ensayo} onEnsayo={verEnsayo} />}
     </section>
   );
 }
 
 /** Controles del organizador: solo los ve el administrador, dentro de la batalla */
-function ControlKoi({ estado, en }: { estado: Estado; en: boolean }) {
+function ControlKoi({ estado, en, puedeEnsayar, onEnsayo }: { estado: Estado; en: boolean; puedeEnsayar: boolean; onEnsayo: () => void }) {
   const utils = trpc.useUtils();
   const [vida, setVida] = useState(String(estado.vidaMax));
   useEffect(() => { setVida(String(estado.vidaMax)); }, [estado.vidaMax]);
@@ -364,6 +375,8 @@ function ControlKoi({ estado, en }: { estado: Estado; en: boolean }) {
         {estado.estado === "activo" && <button disabled={control.isPending} onClick={() => control.mutate({ accion: "pausar" })}>{en ? "Pause" : "Pausar"}</button>}
         {estado.estado !== "activo" && <button disabled={control.isPending} onClick={() => { if (window.confirm(en ? "New battle? Life is refilled and scores go back to zero." : "¿Batalla nueva? Se llena la vida y los marcadores vuelven a cero.")) control.mutate({ accion: "reiniciar", vidaMax: v }); }}>{en ? "New battle" : "Batalla nueva"}</button>}
       </div>
+      {puedeEnsayar && <button className="koi-admin-ensayo" onClick={onEnsayo}>{en ? "Preview the liberation and the ending (only you)" : "Ver la liberación y el final (solo tú)"}</button>}
+      {estado.estado === "derrotado" && <p className="koi-admin-nota">{en ? "To preview the liberation, start a new battle first." : "Para ver la liberación de prueba, pulsa primero «Batalla nueva»."}</p>}
     </div>
   );
 }
