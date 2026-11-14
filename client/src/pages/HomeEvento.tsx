@@ -16,6 +16,7 @@ import { FEST_ZONES } from "@/components/fest/festZones";
 import FestMap from "@/components/fest/FestMap";
 import MazmorraJefe from "@/components/fest/MazmorraJefe";
 import RaidJefe from "@/components/fest/RaidJefe";
+import KoiBatalla, { KoiArte } from "@/components/fest/KoiBatalla";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 
 /**
@@ -732,19 +733,35 @@ export default function HomeEvento() {
       <div id="pk-raid" className="pk-raid">
         <div className="pk-sec pk-oscuro pb-0">
           <div className="pk-ancho">
-            <Titulo n={8} intro={en ? "Enter the dungeon and face the boss with the whole community." : "Entra a la mazmorra y enfrenta al jefe junto a toda la comunidad."}>{capitulos[7][1]}</Titulo>
+            <Titulo n={8} intro={en ? "Enter the dungeon and choose your boss: the Gate Guardian or Koi-sama." : "Entra a la mazmorra y elige a tu jefe: el Guardián del Portal o Koi-sama."}>{capitulos[7][1]}</Titulo>
           </div>
         </div>
-        <MazmorraJefe en={en} imagen={s("wf_raid_jefe")}>
-          {onEstado => <RaidJefe
-            onEstado={onEstado}
-            t={e.v2}
-            imagen={s("wf_raid_jefe")}
-            recompensa={(en ? s("wf_raid_recompensa_en") : s("wf_raid_recompensa"))}
-            recompensaImg={s("wf_raid_recompensa_img")}
-            numero={<span className="pk-mono text-[10px] text-[#8b84a3]">008</span>}
-          />}
-        </MazmorraJefe>
+        <MazmorraJefe en={en} jefes={[
+          {
+            clave: "guardian", nombre: en ? "The Gate Guardian" : "El Guardián del Portal", rango: "S", color: "#f43f5e",
+            tipo: en ? "Community raid" : "Raid comunitario",
+            detalle: en ? "One attack a day. Everyone's hits add up." : "Un ataque al día. Los golpes de todos se suman.",
+            aparicion: en ? "BOSS DETECTED" : "JEFE DETECTADO",
+            imagen: s("wf_raid_jefe"),
+            render: onEstado => <RaidJefe
+              onEstado={onEstado}
+              t={e.v2}
+              imagen={s("wf_raid_jefe")}
+              recompensa={(en ? s("wf_raid_recompensa_en") : s("wf_raid_recompensa"))}
+              recompensaImg={s("wf_raid_recompensa_img")}
+              numero={<span className="pk-mono text-[10px] text-[#8b84a3]">008</span>}
+            />,
+          },
+          {
+            clave: "koi", nombre: "Koi-sama", rango: "S", color: "#22d3ee",
+            tipo: en ? "Live battle" : "Batalla en vivo",
+            detalle: en ? "Everyone at once, no hit limit. The final blow wins." : "Todos a la vez, sin límite de golpes. Gana el golpe final.",
+            aparicion: en ? "KOI-SAMA AWAKENS" : "KOI-SAMA DESPIERTA",
+            imagen: s("wf_boss_koi"),
+            arte: <KoiArte className="pk-koi-dibujo" />,
+            render: onEstado => <KoiBatalla en={en} imagen={s("wf_boss_koi")} onEstado={onEstado} />,
+          },
+        ]} />
       </div>
 
       {/* ═══ 009 ACCESO ═══ */}

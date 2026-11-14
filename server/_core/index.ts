@@ -58,6 +58,7 @@ async function startServer() {
     .then(() => import("../facturaStand")).then(m => m.asegurarColumnasFactura())
     .then(() => import("../standTiendas")).then(m => m.asegurarTablasStandTiendas())
     .then(() => import("../boletosOnline")).then(m => m.asegurarTablasBoletosOnline())
+    .then(() => import("../bossKoi")).then(m => m.asegurarBossKoi())
     .catch(e => console.error("[Arranque] Stands:", e));
   // Índices para la puerta y las estaciones de EXP (en segundo plano)
   void import("../indices").then(m => m.asegurarIndices()).catch(e => console.error("[Arranque] Índices:", e));

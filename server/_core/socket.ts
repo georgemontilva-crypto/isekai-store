@@ -45,6 +45,22 @@ export function initSocket(httpServer: HttpServer): Server {
         return next();
       }
 
+      /**
+       * Batalla en vivo contra Koi-sama: cualquiera puede mirar la vida del
+       * jefe; para que sus golpes cuenten hace falta sesión (y registrarse).
+       */
+      if (socket.handshake.auth?.koi === true) {
+        socket.join("koi");
+        if (token) {
+          try {
+            const sesion = await verifySession(token);
+            const u = sesion ? await db.getUserByOpenId(sesion.openId) : null;
+            if (u) socket.data.userId = u.id;
+          } catch { /* mira sin jugar */ }
+        }
+        return next();
+      }
+
       const boleto = String(socket.handshake.auth?.boleto ?? "").trim();
       if (boleto) {
         socket.data.boleto = boleto.toUpperCase();
@@ -73,6 +89,13 @@ export function initSocket(httpServer: HttpServer): Server {
 
   io.on("connection", (socket) => {
     socket.on("disconnect", () => {});
+    // Koi-sama: lotes de toques. Solo cuentan con sesión y registro.
+    socket.on("koi:golpes", (n: unknown, responder?: (r: unknown) => void) => {
+      const userId = socket.data.userId as number | undefined;
+      const toques = Number(n);
+      if (!userId || !Number.isFinite(toques) || toques <= 0 || toques > 200) { responder?.({ ok: false }); return; }
+      void import("../bossKoi").then(m => responder?.(m.golpear(userId, toques))).catch(() => responder?.({ ok: false }));
+    });
   });
 
   return io;

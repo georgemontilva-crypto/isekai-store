@@ -1454,6 +1454,37 @@ export const appRouter = router({
         })),
   }),
 
+  /** Koi-sama: batalla en vivo (todos golpean a la vez; gana el golpe final) */
+  koi: router({
+    estado: publicProcedure.query(async ({ ctx }) => {
+      const m = await import("./bossKoi");
+      return { ...m.estadoPublico(), yo: m.miEstado(ctx.user?.id), combos: m.NIVELES_COMBO, admin: ctx.user?.role === "admin" };
+    }),
+    unirme: protectedProcedure
+      .input(z.object({ nombre: z.string().trim().min(2).max(40) }))
+      .mutation(async ({ ctx, input }) => {
+        try { return await (await import("./bossKoi")).unirse(ctx.user.id, input.nombre); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    /** Respaldo si el canal en vivo no conecta: los golpes llegan por aquí */
+    golpear: protectedProcedure
+      .input(z.object({ n: z.number().int().min(1).max(200) }))
+      .mutation(async ({ ctx, input }) => (await import("./bossKoi")).golpear(ctx.user.id, input.n)),
+    // ── Administrador ──
+    resultado: adminProcedure.query(async () => (await import("./bossKoi")).resultado()),
+    control: adminProcedure
+      .input(z.object({ accion: z.enum(["iniciar", "pausar", "reiniciar", "vida"]), vidaMax: z.number().int().min(100).max(50_000_000).optional() }))
+      .mutation(async ({ input }) => {
+        const m = await import("./bossKoi");
+        try {
+          if (input.accion === "iniciar") return await m.iniciar();
+          if (input.accion === "pausar") return await m.pausar();
+          if (input.accion === "reiniciar") return await m.reiniciar(input.vidaMax);
+          return await m.configurar(input.vidaMax ?? m.VIDA_POR_DEFECTO);
+        } catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+  }),
+
   // ─── Newsletter ─────────────────────────────────────────────────────────────
   newsletter: router({
     subscribe: publicProcedure

@@ -11,16 +11,36 @@ import { Skull, Swords } from "lucide-react";
  *
  * Con «reducir movimiento» se entra directo, sin la secuencia.
  */
-type Fase = "puerta" | "entrando" | "aparece" | "dentro" | "saliendo";
+type Fase = "puerta" | "entrando" | "elegir" | "aparece" | "dentro" | "saliendo";
+
+/**
+ * Un jefe de la mazmorra. Al entrar se elige entre ellos, como al escoger
+ * personaje en un videojuego; cada uno tiene su entrada con su propio diseño.
+ */
+export type JefeMazmorra = {
+  clave: string;
+  nombre: string;
+  /** Qué tipo de pelea es: «Raid comunitario», «Batalla en vivo»… */
+  tipo: string;
+  detalle: string;
+  rango: string;
+  imagen?: string;
+  /** Dibujo de respaldo si no hay imagen cargada */
+  arte?: React.ReactNode;
+  /** Color del jefe (marco, luces y barra de vida) */
+  color: string;
+  /** Texto al aparecer: «JEFE DETECTADO», «KOI-SAMA DESPIERTA»… */
+  aparicion: string;
+  render: (onEstado: (puedeSalir: boolean) => void) => React.ReactNode;
+};
 
 /**
  * `children` recibe `onEstado`: el raid avisa cuándo la persona ya puede salir
  * (terminó su oportunidad de ataque). Mientras tanto, no hay salida.
  */
-export default function MazmorraJefe({ en, imagen, children }: {
-  en: boolean; imagen?: string;
-  children: (onEstado: (puedeSalir: boolean) => void) => React.ReactNode;
-}) {
+export default function MazmorraJefe({ en, jefes }: { en: boolean; jefes: JefeMazmorra[] }) {
+  const [clave, setClave] = useState(jefes[0]?.clave ?? "");
+  const jefe = jefes.find(j => j.clave === clave) ?? jefes[0];
   const [fase, setFase] = useState<Fase>("puerta");
   const [puedeSalir, setPuedeSalir] = useState(false);
   const alEstado = useCallback((v: boolean) => setPuedeSalir(v), []);
@@ -34,11 +54,21 @@ export default function MazmorraJefe({ en, imagen, children }: {
   }, [fase]);
 
   const entrar = () => {
-    if (reducir) { setFase("dentro"); return; }
+    if (reducir) { setFase("elegir"); return; }
     setFase("entrando");
     try { navigator.vibrate?.([30, 50, 30, 50, 120]); } catch { /* sin vibración */ }
-    window.setTimeout(() => setFase("aparece"), ENTRAR_MS);
-    window.setTimeout(() => setFase("dentro"), ENTRAR_MS + 2900);
+    // Tras cruzar el portal se elige a qué jefe enfrentar
+    window.setTimeout(() => setFase("elegir"), ENTRAR_MS);
+  };
+
+  /** Elegido el jefe: su entrada, con su diseño, y empieza la pelea */
+  const elegir = (c: string) => {
+    setClave(c);
+    setPuedeSalir(false);
+    try { navigator.vibrate?.([20, 30, 90]); } catch { /* sin vibración */ }
+    if (reducir) { setFase("dentro"); return; }
+    window.setTimeout(() => setFase("aparece"), 380);
+    window.setTimeout(() => setFase("dentro"), 380 + 2900);
   };
 
   /** Salir: el portal se cierra, destello y vuelves al home en esta sección */
@@ -60,11 +90,11 @@ export default function MazmorraJefe({ en, imagen, children }: {
             <div className="pk-mazmorra-puerta" aria-hidden="true">
               <GatePortal />
             </div>
-            <h3 className="pk-cond pk-mazmorra-titulo">{en ? "The boss's dungeon" : "La mazmorra del jefe"}</h3>
+            <h3 className="pk-cond pk-mazmorra-titulo">{en ? "The bosses' dungeon" : "La mazmorra de los jefes"}</h3>
             <p className="pk-mono pk-mazmorra-texto">
               {en
-                ? "A boss so strong it can only be defeated together. Every hit from every hunter lowers its life for the whole community."
-                : "Un jefe tan fuerte que solo se derrota entre todos. Cada golpe de cada cazador le baja la vida para toda la comunidad."}
+                ? "Two bosses wait inside. Choose who to face: both can only be defeated together."
+                : "Dentro esperan dos jefes. Elige a cuál enfrentar: a los dos solo se les derrota entre todos."}
             </p>
             <button className="pk-mazmorra-btn" onClick={entrar}>
               <Swords size={18} /> {en ? "Enter the dungeon" : "Entrar a la mazmorra"}
@@ -73,30 +103,54 @@ export default function MazmorraJefe({ en, imagen, children }: {
         </section>
       )}
 
-      {/* Secuencia de entrada */}
-      {(fase === "entrando" || fase === "aparece") && (
-        <div className={`pk-entrada ${fase === "aparece" ? "pk-entrada-jefe" : ""}`} role="presentation">
-          {fase === "entrando" && (
-            <>
-              {/* La cámara entra al portal: se acerca al centro entre rayos */}
-              <GatePortal modo="entrar" className="pk-entrada-gate" />
-              <p className="pk-cond pk-advertencia" data-t={en ? "WARNING" : "ADVERTENCIA"}>{en ? "WARNING" : "ADVERTENCIA"}</p>
-              <p className="pk-mono pk-advertencia-sub">{en ? "You are entering an S-rank dungeon" : "Estás entrando a una mazmorra de rango S"}</p>
-            </>
-          )}
-          {fase === "aparece" && (
-            <>
-              <span className="pk-jefe-luz" aria-hidden="true" />
-              <div className="pk-jefe-figura" aria-hidden="true">
-                {imagen ? <img src={imagen} alt="" /> : <Skull size={180} strokeWidth={1} />}
-              </div>
-              <div className="pk-jefe-pie">
-                <p className="pk-cond pk-jefe-nombre" data-t={en ? "BOSS DETECTED" : "JEFE DETECTADO"}>{en ? "BOSS DETECTED" : "JEFE DETECTADO"}</p>
-                <span className="pk-jefe-vida"><i /></span>
-                <p className="pk-mono pk-jefe-listo">{en ? "Get ready to attack…" : "Prepárate para atacar…"}</p>
-              </div>
-            </>
-          )}
+      {/* Secuencia de entrada: cruzar el portal */}
+      {fase === "entrando" && (
+        <div className="pk-entrada" role="presentation">
+          {/* La cámara entra al portal: se acerca al centro entre rayos */}
+          <GatePortal modo="entrar" className="pk-entrada-gate" />
+          <p className="pk-cond pk-advertencia" data-t={en ? "WARNING" : "ADVERTENCIA"}>{en ? "WARNING" : "ADVERTENCIA"}</p>
+          <p className="pk-mono pk-advertencia-sub">{en ? "You are entering an S-rank dungeon" : "Estás entrando a una mazmorra de rango S"}</p>
+          <span className="pk-entrada-flash" aria-hidden="true" />
+        </div>
+      )}
+
+      {/* Selección de jefe: como elegir personaje en un videojuego */}
+      {fase === "elegir" && (
+        <div className="pk-elegir" role="dialog" aria-modal="true" aria-label={en ? "Choose your boss" : "Elige a tu jefe"}>
+          <div className="pk-dentro-fondo" aria-hidden="true"><GatePortal className="pk-dentro-gate" /></div>
+          <p className="pk-mono pk-elegir-et">⚠ {en ? "S-RANK DUNGEON" : "MAZMORRA RANGO S"}</p>
+          <h3 className="pk-cond pk-elegir-titulo">{en ? "CHOOSE YOUR BOSS" : "ELIGE A TU JEFE"}</h3>
+          <div className="pk-elegir-rejilla">
+            {jefes.map((j, i) => (
+              <button key={j.clave} className={`pk-elegir-carta ${clave === j.clave ? "pk-elegir-sel" : ""}`} style={{ "--jefe": j.color, animationDelay: `${0.12 * i}s` } as React.CSSProperties} onClick={() => elegir(j.clave)}>
+                <span className="pk-elegir-num pk-mono">{String(i + 1).padStart(2, "0")}</span>
+                <span className="pk-elegir-rango pk-cond">{j.rango}</span>
+                <span className="pk-elegir-arte">{j.imagen ? <img src={j.imagen} alt="" /> : j.arte ?? <Skull size={90} strokeWidth={1} />}</span>
+                <span className="pk-elegir-pie">
+                  <span className="pk-cond pk-elegir-nombre">{j.nombre}</span>
+                  <span className="pk-mono pk-elegir-tipo">{j.tipo}</span>
+                  <span className="pk-elegir-detalle">{j.detalle}</span>
+                </span>
+              </button>
+            ))}
+          </div>
+          <button className="pk-elegir-salir pk-mono" onClick={salir}>{en ? "Leave the dungeon" : "Salir de la mazmorra"}</button>
+        </div>
+      )}
+
+      {/* El jefe elegido aparece, con su propio diseño */}
+      {fase === "aparece" && jefe && (
+        <div className={`pk-entrada pk-entrada-jefe pk-tema-${jefe.clave}`} style={{ "--jefe": jefe.color } as React.CSSProperties} role="presentation">
+          <span className="pk-jefe-luz" aria-hidden="true" />
+          {jefe.clave === "koi" && <span className="pk-koi-agua" aria-hidden="true"><i /><i /><i /><b>鯉</b></span>}
+          <div className="pk-jefe-figura" aria-hidden="true">
+            {jefe.imagen ? <img src={jefe.imagen} alt="" /> : jefe.arte ?? <Skull size={180} strokeWidth={1} />}
+          </div>
+          <div className="pk-jefe-pie">
+            <p className="pk-cond pk-jefe-nombre" data-t={jefe.aparicion}>{jefe.aparicion}</p>
+            <span className="pk-jefe-vida"><i /></span>
+            <p className="pk-mono pk-jefe-listo">{en ? "Get ready to attack…" : "Prepárate para atacar…"}</p>
+          </div>
           <span className="pk-entrada-flash" aria-hidden="true" />
         </div>
       )}
@@ -104,18 +158,21 @@ export default function MazmorraJefe({ en, imagen, children }: {
       {/* Dentro de la mazmorra: el combate ocupa toda la pantalla y solo se
           sale cuando se acaba tu oportunidad de ataque */}
       {fase === "dentro" && (
-        <div id="pk-raid-arena" className="pk-dentro" role="dialog" aria-modal="true" aria-label={en ? "Boss dungeon" : "Mazmorra del jefe"}>
+        <div id="pk-raid-arena" className={`pk-dentro pk-tema-${jefe?.clave}`} style={{ "--jefe": jefe?.color } as React.CSSProperties} role="dialog" aria-modal="true" aria-label={en ? "Boss dungeon" : "Mazmorra del jefe"}>
           <div className="pk-dentro-fondo" aria-hidden="true">
             <GatePortal className="pk-dentro-gate" />
           </div>
           <div className="pk-dentro-cab">
-            <span className="pk-mono">⚠ {en ? "S-RANK DUNGEON" : "MAZMORRA RANGO S"}</span>
+            <span className="pk-mono">⚠ {jefe?.nombre.toUpperCase()}</span>
             <span className="pk-mono pk-dentro-estado">{puedeSalir ? (en ? "EXIT OPEN" : "SALIDA ABIERTA") : (en ? "EXIT SEALED" : "SALIDA SELLADA")}</span>
           </div>
-          <div className="pk-dentro-raid">{children(alEstado)}</div>
+          <div className="pk-dentro-raid">{jefe?.render(alEstado)}</div>
           <div className={`pk-dentro-pie ${puedeSalir ? "pk-dentro-pie-on" : ""}`}>
             {puedeSalir ? (
-              <button className="pk-salir-btn" onClick={salir}>{en ? "Leave the dungeon" : "Salir de la mazmorra"}</button>
+              <div className="pk-dentro-salidas">
+                <button className="pk-salir-btn pk-salir-otro" onClick={() => setFase("elegir")}>{en ? "Other boss" : "Otro jefe"}</button>
+                <button className="pk-salir-btn" onClick={salir}>{en ? "Leave the dungeon" : "Salir de la mazmorra"}</button>
+              </div>
             ) : (
               <p className="pk-mono">{en ? "The exit opens when your attack chance is over." : "La salida se abre cuando termine tu oportunidad de ataque."}</p>
             )}
