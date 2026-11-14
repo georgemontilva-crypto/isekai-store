@@ -5254,3 +5254,15 @@ html.dark .fest-map .info h2 { color: var(--ink) !important; -webkit-text-fill-c
 @keyframes bh-fondo { from { opacity: 0; } to { opacity: 1; } }
 @keyframes bh-carpeta { from { opacity: 0; transform: scale(.35); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .bh-fondo, .bh-carpeta { animation: none; } }
+
+
+/* ═══ Invitados revelados: la foto completa, con su fondo natural ═══
+   (las siluetas de los ocultos siguen recortadas y con brillo) */
+.pk-carta-arte img.pk-foto-completa { object-fit: cover; object-position: center top; filter: none; }
+.pk-ficha-arte.pk-ficha-arte-completa { height: 58vh; margin: calc(-1 * (env(safe-area-inset-top) + 24px)) -18px 0; overflow: hidden; }
+.pk-ficha-arte.pk-ficha-arte-completa img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; filter: none; }
+.pk-ficha-arte.pk-ficha-arte-completa::after { content: ""; position: absolute; inset: auto 0 0 0; height: 34%; background: linear-gradient(180deg, transparent, #3a3842); pointer-events: none; }
+@media (min-width: 1024px) {
+  .pk-ficha-arte.pk-ficha-arte-completa { height: 80vh; margin: 0; border-radius: 4px; }
+  .pk-ficha-arte.pk-ficha-arte-completa::after { height: 18%; background: linear-gradient(180deg, transparent, rgba(58,56,66,.85)); }
+}

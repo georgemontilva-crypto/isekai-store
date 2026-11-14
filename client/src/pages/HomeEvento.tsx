@@ -597,7 +597,7 @@ export default function HomeEvento() {
               {invitados.map((g, i) => (
                 <button key={g.n} className="pk-carta" onClick={() => setFicha(i)}>
                   <span className="pk-carta-arte">
-                    {g.foto ? <img src={g.foto} alt="" /> : <span className="pk-cond pk-carta-q">?</span>}
+                    {g.foto ? <img src={g.foto} alt={g.revelado ? g.nombre : ""} className={g.revelado ? "pk-foto-completa" : undefined} /> : <span className="pk-cond pk-carta-q">?</span>}
                     <span className="pk-carta-rango pk-cond">{g.rango}</span>
                   </span>
                   <span className="pk-carta-nombre pk-cond">{g.revelado ? g.nombre : `${e.artistaInvitado} ${String(g.n).padStart(2, "0")}`}</span>
@@ -630,7 +630,7 @@ export default function HomeEvento() {
           <div className="pk-ficha">
             <div className="pk-ficha-cuerpo">
               <span className="pk-ficha-rayas" aria-hidden="true" />
-              <div className="pk-ficha-arte">{g.foto ? <img src={g.foto} alt="" /> : <span className="pk-cond">?</span>}</div>
+              <div className={`pk-ficha-arte${g.revelado && g.foto ? " pk-ficha-arte-completa" : ""}`}>{g.foto ? <img src={g.foto} alt={g.revelado ? g.nombre : ""} /> : <span className="pk-cond">?</span>}</div>
               <div className="pk-ficha-info">
                 {g.revelado
                   ? <p className="pk-cond text-[38px] leading-none text-[#6ff0ff]">{g.nombre}</p>
