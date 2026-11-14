@@ -4817,7 +4817,7 @@ html.iw-barra-fija .ia-hoja { bottom: calc(env(safe-area-inset-bottom) + 84px) !
 .pk-menu-pie { position: relative; margin-top: auto; padding-top: 18px; font-size: 11px; letter-spacing: .15em; color: #8b84a3; text-transform: uppercase; }
 
 /* Portada */
-.pk-hero { position: relative; height: 100svh; min-height: 560px; overflow: hidden; isolation: isolate; }
+.pk-hero { position: relative; height: 100svh; height: 100dvh; min-height: 560px; overflow: hidden; isolation: isolate; }
 .pk-hero-arte { position: absolute; inset: 0; }
 .pk-hero-fondo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: saturate(.9) brightness(.6); transform: scale(1.06); animation: pk-respira 14s ease-in-out infinite alternate; }
 @keyframes pk-respira { to { transform: scale(1.12) translateY(-1%); } }
@@ -5021,7 +5021,7 @@ html.dark .pk h2.pk-titulo.pk-titulo-claro, .pk h2.pk-titulo.pk-titulo-claro { c
 .pk-hero-capa-figura { z-index: 1; transform: translateY(calc(var(--pp-y, 0) * .12px)); }
 html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -webkit-text-fill-color: #fff; font-weight: 400; }
 .pk-hero h1.pk-lema span { color: #fff; }
-@media (max-width: 1023px) { .pk-hero.pk-hero-conbarra { height: calc(100svh - 65px); min-height: 500px; } }
+@media (max-width: 1023px) { .pk-hero.pk-hero-conbarra { height: calc(100svh - 65px); height: calc(100dvh - 65px); min-height: 500px; } }
 .pk-hero-bajar { display: none; }
 @media (min-width: 1024px) {
   .pk-hero.pk-hero-conbarra { height: calc(100vh - 65px); }
