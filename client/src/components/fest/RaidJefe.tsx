@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import JefeVivo from "@/components/fest/JefeVivo";
 import { Swords } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
@@ -552,7 +553,7 @@ export default function RaidJefe({
               }`}
             >
               {imagen ? (
-                <img src={imagen} alt="" draggable={false} className="h-full w-full object-contain" />
+                <JefeVivo src={imagen} />
               ) : (
                 <JefeSilueta caido={caido && revelacion === "no"} />
               )}

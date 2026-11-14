@@ -5589,3 +5589,6 @@ canvas.pk-koi-dibujo { width: min(70vw, 420px); height: 100%; }
    al crecer y encogerse hacían aparecer y desaparecer una barra en computadora */
 .koi { overflow: hidden; overflow: clip; }
 .pk-dentro-raid { overflow-x: hidden; scrollbar-gutter: stable; }
+
+/* Jefe animado: el lienzo sobresale del marco para dar sitio al aura y los brazos */
+.jefe-vivo { position: absolute; left: -10%; top: -10%; width: 120%; height: 120%; display: block; pointer-events: none; }
