@@ -64,8 +64,8 @@ const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-siluet
  * Invitados ya anunciados: salen con su nombre aunque el panel no tenga nada
  * cargado. Para volver a ocultar uno, pon su ajuste wf_invitado_N_revelado en "0".
  */
-const ANUNCIADOS: Record<number, { nombre: string; rango: string; es: string; en: string }> = {
-  2: { nombre: "Prince De Guzman", rango: "S", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
+const ANUNCIADOS: Record<number, { nombre: string; rango: string; foto: string; es: string; en: string }> = {
+  2: { nombre: "Prince De Guzman", rango: "S", foto: "/invitados/prince-de-guzman.webp", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
 };
 const n3 = (n: number) => String(n).padStart(3, "0");
 
@@ -369,7 +369,13 @@ export default function HomeEvento() {
     const ajuste = s(`wf_invitado_${n}_revelado`);
     return {
       n,
-      foto: s(`wf_invitado_${n}_foto`) || FOTO_RESPALDO[n] || "",
+      // Ya anunciado: su foto real. La del panel manda solo si se subió una
+      // distinta de la silueta que había mientras estaba oculto.
+      foto: (() => {
+        const delPanel = s(`wf_invitado_${n}_foto`);
+        if (anunciado && ajuste !== "0") return delPanel && !/silueta|sombra|silhouette/i.test(delPanel) && delPanel !== FOTO_RESPALDO[n] ? delPanel : anunciado.foto;
+        return delPanel || FOTO_RESPALDO[n] || "";
+      })(),
       revelado: (ajuste === "1" || (!!anunciado && ajuste !== "0")) && !!nombre,
       nombre,
       /** Cómo se presenta: «Primer cosplayer invitado» o el genérico */
