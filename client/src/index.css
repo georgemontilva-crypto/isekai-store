@@ -5584,3 +5584,8 @@ canvas.pk-koi-dibujo { width: min(70vw, 420px); height: 100%; }
   .pk-ficha-nav button:hover { background: #6ff0ff; color: #0a0812; }
   .pk-ficha-nav button:nth-child(2) { width: 72px; }
 }
+
+/* Las ondas y los efectos del estanque no deben agrandar la zona con scroll:
+   al crecer y encogerse hacían aparecer y desaparecer una barra en computadora */
+.koi { overflow: hidden; overflow: clip; }
+.pk-dentro-raid { overflow-x: hidden; scrollbar-gutter: stable; }

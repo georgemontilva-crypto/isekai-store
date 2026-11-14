@@ -53,8 +53,11 @@ export default function MazmorraJefe({ en, jefes }: { en: boolean; jefes: JefeMa
   // Dentro de la mazmorra la página de atrás no se mueve: todo pasa aquí
   useEffect(() => {
     if (fase === "puerta") return;
+    // También la raíz: en computadora, si no, queda la barra de la página
+    // al lado de la de la mazmorra
     document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
+    document.documentElement.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; document.documentElement.style.overflow = ""; };
   }, [fase]);
 
   const entrar = () => {
