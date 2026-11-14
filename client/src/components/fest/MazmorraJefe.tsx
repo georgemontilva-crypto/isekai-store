@@ -31,6 +31,8 @@ export type JefeMazmorra = {
   color: string;
   /** Texto al aparecer: «JEFE DETECTADO», «KOI-SAMA DESPIERTA»… */
   aparicion: string;
+  /** Misión ya cerrada: la tarjeta queda en gris, como completada */
+  completado?: boolean;
   render: (onEstado: (puedeSalir: boolean) => void) => React.ReactNode;
 };
 
@@ -122,9 +124,10 @@ export default function MazmorraJefe({ en, jefes }: { en: boolean; jefes: JefeMa
           <h3 className="pk-cond pk-elegir-titulo">{en ? "CHOOSE YOUR BOSS" : "ELIGE A TU JEFE"}</h3>
           <div className="pk-elegir-rejilla">
             {jefes.map((j, i) => (
-              <button key={j.clave} className={`pk-elegir-carta ${clave === j.clave ? "pk-elegir-sel" : ""}`} style={{ "--jefe": j.color, animationDelay: `${0.12 * i}s` } as React.CSSProperties} onClick={() => elegir(j.clave)}>
+              <button key={j.clave} className={`pk-elegir-carta ${clave === j.clave ? "pk-elegir-sel" : ""} ${j.completado ? "pk-elegir-hecha" : ""}`} style={{ "--jefe": j.color, animationDelay: `${0.12 * i}s` } as React.CSSProperties} onClick={() => elegir(j.clave)}>
                 <span className="pk-elegir-num pk-mono">{String(i + 1).padStart(2, "0")}</span>
                 <span className="pk-elegir-rango pk-cond">{j.rango}</span>
+                {j.completado && <span className="pk-elegir-sello pk-mono">{en ? "COMPLETED" : "COMPLETADA"}</span>}
                 <span className="pk-elegir-arte">{j.imagen ? <img src={j.imagen} alt="" /> : j.arte ?? <Skull size={90} strokeWidth={1} />}</span>
                 <span className="pk-elegir-pie">
                   <span className="pk-cond pk-elegir-nombre">{j.nombre}</span>

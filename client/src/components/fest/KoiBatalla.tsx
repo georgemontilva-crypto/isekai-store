@@ -127,6 +127,25 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
   const registrado = Boolean(yo?.registrado);
   const activo = e?.estado === "activo";
 
+  // Al caer, Koi-sama se libera: se purifica, da una vuelta al estanque y se va.
+  // Solo entonces aparece el resultado y la misión queda cerrada.
+  const [liberando, setLiberando] = useState(false);
+  const estadoPrevio = useRef<string | null>(null);
+  const estadoAhora = e?.estado ?? null;
+  // En el mismo instante en que cae, el estanque sigue en pantalla: si se
+  // desmontara antes de empezar, no habría pez al que liberar
+  const cayendo = estadoPrevio.current === "activo" && estadoAhora === "derrotado" && !imagen;
+  useEffect(() => {
+    const antes = estadoPrevio.current; estadoPrevio.current = estadoAhora;
+    if (estadoAhora !== "derrotado") { setLiberando(false); return; }
+    if (antes !== "activo" || imagen || !pez.current) return;
+    setLiberando(true);
+    try { navigator.vibrate?.([40, 60, 40, 60, 200]); } catch { /* */ }
+    pez.current.liberar(() => setLiberando(false));
+    const t = window.setTimeout(() => setLiberando(false), 15000);
+    return () => window.clearTimeout(t);
+  }, [estadoAhora, imagen]);
+
   // Al arrancar la quest la vista sube sola: vida, pez y combo quedan a la vista
   const cajaRef = useRef<HTMLElement>(null);
   useEffect(() => { if (activo) cajaRef.current?.scrollIntoView({ block: "start", behavior: "smooth" }); }, [activo]);
@@ -211,15 +230,16 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
         <p className="pk-mono koi-vida-num"><b>{n(e.vida)}</b> / {n(e.vidaMax)} HP <span><Users size={12} /> {n(e.jugadores)}</span></p>
       </div>
 
-      {e.estado === "derrotado" ? (
+      {e.estado === "derrotado" && !liberando && !cayendo ? (
         <div className="koi-ganador">
+          <p className="pk-mono koi-completada">{en ? "MISSION COMPLETE · KOI-SAMA IS FREE" : "MISIÓN COMPLETADA · KOI-SAMA ES LIBRE"}</p>
           <Crown size={44} className="koi-corona" />
           <p className="pk-mono koi-ganador-et">{en ? "FINAL BLOW" : "GOLPE FINAL"}</p>
           <p className="pk-cond koi-ganador-nombre">{e.ganador ?? "—"}</p>
-          <p className="pk-mono koi-ganador-sub">{yo?.gane ? (en ? "IT WAS YOU. Show this screen to the staff." : "¡FUISTE TÚ! Muestra esta pantalla al equipo.") : (en ? "defeated Koi-sama" : "derrotó a Koi-sama")}</p>
+          <p className="pk-mono koi-ganador-sub">{yo?.gane ? (en ? "IT WAS YOU. Show this screen to the staff." : "¡FUISTE TÚ! Muestra esta pantalla al equipo.") : (en ? "freed Koi-sama from corruption" : "liberó a Koi-sama de la corrupción")}</p>
         </div>
       ) : (
-        <div ref={arena} className="koi-arena">
+        <div ref={arena} className={`koi-arena ${liberando || cayendo ? "koi-arena-libre" : "koi-arena-corrupta"}`}>
           <button
             type="button"
             className={`koi-blanco ${activo && registrado ? "koi-blanco-on" : ""}`}
@@ -230,7 +250,7 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
             <span className="koi-ondas" aria-hidden="true"><i /><i /><i /></span>
             {imagen
               ? <span ref={pezCaja} className="koi-pez koi-pez-img"><img src={imagen} alt="Koi-sama" className="koi-arte" draggable={false} /></span>
-              : <span ref={pezCaja} className="koi-pez"><KoiVivo ref={pez} calma={!activo} /></span>}
+              : <span ref={pezCaja} className="koi-pez"><KoiVivo ref={pez} calma={!activo} corrupto /></span>}
             {impactos.map(k => (
               <span key={k.id} className="koi-impacto" style={{ left: k.x, top: k.y }} aria-hidden="true">
                 <span className="ev2-impacto-onda" />
@@ -249,6 +269,13 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
               </span>
             )}
           </button>
+
+          {liberando && (
+            <div className="koi-libre" aria-live="polite">
+              <p className="pk-cond koi-libre-t">{en ? "KOI-SAMA IS FREE" : "KOI-SAMA ES LIBRE"}</p>
+              <p className="pk-mono koi-libre-s">{en ? "Final blow" : "Golpe final"}: <b>{e.ganador ?? "—"}</b></p>
+            </div>
+          )}
 
           {activo && registrado && (
             <div className="koi-combo" aria-live="off">

@@ -2,27 +2,42 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 
 /**
  * Koi-sama vivo: un koi visto desde arriba, dibujado en un lienzo y animado
- * por código. No es una imagen que se mueve: el cuerpo es una columna de
- * puntos que ondula de cabeza a cola, con volumen (sombra en el fondo del
- * estanque, borde oscuro, brillo de luz y contraluz cian), aletas que baten
- * y manchas propias. Nada solo, eligiendo rumbos al azar, y al recibir un
- * golpe se estremece, destella y sale disparado lejos del toque.
+ * por código. El cuerpo es una columna de puntos que ondula de cabeza a cola,
+ * con volumen (sombra en el fondo del estanque, borde oscuro, brillo de luz y
+ * contraluz), aletas que baten y manchas propias. Nada solo, eligiendo rumbos
+ * al azar, y al recibir un golpe se estremece, destella y huye del toque.
  *
+ * `corrupto`: negro con rojo y aura oscura. `liberar()` lo purifica con una
+ * animación —vuelve a sus colores—, da una vuelta al estanque y se va.
  * `posa`: se queda en su sitio nadando hacia arriba (tarjeta y entrada).
  */
-export type KoiVivoRef = { golpe: (x?: number, y?: number) => void };
+export type KoiVivoRef = { golpe: (x?: number, y?: number) => void; liberar: (alIrse?: () => void) => void };
 
 const CUERPO = 20;          // puntos de la columna
 const COLA = 5;             // puntos extra de la aleta caudal
 const PERFIL: [number, number][] = [[0, .44], [.07, .76], [.18, .97], [.3, 1], [.48, .88], [.68, .58], [.86, .3], [1, .17]];
-/** Manchas: posición a lo largo (u), hacia un lado (lat), tamaño y color */
+type RGBA = [number, number, number, number];
+const hex = (h: string, a = 1): RGBA => [parseInt(h.slice(1, 3), 16), parseInt(h.slice(3, 5), 16), parseInt(h.slice(5, 7), 16), a];
+/** Color entre el corrupto (p=0) y el puro (p=1) */
+const mez = (k: RGBA, c: RGBA, p: number) =>
+  `rgba(${Math.round(k[0] + (c[0] - k[0]) * p)},${Math.round(k[1] + (c[1] - k[1]) * p)},${Math.round(k[2] + (c[2] - k[2]) * p)},${(k[3] + (c[3] - k[3]) * p).toFixed(3)})`;
+/** Manchas: posición (u), lado (lat), tamaño, color puro (c) y corrupto (k) */
 const MANCHAS = [
-  { u: .1, lat: -.15, a: .11, b: .8, c: "#e3391b" }, { u: .16, lat: .35, a: .07, b: .5, c: "#ee5a22" },
-  { u: .36, lat: -.45, a: .1, b: .62, c: "#f0601f" }, { u: .43, lat: .1, a: .09, b: .7, c: "#e3391b" },
-  { u: .5, lat: .55, a: .05, b: .34, c: "#15171c" }, { u: .27, lat: .62, a: .035, b: .26, c: "#15171c" },
-  { u: .66, lat: -.1, a: .08, b: .75, c: "#f39a2d" }, { u: .74, lat: .3, a: .05, b: .5, c: "#ee5a22" },
-  { u: .88, lat: 0, a: .05, b: .9, c: "#e3391b" },
+  { u: .1, lat: -.15, a: .11, b: .8, c: hex("#e3391b"), k: hex("#d0101f") }, { u: .16, lat: .35, a: .07, b: .5, c: hex("#ee5a22"), k: hex("#16040a") },
+  { u: .36, lat: -.45, a: .1, b: .62, c: hex("#f0601f"), k: hex("#1c050b") }, { u: .43, lat: .1, a: .09, b: .7, c: hex("#e3391b"), k: hex("#a50c18") },
+  { u: .5, lat: .55, a: .05, b: .34, c: hex("#15171c"), k: hex("#ff3344") }, { u: .27, lat: .62, a: .035, b: .26, c: hex("#15171c"), k: hex("#ff3344") },
+  { u: .66, lat: -.1, a: .08, b: .75, c: hex("#f39a2d"), k: hex("#16040a") }, { u: .74, lat: .3, a: .05, b: .5, c: hex("#ee5a22"), k: hex("#d0101f") },
+  { u: .88, lat: 0, a: .05, b: .9, c: hex("#e3391b"), k: hex("#1c050b") },
 ];
+const C = {
+  base: [hex("#0d0c11"), hex("#f3efe6")], halo: [[225, 20, 45, .85] as RGBA, [34, 211, 238, .75] as RGBA],
+  borde: [[255, 55, 70, .75] as RGBA, [103, 232, 249, .6] as RGBA], luz: [[255, 255, 255, .1] as RGBA, [255, 255, 255, .3] as RGBA],
+  luz2: [[255, 120, 130, .28] as RGBA, [255, 255, 255, .5] as RGBA], escama: [[255, 70, 80, .13] as RGBA, [20, 30, 50, .085] as RGBA],
+  lomo: [[255, 40, 55, .6] as RGBA, [150, 50, 14, .5] as RGBA], ojo: [hex("#ff2638"), hex("#8ff5ff")], ojoFondo: [hex("#1a0206"), hex("#0a1620")],
+  bigote: [[150, 30, 40, .9] as RGBA, [235, 220, 200, .85] as RGBA],
+  aleta0: [[40, 6, 12, .95] as RGBA, [255, 236, 220, .92] as RGBA], aleta1: [[190, 16, 34, .7] as RGBA, [255, 158, 84, .6] as RGBA], aleta2: [[255, 40, 60, .25] as RGBA, [255, 110, 60, .22] as RGBA],
+  radio: [[255, 80, 90, .25] as RGBA, [120, 40, 10, .22] as RGBA], aletaBorde: [[255, 70, 80, .35] as RGBA, [255, 255, 255, .3] as RGBA],
+};
 
 function perfil(u: number) {
   for (let i = 1; i < PERFIL.length; i++) {
@@ -35,6 +50,7 @@ function perfil(u: number) {
   return PERFIL[PERFIL.length - 1][1];
 }
 type P = { x: number; y: number };
+type Mota = { x: number; y: number; vx: number; vy: number; vida: number; max: number; r: number; luz: boolean };
 /** Curva suave que pasa por los puntos (continúa el trazo abierto) */
 function suave(c: CanvasRenderingContext2D, pts: P[], mover = true) {
   if (mover) c.moveTo(pts[0].x, pts[0].y); else c.lineTo(pts[0].x, pts[0].y);
@@ -45,17 +61,32 @@ function suave(c: CanvasRenderingContext2D, pts: P[], mover = true) {
   c.lineTo(f.x, f.y);
 }
 
-const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; calma?: boolean }>(function KoiVivo({ className = "", posa = false, calma = false }, ref) {
+type Props = { className?: string; posa?: boolean; calma?: boolean; corrupto?: boolean };
+const KoiVivo = forwardRef<KoiVivoRef, Props>(function KoiVivo({ className = "", posa = false, calma = false, corrupto = false }, ref) {
   const lienzo = useRef<HTMLCanvasElement>(null);
-  const vivo = useRef({ impulso: 0, destello: 0, huir: null as P | null, calma });
+  const vivo = useRef({
+    impulso: 0, destello: 0, huir: null as P | null, calma,
+    /** 0 = corrupto, 1 = puro */
+    pureza: corrupto ? 0 : 1,
+    /** Liberación: transforma → vuelta → salida → ido */
+    etapa: "" as "" | "transforma" | "vuelta" | "salida" | "ido", t: 0, giro: 0, alIrse: undefined as undefined | (() => void),
+  });
   vivo.current.calma = calma;
+  // Si cambia de fuera (batalla nueva) y no hay liberación en curso, se ajusta
+  useEffect(() => { const v = vivo.current; if (!v.etapa || v.etapa === "ido") { v.pureza = corrupto ? 0 : 1; v.etapa = ""; } }, [corrupto]);
 
   useImperativeHandle(ref, () => ({
     golpe(x?: number, y?: number) {
       const v = vivo.current;
+      if (v.etapa) return;
       v.impulso = Math.min(1.7, v.impulso + 0.55);
       v.destello = 1;
       if (x !== undefined && y !== undefined) v.huir = { x, y };
+    },
+    liberar(alIrse?: () => void) {
+      const v = vivo.current;
+      if (v.etapa) return;
+      v.etapa = "transforma"; v.t = 0; v.giro = 0; v.alIrse = alIrse; v.destello = 1; v.impulso = 0; v.huir = null;
     },
   }), []);
 
@@ -69,6 +100,7 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
     const total = CUERPO + COLA;
     const esp: P[] = Array.from({ length: total }, () => ({ x: 0, y: 0 }));
     let rumbo = -Math.PI / 2, fase = 0, velBase = 1, meta: P = { x: 0, y: 0 }, hasta = 0, sembrado = false;
+    let motas: Mota[] = [], anillo = -1, angVuelta = 0;
 
     const medir = () => {
       const r = el.getBoundingClientRect();
@@ -99,14 +131,57 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
       hasta = performance.now() + 2200 + Math.random() * 3200;
       velBase = 0.7 + Math.random() * 0.6;
     };
+    const mota = (luz: boolean, i = Math.floor(Math.random() * CUERPO), fuerza = 1) => {
+      if (motas.length > 110) return;
+      const p = esp[i], a = Math.random() * Math.PI * 2, vel = (luz ? 26 + Math.random() * 60 : 8 + Math.random() * 16) * fuerza;
+      motas.push({
+        x: p.x + (Math.random() - 0.5) * L * 0.12, y: p.y + (Math.random() - 0.5) * L * 0.12,
+        vx: Math.cos(a) * vel, vy: Math.sin(a) * vel - (luz ? 0 : 14), vida: 0, max: luz ? 0.7 + Math.random() * 0.7 : 0.9 + Math.random() * 0.9,
+        r: luz ? 1.4 + Math.random() * 2.4 : L * (0.05 + Math.random() * 0.07), luz,
+      });
+    };
 
     const paso = (dt: number, ahora: number) => {
       const v = vivo.current, s = L / (CUERPO - 1);
       v.impulso *= Math.exp(-dt * 2.6);
-      v.destello *= Math.exp(-dt * 9);
-      if (!posa) {
+      v.destello *= Math.exp(-dt * (v.etapa === "transforma" ? 2.2 : 9));
+      const cab = esp[0];
+      let vel = 0;
+
+      if (v.etapa === "ido") return;
+      if (v.etapa) v.t += dt;
+      if (v.etapa === "transforma") {
+        // Se purifica: los colores vuelven y estalla la luz
+        if (anillo < 0) anillo = 0;
+        const k = Math.min(1, v.t / 1.7);
+        v.pureza = k * k * (3 - 2 * k);
+        for (let n = 0; n < 4; n++) mota(true, undefined, 1.3);
+        fase += dt * 9;
+        if (v.t > 2) { v.etapa = "vuelta"; v.t = 0; v.pureza = 1; angVuelta = Math.atan2(cab.y - H / 2, cab.x - W / 2); v.giro = 0; }
+      } else if (v.etapa === "vuelta" || v.etapa === "salida") {
+        if (v.etapa === "vuelta") {
+          // Una vuelta completa al estanque, libre
+          const avance = dt * 1.7; angVuelta += avance; v.giro += avance;
+          const R = Math.min(W, H) * 0.22;
+          meta = { x: W / 2 + Math.cos(angVuelta + 0.9) * R, y: H / 2 + Math.sin(angVuelta + 0.9) * R * 0.86 };
+          if (v.giro > Math.PI * 2.15) { v.etapa = "salida"; v.t = 0; }
+        } else {
+          meta = { x: W * 0.5, y: -L * 3 };
+        }
+        let dif = Math.atan2(meta.y - cab.y, meta.x - cab.x) - rumbo;
+        dif = Math.atan2(Math.sin(dif), Math.cos(dif));
+        const giro = 3.4 * dt;
+        rumbo += Math.max(-giro, Math.min(giro, dif));
+        vel = L * (v.etapa === "salida" ? 0.95 + v.t * 0.7 : 0.78);
+        cab.x += Math.cos(rumbo) * vel * dt; cab.y += Math.sin(rumbo) * vel * dt;
+        fase += dt * (4.2 + (vel / L) * 11);
+        if (Math.random() < 0.6) mota(true, CUERPO - 1 + Math.floor(Math.random() * COLA), 0.4);
+        // Se fue: toda la cola quedó fuera de la vista
+        if (v.etapa === "salida" && (esp[total - 1].y < -L * 0.2 || v.t > 6)) {
+          v.etapa = "ido"; const f = v.alIrse; v.alIrse = undefined; f?.();
+        }
+      } else if (!posa) {
         if (v.huir) { nuevaMeta(v.huir); v.huir = null; rumbo += (Math.random() - 0.5) * 0.9; }
-        const cab = esp[0];
         if (ahora > hasta || Math.hypot(meta.x - cab.x, meta.y - cab.y) < L * 0.22) nuevaMeta();
         let dif = Math.atan2(meta.y - cab.y, meta.x - cab.x) - rumbo;
         dif = Math.atan2(Math.sin(dif), Math.cos(dif));
@@ -119,7 +194,7 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
         }
         const giro = (1.8 + v.impulso * 1.5) * (fuera ? 2.2 : 1) * dt;
         rumbo += Math.max(-giro, Math.min(giro, dif));
-        const vel = L * 0.3 * velBase * (v.calma ? 0.55 : 1) * (1 + v.impulso * 2.6) * (quieto ? 0.4 : 1);
+        vel = L * 0.3 * velBase * (v.calma ? 0.55 : 1) * (1 + v.impulso * 2.6) * (quieto ? 0.4 : 1);
         cab.x += Math.cos(rumbo) * vel * dt; cab.y += Math.sin(rumbo) * vel * dt;
         const tope = L * 0.22;
         cab.x = Math.max(tope, Math.min(W - tope, cab.x)); cab.y = Math.max(tope, Math.min(H - tope, cab.y));
@@ -139,12 +214,19 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
         b.x = a.x + Math.cos(ang) * s; b.y = a.y + Math.sin(ang) * s;
         previo = ang;
       }
+      // Aura oscura: humo que brota del cuerpo mientras siga corrupto
+      if (v.pureza < 0.85 && !quieto && Math.random() < (posa ? 0.45 : 0.7) * (1 - v.pureza)) mota(false);
+      for (const m of motas) { m.vida += dt; m.x += m.vx * dt; m.y += m.vy * dt; m.vx *= 1 - dt * 1.4; m.vy *= 1 - dt * 1.4; }
+      motas = motas.filter(m => m.vida < m.max);
+      if (anillo >= 0) { anillo += dt; if (anillo > 1.3) anillo = -1; }
     };
 
     const dibujar = () => {
-      const v = vivo.current, Wm = L * 0.142;
+      const v = vivo.current, Wm = L * 0.142, p = v.pureza;
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.clearRect(0, 0, W, H);
+      if (v.etapa === "ido") return;
+      const col = (par: RGBA[]) => mez(par[0], par[1], p);
       // Columna con la ondulación: casi nada en la cabeza, amplia en la cola
       const amp = Wm * (0.5 + 0.55 * Math.min(1, v.impulso)) * (posa ? 0.85 : 1);
       const pts: P[] = [], nor: P[] = [];
@@ -206,6 +288,14 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
         aletas.push([10, k, L * 0.115, L * 0.05, 0.22 * Math.sin(fase * 0.8 + 2 + (k > 0 ? 0 : 1.1))]);
       }
 
+      // 0 · Aura oscura: humo negro con borde rojo, por debajo del pez
+      for (const m of motas) {
+        if (m.luz) continue;
+        const k = m.vida / m.max, a = Math.sin(Math.PI * Math.min(1, k * 1.1)) * (1 - p), r = m.r * (0.6 + k * 1.5);
+        c.fillStyle = `rgba(150,10,30,${(a * 0.2).toFixed(3)})`; c.beginPath(); c.arc(m.x, m.y, r * 1.35, 0, Math.PI * 2); c.fill();
+        c.fillStyle = `rgba(6,0,4,${(a * 0.62).toFixed(3)})`; c.beginPath(); c.arc(m.x, m.y, r, 0, Math.PI * 2); c.fill();
+      }
+
       // 1 · Sombra en el fondo del estanque: es lo que lo separa del agua
       c.save(); c.translate(L * 0.07, L * 0.1);
       c.fillStyle = "rgba(0,6,14,.2)"; c.strokeStyle = "rgba(0,6,14,.1)"; c.lineWidth = L * 0.05; c.lineJoin = "round";
@@ -216,13 +306,13 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
       // 2 · Aletas, translúcidas, con sus radios
       const pintarAleta = (base: P, punta: P) => {
         const g = c.createLinearGradient(base.x, base.y, punta.x, punta.y);
-        g.addColorStop(0, "rgba(255,236,220,.92)"); g.addColorStop(0.55, "rgba(255,158,84,.6)"); g.addColorStop(1, "rgba(255,110,60,.22)");
+        g.addColorStop(0, col(C.aleta0)); g.addColorStop(0.55, col(C.aleta1)); g.addColorStop(1, col(C.aleta2));
         c.fillStyle = g; c.fill();
-        c.strokeStyle = "rgba(255,255,255,.3)"; c.lineWidth = 1; c.stroke();
+        c.strokeStyle = col(C.aletaBorde); c.lineWidth = 1; c.stroke();
       };
       for (const a of aletas) {
         const { base, punta } = trazoAleta(...a); pintarAleta(base, punta);
-        c.save(); c.clip(); c.strokeStyle = "rgba(120,40,10,.22)"; c.lineWidth = 1;
+        c.save(); c.clip(); c.strokeStyle = col(C.radio); c.lineWidth = 1;
         for (let r = -2; r <= 2; r++) { c.beginPath(); c.moveTo(base.x, base.y); c.lineTo(punta.x + r * a[3] * 0.55, punta.y + r * a[3] * 0.3); c.stroke(); }
         c.restore();
       }
@@ -230,16 +320,16 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
         const { izq, der, base } = trazoCola();
         const fin = pts[total - 1];
         pintarAleta(base, fin);
-        c.save(); c.clip(); c.strokeStyle = "rgba(120,40,10,.2)"; c.lineWidth = 1;
+        c.save(); c.clip(); c.strokeStyle = col(C.radio); c.lineWidth = 1;
         const ul = izq[izq.length - 1], ur = der[der.length - 1];
         for (let r = 0; r <= 8; r++) { const k = r / 8; c.beginPath(); c.moveTo(base.x, base.y); c.lineTo(ul.x + (ur.x - ul.x) * k, ul.y + (ur.y - ul.y) * k); c.stroke(); }
         c.restore();
       }
 
-      // 3 · Cuerpo: base perlada con resplandor del agua
+      // 3 · Cuerpo, con su resplandor: rojo si está corrupto, del agua si es libre
       c.save();
-      c.shadowColor = "rgba(34,211,238,.75)"; c.shadowBlur = L * 0.09;
-      trazoCuerpo(); c.fillStyle = "#f3efe6"; c.fill();
+      c.shadowColor = col(C.halo); c.shadowBlur = L * (0.09 + 0.05 * (1 - p));
+      trazoCuerpo(); c.fillStyle = col(C.base); c.fill();
       c.restore();
 
       c.save(); trazoCuerpo(); c.clip();
@@ -248,12 +338,12 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
         const fi = m.u * (CUERPO - 1), i = Math.min(CUERPO - 2, Math.floor(fi)), k = fi - i;
         const px = pts[i].x + (pts[i + 1].x - pts[i].x) * k, py = pts[i].y + (pts[i + 1].y - pts[i].y) * k;
         const wi = Wm * perfil(m.u), ang = Math.atan2(pts[i + 1].y - pts[i].y, pts[i + 1].x - pts[i].x);
-        c.fillStyle = m.c; c.beginPath();
+        c.fillStyle = mez(m.k, m.c, p); c.beginPath();
         c.ellipse(px + nor[i].x * wi * m.lat, py + nor[i].y * wi * m.lat, L * m.a, wi * m.b, ang, 0, Math.PI * 2);
         c.fill();
       }
       // escamas
-      c.strokeStyle = "rgba(20,30,50,.085)"; c.lineWidth = 1;
+      c.strokeStyle = col(C.escama); c.lineWidth = 1;
       for (let i = 3; i < CUERPO - 2; i++) {
         const ang = Math.atan2(pts[i + 1].y - pts[i].y, pts[i + 1].x - pts[i].x), wi = w(i);
         for (let k = -2; k <= 2; k++) {
@@ -266,28 +356,46 @@ const KoiVivo = forwardRef<KoiVivoRef, { className?: string; posa?: boolean; cal
       trazoCuerpo(); c.strokeStyle = "rgba(8,22,44,.17)"; c.lineWidth = Wm * 1.15; c.stroke();
       trazoCuerpo(); c.strokeStyle = "rgba(8,22,44,.2)"; c.lineWidth = Wm * 0.55; c.stroke();
       // aleta dorsal
-      c.beginPath(); suave(c, pts.slice(6, 13)); c.strokeStyle = "rgba(150,50,14,.5)"; c.lineWidth = Wm * 0.13; c.lineCap = "round"; c.stroke();
+      c.beginPath(); suave(c, pts.slice(6, 13)); c.strokeStyle = col(C.lomo); c.lineWidth = Wm * 0.13; c.lineCap = "round"; c.stroke();
       // brillo: la luz viene de arriba a la izquierda
-      const luz = pts.slice(1, 14).map((p, j) => ({ x: p.x - w(j + 1) * 0.3, y: p.y - w(j + 1) * 0.3 }));
-      c.beginPath(); suave(c, luz); c.strokeStyle = "rgba(255,255,255,.3)"; c.lineWidth = Wm * 0.42; c.stroke();
-      c.beginPath(); suave(c, luz.slice(0, 9)); c.strokeStyle = "rgba(255,255,255,.5)"; c.lineWidth = Wm * 0.13; c.stroke();
-      // contraluz cian en el borde
-      trazoCuerpo(); c.strokeStyle = "rgba(103,232,249,.6)"; c.lineWidth = 3; c.stroke();
-      // destello del golpe
-      if (v.destello > 0.02) { c.fillStyle = `rgba(255,255,255,${Math.min(0.85, v.destello * 0.85)})`; c.fillRect(0, 0, W, H); }
+      const luz = pts.slice(1, 14).map((q, j) => ({ x: q.x - w(j + 1) * 0.3, y: q.y - w(j + 1) * 0.3 }));
+      c.beginPath(); suave(c, luz); c.strokeStyle = col(C.luz); c.lineWidth = Wm * 0.42; c.stroke();
+      c.beginPath(); suave(c, luz.slice(0, 9)); c.strokeStyle = col(C.luz2); c.lineWidth = Wm * 0.13; c.stroke();
+      // contraluz en el borde
+      trazoCuerpo(); c.strokeStyle = col(C.borde); c.lineWidth = 3; c.stroke();
+      // destello del golpe (y de la purificación)
+      if (v.destello > 0.02) { c.fillStyle = `rgba(255,255,255,${Math.min(0.9, v.destello * 0.9)})`; c.fillRect(0, 0, W, H); }
       c.restore();
 
       // 4 · Ojos y bigotes
       for (const k of [1, -1]) {
         const o = lado(1, k * 0.8), r = Wm * 0.13;
-        c.fillStyle = "#0a1620"; c.beginPath(); c.arc(o.x, o.y, r, 0, Math.PI * 2); c.fill();
-        c.fillStyle = "#8ff5ff"; c.beginPath(); c.arc(o.x - r * 0.35, o.y - r * 0.35, r * 0.34, 0, Math.PI * 2); c.fill();
+        c.fillStyle = col(C.ojoFondo); c.beginPath(); c.arc(o.x, o.y, r, 0, Math.PI * 2); c.fill();
+        // corrupto: el ojo entero arde en rojo
+        c.save(); if (p < 0.6) { c.shadowColor = "#ff1a30"; c.shadowBlur = 9 * (1 - p); }
+        c.fillStyle = col(C.ojo); c.beginPath();
+        c.arc(o.x - r * 0.35 * p, o.y - r * 0.35 * p, r * (0.34 + 0.4 * (1 - p)), 0, Math.PI * 2); c.fill(); c.restore();
         const b0 = { x: pts[0].x + adelante.x * Wm * 0.7 + nor[0].x * Wm * 0.3 * k, y: pts[0].y + adelante.y * Wm * 0.7 + nor[0].y * Wm * 0.3 * k };
         const mueve = Math.sin(fase * 0.7 + k) * Wm * 0.12;
         c.beginPath(); c.moveTo(b0.x, b0.y);
         c.quadraticCurveTo(b0.x + adelante.x * Wm * 0.5 + nor[0].x * Wm * 0.5 * k, b0.y + adelante.y * Wm * 0.5 + nor[0].y * Wm * 0.5 * k,
           b0.x + nor[0].x * (Wm * 0.8 * k + mueve) - adelante.x * Wm * 0.1, b0.y + nor[0].y * (Wm * 0.8 * k + mueve) - adelante.y * Wm * 0.1);
-        c.strokeStyle = "rgba(235,220,200,.85)"; c.lineWidth = Math.max(1.2, Wm * 0.06); c.lineCap = "round"; c.stroke();
+        c.strokeStyle = col(C.bigote); c.lineWidth = Math.max(1.2, Wm * 0.06); c.lineCap = "round"; c.stroke();
+      }
+
+      // 5 · Luz de la liberación: anillo que se abre y chispas doradas
+      if (anillo >= 0) {
+        const k = anillo / 1.3, cx = pts[6].x, cy = pts[6].y;
+        c.strokeStyle = `rgba(255,255,255,${(1 - k).toFixed(3)})`; c.lineWidth = 6 * (1 - k) + 1;
+        c.beginPath(); c.arc(cx, cy, L * (0.15 + k * 0.95), 0, Math.PI * 2); c.stroke();
+        c.strokeStyle = `rgba(125,249,255,${((1 - k) * 0.7).toFixed(3)})`; c.lineWidth = 2;
+        c.beginPath(); c.arc(cx, cy, L * (0.08 + k * 0.6), 0, Math.PI * 2); c.stroke();
+      }
+      for (const m of motas) {
+        if (!m.luz) continue;
+        const a = 1 - m.vida / m.max;
+        c.fillStyle = `rgba(255,236,170,${a.toFixed(3)})`; c.beginPath(); c.arc(m.x, m.y, m.r * (0.5 + a), 0, Math.PI * 2); c.fill();
+        c.fillStyle = `rgba(125,249,255,${(a * 0.35).toFixed(3)})`; c.beginPath(); c.arc(m.x, m.y, m.r * 2.4, 0, Math.PI * 2); c.fill();
       }
     };
 

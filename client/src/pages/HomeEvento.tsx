@@ -329,6 +329,10 @@ export default function HomeEvento() {
     try { await navigator.clipboard.writeText(url); setMapaCopiado(true); window.setTimeout(() => setMapaCopiado(false), 2200); } catch { /* */ }
   };
 
+  // Koi-sama ya liberado: su tarjeta queda en gris, como misión completada
+  const { data: koiEstado } = trpc.koi.estado.useQuery(undefined, { refetchInterval: 20000, staleTime: 5000 });
+  const koiLibre = koiEstado?.estado === "derrotado";
+
   /* Cabecera: se vuelve sólida al bajar */
   const [bajo, setBajo] = useState(false);
   const [menu, setMenu] = useState(false);
@@ -747,10 +751,13 @@ export default function HomeEvento() {
           {
             clave: "koi", nombre: "Koi-sama", rango: "A", color: "#22d3ee",
             tipo: en ? "Live battle" : "Batalla en vivo",
-            detalle: en ? "Everyone at once, no hit limit. The final blow wins." : "Todos a la vez, sin límite de golpes. Gana el golpe final.",
+            detalle: koiLibre
+              ? (en ? "Freed from corruption. See who landed the final blow." : "Liberado de la corrupción. Mira quién dio el golpe final.")
+              : (en ? "A corrupted koi. Everyone at once, no hit limit: free it with the final blow." : "Un koi corrompido. Todos a la vez, sin límite de golpes: libéralo con el golpe final."),
+            completado: koiLibre,
             aparicion: en ? "KOI-SAMA AWAKENS" : "KOI-SAMA DESPIERTA",
             imagen: s("wf_boss_koi"),
-            arte: <KoiVivo posa className="pk-koi-dibujo" />,
+            arte: <KoiVivo posa corrupto className="pk-koi-dibujo" />,
             render: onEstado => <KoiBatalla en={en} imagen={s("wf_boss_koi")} onEstado={onEstado} />,
           },
         ]} />
