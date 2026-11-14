@@ -60,6 +60,13 @@ const RANGOS_ESTILO = [
 const UMBRALES = [0, 60, 140, 240, 360, 500];
 const APERTURA = new Date("2027-08-14T00:00:00-04:00").getTime();
 const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-silueta.png" };
+/**
+ * Invitados ya anunciados: salen con su nombre aunque el panel no tenga nada
+ * cargado. Para volver a ocultar uno, pon su ajuste wf_invitado_N_revelado en "0".
+ */
+const ANUNCIADOS: Record<number, { nombre: string; es: string; en: string }> = {
+  2: { nombre: "Prince De Guzman", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
+};
 const n3 = (n: number) => String(n).padStart(3, "0");
 
 /**
@@ -357,12 +364,16 @@ export default function HomeEvento() {
   const [vistaRejilla, setVistaRejilla] = useState(false);
   const [ficha, setFicha] = useState<number | null>(null);
   const invitados = [1, 2].map(n => {
-    const nombre = s(`wf_invitado_${n}_nombre`);
+    const anunciado = ANUNCIADOS[n];
+    const nombre = s(`wf_invitado_${n}_nombre`) || anunciado?.nombre || "";
+    const ajuste = s(`wf_invitado_${n}_revelado`);
     return {
       n,
       foto: s(`wf_invitado_${n}_foto`) || FOTO_RESPALDO[n] || "",
-      revelado: s(`wf_invitado_${n}_revelado`) === "1" && !!nombre,
+      revelado: (ajuste === "1" || (!!anunciado && ajuste !== "0")) && !!nombre,
       nombre,
+      /** Cómo se presenta: «Primer cosplayer invitado» o el genérico */
+      titulo: anunciado && ajuste !== "0" ? (en ? anunciado.en : anunciado.es) : "",
       rango: String(s(`wf_invitado_${n}_rango`)).trim().toUpperCase().slice(0, 2) || "?",
     };
   });
@@ -618,7 +629,7 @@ export default function HomeEvento() {
                 {g.revelado
                   ? <p className="pk-cond text-[38px] leading-none text-[#6ff0ff]">{g.nombre}</p>
                   : <div className="text-[#6ff0ff]"><Descifrando etiqueta={e.descifrandoNombre} semilla={g.n} /></div>}
-                <p className="pk-mono pk-ficha-chip">{e.artistaInvitado}</p>
+                <p className="pk-mono pk-ficha-chip">{g.titulo || e.artistaInvitado}</p>
                 <p className="pk-mono mt-5 text-[11px] text-[#b9b2cc]">[ {e.v2.rango} ]</p>
                 <p className="pk-cond text-[30px] text-white">{g.rango}</p>
                 <p className="pk-mono mt-4 text-[11px] text-[#b9b2cc]">[ {e.v2.estadoCazador} ]</p>
