@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import MenuSitio from "@/components/MenuSitio";
 import { Link } from "wouter";
 import {
   Swords, Sparkles, Users, Store, Theater, Mic, Globe2, Gamepad2,
@@ -421,7 +422,7 @@ export default function HomeEvento() {
 
       {/* ═══ Cabecera ═══ */}
       <header className={`pk-cab ${bajo ? "pk-cab-solida" : ""}`}>
-        <button className="pk-cab-btn" onClick={() => setMenu(true)} aria-label={en ? "Chapters" : "Capítulos"}><Menu size={20} /></button>
+        <button className="pk-cab-btn" onClick={() => setMenu(true)} aria-label={en ? "Menu" : "Menú"}><Menu size={20} /></button>
         <button className="pk-cab-idioma" onClick={() => setLang(en ? "es" : "en")}>{en ? "ES" : "EN"}</button>
         <div className="flex-1" />
         <Link href="/tienda" className="pk-cab-tienda" aria-label={en ? "Store" : "Tienda"}><ShoppingBag size={14} /> <span className="pk-cab-txt">{en ? "Store" : "Tienda"}</span></Link>
@@ -442,18 +443,8 @@ export default function HomeEvento() {
         </button>
       </header>
 
-      {/* Menú de capítulos */}
-      <div className={`pk-menu ${menu ? "pk-menu-on" : ""}`} aria-hidden={!menu}>
-        <button className="pk-menu-cerrar" onClick={() => setMenu(false)} aria-label={en ? "Close" : "Cerrar"}><X size={22} /></button>
-        <nav className="pk-menu-lista">
-          {capitulos.map(([id, nombre], i) => (
-            <button key={id} onClick={() => ir(id)} tabIndex={menu ? 0 : -1} style={{ transitionDelay: menu ? `${80 + i * 40}ms` : "0ms" }}>
-              <span className="pk-mono">{n3(i + 1)}</span>{nombre}
-            </button>
-          ))}
-        </nav>
-        <p className="pk-mono pk-menu-pie">{e.heroFecha} · {e.heroLugar}</p>
-      </div>
+      {/* Menú del sitio: el mismo que en el resto de la web */}
+      <MenuSitio abierto={menu} onCerrar={() => setMenu(false)} pie={`${e.heroFecha} · ${e.heroLugar}`} />
 
       {/* ═══ Portada: póster a pantalla completa ═══ */}
       <PortadaPoster

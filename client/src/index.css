@@ -5389,3 +5389,105 @@ html.dark .fest-map .info h2 { color: var(--ink) !important; -webkit-text-fill-c
 .pk-tema-koi .pk-salir-btn:not(.pk-salir-otro) { background: #22d3ee; }
 .koi-blanco-on { touch-action: none; }
 .pk-dentro-salidas .pk-salir-btn { font-size: 14px; white-space: nowrap; padding-left: 8px; padding-right: 8px; }
+
+/* ═══════════════════════════════════════════════════════════════════════
+   Menú del sitio (MenuSitio): uno solo para la portada y el resto de la web.
+   Teléfono: pantalla completa. Escritorio: panel lateral con velo.
+   ═══════════════════════════════════════════════════════════════════════ */
+.ms { position: fixed; inset: 0; z-index: 95; visibility: hidden; transition: visibility 0s linear .36s; }
+.ms-on { visibility: visible; transition-delay: 0s; }
+.ms-velo { position: absolute; inset: 0; background: rgba(3,2,6,.62); opacity: 0; transition: opacity .3s ease; cursor: default; }
+.ms-on .ms-velo { opacity: 1; }
+.ms-panel { position: absolute; top: 0; bottom: 0; left: 0; width: min(100%, 440px); display: flex; flex-direction: column;
+  color: #fff; background: #07060b; box-shadow: 0 90px 0 0 #07060b;
+  background-image:
+    radial-gradient(120% 60% at 0% 0%, rgba(255,61,158,.16), transparent 60%),
+    radial-gradient(90% 50% at 100% 100%, rgba(111,240,255,.10), transparent 65%);
+  transform: translateX(-102%); transition: transform .36s cubic-bezier(.22,.9,.3,1); }
+.ms-on .ms-panel { transform: none; }
+@media (min-width: 441px) { .ms-panel { border-right: 1px solid rgba(111,240,255,.16); } }
+
+.ms-cab { flex: 0 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: calc(env(safe-area-inset-top) + 14px) 20px 14px; }
+.ms-logo { height: 30px; width: auto; max-width: 150px; object-fit: contain; }
+.ms-marca { font-family: Montserrat, system-ui, sans-serif; font-weight: 900; font-size: 17px; letter-spacing: -.02em; }
+.ms-cab-acciones { display: flex; align-items: center; gap: 8px; }
+.ms-idioma { display: inline-flex; height: 40px; padding: 3px; border: 1px solid rgba(255,255,255,.16);
+  font-family: "JetBrains Mono", monospace; font-size: 11px; font-weight: 700; letter-spacing: .08em; }
+.ms-idioma span { display: inline-flex; align-items: center; padding: 0 10px; color: rgba(255,255,255,.5); }
+.ms-idioma .ms-idioma-on { background: #fff; color: #07060b; }
+.ms-cerrar { width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,.16); color: #fff; transition: background .2s, color .2s; }
+.ms-cerrar:hover { background: #fff; color: #07060b; }
+
+.ms-cuerpo { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none;
+  padding: 8px 20px calc(env(safe-area-inset-bottom) + 28px); display: flex; flex-direction: column; }
+.ms-cuerpo::-webkit-scrollbar { display: none; }
+.ms-cuerpo > * { flex-shrink: 0; }
+
+.ms-entra { opacity: 0; transform: translateX(-14px); transition: opacity .3s ease, transform .4s cubic-bezier(.22,.9,.3,1); }
+.ms-on .ms-entra { opacity: 1; transform: none; }
+
+/* Cuenta */
+.ms-cuenta { clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px); }
+.ms-invitado { padding: 20px; background: linear-gradient(140deg, #ff3d9e, #c2156e 70%); }
+.ms-invitado-titulo { font-family: Montserrat, system-ui, sans-serif; font-weight: 900; font-size: 22px; letter-spacing: -.025em; line-height: 1.1; }
+.ms-invitado-txt { margin-top: 8px; font-size: 13.5px; line-height: 1.5; color: rgba(255,255,255,.9); max-width: 34ch; }
+.ms-entrar { margin-top: 16px; width: 100%; min-height: 50px; display: flex; align-items: center; justify-content: center; gap: 9px;
+  background: #07060b; color: #fff; font-family: Montserrat, system-ui, sans-serif; font-weight: 800; font-size: 15px; letter-spacing: -.01em;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px); transition: background .2s, color .2s; }
+.ms-entrar:hover, .ms-entrar:active { background: #fff; color: #07060b; }
+
+.ms-cuenta:not(.ms-invitado) { background: rgba(255,255,255,.06); }
+.ms-perfil { display: flex; align-items: center; gap: 14px; padding: 16px; color: #fff; }
+.ms-avatar { flex: 0 0 auto; width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  background: #ff3d9e; color: #fff; font-family: Montserrat, system-ui, sans-serif; font-weight: 900; font-size: 20px;
+  clip-path: polygon(9px 0, 100% 0, 100% calc(100% - 9px), calc(100% - 9px) 100%, 0 100%, 0 9px); }
+.ms-perfil-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ms-perfil-txt b { font-family: Montserrat, system-ui, sans-serif; font-weight: 800; font-size: 16px; letter-spacing: -.02em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-perfil-txt small { font-size: 12.5px; color: rgba(255,255,255,.6); }
+.ms-perfil > svg { color: rgba(255,255,255,.45); }
+.ms-cuenta-extra { display: flex; flex-direction: column; border-top: 1px solid rgba(255,255,255,.08); }
+.ms-cuenta-extra a { display: flex; align-items: center; gap: 9px; padding: 12px 16px; font-size: 13.5px; font-weight: 600; color: #6ff0ff; }
+.ms-cuenta-extra a + a { border-top: 1px solid rgba(255,255,255,.06); }
+
+/* Destinos en letra grande */
+.ms-grande { display: flex; flex-direction: column; margin: 22px 0 6px; }
+.ms-grande a { position: relative; display: flex; align-items: center; gap: 10px; padding: 7px 0; color: #fff;
+  font-family: Montserrat, system-ui, sans-serif; font-weight: 900; font-size: clamp(30px, 9vw, 38px); line-height: 1.08; letter-spacing: -.035em; }
+.ms-on .ms-grande a { transition: opacity .3s ease, transform .4s cubic-bezier(.22,.9,.3,1), color .2s, padding-left .25s; }
+.ms-grande a:hover, .ms-grande a:focus-visible { color: #6ff0ff; padding-left: 8px; }
+.ms-grande a.ms-activo { color: #6ff0ff; padding-left: 18px; }
+.ms-grande a.ms-activo::before { content: ""; position: absolute; left: 0; top: 50%; width: 8px; height: 8px; margin-top: -4px; background: #6ff0ff; transform: rotate(45deg); }
+.ms-grande a.ms-guild { color: #ff3d9e; }
+.ms-grande a.ms-guild:hover { color: #ff7dbd; }
+
+.ms-rotulo { margin: 22px 0 10px; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,.5); }
+
+/* Accesos */
+.ms-accesos { display: flex; flex-direction: column; gap: 8px; }
+.ms-acceso { display: flex; align-items: center; gap: 13px; padding: 12px 14px; min-height: 62px; color: #fff;
+  background: color-mix(in srgb, var(--c) 9%, transparent); border-left: 3px solid var(--c); }
+.ms-acceso:hover { background: color-mix(in srgb, var(--c) 18%, transparent); }
+.ms-acceso-icono { flex: 0 0 auto; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: var(--c); }
+.ms-acceso-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ms-acceso-txt b { font-family: Montserrat, system-ui, sans-serif; font-weight: 800; font-size: 14.5px; letter-spacing: -.015em; }
+.ms-acceso-txt small { font-size: 12px; color: rgba(255,255,255,.58); line-height: 1.35; }
+.ms-acceso > svg { color: rgba(255,255,255,.35); flex-shrink: 0; }
+
+/* Información */
+.ms-info { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; margin-top: 26px; padding-top: 18px; border-top: 1px solid rgba(255,255,255,.1); }
+.ms-info a { padding: 9px 0; font-size: 14.5px; font-weight: 600; color: rgba(255,255,255,.78); }
+.ms-info a:hover, .ms-info a.ms-activo { color: #6ff0ff; }
+
+.ms-pie { margin-top: auto; padding-top: 26px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px;
+  font-family: "JetBrains Mono", monospace; font-size: 11px; letter-spacing: .06em; color: rgba(255,255,255,.45); }
+.ms-pie button { display: inline-flex; align-items: center; gap: 7px; padding: 8px 0; color: rgba(255,255,255,.7); font: inherit; }
+.ms-pie button:hover { color: #ff3d9e; }
+
+.ms a:focus-visible, .ms button:focus-visible { outline: 2px solid #6ff0ff; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) {
+  .ms-panel, .ms-entra, .ms-velo { transition: opacity .15s ease; transform: none; }
+  .ms-panel { opacity: 0; } .ms-on .ms-panel { opacity: 1; }
+}
