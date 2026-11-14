@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { cargarSocketIo } from "@/lib/socketCliente";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
+import KoiVivo, { type KoiVivoRef } from "./KoiVivo";
 
 /**
  * Koi-sama: batalla en vivo. Todos golpean a la vez, sin tope de golpes; los
@@ -86,8 +87,13 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
   const [misGolpes, setMisGolpes] = useState(0);
   const [miDanio, setMiDanio] = useState(0);
   const [racha, setRacha] = useState(0);
-  const [flotantes, setFlotantes] = useState<{ id: number; x: number; y: number; t: string; fuerte: boolean }[]>([]);
-  const [sacude, setSacude] = useState(0);
+  /** Efectos de cada golpe, los mismos del jefe de rango S: onda, corte, chispas y número */
+  const [impactos, setImpactos] = useState<{ id: number; x: number; y: number; rot: number; t: string; fuerte: boolean }[]>([]);
+  const [anuncio, setAnuncio] = useState<{ id: number; texto: string } | null>(null);
+  const pez = useRef<KoiVivoRef>(null);
+  const pezCaja = useRef<HTMLSpanElement>(null);
+  const arena = useRef<HTMLDivElement>(null);
+  const barra = useRef<HTMLDivElement>(null);
   const [nombre, setNombre] = useState("");
 
   // En esta mazmorra la salida siempre está abierta
@@ -153,6 +159,12 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
     return () => window.clearInterval(t);
   }, [activo, registrado, sock]);
 
+  /** Reinicia una animación CSS sin volver a montar el elemento */
+  const reanimar = (el: HTMLElement | null, clase: string) => {
+    if (!el) return;
+    el.classList.remove(clase); void el.offsetWidth; el.classList.add(clase);
+  };
+
   const golpe = (ev: React.PointerEvent<HTMLButtonElement>) => {
     if (!ev.isTrusted || !activo || !registrado) return;
     const ahora = Date.now();
@@ -162,12 +174,24 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
     pendiente.current += 1;
     const r = rachaLocal.current, x = multDe(r);
     setRacha(r);
-    setSacude(v => v + 1);
     const caja = ev.currentTarget.getBoundingClientRect();
-    const f = { id: ++idFlot.current, x: ((ev.clientX - caja.left) / caja.width) * 100, y: ((ev.clientY - caja.top) / caja.height) * 100, t: x > 1 ? `+${x}` : "+1", fuerte: x > 1 };
-    setFlotantes(l => [...l.slice(-13), f]);
-    window.setTimeout(() => setFlotantes(l => l.filter(q => q.id !== f.id)), 620);
-    if (r === 10 || r === 25 || r === 50 || r === 100) { try { navigator.vibrate?.(40); } catch { /* */ } }
+    const id = ++idFlot.current;
+    const f = { id, x: ev.clientX - caja.left, y: ev.clientY - caja.top, rot: -60 + ((r * 47) % 120), t: `−${x}`, fuerte: x > 1 };
+    setImpactos(l => [...l.slice(-8), f]);
+    window.setTimeout(() => setImpactos(l => l.filter(q => q.id !== id)), 700);
+    // El pez se estremece y huye del punto tocado
+    const lienzo = pezCaja.current?.getBoundingClientRect();
+    pez.current?.golpe(lienzo ? ev.clientX - lienzo.left : undefined, lienzo ? ev.clientY - lienzo.top : undefined);
+    reanimar(pezCaja.current, "ev2-sacudir");
+    reanimar(barra.current, "ev2-barra-golpe");
+    if (r === 10 || r === 25 || r === 50 || r === 100) {
+      setAnuncio({ id, texto: `COMBO ×${x}` });
+      window.setTimeout(() => setAnuncio(a => (a?.id === id ? null : a)), 1100);
+      reanimar(arena.current, "ev2-temblor-fuerte");
+      try { navigator.vibrate?.([25, 30, 45]); } catch { /* */ }
+    } else {
+      try { navigator.vibrate?.(8); } catch { /* */ }
+    }
   };
 
   if (!e) return <section className="koi"><div className="flex justify-center py-24"><Loader2 className="animate-spin text-[#22d3ee]" /></div></section>;
@@ -175,14 +199,13 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
   const pct = e.vidaMax > 0 ? Math.max(0, Math.min(100, (e.vida / e.vidaMax) * 100)) : 0;
   const x = multDe(racha);
   const siguiente = [...NIVELES].reverse().find(l => racha < l.desde);
-  const arte = imagen ? <img src={imagen} alt="Koi-sama" className="koi-arte" draggable={false} /> : <KoiArte className="koi-arte" />;
 
   return (
     <section ref={cajaRef} className={`koi ${e.estado === "derrotado" ? "koi-fin" : ""}`}>
       <div className="koi-cab">
         <p className="pk-mono koi-rango">{en ? "LIVE BATTLE" : "BATALLA EN VIVO"} · {en ? "RANK" : "RANGO"} A</p>
         <h3 className="pk-cond koi-nombre">KOI-SAMA</h3>
-        <div className="koi-vida" role="img" aria-label={`${en ? "Life" : "Vida"}: ${n(e.vida)} / ${n(e.vidaMax)}`}>
+        <div ref={barra} className="koi-vida" role="img" aria-label={`${en ? "Life" : "Vida"}: ${n(e.vida)} / ${n(e.vidaMax)}`}>
           <i style={{ width: `${pct}%` }} />
         </div>
         <p className="pk-mono koi-vida-num"><b>{n(e.vida)}</b> / {n(e.vidaMax)} HP <span><Users size={12} /> {n(e.jugadores)}</span></p>
@@ -196,7 +219,7 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
           <p className="pk-mono koi-ganador-sub">{yo?.gane ? (en ? "IT WAS YOU. Show this screen to the staff." : "¡FUISTE TÚ! Muestra esta pantalla al equipo.") : (en ? "defeated Koi-sama" : "derrotó a Koi-sama")}</p>
         </div>
       ) : (
-        <div className="koi-arena">
+        <div ref={arena} className="koi-arena">
           <button
             type="button"
             className={`koi-blanco ${activo && registrado ? "koi-blanco-on" : ""}`}
@@ -205,8 +228,26 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
             aria-label={en ? "Hit Koi-sama" : "Golpear a Koi-sama"}
           >
             <span className="koi-ondas" aria-hidden="true"><i /><i /><i /></span>
-            <span key={sacude} className={sacude ? "koi-golpeado" : ""}>{arte}</span>
-            {flotantes.map(f => <span key={f.id} className={`koi-flot ${f.fuerte ? "koi-flot-x" : ""}`} style={{ left: `${f.x}%`, top: `${f.y}%` }}>{f.t}</span>)}
+            {imagen
+              ? <span ref={pezCaja} className="koi-pez koi-pez-img"><img src={imagen} alt="Koi-sama" className="koi-arte" draggable={false} /></span>
+              : <span ref={pezCaja} className="koi-pez"><KoiVivo ref={pez} calma={!activo} /></span>}
+            {impactos.map(k => (
+              <span key={k.id} className="koi-impacto" style={{ left: k.x, top: k.y }} aria-hidden="true">
+                <span className="ev2-impacto-onda" />
+                <span className="ev2-impacto-corte" style={{ ["--rot" as string]: `${k.rot}deg` }} />
+                {Array.from({ length: 6 }, (_, j) => {
+                  const ang = (Math.PI * 2 * j) / 6 + k.rot / 60;
+                  return <span key={j} className="ev2-chispa" style={{ ["--dx" as string]: `${Math.cos(ang) * 42}px`, ["--dy" as string]: `${Math.sin(ang) * 42}px` }} />;
+                })}
+                <span className={`ev2-danio koi-danio ${k.fuerte ? "koi-danio-x" : ""}`}>{k.t}</span>
+              </span>
+            ))}
+            {anuncio && (
+              <span key={anuncio.id} className="koi-anuncio" aria-hidden="true">
+                <span className="ev2-flash-rojo" />
+                <span className="ev2-anuncio ev-display">{anuncio.texto}</span>
+              </span>
+            )}
           </button>
 
           {activo && registrado && (

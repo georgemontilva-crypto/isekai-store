@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import KoiVivo from "@/components/fest/KoiVivo";
 import MenuSitio from "@/components/MenuSitio";
 import { Link } from "wouter";
 import {
@@ -17,7 +18,7 @@ import { FEST_ZONES } from "@/components/fest/festZones";
 import FestMap from "@/components/fest/FestMap";
 import MazmorraJefe from "@/components/fest/MazmorraJefe";
 import RaidJefe from "@/components/fest/RaidJefe";
-import KoiBatalla, { KoiArte } from "@/components/fest/KoiBatalla";
+import KoiBatalla from "@/components/fest/KoiBatalla";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
 
 /**
@@ -749,7 +750,7 @@ export default function HomeEvento() {
             detalle: en ? "Everyone at once, no hit limit. The final blow wins." : "Todos a la vez, sin límite de golpes. Gana el golpe final.",
             aparicion: en ? "KOI-SAMA AWAKENS" : "KOI-SAMA DESPIERTA",
             imagen: s("wf_boss_koi"),
-            arte: <KoiArte className="pk-koi-dibujo" />,
+            arte: <KoiVivo posa className="pk-koi-dibujo" />,
             render: onEstado => <KoiBatalla en={en} imagen={s("wf_boss_koi")} onEstado={onEstado} />,
           },
         ]} />
