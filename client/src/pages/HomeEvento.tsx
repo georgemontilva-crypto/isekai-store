@@ -62,7 +62,7 @@ const RANGOS_ESTILO = [
 ];
 const UMBRALES = [0, 60, 140, 240, 360, 500];
 const APERTURA = new Date("2027-08-14T00:00:00-04:00").getTime();
-const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-silueta.png", 3: "/invitados/invitado-3-silueta.png" };
+const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-silueta.png", 3: "/invitados/invitado-3-silueta-v2.png" };
 /**
  * Invitados ya anunciados: salen con su nombre aunque el panel no tenga nada
  * cargado. Para volver a ocultar uno, pon su ajuste wf_invitado_N_revelado en "0".
