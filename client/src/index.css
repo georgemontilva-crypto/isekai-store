@@ -5608,3 +5608,27 @@ canvas.pk-koi-dibujo { width: min(70vw, 420px); height: 100%; }
 .jefe3d-prueba-t { font-family: "JetBrains Mono", monospace; font-size: 12px; letter-spacing: .12em; color: #fb7185; text-transform: uppercase; text-align: center; }
 .jefe3d-prueba-caja { position: relative; width: min(100%, 560px); aspect-ratio: 1; }
 .jefe3d-prueba-s { max-width: 44ch; text-align: center; font-size: 13.5px; line-height: 1.5; color: #c9a8b8; }
+
+/* Koi-sama para el visualizador y la pantalla de transmisión */
+.koi-visor-estado { margin-top: 14px; padding: 12px 14px; font-size: 12px; letter-spacing: .12em; color: #7df9ff; border: 1px solid rgba(125,249,255,.3); background: rgba(34,211,238,.06); }
+.koi-fin .koi-visor-estado { color: #c9ced6; border-color: rgba(255,255,255,.25); background: transparent; }
+.koi-live { position: fixed; inset: 0; z-index: 90; overflow-y: auto; display: flex; align-items: center; justify-content: center; padding: 20px; color: #fff;
+  background: radial-gradient(80% 60% at 50% 40%, #071a26, #03060d 75%); }
+.koi-live .koi { width: 100%; }
+.koi-live .koi-nombre { color: #fff; }
+@media (min-width: 900px) {
+  .koi-live .koi { max-width: 1320px; display: grid; grid-template-columns: minmax(0, 1fr) 340px; grid-template-areas: "cab cab" "arena lado" "arena top"; grid-template-rows: auto auto 1fr; gap: 6px 28px; }
+  .koi-live .koi-cab { grid-area: cab; }
+  .koi-live .koi-arena, .koi-live .koi-ganador { grid-area: arena; }
+  .koi-live .koi-visor-estado { grid-area: lado; margin-top: 18px; align-self: start; font-size: 13px; line-height: 1.6; }
+  .koi-live .koi-top { grid-area: top; align-self: start; margin-top: 12px; padding: 20px 22px; }
+  .koi-live .koi-top li { font-size: 19px; padding: 9px 0; }
+  .koi-live .koi-nombre { font-size: clamp(64px, 7vw, 112px); }
+  .koi-live .koi-vida { height: 30px; border-width: 3px; }
+  .koi-live .koi-vida-num { font-size: 20px; }
+  .koi-live .koi-blanco { height: min(60vh, 640px); }
+  .koi-live .koi-ganador { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: min(60vh, 640px); }
+  .koi-live .koi-ganador-nombre { font-size: clamp(90px, 10vw, 170px); }
+  .koi-live .koi-libre-t { font-size: clamp(60px, 6vw, 96px); }
+  .koi-live .koi-danio { font-size: 34px; }
+}

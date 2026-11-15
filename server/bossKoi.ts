@@ -297,3 +297,20 @@ export async function resultado() {
   }
   return { ...estadoPublico(), ganadorDatos: ganador, tabla: lista };
 }
+
+
+// ── Visualizadores: cuentas que solo miran la batalla (pantalla de transmisión) ──
+// Se guardan como huella del correo, no el correo: el código puede ser público.
+const VISORES = new Set(["dde588809eb5af04535014b431493e66a7c716bd15dfd833966264b242d2c7a4"]);
+/** ¿Esta cuenta solo puede mirar? También vale la lista del ajuste «koi_visores» (correos separados por comas) */
+export async function esVisor(email?: string | null): Promise<boolean> {
+  const correo = String(email ?? "").trim().toLowerCase();
+  if (!correo) return false;
+  const { createHash } = await import("crypto");
+  if (VISORES.has(createHash("sha256").update(correo).digest("hex"))) return true;
+  try {
+    const { getSetting } = await import("./db");
+    const lista = (await getSetting("koi_visores")) ?? "";
+    return lista.toLowerCase().split(/[\s,;]+/).filter(Boolean).includes(correo);
+  } catch { return false; }
+}

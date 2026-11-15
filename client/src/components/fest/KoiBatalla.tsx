@@ -77,7 +77,13 @@ function useKoiSocket(alEstado: (e: Estado) => void, alAviso: (tipo: "inicio" | 
   return sock;
 }
 
-export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imagen?: string; onEstado?: (puedeSalir: boolean) => void }) {
+/** Reinicia una animación CSS sin volver a montar el elemento */
+function reanimar(el: HTMLElement | null, clase: string) {
+  if (!el) return;
+  el.classList.remove(clase); void el.offsetWidth; el.classList.add(clase);
+}
+
+export default function KoiBatalla({ en, imagen, onEstado, soloVer = false }: { en: boolean; imagen?: string; onEstado?: (puedeSalir: boolean) => void; soloVer?: boolean }) {
   const { user, isAuthenticated } = useAuth();
   const utils = trpc.useUtils();
   const { data, refetch } = trpc.koi.estado.useQuery(undefined, { refetchInterval: 6000 });
@@ -124,8 +130,33 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
   const ultimoToque = useRef(0);
   const rachaLocal = useRef(0);
   const idFlot = useRef(0);
-  const registrado = Boolean(yo?.registrado);
+  /** Visualizador: solo mira (pantalla de transmisión). No se une ni golpea. */
+  const visor = soloVer || Boolean(data?.visor);
+  const registrado = Boolean(yo?.registrado) && !visor;
   const activo = e?.estado === "activo";
+
+  // El visualizador ve los golpes de todos: cada bajada de vida estalla sobre el pez
+  const vidaPrevia = useRef<number | null>(null);
+  const vidaAhora = e?.vida ?? null;
+  useEffect(() => {
+    const antes = vidaPrevia.current; vidaPrevia.current = vidaAhora;
+    if (!visor || antes === null || vidaAhora === null || vidaAhora >= antes || !pezCaja.current) return;
+    const perdido = antes - vidaAhora;
+    const caja = pezCaja.current.getBoundingClientRect(), boton = pezCaja.current.parentElement?.getBoundingClientRect();
+    const c = pez.current?.centro() ?? { x: caja.width / 2, y: caja.height / 2 };
+    const dx = boton ? caja.left - boton.left : 0, dy = boton ? caja.top - boton.top : 0;
+    const cuantos = Math.min(5, 1 + Math.floor(perdido / 12));
+    const nuevos = Array.from({ length: cuantos }, (_, i) => {
+      const id = ++idFlot.current;
+      return { id, x: c.x + dx + (Math.random() - 0.5) * 150, y: c.y + dy + (Math.random() - 0.5) * 110, rot: -60 + Math.random() * 120, t: i === 0 ? `−${n(perdido)}` : "", fuerte: perdido >= 40 };
+    });
+    setImpactos(l => [...l.slice(-10), ...nuevos]);
+    const ids = new Set(nuevos.map(q => q.id));
+    window.setTimeout(() => setImpactos(l => l.filter(q => !ids.has(q.id))), 700);
+    pez.current?.golpe(c.x + (Math.random() - 0.5) * 80, c.y + (Math.random() - 0.5) * 80);
+    reanimar(pezCaja.current, "ev2-sacudir");
+    reanimar(barra.current, "ev2-barra-golpe");
+  }, [vidaAhora, visor]);
 
   // Al caer, Koi-sama se libera: se purifica, da una vuelta al estanque y se va.
   // Solo entonces aparece el resultado y la misión queda cerrada.
@@ -187,12 +218,6 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
     return () => window.clearInterval(t);
   }, [activo, registrado, sock]);
 
-  /** Reinicia una animación CSS sin volver a montar el elemento */
-  const reanimar = (el: HTMLElement | null, clase: string) => {
-    if (!el) return;
-    el.classList.remove(clase); void el.offsetWidth; el.classList.add(clase);
-  };
-
   const golpe = (ev: React.PointerEvent<HTMLButtonElement>) => {
     if (!ev.isTrusted || !activo || !registrado) return;
     const ahora = Date.now();
@@ -229,7 +254,7 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
   const siguiente = [...NIVELES].reverse().find(l => racha < l.desde);
 
   return (
-    <section ref={cajaRef} className={`koi ${e.estado === "derrotado" ? "koi-fin" : ""}`}>
+    <section ref={cajaRef} className={`koi ${e.estado === "derrotado" ? "koi-fin" : ""} ${visor ? "koi-visor" : ""}`}>
       <div className="koi-cab">
         <p className="pk-mono koi-rango">{en ? "LIVE BATTLE" : "BATALLA EN VIVO"} · {en ? "RANK" : "RANGO"} A</p>
         <h3 className="pk-cond koi-nombre">KOI-SAMA</h3>
@@ -246,7 +271,7 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
           <Crown size={44} className="koi-corona" />
           <p className="pk-mono koi-ganador-et">{en ? "FINAL BLOW" : "GOLPE FINAL"}</p>
           <p className="pk-cond koi-ganador-nombre">{ensayo === "fin" ? (yo?.nombre || (en ? "HUNTER" : "CAZADOR")) : (e.ganador ?? "—")}</p>
-          <p className="pk-mono koi-ganador-sub">{yo?.gane ? (en ? "IT WAS YOU. Show this screen to the staff." : "¡FUISTE TÚ! Muestra esta pantalla al equipo.") : (en ? "freed Koi-sama from corruption" : "liberó a Koi-sama de la corrupción")}</p>
+          <p className="pk-mono koi-ganador-sub">{yo?.gane && !visor ? (en ? "IT WAS YOU. Show this screen to the staff." : "¡FUISTE TÚ! Muestra esta pantalla al equipo.") : (en ? "freed Koi-sama from corruption" : "liberó a Koi-sama de la corrupción")}</p>
           {ensayo === "fin" && <button className="koi-btn koi-ensayo-cerrar" onClick={() => setEnsayo(null)}>{en ? "Close preview" : "Cerrar vista previa"}</button>}
         </div>
       ) : (
@@ -298,7 +323,14 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
         </div>
       )}
 
-      {/* Qué hacer ahora */}
+      {/* Qué hacer ahora (el visualizador no participa: solo ve el estado) */}
+      {visor ? (
+        <p className="pk-mono koi-visor-estado">
+          {e.estado === "espera" ? (en ? "THE QUEST IS ABOUT TO BEGIN · JOIN FROM YOUR PHONE" : "LA QUEST ESTÁ POR COMENZAR · ÚNETE DESDE TU TELÉFONO")
+            : e.estado === "activo" ? (en ? "LIVE · HIT KOI-SAMA FROM YOUR PHONE" : "EN VIVO · GOLPEA A KOI-SAMA DESDE TU TELÉFONO")
+            : (en ? "MISSION COMPLETE" : "MISIÓN COMPLETADA")}
+        </p>
+      ) : (
       <div className="koi-panel">
         {!isAuthenticated ? (
           <>
@@ -328,6 +360,7 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
           </div>
         )}
       </div>
+      )}
 
       {e.top.length > 0 && (
         <div className="koi-top">
@@ -340,7 +373,7 @@ export default function KoiBatalla({ en, imagen, onEstado }: { en: boolean; imag
         </div>
       )}
 
-      {data?.admin && <ControlKoi estado={e} en={en} puedeEnsayar={e.estado === "espera" && !imagen && !ensayo} onEnsayo={verEnsayo} />}
+      {data?.admin && !soloVer && <ControlKoi estado={e} en={en} puedeEnsayar={e.estado === "espera" && !imagen && !ensayo} onEnsayo={verEnsayo} />}
     </section>
   );
 }

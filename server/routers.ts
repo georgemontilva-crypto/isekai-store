@@ -1458,18 +1458,24 @@ export const appRouter = router({
   koi: router({
     estado: publicProcedure.query(async ({ ctx }) => {
       const m = await import("./bossKoi");
-      return { ...m.estadoPublico(), yo: m.miEstado(ctx.user?.id), combos: m.NIVELES_COMBO, admin: ctx.user?.role === "admin" };
+      return { ...m.estadoPublico(), yo: m.miEstado(ctx.user?.id), combos: m.NIVELES_COMBO, admin: ctx.user?.role === "admin", visor: await m.esVisor(ctx.user?.email) };
     }),
     unirme: protectedProcedure
       .input(z.object({ nombre: z.string().trim().min(2).max(40) }))
       .mutation(async ({ ctx, input }) => {
-        try { return await (await import("./bossKoi")).unirse(ctx.user.id, input.nombre); }
+        const koi = await import("./bossKoi");
+        if (await koi.esVisor(ctx.user.email)) throw new TRPCError({ code: "FORBIDDEN", message: "Esta cuenta es solo para mirar la batalla" });
+        try { return await koi.unirse(ctx.user.id, input.nombre); }
         catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
       }),
     /** Respaldo si el canal en vivo no conecta: los golpes llegan por aquí */
     golpear: protectedProcedure
       .input(z.object({ n: z.number().int().min(1).max(200) }))
-      .mutation(async ({ ctx, input }) => (await import("./bossKoi")).golpear(ctx.user.id, input.n)),
+      .mutation(async ({ ctx, input }) => {
+        const koi = await import("./bossKoi");
+        if (await koi.esVisor(ctx.user.email)) return { ok: false as const, estado: koi.estadoPublico().estado };
+        return koi.golpear(ctx.user.id, input.n);
+      }),
     // ── Administrador ──
     resultado: adminProcedure.query(async () => (await import("./bossKoi")).resultado()),
     control: adminProcedure

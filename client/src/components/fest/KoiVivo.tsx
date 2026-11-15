@@ -11,7 +11,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
  * animación —vuelve a sus colores—, da una vuelta al estanque y se va.
  * `posa`: se queda en su sitio nadando hacia arriba (tarjeta y entrada).
  */
-export type KoiVivoRef = { golpe: (x?: number, y?: number) => void; liberar: (alIrse?: () => void) => void };
+export type KoiVivoRef = { golpe: (x?: number, y?: number) => void; liberar: (alIrse?: () => void) => void; centro: () => { x: number; y: number } | null };
 
 const CUERPO = 20;          // puntos de la columna
 const COLA = 5;             // puntos extra de la aleta caudal
@@ -65,7 +65,7 @@ type Props = { className?: string; posa?: boolean; calma?: boolean; corrupto?: b
 const KoiVivo = forwardRef<KoiVivoRef, Props>(function KoiVivo({ className = "", posa = false, calma = false, corrupto = false }, ref) {
   const lienzo = useRef<HTMLCanvasElement>(null);
   const vivo = useRef({
-    impulso: 0, destello: 0, huir: null as P | null, calma,
+    impulso: 0, destello: 0, huir: null as P | null, calma, centro: null as P | null,
     /** 0 = corrupto, 1 = puro */
     pureza: corrupto ? 0 : 1,
     /** Liberación: transforma → vuelta → salida → ido */
@@ -83,6 +83,7 @@ const KoiVivo = forwardRef<KoiVivoRef, Props>(function KoiVivo({ className = "",
       v.destello = 1;
       if (x !== undefined && y !== undefined) v.huir = { x, y };
     },
+    centro() { return vivo.current.centro; },
     liberar(alIrse?: () => void) {
       const v = vivo.current;
       if (v.etapa) return;
@@ -238,6 +239,7 @@ const KoiVivo = forwardRef<KoiVivoRef, Props>(function KoiVivo({ className = "",
         nor.push({ x: -ty, y: tx });
         pts.push({ x: esp[i].x - ty * o, y: esp[i].y + tx * o });
       }
+      v.centro = { x: pts[6].x, y: pts[6].y };
       const w = (i: number) => Wm * perfil(Math.min(1, i / (CUERPO - 1)));
       const lado = (i: number, k: number): P => ({ x: pts[i].x + nor[i].x * w(i) * k, y: pts[i].y + nor[i].y * w(i) * k });
       const adelante = { x: pts[0].x - pts[1].x, y: pts[0].y - pts[1].y };

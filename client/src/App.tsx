@@ -25,6 +25,7 @@ import InstalarApp from "@/components/InstalarApp";
 import InsigniaApp from "@/components/InsigniaApp";
 const HomeEvento = lazy(() => import("./pages/HomeEvento"));
 const Jefe3DPrueba = lazy(() => import("./pages/Jefe3DPrueba"));
+const KoiEnVivo = lazy(() => import("./pages/KoiEnVivo"));
 const StorePortal = lazy(() => import("./pages/StorePortal"));
 const GateControl = lazy(() => import("./pages/GateControl"));
 const GuildFeedback = lazy(() => import("./pages/GuildFeedback"));
@@ -134,6 +135,7 @@ function Router() {
             a /fest-preview llevan a la portada */}
         <Route path="/fest-preview">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/jefe-3d" component={Jefe3DPrueba} />
+        <Route path="/koi-live" component={KoiEnVivo} />
         <Route path="/tienda" component={Home} />
         <Route path="/world-fest">{() => { window.location.replace("/"); return null; }}</Route>
         <Route path="/catalog" component={Catalog} />
@@ -196,6 +198,7 @@ function Layout() {
   /** Páginas sin navbar: viven solas, se llega a ellas por enlace directo */
   const esPaginaSola =
     location.startsWith("/jefe-3d") ||
+    location.startsWith("/koi-live") ||
     location.startsWith("/invitacion") ||
     location.startsWith("/rueda-de-prensa") ||
     location.startsWith("/rueda-de-negocios") ||
