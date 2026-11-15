@@ -466,7 +466,6 @@ export default function HomeEvento() {
         onInsignia={() => ir("pk-rangos")}
         onMapa={MAPA_DISPONIBLE ? () => ir("pk-evento") : undefined}
         textoMapa={MAPA_DISPONIBLE ? (en ? "See the event map" : "Ver el mapa del evento") : undefined}
-        textoStands={en ? "Book your stand" : "Reserva tu stand"}
       />
 
       {/* ═══ 001 ¿QUÉ ES? (del brochure) ═══ */}
@@ -821,6 +820,7 @@ export default function HomeEvento() {
       {/* Barra fija abajo */}
       <div className={`pk-barra ${barra && lista ? "pk-barra-on" : ""}`}>
         <span className="pk-mono pk-barra-etq">{en ? "EARLY ACCESS" : "ACCESO ANTICIPADO"}</span>
+        <Link href="/stands" className="pk-barra-stand"><Store size={15} strokeWidth={2.2} /> {en ? "Book your stand" : "Reserva tu stand"}</Link>
         <button onClick={() => ir("pk-acceso")}>{e.ctaAviso}</button>
       </div>
     </div>

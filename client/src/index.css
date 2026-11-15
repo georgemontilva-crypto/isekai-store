@@ -4984,7 +4984,13 @@ html.iw-barra-fija .ia-hoja { bottom: calc(env(safe-area-inset-bottom) + 84px) !
 .pk-barra-etq { font-size: 10px; font-weight: 700; letter-spacing: .14em; color: #fff; white-space: nowrap; }
 .pk-barra button { flex: 1; min-height: 46px; font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #fff;
   background: linear-gradient(90deg, #ff2e93, #e5007d); clip-path: polygon(0 0, 100% 0, 100% 70%, calc(100% - 12px) 100%, 0 100%); }
-@media (max-width: 359px) { .pk-barra-etq { display: none; } }
+.pk-barra button, .pk-barra-stand { line-height: 1.15; padding: 6px 10px; }
+.pk-barra-stand { flex: 1; min-height: 46px; display: flex; align-items: center; justify-content: center; gap: 7px; text-align: center;
+  font-family: "JetBrains Mono", monospace; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #07060b;
+  background: #6ff0ff; clip-path: polygon(12px 0, 100% 0, 100% 100%, 0 100%, 0 30%); }
+.pk-barra-stand svg { flex-shrink: 0; }
+/* En teléfono caben los dos botones; la etiqueta solo en pantallas anchas */
+@media (max-width: 767px) { .pk-barra-etq { display: none; } .pk-barra button, .pk-barra-stand { font-size: 10.5px; letter-spacing: .05em; } }
 
 /* Computador */
 @media (min-width: 1024px) {
