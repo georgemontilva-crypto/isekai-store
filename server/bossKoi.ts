@@ -30,7 +30,7 @@ const PAUSA_COMBO_MS = 1500;
 /** Ritmo humano máximo: ~16 toques por segundo (dos dedos), con una pequeña reserva */
 const TOQUES_POR_SEG = 16;
 const RESERVA_TOQUES = 28;
-export const VIDA_POR_DEFECTO = 5_000;
+export const VIDA_POR_DEFECTO = 20_000;
 /** La vida con la que nació el jefe antes de fijarla en 5.000: nadie la eligió */
 const VIDA_ANTERIOR = 300_000;
 
@@ -92,6 +92,12 @@ async function cargar() {
   if (Number(b.vidaMax) === VIDA_ANTERIOR && b.estado !== "derrotado") {
     await db.execute(sql`UPDATE festBoss SET vidaMax = ${VIDA_POR_DEFECTO}, danio = 0, estado = 'espera', iniciadoEn = NULL WHERE id = ${b.id}`);
     await db.execute(sql`UPDATE festBossGolpes SET golpes = 0, danio = 0 WHERE bossId = ${b.id}`);
+    [b] = filas<any>(await db.execute(sql`SELECT * FROM festBoss WHERE id = ${b.id}`));
+  }
+  // Y la que seguía con los 5.000 de antes sube a la vida actual, sin perder
+  // los golpes que ya lleve
+  if (Number(b.vidaMax) === 5_000 && b.estado !== "derrotado") {
+    await db.execute(sql`UPDATE festBoss SET vidaMax = ${VIDA_POR_DEFECTO} WHERE id = ${b.id}`);
     [b] = filas<any>(await db.execute(sql`SELECT * FROM festBoss WHERE id = ${b.id}`));
   }
   Object.assign(boss, { id: Number(b.id), vidaMax: Number(b.vidaMax), danio: Number(b.danio), estado: b.estado as EstadoBoss, ganadorId: b.ganadorUserId ? Number(b.ganadorUserId) : null, ganadorNombre: b.ganadorNombre ?? null, iniciadoEn: b.iniciadoEn ?? null, derrotadoEn: b.derrotadoEn ?? null });
