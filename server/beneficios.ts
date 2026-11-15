@@ -13,6 +13,8 @@ import { conCandado } from "./candado";
 export async function asegurarEsquemaBeneficios() {
   const db = await getDb();
   if (!db) return;
+  // La sede ya no se nombra: los eventos guardados con ella pasan a decir solo la ciudad
+  try { await db.execute(sql`UPDATE events SET location = 'Maracaibo, Venezuela' WHERE location LIKE '%Palacio de%Eventos%'`); } catch { /* la tabla aún no existe */ }
   try {
     const [filas] = await db.execute(sql`SELECT COLUMN_NAME AS c FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'ticketTypes'`) as unknown as [{ c: string }[]];
     const hay = new Set((filas ?? []).map(f => f.c));
@@ -85,7 +87,7 @@ export const PLANTILLA_2027 = [
 ] as const;
 
 /** El evento oficial */
-export const EVENTO_2027 = { name: "Isekai World Fest 2027", startDate: "2027-08-14", endDate: "2027-08-15", location: "Palacio de Eventos, Maracaibo" };
+export const EVENTO_2027 = { name: "Isekai World Fest 2027", startDate: "2027-08-14", endDate: "2027-08-15", location: "Maracaibo, Venezuela" };
 
 /** Qué se borraría al reiniciar (para mostrarlo antes de confirmar) */
 export async function conteoReinicio() {

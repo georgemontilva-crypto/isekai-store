@@ -297,7 +297,7 @@ export const es = {
     bienvenidaT1: "NO VIENES A VER EL MUNDO.",
     bienvenidaT2: "VIENES A ENTRAR EN ÉL.",
     bienvenidaP1: "Isekai World Fest es una experiencia de entretenimiento inmersiva inspirada en el universo de Solo Leveling, donde el anime, los videojuegos, el cosplay y la cultura geek cobran vida.",
-    bienvenidaP2: "Durante dos días, el Palacio de Eventos se transformará por completo para crear una experiencia donde cada visitante podrá explorar, jugar, competir, descubrir personajes, vivir historias y formar parte del mundo.",
+    bienvenidaP2: "Durante dos días, el recinto se transformará por completo para crear una experiencia donde cada visitante podrá explorar, jugar, competir, descubrir personajes, vivir historias y formar parte del mundo.",
     bienvenidaFrase1: "Aquí no eres espectador.",
     bienvenidaFrase2: "Eres parte de la historia.",
 

@@ -48,7 +48,7 @@ export default function TiposBoleto({ evento }: { evento: { id: number; name: st
   const pedirReinicio = async () => {
     const c = conteo;
     const detalle = c ? `Se borran para siempre ${c.eventos} ${c.eventos === 1 ? "evento" : "eventos"}, ${c.boletos} boletos generados (${c.vendidos} vendidos, con su asistencia y su EXP), ${c.tipos} tipos de boleto y ${c.actividades} actividades oficiales del Level Pass. ` : "";
-    if (await confirmar({ titulo: "Reiniciar con el Fest 2027", mensaje: `${detalle}Queda un solo evento: Isekai World Fest 2027 (14 y 15 de agosto, Palacio de Eventos) con sus 4 boletos. Las tiendas, el equipo y las misiones de las tiendas se conservan. No se puede deshacer.`, confirmar: "Borrar todo y reiniciar", peligro: true })) reiniciar.mutate({ confirmo: "BORRAR" });
+    if (await confirmar({ titulo: "Reiniciar con el Fest 2027", mensaje: `${detalle}Queda un solo evento: Isekai World Fest 2027 (14 y 15 de agosto) con sus 4 boletos. Las tiendas, el equipo y las misiones de las tiendas se conservan. No se puede deshacer.`, confirmar: "Borrar todo y reiniciar", peligro: true })) reiniciar.mutate({ confirmo: "BORRAR" });
   };
   const botonReinicio = (
     <button onClick={pedirReinicio} disabled={reiniciar.isPending} className="flex w-full items-center justify-center gap-2 rounded-full border border-[#f87171]/40 py-3 text-[13.5px] font-semibold text-[#fca5a5]">
