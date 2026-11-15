@@ -51,7 +51,10 @@ vec4 tomar(vec2 q){
   vec2 u = q + 0.5;
   float dentro = step(0.0, u.x) * step(u.x, 1.0) * step(0.0, u.y) * step(u.y, 1.0);
   vec4 c = texture2D(uTex, clamp(u, 0.0, 1.0));
-  c.a = mix(1.0, c.a, uTransp) * dentro;
+  // Los bordes de la imagen se desvanecen: sin esto, el resplandor que la
+  // ilustración trae pintado y los efectos dibujaban el rectángulo de la foto
+  float orilla = smoothstep(0.0, 0.11, u.x) * smoothstep(0.0, 0.11, 1.0 - u.x) * smoothstep(0.0, 0.1, 1.0 - u.y) * smoothstep(0.0, 0.03, u.y);
+  c.a = mix(1.0, c.a, uTransp) * dentro * orilla;
   return c;
 }
 
@@ -90,7 +93,9 @@ void main(){
   float h = hash(vec2(id, 3.0));
   float tramo = fract(q0.y * 1.4 - uT * (1.4 + h * 2.2) + h * 7.0);
   float raya = smoothstep(0.14, 0.0, abs(fract(q0.x * 36.0) - 0.5)) * step(0.55, h) * smoothstep(0.0, 0.15, tramo) * smoothstep(0.5, 0.15, tramo);
-  float energia = raya * (cerca2 + c.a * 0.4) * uCarga;
+  // Las rayas se reparten en un óvalo alrededor de la figura, no en su caja
+  float ovalo = smoothstep(0.62, 0.2, length(q0 * vec2(1.0, 0.8)));
+  float energia = raya * (cerca2 * 0.6 + c.a * 0.3 + 0.25) * ovalo * uCarga;
 
   // Descarga: anillo que se abre y destello sobre el cuerpo
   float e = uEstallido;
@@ -103,7 +108,9 @@ void main(){
     + vec3(1.0, 0.82, 0.8) * anillo
     + vec3(1.0) * c.a * viva * 0.45;
   float alfa = clamp(c.a + aura + energia + anillo, 0.0, 1.0);
-  gl_FragColor = vec4(min(rgb, vec3(1.0)), alfa);
+  // Y nada llega hasta el borde del lienzo
+  float marco = smoothstep(0.5, 0.39, max(abs(c0.x), abs(c0.y)));
+  gl_FragColor = vec4(min(rgb, vec3(1.0)), alfa) * marco;
 }`;
 
 /** La imagen, pedida por el mismo dominio para que el lienzo pueda leerla */
