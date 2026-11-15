@@ -5,9 +5,7 @@ import { esGamaBaja } from "@/lib/gamaBaja";
  * El jefe, vivo: toma su ilustración y la anima con un shader, como una
  * figura con volumen en vez de una imagen quieta.
  *
- *  - respira y se balancea; gira un poco a los lados con sensación de bulto
- *  - los brazos (los costados de la figura) se alzan y descargan el golpe,
- *    uno y luego el otro, agrandándose al atacar como si vinieran hacia ti
+ *  - la figura no se mueve ni se deforma
  *  - carga aura de poder: las llamas del contorno crecen, suben rayas de
  *    energía, las partes rojas se encienden… y estalla en un anillo de luz
  *
@@ -64,31 +62,7 @@ void main(){
   if (uEscala > 1.0) q.y *= uEscala; else q.x /= uEscala;
   vec2 q0 = q;
 
-  // Tiembla al cargar
-  q += (vec2(hash(vec2(uT, 1.0)), hash(vec2(uT, 2.0))) - 0.5) * 0.007 * uCarga;
-
-  // Respira y se balancea
-  q.y = (q.y + 0.5) / (1.0 + 0.018 * sin(uT * 1.7) + 0.03 * uCarga) - 0.5;
-  q.x -= 0.008 * sin(uT * 0.9) * (q.y + 0.5);
-
-  // Volumen: gira a los lados y el centro, más cercano, se desplaza más
-  float giro = 0.55 * sin(uT * 0.45) + uMira.x;
-  float bulto = cos(clamp(q.x * 2.0, -1.0, 1.0) * 1.5708);
-  q.x += giro * 0.034 * bulto;
-  q *= 1.0 + giro * q.x * 0.11;
-  q.y += uMira.y * 0.012 * bulto;
-
-  // Brazos: cada costado gira sobre su hombro y descarga el golpe
-  for (int k = 0; k < 2; k++) {
-    float sgn = k == 0 ? 1.0 : -1.0;
-    vec2 pivote = vec2(sgn * 0.15, 0.1);
-    float w = smoothstep(0.08, 0.25, sgn * q.x) * smoothstep(-0.47, -0.18, q.y) * smoothstep(0.52, 0.3, q.y);
-    float g = golpe(fract(uT / 5.4 + (k == 0 ? 0.0 : 0.5)));
-    float ang = sgn * (g * 0.27 + 0.035 * sin(uT * 1.3 + sgn)) * w;
-    vec2 d = rot(q - pivote, -ang);
-    d /= 1.0 + max(-g, 0.0) * 0.17 * w;
-    q = pivote + d;
-  }
+  // La figura queda quieta: solo se mueven los efectos (aura, energía y descarga)
 
   vec4 c = tomar(q);
   vec3 col = c.rgb;
