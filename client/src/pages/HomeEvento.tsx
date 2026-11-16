@@ -69,6 +69,7 @@ const FOTO_RESPALDO: Record<number, string> = { 2: "/invitados/invitado-2-siluet
  */
 const ANUNCIADOS: Record<number, { nombre: string; rango: string; foto: string; es: string; en: string }> = {
   2: { nombre: "Prince De Guzman", rango: "S", foto: "/invitados/prince-de-guzman-foto.webp", es: "Primer cosplayer invitado", en: "First guest cosplayer" },
+  3: { nombre: "Lorraine", rango: "S", foto: "/invitados/lorraine-foto.webp", es: "Cosplayer invitada", en: "Guest cosplayer" },
 };
 const n3 = (n: number) => String(n).padStart(3, "0");
 
@@ -390,7 +391,7 @@ export default function HomeEvento() {
       rango: String(s(`wf_invitado_${n}_rango`)).trim().toUpperCase().slice(0, 2) || (anunciado && ajuste !== "0" ? anunciado.rango : "") || "?",
     };
   });
-  // Ocultos en total: dos (los invitados 01 y 03, en silueta). La casilla
+  // Oculto queda uno: el invitado 01, en silueta. La casilla
   // «Clasificado» ya no hace falta: su sitio lo ocupa la silueta del 03.
   const bloqueados = 0;
 
