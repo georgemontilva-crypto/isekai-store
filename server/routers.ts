@@ -55,7 +55,7 @@ import {
   getProducts, getProductBySlug, getProductById, createProduct, updateProduct, deleteProduct,
   addProductImage, getProductImage, getProductImages, deleteProductImage, upsertProductVariant, deleteProductVariant,
   getCartItems, upsertCartItem, removeCartItem, clearCart,
-  createOrder, getOrders, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders, deleteOrder, registrarAbono,
+  createOrder, getOrders, articulosDePedidos, getOrderById, getOrderByNumber, updateOrderStatus, setOrderArchived, archiveOldOrders, deleteOrder, registrarAbono,
   crearAbono, aprobarAbono, rechazarAbono, getAbonos, getAbonosPendientes,
   listMediaAssets, insertMediaAsset, getMediaAsset, updateMediaAlt, deleteMediaAsset, findSettingsUsingUrl, importExistingMedia,
   deleteGiftCards,
@@ -608,7 +608,12 @@ export const appRouter = router({
         offset: z.number().optional(),
         archived: z.boolean().optional(),
       }).optional())
-      .query(({ input }) => getOrders({ limit: 100, ...input })),
+      .query(async ({ input }) => {
+        const r = await getOrders({ limit: 100, ...input });
+        // Cada pedido lleva el nombre de lo que pidió el cliente
+        const articulos = await articulosDePedidos(r.items.map(o => o.id));
+        return { ...r, items: r.items.map(o => ({ ...o, articulos: articulos.get(o.id) ?? [] })) };
+      }),
 
     /** Archiva o desarchiva un pedido (sigue existiendo, sale de la bandeja activa) */
     /** Elimina un pedido definitivamente (duplicados, pruebas) */

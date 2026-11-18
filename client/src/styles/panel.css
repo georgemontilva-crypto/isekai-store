@@ -48,10 +48,15 @@
 .ped > li { border-top: 1px solid var(--line-soft); }
 .ped > li:first-child { border-top: 0; }
 .ped > li.is-open { border-top-color: var(--line); }
-.eq .ped__fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 16px; align-items: center; width: 100%; min-height: 60px; padding: 10px 0; text-align: left; }
+.eq .ped__fila { display: grid; gap: 5px; width: 100%; min-height: 60px; padding: 12px 0; text-align: left; }
 .eq .ped__fila:hover strong { color: var(--mg-hot); }
-.ped__lado { display: grid; justify-items: end; gap: 5px; }
-.ped__insignias { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+/* Quién y cuánto; debajo lo que pidió; al pie el número, la fecha y el estado */
+.ped__quien { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+.ped__quien strong { min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.ped__pidio { color: var(--bone); font-size: 0.9375rem; line-height: 1.35; overflow-wrap: anywhere; }
+.ped__pie-fila { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px 14px; margin-top: 2px; }
+.ped__pie-fila small { min-width: 0; color: var(--ash); font-size: 0.8125rem; overflow-wrap: anywhere; }
+.ped__insignias { display: flex; flex-wrap: wrap; gap: 6px; }
 .ped__ficha { display: grid; gap: 16px; padding: 4px 0 22px; }
 .ped__paso { display: grid; gap: 10px; padding: 14px 16px; border: 1px solid var(--mg); background: linear-gradient(135deg, rgba(138, 10, 82, 0.4), rgba(18, 6, 13, 0.9)); }
 .eq .ped__paso h3 { font-size: 1.375rem; }

@@ -18,6 +18,7 @@ type Pedido = {
   paymentMethod: string | null; paymentStatus: string; amountPaid: string | null; paymentReference: string | null;
   receiptUrl: string | null; receiptHolder: string | null; referralCode: string | null; giftCardCode: string | null; giftCardDiscount: string | null;
   archived: boolean; createdAt: string | Date;
+  articulos?: { nombre: string; variante: string | null; cantidad: number }[];
 };
 type Abono = { id: number; orderId: number; amount: string; method: string | null; reference: string | null; holder: string | null; receiptUrl: string | null; status?: string; source: string; createdAt: string | Date };
 
@@ -38,6 +39,15 @@ const SIGUIENTE: Record<string, { a: string; texto: string }> = {
   packed: { a: "shipped", texto: "Marcar enviado" },
   shipped: { a: "delivered", texto: "Marcar entregado" },
 };
+/** Lo que pidió el cliente, en una línea: «2 × Figura Jin-Woo (pintada) y 1 más» */
+function loQuePidio(p: Pedido): string {
+  const a = p.articulos ?? [];
+  if (a.length === 0) return "";
+  const uno = (x: (typeof a)[number]) => `${x.cantidad > 1 ? `${x.cantidad} × ` : ""}${x.nombre}${x.variante ? ` (${x.variante})` : ""}`;
+  if (a.length === 1) return uno(a[0]);
+  if (a.length === 2) return `${uno(a[0])} y ${uno(a[1])}`;
+  return `${uno(a[0])}, ${uno(a[1])} y ${a.length - 2} más`;
+}
 const esKit = (p: Pedido) => p.orderNumber.startsWith("IW-KIT-");
 const pagado = (p: Pedido) => p.paymentStatus === "approved" || p.paymentStatus === "partial";
 
@@ -254,7 +264,7 @@ export default function Pedidos({ buscar: buscarInicial = "" }: { buscar?: strin
   const visibles = useMemo(() => {
     if (q) {
       const universo = [...todos, ...((archivados.data?.items ?? []) as unknown as Pedido[])];
-      return universo.filter(p => [p.orderNumber, p.customerName, p.customerEmail, p.customerPhone ?? "", p.paymentReference ?? ""].some(v => v.toLowerCase().includes(q)));
+      return universo.filter(p => [p.orderNumber, p.customerName, p.customerEmail, p.customerPhone ?? "", p.paymentReference ?? "", ...(p.articulos ?? []).map(a => a.nombre)].some(v => v.toLowerCase().includes(q)));
     }
     if (filtro === "archivados") return (archivados.data?.items ?? []) as unknown as Pedido[];
     return todos.filter(p => grupo(p) === filtro);
@@ -267,7 +277,7 @@ export default function Pedidos({ buscar: buscarInicial = "" }: { buscar?: strin
     <Panel title="Pedidos" lead="Cada pedido muestra lo que le falta. Tócalo para ver su ficha y dar el siguiente paso.">
       <label className="field ped__buscar">
         <span className="field__label">Buscar</span>
-        <input value={buscar} onChange={e => setBuscar(e.target.value)} type="search" placeholder="Número, nombre, correo, teléfono o referencia" />
+        <input value={buscar} onChange={e => setBuscar(e.target.value)} type="search" placeholder="Cliente, producto, número o referencia" />
       </label>
       {!q && (
         <div className="tabs" role="tablist" aria-label="Pedidos por estado">
@@ -290,8 +300,9 @@ export default function Pedidos({ buscar: buscarInicial = "" }: { buscar?: strin
               return (
                 <li key={p.id} className={esteAbierto ? "is-open" : undefined}>
                   <button type="button" className="ped__fila" aria-expanded={esteAbierto} onClick={() => setAbierto(esteAbierto ? null : p.id)}>
-                    <span className="rows__main"><strong>{p.customerName}</strong><small>{p.orderNumber} · {fecha(p.createdAt)}</small></span>
-                    <span className="ped__lado"><span className="rows__side">{dinero(p.total)}</span>
+                    <span className="ped__quien"><strong>{p.customerName}</strong><span className="rows__side">{dinero(p.total)}</span></span>
+                    {loQuePidio(p) && <span className="ped__pidio">{loQuePidio(p)}</span>}
+                    <span className="ped__pie-fila"><small>{p.orderNumber} · {fecha(p.createdAt)}</small>
                       <span className="ped__insignias"><Badge tone={pago.tono}>{pago.texto}</Badge><Badge tone={p.status === "cancelled" ? "off" : "plain"}>{ESTADO[p.status] ?? p.status}</Badge></span></span>
                   </button>
                   {esteAbierto && <Ficha pedido={p} abonosPendientes={pend} />}

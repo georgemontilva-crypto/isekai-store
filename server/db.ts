@@ -501,6 +501,17 @@ export async function getOrders(opts: { userId?: number; status?: string; limit?
   return { items, total: Number(countResult?.count ?? 0) };
 }
 
+/** Lo que lleva cada pedido, para mostrarlo en la bandeja sin abrir la ficha */
+export async function articulosDePedidos(ids: number[]) {
+  const porPedido = new Map<number, { nombre: string; variante: string | null; cantidad: number }[]>();
+  const db = await getDb();
+  if (!db || ids.length === 0) return porPedido;
+  const filas = await db.select({ orderId: orderItems.orderId, nombre: orderItems.productName, variante: orderItems.variantName, cantidad: orderItems.quantity })
+    .from(orderItems).where(inArray(orderItems.orderId, ids)).orderBy(orderItems.id);
+  for (const f of filas) porPedido.set(f.orderId, [...(porPedido.get(f.orderId) ?? []), { nombre: f.nombre, variante: f.variante, cantidad: f.cantidad }]);
+  return porPedido;
+}
+
 export async function getOrderById(id: number) {
   const db = await getDb();
   if (!db) return undefined;
