@@ -220,7 +220,7 @@ async function startServer() {
   });
   app.get('/favicon.ico', redirigirIcono('favicon_url', FAVICON_ACTUAL));
   app.get('/favicon-web', redirigirIcono('favicon_url', FAVICON_ACTUAL));
-  app.get('/apple-touch-icon.png', redirigirIcono('pwa_icon_url', '/icons/icon-192.png'));
+  app.get('/apple-touch-icon.png', redirigirIcono('pwa_icon_url', '/icons/isekai-192.png'));
 
   /**
    * Manifiesto de la app, generado al vuelo para que el icono y los textos
@@ -250,7 +250,7 @@ async function startServer() {
           orientation: deApp === 'equipo' ? 'portrait-primary' : 'any',
           icons: icono
             ? [{ src: icono, sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: icono, sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: icono, sizes: '512x512', type: 'image/png', purpose: 'maskable' }]
-            : [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' }, { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }],
+            : [{ src: '/icons/isekai-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' }, { src: '/icons/isekai-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }],
           lang: 'es',
           dir: 'ltr',
           categories: ['business', 'productivity'],
@@ -264,8 +264,8 @@ async function startServer() {
             { src: icono, sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           ]
         : [
-            { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
-            { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+            { src: '/icons/isekai-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+            { src: '/icons/isekai-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
           ];
 
       res.setHeader('Content-Type', 'application/manifest+json');
@@ -290,10 +290,10 @@ async function startServer() {
         categories: ['entertainment', 'events', 'shopping'],
         // Atajos al mantener presionado el ícono de la app
         shortcuts: [
-          { name: 'Mi Level Pass', short_name: 'Level Pass', description: 'Tu rango, tu EXP y tus misiones', url: '/worldfest/pass', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'Isekai World Fest', short_name: 'World Fest', description: 'El evento', url: '/', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'Tienda', short_name: 'Tienda', description: 'Figuras y coleccionables', url: '/tienda', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'Mi cuenta', short_name: 'Cuenta', description: 'Tus pedidos y boletos', url: '/account', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Mi Level Pass', short_name: 'Level Pass', description: 'Tu rango, tu EXP y tus misiones', url: '/worldfest/pass', icons: [{ src: '/icons/isekai-192.png', sizes: '192x192' }] },
+          { name: 'Isekai World Fest', short_name: 'World Fest', description: 'El evento', url: '/', icons: [{ src: '/icons/isekai-192.png', sizes: '192x192' }] },
+          { name: 'Tienda', short_name: 'Tienda', description: 'Figuras y coleccionables', url: '/tienda', icons: [{ src: '/icons/isekai-192.png', sizes: '192x192' }] },
+          { name: 'Mi cuenta', short_name: 'Cuenta', description: 'Tus pedidos y boletos', url: '/account', icons: [{ src: '/icons/isekai-192.png', sizes: '192x192' }] },
         ],
       });
     } catch {

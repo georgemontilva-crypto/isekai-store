@@ -80,7 +80,7 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(titulo, {
       body: datos.body || '',
       icon: '/apple-touch-icon.png',
-      badge: '/icons/icon-192.png',
+      badge: '/icons/isekai-192.png',
       tag: datos.tag || undefined,
       renotify: !!datos.tag,
       data: { url: datos.url || '/' },

@@ -52,8 +52,8 @@
 }
 .neon__capa { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
 .neon__tubo, .neon__nucleo { fill: none; stroke-linecap: round; stroke-linejoin: round; }
-.neon__tubo { stroke-width: 25; }
-.neon__nucleo { stroke-width: 9; }
+.neon__tubo { stroke-width: 17; }
+.neon__nucleo { stroke-width: 6.5; }
 
 /* El vidrio sin corriente */
 .neon__apagado .neon__tubo { stroke: #2a1422; }
@@ -68,14 +68,13 @@
     drop-shadow(0 0 calc(var(--tam) * 0.05) var(--g))
     drop-shadow(0 0 calc(var(--tam) * 0.16) var(--g));
 }
-.neon__luz--aro, .neon__luz--pupilas { --c: #ff2a93; --n: #ffd9ec; --g: rgba(255, 20, 140, 0.75); }
-.neon__luz--luna { --c: #ffc61a; --n: #fff4cc; --g: rgba(255, 184, 0, 0.6); }
-.neon__luz--craneo { --c: #f6e6f1; --n: #ffffff; --g: rgba(255, 150, 210, 0.55); }
+.neon__luz--aro, .neon__luz--punto { --c: #ff2f7d; --n: #ffd9e6; --g: rgba(240, 20, 100, 0.75); }
+.neon__luz--craneo { --c: #f6e6f1; --n: #ffffff; --g: rgba(255, 150, 200, 0.55); }
 
 /* La luz que el letrero echa sobre la pared */
 .neon__halo {
   position: absolute; left: 50%; top: 50%; width: 330%; aspect-ratio: 1; translate: -50% -50%;
-  background: radial-gradient(closest-side, rgba(229, 0, 125, 0.32), rgba(229, 0, 125, 0.2) 22%, rgba(229, 0, 125, 0.1) 42%, rgba(229, 0, 125, 0.04) 62%, rgba(229, 0, 125, 0.012) 80%, transparent);
+  background: radial-gradient(closest-side, rgba(224, 14, 92, 0.3), rgba(224, 14, 92, 0.19) 22%, rgba(224, 14, 92, 0.1) 42%, rgba(224, 14, 92, 0.04) 62%, rgba(224, 14, 92, 0.012) 80%, transparent);
   opacity: 0; pointer-events: none;
 }
 
@@ -93,7 +92,7 @@
 @keyframes neon-halo {
   0% { opacity: 0; } 30% { opacity: 0.35; } 34% { opacity: 0.1; } 70% { opacity: 0.8; } 100% { opacity: 1; }
 }
-/* Ya encendido: los ojos titilan de vez en cuando, como un tubo viejo */
+/* Ya encendido: el punto de arriba titila de vez en cuando, como un tubo viejo */
 @keyframes neon-titila {
   0%, 91%, 100% { opacity: 1; }
   92% { opacity: 0.2; }
@@ -101,10 +100,9 @@
   95% { opacity: 0.35; }
   96% { opacity: 1; }
 }
-.neon__luz--aro     { animation: neon-arranca 0.9s 0.25s steps(1, end) both; }
-.neon__luz--luna    { animation: neon-arranca 0.8s 0.85s steps(1, end) both; }
-.neon__luz--craneo  { animation: neon-arranca 1s 1.3s steps(1, end) both; }
-.neon__luz--pupilas { animation: neon-arranca 0.6s 2.05s steps(1, end) both, neon-titila 9s 6s steps(1, end) infinite; }
+.neon__luz--punto  { animation: neon-arranca 0.6s 0.25s steps(1, end) both, neon-titila 9s 6s steps(1, end) infinite; }
+.neon__luz--aro    { animation: neon-arranca 0.9s 0.7s steps(1, end) both; }
+.neon__luz--craneo { animation: neon-arranca 1s 1.35s steps(1, end) both; }
 .neon__halo         { animation: neon-halo 2.2s 0.25s ease-out both; }
 
 @media (prefers-reduced-motion: reduce) {

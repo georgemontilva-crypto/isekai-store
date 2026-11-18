@@ -9,13 +9,13 @@
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
+      "src": "/icons/isekai-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/isekai-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
@@ -36,7 +36,7 @@
       "url": "/worldfest/pass",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
+          "src": "/icons/isekai-192.png",
           "sizes": "192x192"
         }
       ]
@@ -48,7 +48,7 @@
       "url": "/",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
+          "src": "/icons/isekai-192.png",
           "sizes": "192x192"
         }
       ]
@@ -60,7 +60,7 @@
       "url": "/tienda",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
+          "src": "/icons/isekai-192.png",
           "sizes": "192x192"
         }
       ]
@@ -72,7 +72,7 @@
       "url": "/account",
       "icons": [
         {
-          "src": "/icons/icon-192.png",
+          "src": "/icons/isekai-192.png",
           "sizes": "192x192"
         }
       ]
