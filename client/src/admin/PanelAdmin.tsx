@@ -39,10 +39,6 @@ const POR_REHACER: Partial<Record<Area, Vieja[]>> = {
     { texto: "Imágenes y video", detalle: "Lo que se ve en la portada y las vitrinas", pc: "media", tel: "media" },
     { texto: "Tarjetas de regalo", detalle: "Crear y consultar tarjetas", pc: "giftcards", tel: "giftcards" },
   ],
-  fest: [
-    { texto: "Puesta a punto del evento", detalle: "Cargar la plantilla 2027 y reiniciar la boletería. Solo para preparar un evento nuevo", pc: "boleteria", tel: "boleteria" },
-    { texto: "Plano de mesas", detalle: "Ubicar cada mesa de stand en el plano del recinto", pc: "stands", tel: "stands" },
-  ],
   comunidad: [
     { texto: "Usuarios", detalle: "Las cuentas registradas", pc: "users", tel: "users" },
     { texto: "Suscriptores", detalle: "Quienes dejaron su correo", pc: "subscribers", tel: "subscribers" },

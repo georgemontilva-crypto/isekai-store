@@ -55,3 +55,5 @@
 .tf-aviso { margin-top: 14px; padding: 10px 12px; font-size: 14px; border-left: 3px solid var(--tf-mg); background: rgba(229, 0, 125, 0.12); }
 .tf-aviso a, .tf-wa { color: #ff7dbd; text-decoration: underline; text-underline-offset: 3px; }
 .tf-wa { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; min-height: 36px; font-size: 13.5px; font-weight: 600; }
+
+.tf-enlace { padding: 0; background: none; border: 0; font: inherit; color: inherit; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }

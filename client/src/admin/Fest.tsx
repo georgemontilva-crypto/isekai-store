@@ -3,9 +3,10 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useStandsSocket } from "@/hooks/useStandsSocket";
 import TableroFest from "@/components/admin/TableroFest";
+import MapaStands, { type MesaPlano } from "@/components/fest/MapaStands";
 import { Panel, Badge, Confirmar, dinero, fecha, paraWhatsApp } from "./ui";
 import { useSubirImagen } from "./Tienda";
-import { useEvento, ComprasWeb, Boletos, Tipos, Equipo, Codigos, Eventos, LevelPass, DiaDelEvento, TiendasConStand, type Tipo, type Orden, type Extra } from "./Boleteria";
+import { useEvento, ComprasWeb, Boletos, Tipos, Equipo, Codigos, Eventos, PuestaAPunto, LevelPass, DiaDelEvento, TiendasConStand, type Tipo, type Orden, type Extra } from "./Boleteria";
 
 /**
  * World Fest: el tablero del evento, la venta de stands y los patrocinantes.
@@ -16,7 +17,7 @@ const PRECIO: Record<string, number> = { mercader: 299, gremio: 399, gran_gremio
 const METODO: Record<string, string> = { pago_movil: "Pago Móvil", crypto: "Binance Pay", efectivo: "Efectivo", transferencia: "Transferencia", zelle: "Zelle", otro: "Otro" };
 const aMonto = (t: string) => { const n = parseFloat(t.trim().replace(",", ".")); return n > 0 ? n : null; };
 
-type Mesa = { id: number; numero: string; tipo: string; estado: string; reservaId: number | null; x: number | null };
+type Mesa = { id: number; numero: string; tipo: string; estado: string; reservaId: number | null; x: number | null; y: number | null };
 type Reserva = { id: number; standId: number; numero: string; tipo: string; negocio: string; contacto: string; email: string; whatsapp: string; rif?: string | null; precio: number; pagado: number; estado: string; modalidad: string; facturaClave?: string | null; facturaNumero?: number | null };
 type Pago = { id: number; reservaId: number; monto: number; metodo: string; referencia: string | null; comprobanteUrl: string | null; estado: string; creadoEn: string };
 
@@ -33,7 +34,7 @@ function Contacto({ r }: { r: Reserva }) {
 }
 
 // ── Stands ───────────────────────────────────────────────────────────────────
-type Vista = "revisar" | "cobrar" | "pagados" | "mesas";
+type Vista = "revisar" | "cobrar" | "pagados" | "mesas" | "plano";
 
 function Stands() {
   const utils = trpc.useUtils();
@@ -69,7 +70,7 @@ function Stands() {
 
   const PESTANAS: { id: Vista; texto: string; n: number; hot?: boolean }[] = [
     { id: "revisar", texto: "Pagos por revisar", n: porRevisar.length, hot: true }, { id: "cobrar", texto: "Deben saldo", n: deben.length },
-    { id: "pagados", texto: "Pagados", n: pagados.length }, { id: "mesas", texto: "Mesas", n: 0 },
+    { id: "pagados", texto: "Pagados", n: pagados.length }, { id: "mesas", texto: "Mesas", n: 0 }, { id: "plano", texto: "Plano", n: 0 },
   ];
 
   return (
@@ -184,9 +185,51 @@ function Stands() {
               ))}
             </div>
           )}
+          {vista === "plano" && <Plano mesas={mesas} alCambiar={refrescar} />}
         </>
       )}
     </Panel>
+  );
+}
+
+/**
+ * Dónde va cada mesa en el plano del recinto. Las mesas ubicadas son las que
+ * el comprador puede elegir tocando el plano en la página de venta.
+ */
+function Plano({ mesas, alCambiar }: { mesas: Mesa[]; alCambiar: () => void }) {
+  const [tipo, setTipo] = useState("mercader");
+  const [elegida, setElegida] = useState<number | null>(null);
+  const alFallar = (e: { message: string }) => toast.error(e.message);
+  const ubicar = trpc.stands.ubicar.useMutation({ onSuccess: alCambiar, onError: alFallar });
+  const bloquear = trpc.stands.bloquear.useMutation({ onSuccess: alCambiar, onError: alFallar });
+  const enPlano: MesaPlano[] = mesas.map(m => ({ id: m.id, numero: m.numero, tipo: m.tipo, x: m.x, y: m.y, libre: m.estado === "libre" }));
+  const sel = mesas.find(m => m.id === elegida);
+  const deTipo = mesas.filter(m => m.tipo === tipo);
+  const siguiente = (desde: number) => deTipo.find(m => m.id !== desde && m.x === null)?.id ?? null;
+  return (
+    <div className="fes__mesas">
+      <p className="pa-tenue">Elige una mesa y toca en el plano el lugar donde va. Al ubicarla pasa sola a la siguiente sin ubicar. Tocar una mesa ya puesta en el plano la selecciona para moverla.</p>
+      <div className="tabs" role="tablist" aria-label="Tipo de mesa">
+        {Object.keys(TIPO).map(t => <button key={t} type="button" role="tab" aria-selected={tipo === t} className={tipo === t ? "is-active" : undefined} onClick={() => { setTipo(t); setElegida(null); }}>{TIPO[t]}<span className="tabs__n">{mesas.filter(m => m.tipo === t && m.x !== null).length} de {mesas.filter(m => m.tipo === t).length}</span></button>)}
+      </div>
+      <div className="fes__fichas" role="group" aria-label="Mesas de este tipo">
+        {deTipo.map(m => <button key={m.id} type="button" aria-pressed={elegida === m.id} className={`fes__ficha${elegida === m.id ? " is-on" : ""}${m.x !== null ? " is-puesta" : ""}`} onClick={() => setElegida(elegida === m.id ? null : m.id)}>{m.numero}</button>)}
+      </div>
+      {sel ? (
+        <div className="ped__paso">
+          <h3>Ubicando la mesa {sel.numero}</h3>
+          <p>{sel.x !== null ? "Ya está en el plano: toca otro punto para moverla." : "Toca en el plano el lugar donde va."}</p>
+          <div className="eq-acciones">
+            {sel.x !== null && <button type="button" className="pa-accion" disabled={ubicar.isPending} onClick={() => ubicar.mutate({ standId: sel.id, x: null, y: null })}>Quitarla del plano</button>}
+            {(sel.estado === "libre" || sel.estado === "bloqueado") && <button type="button" className="pa-accion" disabled={bloquear.isPending} onClick={() => bloquear.mutate({ standId: sel.id, bloquear: sel.estado === "libre" })}>{sel.estado === "bloqueado" ? "Poner a la venta" : "Bloquear (no se vende)"}</button>}
+          </div>
+        </div>
+      ) : <p className="notice notice--info">Elige una mesa de la lista para ubicarla.</p>}
+      <div className="fes__plano">
+        <MapaStands mesas={enPlano} seleccionada={elegida} modoAdmin onElegir={m => { setTipo(m.tipo); setElegida(m.id); }}
+          onTocarPlano={(x, y) => { if (!sel) { toast.message("Primero elige una mesa de la lista"); return; } ubicar.mutate({ standId: sel.id, x, y }); setElegida(siguiente(sel.id)); }} />
+      </div>
+    </div>
   );
 }
 
@@ -329,10 +372,10 @@ export default function Fest() {
         {PESTANAS.map(p => <button key={p.id} type="button" role="tab" aria-selected={vista === p.id} className={vista === p.id ? "is-active" : undefined} onClick={() => setVista(p.id)}>{p.texto}{p.n ? <span className="tabs__n tabs__n--hot">{p.n}</span> : null}</button>)}
       </div>
       {eventos.length > 1 && evento && ["boletos", "tipos", "levelpass", "dia"].includes(vista) && <label className="pa-select bol__evento">Evento<select value={evento.id} onChange={e => elegir(Number(e.target.value))}>{eventos.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>}
-      {vista === "tablero" && <Panel title="Tablero del Fest"><TableroFest /></Panel>}
+      {vista === "tablero" && <Panel title="Tablero del Fest"><TableroFest alRevisarStands={() => setVista("stands")} /></Panel>}
       {vista === "compras" && <ComprasWeb />}
       {vista === "boletos" && (evento ? <><Boletos evento={evento} tipos={listaTipos} /><Codigos evento={evento} /></> : sinEvento)}
-      {vista === "tipos" && <>{evento ? <Tipos evento={evento} tipos={listaTipos} /> : null}<Eventos eventos={eventos} actual={evento} /></>}
+      {vista === "tipos" && <>{evento ? <Tipos evento={evento} tipos={listaTipos} /> : null}<Eventos eventos={eventos} actual={evento} /><PuestaAPunto evento={evento} /></>}
       {vista === "equipo" && <><Equipo /><TiendasConStand /></>}
       {vista === "levelpass" && (evento ? <LevelPass evento={evento} /> : sinEvento)}
       {vista === "dia" && (evento ? <DiaDelEvento evento={evento} /> : sinEvento)}

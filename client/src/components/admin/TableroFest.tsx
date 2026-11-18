@@ -32,7 +32,7 @@ function Dato({ etiqueta, valor, nota, tono }: { etiqueta: string; valor: string
   );
 }
 
-export default function TableroFest() {
+export default function TableroFest({ alRevisarStands }: { /** En el panel nuevo: abre la pestaña de Stands en vez de ir a otra pantalla */ alRevisarStands?: () => void } = {}) {
   const { data: eventos = [] } = trpc.tickets.eventos.useQuery();
   // El evento vigente: el activo más próximo (o el último que haya)
   const evento = (() => {
@@ -158,7 +158,7 @@ export default function TableroFest() {
         </ul>
         {enRevision.length > 0 && (
           <p className="tf-aviso">
-            Hay {enRevision.length} {enRevision.length === 1 ? "solicitud con pago" : "solicitudes con pago"} por revisar. <Link href="/boleteria?v=stands">Revisarlas</Link>
+            Hay {enRevision.length} {enRevision.length === 1 ? "solicitud con pago" : "solicitudes con pago"} por revisar. {alRevisarStands ? <button type="button" className="tf-enlace" onClick={alRevisarStands}>Revisarlas</button> : <Link href="/boleteria?v=stands">Revisarlas</Link>}
           </p>
         )}
       </section>

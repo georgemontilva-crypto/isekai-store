@@ -162,3 +162,13 @@ html .eq.eq.eq .ped__sub { color: var(--ash) !important; }
 .eq .field input[type="date"] { color-scheme: dark; }
 .eq .rows + .ped__sub, .eq .form + .ped__sub { margin-top: 18px; }
 .gui__datos { white-space: pre-line; }
+
+/* ── Plano de mesas ── */
+.fes__fichas { display: flex; flex-wrap: wrap; gap: 6px; }
+.eq .fes__ficha { min-width: 54px; min-height: 40px; padding: 4px 8px; border: 1px solid var(--line-soft); font-stretch: 75%; font-weight: 700; font-size: 0.875rem; color: var(--ash); font-variant-numeric: tabular-nums; }
+.eq .fes__ficha.is-puesta { color: var(--bone); border-color: rgba(49, 208, 138, 0.55); }
+.eq .fes__ficha:hover { border-color: var(--bone); color: var(--bone); }
+.eq .fes__ficha.is-on { background: var(--mg); border-color: var(--mg); color: #fff; }
+.fes__plano { overflow-x: auto; }
+.fes__plano > * { min-width: 640px; }
+.bol__peligro { margin-top: 14px; }

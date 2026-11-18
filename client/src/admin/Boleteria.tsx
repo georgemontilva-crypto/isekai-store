@@ -458,6 +458,46 @@ function Eventos({ eventos, actual }: { eventos: Evento[]; actual?: Evento }) {
   );
 }
 
+// ── Puesta a punto: plantilla y reinicio ─────────────────────────────────────
+/**
+ * Dos herramientas para preparar un evento, no para el día a día. El reinicio
+ * borra boletos y ventas: por eso pide escribir la palabra BORRAR.
+ */
+function PuestaAPunto({ evento }: { evento?: Evento }) {
+  const utils = trpc.useUtils();
+  const refrescar = () => { void utils.tickets.invalidate(); void utils.levelPass.invalidate(); };
+  const conteo = trpc.tickets.conteoReinicio.useQuery();
+  const plantilla = trpc.tickets.plantilla2027.useMutation({ onSuccess: (r: any) => { toast.success(`Boletos 2027 cargados: ${r.creados} nuevos, ${r.actualizados} actualizados`); refrescar(); }, onError: e => toast.error(e.message) });
+  const reiniciar = trpc.tickets.reiniciar2027.useMutation({ onSuccess: () => { toast.success("Listo: quedó solo el Isekai World Fest 2027"); setPalabra(""); setVer(false); refrescar(); }, onError: e => toast.error(e.message) });
+  const [ver, setVer] = useState(false);
+  const [palabra, setPalabra] = useState("");
+  const c = conteo.data as { eventos: number; boletos: number; vendidos: number; tipos: number; actividades: number; misionesTienda: number } | undefined;
+  return (
+    <Panel title="Puesta a punto del evento" lead="Para preparar un evento nuevo. No hace falta tocarlo durante la venta.">
+      <ul className="rows">
+        <li className="tie__variante">
+          <span className="rows__main"><strong>Cargar los 4 boletos de 2027</strong><small>{evento ? `Los pone en «${evento.name}». Si alguno ya existe con ese nombre, lo actualiza; no borra nada.` : "Primero crea un evento."}</small></span>
+          {evento && <Confirmar texto="Cargar" pregunta={`¿Cargar los 4 tipos en «${evento.name}»?`} si="Sí, cargar" disabled={plantilla.isPending} onSi={() => plantilla.mutate({ eventId: evento.id })} />}
+        </li>
+        <li className="tie__variante">
+          <span className="rows__main"><strong>Empezar de cero con el Fest 2027</strong><small>Borra todos los eventos con sus boletos, ventas, ingresos y EXP, y deja solo el Isekai World Fest 2027 con sus 4 boletos. Se conservan las tiendas, el equipo y las misiones de las tiendas.</small></span>
+          <button type="button" className="pa-accion" onClick={() => setVer(v => !v)}>{ver ? "Cerrar" : "Ver qué se borra"}</button>
+        </li>
+      </ul>
+      {ver && (
+        <div className="ped__paso bol__peligro">
+          <h3>Esto no se puede deshacer</h3>
+          {c ? <p>Ahora mismo se borrarían <strong>{c.eventos === 1 ? "1 evento" : `${c.eventos} eventos`}</strong>, <strong>{c.boletos} boletos</strong> (de ellos <strong>{c.vendidos} vendidos</strong>), {c.tipos} tipos de boleto y {c.actividades} actividades del Level Pass. Las {c.misionesTienda} misiones de las tiendas pasan al evento nuevo.</p> : <p>Contando lo que hay…</p>}
+          <form className="form form--inline" onSubmit={e => { e.preventDefault(); if (palabra === "BORRAR") reiniciar.mutate({ confirmo: "BORRAR" }); }}>
+            <label className="field"><span className="field__label">Escribe BORRAR para confirmar</span><input value={palabra} onChange={e => setPalabra(e.target.value.toUpperCase())} autoCapitalize="characters" autoComplete="off" maxLength={6} /></label>
+            <button className="btn btn--small" type="submit" disabled={palabra !== "BORRAR" || reiniciar.isPending}>{reiniciar.isPending ? "Borrando…" : "Borrar todo y dejar el Fest 2027"}</button>
+          </form>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 // ── Level Pass ───────────────────────────────────────────────────────────────
 function LevelPass({ evento }: { evento: Evento }) {
   const utils = trpc.useUtils();
@@ -606,5 +646,5 @@ function TiendasConStand() {
   );
 }
 
-export { useEvento, ComprasWeb, Boletos, Tipos, Equipo, Codigos, Eventos, LevelPass, DiaDelEvento, TiendasConStand };
+export { useEvento, ComprasWeb, Boletos, Tipos, Equipo, Codigos, Eventos, PuestaAPunto, LevelPass, DiaDelEvento, TiendasConStand };
 export type { Tipo, Orden, Extra };
