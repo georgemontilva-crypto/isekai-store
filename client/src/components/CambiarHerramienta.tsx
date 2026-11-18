@@ -3,7 +3,7 @@ import { APP, ES_APP } from "@/lib/appActual";
 import EquipoNav from "@/equipo/EquipoNav";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useSearch } from "wouter";
-import { Gift, Globe, LayoutDashboard, LayoutGrid, MoreHorizontal, Receipt, Settings2 } from "lucide-react";
+import { Gift, Globe, LayoutDashboard, LayoutGrid, MoreHorizontal, Receipt, Settings2, ChartColumn } from "lucide-react";
 import { usePortales } from "@/hooks/usePortales";
 
 /**
@@ -30,6 +30,7 @@ export default function CambiarHerramienta(_props: { className?: string; ocultar
     { clave: "inicio", href: "/boleteria", corto: "Inicio", icono: LayoutGrid, color: "#e5007d" },
     por("vender"),
     por("acceso"),
+    esAdmin && { clave: "tablero", href: "/boleteria?v=tablero", corto: "Tablero", icono: ChartColumn, color: "#46d38a" },
     esAdmin && { clave: "gestion", href: "/boleteria?v=admin", corto: "Gestión", icono: Settings2, color: "#e5007d" },
     por("xp"),
     vende && { clave: "bonos", href: "/vender?modo=bonos", corto: "Canjear", icono: Gift, color: "#34d399" },

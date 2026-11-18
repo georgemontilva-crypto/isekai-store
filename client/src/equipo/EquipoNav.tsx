@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useSearch } from "wouter";
-import { Handshake, LayoutGrid, Receipt, ScanLine, Settings2, Swords, Ticket, Zap, type LucideIcon } from "lucide-react";
+import { ChartColumn, Handshake, LayoutGrid, Receipt, ScanLine, Settings2, Swords, Ticket, Zap, type LucideIcon } from "lucide-react";
 import { usePortales } from "@/hooks/usePortales";
 import { APP } from "@/lib/appActual";
 import "@fontsource-variable/saira/wdth.css";
@@ -38,11 +38,13 @@ export default function EquipoNav() {
 
   const resto = ([
     { clave: "inicio", href: INICIO_EQUIPO, corto: "Inicio", icono: LayoutGrid },
+    // El administrador tiene todos los roles: lo suyo va primero para que no se quede fuera de la barra
+    esAdmin && { clave: "tablero", href: "/boleteria?v=tablero", corto: "Tablero", icono: ChartColumn },
+    esAdmin && { clave: "gestion", href: "/boleteria?v=admin", corto: "Gestión", icono: Settings2 },
     vender && { clave: "ventas", href: "/vender?modo=ventas", corto: "Ventas", icono: Receipt },
     puerta, exp,
     tiene("misiones") && { clave: "misiones", href: "/boleteria/misiones", corto: "Misiones", icono: Swords },
     tiene("rueda") && { clave: "rueda", href: "/staff/rueda", corto: "Rueda", icono: Handshake },
-    esAdmin && { clave: "gestion", href: "/boleteria?v=admin", corto: "Gestión", icono: Settings2 },
   ].filter(Boolean) as Item[]).filter(i => i.clave !== principal?.clave).slice(0, 4);
 
   if (resto.length < 2 && !principal) return null;

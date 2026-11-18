@@ -1,0 +1,57 @@
+/* Tablero del Fest (administrador): cifras, barras y listas. Líneas rectas y
+   magenta, como la app del Equipo. Los colores de estado no van solos: cada
+   uno lleva su texto y su número al lado. */
+.tf { --tf-mg: #e5007d; --tf-ok: #46d38a; --tf-falta: #f5b800; --tf-linea: rgba(246, 238, 243, 0.14); --tf-suave: #b5a4ae;
+  display: grid; gap: 16px; color: #f6eef3; font-variant-numeric: tabular-nums; }
+.tf-cargando { justify-items: center; padding: 64px 0; color: var(--tf-mg); }
+.tf-evento { font-size: 13px; font-weight: 600; color: var(--tf-suave); }
+.tf-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; margin: 0; background: var(--tf-linea); border: 1px solid var(--tf-linea); }
+.tf-dato { padding: 14px 16px; background: #0d060a; }
+.tf-dato dt { font-size: 12.5px; color: var(--tf-suave); }
+.tf-dato dd { margin: 4px 0 0; font-size: 28px; font-weight: 800; line-height: 1.05; letter-spacing: -0.01em; }
+.tf-dato p { margin-top: 4px; font-size: 12px; color: var(--tf-suave); }
+.tf .tf-ok { color: var(--tf-ok); }
+.tf .tf-falta { color: var(--tf-falta); }
+.tf-caja { padding: 18px 16px; background: rgba(18, 6, 13, 0.86); border: 1px solid var(--tf-linea); }
+.tf .tf-caja h3 { margin: 0 0 14px; font-size: 17px; font-weight: 700; line-height: 1.1; color: #f6eef3 !important; text-transform: none; }
+.tf .tf-caja h4 { margin: 20px 0 8px; font-size: 13px; font-weight: 600; color: var(--tf-suave); }
+.tf-vacio, .tf-nota { font-size: 14px; line-height: 1.5; color: var(--tf-suave); }
+.tf-nota { margin-bottom: 12px; } .tf-nota strong { color: var(--tf-falta); }
+
+/* Ventas por día: una barra por día, con su número arriba */
+.tf-dias { display: flex; align-items: flex-end; gap: 4px; height: 190px; padding-top: 4px; overflow-x: auto; scrollbar-width: thin; }
+.tf-dia { flex: 1 0 26px; max-width: 56px; height: 100%; display: grid; grid-template-rows: auto 1fr auto; justify-items: center; gap: 4px; }
+.tf-dia b { font-size: 12px; font-weight: 700; }
+.tf-dia i { align-self: end; width: 100%; background: var(--tf-mg); }
+.tf-dia span { font-size: 10.5px; color: var(--tf-suave); white-space: nowrap; }
+
+.tf-tiendas, .tf-stands, .tf-deudas, .tf-tipos, .tf-leyenda { margin: 0; padding: 0; list-style: none; }
+.tf-tiendas > li, .tf-stands > li, .tf-deudas > li { padding: 12px 0; border-top: 1px solid var(--tf-linea); }
+.tf-tiendas > li:first-child, .tf-stands > li:first-child, .tf-deudas > li:first-child { border-top: 0; padding-top: 0; }
+.tf-tienda-cab { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.tf-tienda-cab > span:first-child { min-width: 0; display: grid; }
+.tf-tienda-cab strong { font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.tf-tienda-cab small { display: block; font-size: 12px; color: var(--tf-suave); overflow-wrap: anywhere; }
+.tf-tienda-num { flex: none; text-align: right; font-size: 13px; color: var(--tf-suave); }
+.tf-tienda-num b { font-size: 18px; font-weight: 800; color: #f6eef3; }
+.tf-tienda-num b.tf-falta { color: var(--tf-falta); }
+.tf-barra { position: relative; height: 10px; background: rgba(246, 238, 243, 0.06); }
+.tf-barra i { position: absolute; left: 0; top: 0; bottom: 0; }
+.tf-barra-cupo { background: rgba(229, 0, 125, 0.22); border-right: 2px solid rgba(229, 0, 125, 0.7); }
+.tf-barra-ok { background: var(--tf-mg); }
+.tf-tipos li { display: flex; justify-content: space-between; gap: 12px; padding: 7px 0; border-top: 1px solid var(--tf-linea); font-size: 14px; }
+.tf-tipos li:first-child { border-top: 0; }
+.tf-tipos b { font-weight: 700; } .tf-tipos small { margin-left: 10px; color: var(--tf-suave); }
+
+/* Stands: una franja por tipo, repartida por estado */
+.tf-leyenda { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-bottom: 14px; font-size: 13px; color: var(--tf-suave); }
+.tf-leyenda li { display: flex; align-items: center; gap: 7px; } .tf-leyenda b { color: #f6eef3; }
+.tf-leyenda i { width: 12px; height: 12px; }
+.tf-tramos { display: flex; gap: 2px; height: 14px; } .tf-tramos i { min-width: 3px; }
+.tf-s-pagado { background: var(--tf-ok); }
+.tf-s-apartado { background: var(--tf-falta); }
+.tf-s-libre { background: rgba(246, 238, 243, 0.2); }
+.tf-s-bloqueado { background: repeating-linear-gradient(45deg, #5a4a52 0 4px, #2a1f25 4px 8px); }
+.tf-aviso { margin-top: 14px; padding: 10px 12px; font-size: 14px; border-left: 3px solid var(--tf-mg); background: rgba(229, 0, 125, 0.12); }
+.tf-aviso a, .tf-wa { color: #ff7dbd; text-decoration: underline; text-underline-offset: 3px; }
+.tf-wa { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; min-height: 36px; font-size: 13.5px; font-weight: 600; }

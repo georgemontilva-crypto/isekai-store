@@ -1,6 +1,6 @@
 import { useMemo, useRef, type RefObject } from "react";
 import { APP, ES_APP } from "@/lib/appActual";
-import { ChevronRight, Gift, Home, LayoutDashboard, Loader2, LogOut, Receipt, Settings2, Ticket } from "lucide-react";
+import { ChartColumn, ChevronRight, Gift, Home, LayoutDashboard, Loader2, LogOut, Receipt, Settings2, Ticket } from "lucide-react";
 import { Link, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
@@ -9,6 +9,7 @@ import TicketsAdmin from "@/components/admin/TicketsAdmin";
 import StandsAdmin from "@/components/admin/StandsAdmin";
 import CambiarHerramienta from "@/components/CambiarHerramienta";
 import TiendasStandAdmin from "@/components/admin/TiendasStandAdmin";
+import TableroFest from "@/components/admin/TableroFest";
 import OrdenesBoletosAdmin from "@/components/admin/OrdenesBoletosAdmin";
 import { trpc } from "@/lib/trpc";
 import TutorialGuiado, { type PasoTutorial } from "@/components/TutorialGuiado";
@@ -83,7 +84,7 @@ export default function Boleteria() {
   const { data: panel } = trpc.standTienda.miPanel.useQuery(undefined, { enabled: isAuthenticated && Boolean(planStand), refetchInterval: 60_000 });
   // La vista la manda la barra de arriba (?v=admin, ?v=stands)
   const v = new URLSearchParams(useSearch()).get("v");
-  const vista: "operar" | "admin" | "stands" = esAdmin && (v === "admin" || v === "stands") ? v : "operar";
+  const vista: "operar" | "admin" | "stands" | "tablero" = esAdmin && (v === "admin" || v === "stands" || v === "tablero") ? v : "operar";
 
   // Tutorial de la primera vez (tiendas con stand): explica cada parte
   const refResumen = useRef<HTMLElement | null>(null);
@@ -140,6 +141,7 @@ export default function Boleteria() {
   const evento: Tarjeta[] = [acceso, xp].filter(Boolean) as Tarjeta[];
   const otras: Tarjeta[] = roles.filter(r => r.clave === "rueda" || (!esAdmin && r.clave === "stands"));
   const gestion: Tarjeta[] = esAdmin ? [
+    { clave: "tablero", href: "/boleteria?v=tablero", texto: "Tablero del Fest", descripcion: "Ventas por tienda, stands disponibles y quién debe saldo", icono: ChartColumn, color: "#46d38a" },
     { clave: "gestion", href: "/boleteria?v=admin", texto: "Gestión de boletería", descripcion: "Evento, códigos, ventas, tiendas, puerta y Level Pass", icono: Settings2, color: "#e5007d" },
     ...roles.filter(r => r.clave === "stands"),
     ...(APP === "equipo" ? [] : [{ clave: "panel", href: "/admin", texto: "Panel general", descripcion: "Tienda, pedidos, cosplayers y todo lo demás", icono: LayoutDashboard, color: "#94a3b8" }]),
@@ -153,7 +155,7 @@ export default function Boleteria() {
       <div className={`mx-auto ${vista !== "operar" ? "max-w-3xl" : "max-w-md"}`}>
         <div className="mb-1 flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-[24px] font-bold leading-tight">{vista === "admin" ? "Gestión" : vista === "stands" ? "Stands" : "Boletería"}</p>
+            <p className="truncate text-[24px] font-bold leading-tight">{vista === "admin" ? "Gestión" : vista === "stands" ? "Stands" : vista === "tablero" ? "Tablero" : "Boletería"}</p>
             <p className="truncate text-[12.5px] text-[#9a93a6]">Isekai World Fest · {(user?.name || user?.email || "").split(" ")[0]}</p>
           </div>
           <div className="flex shrink-0 gap-1.5">
@@ -165,7 +167,9 @@ export default function Boleteria() {
         <CambiarHerramienta />
         <div className="mb-4" />
 
-        {vista === "admin" ? (
+        {vista === "tablero" ? (
+          <TableroFest />
+        ) : vista === "admin" ? (
           <div className="flex flex-col gap-4"><OrdenesBoletosAdmin /><TiendasStandAdmin soloPendientes /><TicketsAdmin compact incrustado /></div>
         ) : vista === "stands" ? (
           <StandsAdmin />

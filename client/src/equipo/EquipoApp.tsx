@@ -1,6 +1,6 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { Link } from "wouter";
-import { ChevronRight, Gift, Handshake, Receipt, ScanLine, Settings2, Store, Swords, Ticket, Zap, type LucideIcon } from "lucide-react";
+import { ChartColumn, ChevronRight, Gift, Handshake, Receipt, ScanLine, Settings2, Store, Swords, Ticket, Zap, type LucideIcon } from "lucide-react";
 import "@fontsource-variable/saira/wdth.css";
 import "@/styles/equipo.css";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -162,6 +162,7 @@ function Inicio() {
     rueda && { clave: "rueda", href: "/staff/rueda", texto: "Rueda de negocios", detalle: "Marca qué tiendas llegaron", icono: Handshake },
   ].filter(Boolean) as Fila[];
   const admin: Fila[] = esAdmin ? [
+    { clave: "tablero", href: "/boleteria?v=tablero", texto: "Tablero del Fest", detalle: "Ventas por tienda, stands disponibles y quién debe saldo", icono: ChartColumn },
     { clave: "gestion", href: "/boleteria?v=admin", texto: "Gestión de boletería", detalle: "Evento, códigos, ventas, tiendas y puerta", icono: Settings2 },
     { clave: "stands", href: "/boleteria?v=stands", texto: "Stands del Fest", detalle: "Pagos por revisar, saldos y mesas", icono: Store },
   ] : [];

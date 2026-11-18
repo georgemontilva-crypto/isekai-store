@@ -283,7 +283,7 @@ function VolverAlInicio() {
 /** En la app del Equipo, /boleteria es su inicio; la gestión (?v=) es del administrador */
 function BoleteriaDeApp() {
   const v = new URLSearchParams(useSearch()).get("v");
-  return v === "admin" || v === "stands" ? <Boleteria /> : <EquipoApp />;
+  return v === "admin" || v === "stands" || v === "tablero" ? <Boleteria /> : <EquipoApp />;
 }
 function LayoutApp() {
   useSocket();
