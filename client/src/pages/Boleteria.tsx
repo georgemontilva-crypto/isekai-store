@@ -1,4 +1,5 @@
 import { useMemo, useRef, type RefObject } from "react";
+import { APP, ES_APP } from "@/lib/appActual";
 import { ChevronRight, Gift, Home, LayoutDashboard, Loader2, LogOut, Receipt, Settings2, Ticket } from "lucide-react";
 import { Link, useSearch } from "wouter";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -119,7 +120,7 @@ export default function Boleteria() {
             <p className="text-[21px] font-bold">Boletería</p>
             <p className="mb-6 mt-2 text-[14px] leading-relaxed text-[#9a93a6]">Entra con tu correo: verás tus herramientas del evento o tu Level Pass, según lo que tengas asignado.</p>
             <button onClick={openLoginModal} className="w-full rounded-full bg-[#e5007d] py-4 text-[15px] font-bold">Iniciar sesión</button>
-            <Link href="/" className="mt-3 block py-2 text-[13px] text-[#9a93a6]">Volver a la web</Link>
+            {!ES_APP && <Link href="/" className="mt-3 block py-2 text-[13px] text-[#9a93a6]">Volver a la web</Link>}
           </div>
         </div>
       </div>
@@ -141,10 +142,10 @@ export default function Boleteria() {
   const gestion: Tarjeta[] = esAdmin ? [
     { clave: "gestion", href: "/boleteria?v=admin", texto: "Gestión de boletería", descripcion: "Evento, códigos, ventas, tiendas, puerta y Level Pass", icono: Settings2, color: "#e5007d" },
     ...roles.filter(r => r.clave === "stands"),
-    { clave: "panel", href: "/admin", texto: "Panel general", descripcion: "Tienda, pedidos, cosplayers y todo lo demás", icono: LayoutDashboard, color: "#94a3b8" },
+    ...(APP === "equipo" ? [] : [{ clave: "panel", href: "/admin", texto: "Panel general", descripcion: "Tienda, pedidos, cosplayers y todo lo demás", icono: LayoutDashboard, color: "#94a3b8" }]),
   ] : [];
   const stand: Tarjeta[] = roles.filter(r => r.clave === "misiones");
-  const levelPass: Tarjeta[] = tieneBoleto ? [pase] : [];
+  const levelPass: Tarjeta[] = tieneBoleto && !ES_APP ? [pase] : [];
   const sinNada = !esAdmin && !stand.length && !venta.length && !evento.length && !otras.length && !levelPass.length;
 
   return (
@@ -156,7 +157,7 @@ export default function Boleteria() {
             <p className="truncate text-[12.5px] text-[#9a93a6]">Isekai World Fest · {(user?.name || user?.email || "").split(" ")[0]}</p>
           </div>
           <div className="flex shrink-0 gap-1.5">
-            <Link href="/" aria-label="Ir a la web" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><Home size={17} /></Link>
+            {!ES_APP && <Link href="/" aria-label="Ir a la web" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><Home size={17} /></Link>}
             <button onClick={() => logout()} aria-label="Cerrar sesión" className="flex h-10 w-10 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><LogOut size={17} /></button>
           </div>
         </div>
@@ -174,7 +175,7 @@ export default function Boleteria() {
           <div className="rounded-3xl bg-white/[0.035] p-6 text-center">
             <p className="text-[15px] font-semibold">Tu cuenta no tiene nada asignado todavía</p>
             <p className="mt-2 text-[13px] leading-relaxed text-[#9a93a6]">Entraste como <strong className="text-white">{user?.email}</strong>. Si eres del equipo, pídele al organizador que te agregue con este correo. Si compraste tu entrada, tu Level Pass aparece aquí cuando la tienda la registre con este mismo correo.</p>
-            <Link href="/worldfest/pass" className="mt-4 inline-block rounded-full bg-white/[0.08] px-5 py-3 text-[13.5px] font-semibold">Tengo mi boleto en la mano</Link>
+            {!ES_APP && <Link href="/worldfest/pass" className="mt-4 inline-block rounded-full bg-white/[0.08] px-5 py-3 text-[13.5px] font-semibold">Tengo mi boleto en la mano</Link>}
           </div>
         ) : (
           <>

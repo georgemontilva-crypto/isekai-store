@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { APP, ES_APP } from "@/lib/appActual";
+import EquipoNav from "@/equipo/EquipoNav";
 import { createPortal } from "react-dom";
 import { Link, useLocation, useSearch } from "wouter";
 import { Gift, Globe, LayoutDashboard, LayoutGrid, MoreHorizontal, Receipt, Settings2 } from "lucide-react";
@@ -57,6 +59,8 @@ export default function CambiarHerramienta(_props: { className?: string; ocultar
     return () => window.removeEventListener("keydown", tecla);
   }, [carpeta]);
 
+  // En la app del Equipo la barra es la suya, con la acción principal al centro
+  if (APP === "equipo") return <EquipoNav />;
   if (items.length < 2 || typeof document === "undefined") return null;
   const enBarra = items.length <= 5 ? items : items.slice(0, 4);
   const enCarpeta = items.length <= 5 ? [] : items.slice(4);
@@ -80,7 +84,7 @@ export default function CambiarHerramienta(_props: { className?: string; ocultar
           <div className="w-full max-w-[340px]" onClick={e => e.stopPropagation()}>
             <p className="mb-3 text-center text-[22px] font-semibold text-white">Más herramientas</p>
             <div className="bh-carpeta grid grid-cols-3 gap-x-2 gap-y-5 rounded-[36px] border border-white/10 bg-white/[0.13] p-6">
-              {[...enCarpeta, { clave: "web", href: "/", corto: "Ir a la web", icono: Globe, color: "#38bdf8" } as Item].map(i => (
+              {[...enCarpeta, ...(ES_APP ? [] : [{ clave: "web", href: "/", corto: "Ir a la web", icono: Globe, color: "#38bdf8" } as Item])].map(i => (
                 <Link key={i.clave} href={i.href} onClick={() => setCarpeta(false)} className="flex flex-col items-center gap-1.5 active:opacity-70" aria-current={i.clave === activa ? "page" : undefined}>
                   <span className="flex h-[60px] w-[60px] items-center justify-center rounded-[18px] text-white shadow-lg" style={{ background: `linear-gradient(160deg, ${i.color}, ${i.color}b3)`, boxShadow: i.clave === activa ? "0 0 0 2.5px #fff" : undefined }}>
                     <i.icono size={27} />

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { appDeHost } from "./apps";
 import { validateEnv } from "./env";
 validateEnv();
 console.log('[DB] DATABASE_URL configured:', !!process.env.DATABASE_URL);
@@ -86,11 +87,16 @@ async function startServer() {
     contentSecurityPolicy: false,
     crossOriginEmbedderPolicy: false,
   }));
-  app.use((_req, res, next) => {
+  app.use((req, res, next) => {
     res.setHeader('X-Frame-Options', 'SAMEORIGIN');
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-    res.setHeader('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+    // La cámara se permite solo a nuestras propias páginas: la usan los
+    // lectores de QR (vender, puerta, dar EXP). Con «camera=()» Chrome en
+    // Android la bloqueaba del todo.
+    res.setHeader('Permissions-Policy', 'camera=(self), microphone=(), geolocation=()');
+    // Las apps aparte (equipo.… y admin.…) no se indexan en buscadores
+    if (appDeHost(req) !== 'web') res.setHeader('X-Robots-Tag', 'noindex, nofollow');
     next();
   });
   app.use((req, res, next) => {
@@ -204,9 +210,36 @@ async function startServer() {
    * Manifiesto de la app, generado al vuelo para que el icono y los textos
    * salgan de los ajustes en lugar de un archivo fijo.
    */
-  app.get('/manifest.json', async (_req, res) => {
+  app.get('/manifest.json', async (req, res) => {
     try {
       const ajustes = await db.getAllSettings();
+      // Cada app aparte se instala con su propio nombre y abre en su inicio
+      const deApp = appDeHost(req);
+      if (deApp !== 'web') {
+        const icono = ajustes['pwa_icon_url'];
+        res.setHeader('Content-Type', 'application/manifest+json');
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Vary', 'Host');
+        return res.json({
+          id: '/',
+          name: deApp === 'equipo' ? 'Isekai World Equipo' : 'Isekai World Admin',
+          short_name: deApp === 'equipo' ? 'Equipo' : 'Admin',
+          description: deApp === 'equipo' ? 'App de las tiendas y del personal del Isekai World Fest.' : 'Administración de Isekai World.',
+          start_url: '/?origen=app',
+          scope: '/',
+          display: 'standalone',
+          display_override: ['standalone', 'minimal-ui'],
+          background_color: '#000000',
+          theme_color: '#000000',
+          orientation: deApp === 'equipo' ? 'portrait-primary' : 'any',
+          icons: icono
+            ? [{ src: icono, sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: icono, sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: icono, sizes: '512x512', type: 'image/png', purpose: 'maskable' }]
+            : [{ src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' }, { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }],
+          lang: 'es',
+          dir: 'ltr',
+          categories: ['business', 'productivity'],
+        });
+      }
       const icono = ajustes['pwa_icon_url'];
       const iconos = icono
         ? [
@@ -221,6 +254,7 @@ async function startServer() {
 
       res.setHeader('Content-Type', 'application/manifest+json');
       res.setHeader('Cache-Control', 'public, max-age=3600');
+      res.setHeader('Vary', 'Host');
       res.json({
         id: '/',
         name: ajustes['store_name'] || 'Isekai World',

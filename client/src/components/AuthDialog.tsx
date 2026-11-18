@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { ES_APP } from "@/lib/appActual";
 import { X, Mail, ArrowRight, Loader2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 
@@ -100,6 +101,8 @@ export default function AuthDialog() {
                 <p className="text-gray-500 text-sm mt-1">Elige cómo quieres acceder</p>
               </div>
 
+              {/* En las apps aparte solo el enlace por correo: Google siempre vuelve a la web */}
+              {!ES_APP && (<>
               {/* Google */}
               <a
                 href="/api/auth/google"
@@ -118,6 +121,7 @@ export default function AuthDialog() {
                   <span className="bg-white px-3 text-xs text-gray-400">o con tu correo</span>
                 </div>
               </div>
+              </>)}
 
               {/* Magic link */}
               <form onSubmit={sendMagicLink} noValidate>

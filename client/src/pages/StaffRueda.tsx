@@ -1,4 +1,5 @@
 import { Handshake, Home, Loader2, LogOut } from "lucide-react";
+import { ES_APP } from "@/lib/appActual";
 import { Link } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
@@ -36,7 +37,7 @@ export default function StaffRueda() {
       <p className="text-[21px] font-bold text-white">Staff · Rueda de negocios</p>
       <p className="mb-6 mt-2 text-[14px] leading-relaxed text-[#9a93a6]">Entra con el correo que te registraron para marcar la asistencia de las tiendas.</p>
       <button onClick={openLoginModal} className="w-full rounded-full py-4 text-[15px] font-bold text-white" style={{ background: "#e5007d" }}>Iniciar sesión</button>
-      <Link href="/" className="mt-3 block py-2 text-[13px] text-[#9a93a6]">Volver a la web</Link>
+      {!ES_APP && <Link href="/" className="mt-3 block py-2 text-[13px] text-[#9a93a6]">Volver a la web</Link>}
     </>);
   }
 
@@ -50,7 +51,7 @@ export default function StaffRueda() {
       <button onClick={() => logout()} className="flex w-full items-center justify-center gap-2 rounded-full bg-white/[0.07] py-3.5 text-[14px] font-semibold text-white">
         <LogOut size={16} /> Entrar con otro correo
       </button>
-      <Link href="/" className="mt-3 block py-2 text-[13px] text-[#9a93a6]">Volver a la web</Link>
+      {!ES_APP && <Link href="/" className="mt-3 block py-2 text-[13px] text-[#9a93a6]">Volver a la web</Link>}
     </>);
   }
 
@@ -65,7 +66,7 @@ export default function StaffRueda() {
             <div className="flex items-center justify-between px-5 pt-3">
               <p className="truncate text-[12px] text-[#6f6878]">{user?.name || user?.email}</p>
               <div className="flex gap-1">
-                <Link href="/" aria-label="Ir a la web" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><Home size={16} /></Link>
+                {!ES_APP && <Link href="/" aria-label="Ir a la web" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><Home size={16} /></Link>}
                 <button onClick={() => logout()} aria-label="Cerrar sesión" className="flex h-9 w-9 items-center justify-center rounded-full bg-white/[0.06] text-[#cfc9d8]"><LogOut size={16} /></button>
               </div>
             </div>

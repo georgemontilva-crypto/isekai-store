@@ -1,4 +1,5 @@
 import { randomBytes } from "crypto";
+import { origenParaEnlace } from "./apps";
 import type { Express, Request, Response } from "express";
 import axios from "axios";
 import { COOKIE_NAME } from "@shared/const";
@@ -112,8 +113,9 @@ export function registerOAuthRoutes(app: Express): void {
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
       await db.createAuthToken({ token, email, type: "magic_link", expiresAt });
 
-      // Enlace del correo siempre con www (la dirección que nunca falla)
-      const verifyUrl = `https://www.isekaiworld.co/api/auth/verify?token=${token}`;
+      // El enlace vuelve a la dirección desde la que se pidió: la web (siempre
+      // con www, la que nunca falla) o la app del Equipo / de Admin
+      const verifyUrl = `${origenParaEnlace(req)}/api/auth/verify?token=${token}`;
 
       if (!ENV.resendApiKey) {
         return res.status(503).json({ error: "El servicio de email no está disponible en este momento" });

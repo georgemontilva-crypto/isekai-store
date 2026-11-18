@@ -68,6 +68,7 @@ const RuedaPrensa = lazy(() => import("./pages/RuedaPrensa"));
 const Stands = lazy(() => import("./pages/Stands"));
 const StaffRueda = lazy(() => import("./pages/StaffRueda"));
 const Boleteria = lazy(() => import("./pages/Boleteria"));
+const EquipoApp = lazy(() => import("./equipo/EquipoApp"));
 const MisionesTienda = lazy(() => import("./pages/MisionesTienda"));
 const ComprarBoletos = lazy(() => import("./pages/ComprarBoletos"));
 const MiBoleto = lazy(() => import("./pages/MiBoleto"));
@@ -80,6 +81,7 @@ const BlogPost = lazy(() => import("./pages/BlogPost"));
 const Collections = lazy(() => import("./pages/Collections"));
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "./hooks/useSocket";
+import { APP, ES_APP } from "@/lib/appActual";
 
 function WelcomeToastHandler() {
   const search = useSearch();
@@ -167,7 +169,9 @@ function Router() {
         <Route path="/staff/rueda" component={StaffRueda} />
         <Route path="/boleteria/misiones" component={MisionesTienda} />
         <Route path="/boleteria" component={Boleteria} />
-        <Route path="/equipo" component={Boleteria} />
+        {/* La app del Equipo. Su dirección propia es equipo.isekaiworld.co;
+            aquí queda como vista de la misma app dentro de la web */}
+        <Route path="/equipo" component={EquipoApp} />
         {/* Enlace anterior: las invitaciones ya entregadas lo siguen usando */}
         <Route path="/rueda-de-prensa" component={RuedaPrensa} />
         <Route path="/cosplay" component={CosplayLanding} />
@@ -260,8 +264,61 @@ function Layout() {
   );
 }
 
+/**
+ * Apps aparte (equipo.… y admin.…): mismas pantallas y mismo servidor, pero
+ * sin la web alrededor. Solo existen las rutas de esa app; cualquier otra
+ * dirección vuelve a su inicio, así nadie llega a la tienda ni al home desde
+ * aquí.
+ */
+function VolverAlInicio() {
+  const [ubicacion, ir] = useLocation();
+  useEffect(() => {
+    // El administrador sí necesita ver la web (un producto, una página): se
+    // abre en su dirección de siempre. El Equipo vuelve a su inicio.
+    if (APP === "admin") window.location.replace(`https://www.isekaiworld.co${ubicacion}${window.location.search}`);
+    else ir("/", { replace: true });
+  }, [ubicacion, ir]);
+  return null;
+}
+/** En la app del Equipo, /boleteria es su inicio; la gestión (?v=) es del administrador */
+function BoleteriaDeApp() {
+  const v = new URLSearchParams(useSearch()).get("v");
+  return v === "admin" || v === "stands" ? <Boleteria /> : <EquipoApp />;
+}
+function LayoutApp() {
+  useSocket();
+  const [location] = useLocation();
+  useEffect(() => { document.title = APP === "admin" ? "Isekai World · Admin" : "Isekai World · Equipo"; }, [location]);
+  const enAdmin = APP === "admin" && (location === "/" || location.startsWith("/admin"));
+  return (
+    <>
+      <ScrollToTop />
+      <WelcomeToastHandler />
+      <InstalarApp />
+      <main className={`min-h-screen ${enAdmin ? "" : "eq-piel"}`}>
+        <Suspense fallback={<div className="min-h-screen bg-black" />}>
+          <Switch>
+            <Route path="/">{() => (APP === "admin" ? <AdminRoute /> : <EquipoApp />)}</Route>
+            {APP === "admin" && <Route path="/admin" component={AdminRoute} />}
+            <Route path="/equipo" component={EquipoApp} />
+            <Route path="/boleteria/misiones" component={MisionesTienda} />
+            <Route path="/boleteria" component={BoleteriaDeApp} />
+            <Route path="/vender/:token" component={StorePortal} />
+            <Route path="/vender" component={StorePortal} />
+            <Route path="/acceso" component={GateControl} />
+            <Route path="/staff/rueda" component={StaffRueda} />
+            <Route component={VolverAlInicio} />
+          </Switch>
+        </Suspense>
+      </main>
+      <AuthDialog />
+    </>
+  );
+}
+
 function AppRoot() {
   const [location] = useLocation();
+  if (ES_APP) return <LayoutApp />;
   if (location.startsWith("/links")) return (
     <Suspense fallback={<div className="min-h-screen bg-[#0a0a0a]" />}>
       <LinkBio />

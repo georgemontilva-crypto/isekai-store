@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ES_APP } from "@/lib/appActual";
 import { AlertTriangle, ArrowLeft, Check, Clock, Lightbulb, Loader2, Lock, Plus, ShoppingBag, Swords, Upload } from "lucide-react";
 import { Link } from "wouter";
 import { toast } from "sonner";
@@ -51,7 +52,7 @@ export default function MisionesTienda() {
     <div className="rounded-3xl bg-white/[0.035] p-6 text-center">
       <p className="text-[15px] font-semibold">Esta sección es para tiendas con stand en el Fest</p>
       <p className="mt-2 text-[13px] leading-relaxed text-[#9a93a6]">Se activa sola cuando tu stand queda pagado por completo, con el mismo correo con que lo reservaste.</p>
-      <Link href="/stands" className="mt-4 inline-block rounded-full bg-white/[0.08] px-5 py-3 text-[13.5px] font-semibold">Ver stands disponibles</Link>
+      {!ES_APP && <Link href="/stands" className="mt-4 inline-block rounded-full bg-white/[0.08] px-5 py-3 text-[13.5px] font-semibold">Ver stands disponibles</Link>}
     </div>,
   );
 

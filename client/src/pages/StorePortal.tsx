@@ -1,4 +1,5 @@
 import { Component, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { APP, ES_APP } from "@/lib/appActual";
 import { Link, useLocation, useRoute, useSearch } from "wouter";
 import {
   LayoutGrid,
@@ -439,7 +440,7 @@ export default function StorePortal() {
           >
             <Swords size={17} className="text-[#a78bfa]" /> {token ? "Es mi boleto · Ver mi Level Pass" : "Ir a mi Level Pass"}
           </Link>
-          <Link href="/" className="mt-4 block py-2 text-center text-[13px] text-[#8a8494]">Volver a la web</Link>
+          {!ES_APP && <Link href="/" className="mt-4 block py-2 text-center text-[13px] text-[#8a8494]">Volver a la web</Link>}
         </div>
       </div>
     );
