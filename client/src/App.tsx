@@ -36,6 +36,8 @@ const Account = lazy(() => import("./pages/Account"));
 const CheckoutSuccess = lazy(() => import("./pages/CheckoutSuccess"));
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminMobile = lazy(() => import("./pages/AdminMobile"));
+const PanelAdmin = lazy(() => import("./admin/PanelAdmin"));
+import "@/styles/panel-volver.css";
 
 /** Decide entre el panel de escritorio y el de teléfono.
     Antes se leía window.innerWidth una sola vez, así que al girar el
@@ -55,9 +57,31 @@ function useIsMobile(breakpoint = 768) {
   return isMobile;
 }
 
+/**
+ * El panel de administración se está rehaciendo por partes (PanelAdmin).
+ * Lo que aún no se rehace abre la pantalla del panel anterior con
+ * «?clasico=1&tab=…»; también los enlaces viejos a secciones que el panel
+ * nuevo todavía no tiene. Cuando una parte queda lista, sale de aquí.
+ */
+const PARTES_NUEVAS = ["orders", "payments"];
 function AdminRoute() {
   const isMobile = useIsMobile();
-  return isMobile ? <AdminMobile /> : <Admin />;
+  const busqueda = useSearch();
+  const q = new URLSearchParams(busqueda);
+  const tab = q.get("tab");
+  const pideClasico = q.get("clasico") === "1" || (tab !== null && !PARTES_NUEVAS.includes(tab));
+  // El panel anterior limpia la dirección al abrir: una vez dentro, se queda
+  // en él hasta que se toca «Panel nuevo» (que recarga la página)
+  const [clasico, setClasico] = useState(pideClasico);
+  const [enPc] = useState(q.get("pc") === "1");
+  useEffect(() => { if (pideClasico) setClasico(true); }, [pideClasico]);
+  if (!clasico && !pideClasico) return <PanelAdmin />;
+  return (
+    <>
+      {isMobile && !enPc ? <AdminMobile /> : <Admin />}
+      <a className="pa-volver" href="/admin">Panel nuevo</a>
+    </>
+  );
 }
 const Nosotros = lazy(() => import("./pages/Nosotros"));
 const FAQ = lazy(() => import("./pages/FAQ"));

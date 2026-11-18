@@ -1,0 +1,9 @@
+/* Vuelta al panel nuevo desde una pantalla del anterior */
+.pa-volver {
+  position: fixed; right: 14px; bottom: calc(14px + env(safe-area-inset-bottom)); z-index: 300;
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px;
+  background: #e5007d; color: #fff; font: 700 0.9375rem/1 "Saira Variable", system-ui, sans-serif; font-stretch: 75%; text-decoration: none;
+  clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.pa-volver:hover { background: #f6eef3; color: #000; }
+@media (max-width: 767px) { .pa-volver { bottom: calc(96px + env(safe-area-inset-bottom)); } }
