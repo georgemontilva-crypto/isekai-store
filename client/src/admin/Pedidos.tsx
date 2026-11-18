@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { PAYMENT_METHOD_LABELS } from "@shared/payment";
-import { Panel, Badge, Confirmar, num, dinero, fecha } from "./ui";
+import { Panel, Badge, Confirmar, num, dinero, fecha, paraWhatsApp } from "./ui";
 
 /**
  * Pedidos: una sola bandeja para el pedido y su pago.
@@ -101,7 +101,7 @@ function Ficha({ pedido, abonosPendientes }: { pedido: Pedido; abonosPendientes:
   // Según la base, la dirección llega como objeto o como texto JSON
   const d = (() => { const v = pedido.shippingAddress as unknown; if (typeof v !== "string") return pedido.shippingAddress; try { return JSON.parse(v) as Pedido["shippingAddress"]; } catch { return null; } })();
   const direccion = d ? [d.street, d.city, d.state, d.zip, d.country].filter(Boolean).join(", ") : "";
-  const tel = (pedido.customerPhone ?? "").replace(/\D/g, "");
+  const tel = paraWhatsApp(pedido.customerPhone);
   const items = ((detalle.data as any)?.items ?? []) as { id: number; productName: string; variantName: string | null; price: string; quantity: number; imageUrl: string | null }[];
   const abonos = ((historial.data ?? []) as Abono[]).filter(a => a.status !== "pending");
   const avanzar = (a: string) => estado.mutate({ id: pedido.id, status: a as any, ...(a === "shipped" ? { trackingNumber: guia.trim() || undefined, trackingCarrier: transporte.trim() || undefined } : {}) });

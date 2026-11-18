@@ -23,6 +23,16 @@ export const dinero = (v: unknown) => `$${num(v).toLocaleString("es-VE", { minim
 const fmtFecha = new Intl.DateTimeFormat("es-VE", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
 export const fecha = (v: unknown) => { try { return fmtFecha.format(new Date(v as string)); } catch { return ""; } };
 
+/**
+ * Número para abrir WhatsApp. Los teléfonos de Venezuela se escriben con el
+ * cero delante (0414…), y así wa.me no los reconoce: va con el 58.
+ */
+export function paraWhatsApp(telefono: string | null | undefined): string {
+  const d = (telefono ?? "").replace(/\D/g, "");
+  if (/^0(4\d{9}|2\d{9})$/.test(d)) return `58${d.slice(1)}`;
+  return d;
+}
+
 /** Acción de texto que pide confirmar en el mismo sitio, sin ventanas */
 export function Confirmar({ texto, pregunta, si = "Sí", onSi, disabled }: { texto: string; pregunta: string; si?: string; onSi: () => void; disabled?: boolean }) {
   const [abierto, setAbierto] = useState(false);

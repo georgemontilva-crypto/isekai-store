@@ -63,7 +63,7 @@ function useIsMobile(breakpoint = 768) {
  * «?clasico=1&tab=…»; también los enlaces viejos a secciones que el panel
  * nuevo todavía no tiene. Cuando una parte queda lista, sale de aquí.
  */
-const PARTES_NUEVAS = ["orders", "payments", "products", "categories"];
+const PARTES_NUEVAS = ["orders", "payments", "products", "categories", "quotes"];
 function AdminRoute() {
   const isMobile = useIsMobile();
   const busqueda = useSearch();

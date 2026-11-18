@@ -8,6 +8,7 @@ import { APP } from "@/lib/appActual";
 import { Panel } from "./ui";
 import Pedidos from "./Pedidos";
 import Tienda from "./Tienda";
+import Cotizaciones from "./Cotizaciones";
 import "@fontsource-variable/saira/wdth.css";
 import "@/styles/equipo.css";
 import "@/styles/panel.css";
@@ -36,7 +37,6 @@ const POR_REHACER: Partial<Record<Area, Vieja[]>> = {
     { texto: "Imágenes y video", detalle: "Lo que se ve en la portada y las vitrinas", pc: "media", tel: "media" },
     { texto: "Tarjetas de regalo", detalle: "Crear y consultar tarjetas", pc: "giftcards", tel: "giftcards" },
   ],
-  cotizaciones: [{ texto: "Cotizaciones", detalle: "Piezas a medida: enviar, cobrar y dar seguimiento", pc: "quotes", tel: "quotes" }],
   fest: [
     { texto: "Tablero del Fest", detalle: "Ventas por tienda, stands disponibles y quién debe saldo", pc: "", href: "/boleteria?v=tablero" },
     { texto: "Boletería", detalle: "Evento, tipos de boleto, códigos, tiendas y puerta", pc: "boleteria", tel: "boleteria" },
@@ -109,8 +109,8 @@ function Inicio({ ir }: { ir: (a: Area) => void }) {
           </ul>
         )}
       </Panel>
-      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos) y Tienda (productos y colecciones). Las demás pestañas abren todavía las pantallas del panel anterior." >
-        <p className="pa-tenue">Sigue: Cotizaciones.</p>
+      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos), Tienda (productos y colecciones) y Cotizaciones. Las demás pestañas abren todavía las pantallas del panel anterior." >
+        <p className="pa-tenue">Sigue: World Fest.</p>
       </Panel>
     </>
   );
@@ -121,7 +121,7 @@ export default function PanelAdmin() {
   const busqueda = new URLSearchParams(useSearch());
   // Los avisos y los correos enlazan con ?tab=orders&orden=…: eso abre Pedidos con el pedido buscado
   const tabUrl = busqueda.get("tab");
-  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : tabUrl === "products" || tabUrl === "categories" ? "tienda" : "inicio");
+  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : tabUrl === "products" || tabUrl === "categories" ? "tienda" : tabUrl === "quotes" ? "cotizaciones" : "inicio");
   const [telefono, setTelefono] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -168,6 +168,7 @@ export default function PanelAdmin() {
               {area === "inicio" && <Inicio ir={ir} />}
               {area === "pedidos" && <Pedidos buscar={busqueda.get("orden") ?? ""} />}
               {area === "tienda" && <Tienda />}
+              {area === "cotizaciones" && <Cotizaciones verPedidos={() => ir("pedidos")} />}
               {area !== "inicio" && <PorRehacer area={area} telefono={telefono} />}
             </div>
           </>

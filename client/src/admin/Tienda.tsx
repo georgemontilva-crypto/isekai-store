@@ -25,7 +25,7 @@ function slugLibre(base: string, usados: Set<string>) {
   for (let i = 2; ; i++) if (!usados.has(`${b}-${i}`)) return `${b}-${i}`;
 }
 /** «12,5» → «12.50»; null si no es un precio */
-function aPrecio(texto: string): string | null {
+export function aPrecio(texto: string): string | null {
   const t = texto.trim().replace(",", ".");
   return /^\d+(\.\d{1,2})?$/.test(t) ? parseFloat(t).toFixed(2) : null;
 }
@@ -37,7 +37,7 @@ const enBase64 = (f: File) => new Promise<string>((ok, mal) => {
 });
 const urlTienda = (ruta: string) => (APP === "web" ? ruta : `https://www.isekaiworld.co${ruta}`);
 
-function useSubirImagen() {
+export function useSubirImagen() {
   const subir = trpc.products.uploadImage.useMutation();
   return async (archivo: File) => {
     const f = await comprimirImagen(archivo);
