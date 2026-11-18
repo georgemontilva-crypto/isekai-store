@@ -1,5 +1,6 @@
 import { randomBytes } from "crypto";
-import { origenParaEnlace } from "./apps";
+import { origenParaEnlace, appDeHost } from "./apps";
+import { correoTieneAcceso, esAdminPorCorreo } from "../accesoApp";
 import type { Express, Request, Response } from "express";
 import axios from "axios";
 import { COOKIE_NAME } from "@shared/const";
@@ -33,6 +34,38 @@ async function setSessionCookie(req: Request, res: Response, openId: string, nam
     ...getSessionCookieOptions(req),
     maxAge: SESSION_MAX_AGE,
   });
+}
+
+/**
+ * Abre la sesión de la cuenta de ese correo (la misma con el enlace, con la
+ * clave o con Face ID / huella). El correo ya viene comprobado por quien llama.
+ */
+export async function abrirSesionPorCorreo(req: Request, res: Response, correo: string): Promise<void> {
+  const email  = correo.trim().toLowerCase();
+  const openId = `magic:${email}`;
+  const name   = email.split("@")[0];
+
+  const existingUser = await db.getUserByOpenId(openId);
+  await db.upsertUser({
+    openId,
+    email,
+    name: existingUser?.name ?? name,
+    loginMethod: "magic_link",
+    // Quien es administrador con ese correo lo sigue siendo al entrar así
+    role:        (isOwner(email) || (await esAdminPorCorreo(email))) ? "admin" : ((await rolPorCorreo(email)) ?? (await esPorteroPorCorreo(email)) ?? (await esStaffPorCorreo(email)) ?? "user"),
+    lastSignedIn: new Date(),
+  });
+  if (!existingUser) {
+    notifyWelcome(email, name).catch((e) => console.warn("[Auth] Welcome email error:", e));
+  }
+
+  // Vincular con su tienda si el correo está autorizado
+  try {
+    const u = await db.getUserByOpenId(openId);
+    if (u) await vincularUsuarioTienda(email, u.id);
+  } catch (e) { console.warn("[Auth] No se pudo vincular la tienda:", e); }
+
+  await setSessionCookie(req, res, openId, existingUser?.name ?? name);
 }
 
 export function registerOAuthRoutes(app: Express): void {
@@ -109,13 +142,20 @@ export function registerOAuthRoutes(app: Express): void {
     }
 
     try {
+      // En las apps solo entra el correo al que se le asignó el rol
+      const paraApp = appDeHost(req) !== "web" ? appDeHost(req) : (req.body?.app === "equipo" || req.body?.app === "admin" ? req.body.app : null);
+      if (paraApp && !(await correoTieneAcceso(email, paraApp))) {
+        return res.status(403).json({ error: "sin_acceso" });
+      }
+      const paraClave = Boolean(paraApp) && req.body?.clave === true;
+
       const token     = randomBytes(32).toString("hex");
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 min
       await db.createAuthToken({ token, email, type: "magic_link", expiresAt });
 
       // El enlace vuelve a la dirección desde la que se pidió: la web (siempre
       // con www, la que nunca falla) o la app del Equipo / de Admin
-      const verifyUrl = `${origenParaEnlace(req)}/api/auth/verify?token=${token}`;
+      const verifyUrl = `${origenParaEnlace(req)}/api/auth/verify?token=${token}${paraClave ? "&clave=1" : ""}`;
 
       if (!ENV.resendApiKey) {
         return res.status(503).json({ error: "El servicio de email no está disponible en este momento" });
@@ -142,31 +182,9 @@ export function registerOAuthRoutes(app: Express): void {
       }
       await db.markAuthTokenUsed(token);
 
-      const email  = record.email;
-      const openId = `magic:${email}`;
-      const name   = email.split("@")[0];
-
-      const existingUser = await db.getUserByOpenId(openId);
-      await db.upsertUser({
-        openId,
-        email,
-        name,
-        loginMethod: "magic_link",
-        role:        isOwner(email) ? "admin" : ((await rolPorCorreo(email)) ?? (await esPorteroPorCorreo(email)) ?? (await esStaffPorCorreo(email)) ?? "user"),
-        lastSignedIn: new Date(),
-      });
-      if (!existingUser) {
-        notifyWelcome(email, name).catch((e) => console.warn("[Auth] Welcome email error:", e));
-      }
-
-      // Vincular con su tienda si el correo está autorizado
-      try {
-        const u = await db.getUserByOpenId(openId);
-        if (u) await vincularUsuarioTienda(email, u.id);
-      } catch (e) { console.warn("[Auth] No se pudo vincular la tienda:", e); }
-
-      await setSessionCookie(req, res, openId, name);
-      res.redirect("/?welcome=1");
+      await abrirSesionPorCorreo(req, res, record.email);
+      // «clave=1»: llegó para crear su clave (primera vez o la olvidó)
+      res.redirect(req.query.clave === "1" ? "/?welcome=1&clave=1" : "/?welcome=1");
     } catch (err) {
       console.error("[Auth] Verify error:", err);
       res.redirect("/?auth=error");

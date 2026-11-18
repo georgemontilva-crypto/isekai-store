@@ -1,8 +1,9 @@
-import { useState, type FormEvent, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Link } from "wouter";
 import { ChartColumn, ChevronRight, Gift, Handshake, Receipt, ScanLine, Settings2, Store, Swords, Ticket, Zap, type LucideIcon } from "lucide-react";
 import "@fontsource-variable/saira/wdth.css";
 import "@/styles/equipo.css";
+import PuertaApp from "./Bienvenida";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { usePortales } from "@/hooks/usePortales";
 import { trpc } from "@/lib/trpc";
@@ -51,47 +52,6 @@ export function MarcoEquipo({ titulo = "Equipo", children }: { titulo?: string; 
         </div>
       </header>
       <main className="eq__main">{children}</main>
-    </div>
-  );
-}
-
-// ── Entrar: un enlace al correo, sin contraseña ──
-function Entrar() {
-  const [correo, setCorreo] = useState("");
-  const [estado, setEstado] = useState<"" | "enviando" | "enviado" | "error">("");
-  const enviar = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!correo.trim()) return;
-    setEstado("enviando");
-    try {
-      const r = await fetch("/api/auth/magic-link", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: correo.trim() }) });
-      setEstado(r.ok ? "enviado" : "error");
-    } catch { setEstado("error"); }
-  };
-  return (
-    <div className="auth">
-      <div className="auth__intro">
-        <h1>Equipo <b>Isekai</b></h1>
-        <p>La app de las tiendas y del personal del Isekai World Fest. Entra con el correo que le diste al organizador y verás solo lo que te toca.</p>
-      </div>
-      <Panel title="Entrar">
-        {estado === "enviado" ? (
-          <>
-            <p className="notice notice--ok" role="status">Te enviamos un enlace a <strong>{correo.trim()}</strong>. Ábrelo en este mismo teléfono para entrar. Vence en 15 minutos.</p>
-            <p className="auth__other"><button className="eq__link" type="button" onClick={() => setEstado("")}>Usar otro correo</button></p>
-          </>
-        ) : (
-          <form className="form" onSubmit={enviar}>
-            <label className="field">
-              <span className="field__label">Tu correo</span>
-              <input value={correo} onChange={e => setCorreo(e.target.value)} type="email" inputMode="email" autoComplete="email" autoCapitalize="none" placeholder="nombre@correo.com" required />
-              <span className="field__hint">Sin contraseña: te llega un enlace para entrar.</span>
-            </label>
-            {estado === "error" && <p className="notice" role="alert">No pudimos enviar el correo. Revisa tu conexión e intenta otra vez.</p>}
-            <button className="btn" type="submit" disabled={estado === "enviando"}>{estado === "enviando" ? "Enviando…" : "Enviarme el enlace"}</button>
-          </form>
-        )}
-      </Panel>
     </div>
   );
 }
@@ -256,10 +216,7 @@ function Inicio() {
 }
 
 export default function EquipoApp() {
-  const { isAuthenticated, loading } = useAuth();
-  return (
-    <MarcoEquipo titulo={APP === "admin" ? "Boletería" : "Equipo"}>
-      {loading ? <p className="empty">Cargando…</p> : !isAuthenticated ? <Entrar /> : <Inicio />}
-    </MarcoEquipo>
-  );
+  const dentro = <MarcoEquipo titulo={APP === "admin" ? "Boletería" : "Equipo"}><Inicio /></MarcoEquipo>;
+  // En las apps la puerta ya envuelve todo; en la web esta pantalla trae la suya
+  return APP === "web" ? <PuertaApp app="equipo">{dentro}</PuertaApp> : dentro;
 }

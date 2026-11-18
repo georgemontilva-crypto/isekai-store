@@ -14,3 +14,14 @@ const anfitrion = typeof window !== "undefined" ? window.location.hostname.toLow
 
 export const APP: AppActual = anfitrion.startsWith("equipo.") ? "equipo" : anfitrion.startsWith("admin.") ? "admin" : "web";
 export const ES_APP = APP !== "web";
+
+/**
+ * El enlace del correo puede traer «clave=1»: la persona llegó para crear su
+ * clave (primera vez o la olvidó). Se anota aquí, al cargar, porque la
+ * dirección se limpia enseguida.
+ */
+try {
+  if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("clave") === "1") {
+    sessionStorage.setItem("iw_crear_clave", "1");
+  }
+} catch { /* modo privado */ }

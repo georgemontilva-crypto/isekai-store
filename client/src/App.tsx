@@ -69,6 +69,7 @@ const Stands = lazy(() => import("./pages/Stands"));
 const StaffRueda = lazy(() => import("./pages/StaffRueda"));
 const Boleteria = lazy(() => import("./pages/Boleteria"));
 const EquipoApp = lazy(() => import("./equipo/EquipoApp"));
+const PuertaApp = lazy(() => import("./equipo/Bienvenida"));
 const MisionesTienda = lazy(() => import("./pages/MisionesTienda"));
 const ComprarBoletos = lazy(() => import("./pages/ComprarBoletos"));
 const MiBoleto = lazy(() => import("./pages/MiBoleto"));
@@ -331,7 +332,9 @@ function LayoutApp() {
   useSocket();
   const [location] = useLocation();
   useEffect(() => { document.title = APP === "admin" ? "Isekai World · Admin" : "Isekai World · Equipo"; }, [location]);
-  const enAdmin = APP === "admin" && (location === "/" || location.startsWith("/admin"));
+  const { user } = useAuth();
+  // La piel de la app no se le pone al panel de administración (tiene la suya)
+  const enAdmin = APP === "admin" && user?.role === "admin" && (location === "/" || location.startsWith("/admin"));
   return (
     <>
       <ScrollToTop />
@@ -339,6 +342,8 @@ function LayoutApp() {
       <InstalarApp />
       <main className={`min-h-screen ${enAdmin ? "" : "eq-piel"}`}>
         <Suspense fallback={<div className="min-h-screen bg-black" />}>
+          {/* Nada de la app se ve sin pasar por la puerta: correo con rol y clave, o Face ID / huella */}
+          <PuertaApp app={APP === "admin" ? "admin" : "equipo"}>
           <Switch>
             <Route path="/">{() => (APP === "admin" ? <AdminRoute /> : <EquipoApp />)}</Route>
             {APP === "admin" && <Route path="/admin" component={AdminRoute} />}
@@ -351,6 +356,7 @@ function LayoutApp() {
             <Route path="/staff/rueda" component={StaffRueda} />
             <Route component={VolverAlInicio} />
           </Switch>
+          </PuertaApp>
         </Suspense>
       </main>
       <AuthDialog />

@@ -60,6 +60,7 @@ async function startServer() {
     .then(() => import("../standTiendas")).then(m => m.asegurarTablasStandTiendas())
     .then(() => import("../boletosOnline")).then(m => m.asegurarTablasBoletosOnline())
     .then(() => import("../bossKoi")).then(m => m.asegurarBossKoi())
+    .then(() => import("../accesoApp")).then(m => m.asegurarTablasAcceso())
     .catch(e => console.error("[Arranque] Stands:", e));
   // Índices para la puerta y las estaciones de EXP (en segundo plano)
   void import("../indices").then(m => m.asegurarIndices()).catch(e => console.error("[Arranque] Índices:", e));
@@ -109,7 +110,16 @@ async function startServer() {
   // Rate limiting
   app.use('/api/auth/magic-link', rateLimit({
     windowMs: 15 * 60 * 1000,
-    max: 5,
+    // Varias personas de un mismo local comparten conexión al crear su clave
+    max: 12,
+    message: { error: 'Demasiados intentos. Espera 15 minutos.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+  }));
+  // Entrada con clave a las apps: freno por conexión (además del freno por correo)
+  app.use(['/api/trpc/acceso.entrar', '/api/trpc/acceso.consultar', '/api/trpc/acceso.llaveEntrar'], rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 60,
     message: { error: 'Demasiados intentos. Espera 15 minutos.' },
     standardHeaders: true,
     legacyHeaders: false,

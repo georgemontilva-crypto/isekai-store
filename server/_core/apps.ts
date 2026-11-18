@@ -7,7 +7,7 @@ import type { Request } from "express";
  */
 export type AppDeHost = "web" | "equipo" | "admin";
 
-function anfitrion(req: Request): string {
+export function anfitrion(req: Request): string {
   const reenviado = String(req.headers["x-forwarded-host"] ?? "").split(",")[0].trim();
   return (reenviado || req.headers.host || "").toLowerCase().replace(/:\d+$/, "");
 }

@@ -5,7 +5,9 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
-import { appsActivas } from "./_core/apps";
+import { appsActivas, appDeHost } from "./_core/apps";
+import { abrirSesionPorCorreo } from "./_core/oauth";
+import * as puerta from "./accesoApp";
 import { notifyMisionAceptada, notifyStaffActivated, notifyStoreActivated, notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
 import { orders, orderItems, users } from "../drizzle/schema";
 import { io } from "./_core/socket";
@@ -197,6 +199,54 @@ export const appRouter = router({
   // Apps aparte (Equipo y Admin): su dirección si ya funcionan, o null
   apps: router({
     activas: publicProcedure.query(() => appsActivas()),
+  }),
+
+  /**
+   * Entrada a las apps del Equipo y de Admin: correo + clave, o Face ID /
+   * huella. Solo para los correos con rol; la primera vez se confirma el
+   * correo con el enlace y se crea la clave.
+   */
+  acceso: router({
+    consultar: publicProcedure
+      .input(z.object({ email: z.string().trim().toLowerCase().email().max(254) }))
+      .mutation(({ input, ctx }) => puerta.consultarCorreo(input.email, appDeHost(ctx.req) === "admin" ? "admin" : "equipo")),
+    entrar: publicProcedure
+      .input(z.object({ email: z.string().trim().toLowerCase().email().max(254), clave: z.string().min(1).max(200) }))
+      .mutation(async ({ input, ctx }) => {
+        const r = await puerta.entrarConClave(input.email, input.clave, appDeHost(ctx.req) === "admin" ? "admin" : "equipo");
+        if (r.ok) await abrirSesionPorCorreo(ctx.req, ctx.res, r.email);
+        return r.ok ? { ok: true as const } : r;
+      }),
+    estado: protectedProcedure.query(async ({ ctx }) => ({
+      ...(await puerta.estadoDeCuenta(ctx.user.email ?? "")),
+      biometria: puerta.hayBiometria(ctx.req),
+    })),
+    crearClave: protectedProcedure
+      .input(z.object({ clave: z.string().min(8, "La clave debe tener al menos 8 caracteres").max(200) }))
+      .mutation(async ({ input, ctx }) => {
+        if (!ctx.user.email) throw new TRPCError({ code: "BAD_REQUEST", message: "Tu cuenta no tiene un correo" });
+        await puerta.guardarClave(ctx.user.email, input.clave);
+        return { ok: true as const };
+      }),
+    llaveOpcionesRegistro: protectedProcedure.mutation(({ ctx }) => {
+      if (!ctx.user.email) throw new TRPCError({ code: "BAD_REQUEST", message: "Tu cuenta no tiene un correo" });
+      return puerta.opcionesDeRegistro(ctx.req, ctx.user.email);
+    }),
+    llaveRegistrar: protectedProcedure
+      .input(z.object({ respuesta: z.any(), dispositivo: z.string().max(80).default("") }))
+      .mutation(async ({ input, ctx }) => {
+        try { await puerta.registrarLlave(ctx.req, ctx.user.email ?? "", input.respuesta, input.dispositivo); }
+        catch (e) { throw new TRPCError({ code: "BAD_REQUEST", message: (e as Error).message }); }
+        return { ok: true as const };
+      }),
+    llaveOpcionesEntrada: publicProcedure.mutation(({ ctx }) => puerta.opcionesDeEntrada(ctx.req)),
+    llaveEntrar: publicProcedure
+      .input(z.object({ id: z.string().min(8).max(60), respuesta: z.any() }))
+      .mutation(async ({ input, ctx }) => {
+        const r = await puerta.entrarConLlave(ctx.req, input.id, input.respuesta, appDeHost(ctx.req) === "admin" ? "admin" : "equipo");
+        if (r.ok) await abrirSesionPorCorreo(ctx.req, ctx.res, r.email);
+        return r.ok ? { ok: true as const } : r;
+      }),
   }),
 
   auth: router({
