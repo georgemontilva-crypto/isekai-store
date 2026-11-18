@@ -140,3 +140,11 @@ html .eq.eq.eq .ped__sub { color: var(--ash) !important; }
 .fes__lista .pa-accion { margin-left: auto; }
 .fes__logo { height: 44px; max-width: 140px; object-fit: contain; background: #000; border: 1px solid var(--line-soft); }
 .fes__mini img { object-fit: contain; }
+
+/* ── Boletería ── */
+.eq .bol__filtros { max-width: 760px; }
+.bol__cuenta { margin-bottom: 4px; font-size: 0.875rem; }
+.bol__evento { margin-bottom: 14px; }
+.eq .bol__mini { min-height: 40px; width: 190px; max-width: 100%; padding: 6px 10px; background: #000; color: var(--bone); border: 1px solid var(--line-soft); border-radius: 0; font: inherit; }
+.fes__tachado { color: var(--ash); text-decoration: line-through; }
+.eq .rows > li.tie__variante { padding: 10px 0; }

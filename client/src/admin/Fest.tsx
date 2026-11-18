@@ -5,6 +5,7 @@ import { useStandsSocket } from "@/hooks/useStandsSocket";
 import TableroFest from "@/components/admin/TableroFest";
 import { Panel, Badge, Confirmar, dinero, fecha, paraWhatsApp } from "./ui";
 import { useSubirImagen } from "./Tienda";
+import { useEvento, ComprasWeb, Boletos, Tipos, Equipo, type Tipo, type Orden } from "./Boleteria";
 
 /**
  * World Fest: el tablero del evento, la venta de stands y los patrocinantes.
@@ -302,19 +303,34 @@ function Patrocinantes() {
   );
 }
 
+type VistaFest = "tablero" | "compras" | "boletos" | "tipos" | "equipo" | "stands" | "patrocinantes";
+
 export default function Fest() {
-  const [vista, setVista] = useState<"tablero" | "stands" | "patrocinantes">("tablero");
+  const [vista, setVista] = useState<VistaFest>("tablero");
+  const { evento, eventos, elegir } = useEvento();
+  const tipos = trpc.tickets.tipos.useQuery({ eventId: evento?.id ?? 0 }, { enabled: Boolean(evento) });
+  const ordenes = trpc.boletosOnline.ordenes.useQuery(undefined, { refetchInterval: 60_000 });
   const panel = trpc.stands.panel.useQuery(undefined, { refetchInterval: 60_000 });
   const reservas = new Map((((panel.data as any)?.reservas ?? []) as Reserva[]).map(r => [r.id, r]));
-  const porRevisar = (((panel.data as any)?.pagos ?? []) as Pago[]).filter(p => p.estado === "pendiente" && reservas.get(p.reservaId) && reservas.get(p.reservaId)!.estado !== "rechazada").length;
+  const pagosStands = (((panel.data as any)?.pagos ?? []) as Pago[]).filter(p => p.estado === "pendiente" && reservas.get(p.reservaId) && reservas.get(p.reservaId)!.estado !== "rechazada").length;
+  const comprasWeb = ((ordenes.data ?? []) as unknown as Orden[]).filter(o => o.estado === "pendiente").length;
+  const listaTipos = (tipos.data ?? []) as unknown as Tipo[];
+  const PESTANAS: { id: VistaFest; texto: string; n?: number }[] = [
+    { id: "tablero", texto: "Tablero" }, { id: "compras", texto: "Compras por la web", n: comprasWeb }, { id: "boletos", texto: "Boletos vendidos" },
+    { id: "tipos", texto: "Tipos de boleto" }, { id: "equipo", texto: "Equipo" }, { id: "stands", texto: "Stands", n: pagosStands }, { id: "patrocinantes", texto: "Patrocinantes" },
+  ];
+  const sinEvento = <Panel title="Sin evento"><p className="empty">Todavía no hay un evento creado. Créalo desde la pantalla anterior de Boletería.</p></Panel>;
   return (
     <>
       <div className="tabs" role="tablist" aria-label="Partes del World Fest">
-        <button type="button" role="tab" aria-selected={vista === "tablero"} className={vista === "tablero" ? "is-active" : undefined} onClick={() => setVista("tablero")}>Tablero</button>
-        <button type="button" role="tab" aria-selected={vista === "stands"} className={vista === "stands" ? "is-active" : undefined} onClick={() => setVista("stands")}>Stands{porRevisar ? <span className="tabs__n tabs__n--hot">{porRevisar}</span> : null}</button>
-        <button type="button" role="tab" aria-selected={vista === "patrocinantes"} className={vista === "patrocinantes" ? "is-active" : undefined} onClick={() => setVista("patrocinantes")}>Patrocinantes</button>
+        {PESTANAS.map(p => <button key={p.id} type="button" role="tab" aria-selected={vista === p.id} className={vista === p.id ? "is-active" : undefined} onClick={() => setVista(p.id)}>{p.texto}{p.n ? <span className="tabs__n tabs__n--hot">{p.n}</span> : null}</button>)}
       </div>
+      {eventos.length > 1 && evento && (vista === "boletos" || vista === "tipos") && <label className="pa-select bol__evento">Evento<select value={evento.id} onChange={e => elegir(Number(e.target.value))}>{eventos.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>}
       {vista === "tablero" && <Panel title="Tablero del Fest"><TableroFest /></Panel>}
+      {vista === "compras" && <ComprasWeb />}
+      {vista === "boletos" && (evento ? <Boletos evento={evento} tipos={listaTipos} /> : sinEvento)}
+      {vista === "tipos" && (evento ? <Tipos evento={evento} tipos={listaTipos} /> : sinEvento)}
+      {vista === "equipo" && <Equipo />}
       {vista === "stands" && <Stands />}
       {vista === "patrocinantes" && <Patrocinantes />}
     </>
