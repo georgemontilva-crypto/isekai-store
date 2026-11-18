@@ -162,7 +162,16 @@ async function startServer() {
    * si no hay ninguna, se usan los que vienen con la web.
    */
   const redirigirIcono = (clave: string, respaldo: string) =>
-    async (_req: any, res: any) => {
+    async (req: any, res: any) => {
+      // Las apps aparte llevan su propio ícono, de otro color, para que en la
+      // pantalla del teléfono no se confundan con la web: Equipo en cian y
+      // Admin en morado (la web, en magenta)
+      const deApp = appDeHost(req);
+      if (deApp !== 'web') {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+        res.setHeader('Vary', 'Host');
+        return res.redirect(302, `/icons/isekai-${deApp}-192.png`);
+      }
       try {
         const url = await db.getSetting(clave);
         res.setHeader('Cache-Control', 'public, max-age=3600');
@@ -232,7 +241,6 @@ async function startServer() {
       // Cada app aparte se instala con su propio nombre y abre en su inicio
       const deApp = appDeHost(req);
       if (deApp !== 'web') {
-        const icono = ajustes['pwa_icon_url'];
         res.setHeader('Content-Type', 'application/manifest+json');
         res.setHeader('Cache-Control', 'public, max-age=3600');
         res.setHeader('Vary', 'Host');
@@ -248,9 +256,11 @@ async function startServer() {
           background_color: '#000000',
           theme_color: '#000000',
           orientation: deApp === 'equipo' ? 'portrait-primary' : 'any',
-          icons: icono
-            ? [{ src: icono, sizes: '192x192', type: 'image/png', purpose: 'any' }, { src: icono, sizes: '512x512', type: 'image/png', purpose: 'any' }, { src: icono, sizes: '512x512', type: 'image/png', purpose: 'maskable' }]
-            : [{ src: '/icons/isekai-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' }, { src: '/icons/isekai-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }],
+          // Ícono propio de cada app: Equipo en cian, Admin en morado
+          icons: [
+            { src: `/icons/isekai-${deApp}-192.png`, sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+            { src: `/icons/isekai-${deApp}-512.png`, sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          ],
           lang: 'es',
           dir: 'ltr',
           categories: ['business', 'productivity'],
