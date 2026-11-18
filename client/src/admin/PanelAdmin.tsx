@@ -9,6 +9,7 @@ import { Panel } from "./ui";
 import Pedidos from "./Pedidos";
 import Tienda from "./Tienda";
 import Cotizaciones from "./Cotizaciones";
+import Fest from "./Fest";
 import "@fontsource-variable/saira/wdth.css";
 import "@/styles/equipo.css";
 import "@/styles/panel.css";
@@ -38,10 +39,8 @@ const POR_REHACER: Partial<Record<Area, Vieja[]>> = {
     { texto: "Tarjetas de regalo", detalle: "Crear y consultar tarjetas", pc: "giftcards", tel: "giftcards" },
   ],
   fest: [
-    { texto: "Tablero del Fest", detalle: "Ventas por tienda, stands disponibles y quién debe saldo", pc: "", href: "/boleteria?v=tablero" },
     { texto: "Boletería", detalle: "Evento, tipos de boleto, códigos, tiendas y puerta", pc: "boleteria", tel: "boleteria" },
-    { texto: "Stands", detalle: "Pagos por revisar, saldos y mesas en el plano", pc: "stands", tel: "stands" },
-    { texto: "Patrocinantes", detalle: "Marcas que apoyan el evento", pc: "patrocinantes", tel: "patrocinantes" },
+    { texto: "Plano de mesas", detalle: "Ubicar cada mesa de stand en el plano del recinto", pc: "stands", tel: "stands" },
     { texto: "Cosplay Guild", detalle: "Solicitudes, evaluaciones y retiros", pc: "cosplay", tel: "cosplay" },
   ],
   comunidad: [
@@ -71,7 +70,7 @@ function PorRehacer({ area, telefono }: { area: Area; telefono: boolean }) {
   const filas = POR_REHACER[area];
   if (!filas?.length) return null;
   return (
-    <Panel title={area === "pedidos" ? "Más de pedidos" : area === "tienda" ? "Más de la tienda" : "Secciones"} lead="Esta parte todavía no se rehace: abre la pantalla del panel anterior.">
+    <Panel title={area === "pedidos" ? "Más de pedidos" : area === "tienda" ? "Más de la tienda" : area === "fest" ? "Más del World Fest" : "Secciones"} lead="Esta parte todavía no se rehace: abre la pantalla del panel anterior.">
       <ul className="rows">
         {filas.map(f => (
           <li key={f.texto}>
@@ -109,8 +108,8 @@ function Inicio({ ir }: { ir: (a: Area) => void }) {
           </ul>
         )}
       </Panel>
-      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos), Tienda (productos y colecciones) y Cotizaciones. Las demás pestañas abren todavía las pantallas del panel anterior." >
-        <p className="pa-tenue">Sigue: World Fest.</p>
+      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos), Tienda (productos y colecciones), Cotizaciones y, del World Fest, el tablero, los stands y los patrocinantes. Lo demás abre todavía las pantallas del panel anterior." >
+        <p className="pa-tenue">Siguen: Boletería y Cosplay Guild.</p>
       </Panel>
     </>
   );
@@ -121,7 +120,7 @@ export default function PanelAdmin() {
   const busqueda = new URLSearchParams(useSearch());
   // Los avisos y los correos enlazan con ?tab=orders&orden=…: eso abre Pedidos con el pedido buscado
   const tabUrl = busqueda.get("tab");
-  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : tabUrl === "products" || tabUrl === "categories" ? "tienda" : tabUrl === "quotes" ? "cotizaciones" : "inicio");
+  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : tabUrl === "products" || tabUrl === "categories" ? "tienda" : tabUrl === "quotes" ? "cotizaciones" : tabUrl === "stands" || tabUrl === "patrocinantes" ? "fest" : "inicio");
   const [telefono, setTelefono] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -169,6 +168,7 @@ export default function PanelAdmin() {
               {area === "pedidos" && <Pedidos buscar={busqueda.get("orden") ?? ""} />}
               {area === "tienda" && <Tienda />}
               {area === "cotizaciones" && <Cotizaciones verPedidos={() => ir("pedidos")} />}
+              {area === "fest" && <Fest />}
               {area !== "inicio" && <PorRehacer area={area} telefono={telefono} />}
             </div>
           </>

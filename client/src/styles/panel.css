@@ -128,3 +128,15 @@ html .eq.eq.eq .ped__sub { color: var(--ash) !important; }
 .eq .rows > li.rows__total { border-top-color: var(--line); }
 .eq .rows__total .rows__side { font-size: 1.25rem; }
 .eq .ped__items > li { padding: 10px 0; }
+
+/* ── World Fest ── */
+.eq .stats--wide { margin-bottom: 18px; }
+.eq .stats dd .fes__de { font-stretch: 100%; font-weight: 400; font-size: 0.8125rem; color: var(--ash); }
+.fes__aviso { padding: 10px 12px; border-left: 3px solid var(--gold); background: rgba(245, 184, 0, 0.1); color: var(--bone); }
+.fes__mesas { display: grid; gap: 14px; }
+.eq .fes__lista { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 24px; }
+.fes__lista li { display: flex; align-items: center; gap: 10px; min-height: 46px; border-top: 1px solid var(--line-soft); }
+.fes__lista strong { min-width: 52px; font-stretch: 75%; font-weight: 700; }
+.fes__lista .pa-accion { margin-left: auto; }
+.fes__logo { height: 44px; max-width: 140px; object-fit: contain; background: #000; border: 1px solid var(--line-soft); }
+.fes__mini img { object-fit: contain; }

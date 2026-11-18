@@ -13,7 +13,7 @@ import "@/styles/tablero.css";
  *
  * No trae datos nuevos: junta lo que ya existe en boletería, tiendas y stands.
  */
-const usd = (n: number) => `$${(Math.round(n * 100) / 100).toLocaleString("es-VE", { maximumFractionDigits: 2 })}`;
+const usd = (n: number) => `$${(Math.round(n * 100) / 100).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const TIPOS: { clave: string; nombre: string }[] = [
   { clave: "gran_gremio", nombre: "Gran Gremio" },
   { clave: "gremio", nombre: "Gremio" },
