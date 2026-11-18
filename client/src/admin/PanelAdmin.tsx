@@ -7,6 +7,7 @@ import { openLoginModal } from "@/const";
 import { APP } from "@/lib/appActual";
 import { Panel } from "./ui";
 import Pedidos from "./Pedidos";
+import Tienda from "./Tienda";
 import "@fontsource-variable/saira/wdth.css";
 import "@/styles/equipo.css";
 import "@/styles/panel.css";
@@ -32,8 +33,6 @@ type Vieja = { texto: string; detalle: string; pc: string; tel?: string; href?: 
 const POR_REHACER: Partial<Record<Area, Vieja[]>> = {
   pedidos: [{ texto: "Crear un pedido a mano", detalle: "Para ventas por WhatsApp o en persona", pc: "orders", tel: "newOrder" }],
   tienda: [
-    { texto: "Productos", detalle: "Precios, existencias, variantes y fotos", pc: "products", tel: "products" },
-    { texto: "Colecciones", detalle: "Cómo se agrupan los productos en la tienda", pc: "categories", tel: "colecciones" },
     { texto: "Imágenes y video", detalle: "Lo que se ve en la portada y las vitrinas", pc: "media", tel: "media" },
     { texto: "Tarjetas de regalo", detalle: "Crear y consultar tarjetas", pc: "giftcards", tel: "giftcards" },
   ],
@@ -72,7 +71,7 @@ function PorRehacer({ area, telefono }: { area: Area; telefono: boolean }) {
   const filas = POR_REHACER[area];
   if (!filas?.length) return null;
   return (
-    <Panel title={area === "pedidos" ? "Más de pedidos" : "Secciones"} lead="Esta parte todavía no se rehace: abre la pantalla del panel anterior.">
+    <Panel title={area === "pedidos" ? "Más de pedidos" : area === "tienda" ? "Más de la tienda" : "Secciones"} lead="Esta parte todavía no se rehace: abre la pantalla del panel anterior.">
       <ul className="rows">
         {filas.map(f => (
           <li key={f.texto}>
@@ -110,8 +109,8 @@ function Inicio({ ir }: { ir: (a: Area) => void }) {
           </ul>
         )}
       </Panel>
-      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya está nuevo: Pedidos (con sus pagos). Las demás pestañas abren todavía las pantallas del panel anterior." >
-        <p className="pa-tenue">Siguen: Tienda y Cotizaciones.</p>
+      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos) y Tienda (productos y colecciones). Las demás pestañas abren todavía las pantallas del panel anterior." >
+        <p className="pa-tenue">Sigue: Cotizaciones.</p>
       </Panel>
     </>
   );
@@ -122,7 +121,7 @@ export default function PanelAdmin() {
   const busqueda = new URLSearchParams(useSearch());
   // Los avisos y los correos enlazan con ?tab=orders&orden=…: eso abre Pedidos con el pedido buscado
   const tabUrl = busqueda.get("tab");
-  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : "inicio");
+  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : tabUrl === "products" || tabUrl === "categories" ? "tienda" : "inicio");
   const [telefono, setTelefono] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -168,6 +167,7 @@ export default function PanelAdmin() {
             <div className="pa__cuerpo">
               {area === "inicio" && <Inicio ir={ir} />}
               {area === "pedidos" && <Pedidos buscar={busqueda.get("orden") ?? ""} />}
+              {area === "tienda" && <Tienda />}
               {area !== "inicio" && <PorRehacer area={area} telefono={telefono} />}
             </div>
           </>

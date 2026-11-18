@@ -282,7 +282,9 @@ export const appRouter = router({
       .mutation(({ input }) => createCategory(input)),
 
     update: adminProcedure
-      .input(z.object({ id: z.number(), name: z.string().min(1).max(256).optional(), slug: z.string().min(1).max(256).optional(), description: z.string().max(2000).optional(), imageUrl: z.string().url().optional(), featured: z.boolean().optional() }))
+      .input(z.object({ id: z.number(), name: z.string().min(1).max(256).optional(), slug: z.string().min(1).max(256).optional(), description: z.string().max(2000).optional(), imageUrl: z.string().url().optional(), featured: z.boolean().optional(),
+        // Mostrar u ocultar la colección en la tienda (antes el panel lo enviaba y aquí se descartaba: el interruptor no hacía nada)
+        isActive: z.boolean().optional() }))
       .mutation(({ input }) => { const { id, ...data } = input; return updateCategory(id, data); }),
 
     delete: adminProcedure

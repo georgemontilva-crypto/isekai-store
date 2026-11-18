@@ -267,8 +267,9 @@ export default function Pedidos({ buscar: buscarInicial = "" }: { buscar?: strin
       return universo.filter(p => [p.orderNumber, p.customerName, p.customerEmail, p.customerPhone ?? "", p.paymentReference ?? "", ...(p.articulos ?? []).map(a => a.nombre)].some(v => v.toLowerCase().includes(q)));
     }
     if (filtro === "archivados") return (archivados.data?.items ?? []) as unknown as Pedido[];
-    return todos.filter(p => grupo(p) === filtro);
-  }, [q, filtro, todos, archivados.data, abonosPorPedido]); // eslint-disable-line react-hooks/exhaustive-deps
+    // El que está abierto se queda a la vista aunque cambie de bandeja (al aprobar su pago, por ejemplo): así se da el paso siguiente sin buscarlo
+    return todos.filter(p => grupo(p) === filtro || p.id === abierto);
+  }, [q, filtro, todos, archivados.data, abonosPorPedido, abierto]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Si se llega buscando un pedido concreto (desde un aviso), se abre su ficha
   useEffect(() => { if (buscarInicial && visibles.length === 1) setAbierto(visibles[0].id); }, [buscarInicial, visibles.length]); // eslint-disable-line react-hooks/exhaustive-deps
