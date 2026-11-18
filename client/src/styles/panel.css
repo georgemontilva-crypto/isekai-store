@@ -148,3 +148,16 @@ html .eq.eq.eq .ped__sub { color: var(--ash) !important; }
 .eq .bol__mini { min-height: 40px; width: 190px; max-width: 100%; padding: 6px 10px; background: #000; color: var(--bone); border: 1px solid var(--line-soft); border-radius: 0; font: inherit; }
 .fes__tachado { color: var(--ash); text-decoration: line-through; }
 .eq .rows > li.tie__variante { padding: 10px 0; }
+
+/* ── Level Pass y el día del evento ── */
+.eq .lp__rangos { display: grid; gap: 8px; max-width: 520px; }
+.lp__rangos li { display: grid; grid-template-columns: 28px minmax(0, 1fr) 44px; gap: 12px; align-items: center; font-variant-numeric: tabular-nums; }
+.lp__rangos li > span:last-child { text-align: right; color: var(--ash); }
+.lp__barra { display: block; height: 8px; margin-top: 6px; background: rgba(255, 255, 255, 0.08); }
+.lp__rangos .lp__barra { margin-top: 0; }
+.lp__barra i { display: block; height: 100%; background: var(--mg); }
+.eq .lp__xp { margin-top: 16px; }
+.lp__ganador { text-align: center; }
+.eq .lp__ganador h3 { font-size: clamp(1.75rem, 5vw, 2.75rem); }
+.eq .field input[type="date"] { color-scheme: dark; }
+.eq .rows + .ped__sub, .eq .form + .ped__sub { margin-top: 18px; }

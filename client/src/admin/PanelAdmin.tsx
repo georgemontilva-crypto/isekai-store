@@ -39,7 +39,7 @@ const POR_REHACER: Partial<Record<Area, Vieja[]>> = {
     { texto: "Tarjetas de regalo", detalle: "Crear y consultar tarjetas", pc: "giftcards", tel: "giftcards" },
   ],
   fest: [
-    { texto: "Más de boletería", detalle: "Generar e imprimir códigos QR, Level Pass, puerta, sorteo VIP y comisiones", pc: "boleteria", tel: "boleteria" },
+    { texto: "Puesta a punto del evento", detalle: "Cargar la plantilla 2027 y reiniciar la boletería. Solo para preparar un evento nuevo", pc: "boleteria", tel: "boleteria" },
     { texto: "Plano de mesas", detalle: "Ubicar cada mesa de stand en el plano del recinto", pc: "stands", tel: "stands" },
     { texto: "Cosplay Guild", detalle: "Solicitudes, evaluaciones y retiros", pc: "cosplay", tel: "cosplay" },
   ],
@@ -108,8 +108,8 @@ function Inicio({ ir }: { ir: (a: Area) => void }) {
           </ul>
         )}
       </Panel>
-      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos), Tienda (productos y colecciones), Cotizaciones y casi todo World Fest (tablero, compras por la web, boletos, tipos, equipo, stands y patrocinantes). Lo demás abre todavía las pantallas del panel anterior." >
-        <p className="pa-tenue">Siguen: el resto de la boletería (códigos QR, Level Pass, puerta) y Cosplay Guild.</p>
+      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos), Tienda (productos y colecciones), Cotizaciones y World Fest completo (tablero, boletería, equipo, Level Pass, stands y patrocinantes). Lo demás abre todavía las pantallas del panel anterior." >
+        <p className="pa-tenue">Siguen: Cosplay Guild, Comunidad, Web y Ajustes.</p>
       </Panel>
     </>
   );

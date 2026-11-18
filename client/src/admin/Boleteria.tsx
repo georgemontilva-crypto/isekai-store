@@ -1,6 +1,7 @@
 import { useMemo, useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
+import { urlPublica } from "@/const";
 import { useStandsSocket } from "@/hooks/useStandsSocket";
 import { Panel, Badge, Confirmar, num, dinero, fecha, paraWhatsApp } from "./ui";
 import { aPrecio } from "./Tienda";
@@ -362,5 +363,248 @@ function Equipo() {
   );
 }
 
-export { useEvento, ComprasWeb, Boletos, Tipos, Equipo };
-export type { Tipo, Orden };
+// ── Códigos QR: generar e imprimir ───────────────────────────────────────────
+/** Abre una hoja lista para imprimir con el QR de cada boleto */
+async function imprimirQrs(lista: { token: string; code: string }[], lote: string) {
+  const w = window.open("", "_blank");
+  if (!w) { toast.error("Permite las ventanas emergentes para imprimir los QR"); return; }
+  w.document.write("<p style=\"font:16px system-ui;margin:24px\">Preparando los códigos…</p>");
+  const QRCode = (await import("qrcode")).default;
+  // Los QR impresos van siempre con www: la dirección que nunca falla
+  const tarjetas = await Promise.all(lista.map(async b => `<div class="t"><img src="${await QRCode.toDataURL(`${urlPublica()}/vender/${b.token}`, { width: 320, margin: 1 })}" /><p>${b.code}</p></div>`));
+  w.document.open();
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Boletos ${lote}</title><style>
+    body{font-family:system-ui,sans-serif;margin:16px}h1{font-size:15px;margin:0 0 14px}
+    .g{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.t{border:1px solid #ddd;border-radius:8px;padding:8px;text-align:center;break-inside:avoid}
+    .t img{width:100%;height:auto}.t p{margin:4px 0 0;font:700 11px ui-monospace,monospace;letter-spacing:.5px}@media print{body{margin:8px}}
+    </style></head><body><h1>Boletos · lote ${lote} · ${lista.length} unidades</h1><div class="g">${tarjetas.join("")}</div>
+    <script>window.onload=()=>window.print();<\/script></body></html>`);
+  w.document.close();
+}
+
+function Codigos({ evento }: { evento: Evento }) {
+  const utils = trpc.useUtils();
+  const lotes = trpc.tickets.lotes.useQuery({ eventId: evento.id });
+  const [cantidad, setCantidad] = useState("100");
+  const [buscar, setBuscar] = useState("");
+  const [imprimiendo, setImprimiendo] = useState<string | null>(null);
+  const todos = trpc.tickets.listar.useQuery({ eventId: evento.id }, { enabled: buscar.trim().length >= 2 });
+  const generar = trpc.tickets.generar.useMutation({
+    onSuccess: async (r: any) => { toast.success(`${r.boletos.length} boletos generados`); void utils.tickets.invalidate(); await imprimirQrs(r.boletos, r.lote); },
+    onError: e => toast.error(e.message),
+  });
+  const n = Math.min(1000, Math.max(0, parseInt(cantidad, 10) || 0));
+  const reimprimir = async (lote: string) => {
+    setImprimiendo(lote);
+    try { const lista = await utils.tickets.boletosDeLote.fetch({ eventId: evento.id, lote }); if (!lista.length) toast.error("Ese lote no tiene boletos"); else await imprimirQrs(lista as any, lote); }
+    catch (e: any) { toast.error(e?.message ?? "No se pudo abrir el lote"); } finally { setImprimiendo(null); }
+  };
+  const q = buscar.trim().toLowerCase();
+  const hallados = q.length >= 2 ? ((todos.data ?? []) as unknown as Boleto[]).filter(b => [b.code, `${b.buyerName ?? ""} ${b.buyerLastName ?? ""}`].some(v => v.toLowerCase().includes(q))).slice(0, 40) : [];
+  // Los lotes «WEB…» son compras por la web: no son boletos de papel, así que aquí no se listan
+  const listaLotes = ((lotes.data ?? []) as unknown as { lote: string; total: number; vendidos: number; enBlanco: number }[]).filter(l => !/^WEB/i.test(l.lote));
+  return (
+    <Panel title="Códigos QR" lead="Los boletos físicos se generan en blanco, se imprimen con su QR y la tienda los llena al venderlos.">
+      <form className="form form--inline tie__nuevo" onSubmit={e => { e.preventDefault(); if (n >= 1) generar.mutate({ eventId: evento.id, cantidad: n }); else toast.error("Escribe cuántos boletos generar (de 1 a 1000)"); }}>
+        <label className="field"><span className="field__label">Cuántos boletos en blanco</span><input value={cantidad} onChange={e => setCantidad(e.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="100" /><span className="field__hint">Hasta 1000 por lote.{n >= 500 ? " Con lotes grandes la hoja tarda en abrirse: no cierres la pestaña." : ""}</span></label>
+        <button className="btn btn--small" type="submit" disabled={generar.isPending || n < 1}>{generar.isPending ? "Generando…" : `Generar ${n || ""} e imprimir`}</button>
+      </form>
+      <h3 className="ped__sub">Lotes generados</h3>
+      {lotes.isLoading ? <p className="empty">Cargando…</p> : listaLotes.length === 0 ? <p className="empty">Todavía no has generado boletos.</p> : (
+        <ul className="rows">
+          {listaLotes.map(l => (
+            <li key={l.lote} className="tie__variante">
+              <span className="rows__main"><strong>{l.lote}</strong><small>{l.total === 1 ? "1 boleto" : `${l.total} boletos`} · {l.vendidos} vendidos · {l.enBlanco} sin vender</small></span>
+              <button type="button" className="pa-accion" disabled={imprimiendo !== null} onClick={() => void reimprimir(l.lote)}>{imprimiendo === l.lote ? "Abriendo…" : "Imprimir de nuevo"}</button>
+            </li>
+          ))}
+        </ul>
+      )}
+      <h3 className="ped__sub">Buscar un código</h3>
+      <label className="field ped__buscar"><span className="field__label">Código o comprador</span><input value={buscar} onChange={e => setBuscar(e.target.value)} type="search" placeholder="IW-…" /></label>
+      {q.length >= 2 && (todos.isLoading ? <p className="empty">Buscando…</p> : hallados.length === 0 ? <p className="empty">Ningún código coincide con «{buscar.trim()}».</p> : (
+        <ul className="rows">{hallados.map(b => (
+          <li key={b.id} className="tie__variante"><span className="rows__main"><strong>{b.code}</strong><small>{b.buyerName ? `${b.buyerName} ${b.buyerLastName ?? ""} · ${b.tiendaNombre ?? "Venta por la web"}` : "Sin vender"}</small></span>
+            <Badge tone={b.status === "sold" ? "ok" : b.status === "void" ? "off" : "plain"}>{b.status === "sold" ? "Vendido" : b.status === "void" ? "Anulado" : "En blanco"}</Badge></li>))}</ul>
+      ))}
+    </Panel>
+  );
+}
+
+// ── Eventos ──────────────────────────────────────────────────────────────────
+function Eventos({ eventos, actual }: { eventos: Evento[]; actual?: Evento }) {
+  const utils = trpc.useUtils();
+  const [ver, setVer] = useState(false);
+  const [f, setF] = useState({ name: "", startDate: "", endDate: "", location: "Maracaibo" });
+  const crear = trpc.tickets.crearEvento.useMutation({ onSuccess: () => { toast.success("Evento creado"); setVer(false); setF({ name: "", startDate: "", endDate: "", location: "Maracaibo" }); void utils.tickets.invalidate(); }, onError: e => toast.error(e.message) });
+  const dia = (d: string) => new Intl.DateTimeFormat("es-VE", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(new Date(d));
+  return (
+    <Panel title="Eventos" action={<button className="btn btn--ghost btn--small" type="button" onClick={() => setVer(v => !v)}>{ver ? "Cerrar" : "Nuevo evento"}</button>}>
+      {ver && (
+        <form className="form form--inline tie__nuevo" onSubmit={e => { e.preventDefault(); if (!f.name.trim() || !f.startDate || !f.endDate) { toast.error("Escribe el nombre y las dos fechas"); return; } if (f.endDate < f.startDate) { toast.error("El evento no puede terminar antes de empezar"); return; } crear.mutate({ name: f.name.trim(), startDate: f.startDate, endDate: f.endDate, location: f.location.trim() || undefined }); }}>
+          <label className="field tie__ancho"><span className="field__label">Nombre</span><input value={f.name} onChange={e => setF({ ...f, name: e.target.value })} placeholder="Isekai World Fest 2027" maxLength={200} required /></label>
+          <label className="field"><span className="field__label">Empieza</span><input value={f.startDate} onChange={e => setF({ ...f, startDate: e.target.value })} type="date" required /></label>
+          <label className="field"><span className="field__label">Termina</span><input value={f.endDate} onChange={e => setF({ ...f, endDate: e.target.value })} type="date" required /></label>
+          <label className="field"><span className="field__label">Lugar</span><input value={f.location} onChange={e => setF({ ...f, location: e.target.value })} maxLength={300} /></label>
+          <button className="btn btn--small" type="submit" disabled={crear.isPending}>Crear evento</button>
+        </form>
+      )}
+      {eventos.length === 0 ? <p className="empty">Todavía no hay eventos.</p> : (
+        <ul className="rows">{eventos.map(e => (
+          <li key={e.id} className="tie__variante"><span className="rows__main"><strong>{e.name}</strong><small>{dia(e.startDate)} al {dia(e.endDate)}</small></span>
+            <span className="ped__insignias">{actual?.id === e.id && <Badge tone="ok">El que estás viendo</Badge>}{e.active === false && <Badge tone="off">Inactivo</Badge>}</span></li>))}</ul>
+      )}
+    </Panel>
+  );
+}
+
+// ── Level Pass ───────────────────────────────────────────────────────────────
+function LevelPass({ evento }: { evento: Evento }) {
+  const utils = trpc.useUtils();
+  const refrescar = () => { void utils.levelPass.invalidate(); void utils.tickets.invalidate(); };
+  const alFallar = (e: { message: string }) => toast.error(e.message);
+  const resumen = trpc.levelPass.resumen.useQuery({ eventId: evento.id }, { refetchInterval: 20_000 });
+  const actividades = trpc.levelPass.actividades.useQuery({ eventId: evento.id });
+  const crear = trpc.levelPass.crearActividad.useMutation({ onSuccess: () => { toast.success("Actividad agregada"); setA({ name: "", xp: "", ubicacion: "", repetible: false, max: "3" }); refrescar(); }, onError: alFallar });
+  const borrar = trpc.levelPass.borrarActividad.useMutation({ onSuccess: () => { toast.success("Actividad eliminada"); refrescar(); }, onError: alFallar });
+  const crearPrueba = trpc.levelPass.crearPrueba.useMutation({ onSuccess: () => { toast.success("Entorno de prueba creado"); refrescar(); }, onError: alFallar });
+  const borrarPrueba = trpc.levelPass.borrarPrueba.useMutation({ onSuccess: () => { toast.success("Datos de prueba borrados"); refrescar(); }, onError: alFallar });
+  const darXp = trpc.levelPass.darXpPrueba.useMutation({ onSuccess: () => { toast.success("EXP aplicada"); refrescar(); }, onError: alFallar });
+  const [a, setA] = useState({ name: "", xp: "", ubicacion: "", repetible: false, max: "3" });
+  const [codigo, setCodigo] = useState("");
+  const r = resumen.data as any;
+  const lista = (actividades.data ?? []) as unknown as { id: number; name: string; xp: number; ubicacion: string | null; repetible: boolean; maxVeces: number; active: boolean }[];
+  const tope = Math.max(1, ...((r?.porRango ?? []) as any[]).map(x => x.cantidad));
+  return (
+    <>
+      <Panel title="Level Pass" lead="Cómo va la experiencia del evento. Se actualiza solo.">
+        {!r ? <p className="empty">Cargando…</p> : (
+          <>
+            <dl className="stats stats--wide"><div><dt>Participantes</dt><dd>{r.participantes}</dd></div><div><dt>En rango S</dt><dd>{r.rangoS}</dd></div><div><dt>Boletos vendidos</dt><dd>{r.boletosVendidos}</dd></div><div><dt>Ascensos</dt><dd>{r.ascensos.length}</dd></div></dl>
+            {r.participantes > 0 && <><h3 className="ped__sub">Cazadores por rango</h3>
+              <ul className="lp__rangos">{(r.porRango as any[]).map(x => <li key={x.rango}><strong>{x.rango}</strong><span className="lp__barra"><i style={{ width: `${(x.cantidad / tope) * 100}%` }} /></span><span>{x.cantidad}</span></li>)}</ul></>}
+            {r.ranking.length > 0 && <><h3 className="ped__sub">Ranking</h3>
+              <ol className="rows">{(r.ranking as any[]).slice(0, 20).map((x, i) => <li key={x.codigo} className="tie__variante"><span className="rows__main"><strong>{i + 1}. {x.nombre}</strong><small>{x.codigo}</small></span><span className="rows__side">{x.rango} · {x.xpTotal} EXP</span></li>)}</ol></>}
+            {r.ascensos.length > 0 && <><h3 className="ped__sub">Ascensos recientes</h3>
+              <ul className="rows">{(r.ascensos as any[]).slice(0, 12).map((x, i) => <li key={i} className="tie__variante"><span className="rows__main"><strong>{x.nombre}</strong><small>{fecha(x.createdAt)}</small></span><span className="rows__side">{x.rangoAnterior} → {x.rangoNuevo}</span></li>)}</ul></>}
+          </>
+        )}
+      </Panel>
+      <Panel title="Actividades" lead="Lo que se puede completar en el evento y cuánta EXP da. Quién la entrega se decide en Equipo.">
+        <form className="form tie__nuevo" onSubmit={e => { e.preventDefault(); if (!a.name.trim()) { toast.error("Escribe el nombre de la actividad"); return; } crear.mutate({ eventId: evento.id, name: a.name.trim(), xp: Math.min(1000, Math.max(1, parseInt(a.xp, 10) || 25)), ubicacion: a.ubicacion.trim() || undefined, repetible: a.repetible, maxVeces: a.repetible ? Math.min(20, Math.max(1, parseInt(a.max, 10) || 1)) : undefined }); }}>
+          <div className="form form--inline">
+            <label className="field tie__ancho"><span className="field__label">Nueva actividad</span><input value={a.name} onChange={e => setA({ ...a, name: e.target.value })} placeholder="Compra en tienda aliada" maxLength={200} /></label>
+            <label className="field"><span className="field__label">EXP que da</span><input value={a.xp} onChange={e => setA({ ...a, xp: e.target.value.replace(/\D/g, "") })} inputMode="numeric" placeholder="25" /></label>
+            <label className="field"><span className="field__label">Dónde</span><input value={a.ubicacion} onChange={e => setA({ ...a, ubicacion: e.target.value })} placeholder="Opcional" maxLength={200} /></label>
+            {a.repetible && <label className="field"><span className="field__label">Cuántas veces</span><input value={a.max} onChange={e => setA({ ...a, max: e.target.value.replace(/\D/g, "") })} inputMode="numeric" /></label>}
+          </div>
+          <div className="tie__checks"><label className="check"><input type="checkbox" checked={a.repetible} onChange={e => setA({ ...a, repetible: e.target.checked })} /> Se puede repetir</label></div>
+          <div className="eq-acciones"><button className="btn btn--small" type="submit" disabled={crear.isPending}>Agregar actividad</button></div>
+        </form>
+        {lista.length === 0 ? <p className="empty">Todavía no hay actividades.</p> : (
+          <ul className="rows">{lista.map(x => (
+            <li key={x.id} className="tie__variante"><span className="rows__main"><strong>{x.name}</strong><small>{x.ubicacion ? `${x.ubicacion} · ` : ""}{x.repetible ? `hasta ${x.maxVeces} veces` : "una sola vez"}{x.active ? "" : " · desactivada"}</small></span>
+              <span className="tie__acciones"><span className="rows__side">+{x.xp} EXP</span><Confirmar texto="Eliminar" pregunta={`¿Eliminar «${x.name}»?`} si="Sí, eliminar" disabled={borrar.isPending} onSi={() => borrar.mutate({ id: x.id })} /></span></li>))}</ul>
+        )}
+      </Panel>
+      <Panel title="Entorno de prueba" lead="Para ensayar sin tocar los boletos reales: crea un evento con fechas de hoy, cinco actividades y boletos listos (IW-TEST01 a 03 vendidos; IW-LIBRE1 y 2 sin vender).">
+        <div className="eq-acciones">
+          <button className="btn btn--ghost btn--small" type="button" disabled={crearPrueba.isPending} onClick={() => crearPrueba.mutate()}>{crearPrueba.isPending ? "Creando…" : "Crear entorno de prueba"}</button>
+          <Confirmar texto="Borrar los datos de prueba" pregunta="¿Borrar participantes y EXP de prueba? Los boletos reales no se tocan." si="Sí, borrar" disabled={borrarPrueba.isPending} onSi={() => borrarPrueba.mutate()} />
+        </div>
+        <form className="form form--inline lp__xp" onSubmit={e => e.preventDefault()}>
+          <label className="field"><span className="field__label">Dar EXP a un boleto de prueba</span><input value={codigo} onChange={e => setCodigo(e.target.value.toUpperCase())} placeholder="IW-TEST01" maxLength={64} /></label>
+          <span className="tie__acciones">{[40, 80, 200].map(x => <button key={x} type="button" className="pa-accion" disabled={codigo.trim().length < 3 || darXp.isPending} onClick={() => darXp.mutate({ codigo: codigo.trim(), xp: x })}>+{x} EXP</button>)}</span>
+        </form>
+      </Panel>
+    </>
+  );
+}
+
+// ── El día del evento: asistencia y sorteo VIP ───────────────────────────────
+function DiaDelEvento({ evento }: { evento: Evento }) {
+  const asistencia = trpc.tickets.asistencia.useQuery({ eventId: evento.id }, { refetchInterval: 20_000 });
+  const sorteo = trpc.tickets.sorteo.useQuery({ eventId: evento.id });
+  const a = asistencia.data as any;
+  const participantes = (sorteo.data ?? []) as unknown as { id: number; nombre: string; codigo: string; telefono: string | null }[];
+  const [girando, setGirando] = useState<string | null>(null);
+  const [ganador, setGanador] = useState<(typeof participantes)[number] | null>(null);
+  const [verLista, setVerLista] = useState(false);
+  const sortear = () => {
+    setGanador(null);
+    const azar = new Uint32Array(1); crypto.getRandomValues(azar);
+    const elegido = participantes[azar[0] % participantes.length];
+    let n = 0;
+    const id = window.setInterval(() => { setGirando(participantes[n++ % participantes.length].nombre); if (n > 24) { window.clearInterval(id); setGirando(null); setGanador(elegido); } }, 90);
+  };
+  return (
+    <>
+      <Panel title="Asistencia" lead="Lo que registran los porteros al validar cada boleto. Se actualiza solo. Los porteros se agregan en Equipo.">
+        {!a ? <p className="empty">Cargando…</p> : (
+          <>
+            <dl className="stats stats--wide"><div><dt>Boletos vendidos</dt><dd>{a.vendidos}</dd></div><div><dt>Han ingresado</dt><dd>{a.ingresosTotales}</dd></div><div><dt>Día actual</dt><dd>{a.diaActual ? `Día ${a.diaActual}` : "Fuera de fecha"}</dd></div><div><dt>Validados sin conexión</dt><dd>{a.sincronizadosSinConexion}</dd></div></dl>
+            {(a.porDia ?? []).length > 0 ? <ul className="rows">{(a.porDia as any[]).map(d => <li key={d.dia} className="tie__variante"><span className="rows__main"><strong>Día {d.dia}</strong></span><span className="rows__side">{d.cantidad === 1 ? "1 persona" : `${d.cantidad} personas`}</span></li>)}</ul> : <p className="empty">Todavía no ha entrado nadie.</p>}
+          </>
+        )}
+      </Panel>
+      <Panel title="Sorteo VIP" lead="Cada boleto VIP vendido entra solo al sorteo de la pieza a tamaño real.">
+        {participantes.length === 0 ? <p className="empty">Todavía no hay boletos VIP vendidos.</p> : (
+          <>
+            {(girando || ganador) && <div className="ped__paso lp__ganador" aria-live="polite">{ganador ? <><h3>{ganador.nombre}</h3><p>{ganador.codigo}{ganador.telefono ? ` · ${ganador.telefono}` : ""}</p></> : <h3>{girando}</h3>}</div>}
+            <div className="eq-acciones">
+              {ganador ? <Confirmar texto="Sortear de nuevo" pregunta="¿Elegir otro ganador al azar?" si="Sí, sortear" onSi={sortear} /> : <button className="btn btn--small" type="button" disabled={Boolean(girando)} onClick={sortear}>Elegir ganador al azar</button>}
+              <button type="button" className="pa-accion" onClick={() => setVerLista(v => !v)}>{verLista ? "Ocultar" : "Ver"} los {participantes.length} participantes</button>
+            </div>
+            {verLista && <ul className="rows">{participantes.map(p => <li key={p.id} className="tie__variante"><span className="rows__main"><strong>{p.nombre}</strong></span><span className="rows__side">{p.codigo}</span></li>)}</ul>}
+          </>
+        )}
+      </Panel>
+    </>
+  );
+}
+
+// ── Tiendas con stand: cupo de boletos, comisiones y misiones extra ──────────
+const METODO_EXTRA: Record<string, string> = { pago_movil: "Pago Móvil", crypto: "Binance Pay", efectivo: "Efectivo" };
+type Extra = { id: number; tienda: string; cantidad: number; metodo: string; referencia: string | null; comprobanteUrl: string | null; monto: number; estado: string };
+
+function TiendasConStand() {
+  const utils = trpc.useUtils();
+  const extras = trpc.standTienda.extras.useQuery(undefined, { refetchInterval: 60_000 });
+  const tiendas = trpc.standTienda.comisiones.useQuery(undefined, { refetchInterval: 60_000 });
+  const refrescar = () => { void utils.standTienda.invalidate(); };
+  useStandsSocket(refrescar);
+  const revisar = trpc.standTienda.revisarExtra.useMutation({ onSuccess: (_r, v) => { toast.success(v.aprobar ? "Pago aprobado: misiones activadas" : "Pago rechazado"); refrescar(); }, onError: e => toast.error(e.message) });
+  const avisar = trpc.standTienda.reenviarAviso.useMutation({ onSuccess: r => toast.success(`Aviso enviado a ${r.email}`), onError: e => toast.error(e.message) });
+  const listaExtras = (extras.data ?? []) as unknown as Extra[];
+  const pendientes = listaExtras.filter(e => e.estado === "pendiente");
+  const lista = (tiendas.data ?? []) as unknown as { id: number; nombre: string; plan: string; planNombre: string; stand: string | null; activa: boolean; vende: boolean; vendidos: number; cupo: number | null; restantes: number; ganancia: number; recaudadoUsd: number; misiones: number; email: string | null }[];
+  const vendidos = lista.reduce((s, t) => s + (t.vende ? t.vendidos : 0), 0), comisiones = lista.reduce((s, t) => s + t.ganancia, 0);
+  const cobradoExtras = listaExtras.filter(e => e.estado === "aprobado").reduce((s, e) => s + e.monto, 0);
+  return (
+    <Panel title="Tiendas con stand" lead="Entran solas cuando su stand queda pagado por completo. Gremio y Gran Gremio venden boletos con cupo y ganan $1 por boleto.">
+      {pendientes.map(e => (
+        <div className="ped__paso" key={e.id}>
+          <h3>{e.tienda} pagó {e.cantidad === 1 ? "1 misión extra" : `${e.cantidad} misiones extra`}</h3>
+          <p>{dinero(e.monto)} por {METODO_EXTRA[e.metodo] ?? e.metodo}{e.referencia ? <>, referencia <strong>{e.referencia}</strong></> : null}.</p>
+          {e.comprobanteUrl && <a className="ped__comprobante" href={e.comprobanteUrl} target="_blank" rel="noreferrer"><img src={e.comprobanteUrl} alt="Comprobante de pago" loading="lazy" /><span>Abrir comprobante</span></a>}
+          <div className="eq-acciones"><button className="btn btn--small" type="button" disabled={revisar.isPending} onClick={() => revisar.mutate({ id: e.id, aprobar: true })}>Aprobar y activar</button>
+            <Confirmar texto="Rechazar" pregunta="¿Rechazar este pago?" si="Sí, rechazar" disabled={revisar.isPending} onSi={() => revisar.mutate({ id: e.id, aprobar: false })} /></div>
+        </div>
+      ))}
+      <dl className="stats stats--wide"><div><dt>Boletos vendidos</dt><dd>{vendidos}</dd></div><div><dt>Comisiones</dt><dd>{dinero(comisiones)}</dd></div><div><dt>Misiones extra cobradas</dt><dd>{dinero(cobradoExtras)}</dd></div></dl>
+      {tiendas.isLoading ? <p className="empty">Cargando…</p> : lista.length === 0 ? <p className="empty">Todavía no hay stands pagados por completo.</p> : (
+        <ul className="rows">{lista.map(t => (
+          <li key={t.id} className="tie__variante">
+            <span className="rows__main"><strong>{t.nombre}</strong>
+              <small>{t.planNombre}{t.stand ? ` · stand ${t.stand}` : ""}{t.activa ? "" : " · suspendida"} · {t.vende ? `${t.vendidos} de ${t.cupo} boletos, le quedan ${t.restantes}${t.restantes === 0 ? " (venta cerrada)" : ""} · recaudó ${dinero(t.recaudadoUsd)}` : "no vende boletos"} · {t.misiones} misiones</small>
+              {t.vende && t.cupo ? <span className="lp__barra"><i style={{ width: `${Math.min(100, (t.vendidos / t.cupo) * 100)}%` }} /></span> : null}</span>
+            <span className="tie__acciones">{t.vende && <span className="rows__side">{dinero(t.ganancia)}</span>}
+              {t.email && t.activa ? <button type="button" className="pa-accion" disabled={avisar.isPending} onClick={() => avisar.mutate({ storeId: t.id })}>Avisarle su acceso</button> : !t.email ? <span className="pa-tenue tie__nota">Sin correo: no puede entrar</span> : null}</span>
+          </li>))}</ul>
+      )}
+    </Panel>
+  );
+}
+
+export { useEvento, ComprasWeb, Boletos, Tipos, Equipo, Codigos, Eventos, LevelPass, DiaDelEvento, TiendasConStand };
+export type { Tipo, Orden, Extra };

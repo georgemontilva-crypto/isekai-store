@@ -5,7 +5,7 @@ import { useStandsSocket } from "@/hooks/useStandsSocket";
 import TableroFest from "@/components/admin/TableroFest";
 import { Panel, Badge, Confirmar, dinero, fecha, paraWhatsApp } from "./ui";
 import { useSubirImagen } from "./Tienda";
-import { useEvento, ComprasWeb, Boletos, Tipos, Equipo, type Tipo, type Orden } from "./Boleteria";
+import { useEvento, ComprasWeb, Boletos, Tipos, Equipo, Codigos, Eventos, LevelPass, DiaDelEvento, TiendasConStand, type Tipo, type Orden, type Extra } from "./Boleteria";
 
 /**
  * World Fest: el tablero del evento, la venta de stands y los patrocinantes.
@@ -303,7 +303,7 @@ function Patrocinantes() {
   );
 }
 
-type VistaFest = "tablero" | "compras" | "boletos" | "tipos" | "equipo" | "stands" | "patrocinantes";
+type VistaFest = "tablero" | "compras" | "boletos" | "tipos" | "equipo" | "levelpass" | "dia" | "stands" | "patrocinantes";
 
 export default function Fest() {
   const [vista, setVista] = useState<VistaFest>("tablero");
@@ -315,22 +315,27 @@ export default function Fest() {
   const pagosStands = (((panel.data as any)?.pagos ?? []) as Pago[]).filter(p => p.estado === "pendiente" && reservas.get(p.reservaId) && reservas.get(p.reservaId)!.estado !== "rechazada").length;
   const comprasWeb = ((ordenes.data ?? []) as unknown as Orden[]).filter(o => o.estado === "pendiente").length;
   const listaTipos = (tipos.data ?? []) as unknown as Tipo[];
+  const extras = trpc.standTienda.extras.useQuery(undefined, { refetchInterval: 60_000 });
+  const misionesPorRevisar = ((extras.data ?? []) as unknown as Extra[]).filter(e => e.estado === "pendiente").length;
   const PESTANAS: { id: VistaFest; texto: string; n?: number }[] = [
-    { id: "tablero", texto: "Tablero" }, { id: "compras", texto: "Compras por la web", n: comprasWeb }, { id: "boletos", texto: "Boletos vendidos" },
-    { id: "tipos", texto: "Tipos de boleto" }, { id: "equipo", texto: "Equipo" }, { id: "stands", texto: "Stands", n: pagosStands }, { id: "patrocinantes", texto: "Patrocinantes" },
+    { id: "tablero", texto: "Tablero" }, { id: "compras", texto: "Compras por la web", n: comprasWeb }, { id: "boletos", texto: "Boletos y códigos" },
+    { id: "tipos", texto: "Tipos y eventos" }, { id: "equipo", texto: "Equipo", n: misionesPorRevisar }, { id: "levelpass", texto: "Level Pass" }, { id: "dia", texto: "El día del evento" },
+    { id: "stands", texto: "Stands", n: pagosStands }, { id: "patrocinantes", texto: "Patrocinantes" },
   ];
-  const sinEvento = <Panel title="Sin evento"><p className="empty">Todavía no hay un evento creado. Créalo desde la pantalla anterior de Boletería.</p></Panel>;
+  const sinEvento = <Panel title="Sin evento"><p className="empty">Todavía no hay un evento creado. Créalo en «Tipos y eventos».</p></Panel>;
   return (
     <>
       <div className="tabs" role="tablist" aria-label="Partes del World Fest">
         {PESTANAS.map(p => <button key={p.id} type="button" role="tab" aria-selected={vista === p.id} className={vista === p.id ? "is-active" : undefined} onClick={() => setVista(p.id)}>{p.texto}{p.n ? <span className="tabs__n tabs__n--hot">{p.n}</span> : null}</button>)}
       </div>
-      {eventos.length > 1 && evento && (vista === "boletos" || vista === "tipos") && <label className="pa-select bol__evento">Evento<select value={evento.id} onChange={e => elegir(Number(e.target.value))}>{eventos.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>}
+      {eventos.length > 1 && evento && ["boletos", "tipos", "levelpass", "dia"].includes(vista) && <label className="pa-select bol__evento">Evento<select value={evento.id} onChange={e => elegir(Number(e.target.value))}>{eventos.map(e => <option key={e.id} value={e.id}>{e.name}</option>)}</select></label>}
       {vista === "tablero" && <Panel title="Tablero del Fest"><TableroFest /></Panel>}
       {vista === "compras" && <ComprasWeb />}
-      {vista === "boletos" && (evento ? <Boletos evento={evento} tipos={listaTipos} /> : sinEvento)}
-      {vista === "tipos" && (evento ? <Tipos evento={evento} tipos={listaTipos} /> : sinEvento)}
-      {vista === "equipo" && <Equipo />}
+      {vista === "boletos" && (evento ? <><Boletos evento={evento} tipos={listaTipos} /><Codigos evento={evento} /></> : sinEvento)}
+      {vista === "tipos" && <>{evento ? <Tipos evento={evento} tipos={listaTipos} /> : null}<Eventos eventos={eventos} actual={evento} /></>}
+      {vista === "equipo" && <><Equipo /><TiendasConStand /></>}
+      {vista === "levelpass" && (evento ? <LevelPass evento={evento} /> : sinEvento)}
+      {vista === "dia" && (evento ? <DiaDelEvento evento={evento} /> : sinEvento)}
       {vista === "stands" && <Stands />}
       {vista === "patrocinantes" && <Patrocinantes />}
     </>
