@@ -3122,6 +3122,9 @@ export const appRouter = router({
       .mutation(({ input }) => suspendCosplayer(input.cosplayerId)),
 
     /** Qué implica eliminarlo: saldo, retiros, códigos y pedidos pendientes */
+    reactivarCosplayer: adminProcedure
+      .input(z.object({ cosplayerId: z.number() }))
+      .mutation(async ({ input }) => { await (await import("./db")).reactivarCosplayer(input.cosplayerId); return { success: true }; }),
     resumenEliminar: adminProcedure
       .input(z.object({ cosplayerId: z.number() }))
       .query(({ input }) => resumenAntesDeEliminar(input.cosplayerId)),

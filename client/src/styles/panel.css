@@ -161,3 +161,4 @@ html .eq.eq.eq .ped__sub { color: var(--ash) !important; }
 .eq .lp__ganador h3 { font-size: clamp(1.75rem, 5vw, 2.75rem); }
 .eq .field input[type="date"] { color-scheme: dark; }
 .eq .rows + .ped__sub, .eq .form + .ped__sub { margin-top: 18px; }
+.gui__datos { white-space: pre-line; }

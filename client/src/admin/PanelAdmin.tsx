@@ -10,6 +10,7 @@ import Pedidos from "./Pedidos";
 import Tienda from "./Tienda";
 import Cotizaciones from "./Cotizaciones";
 import Fest from "./Fest";
+import Guild, { usePendientesGuild } from "./Guild";
 import "@fontsource-variable/saira/wdth.css";
 import "@/styles/equipo.css";
 import "@/styles/panel.css";
@@ -23,10 +24,10 @@ import "@/styles/panel.css";
  * todavía la pantalla del panel anterior, y se va quitando de esa lista a
  * medida que cada parte queda lista.
  */
-type Area = "inicio" | "pedidos" | "tienda" | "cotizaciones" | "fest" | "comunidad" | "web" | "ajustes";
+type Area = "inicio" | "pedidos" | "tienda" | "cotizaciones" | "fest" | "guild" | "comunidad" | "web" | "ajustes";
 const AREAS: { id: Area; texto: string }[] = [
   { id: "inicio", texto: "Inicio" }, { id: "pedidos", texto: "Pedidos" }, { id: "tienda", texto: "Tienda" },
-  { id: "cotizaciones", texto: "Cotizaciones" }, { id: "fest", texto: "World Fest" }, { id: "comunidad", texto: "Comunidad" },
+  { id: "cotizaciones", texto: "Cotizaciones" }, { id: "fest", texto: "World Fest" }, { id: "guild", texto: "Cosplay Guild" }, { id: "comunidad", texto: "Comunidad" },
   { id: "web", texto: "Web" }, { id: "ajustes", texto: "Ajustes" },
 ];
 
@@ -41,7 +42,6 @@ const POR_REHACER: Partial<Record<Area, Vieja[]>> = {
   fest: [
     { texto: "Puesta a punto del evento", detalle: "Cargar la plantilla 2027 y reiniciar la boletería. Solo para preparar un evento nuevo", pc: "boleteria", tel: "boleteria" },
     { texto: "Plano de mesas", detalle: "Ubicar cada mesa de stand en el plano del recinto", pc: "stands", tel: "stands" },
-    { texto: "Cosplay Guild", detalle: "Solicitudes, evaluaciones y retiros", pc: "cosplay", tel: "cosplay" },
   ],
   comunidad: [
     { texto: "Usuarios", detalle: "Las cuentas registradas", pc: "users", tel: "users" },
@@ -89,9 +89,9 @@ function Inicio({ ir }: { ir: (a: Area) => void }) {
   const pagos = trpc.orders.pendingPaymentsCount.useQuery(undefined, { refetchInterval: 30_000 });
   const abonos = trpc.orders.abonosPendientes.useQuery(undefined, { refetchInterval: 30_000 });
   const pedidos = trpc.orders.pendingCount.useQuery(undefined, { refetchInterval: 30_000 });
-  const cosplay = trpc.cosplay.getApplications.useQuery({ status: "pending" }, { refetchInterval: 60_000 });
+  const guild = usePendientesGuild(true);
   const porRevisar = (pagos.data ?? 0) + ((abonos.data as unknown[] | undefined)?.length ?? 0);
-  const solicitudes = (cosplay.data as unknown[] | undefined)?.length ?? 0;
+  const solicitudes = guild.total;
   const nada = !porRevisar && !(pedidos.data ?? 0) && !solicitudes;
   const plural = (n: number, uno: string, varios: string) => `${n} ${n === 1 ? uno : varios}`;
   return (
@@ -103,13 +103,13 @@ function Inicio({ ir }: { ir: (a: Area) => void }) {
               <span className="rows__main"><strong>{plural(porRevisar, "pago por revisar", "pagos por revisar")}</strong><small>Comprobantes y abonos que enviaron los clientes</small></span><ChevronRight size={18} className="rows__side" aria-hidden="true" /></button></li>}
             {(pedidos.data ?? 0) > 0 && <li><button type="button" className="rows__open" onClick={() => ir("pedidos")}>
               <span className="rows__main"><strong>{plural(pedidos.data ?? 0, "pedido recién llegado", "pedidos recién llegados")}</strong><small>Todavía sin empezar a preparar</small></span><ChevronRight size={18} className="rows__side" aria-hidden="true" /></button></li>}
-            {solicitudes > 0 && <li><Link href="/admin?clasico=1&tab=cosplay" className="rows__open">
-              <span className="rows__main"><strong>{plural(solicitudes, "solicitud del Cosplay Guild", "solicitudes del Cosplay Guild")}</strong><small>Abre en el panel anterior</small></span><ChevronRight size={18} className="rows__side" aria-hidden="true" /></Link></li>}
+            {solicitudes > 0 && <li><button type="button" className="rows__open" onClick={() => ir("guild")}>
+              <span className="rows__main"><strong>{plural(solicitudes, "asunto del Cosplay Guild", "asuntos del Cosplay Guild")}</strong><small>{[guild.solicitudes && `${guild.solicitudes} solicitudes`, guild.entregas && `${guild.entregas} entregas`, guild.retiros && `${guild.retiros} retiros`].filter(Boolean).join(" · ")}</small></span><ChevronRight size={18} className="rows__side" aria-hidden="true" /></button></li>}
           </ul>
         )}
       </Panel>
-      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos), Tienda (productos y colecciones), Cotizaciones y World Fest completo (tablero, boletería, equipo, Level Pass, stands y patrocinantes). Lo demás abre todavía las pantallas del panel anterior." >
-        <p className="pa-tenue">Siguen: Cosplay Guild, Comunidad, Web y Ajustes.</p>
+      <Panel title="Panel en construcción" lead="Lo estamos rehaciendo por partes. Ya están nuevos: Pedidos (con sus pagos), Tienda (productos y colecciones), Cotizaciones, World Fest y Cosplay Guild. Lo demás abre todavía las pantallas del panel anterior." >
+        <p className="pa-tenue">Siguen: Comunidad, Web y Ajustes.</p>
       </Panel>
     </>
   );
@@ -120,7 +120,7 @@ export default function PanelAdmin() {
   const busqueda = new URLSearchParams(useSearch());
   // Los avisos y los correos enlazan con ?tab=orders&orden=…: eso abre Pedidos con el pedido buscado
   const tabUrl = busqueda.get("tab");
-  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : tabUrl === "products" || tabUrl === "categories" ? "tienda" : tabUrl === "quotes" ? "cotizaciones" : tabUrl === "stands" || tabUrl === "patrocinantes" ? "fest" : "inicio");
+  const [area, setArea] = useState<Area>(tabUrl === "orders" || tabUrl === "payments" ? "pedidos" : tabUrl === "products" || tabUrl === "categories" ? "tienda" : tabUrl === "quotes" ? "cotizaciones" : tabUrl === "stands" || tabUrl === "patrocinantes" ? "fest" : tabUrl === "cosplay" ? "guild" : "inicio");
   const [telefono, setTelefono] = useState(() => typeof window !== "undefined" && window.innerWidth < 768);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -133,6 +133,7 @@ export default function PanelAdmin() {
   const pagos = trpc.orders.pendingPaymentsCount.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30_000 });
   const pedidos = trpc.orders.pendingCount.useQuery(undefined, { enabled: esAdmin, refetchInterval: 30_000 });
   const pendientes = (pagos.data ?? 0) + (pedidos.data ?? 0);
+  const guild = usePendientesGuild(esAdmin);
   const ir = (a: Area) => { setArea(a); window.scrollTo({ top: 0 }); };
 
   return (
@@ -159,7 +160,7 @@ export default function PanelAdmin() {
             <div className="tabs tabs--page" role="tablist" aria-label="Partes del panel">
               {AREAS.map(a => (
                 <button key={a.id} type="button" role="tab" aria-selected={area === a.id} className={area === a.id ? "is-active" : undefined} onClick={() => ir(a.id)}>
-                  {a.texto}{a.id === "pedidos" && pendientes > 0 ? <span className="tabs__n tabs__n--hot">{pendientes}</span> : null}
+                  {a.texto}{a.id === "pedidos" && pendientes > 0 ? <span className="tabs__n tabs__n--hot">{pendientes}</span> : null}{a.id === "guild" && guild.total > 0 ? <span className="tabs__n tabs__n--hot">{guild.total}</span> : null}
                 </button>
               ))}
             </div>
@@ -169,6 +170,7 @@ export default function PanelAdmin() {
               {area === "tienda" && <Tienda />}
               {area === "cotizaciones" && <Cotizaciones verPedidos={() => ir("pedidos")} />}
               {area === "fest" && <Fest />}
+              {area === "guild" && <Guild />}
               {area !== "inicio" && <PorRehacer area={area} telefono={telefono} />}
             </div>
           </>

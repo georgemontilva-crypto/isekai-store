@@ -1717,6 +1717,13 @@ export async function suspendCosplayer(cosplayerId: number) {
   await db.update(cosplayers).set({ isActive: false }).where(eq(cosplayers.id, cosplayerId));
 }
 
+/** Devuelve al gremio a un cosplayer suspendido (antes no había forma de deshacer la suspensión desde el panel) */
+export async function reactivarCosplayer(cosplayerId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("DB not available");
+  await db.update(cosplayers).set({ isActive: true }).where(eq(cosplayers.id, cosplayerId));
+}
+
 export async function getActiveActivities() {
   const db = await getDb();
   if (!db) {
