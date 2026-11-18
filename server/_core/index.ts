@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { appDeHost } from "./apps";
+import { appDeHost, vigilarApps } from "./apps";
 import { validateEnv } from "./env";
 validateEnv();
 console.log('[DB] DATABASE_URL configured:', !!process.env.DATABASE_URL);
@@ -173,6 +173,12 @@ async function startServer() {
       return crypto.createHash("sha1").update(fsVersion.readFileSync(ruta)).digest("hex").slice(0, 12);
     } catch { return "dev"; }
   })();
+  // Cada dirección dice qué app es: así se sabe si equipo.… y admin.… ya funcionan
+  app.get('/api/app-ping', (req, res) => {
+    res.setHeader('Cache-Control', 'no-store');
+    res.json({ app: appDeHost(req) });
+  });
+
   // Factura de un stand pagado: página lista para imprimir o guardar en PDF
   app.get('/api/factura-stand/:clave', async (req, res) => {
     try {
@@ -361,6 +367,8 @@ async function startServer() {
     void recuperarCampanasInterrumpidas();
     // Reduce poco a poco las imágenes que se subieron sin optimizar
     iniciarOptimizacionImagenes();
+    // Apps aparte: revisa si ya responden en su dirección
+    vigilarApps();
   });
 }
 

@@ -4,6 +4,7 @@
  * Variables necesarias: RESEND_API_KEY, RESEND_FROM, OWNER_EMAIL
  */
 import { ENV } from "./env";
+import { enlaceDeApp } from "./apps";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -455,7 +456,7 @@ export async function notifyStoreActivated(
   storeName: string,
   eventName?: string,
 ): Promise<boolean> {
-  const url = "https://www.isekaiworld.co/vender";
+  const url = enlaceDeApp("equipo", "/vender");
   const content = `
     <h1>Tu tienda ya puede vender boletos</h1>
     <p>Hola <strong>${storeName}</strong>, quedaste autorizada como punto de venta
@@ -464,7 +465,7 @@ export async function notifyStoreActivated(
     <div class="order-box">
       <p><strong>Cómo entrar</strong></p>
       <p style="margin-top:8px">
-        Entra en <a href="${url}">www.isekaiworld.co/vender</a> con <strong>este mismo correo</strong>
+        Entra en <a href="${url}">${url.replace("https://", "")}</a> con <strong>este mismo correo</strong>
         (${storeEmail}). No necesitas contraseña: te llegará un enlace de acceso a tu buzón.
       </p>
     </div>
@@ -573,7 +574,7 @@ export async function notifyStaffActivated(
   eventName?: string,
 ): Promise<boolean> {
   const esPuerta = tipo === "puerta";
-  const url = esPuerta ? "https://www.isekaiworld.co/acceso" : "https://www.isekaiworld.co/vender";
+  const url = enlaceDeApp("equipo", esPuerta ? "/acceso" : "/vender");
 
   const pasos = esPuerta
     ? `1. Antes de que abra el evento, entra y pulsa <strong>Descargar</strong> para tener la lista de boletos.<br>

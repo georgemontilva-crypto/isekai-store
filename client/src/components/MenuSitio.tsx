@@ -6,6 +6,7 @@ import { usePortales } from "@/hooks/usePortales";
 import { openLoginModal } from "@/const";
 import { useLang } from "@/i18n/LangContext";
 import { trpc } from "@/lib/trpc";
+import { useApps } from "@/lib/appsAparte";
 
 /**
  * El menú de toda la web: el mismo en la portada del Fest y en el resto de
@@ -21,6 +22,9 @@ export default function MenuSitio({ abierto, onCerrar, pie }: { abierto: boolean
   const [location] = useLocation();
   const { user, isAuthenticated, logout } = useAuth();
   const portales = usePortales();
+  // El panel de administración vive en su app: en la web solo aparece mientras esa app no funcione
+  const apps = useApps();
+  const panelAqui = user?.role === "admin" && !apps.admin && !apps.cargando;
   const { lang, toggleLang } = useLang();
   const en = lang === "en";
   const { data: ajustes } = trpc.settings.getAll.useQuery();
@@ -87,9 +91,9 @@ export default function MenuSitio({ abierto, onCerrar, pie }: { abierto: boolean
                 </span>
                 <ChevronRight size={18} />
               </Link>
-              {(user?.role === "admin" || miCosplayer) && (
+              {(panelAqui || miCosplayer) && (
                 <div className="ms-cuenta-extra">
-                  {user?.role === "admin" && (
+                  {panelAqui && (
                     <Link href="/admin" onClick={onCerrar} tabIndex={tab}><LayoutDashboard size={15} /> {en ? "Admin panel" : "Panel de administración"}</Link>
                   )}
                   {miCosplayer && (

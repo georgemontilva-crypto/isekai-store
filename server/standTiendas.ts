@@ -1,4 +1,5 @@
 import { sql, eq, and, isNotNull } from "drizzle-orm";
+import { enlaceDeApp } from "./_core/apps";
 import { nanoid } from "nanoid";
 import { getDb } from "./db";
 import { stores, users, levelActivities, eventTickets, events } from "../drizzle/schema";
@@ -147,7 +148,7 @@ async function avisarBienvenida(r: any, p: (typeof PLANES)[Plan], plan: Plan) {
       ${p.vende ? `<li><strong>Punto oficial de venta:</strong> tienes un cupo de ${p.cupo} boletos y ganas US$${COMISION_USD} por cada boleto vendido.</li>` : ""}
       <li>Puedes comprar misiones extra (US$${PRECIO_MISION_EXTRA} cada una) hasta llegar a ${MAX_MISIONES}.</li>
     </ul>
-    <div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/boleteria" class="btn">Entrar a la Boletería →</a></div>
+    <div style="text-align:center;margin:24px 0"><a href="${enlaceDeApp("equipo", "/boleteria")}" class="btn">Entrar a la Boletería →</a></div>
     <p style="color:#9a93a6">Entra con este mismo correo (${r.email}).</p>`,
     `Tu panel de ${plan === "mercader" ? "misiones" : "boletos y misiones"} ya está activo`);
 }
@@ -361,7 +362,7 @@ export async function revisarExtra(id: number, aprobar: boolean) {
       const { sendEmail } = await import("./_core/notification");
       const n = Number(c.cantidad);
       await sendEmail(t.email, aprobar ? `✅ ${n === 1 ? "Tu misión extra está lista" : `Tus ${n} misiones extra están listas`} · Isekai World Fest` : "Tu pago de misiones extra no pudo confirmarse", aprobar
-        ? `<h2>¡Pago confirmado!</h2><p>${t.name} ya tiene ${n} ${n === 1 ? "misión extra disponible" : "misiones extra disponibles"}. Entra a la Boletería para escribirla${n === 1 ? "" : "s"}. Recuerda: una vez puesta, no se puede cambiar.</p><div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/boleteria/misiones" class="btn">Poner mis misiones →</a></div>`
+        ? `<h2>¡Pago confirmado!</h2><p>${t.name} ya tiene ${n} ${n === 1 ? "misión extra disponible" : "misiones extra disponibles"}. Entra a la Boletería para escribirla${n === 1 ? "" : "s"}. Recuerda: una vez puesta, no se puede cambiar.</p><div style="text-align:center;margin:24px 0"><a href="${enlaceDeApp("equipo", "/boleteria/misiones")}" class="btn">Poner mis misiones →</a></div>`
         : `<h2>No pudimos confirmar tu pago</h2><p>No encontramos el pago de $${Number(c.monto).toFixed(2)} por misiones extra de ${t.name}. Revisa la referencia y vuelve a reportarlo, o escríbenos a <a href="mailto:ventas@isekaiworld.co">ventas@isekaiworld.co</a>.</p>`,
         aprobar ? "Ya puedes escribir tus misiones extra" : "Revisa la referencia de tu pago");
     }

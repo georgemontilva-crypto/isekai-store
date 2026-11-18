@@ -11,6 +11,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { useLang } from "@/i18n/LangContext";
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "@/hooks/useSocket";
+import { useApps } from "@/lib/appsAparte";
 
 const collectionImgs = [
   "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&q=80",
@@ -120,6 +121,7 @@ export default function Navbar() {
   const { user, isAuthenticated } = useAuth();
   // Portales por rol (vender, dar EXP, acceso, Level Pass)
   const portales = usePortales();
+  const apps = useApps();
   console.log("[Navbar] user:", user?.email, "role:", user?.role);
   const { totalItems, openCart } = useCart();
   const { t, lang, toggleLang } = useLang();
@@ -420,7 +422,7 @@ export default function Navbar() {
               {lang === "es" ? "EN" : "ES"}
             </button>
 
-            {isAuthenticated && user?.role === "admin" && (
+            {isAuthenticated && user?.role === "admin" && !apps.admin && !apps.cargando && (
               <Link href="/admin" className="iw-icon-btn" aria-label="Panel Admin">
                 <LayoutDashboard size={17} strokeWidth={1.8} />
               </Link>

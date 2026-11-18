@@ -5,6 +5,7 @@ import { COOKIE_NAME } from "@shared/const";
 import { getSessionCookieOptions } from "./_core/cookies";
 import { systemRouter } from "./_core/systemRouter";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { appsActivas } from "./_core/apps";
 import { notifyMisionAceptada, notifyStaffActivated, notifyStoreActivated, notifyOwner, notifyCustomerOrderStatus, notifyCosplayReferralEarned, notifyCosplayTicketsGranted, sendEmail } from "./_core/notification";
 import { orders, orderItems, users } from "../drizzle/schema";
 import { io } from "./_core/socket";
@@ -192,6 +193,11 @@ const pruebasRecientes = new Map<number, number[]>();
 
 export const appRouter = router({
   system: systemRouter,
+
+  // Apps aparte (Equipo y Admin): su dirección si ya funcionan, o null
+  apps: router({
+    activas: publicProcedure.query(() => appsActivas()),
+  }),
 
   auth: router({
     me: publicProcedure.query(({ ctx }) => {

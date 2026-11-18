@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, lazy, Suspense } from "react";
+import { useEffect, useRef, useState, lazy, Suspense, type ReactNode } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";
@@ -82,6 +82,8 @@ const Collections = lazy(() => import("./pages/Collections"));
 import { trpc } from "@/lib/trpc";
 import { useSocket } from "./hooks/useSocket";
 import { APP, ES_APP } from "@/lib/appActual";
+import { useApps } from "@/lib/appsAparte";
+import { useAuth } from "@/_core/hooks/useAuth";
 
 function WelcomeToastHandler() {
   const search = useSearch();
@@ -119,6 +121,45 @@ function ScrollToTop() {
   return null;
 }
 
+/**
+ * En la web, las pantallas de trabajo ya no se abren: cada una vive en su app.
+ * La dirección vieja (un enlace guardado, un correo antiguo) lleva a la misma
+ * pantalla dentro de la app, donde se entra con el correo.
+ *
+ * Solo aplica cuando esa app ya responde en su dirección. Mientras no lo haga,
+ * la pantalla se abre aquí como siempre, para que nadie se quede sin entrada.
+ *
+ *   de="equipo"  → app del Equipo
+ *   de="admin"   → app de Admin
+ *   de="gestion" → pantallas del administrador que también están en la del Equipo
+ */
+function SoloEnSuApp({ de, publico, children }: { de: "equipo" | "admin" | "gestion"; publico?: boolean; children: ReactNode }) {
+  const apps = useApps();
+  const destino = de === "admin" ? apps.admin : de === "gestion" ? apps.admin ?? apps.equipo : apps.equipo;
+
+  /* El QR impreso en cada boleto apunta a la web (/vender/CÓDIGO). Si lo abre
+     el comprador con su cámara, sigue a su Level Pass aquí mismo; solo quien
+     es del equipo pasa a la app. */
+  const { isAuthenticated, loading } = useAuth();
+  const { data: acceso, isLoading: viendoRol } = trpc.tickets.miAcceso.useQuery(undefined, { enabled: Boolean(publico && destino && isAuthenticated), retry: false });
+  const esDelEquipo = Boolean(acceso?.esTienda || acceso?.esStaff || acceso?.rol === "admin");
+  const decidiendo = apps.cargando || Boolean(publico && destino && (loading || (isAuthenticated && viendoRol)));
+  const mudar = Boolean(destino) && !decidiendo && (!publico || esDelEquipo);
+
+  useEffect(() => {
+    if (mudar && destino) window.location.replace(`${destino}${window.location.pathname}${window.location.search}`);
+  }, [mudar, destino]);
+
+  if (decidiendo || mudar) return <div className="min-h-screen bg-black" />;
+  return <>{children}</>;
+}
+/** La Boletería en la web: la gestión (?v=) es del administrador, el resto del Equipo */
+function BoleteriaEnWeb() {
+  const v = new URLSearchParams(useSearch()).get("v");
+  const deAdmin = v === "admin" || v === "stands" || v === "tablero";
+  return <SoloEnSuApp de={deAdmin ? "gestion" : "equipo"}><Boleteria /></SoloEnSuApp>;
+}
+
 function Router() {
   return (
     <Suspense fallback={<div className="min-h-screen bg-white" />}>
@@ -145,7 +186,8 @@ function Router() {
         <Route path="/checkout" component={Checkout} />
         <Route path="/checkout/success" component={CheckoutSuccess} />
         <Route path="/account" component={Account} />
-        <Route path="/admin" component={AdminRoute} />
+        {/* El panel vive en admin.isekaiworld.co */}
+        <Route path="/admin">{() => <SoloEnSuApp de="admin"><AdminRoute /></SoloEnSuApp>}</Route>
         <Route path="/nosotros" component={Nosotros} />
         <Route path="/faq" component={FAQ} />
         <Route path="/politicas" component={Politicas} />
@@ -153,10 +195,10 @@ function Router() {
         {/* Invitación por QR: intencionalmente fuera del menú y del sitemap */}
         <Route path="/invitacion" component={Invitacion} />
         {/* Portal de tiendas: el QR del boleto apunta a /vender/TOKEN */}
-        <Route path="/vender/:token" component={StorePortal} />
-        <Route path="/vender" component={StorePortal} />
+        <Route path="/vender/:token">{() => <SoloEnSuApp de="equipo" publico><StorePortal /></SoloEnSuApp>}</Route>
+        <Route path="/vender">{() => <SoloEnSuApp de="equipo"><StorePortal /></SoloEnSuApp>}</Route>
         {/* Control de acceso: pantalla del portero */}
-        <Route path="/acceso" component={GateControl} />
+        <Route path="/acceso">{() => <SoloEnSuApp de="equipo"><GateControl /></SoloEnSuApp>}</Route>
         {/* Buzón de mejoras del Guild */}
         <Route path="/guild/mejoras" component={GuildFeedback} />
         {/* Zona del evento: espacio propio, fuera de la tienda */}
@@ -166,12 +208,12 @@ function Router() {
         <Route path="/stands" component={Stands} />
         <Route path="/boletos" component={ComprarBoletos} />
         <Route path="/boleto/:token" component={MiBoleto} />
-        <Route path="/staff/rueda" component={StaffRueda} />
-        <Route path="/boleteria/misiones" component={MisionesTienda} />
-        <Route path="/boleteria" component={Boleteria} />
-        {/* La app del Equipo. Su dirección propia es equipo.isekaiworld.co;
-            aquí queda como vista de la misma app dentro de la web */}
-        <Route path="/equipo" component={EquipoApp} />
+        <Route path="/staff/rueda">{() => <SoloEnSuApp de="equipo"><StaffRueda /></SoloEnSuApp>}</Route>
+        <Route path="/boleteria/misiones">{() => <SoloEnSuApp de="equipo"><MisionesTienda /></SoloEnSuApp>}</Route>
+        <Route path="/boleteria" component={BoleteriaEnWeb} />
+        {/* La app del Equipo vive en equipo.isekaiworld.co. Aquí solo se ve
+            mientras esa dirección no funcione */}
+        <Route path="/equipo">{() => <SoloEnSuApp de="equipo"><EquipoApp /></SoloEnSuApp>}</Route>
         {/* Enlace anterior: las invitaciones ya entregadas lo siguen usando */}
         <Route path="/rueda-de-prensa" component={RuedaPrensa} />
         <Route path="/cosplay" component={CosplayLanding} />

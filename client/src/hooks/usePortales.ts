@@ -1,6 +1,7 @@
 import { Handshake, Store, Swords, ScanLine, Ticket, Zap } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { useApps } from "@/lib/appsAparte";
 
 /**
  * Qué portales le tocan a cada persona según su rol. Así cada quien encuentra
@@ -10,6 +11,10 @@ import { useAuth } from "@/_core/hooks/useAuth";
  *   personal → Dar EXP
  *   portero  → Control de acceso
  *   todos    → Level Pass (con boleto: «Mi Level Pass»; sin él, entra escaneando)
+ *
+ * En la web, los accesos de trabajo desaparecen cuando su app aparte ya
+ * funciona (equipo.… y admin.…): ahí es donde se entra. El Level Pass es del
+ * público y se queda.
  */
 export type Portal = {
   clave: "vender" | "xp" | "acceso" | "pass" | "rueda" | "stands" | "misiones";
@@ -23,6 +28,7 @@ export type Portal = {
 
 export function usePortales() {
   const { isAuthenticated } = useAuth();
+  const apps = useApps();
   const opciones = { enabled: isAuthenticated, staleTime: 60_000, retry: false } as const;
   const { data: acceso, isLoading: cargando } = trpc.tickets.miAcceso.useQuery(undefined, opciones);
   const { data: boleto } = trpc.levelPass.miBoleto.useQuery(undefined, opciones);
@@ -58,5 +64,7 @@ export function usePortales() {
     icono: Swords,
     color: "#a78bfa",
   };
-  return { roles, pase, tieneBoleto: Boolean(boleto), todos: [...roles, pase], planStand: acceso?.planStand ?? null, esAdmin: acceso?.rol === "admin", cargando: isAuthenticated && cargando };
+  // Lo que ya se abre en su app no se ofrece en la web (los stands son del administrador)
+  const visibles = apps.cargando ? [] : roles.filter(r => (r.clave === "stands" ? !(apps.admin || apps.equipo) : !apps.equipo));
+  return { roles: visibles, pase, tieneBoleto: Boolean(boleto), todos: [...visibles, pase], planStand: acceso?.planStand ?? null, esAdmin: acceso?.rol === "admin", cargando: (isAuthenticated && cargando) || apps.cargando };
 }

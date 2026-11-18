@@ -5,6 +5,7 @@ import { OrderTimeline } from "@/components/OrderTimeline";
 import { Link, useLocation } from "wouter";
 import { trpc } from "@/lib/trpc";
 import { usePortales } from "@/hooks/usePortales";
+import { useApps } from "@/lib/appsAparte";
 import { useLang } from "@/i18n/LangContext";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useSocket } from "@/hooks/useSocket";
@@ -51,6 +52,7 @@ export default function Account() {
   /** Portal que le toca a esta cuenta, si le toca alguno */
   // Acceso directo al portal que le toca (vender, dar EXP, puerta o su Level Pass)
   const portales = usePortales();
+  const apps = useApps();
   const portal = portales.roles[0] ?? (portales.tieneBoleto ? { ...portales.pase, corto: "Level Pass" } : null);
   const [, navigate] = useLocation();
   const [activeTab, setActiveTab] = useState<Tab>("orders");
@@ -200,7 +202,7 @@ export default function Account() {
         {/* ── Portal de tienda ──
             Si el usuario es una tienda autorizada, aquí tiene su acceso: sin
             esto tendría que recordar la dirección /vender. */}
-        {user?.role === "store" && (
+        {user?.role === "store" && !apps.equipo && !apps.cargando && (
           <div className="w-full max-w-2xl mx-auto mb-6 px-4">
             <Link
               href="/vender"
