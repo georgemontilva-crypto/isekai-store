@@ -1,8 +1,8 @@
 import crypto from "crypto";
-import { and, desc, eq, gt, sql } from "drizzle-orm";
+import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
-import { wfRaid, wfRaidAtaques } from "../drizzle/schema";
+import { users, wfRaid, wfRaidAtaques } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 
@@ -72,7 +72,67 @@ export type EstadoRaid =
       misAtaques: number;
       /** 2 si ya es veterano (daño doble), 1 si no */
       multiplicador: number;
+      /** Los 10 cazadores con más daño en este jefe, de mayor a menor */
+      top: PuestoRaid[];
+      /** Nombre con que este cazador sale en la tabla y su daño total */
+      miNombre: string;
+      miDanio: number;
     };
+
+// ─── Tabla de los 10 con más daño ──────────────────────────────────────────
+export type PuestoRaid = { nombre: string; danio: number };
+
+/**
+ * Nombre que se muestra en público: solo el primer nombre y una inicial.
+ * Nunca el correo: si la cuenta no tiene nombre, sale «Cazador» y su número.
+ */
+export function nombrePublico(nombre: string | null | undefined, id: number): string {
+  const limpio = String(nombre ?? "").replace(/\s+/g, " ").trim();
+  if (!limpio || limpio.includes("@")) return `Cazador ${id}`;
+  const [primero, segundo] = limpio.split(" ");
+  return `${primero.slice(0, 18)}${segundo ? ` ${segundo[0].toUpperCase()}.` : ""}`;
+}
+
+/** Nombre público de cada clave (`u<id de usuario>`); las demás son anónimas */
+async function nombresDeClaves(claves: string[]): Promise<Map<string, string>> {
+  const salida = new Map<string, string>();
+  const ids = claves.map(c => /^u(\d+)$/.exec(c)?.[1]).filter(Boolean).map(Number);
+  const db = await getDb();
+  if (db && ids.length) {
+    const filas = await db.select({ id: users.id, name: users.name }).from(users).where(inArray(users.id, ids));
+    for (const f of filas) salida.set(`u${f.id}`, nombrePublico(f.name, f.id));
+    // Quien eligió un nombre de cazador para Koi-sama sale con ese nombre
+    try {
+      const res: any = await db.execute(sql`SELECT userId, nombre FROM festBossGolpes WHERE userId IN (${sql.join(ids.map(i => sql`${i}`), sql`, `)}) ORDER BY bossId`);
+      const lista: any[] = Array.isArray(res?.[0]) ? res[0] : Array.isArray(res) ? res : res?.rows ?? [];
+      for (const g of lista) if (g?.nombre) salida.set(`u${Number(g.userId)}`, String(g.nombre));
+    } catch { /* la tabla de Koi-sama aún no existe: se usa el nombre de la cuenta */ }
+  }
+  for (const c of claves) if (!salida.has(c)) salida.set(c, "Cazador anónimo");
+  return salida;
+}
+
+/** Se recalcula como mucho cada 15 s, y al momento cuando alguien ataca */
+const TOP_VIGENCIA_MS = 15_000;
+let topGuardado: { raidId: number; hasta: number; top: PuestoRaid[] } | null = null;
+
+async function topRaid(raidId: number): Promise<PuestoRaid[]> {
+  if (topGuardado && topGuardado.raidId === raidId && topGuardado.hasta > Date.now()) return topGuardado.top;
+  const db = await getDb();
+  if (!db) return [];
+  const filas = await db
+    .select({ clave: wfRaidAtaques.clave, total: sql<number>`SUM(${wfRaidAtaques.golpes})` })
+    .from(wfRaidAtaques)
+    .where(and(eq(wfRaidAtaques.raidId, raidId), gt(wfRaidAtaques.golpes, 0)))
+    .groupBy(wfRaidAtaques.clave)
+    // Con el mismo daño va primero quien lo alcanzó antes
+    .orderBy(sql`SUM(${wfRaidAtaques.golpes}) DESC`, sql`MAX(${wfRaidAtaques.id}) ASC`)
+    .limit(10);
+  const nombres = await nombresDeClaves(filas.map(f => f.clave));
+  const top = filas.map(f => ({ nombre: nombres.get(f.clave) ?? "Cazador anónimo", danio: Number(f.total) || 0 }));
+  topGuardado = { raidId, hasta: Date.now() + TOP_VIGENCIA_MS, top };
+  return top;
+}
 
 export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
   try {
@@ -85,10 +145,19 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
       .from(wfRaidAtaques)
       .where(eq(wfRaidAtaques.raidId, r.id));
 
+    // Si la tabla falla, el jefe se sigue viendo: sale sin tabla
+    let top: PuestoRaid[] = [];
+    try { top = await topRaid(r.id); } catch (e) { console.error("[Raid] top:", e); }
+
     let yaAtaco = false;
     let misAtaques = 0;
+    let miNombre = "";
+    let miDanio = 0;
     if (clave) {
-      misAtaques = await ataquesValidos(r.id, clave);
+      ({ ataques: misAtaques, danio: miDanio } = await resumenDeClave(r.id, clave));
+      if (miDanio > 0) {
+        try { miNombre = (await nombresDeClaves([clave])).get(clave) ?? ""; } catch { /* sin nombre no se resalta */ }
+      }
       const [a] = await db
         .select({ id: wfRaidAtaques.id })
         .from(wfRaidAtaques)
@@ -110,6 +179,9 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
       yaAtaco,
       misAtaques,
       multiplicador: misAtaques >= ATAQUES_VETERANO ? MULTIPLICADOR_VETERANO : 1,
+      top,
+      miNombre,
+      miDanio,
     };
   } catch (e) {
     // Si las tablas aún no existen (migración pendiente), el raid no se muestra
@@ -120,12 +192,17 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
 
 /** «clave» identifica al jugador: `u<id de usuario>` */
 /** Ataques que sí sumaron daño (los anulados por trampa quedan con 0) */
-async function ataquesValidos(raidId: number, clave: string): Promise<number> {
+async function resumenDeClave(raidId: number, clave: string): Promise<{ ataques: number; danio: number }> {
   const db = await getDb();
-  if (!db) return 0;
-  const [{ n }] = await db.select({ n: sql<number>`COUNT(*)` }).from(wfRaidAtaques)
+  if (!db) return { ataques: 0, danio: 0 };
+  const [{ n, total }] = await db
+    .select({ n: sql<number>`COUNT(*)`, total: sql<number>`COALESCE(SUM(${wfRaidAtaques.golpes}), 0)` })
+    .from(wfRaidAtaques)
     .where(and(eq(wfRaidAtaques.raidId, raidId), eq(wfRaidAtaques.clave, clave), gt(wfRaidAtaques.golpes, 0)));
-  return Number(n) || 0;
+  return { ataques: Number(n) || 0, danio: Number(total) || 0 };
+}
+async function ataquesValidos(raidId: number, clave: string): Promise<number> {
+  return (await resumenDeClave(raidId, clave)).ataques;
 }
 
 // ─── Ticket de ronda ───────────────────────────────────────────────────────
@@ -257,11 +334,14 @@ export async function atacarRaid(
     WHERE id = ${r.id}
   `);
 
+  // La tabla de los 10 se recalcula con este ataque
+  topGuardado = null;
+
   // Tiempo real: todos los que miran la página ven bajar la vida al instante
   try {
     const estado = await estadoRaid();
     if (io && estado.activo) {
-      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, ...publico } = estado;
+      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, ...publico } = estado;
       io.to("raid").emit("raid:estado", publico);
       // «ref» es una marca aleatoria que manda el navegador que atacó: así no
       // se muestra a sí mismo como «otro cazador». No identifica a nadie.

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import JefeVivo from "@/components/fest/JefeVivo";
-import { Swords } from "lucide-react";
+import { Crown, Swords } from "lucide-react";
 import { useReducedMotion } from "framer-motion";
 import { trpc } from "@/lib/trpc";
 import type { Translations } from "@/i18n/es";
@@ -339,7 +339,7 @@ export default function RaidJefe({
       // atacó hoy) y la de la página, que decide si la pieza está revelada
       utils.raid.estado.setData(undefined, viejo =>
         viejo && viejo.activo
-          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador }
+          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador, miNombre: viejo.miNombre, miDanio: viejo.miDanio }
           : viejo);
     },
     golpe => {
@@ -466,6 +466,10 @@ export default function RaidJefe({
   const pct = data.vidaMax > 0 ? (vidaVista / data.vidaMax) * 100 : 0;
   const caido = data.derrotado;
   const puedeAtacar = !caido && !data.yaAtaco && fase === "listo";
+  // Tabla de los 10 con más daño: la fila propia se reconoce por nombre y daño
+  const top = data.top ?? [];
+  const miDanio = data.miDanio ?? 0;
+  const miFila = miDanio > 0 ? top.findIndex(p => p.nombre === data.miNombre && p.danio === miDanio) : -1;
 
   return (
     <section ref={setSeccion} id="raid" className="ev2-diferida scroll-mt-16 ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
@@ -768,6 +772,34 @@ export default function RaidJefe({
             </button>
           )}
         </div>
+
+        {/* Los 10 cazadores con más daño; el primero lleva la corona */}
+        {top.length > 0 && (
+          <div className="mx-auto mt-10 max-w-md">
+            <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#f43f5e]">{t.raidTopTitulo}</p>
+            <ol className="border border-[#f43f5e]/25 bg-[#12060d]/85">
+              {top.map((p, i) => (
+                <li
+                  key={i}
+                  className={`flex items-center gap-3 px-4 py-2.5 ${i > 0 ? "border-t border-white/[0.06]" : "bg-[#fbbf24]/10"} ${i === miFila && i > 0 ? "bg-[#f43f5e]/10" : ""}`}
+                >
+                  <span className={`w-5 shrink-0 font-mono text-xs tabular-nums ${i === 0 ? "font-bold text-[#fbbf24]" : "text-[#9d7f8f]"}`}>{i + 1}</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5">
+                    <span className={`truncate text-sm font-bold ${i === 0 ? "text-[#fde68a]" : "text-white"}`}>{p.nombre}</span>
+                    {i === 0 && <Crown size={15} className="shrink-0 text-[#fbbf24]" fill="#fbbf24" aria-label={t.raidTopLider} />}
+                    {i === miFila && (
+                      <span className="shrink-0 border border-[#fb7185]/50 px-1.5 py-px font-mono text-[9px] font-bold uppercase tracking-widest text-[#fb7185]">{t.raidTopTu}</span>
+                    )}
+                  </span>
+                  <span className={`shrink-0 font-mono text-sm tabular-nums ${i === 0 ? "font-bold text-[#fde68a]" : "text-[#fecdd3]"}`}>{p.danio.toLocaleString()}</span>
+                </li>
+              ))}
+            </ol>
+            {isAuthenticated && miDanio > 0 && miFila < 0 && (
+              <p className="mt-2 text-right font-mono text-[11px] text-[#9d7f8f]">{t.raidTopMiDanio.replace("{n}", miDanio.toLocaleString())}</p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );

@@ -9,7 +9,11 @@ import { cargarSocketIo } from "@/lib/socketCliente";
  * del jefe y el daño de ese golpe. La conexión es anónima: no hace falta
  * cuenta y no viaja ningún dato personal.
  */
-export type EstadoRaidVivo = { activo: true; vidaMax: number; vida: number; derrotado: boolean; cazadores: number };
+export type EstadoRaidVivo = {
+  activo: true; vidaMax: number; vida: number; derrotado: boolean; cazadores: number;
+  /** Los 10 cazadores con más daño */
+  top: { nombre: string; danio: number }[];
+};
 export type GolpeRaidVivo = { golpes: number; ref: string };
 
 export function useRaidSocket(
