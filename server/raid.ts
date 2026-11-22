@@ -5,6 +5,7 @@ import { getDb } from "./db";
 import { users, wfRaid, wfRaidAtaques } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
+import { revisarDescanso } from "./raidDescansos";
 import { alPrimerGolpe, estadoInvitacion, multiplicadorInvitacion, type EstadoInvitacion } from "./raidInvitaciones";
 
 /**
@@ -93,6 +94,8 @@ export type EstadoRaid =
       motivoX: MotivoX;
       /** Su enlace para invitar y sus bonos por invitación (solo con sesión) */
       invitacion: EstadoInvitacion | null;
+      /** Día sin límite: milisegundos de descanso que le faltan (0 si puede atacar) */
+      descansoMs: number;
       /** Los 10 cazadores con más daño en este jefe, de mayor a menor */
       top: PuestoRaid[];
       /** Nombre con que este cazador sale en la tabla y su daño total */
@@ -192,6 +195,7 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
     let miNombre = "";
     let miDanio = 0;
     let invitacion: EstadoInvitacion | null = null;
+    let descansoMs = 0;
     if (clave) {
       const uid = usuarioDeClave(clave);
       if (uid) invitacion = await estadoInvitacion(uid);
@@ -210,6 +214,10 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
         .limit(1);
       // En un día sin límite siempre puede volver a atacar
       yaAtaco = !!a && !sinLimiteHoy();
+      // …salvo que le toque descansar: cada 20.000 de daño, 30 minutos
+      if (uid && sinLimiteHoy() && r.danio < r.vidaMax) {
+        try { descansoMs = await revisarDescanso(uid, r.id, miDanio); } catch (e) { console.error("[Raid] descanso:", e); }
+      }
     }
 
     return {
@@ -224,6 +232,7 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
       multiplicador: multiplicadorDe(misAtaques, invitacion).x,
       motivoX: multiplicadorDe(misAtaques, invitacion).motivo,
       invitacion,
+      descansoMs,
       top,
       miNombre,
       miDanio,
@@ -408,8 +417,17 @@ export async function atacarRaid(
 
   // Bonos: Refuerzo por invitar (x4), bienvenida (x2) o veterano desde el
   // 5.º ataque válido (x2). Vale el mayor.
-  const previos = await ataquesValidos(r.id, clave);
+  const antes = await resumenDeClave(r.id, clave);
+  const previos = antes.ataques;
   const uid = usuarioDeClave(clave);
+
+  // Día sin límite: cada 20.000 de daño, 30 minutos de descanso
+  if (libre && uid) {
+    let falta = 0;
+    try { falta = await revisarDescanso(uid, r.id, antes.danio); } catch (e) { console.error("[Raid] descanso:", e); }
+    if (falta > 0) return { ok: false as const, motivo: "descanso" as const, descansoMs: falta };
+  }
+
   const multiplicador = multiplicadorDe(previos, uid ? await estadoInvitacion(uid) : null).x;
   const danio = g * multiplicador;
 
@@ -438,6 +456,12 @@ export async function atacarRaid(
   if (!libre) topGuardado = null;
   else if (topGuardado) topGuardado.hasta = Math.min(topGuardado.hasta, Date.now() + 5_000);
 
+  // Con esta tanda puede haber llegado a su descanso
+  let descansoMs = 0;
+  if (libre && uid) {
+    try { descansoMs = await revisarDescanso(uid, r.id, antes.danio + danio); } catch (e) { console.error("[Raid] descanso:", e); }
+  }
+
   // Primer golpe válido de un invitado: quien lo invitó gana su Refuerzo
   if (uid && danio > 0) {
     try { await alPrimerGolpe(uid); } catch (e) { console.error("[Raid] premio por invitar:", e); }
@@ -447,7 +471,7 @@ export async function atacarRaid(
   try {
     const estado = await estadoRaid();
     if (io && estado.activo) {
-      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, motivoX: _o6, invitacion: _o7, ...publico } = estado;
+      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, motivoX: _o6, invitacion: _o7, descansoMs: _o8, ...publico } = estado;
       io.to("raid").emit("raid:estado", publico);
       // «ref» es una marca aleatoria que manda el navegador que atacó: así no
       // se muestra a sí mismo como «otro cazador». No identifica a nadie.
@@ -457,5 +481,5 @@ export async function atacarRaid(
     console.error("[Raid] aviso en vivo:", e);
   }
 
-  return { ok: true as const, golpes: danio, multiplicador, ticket: siguiente() };
+  return { ok: true as const, golpes: danio, multiplicador, ticket: descansoMs > 0 ? null : siguiente(), descansoMs };
 }

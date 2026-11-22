@@ -222,6 +222,26 @@ export default function RaidJefe({
   /** Motivo por el que la sesión se corta sola (trampa, jefe caído, sesión vencida) */
   const finRef = useRef("");
   const terminandoRef = useRef(false);
+  /**
+   * Descanso de cazador (cada 20.000 de daño, 30 minutos): hora local en que
+   * termina. El servidor manda lo que falta, así no depende del reloj del
+   * teléfono. `reloj` solo sirve para repintar la cuenta.
+   */
+  const [descansoFin, setDescansoFin] = useState(0);
+  const [, setReloj] = useState(0);
+  const descansoServidor = data && data.activo ? data.descansoMs ?? 0 : 0;
+  useEffect(() => {
+    setDescansoFin(descansoServidor > 0 ? Date.now() + descansoServidor : 0);
+  }, [descansoServidor]);
+  useEffect(() => {
+    if (descansoFin <= 0) return;
+    const id = window.setInterval(() => {
+      setReloj(n => n + 1);
+      // Terminó: se pide el estado de nuevo y vuelve el botón de atacar
+      if (Date.now() >= descansoFin) { setDescansoFin(0); void utils.raid.estado.invalidate(); }
+    }, 10_000);
+    return () => window.clearInterval(id);
+  }, [descansoFin, utils]);
 
   const [fase, setFase] = useState<Fase>("listo");
   const [cuenta, setCuenta] = useState(3);
@@ -355,7 +375,11 @@ export default function RaidJefe({
       // Cada respuesta trae el ticket de la tanda siguiente
       const nuevo = "ticket" in r ? r.ticket : null;
       if (nuevo) { ticketRef.current = nuevo; ticketEnRef.current = Date.now(); }
+      // Llegó a su descanso (con esta tanda, o ya lo tenía): la sesión se cierra
+      const descanso = "descansoMs" in r ? r.descansoMs ?? 0 : 0;
+      if (descanso > 0) { setDescansoFin(Date.now() + descanso); finRef.current = t.raidDescansoFin; }
       if (r.ok) { sesionRef.current += r.golpes; setSesion(sesionRef.current); }
+      else if (r.motivo === "descanso") { /* ya anotado arriba */ }
       else if (r.motivo === "autoclicker") finRef.current = t.raidTrampa;
       else if (r.motivo === "derrotado") finRef.current = t.raidDerrotado;
       else if (r.motivo === "yaAtaco" || r.motivo === "limite") finRef.current = t.raidYaAtacaste;
@@ -376,7 +400,7 @@ export default function RaidJefe({
     await encolarTanda();
     const total = sesionRef.current;
     setDanioFinal(total);
-    setMensaje(finRef.current || `${total > 0 ? `${t.raidResultado.replace("{n}", total.toLocaleString())} ` : ""}${t.raidLibreOtra}`);
+    setMensaje(`${total > 0 ? `${t.raidResultado.replace("{n}", total.toLocaleString())} ` : ""}${finRef.current || t.raidLibreOtra}`);
     await utils.raid.estado.invalidate();
     setFase("resultado");
   };
@@ -431,7 +455,7 @@ export default function RaidJefe({
       // atacó hoy) y la de la página, que decide si la pieza está revelada
       utils.raid.estado.setData(undefined, viejo =>
         viejo && viejo.activo
-          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador, miNombre: viejo.miNombre, miDanio: viejo.miDanio, motivoX: viejo.motivoX, invitacion: viejo.invitacion }
+          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador, miNombre: viejo.miNombre, miDanio: viejo.miDanio, motivoX: viejo.motivoX, invitacion: viejo.invitacion, descansoMs: viejo.descansoMs }
           : viejo);
     },
     golpe => {
@@ -571,9 +595,9 @@ export default function RaidJefe({
     if (!onEstado) return;
     if (!data || !data.activo) { onEstado(true); return; }
     const ronda = fase === "cuenta" || fase === "jugando" || fase === "enviando";
-    const leToca = !data.derrotado && !data.yaAtaco && fase === "listo" && isAuthenticated;
+    const leToca = !data.derrotado && !data.yaAtaco && fase === "listo" && isAuthenticated && descansoFin <= Date.now();
     onEstado(!ronda && !leToca);
-  }, [onEstado, data, fase, isAuthenticated]);
+  }, [onEstado, data, fase, isAuthenticated, descansoFin]);
 
   if (!data || !data.activo) return null;
 
@@ -583,7 +607,8 @@ export default function RaidJefe({
   const caido = data.derrotado;
   // En un día sin límite se puede volver a atacar nada más terminar
   const libre = !!data.sinLimite && !caido;
-  const puedeAtacar = !caido && !data.yaAtaco && (fase === "listo" || (libre && fase === "resultado"));
+  const enDescanso = !caido && descansoFin > Date.now();
+  const puedeAtacar = !caido && !data.yaAtaco && !enDescanso && (fase === "listo" || (libre && fase === "resultado"));
   // Tabla de los 10 con más daño: la fila propia se reconoce por nombre y daño
   const top = data.top ?? [];
   const miDanio = data.miDanio ?? 0;
@@ -869,6 +894,13 @@ export default function RaidJefe({
               <p className="mt-3 border border-[#a78bfa]/40 bg-[#a78bfa]/10 px-5 py-4 text-sm leading-relaxed text-[#ddd6fe]">
                 {recompensa || t.raidRecompensa}
               </p>
+            </div>
+          )}
+
+          {enDescanso && (fase === "listo" || fase === "resultado") && (
+            <div className="mt-3 border border-[#22d3ee]/50 bg-[#22d3ee]/10 px-5 py-4" role="status">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#67e8f9]">⏳ {t.raidDescansoTitulo}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#d5f5fb]">{t.raidDescansoTexto.replace("{t}", falta(descansoFin))}</p>
             </div>
           )}
 
