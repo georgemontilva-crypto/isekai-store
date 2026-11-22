@@ -5,9 +5,10 @@ import { getDb } from "./db";
  * Vida de los cazadores: el jefe también ataca.
  *
  *  - Cada cazador tiene 2.000 de vida.
- *  - Por cada golpe que da, el jefe le quita 0,4 de vida: con 5.000 golpes
- *    se queda sin vida. Los bonos (x2, x4) multiplican el daño que hace cada
- *    golpe, no la vida que cuesta, así que siguen valiendo la pena.
+ *  - Por cada golpe que da, el jefe le quita 1 de vida: con 2.000 golpes
+ *    se queda sin vida (antes eran 5.000; se bajó para que dure menos).
+ *    Los bonos (x2, x4) multiplican el daño que hace cada golpe, no la vida
+ *    que cuesta, así que siguen valiendo la pena.
  *  - La vida se recupera sola y de forma continua: de 0 a completa en 24 h.
  *  - Sin vida no se puede atacar.
  *
@@ -17,7 +18,7 @@ import { getDb } from "./db";
 export const VIDA_CAZADOR = 2000;
 export const REPOSICION_MS = 24 * 3_600_000;
 /** Golpes que aguanta una vida completa */
-export const GOLPES_POR_VIDA = 5000;
+export const GOLPES_POR_VIDA = 2000;
 export const VIDA_POR_GOLPE = VIDA_CAZADOR / GOLPES_POR_VIDA;
 
 function filas<T = any>(res: any): T[] {
