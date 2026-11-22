@@ -227,6 +227,31 @@ export default function RaidJefe({
    * termina. El servidor manda lo que falta, así no depende del reloj del
    * teléfono. `reloj` solo sirve para repintar la cuenta.
    */
+  /**
+   * Vida del cazador: el jefe le quita vida por cada golpe que da.
+   * `miVida` es la última que confirmó el servidor. Durante una sesión la
+   * vida real se calcula con los golpes dados desde que empezó, y la barra
+   * baja a tirones, cada vez que el jefe «golpea».
+   */
+  const reglasVida = data && data.activo ? data.vidaReglas : null;
+  const vidaServidor = data && data.activo ? data.vidaJugador : null;
+  const [miVida, setMiVida] = useState<number | null>(null);
+  const miVidaRef = useRef(0);
+  const vidaInicioRef = useRef(0);
+  const ultimaVidaRef = useRef<number | null>(null);
+  const [vidaBarra, setVidaBarra] = useState(0);
+  const vidaBarraRef = useRef(0);
+  const barraVidaRef = useRef<HTMLDivElement>(null);
+  const [zarpazo, setZarpazo] = useState<{ id: number; n: number } | null>(null);
+  const faseRef = useRef<Fase>("listo");
+  const fijarVida = (v: number) => { miVidaRef.current = v; setMiVida(v); vidaBarraRef.current = v; setVidaBarra(v); };
+  useEffect(() => {
+    // En plena sesión manda la cuenta local; al terminar se vuelve a la del servidor
+    if (vidaServidor == null || faseRef.current === "cuenta" || faseRef.current === "jugando" || faseRef.current === "enviando") return;
+    fijarVida(vidaServidor);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [vidaServidor]);
+
   const [descansoFin, setDescansoFin] = useState(0);
   const [, setReloj] = useState(0);
   const descansoServidor = data && data.activo ? data.descansoMs ?? 0 : 0;
@@ -244,6 +269,7 @@ export default function RaidJefe({
   }, [descansoFin, utils]);
 
   const [fase, setFase] = useState<Fase>("listo");
+  faseRef.current = fase;
   const [cuenta, setCuenta] = useState(3);
   const [golpes, setGolpes] = useState(0);
   const [restante, setRestante] = useState(RONDA_MS);
@@ -323,6 +349,25 @@ export default function RaidJefe({
     return () => window.clearTimeout(id);
   }, [fase, cuenta]);
 
+  // El jefe ataca: cada 2,2 s cobra en la barra la vida perdida desde su último golpe
+  useEffect(() => {
+    if (fase !== "jugando" || !reglasVida) return;
+    const id = window.setInterval(() => {
+      const real = Math.max(0, vidaInicioRef.current - toquesSesionRef.current * reglasVida.porGolpe);
+      const perdida = vidaBarraRef.current - real;
+      if (perdida < 1) return;
+      vidaBarraRef.current = real;
+      setVidaBarra(real);
+      const zid = ++idNum.current;
+      setZarpazo({ id: zid, n: Math.round(perdida) });
+      window.setTimeout(() => setZarpazo(z => (z?.id === zid ? null : z)), 1100);
+      reanimar(barraVidaRef.current, "ev2-sacudir");
+      try { navigator.vibrate?.(40); } catch { /* no soportado */ }
+    }, 2200);
+    return () => window.clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fase, reglasVida?.porGolpe]);
+
   // Ronda de 10 segundos. En un día sin límite no hay tiempo: los golpes
   // se van mandando por tandas mientras la persona sigue golpeando.
   useEffect(() => {
@@ -378,7 +423,9 @@ export default function RaidJefe({
       // Llegó a su descanso (con esta tanda, o ya lo tenía): la sesión se cierra
       const descanso = "descansoMs" in r ? r.descansoMs ?? 0 : 0;
       if (descanso > 0) { setDescansoFin(Date.now() + descanso); finRef.current = t.raidDescansoFin; }
+      if ("vida" in r && typeof r.vida === "number") ultimaVidaRef.current = r.vida;
       if (r.ok) { sesionRef.current += r.golpes; setSesion(sesionRef.current); }
+      else if (r.motivo === "sinVida") finRef.current = t.raidSinVidaFin;
       else if (r.motivo === "descanso") { /* ya anotado arriba */ }
       else if (r.motivo === "autoclicker") finRef.current = t.raidTrampa;
       else if (r.motivo === "derrotado") finRef.current = t.raidDerrotado;
@@ -392,14 +439,23 @@ export default function RaidJefe({
   };
   const encolarTanda = () => (colaRef.current = colaRef.current.then(tanda, tanda));
 
+  /** Al acabar una sesión la vida queda como la dejó el jefe (el servidor la confirma después) */
+  const cerrarVida = () => {
+    const porGolpe = reglasVida?.porGolpe ?? 0;
+    fijarVida(ultimaVidaRef.current ?? Math.max(0, vidaInicioRef.current - toquesSesionRef.current * porGolpe));
+  };
+
   /** Fin de la sesión sin tiempo: manda lo que falte y muestra el total */
-  const terminar = async () => {
+  const terminar = async (motivo = "") => {
     if (terminandoRef.current) return;
     terminandoRef.current = true;
     setFase("enviando");
     await encolarTanda();
+    // El motivo se anota después de mandar: los últimos golpes sí cuentan
+    if (motivo && !finRef.current) finRef.current = motivo;
     const total = sesionRef.current;
     setDanioFinal(total);
+    cerrarVida();
     setMensaje(`${total > 0 ? `${t.raidResultado.replace("{n}", total.toLocaleString())} ` : ""}${finRef.current || t.raidLibreOtra}`);
     await utils.raid.estado.invalidate();
     setFase("resultado");
@@ -414,9 +470,11 @@ export default function RaidJefe({
         golpes: g, ref: refNavegador, ticket: ticketRef.current,
         intervalos: tq.intervalos.slice(0, 2000), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
       });
+      if ("vida" in r && typeof r.vida === "number") ultimaVidaRef.current = r.vida;
       if (r.ok) setDanioFinal(r.golpes);
       if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())}${r.multiplicador > 1 ? ` ${t.raidBonusX.replace("{n}", String(r.multiplicador))}` : ""} ${data?.activo && data.sinLimite ? t.raidLibreOtra : t.raidVuelve}`);
       else if (r.motivo === "autoclicker") setMensaje(t.raidTrampa);
+      else if (r.motivo === "sinVida") setMensaje(t.raidSinVidaFin);
       else if (r.motivo === "yaAtaco") setMensaje(t.raidYaAtacaste);
       else if (r.motivo === "limite") setMensaje(t.raidLimite);
       else if (r.motivo === "ticket") setMensaje(t.raidError);
@@ -431,6 +489,7 @@ export default function RaidJefe({
         setMensaje(t.raidError);
       }
     }
+    cerrarVida();
     await utils.raid.estado.invalidate();
     setFase("resultado");
   };
@@ -455,7 +514,7 @@ export default function RaidJefe({
       // atacó hoy) y la de la página, que decide si la pieza está revelada
       utils.raid.estado.setData(undefined, viejo =>
         viejo && viejo.activo
-          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador, miNombre: viejo.miNombre, miDanio: viejo.miDanio, motivoX: viejo.motivoX, invitacion: viejo.invitacion, descansoMs: viejo.descansoMs }
+          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador, miNombre: viejo.miNombre, miDanio: viejo.miDanio, motivoX: viejo.motivoX, invitacion: viejo.invitacion, descansoMs: viejo.descansoMs, vidaJugador: viejo.vidaJugador }
           : viejo);
     },
     golpe => {
@@ -511,6 +570,8 @@ export default function RaidJefe({
     sesionRef.current = 0; setSesion(0);
     toquesSesionRef.current = 0; setToques(0);
     finRef.current = ""; terminandoRef.current = false;
+    vidaInicioRef.current = miVidaRef.current; ultimaVidaRef.current = null;
+    vidaBarraRef.current = miVidaRef.current; setVidaBarra(miVidaRef.current); setZarpazo(null);
     setDanioFinal(0);
     setConteo(0);
     golpesRef.current = 0;
@@ -526,6 +587,11 @@ export default function RaidJefe({
   const golpear = (ev: React.PointerEvent<HTMLDivElement>) => {
     // El tope de golpes por ronda solo vale en días normales
     if (fase !== "jugando" || (!sinTiempoRef.current && golpesRef.current >= GOLPES_MAX)) return;
+    // Sin vida no hay más golpes: en un día sin límite la sesión se cierra ahí
+    if (reglasVida && toquesSesionRef.current >= Math.floor(vidaInicioRef.current / reglasVida.porGolpe + 1e-6)) {
+      if (sinTiempoRef.current) void terminar(t.raidSinVidaFin);
+      return;
+    }
     // Registro para el detector: tiempo entre toques, toques no reales y puntos tocados
     const tq = toquesRef.current;
     const ahora = performance.now();
@@ -595,9 +661,9 @@ export default function RaidJefe({
     if (!onEstado) return;
     if (!data || !data.activo) { onEstado(true); return; }
     const ronda = fase === "cuenta" || fase === "jugando" || fase === "enviando";
-    const leToca = !data.derrotado && !data.yaAtaco && fase === "listo" && isAuthenticated && descansoFin <= Date.now();
+    const leToca = !data.derrotado && !data.yaAtaco && fase === "listo" && isAuthenticated && descansoFin <= Date.now() && (miVida == null || !reglasVida || miVida >= reglasVida.porGolpe * 50);
     onEstado(!ronda && !leToca);
-  }, [onEstado, data, fase, isAuthenticated, descansoFin]);
+  }, [onEstado, data, fase, isAuthenticated, descansoFin, miVida, reglasVida]);
 
   if (!data || !data.activo) return null;
 
@@ -608,7 +674,14 @@ export default function RaidJefe({
   // En un día sin límite se puede volver a atacar nada más terminar
   const libre = !!data.sinLimite && !caido;
   const enDescanso = !caido && descansoFin > Date.now();
-  const puedeAtacar = !caido && !data.yaAtaco && !enDescanso && (fase === "listo" || (libre && fase === "resultado"));
+  // Vida del cazador: hacen falta al menos 50 golpes de vida para empezar
+  const vidaMax = data.vidaReglas.max;
+  const vidaMinima = data.vidaReglas.porGolpe * 50;
+  const vidaActual = miVida ?? data.vidaJugador;
+  const sinVida = isAuthenticated && !caido && vidaActual < vidaMinima;
+  const msVida = (v: number) => (Math.max(0, v) / vidaMax) * data.vidaReglas.reposicionMs;
+  const pctVida = Math.max(0, Math.min(100, ((enRonda ? vidaBarra : vidaActual) / vidaMax) * 100));
+  const puedeAtacar = !caido && !data.yaAtaco && !enDescanso && !sinVida && (fase === "listo" || (libre && fase === "resultado"));
   // Tabla de los 10 con más daño: la fila propia se reconoce por nombre y daño
   const top = data.top ?? [];
   const miDanio = data.miDanio ?? 0;
@@ -790,6 +863,8 @@ export default function RaidJefe({
             </div>
           )}
 
+          {zarpazo && <span key={`z${zarpazo.id}`} className="rj-zarpazo-luz" aria-hidden="true" />}
+
           {anuncio && (
             <div key={anuncio.id} className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
               <span className="ev2-flash-rojo" />
@@ -834,6 +909,25 @@ export default function RaidJefe({
         </div>
 
         </div>
+
+        {/* Vida del cazador: el jefe se la va quitando mientras lo golpea */}
+        {isAuthenticated && !caido && (
+          <div className="relative mx-auto mb-6 max-w-md text-left">
+            <div className="mb-1.5 flex items-end justify-between font-mono text-xs uppercase tracking-widest">
+              <span className="text-[#4ade80]">{t.raidVidaTitulo}</span>
+              <span className="tabular-nums text-white">{Math.round(enRonda ? vidaBarra : vidaActual).toLocaleString()} / {vidaMax.toLocaleString()}</span>
+            </div>
+            <div ref={barraVidaRef} className="relative h-3.5 w-full overflow-hidden border border-[#4ade80]/40 bg-[#07140c]">
+              <div className="h-full transition-[width] duration-300" style={{ width: `${pctVida}%`, background: pctVida > 25 ? "linear-gradient(90deg, #15803d, #4ade80)" : "linear-gradient(90deg, #991b1b, #f87171)" }} />
+            </div>
+            {zarpazo && (
+              <p key={zarpazo.id} className="rj-zarpazo-texto font-mono text-xs font-bold text-[#fca5a5]" aria-live="off">
+                {t.raidZarpazo} −{zarpazo.n}
+              </p>
+            )}
+            {!enRonda && <p className="mt-2 text-xs leading-relaxed text-[#9db8a5]">{t.raidVidaAyuda}</p>}
+          </div>
+        )}
 
         {/* Controles y estado de la ronda */}
         <div className="mx-auto max-w-md text-center">
@@ -893,6 +987,15 @@ export default function RaidJefe({
               )}
               <p className="mt-3 border border-[#a78bfa]/40 bg-[#a78bfa]/10 px-5 py-4 text-sm leading-relaxed text-[#ddd6fe]">
                 {recompensa || t.raidRecompensa}
+              </p>
+            </div>
+          )}
+
+          {sinVida && !enRonda && (
+            <div className="mt-3 border border-[#f87171]/50 bg-[#f87171]/10 px-5 py-4 text-left" role="status">
+              <p className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#fca5a5]">☠ {t.raidSinVidaTitulo}</p>
+              <p className="mt-1.5 text-sm leading-relaxed text-[#fde2e2]">
+                {t.raidSinVidaTexto.replace("{t}", falta(Date.now() + msVida(vidaMinima - vidaActual))).replace("{c}", falta(Date.now() + msVida(vidaMax - vidaActual)))}
               </p>
             </div>
           )}

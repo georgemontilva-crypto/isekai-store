@@ -346,7 +346,39 @@ function Patrocinantes() {
   );
 }
 
-type VistaFest = "tablero" | "compras" | "boletos" | "tipos" | "equipo" | "levelpass" | "dia" | "stands" | "patrocinantes";
+/** El Guardián del Portal: cómo va y reiniciarlo con la vida que se elija */
+function JefeRaid() {
+  const utils = trpc.useUtils();
+  const { data, isLoading } = trpc.raid.adminResumen.useQuery(undefined, { refetchInterval: 15_000 });
+  const [vida, setVida] = useState("2000000");
+  const reiniciar = trpc.raid.reiniciar.useMutation({
+    onSuccess: () => { toast.success("Jefe reiniciado: todos empiezan en cero"); utils.raid.adminResumen.invalidate(); },
+    onError: e => toast.error(e.message),
+  });
+  const n = parseInt(vida, 10) || 0;
+  const num = (v: number) => v.toLocaleString("es-VE");
+  return (
+    <Panel title="Jefe del raid" lead="El Guardián del Portal, el jefe que todos golpean desde la web.">
+      {isLoading ? <p className="empty">Cargando…</p> : !data ? <p className="empty">No hay un jefe activo. Reinícialo abajo para crear uno.</p> : (
+        <dl className="stats stats--wide">
+          <div><dt>Vida</dt><dd>{num(data.vida)} / {num(data.vidaMax)}</dd></div>
+          <div><dt>Daño recibido</dt><dd>{num(data.danio)}</dd></div>
+          <div><dt>Cazadores</dt><dd>{num(data.cazadores)}</dd></div>
+          <div><dt>Estado</dt><dd>{data.derrotado ? "Derrotado" : data.sinLimite ? "Vivo · hoy sin límite" : "Vivo"}</dd></div>
+        </dl>
+      )}
+      <form className="form form--inline" onSubmit={(e: FormEvent) => e.preventDefault()}>
+        <label className="field"><span className="field__label">Vida del jefe nuevo</span><input value={vida} onChange={e => setVida(e.target.value.replace(/\D/g, ""))} inputMode="numeric" placeholder="2000000" /></label>
+      </form>
+      <p className="pa-lead">Reiniciar archiva al jefe actual con todo su historial y pone uno nuevo con esa vida. Todos los cazadores empiezan en cero: su daño, la tabla de los 10, el progreso de veterano y la vida completa. Los bonos por invitar se conservan.</p>
+      <p className="ped__pie">
+        <Confirmar texto="Reiniciar jefe" pregunta={`¿Reiniciar al jefe con ${num(n)} de vida? Los contadores de todos quedan en cero.`} si="Sí, reiniciar" disabled={reiniciar.isPending || n < 1000} onSi={() => reiniciar.mutate({ vidaMax: n })} />
+      </p>
+    </Panel>
+  );
+}
+
+type VistaFest = "tablero" | "compras" | "boletos" | "tipos" | "equipo" | "levelpass" | "dia" | "stands" | "patrocinantes" | "jefe";
 
 export default function Fest() {
   const [vista, setVista] = useState<VistaFest>("tablero");
@@ -363,7 +395,7 @@ export default function Fest() {
   const PESTANAS: { id: VistaFest; texto: string; n?: number }[] = [
     { id: "tablero", texto: "Tablero" }, { id: "compras", texto: "Compras por la web", n: comprasWeb }, { id: "boletos", texto: "Boletos y códigos" },
     { id: "tipos", texto: "Tipos y eventos" }, { id: "equipo", texto: "Equipo", n: misionesPorRevisar }, { id: "levelpass", texto: "Level Pass" }, { id: "dia", texto: "El día del evento" },
-    { id: "stands", texto: "Stands", n: pagosStands }, { id: "patrocinantes", texto: "Patrocinantes" },
+    { id: "stands", texto: "Stands", n: pagosStands }, { id: "patrocinantes", texto: "Patrocinantes" }, { id: "jefe", texto: "Jefe del raid" },
   ];
   const sinEvento = <Panel title="Sin evento"><p className="empty">Todavía no hay un evento creado. Créalo en «Tipos y eventos».</p></Panel>;
   return (
@@ -381,6 +413,7 @@ export default function Fest() {
       {vista === "dia" && (evento ? <DiaDelEvento evento={evento} /> : sinEvento)}
       {vista === "stands" && <Stands />}
       {vista === "patrocinantes" && <Patrocinantes />}
+      {vista === "jefe" && <JefeRaid />}
     </>
   );
 }

@@ -34,7 +34,7 @@ import {
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
-import { estadoRaid, atacarRaid, iniciarRonda } from "./raid";
+import { estadoRaid, atacarRaid, iniciarRonda, resumenAdminRaid, reiniciarRaid } from "./raid";
 import * as patro from "./patrocinantes";
 import { permisosDe, esDelEquipo, limpiarPermisos } from "./permisos";
 import { listarEquipo, asignarRol, quitarDelEquipo, pausarRol } from "./equipo";
@@ -1496,6 +1496,11 @@ export const appRouter = router({
     /** Atacar exige cuenta: un ataque por usuario y día */
     /** Ticket firmado para una ronda: sin él no se acepta el ataque */
     iniciar: protectedProcedure.mutation(({ ctx }) => iniciarRonda(ctx.user.id)),
+    // ── Administrador: ver y reiniciar al jefe ──
+    adminResumen: adminProcedure.query(() => resumenAdminRaid()),
+    reiniciar: adminProcedure
+      .input(z.object({ vidaMax: z.number().int().min(1_000).max(100_000_000) }))
+      .mutation(({ input }) => reiniciarRaid(input.vidaMax)),
     /** Cuenta nueva que llegó con el enlace de otro cazador: activa su bono x2 por 24 h */
     unirme: protectedProcedure
       .input(z.object({ codigo: z.string().regex(/^[a-z0-9]{5,14}$/) }))

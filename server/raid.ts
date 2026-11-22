@@ -6,6 +6,7 @@ import { users, wfRaid, wfRaidAtaques } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { revisarDescanso } from "./raidDescansos";
+import { VIDA_CAZADOR, VIDA_POR_GOLPE, REPOSICION_MS, cobrarGolpes, golpesQueAguanta, reponerTodas, vidaDe } from "./raidVidas";
 import { alPrimerGolpe, estadoInvitacion, multiplicadorInvitacion, type EstadoInvitacion } from "./raidInvitaciones";
 
 /**
@@ -54,6 +55,15 @@ function diaVenezuela(): string {
   }).format(new Date());
 }
 
+/**
+ * Fecha alterna de un jefe (10 caracteres, p. ej. «r2.11-22»). Solo se usa el
+ * día en que se reinicia al jefe, para quien ya había atacado al anterior:
+ * así su ataque al jefe nuevo no choca con la regla de una fila por día.
+ */
+function diaAlterno(raidId: number, hoy: string): string {
+  return `r${raidId}.${hoy.slice(5)}`.slice(0, 10);
+}
+
 async function raidActivo() {
   const db = await getDb();
   if (!db) return null;
@@ -96,6 +106,10 @@ export type EstadoRaid =
       invitacion: EstadoInvitacion | null;
       /** Día sin límite: milisegundos de descanso que le faltan (0 si puede atacar) */
       descansoMs: number;
+      /** Vida del cazador: el jefe le quita vida por cada golpe que da */
+      vidaJugador: number;
+      /** Reglas de la vida, iguales para todos */
+      vidaReglas: { max: number; porGolpe: number; reposicionMs: number };
       /** Los 10 cazadores con más daño en este jefe, de mayor a menor */
       top: PuestoRaid[];
       /** Nombre con que este cazador sale en la tabla y su daño total */
@@ -196,9 +210,11 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
     let miDanio = 0;
     let invitacion: EstadoInvitacion | null = null;
     let descansoMs = 0;
+    let vidaJugador = VIDA_CAZADOR;
     if (clave) {
       const uid = usuarioDeClave(clave);
       if (uid) invitacion = await estadoInvitacion(uid);
+      if (uid) { try { vidaJugador = await vidaDe(uid); } catch (e) { console.error("[Raid] vida:", e); } }
       ({ ataques: misAtaques, danio: miDanio } = await resumenDeClave(r.id, clave));
       if (miDanio > 0) {
         try { miNombre = (await nombresDeClaves([clave])).get(clave) ?? ""; } catch { /* sin nombre no se resalta */ }
@@ -209,7 +225,7 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
         .where(and(
           eq(wfRaidAtaques.raidId, r.id),
           eq(wfRaidAtaques.clave, clave),
-          eq(wfRaidAtaques.dia, diaVenezuela()),
+          inArray(wfRaidAtaques.dia, [diaVenezuela(), diaAlterno(r.id, diaVenezuela())]),
         ))
         .limit(1);
       // En un día sin límite siempre puede volver a atacar
@@ -233,6 +249,8 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
       motivoX: multiplicadorDe(misAtaques, invitacion).motivo,
       invitacion,
       descansoMs,
+      vidaJugador,
+      vidaReglas: { max: VIDA_CAZADOR, porGolpe: VIDA_POR_GOLPE, reposicionMs: REPOSICION_MS },
       top,
       miNombre,
       miDanio,
@@ -388,9 +406,15 @@ export async function atacarRaid(
 
   // Cada cazador tiene una fila por día. En un día sin límite, las tandas
   // siguientes se suman a esa misma fila.
-  const dia = hoy;
+  let dia = hoy;
   const [ya] = await db.select({ id: wfRaidAtaques.id }).from(wfRaidAtaques)
-    .where(and(eq(wfRaidAtaques.raidId, r.id), eq(wfRaidAtaques.clave, clave), eq(wfRaidAtaques.dia, hoy))).limit(1);
+    .where(and(eq(wfRaidAtaques.raidId, r.id), eq(wfRaidAtaques.clave, clave), inArray(wfRaidAtaques.dia, [hoy, diaAlterno(r.id, hoy)]))).limit(1);
+  if (!ya) {
+    // Hoy ya atacó a un jefe anterior (se reinició): su fila de hoy lleva la fecha alterna
+    const [otro] = await db.select({ id: wfRaidAtaques.id }).from(wfRaidAtaques)
+      .where(and(eq(wfRaidAtaques.clave, clave), eq(wfRaidAtaques.dia, hoy), sql`${wfRaidAtaques.raidId} <> ${r.id}`)).limit(1);
+    if (otro) dia = diaAlterno(r.id, hoy);
+  }
   // Un día normal: un ataque por cazador (se comprueba aquí además del índice)
   if (ya && !libre) return { ok: false as const, motivo: "yaAtaco" as const };
 
@@ -428,8 +452,18 @@ export async function atacarRaid(
     if (falta > 0) return { ok: false as const, motivo: "descanso" as const, descansoMs: falta };
   }
 
+  // El jefe también ataca: cada golpe cuesta vida, y sin vida no se puede atacar
+  let golpesValidos = g;
+  if (uid) {
+    let vida = VIDA_CAZADOR;
+    try { vida = await vidaDe(uid); } catch (e) { console.error("[Raid] vida:", e); }
+    const aguanta = golpesQueAguanta(vida);
+    if (aguanta <= 0) return { ok: false as const, motivo: "sinVida" as const, vida };
+    golpesValidos = Math.min(g, aguanta);
+  }
+
   const multiplicador = multiplicadorDe(previos, uid ? await estadoInvitacion(uid) : null).x;
-  const danio = g * multiplicador;
+  const danio = golpesValidos * multiplicador;
 
   if (ya) {
     // Día sin límite: otra tanda del mismo cazador
@@ -456,6 +490,12 @@ export async function atacarRaid(
   if (!libre) topGuardado = null;
   else if (topGuardado) topGuardado.hasta = Math.min(topGuardado.hasta, Date.now() + 5_000);
 
+  // El jefe cobra los golpes en vida del cazador
+  let vida = VIDA_CAZADOR;
+  if (uid) {
+    try { vida = await cobrarGolpes(uid, golpesValidos); } catch (e) { console.error("[Raid] vida:", e); }
+  }
+
   // Con esta tanda puede haber llegado a su descanso
   let descansoMs = 0;
   if (libre && uid) {
@@ -471,7 +511,7 @@ export async function atacarRaid(
   try {
     const estado = await estadoRaid();
     if (io && estado.activo) {
-      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, motivoX: _o6, invitacion: _o7, descansoMs: _o8, ...publico } = estado;
+      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, motivoX: _o6, invitacion: _o7, descansoMs: _o8, vidaJugador: _o9, ...publico } = estado;
       io.to("raid").emit("raid:estado", publico);
       // «ref» es una marca aleatoria que manda el navegador que atacó: así no
       // se muestra a sí mismo como «otro cazador». No identifica a nadie.
@@ -481,5 +521,48 @@ export async function atacarRaid(
     console.error("[Raid] aviso en vivo:", e);
   }
 
-  return { ok: true as const, golpes: danio, multiplicador, ticket: descansoMs > 0 ? null : siguiente(), descansoMs };
+  return { ok: true as const, golpes: danio, multiplicador, ticket: descansoMs > 0 ? null : siguiente(), descansoMs, vida };
+}
+
+// ─── Administración: ver y reiniciar al jefe ───────────────────────────────
+export async function resumenAdminRaid() {
+  const db = await getDb();
+  const r = await raidActivo();
+  if (!db || !r) return null;
+  const [{ cazadores, ataques }] = await db
+    .select({ cazadores: sql<number>`COUNT(DISTINCT ${wfRaidAtaques.clave})`, ataques: sql<number>`COUNT(*)` })
+    .from(wfRaidAtaques).where(eq(wfRaidAtaques.raidId, r.id));
+  return {
+    id: r.id, vidaMax: r.vidaMax, danio: r.danio, vida: Math.max(0, r.vidaMax - r.danio),
+    derrotado: r.danio >= r.vidaMax, cazadores: Number(cazadores) || 0, ataques: Number(ataques) || 0,
+    sinLimite: sinLimiteHoy(),
+  };
+}
+
+/**
+ * Reinicia al jefe: el actual se archiva (con todo su historial) y entra uno
+ * nuevo con la vida indicada. Como los ataques van por jefe, los contadores
+ * de todos quedan en cero: daño, tabla de los 10 y progreso de veterano.
+ * También se repone la vida de todos los cazadores y se quitan los descansos.
+ */
+export async function reiniciarRaid(vidaMax: number) {
+  const db = await getDb();
+  if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Sin base de datos" });
+  const [anterior] = await db.select({ nombre: wfRaid.nombre }).from(wfRaid).orderBy(desc(wfRaid.id)).limit(1);
+  await db.update(wfRaid).set({ activo: false }).where(eq(wfRaid.activo, true));
+  await db.insert(wfRaid).values({ nombre: anterior?.nombre ?? "Guardián del Portal", vidaMax, danio: 0, activo: true });
+  try { await reponerTodas(); } catch (e) { console.error("[Raid] reponer vidas:", e); }
+  try { await db.execute(sql`DELETE FROM wfRaidDescansos`); } catch { /* la tabla aún no existe */ }
+  topGuardado = null;
+  ticketVigente.clear();
+  // Quien tiene la página abierta ve al jefe nuevo al momento
+  try {
+    const estado = await estadoRaid();
+    if (io && estado.activo) {
+      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, motivoX: _o6, invitacion: _o7, descansoMs: _o8, vidaJugador: _o9, ...publico } = estado;
+      io.to("raid").emit("raid:estado", publico);
+    }
+  } catch (e) { console.error("[Raid] aviso de reinicio:", e); }
+  console.log(`[Raid] jefe reiniciado con ${vidaMax} de vida`);
+  return resumenAdminRaid();
 }
