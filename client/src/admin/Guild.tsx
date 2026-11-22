@@ -19,7 +19,7 @@ const lista = <T,>(v: unknown): T[] => { if (Array.isArray(v)) return v as T[]; 
 const enlaceRed = (red: string, v: string) => /^https?:\/\//.test(v) ? v : `https://${red}.com/${red === "tiktok" || red === "youtube" ? "@" : ""}${v.replace(/^@/, "")}`;
 
 type Solicitud = { id: number; artisticName: string | null; photo: string | null; gallery: unknown; bio: string | null; fullName: string; lastName: string; age: number; city: string; country: string; address: string; phone: string; email: string; experience: number; instagram: string | null; tiktok: string | null; youtube: string | null; facebook: string | null; twitter: string | null; whyIsekai: string | null; status: string; rejectionReason: string | null; createdAt: string };
-type Cosplayer = { id: number; artisticName: string; photo: string | null; tier: string | null; totalFollowers: number | null; ticketBalance: number | null; cashBalance: string | null; referralCode: string | null; username: string | null; isActive: boolean | null; approvedAt: string | null };
+type Cosplayer = { id: number; artisticName: string; photo: string | null; tier: string | null; totalFollowers: number | null; ticketBalance: number | null; cashBalance: string | null; referralCode: string | null; username: string | null; isActive: boolean | null; approvedAt: string | null; correoSolicitud?: string | null; correoCuenta?: string | null };
 type Entrega = { id: number; cosplayerId: number; evidenceUrl: string; status: string; pointsAwarded: number | null; createdAt: string; artisticName: string | null; tier: string | null; activityTitle: string | null; activityBasePoints: number | null; phase: number; activityPhases: number | null };
 type Retiro = { id: number; cosplayerId: number; amount: string; status: string; paymentMethod: string | null; paymentDetails: string | null; notes: string | null; createdAt: string };
 type Mision = { id: number; title: string; description: string | null; basePoints: number; type: string; deadline: string | null; phases: number; active: boolean | null };
@@ -187,6 +187,24 @@ function Retiros({ nombres }: { nombres: Map<number, string> }) {
 }
 
 // ── Cosplayers ───────────────────────────────────────────────────────────────
+/** Correos con los que se registró: el de su solicitud y, si es otro, el de su cuenta */
+function CorreosCosplayer({ c }: { c: Cosplayer }) {
+  const solicitud = (c.correoSolicitud ?? "").trim();
+  const cuenta = (c.correoCuenta ?? "").trim();
+  const iguales = solicitud.toLowerCase() === cuenta.toLowerCase();
+  const copiar = (v: string) => navigator.clipboard.writeText(v).then(() => toast.success("Correo copiado"), () => toast.error("No se pudo copiar"));
+  const fila = (titulo: string, v: string) => (
+    <div><dt>{titulo}</dt><dd><a href={`mailto:${v}`}>{v}</a><small><button type="button" className="pa-accion" onClick={() => copiar(v)}>Copiar</button></small></dd></div>
+  );
+  return (
+    <dl className="ped__datos">
+      {!solicitud && !cuenta && <div><dt>Correo</dt><dd><span className="pa-tenue">No tiene correo registrado</span></dd></div>}
+      {solicitud && fila(iguales || !cuenta ? "Correo" : "Correo de la solicitud", solicitud)}
+      {cuenta && !iguales && fila(solicitud ? "Correo de la cuenta" : "Correo", cuenta)}
+    </dl>
+  );
+}
+
 function FichaCosplayer({ c, alCerrar }: { c: Cosplayer; alCerrar: () => void }) {
   const utils = trpc.useUtils();
   const refrescar = () => { void utils.cosplay.invalidate(); };
@@ -205,6 +223,7 @@ function FichaCosplayer({ c, alCerrar }: { c: Cosplayer; alCerrar: () => void })
   return (
     <div className="ped__ficha">
       {c.isActive === false && <p className="notice" role="status">Suspendido: no aparece en el Guild ni puede hacer misiones.</p>}
+      <CorreosCosplayer c={c} />
       <form className="form form--inline" onSubmit={(e: FormEvent) => { e.preventDefault(); nivel.mutate({ cosplayerId: c.id, tier: f.nivel, totalFollowers: parseInt(f.seguidores, 10) || 0 }); }}>
         <label className="field"><span className="field__label">Nivel</span><select value={f.nivel} onChange={e => setF({ ...f, nivel: e.target.value as Nivel })}>{(Object.keys(NIVEL) as Nivel[]).map(n => <option key={n} value={n}>{NIVEL[n].texto} · tickets ×{NIVEL[n].por}</option>)}</select></label>
         <label className="field"><span className="field__label">Seguidores en total</span><input value={f.seguidores} onChange={e => setF({ ...f, seguidores: e.target.value.replace(/\D/g, "") })} inputMode="numeric" /></label>
@@ -236,10 +255,10 @@ function Cosplayers({ todos, cargando }: { todos: Cosplayer[]; cargando: boolean
   const [buscar, setBuscar] = useState("");
   const [abierto, setAbierto] = useState<number | null>(null);
   const q = buscar.trim().toLowerCase();
-  const visibles = todos.filter(c => !q || [c.artisticName, c.username ?? "", c.referralCode ?? ""].some(v => v.toLowerCase().includes(q)));
+  const visibles = todos.filter(c => !q || [c.artisticName, c.username ?? "", c.referralCode ?? "", c.correoSolicitud ?? "", c.correoCuenta ?? ""].some(v => v.toLowerCase().includes(q)));
   return (
     <Panel title="Cosplayers" lead="Quienes ya están en el Guild: su nivel, sus tickets y su saldo.">
-      <label className="field ped__buscar"><span className="field__label">Buscar</span><input value={buscar} onChange={e => setBuscar(e.target.value)} type="search" placeholder="Nombre artístico, usuario o código" /></label>
+      <label className="field ped__buscar"><span className="field__label">Buscar</span><input value={buscar} onChange={e => setBuscar(e.target.value)} type="search" placeholder="Nombre artístico, usuario, código o correo" /></label>
       {cargando ? <p className="empty">Cargando…</p> : visibles.length === 0 ? <p className="empty">{q ? `Nadie coincide con «${buscar.trim()}».` : "Todavía no hay cosplayers en el Guild."}</p> : (
         <ul className="ped">
           {visibles.map(c => {

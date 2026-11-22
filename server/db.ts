@@ -1701,7 +1701,15 @@ export async function getCosplayApplications(status?: string) {
 export async function getAllCosplayers() {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(cosplayers).orderBy(desc(cosplayers.approvedAt));
+  // Con sus correos (solo los ve el administrador): el que puso en la
+  // solicitud y el de la cuenta con la que entra
+  const filas = await db
+    .select({ c: cosplayers, correoSolicitud: cosplayApplications.email, correoCuenta: users.email })
+    .from(cosplayers)
+    .leftJoin(cosplayApplications, eq(cosplayApplications.id, cosplayers.applicationId))
+    .leftJoin(users, eq(users.id, cosplayers.userId))
+    .orderBy(desc(cosplayers.approvedAt));
+  return filas.map(f => ({ ...f.c, correoSolicitud: f.correoSolicitud ?? null, correoCuenta: f.correoCuenta ?? null }));
 }
 
 export async function updateCosplayerTier(input: { cosplayerId: number; tier: string; totalFollowers: number }) {
