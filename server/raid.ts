@@ -32,7 +32,7 @@ const ATAQUES_POR_IP = 12;
 /**
  * Días sin límite (fecha de Venezuela, AAAA-MM-DD): ese día no hay tope de
  * ataques por cazador ni por red, y tampoco hay tiempo de ronda: se golpea
- * sin parar y el navegador va mandando los golpes por tandas.
+ * sin parar, sin tope de golpes, y el navegador los va mandando por tandas.
  * Sigue haciendo falta cuenta y sigue activo el detector de auto clicker.
  * Para que nadie mande golpes que no dio, cada cazador tiene una sola
  * cadena de tickets y cada tanda no puede traer más golpes de los que caben
@@ -268,8 +268,12 @@ function firmaTicket(userId: number, inicio: number, nonce: string) {
 
 /** Día sin límite: el último ticket entregado a cada cazador (una sola cadena) */
 const ticketVigente = new Map<number, string>();
-/** Toques por segundo que puede dar una persona (con dos dedos) */
-const TOQUES_POR_SEGUNDO = 13;
+/**
+ * Día sin límite: no hay tope fijo de golpes. Lo único que se comprueba es
+ * que quepan en el tiempo que pasó, a un ritmo que ninguna persona alcanza
+ * ni con varios dedos.
+ */
+const TOQUES_POR_SEGUNDO = 40;
 
 export function iniciarRonda(userId: number): { ticket: string } {
   const inicio = Date.now();
@@ -306,32 +310,37 @@ function validarTicket(userId: number, ticket: string, libre = false): TicketLei
 
 // ─── Detector de auto clicker ──────────────────────────────────────────────
 /**
- * Umbrales pensados para NO castigar a quien toca rápido con dos dedos:
- * se mira el patrón de toda la ronda, no un toque suelto.
- *  - Demasiado rápido: más de la mitad de los intervalos bajo 35 ms, o la
- *    mediana bajo 40 ms (≈25+ toques por segundo sostenidos: no es humano).
- *  - Ritmo mecánico: intervalos casi idénticos (variación < 10 %).
- *  - Mismo punto: casi todos los toques en el mismo píxel con ritmo regular.
- *  - Clics generados por programa (no son toques reales).
- *  - Datos incompletos: los tiempos no cuadran con los golpes enviados.
+ * Solo marca lo que una persona no puede hacer, ni con varios dedos ni
+ * haciendo clic muy rápido sin mover el ratón. Se mira el patrón de toda la
+ * tanda, no un toque suelto, y con menos de 30 golpes no se juzga.
+ *  - Demasiado rápido: más del 80 % de los intervalos bajo 20 ms (50 o más
+ *    toques por segundo sostenidos). Dos dedos que caen casi a la vez dan
+ *    intervalos cortos sueltos, pero nunca tantos.
+ *  - Ritmo mecánico: 40 intervalos o más casi idénticos (variación < 4 %).
+ *    Una persona, por constante que sea, varía bastante más.
+ *  - Mismo punto: todos los toques en el mismo píxel y además con ritmo de
+ *    máquina (variación < 6 %). Hacer clic rápido sin mover el ratón no basta.
+ *  - Clics generados por programa: al menos la mitad de los golpes.
+ *  - Datos incompletos: llegan muchos menos tiempos que golpes.
  */
 export type AnalisisToques = { intervalos: number[]; sinteticos: number; posiciones: number };
-export const INTERVALO_HUMANO_MS = 35;
+export const INTERVALO_HUMANO_MS = 20;
+/** Tiempos entre toques que el navegador manda como mucho por tanda */
+export const MAX_INTERVALOS = 2000;
+const MUESTRA_MINIMA = 30;
 
 export function detectarTrampa(golpes: number, a: AnalisisToques): string | null {
-  if (a.sinteticos > 0) return "clics_sinteticos";
-  if (golpes < 15) return null;                        // muy pocos toques para juzgar
+  if (golpes < MUESTRA_MINIMA) return null;            // muy pocos toques para juzgar
+  if (a.sinteticos >= Math.max(10, golpes * 0.5)) return "clics_sinteticos";
   const iv = a.intervalos.filter(n => Number.isFinite(n) && n >= 0);
-  if (iv.length < Math.floor((golpes - 1) * 0.8)) return "datos_incompletos";
-  const ordenados = [...iv].sort((x, y) => x - y);
-  const mediana = ordenados[Math.floor(ordenados.length / 2)];
+  if (iv.length < Math.floor((Math.min(golpes, MAX_INTERVALOS) - 1) * 0.6)) return "datos_incompletos";
   const rapidos = iv.filter(n => n < INTERVALO_HUMANO_MS).length;
-  if (rapidos / iv.length > 0.5 || mediana < 40) return "demasiado_rapido";
+  if (rapidos / iv.length > 0.8) return "demasiado_rapido";
   const media = iv.reduce((s, n) => s + n, 0) / iv.length;
   const desvio = Math.sqrt(iv.reduce((s, n) => s + (n - media) ** 2, 0) / iv.length);
   const variacion = media > 0 ? desvio / media : 0;
-  if (iv.length >= 20 && variacion < 0.1) return "ritmo_mecanico";
-  if (iv.length >= 20 && a.posiciones <= 2 && variacion < 0.2) return "mismo_punto";
+  if (iv.length >= 40 && variacion < 0.04) return "ritmo_mecanico";
+  if (iv.length >= 40 && a.posiciones <= 1 && variacion < 0.06) return "mismo_punto";
   return null;
 }
 
@@ -356,7 +365,7 @@ export async function atacarRaid(
     if (t.estado !== "ok") return { ok: false as const, motivo: "ticket" as const, ticket: siguiente() };
     // Sin tiempo de ronda, la tanda no puede traer más golpes de los que caben
     // en lo que duró (con 2 s de margen por la red)
-    if (libre) tope = Math.min(GOLPES_MAX, Math.ceil((t.edad / 1000 + 2) * TOQUES_POR_SEGUNDO));
+    if (libre) tope = Math.ceil((t.edad / 1000 + 2) * TOQUES_POR_SEGUNDO);
   }
   const g = Math.max(0, Math.min(tope, Math.floor(golpes)));
 

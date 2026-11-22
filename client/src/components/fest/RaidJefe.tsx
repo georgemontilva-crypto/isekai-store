@@ -350,7 +350,7 @@ export default function RaidJefe({
     try {
       const r = await atacar.mutateAsync({
         golpes: g, ref: refNavegador, ticket: ticketRef.current,
-        intervalos: tq.intervalos.slice(0, 400), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
+        intervalos: tq.intervalos.slice(0, 2000), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
       });
       // Cada respuesta trae el ticket de la tanda siguiente
       const nuevo = "ticket" in r ? r.ticket : null;
@@ -388,7 +388,7 @@ export default function RaidJefe({
       const tq = toquesRef.current;
       const r = await atacar.mutateAsync({
         golpes: g, ref: refNavegador, ticket: ticketRef.current,
-        intervalos: tq.intervalos.slice(0, 400), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
+        intervalos: tq.intervalos.slice(0, 2000), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
       });
       if (r.ok) setDanioFinal(r.golpes);
       if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())}${r.multiplicador > 1 ? ` ${t.raidBonusX.replace("{n}", String(r.multiplicador))}` : ""} ${data?.activo && data.sinLimite ? t.raidLibreOtra : t.raidVuelve}`);
@@ -500,7 +500,8 @@ export default function RaidJefe({
   };
 
   const golpear = (ev: React.PointerEvent<HTMLDivElement>) => {
-    if (fase !== "jugando" || golpesRef.current >= GOLPES_MAX) return;
+    // El tope de golpes por ronda solo vale en días normales
+    if (fase !== "jugando" || (!sinTiempoRef.current && golpesRef.current >= GOLPES_MAX)) return;
     // Registro para el detector: tiempo entre toques, toques no reales y puntos tocados
     const tq = toquesRef.current;
     const ahora = performance.now();

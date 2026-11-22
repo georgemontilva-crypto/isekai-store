@@ -34,7 +34,7 @@ import {
 } from "./levelPass";
 import { getReferralCash, getReferralTickets, REFERRAL_TIERS } from "@shared/referral";
 import { reprocesarTanda, pendientesDeReprocesar } from "./reprocesarImagenes";
-import { estadoRaid, atacarRaid, iniciarRonda, GOLPES_MAX } from "./raid";
+import { estadoRaid, atacarRaid, iniciarRonda } from "./raid";
 import * as patro from "./patrocinantes";
 import { permisosDe, esDelEquipo, limpiarPermisos } from "./permisos";
 import { listarEquipo, asignarRol, quitarDelEquipo, pausarRol } from "./equipo";
@@ -1505,12 +1505,13 @@ export const appRouter = router({
       }),
     atacar: protectedProcedure
       .input(z.object({
-        golpes: z.number().int().min(0).max(GOLPES_MAX * 2),
+        // El tope real lo pone el servidor según el día (ver atacarRaid)
+        golpes: z.number().int().min(0).max(100_000),
         /** Marca aleatoria del navegador para reconocer su propio aviso en vivo */
         ref: z.string().regex(/^[A-Za-z0-9]{4,16}$/).optional(),
         ticket: z.string().max(120),
         /** Milisegundos entre toques (para detectar auto clickers) */
-        intervalos: z.array(z.number().int().min(0).max(60_000)).max(400),
+        intervalos: z.array(z.number().int().min(0).max(60_000)).max(2000),
         /** Clics generados por programa (no son toques reales) */
         sinteticos: z.number().int().min(0).max(10_000),
         /** Cuántos puntos distintos de la pantalla se tocaron */
