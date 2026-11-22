@@ -326,6 +326,9 @@ export default function HomeEvento() {
   const [invitado, setInvitado] = useState(() => !!invitacionPendiente());
   const utilsRaid = trpc.useUtils();
   const unirme = trpc.raid.unirme.useMutation();
+  // Día sin límite de ataques: se avisa en la puerta y en la tarjeta del jefe
+  const { data: raidEstado } = trpc.raid.estado.useQuery(undefined, { refetchInterval: 60_000 });
+  const raidLibre = !!(raidEstado && raidEstado.activo && raidEstado.sinLimite && !raidEstado.derrotado);
   const canjeando = useRef(false);
   useEffect(() => {
     if (!LLEGO_CON_INVITACION) return;
@@ -766,11 +769,13 @@ export default function HomeEvento() {
             <Titulo n={8} intro={en ? "Enter the dungeon and choose your boss: the Gate Guardian or Koi-sama." : "Entra a la mazmorra y elige a tu jefe: el Guardián del Portal o Koi-sama."}>{capitulos[7][1]}</Titulo>
           </div>
         </div>
-        <MazmorraJefe en={en} aviso={invitado && !isAuthenticated ? e.v2.raidInvInvitado : undefined} jefes={[
+        <MazmorraJefe en={en} avisos={[...(raidLibre ? [e.v2.raidLibrePuerta] : []), ...(invitado && !isAuthenticated ? [e.v2.raidInvInvitado] : [])]} jefes={[
           {
             clave: "guardian", nombre: en ? "The Gate Guardian" : "El Guardián del Portal", rango: "S", color: "#f43f5e",
             tipo: en ? "Community raid" : "Raid comunitario",
-            detalle: en ? "One attack a day. Everyone's hits add up." : "Un ataque al día. Los golpes de todos se suman.",
+            detalle: raidLibre
+              ? (en ? "Today only: unlimited attacks. Everyone's hits add up." : "Solo por hoy: ataques sin límite. Los golpes de todos se suman.")
+              : (en ? "One attack a day. Everyone's hits add up." : "Un ataque al día. Los golpes de todos se suman."),
             aparicion: en ? "BOSS DETECTED" : "JEFE DETECTADO",
             imagen: s("wf_raid_jefe"),
             render: onEstado => <RaidJefe

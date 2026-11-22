@@ -11,6 +11,8 @@ import { cargarSocketIo } from "@/lib/socketCliente";
  */
 export type EstadoRaidVivo = {
   activo: true; vidaMax: number; vida: number; derrotado: boolean; cazadores: number;
+  /** Hoy no hay límite de ataques */
+  sinLimite: boolean;
   /** Los 10 cazadores con más daño */
   top: { nombre: string; danio: number }[];
 };

@@ -29,6 +29,17 @@ const MULTIPLICADOR_VETERANO = 2;
 /** Ataques por IP y día */
 const ATAQUES_POR_IP = 12;
 
+/**
+ * Días sin límite de ataques (fecha de Venezuela, AAAA-MM-DD): ese día cada
+ * cazador puede atacar todas las veces que quiera y no hay tope por red.
+ * Sigue valiendo todo lo demás: cuenta, ronda de 10 segundos, tope de golpes
+ * por ronda y detector de auto clicker. Termina solo a la medianoche.
+ */
+const DIAS_SIN_LIMITE = ["2026-11-22"];
+export function sinLimiteHoy(): boolean {
+  return DIAS_SIN_LIMITE.includes(diaVenezuela());
+}
+
 /** Día actual en Venezuela (AAAA-MM-DD): el reinicio es a medianoche local */
 function diaVenezuela(): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -67,6 +78,8 @@ export type EstadoRaid =
       vida: number;
       derrotado: boolean;
       cazadores: number;
+      /** Hoy no hay límite de ataques (día especial) */
+      sinLimite: boolean;
       /** Si esta clave ya atacó hoy */
       yaAtaco: boolean;
       /** Ataques válidos de este cazador en este jefe */
@@ -192,7 +205,8 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
           eq(wfRaidAtaques.dia, diaVenezuela()),
         ))
         .limit(1);
-      yaAtaco = !!a;
+      // En un día sin límite siempre puede volver a atacar
+      yaAtaco = !!a && !sinLimiteHoy();
     }
 
     return {
@@ -201,6 +215,7 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
       vida: Math.max(0, r.vidaMax - r.danio),
       derrotado: r.danio >= r.vidaMax,
       cazadores: Number(n) || 0,
+      sinLimite: sinLimiteHoy(),
       yaAtaco,
       misAtaques,
       multiplicador: multiplicadorDe(misAtaques, invitacion).x,
@@ -316,14 +331,29 @@ export async function atacarRaid(
     if (t !== "ok") return { ok: false as const, motivo: "ticket" as const };
   }
 
-  const dia = diaVenezuela();
+  const hoy = diaVenezuela();
+  const libre = sinLimiteHoy();
   const g = Math.max(0, Math.min(GOLPES_MAX, Math.floor(golpes)));
 
-  const [{ n: porIp }] = await db
-    .select({ n: sql<number>`COUNT(*)` })
-    .from(wfRaidAtaques)
-    .where(and(eq(wfRaidAtaques.raidId, r.id), eq(wfRaidAtaques.ip, ip), eq(wfRaidAtaques.dia, dia)));
-  if (Number(porIp) >= ATAQUES_POR_IP) return { ok: false as const, motivo: "limite" as const };
+  if (!libre) {
+    const [{ n: porIp }] = await db
+      .select({ n: sql<number>`COUNT(*)` })
+      .from(wfRaidAtaques)
+      .where(and(eq(wfRaidAtaques.raidId, r.id), eq(wfRaidAtaques.ip, ip), eq(wfRaidAtaques.dia, hoy)));
+    if (Number(porIp) >= ATAQUES_POR_IP) return { ok: false as const, motivo: "limite" as const };
+  }
+
+  // Cada cazador tiene una fila por día. En un día sin límite, el primer
+  // ataque lleva la fecha (así cuenta como «atacó hoy») y los siguientes una
+  // marca propia de 10 caracteres, para no chocar con esa regla.
+  let dia = hoy;
+  const [ya] = await db.select({ id: wfRaidAtaques.id }).from(wfRaidAtaques)
+    .where(and(eq(wfRaidAtaques.raidId, r.id), eq(wfRaidAtaques.clave, clave), eq(wfRaidAtaques.dia, hoy))).limit(1);
+  if (ya) {
+    // Un día normal: un ataque por cazador (se comprueba aquí además del índice)
+    if (!libre) return { ok: false as const, motivo: "yaAtaco" as const };
+    dia = `L${Date.now().toString(36).slice(-8).padStart(8, "0")}${crypto.randomBytes(1).toString("hex")[0]}`;
+  }
 
   // Auto clicker: el ataque cuenta como el del día, pero con 0 de daño
   const trampa = extra ? detectarTrampa(g, extra.analisis) : null;

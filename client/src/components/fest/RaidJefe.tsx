@@ -311,7 +311,7 @@ export default function RaidJefe({
         intervalos: tq.intervalos.slice(0, 400), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
       });
       if (r.ok) setDanioFinal(r.golpes);
-      if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())}${r.multiplicador > 1 ? ` ${t.raidBonusX.replace("{n}", String(r.multiplicador))}` : ""} ${t.raidVuelve}`);
+      if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())}${r.multiplicador > 1 ? ` ${t.raidBonusX.replace("{n}", String(r.multiplicador))}` : ""} ${data?.activo && data.sinLimite ? t.raidLibreOtra : t.raidVuelve}`);
       else if (r.motivo === "autoclicker") setMensaje(t.raidTrampa);
       else if (r.motivo === "yaAtaco") setMensaje(t.raidYaAtacaste);
       else if (r.motivo === "limite") setMensaje(t.raidLimite);
@@ -489,7 +489,9 @@ export default function RaidJefe({
   const vidaVista = Math.max(0, data.vida - (enRonda ? golpes * (data.multiplicador ?? 1) : 0));
   const pct = data.vidaMax > 0 ? (vidaVista / data.vidaMax) * 100 : 0;
   const caido = data.derrotado;
-  const puedeAtacar = !caido && !data.yaAtaco && fase === "listo";
+  // En un día sin límite se puede volver a atacar nada más terminar
+  const libre = !!data.sinLimite && !caido;
+  const puedeAtacar = !caido && !data.yaAtaco && (fase === "listo" || (libre && fase === "resultado"));
   // Tabla de los 10 con más daño: la fila propia se reconoce por nombre y daño
   const top = data.top ?? [];
   const miDanio = data.miDanio ?? 0;
@@ -516,6 +518,14 @@ export default function RaidJefe({
         </p>
         <h2 className="ev-display mb-4 text-[28px] leading-[1.05] sm:text-5xl">{t.raidTitulo}</h2>
         <p className="mb-10 max-w-2xl text-[15px] leading-relaxed text-[#c9a8b8]">{t.raidTexto}</p>
+
+        {/* Día especial: hoy no hay límite de ataques */}
+        {libre && (
+          <div className="mb-8 border border-[#22d3ee]/50 bg-[#22d3ee]/10 px-5 py-4">
+            <p className="font-mono text-[11px] font-bold uppercase tracking-[0.25em] text-[#67e8f9]">⚡ {t.raidLibreTitulo}</p>
+            <p className="mt-1.5 text-sm leading-relaxed text-[#d5f5fb]">{t.raidLibreTexto}</p>
+          </div>
+        )}
 
         {/* Barra de vida compartida */}
         <div ref={arenaRef} className="scroll-mt-20">
@@ -798,47 +808,67 @@ export default function RaidJefe({
               disabled={iniciarRonda.isPending}
               className="ev-notch ev-press ev2-latido inline-flex items-center gap-2 bg-[#f43f5e] px-10 py-4 text-sm font-bold uppercase tracking-wider text-white"
             >
-              <Swords size={18} /> {t.raidAtacar}
+              <Swords size={18} /> {fase === "resultado" ? t.raidAtacarOtra : t.raidAtacar}
             </button>
           )}
         </div>
 
         {/* Invitar: compartir el enlace propio y ver los bonos activos */}
-        {isAuthenticated && inv && !caido && !enRonda && (
-          <div className="mx-auto mt-10 max-w-md border border-[#fbbf24]/35 bg-[#fbbf24]/[0.07] px-5 py-5">
+        {!caido && !enRonda && (
+          <div className="mx-auto mt-10 max-w-md border border-[#fbbf24]/35 bg-[#fbbf24]/[0.07] px-5 py-5 text-left">
             <p className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#fbbf24]">{t.raidInvTitulo}</p>
-            <p className="mt-2 text-sm leading-relaxed text-[#f3e6c4]">{t.raidInvTexto}</p>
-            <div className="mt-4 flex gap-2">
+            <p className="mt-2 text-sm leading-relaxed text-[#f3e6c4]">{t.raidInvIntro}</p>
+
+            <p className="mt-4 text-sm font-bold text-white">{t.raidInvGanas}</p>
+            <ul className="mt-1.5 space-y-1 text-sm leading-relaxed text-[#fde68a]">
+              <li className="flex gap-2"><span aria-hidden="true">⚡</span><span>{t.raidInvGanasTu}</span></li>
+              <li className="flex gap-2"><span aria-hidden="true">⚡</span><span>{t.raidInvGanasInvitado}</span></li>
+            </ul>
+
+            <p className="mt-4 text-sm font-bold text-white">{t.raidInvCondiciones}</p>
+            <ul className="mt-1.5 list-disc space-y-1 pl-5 text-[13px] leading-relaxed text-[#d9cba6]">
+              {[t.raidInvCond1, t.raidInvCond2, t.raidInvCond3, t.raidInvCond4, t.raidInvCond5].map(c => <li key={c}>{c}</li>)}
+            </ul>
+
+            {isAuthenticated && inv ? (
+              <div className="mt-5 flex gap-2">
+                <button
+                  onClick={() => compartirInvitacion(enlaceInv)}
+                  className="ev-press min-h-[44px] flex-1 bg-[#fbbf24] px-4 text-sm font-bold uppercase tracking-wider text-[#1a1204]"
+                >
+                  {t.raidInvCompartir}
+                </button>
+                <button
+                  onClick={() => copiarInvitacion(enlaceInv)}
+                  className="ev-press min-h-[44px] shrink-0 border border-[#fbbf24]/60 px-4 text-sm font-bold uppercase tracking-wider text-[#fde68a]"
+                >
+                  {invCopiado ? t.raidInvCopiado : t.raidInvCopiar}
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={() => compartirInvitacion(enlaceInv)}
-                className="ev-press min-h-[44px] flex-1 bg-[#fbbf24] px-4 text-sm font-bold uppercase tracking-wider text-[#1a1204]"
+                onClick={openLoginModal}
+                className="ev-press mt-5 min-h-[44px] w-full border border-[#fbbf24]/60 px-4 text-sm font-bold uppercase tracking-wider text-[#fde68a]"
               >
-                {t.raidInvCompartir}
+                {t.raidInvEntrar}
               </button>
-              <button
-                onClick={() => copiarInvitacion(enlaceInv)}
-                className="ev-press min-h-[44px] shrink-0 border border-[#fbbf24]/60 px-4 text-sm font-bold uppercase tracking-wider text-[#fde68a]"
-              >
-                {invCopiado ? t.raidInvCopiado : t.raidInvCopiar}
-              </button>
-            </div>
-            {inv.refuerzoHasta > 0 && (
+            )}
+            {inv && inv.refuerzoHasta > 0 && (
               <p className="mt-4 text-sm font-bold leading-relaxed text-[#fde68a]">
                 ⚡ {t.raidInvActivo.replace("{t}", falta(inv.refuerzoHasta))} {inv.acumulados < 2 ? t.raidInvSuma : t.raidInvTope}
               </p>
             )}
-            {inv.refuerzoHasta === 0 && inv.esperaHasta > 0 && (
+            {inv && inv.refuerzoHasta === 0 && inv.esperaHasta > 0 && (
               <p className="mt-4 text-sm leading-relaxed text-[#f3e6c4]">
                 {t.raidInvEspera.replace("{f}", new Date(inv.esperaHasta).toLocaleDateString(idioma, { day: "numeric", month: "long" }))}
               </p>
             )}
-            {inv.bonoHasta > 0 && inv.refuerzoHasta === 0 && (
+            {inv && inv.bonoHasta > 0 && inv.refuerzoHasta === 0 && (
               <p className="mt-4 text-sm font-bold leading-relaxed text-[#fde68a]">⚡ {t.raidInvBono.replace("{t}", falta(inv.bonoHasta))}</p>
             )}
-            {inv.invitados > 0 && (
+            {inv && inv.invitados > 0 && (
               <p className="mt-2 font-mono text-[11px] text-[#c9b98f]">{t.raidInvUnidos.replace("{n}", String(inv.invitados))}</p>
             )}
-            <p className="mt-3 text-xs leading-relaxed text-[#a89a78]">{t.raidInvRegla}</p>
           </div>
         )}
 
