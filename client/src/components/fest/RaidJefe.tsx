@@ -20,6 +20,8 @@ import { enlaceDeInvitacion, invitacionPendiente } from "@/lib/invitacion";
  */
 const RONDA_MS = 10_000;
 const GOLPES_MAX = 130;
+/** Día sin límite: no hay tiempo de ronda; los golpes se mandan por tandas cada 8 s */
+const TANDA_MS = 8_000;
 
 /** Color del combo según lo largo que va */
 function colorCombo(n: number) {
@@ -204,6 +206,23 @@ export default function RaidJefe({
     ultimo: 0, intervalos: [], sinteticos: 0, puntos: new Set(),
   });
 
+  /** Día sin límite: se golpea sin tiempo de ronda hasta tocar «Terminar» */
+  const sinTiempo = !!(data && data.activo && data.sinLimite);
+  const sinTiempoRef = useRef(sinTiempo);
+  sinTiempoRef.current = sinTiempo;
+  /** Daño ya confirmado por el servidor en esta sesión sin tiempo */
+  const [sesion, setSesion] = useState(0);
+  const sesionRef = useRef(0);
+  /** Golpes dados en toda la sesión (para el combo); `golpes` son los que faltan por mandar */
+  const [toques, setToques] = useState(0);
+  const toquesSesionRef = useRef(0);
+  /** Las tandas salen de una en una, en orden */
+  const colaRef = useRef<Promise<void>>(Promise.resolve());
+  const ticketEnRef = useRef(0);
+  /** Motivo por el que la sesión se corta sola (trampa, jefe caído, sesión vencida) */
+  const finRef = useRef("");
+  const terminandoRef = useRef(false);
+
   const [fase, setFase] = useState<Fase>("listo");
   const [cuenta, setCuenta] = useState(3);
   const [golpes, setGolpes] = useState(0);
@@ -284,9 +303,16 @@ export default function RaidJefe({
     return () => window.clearTimeout(id);
   }, [fase, cuenta]);
 
-  // Ronda de 10 segundos
+  // Ronda de 10 segundos. En un día sin límite no hay tiempo: los golpes
+  // se van mandando por tandas mientras la persona sigue golpeando.
   useEffect(() => {
     if (fase !== "jugando") return;
+    if (sinTiempoRef.current) {
+      const id = window.setInterval(() => {
+        void encolarTanda().then(() => { if (finRef.current) void terminar(); });
+      }, TANDA_MS);
+      return () => window.clearInterval(id);
+    }
     const inicio = performance.now();
     const id = window.setInterval(() => {
       const r = Math.max(0, RONDA_MS - (performance.now() - inicio));
@@ -300,6 +326,60 @@ export default function RaidJefe({
     return () => window.clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fase]);
+
+  const pedirTicket = async () => {
+    try {
+      ticketRef.current = (await iniciarRonda.mutateAsync()).ticket;
+      ticketEnRef.current = Date.now();
+    } catch { /* se reintenta en la tanda siguiente */ }
+  };
+
+  /** Manda los golpes acumulados desde la tanda anterior */
+  const tanda = async () => {
+    if (finRef.current) return;
+    const g = golpesRef.current;
+    if (g === 0) {
+      // Sin golpes: si el ticket ya es viejo se renueva, para que no venza
+      if (Date.now() - ticketEnRef.current > 60_000) await pedirTicket();
+      return;
+    }
+    const tq = toquesRef.current;
+    golpesRef.current = 0;
+    setGolpes(0);
+    toquesRef.current = { ultimo: tq.ultimo, intervalos: [], sinteticos: 0, puntos: new Set() };
+    try {
+      const r = await atacar.mutateAsync({
+        golpes: g, ref: refNavegador, ticket: ticketRef.current,
+        intervalos: tq.intervalos.slice(0, 400), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
+      });
+      // Cada respuesta trae el ticket de la tanda siguiente
+      const nuevo = "ticket" in r ? r.ticket : null;
+      if (nuevo) { ticketRef.current = nuevo; ticketEnRef.current = Date.now(); }
+      if (r.ok) { sesionRef.current += r.golpes; setSesion(sesionRef.current); }
+      else if (r.motivo === "autoclicker") finRef.current = t.raidTrampa;
+      else if (r.motivo === "derrotado") finRef.current = t.raidDerrotado;
+      else if (r.motivo === "yaAtaco" || r.motivo === "limite") finRef.current = t.raidYaAtacaste;
+      else if (!nuevo) await pedirTicket();
+    } catch (e: unknown) {
+      const codigo = (e as { data?: { code?: string } })?.data?.code;
+      if (codigo === "UNAUTHORIZED") { finRef.current = t.raidNecesitasCuenta; openLoginModal(); }
+      else await pedirTicket();
+    }
+  };
+  const encolarTanda = () => (colaRef.current = colaRef.current.then(tanda, tanda));
+
+  /** Fin de la sesión sin tiempo: manda lo que falte y muestra el total */
+  const terminar = async () => {
+    if (terminandoRef.current) return;
+    terminandoRef.current = true;
+    setFase("enviando");
+    await encolarTanda();
+    const total = sesionRef.current;
+    setDanioFinal(total);
+    setMensaje(finRef.current || `${total > 0 ? `${t.raidResultado.replace("{n}", total.toLocaleString())} ` : ""}${t.raidLibreOtra}`);
+    await utils.raid.estado.invalidate();
+    setFase("resultado");
+  };
 
   const enviar = async () => {
     setFase("enviando");
@@ -403,6 +483,10 @@ export default function RaidJefe({
       setMensaje(t.raidError); setFase("resultado"); return;
     }
     toquesRef.current = { ultimo: 0, intervalos: [], sinteticos: 0, puntos: new Set() };
+    ticketEnRef.current = Date.now();
+    sesionRef.current = 0; setSesion(0);
+    toquesSesionRef.current = 0; setToques(0);
+    finRef.current = ""; terminandoRef.current = false;
     setDanioFinal(0);
     setConteo(0);
     golpesRef.current = 0;
@@ -426,7 +510,9 @@ export default function RaidJefe({
     tq.puntos.add(`${Math.round(ev.clientX)},${Math.round(ev.clientY)}`);
     golpesRef.current += 1;
     setGolpes(golpesRef.current);
-    const n = golpesRef.current;
+    toquesSesionRef.current += 1;
+    setToques(toquesSesionRef.current);
+    const n = toquesSesionRef.current;
     reanimar(jefeRef.current, "ev2-sacudir");
     reanimar(barraRef.current, "ev2-barra-golpe");
 
@@ -452,6 +538,11 @@ export default function RaidJefe({
   };
 
   const caidoYa = !!(data && data.activo && data.derrotado);
+  // Si el jefe cae mientras golpeas sin tiempo, la sesión se cierra sola
+  useEffect(() => {
+    if (caidoYa && fase === "jugando" && sinTiempoRef.current) void terminar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [caidoYa, fase]);
   useEffect(() => {
     if (!caidoYa || !recompensaImg || !enVista || revelacion !== "no") return;
     if (reducir) { setRevelacion("revelada"); return; }
@@ -584,7 +675,7 @@ export default function RaidJefe({
           className={`relative mx-auto mb-8 aspect-square w-full max-w-[300px] sm:max-w-[340px] lg:max-w-[500px] select-none ${fase === "jugando" ? "cursor-crosshair" : ""}`}
           style={{ touchAction: fase === "jugando" ? "none" : "auto", WebkitTouchCallout: "none" }}
         >
-          <div className={`absolute inset-[8%] rounded-full ${fase === "jugando" && golpes >= 50 ? "ev2-furia" : ""}`} style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />
+          <div className={`absolute inset-[8%] rounded-full ${fase === "jugando" && toques >= 50 ? "ev2-furia" : ""}`} style={{ background: caido ? "radial-gradient(circle, rgba(120,120,140,0.15), transparent 70%)" : "radial-gradient(circle, rgba(244,63,94,0.35), rgba(127,29,29,0.12) 55%, transparent 72%)" }} />
           {!caido && revelacion === "no" && <FondoJefe />}
 
           {revelacion !== "revelada" && (
@@ -658,17 +749,17 @@ export default function RaidJefe({
             </span>
           ))}
 
-          {fase === "jugando" && golpes > 0 && (
+          {fase === "jugando" && toques > 0 && (
             <div className="pointer-events-none absolute right-0 top-0 text-right" aria-live="off">
-              <p className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: colorCombo(golpes) }}>
+              <p className="font-mono text-[10px] uppercase tracking-[0.3em]" style={{ color: colorCombo(toques) }}>
                 {t.raidCombo}
               </p>
               <p
-                key={golpes}
+                key={toques}
                 className="ev2-combo ev-display text-4xl tabular-nums"
-                style={{ color: colorCombo(golpes), textShadow: `0 0 18px ${colorCombo(golpes)}` }}
+                style={{ color: colorCombo(toques), textShadow: `0 0 18px ${colorCombo(toques)}` }}
               >
-                x{golpes}
+                x{toques}
               </p>
             </div>
           )}
@@ -720,7 +811,24 @@ export default function RaidJefe({
 
         {/* Controles y estado de la ronda */}
         <div className="mx-auto max-w-md text-center">
-          {fase === "jugando" && (
+          {/* Día sin límite: sin contador de tiempo; se golpea hasta tocar «Terminar» */}
+          {fase === "jugando" && sinTiempo && (
+            <>
+              <p className="mb-3 text-sm font-bold text-white">{t.raidToca}</p>
+              <div className="mb-4 flex items-center justify-between font-mono text-sm">
+                <span className="text-[#fb7185]">{toques.toLocaleString()} {t.raidGolpes}</span>
+                <span className="tabular-nums text-white">{t.raidDanioSesion} {(sesion + golpes * (data.multiplicador ?? 1)).toLocaleString()}</span>
+              </div>
+              <button
+                onClick={() => void terminar()}
+                className="ev-press min-h-[44px] border border-white/30 px-8 text-sm font-bold uppercase tracking-wider text-white"
+              >
+                {t.raidTerminar}
+              </button>
+            </>
+          )}
+
+          {fase === "jugando" && !sinTiempo && (
             <>
               <p className="mb-3 text-sm font-bold text-white">{t.raidToca}</p>
               <div className="mb-2 flex items-center justify-between font-mono text-sm">

@@ -30,10 +30,13 @@ const MULTIPLICADOR_VETERANO = 2;
 const ATAQUES_POR_IP = 12;
 
 /**
- * Días sin límite de ataques (fecha de Venezuela, AAAA-MM-DD): ese día cada
- * cazador puede atacar todas las veces que quiera y no hay tope por red.
- * Sigue valiendo todo lo demás: cuenta, ronda de 10 segundos, tope de golpes
- * por ronda y detector de auto clicker. Termina solo a la medianoche.
+ * Días sin límite (fecha de Venezuela, AAAA-MM-DD): ese día no hay tope de
+ * ataques por cazador ni por red, y tampoco hay tiempo de ronda: se golpea
+ * sin parar y el navegador va mandando los golpes por tandas.
+ * Sigue haciendo falta cuenta y sigue activo el detector de auto clicker.
+ * Para que nadie mande golpes que no dio, cada cazador tiene una sola
+ * cadena de tickets y cada tanda no puede traer más golpes de los que caben
+ * en el tiempo que pasó. Termina solo a la medianoche.
  */
 const DIAS_SIN_LIMITE = ["2026-11-22"];
 export function sinLimiteHoy(): boolean {
@@ -263,26 +266,42 @@ function firmaTicket(userId: number, inicio: number, nonce: string) {
     .update(`raid-ronda:${userId}:${inicio}:${nonce}`).digest("hex").slice(0, 32);
 }
 
+/** Día sin límite: el último ticket entregado a cada cazador (una sola cadena) */
+const ticketVigente = new Map<number, string>();
+/** Toques por segundo que puede dar una persona (con dos dedos) */
+const TOQUES_POR_SEGUNDO = 13;
+
 export function iniciarRonda(userId: number): { ticket: string } {
   const inicio = Date.now();
   const nonce = crypto.randomBytes(8).toString("hex");
+  ticketVigente.set(userId, nonce);
   return { ticket: `${inicio}.${nonce}.${firmaTicket(userId, inicio, nonce)}` };
 }
 
-function validarTicket(userId: number, ticket: string): "ok" | "invalido" | "rapido" | "vencido" | "usado" {
+type TicketLeido = { estado: "ok" | "invalido" | "rapido" | "vencido" | "usado"; edad: number };
+
+/**
+ * `libre` (día sin límite): no hay tiempo mínimo de ronda, pero el ticket
+ * tiene que ser el último que se le entregó a ese cazador.
+ */
+function validarTicket(userId: number, ticket: string, libre = false): TicketLeido {
   const [ini, nonce, firma] = String(ticket).split(".");
   const inicio = Number(ini);
-  if (!inicio || !nonce || !firma || firma.length !== 32) return "invalido";
+  if (!inicio || !nonce || !firma || firma.length !== 32) return { estado: "invalido", edad: 0 };
   const esperada = firmaTicket(userId, inicio, nonce);
-  if (!crypto.timingSafeEqual(Buffer.from(firma), Buffer.from(esperada))) return "invalido";
+  if (!crypto.timingSafeEqual(Buffer.from(firma), Buffer.from(esperada))) return { estado: "invalido", edad: 0 };
   const edad = Date.now() - inicio;
-  if (edad < RONDA_MIN_MS) return "rapido";
-  if (edad > RONDA_MAX_MS) return "vencido";
-  if (ticketsUsados.has(nonce)) return "usado";
+  if (!libre && edad < RONDA_MIN_MS) return { estado: "rapido", edad };
+  if (edad > RONDA_MAX_MS) return { estado: "vencido", edad };
+  if (ticketsUsados.has(nonce)) return { estado: "usado", edad };
+  if (libre) {
+    const vigente = ticketVigente.get(userId);
+    if (vigente && vigente !== nonce) return { estado: "usado", edad };
+  }
   ticketsUsados.set(nonce, Date.now());
   // Limpieza de tickets viejos
   ticketsUsados.forEach((t, k) => { if (Date.now() - t > RONDA_MAX_MS * 2) ticketsUsados.delete(k); });
-  return "ok";
+  return { estado: "ok", edad };
 }
 
 // ─── Detector de auto clicker ──────────────────────────────────────────────
@@ -325,15 +344,21 @@ export async function atacarRaid(
   if (!db || !r) throw new TRPCError({ code: "NOT_FOUND", message: "No hay un jefe activo" });
   if (r.danio >= r.vidaMax) return { ok: false as const, motivo: "derrotado" as const };
 
-  // Ronda real: ticket firmado, tiempo mínimo y de un solo uso
-  if (extra) {
-    const t = validarTicket(extra.userId, extra.ticket);
-    if (t !== "ok") return { ok: false as const, motivo: "ticket" as const };
-  }
-
   const hoy = diaVenezuela();
   const libre = sinLimiteHoy();
-  const g = Math.max(0, Math.min(GOLPES_MAX, Math.floor(golpes)));
+  /** Día sin límite: cada respuesta trae el ticket de la tanda siguiente */
+  const siguiente = () => (libre && extra ? iniciarRonda(extra.userId).ticket : null);
+
+  // Ronda real: ticket firmado, de un solo uso y (en día normal) con su tiempo mínimo
+  let tope = GOLPES_MAX;
+  if (extra) {
+    const t = validarTicket(extra.userId, extra.ticket, libre);
+    if (t.estado !== "ok") return { ok: false as const, motivo: "ticket" as const, ticket: siguiente() };
+    // Sin tiempo de ronda, la tanda no puede traer más golpes de los que caben
+    // en lo que duró (con 2 s de margen por la red)
+    if (libre) tope = Math.min(GOLPES_MAX, Math.ceil((t.edad / 1000 + 2) * TOQUES_POR_SEGUNDO));
+  }
+  const g = Math.max(0, Math.min(tope, Math.floor(golpes)));
 
   if (!libre) {
     const [{ n: porIp }] = await db
@@ -343,20 +368,21 @@ export async function atacarRaid(
     if (Number(porIp) >= ATAQUES_POR_IP) return { ok: false as const, motivo: "limite" as const };
   }
 
-  // Cada cazador tiene una fila por día. En un día sin límite, el primer
-  // ataque lleva la fecha (así cuenta como «atacó hoy») y los siguientes una
-  // marca propia de 10 caracteres, para no chocar con esa regla.
-  let dia = hoy;
+  // Cada cazador tiene una fila por día. En un día sin límite, las tandas
+  // siguientes se suman a esa misma fila.
+  const dia = hoy;
   const [ya] = await db.select({ id: wfRaidAtaques.id }).from(wfRaidAtaques)
     .where(and(eq(wfRaidAtaques.raidId, r.id), eq(wfRaidAtaques.clave, clave), eq(wfRaidAtaques.dia, hoy))).limit(1);
-  if (ya) {
-    // Un día normal: un ataque por cazador (se comprueba aquí además del índice)
-    if (!libre) return { ok: false as const, motivo: "yaAtaco" as const };
-    dia = `L${Date.now().toString(36).slice(-8).padStart(8, "0")}${crypto.randomBytes(1).toString("hex")[0]}`;
-  }
+  // Un día normal: un ataque por cazador (se comprueba aquí además del índice)
+  if (ya && !libre) return { ok: false as const, motivo: "yaAtaco" as const };
 
   // Auto clicker: el ataque cuenta como el del día, pero con 0 de daño
   const trampa = extra ? detectarTrampa(g, extra.analisis) : null;
+  if (trampa && ya) {
+    // Día sin límite y ya tiene su fila de hoy: la tanda se descarta
+    console.warn(`[Raid] tanda anulada (${trampa}) de ${clave}`);
+    return { ok: false as const, motivo: "autoclicker" as const };
+  }
   if (trampa) {
     try {
       await db.insert(wfRaidAtaques).values({ raidId: r.id, clave, ip, dia, golpes: 0, motivo: trampa });
@@ -378,11 +404,16 @@ export async function atacarRaid(
   const multiplicador = multiplicadorDe(previos, uid ? await estadoInvitacion(uid) : null).x;
   const danio = g * multiplicador;
 
-  try {
-    await db.insert(wfRaidAtaques).values({ raidId: r.id, clave, ip, dia, golpes: danio });
-  } catch {
-    // Índice único: esta clave ya atacó hoy
-    return { ok: false as const, motivo: "yaAtaco" as const };
+  if (ya) {
+    // Día sin límite: otra tanda del mismo cazador
+    await db.execute(sql`UPDATE wfRaidAtaques SET golpes = golpes + ${danio} WHERE id = ${ya.id}`);
+  } else {
+    try {
+      await db.insert(wfRaidAtaques).values({ raidId: r.id, clave, ip, dia, golpes: danio });
+    } catch {
+      // Índice único: esta clave ya atacó hoy
+      return { ok: false as const, motivo: "yaAtaco" as const };
+    }
   }
 
   // Suma atómica, sin pasarse de la vida máxima; marca la derrota una vez
@@ -393,8 +424,10 @@ export async function atacarRaid(
     WHERE id = ${r.id}
   `);
 
-  // La tabla de los 10 se recalcula con este ataque
-  topGuardado = null;
+  // La tabla de los 10 se recalcula con este ataque. En un día sin límite
+  // llegan tandas todo el rato: ahí se refresca como mucho cada 5 segundos.
+  if (!libre) topGuardado = null;
+  else if (topGuardado) topGuardado.hasta = Math.min(topGuardado.hasta, Date.now() + 5_000);
 
   // Primer golpe válido de un invitado: quien lo invitó gana su Refuerzo
   if (uid && danio > 0) {
@@ -415,5 +448,5 @@ export async function atacarRaid(
     console.error("[Raid] aviso en vivo:", e);
   }
 
-  return { ok: true as const, golpes: danio, multiplicador };
+  return { ok: true as const, golpes: danio, multiplicador, ticket: siguiente() };
 }

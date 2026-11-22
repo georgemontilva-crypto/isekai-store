@@ -774,7 +774,7 @@ export default function HomeEvento() {
             clave: "guardian", nombre: en ? "The Gate Guardian" : "El Guardián del Portal", rango: "S", color: "#f43f5e",
             tipo: en ? "Community raid" : "Raid comunitario",
             detalle: raidLibre
-              ? (en ? "Today only: unlimited attacks. Everyone's hits add up." : "Solo por hoy: ataques sin límite. Los golpes de todos se suman.")
+              ? (en ? "Today only: no attack limit and no timer. Everyone's hits add up." : "Solo por hoy: sin límite de ataques ni de tiempo. Los golpes de todos se suman.")
               : (en ? "One attack a day. Everyone's hits add up." : "Un ataque al día. Los golpes de todos se suman."),
             aparicion: en ? "BOSS DETECTED" : "JEFE DETECTADO",
             imagen: s("wf_raid_jefe"),
