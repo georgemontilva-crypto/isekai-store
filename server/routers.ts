@@ -1496,6 +1496,13 @@ export const appRouter = router({
     /** Atacar exige cuenta: un ataque por usuario y día */
     /** Ticket firmado para una ronda: sin él no se acepta el ataque */
     iniciar: protectedProcedure.mutation(({ ctx }) => iniciarRonda(ctx.user.id)),
+    /** Cuenta nueva que llegó con el enlace de otro cazador: activa su bono x2 por 24 h */
+    unirme: protectedProcedure
+      .input(z.object({ codigo: z.string().regex(/^[a-z0-9]{5,14}$/) }))
+      .mutation(async ({ ctx, input }) => {
+        try { return await (await import("./raidInvitaciones")).unirConInvitacion(ctx.user.id, input.codigo); }
+        catch (e) { console.error("[Raid] unirme:", e); return { ok: false as const, motivo: "codigo" as const }; }
+      }),
     atacar: protectedProcedure
       .input(z.object({
         golpes: z.number().int().min(0).max(GOLPES_MAX * 2),

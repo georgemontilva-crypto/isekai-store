@@ -5,6 +5,7 @@ import { getDb } from "./db";
 import { users, wfRaid, wfRaidAtaques } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
+import { alPrimerGolpe, estadoInvitacion, multiplicadorInvitacion, type EstadoInvitacion } from "./raidInvitaciones";
 
 /**
  * Raid comunitario de la landing del World Fest.
@@ -70,14 +71,35 @@ export type EstadoRaid =
       yaAtaco: boolean;
       /** Ataques válidos de este cazador en este jefe */
       misAtaques: number;
-      /** 2 si ya es veterano (daño doble), 1 si no */
+      /** Por cuánto se multiplica su daño: vale el mayor de sus bonos */
       multiplicador: number;
+      /** De dónde sale ese multiplicador */
+      motivoX: MotivoX;
+      /** Su enlace para invitar y sus bonos por invitación (solo con sesión) */
+      invitacion: EstadoInvitacion | null;
       /** Los 10 cazadores con más daño en este jefe, de mayor a menor */
       top: PuestoRaid[];
       /** Nombre con que este cazador sale en la tabla y su daño total */
       miNombre: string;
       miDanio: number;
     };
+
+export type MotivoX = "refuerzo" | "bono" | "veterano" | "";
+
+/**
+ * Multiplicador de un cazador: Refuerzo por invitar (x4), bono de bienvenida
+ * (x2) o veterano (x2). No se multiplican entre sí: vale el mayor.
+ */
+function multiplicadorDe(ataques: number, inv: EstadoInvitacion | null): { x: number; motivo: MotivoX } {
+  const veterano = ataques >= ATAQUES_VETERANO ? MULTIPLICADOR_VETERANO : 1;
+  const porInvitar = inv ? multiplicadorInvitacion(inv) : { x: 1, motivo: "" as const };
+  if (porInvitar.x > 1 && porInvitar.x >= veterano) return porInvitar;
+  return veterano > 1 ? { x: veterano, motivo: "veterano" } : { x: 1, motivo: "" };
+}
+function usuarioDeClave(clave: string): number | null {
+  const m = /^u(\d+)$/.exec(clave);
+  return m ? Number(m[1]) : null;
+}
 
 // ─── Tabla de los 10 con más daño ──────────────────────────────────────────
 export type PuestoRaid = { nombre: string; danio: number };
@@ -153,7 +175,10 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
     let misAtaques = 0;
     let miNombre = "";
     let miDanio = 0;
+    let invitacion: EstadoInvitacion | null = null;
     if (clave) {
+      const uid = usuarioDeClave(clave);
+      if (uid) invitacion = await estadoInvitacion(uid);
       ({ ataques: misAtaques, danio: miDanio } = await resumenDeClave(r.id, clave));
       if (miDanio > 0) {
         try { miNombre = (await nombresDeClaves([clave])).get(clave) ?? ""; } catch { /* sin nombre no se resalta */ }
@@ -178,7 +203,9 @@ export async function estadoRaid(clave?: string): Promise<EstadoRaid> {
       cazadores: Number(n) || 0,
       yaAtaco,
       misAtaques,
-      multiplicador: misAtaques >= ATAQUES_VETERANO ? MULTIPLICADOR_VETERANO : 1,
+      multiplicador: multiplicadorDe(misAtaques, invitacion).x,
+      motivoX: multiplicadorDe(misAtaques, invitacion).motivo,
+      invitacion,
       top,
       miNombre,
       miDanio,
@@ -314,9 +341,11 @@ export async function atacarRaid(
     return { ok: false as const, motivo: "autoclicker" as const };
   }
 
-  // Veterano: desde su 5.º ataque válido, el daño se duplica
+  // Bonos: Refuerzo por invitar (x4), bienvenida (x2) o veterano desde el
+  // 5.º ataque válido (x2). Vale el mayor.
   const previos = await ataquesValidos(r.id, clave);
-  const multiplicador = previos >= ATAQUES_VETERANO ? MULTIPLICADOR_VETERANO : 1;
+  const uid = usuarioDeClave(clave);
+  const multiplicador = multiplicadorDe(previos, uid ? await estadoInvitacion(uid) : null).x;
   const danio = g * multiplicador;
 
   try {
@@ -337,11 +366,16 @@ export async function atacarRaid(
   // La tabla de los 10 se recalcula con este ataque
   topGuardado = null;
 
+  // Primer golpe válido de un invitado: quien lo invitó gana su Refuerzo
+  if (uid && danio > 0) {
+    try { await alPrimerGolpe(uid); } catch (e) { console.error("[Raid] premio por invitar:", e); }
+  }
+
   // Tiempo real: todos los que miran la página ven bajar la vida al instante
   try {
     const estado = await estadoRaid();
     if (io && estado.activo) {
-      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, ...publico } = estado;
+      const { yaAtaco: _o1, misAtaques: _o2, multiplicador: _o3, miNombre: _o4, miDanio: _o5, motivoX: _o6, invitacion: _o7, ...publico } = estado;
       io.to("raid").emit("raid:estado", publico);
       // «ref» es una marca aleatoria que manda el navegador que atacó: así no
       // se muestra a sí mismo como «otro cazador». No identifica a nadie.

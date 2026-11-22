@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
 import KoiVivo from "@/components/fest/KoiVivo";
 import MenuSitio from "@/components/MenuSitio";
 import { Link } from "wouter";
@@ -17,6 +18,7 @@ import PortadaPoster from "@/components/fest/PortadaPoster";
 import { FEST_ZONES } from "@/components/fest/festZones";
 import FestMap from "@/components/fest/FestMap";
 import MazmorraJefe from "@/components/fest/MazmorraJefe";
+import { LLEGO_CON_INVITACION, invitacionPendiente, olvidarInvitacion } from "@/lib/invitacion";
 import RaidJefe from "@/components/fest/RaidJefe";
 import KoiBatalla from "@/components/fest/KoiBatalla";
 import AvisoPropiedadIntelectual from "@/components/AvisoPropiedadIntelectual";
@@ -318,6 +320,37 @@ export default function HomeEvento() {
     const ts = [60, 500, 1200, 2200].map(ms => window.setTimeout(bajar, ms));
     return () => { ts.forEach(clearTimeout); window.removeEventListener("wheel", marca); window.removeEventListener("touchstart", marca); };
   }, []);
+
+  /* Invitación al raid (isekaiworld.co/?inv=código): baja sola hasta el jefe.
+     Al crear la cuenta se canjea por el bono de bienvenida. */
+  const [invitado, setInvitado] = useState(() => !!invitacionPendiente());
+  const utilsRaid = trpc.useUtils();
+  const unirme = trpc.raid.unirme.useMutation();
+  const canjeando = useRef(false);
+  useEffect(() => {
+    if (!LLEGO_CON_INVITACION) return;
+    let tocado = false;
+    const marca = () => { tocado = true; };
+    window.addEventListener("wheel", marca, { passive: true, once: true });
+    window.addEventListener("touchstart", marca, { passive: true, once: true });
+    const bajar = () => { if (!tocado) document.getElementById("pk-raid")?.scrollIntoView({ block: "start" }); };
+    const ts = [60, 500, 1200, 2200, 3600].map(ms => window.setTimeout(bajar, ms));
+    return () => { ts.forEach(clearTimeout); window.removeEventListener("wheel", marca); window.removeEventListener("touchstart", marca); };
+  }, []);
+  useEffect(() => {
+    const codigo = invitacionPendiente();
+    if (!isAuthenticated || !codigo || canjeando.current) return;
+    canjeando.current = true;
+    unirme.mutateAsync({ codigo })
+      .then(r => {
+        // Canjeada o no (cuenta antigua, enlace propio…), el código no se vuelve a usar
+        olvidarInvitacion();
+        setInvitado(false);
+        if (r.ok) { toast.success(e.v2.raidInvBienvenida); void utilsRaid.raid.estado.invalidate(); }
+      })
+      .catch(() => { canjeando.current = false; });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
 
   /* Compartir el enlace del mapa */
   const [mapaCopiado, setMapaCopiado] = useState(false);
@@ -733,7 +766,7 @@ export default function HomeEvento() {
             <Titulo n={8} intro={en ? "Enter the dungeon and choose your boss: the Gate Guardian or Koi-sama." : "Entra a la mazmorra y elige a tu jefe: el Guardián del Portal o Koi-sama."}>{capitulos[7][1]}</Titulo>
           </div>
         </div>
-        <MazmorraJefe en={en} jefes={[
+        <MazmorraJefe en={en} aviso={invitado && !isAuthenticated ? e.v2.raidInvInvitado : undefined} jefes={[
           {
             clave: "guardian", nombre: en ? "The Gate Guardian" : "El Guardián del Portal", rango: "S", color: "#f43f5e",
             tipo: en ? "Community raid" : "Raid comunitario",

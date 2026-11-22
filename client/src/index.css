@@ -5137,6 +5137,7 @@ html.dark .pk-hero h1.pk-lema, .pk-hero h1.pk-lema { color: #fff !important; -we
 
 .pk-mazmorra-titulo { font-size: clamp(38px, 11vw, 80px); line-height: .9; color: #fff; }
 .pk-mazmorra-texto { max-width: 520px; margin: 12px auto 22px; font-size: 13px; line-height: 1.7; color: #d8d2e8; }
+.pk-mazmorra-invita { max-width: 460px; margin: 16px auto 0; padding: 12px 16px; font-size: 14px; font-weight: 700; line-height: 1.5; color: #fde68a; border: 1px solid rgba(251,191,36,.5); background: rgba(251,191,36,.1); }
 .pk-mazmorra-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 28px; font-family: "Barlow Condensed", sans-serif; font-weight: 800; font-size: 22px;
   text-transform: uppercase; color: #fff; background: linear-gradient(90deg, #b8002f, #f43f5e); box-shadow: 0 0 30px rgba(244,63,94,.6); clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%);
   animation: pk-latido 1.4s ease-in-out infinite; }

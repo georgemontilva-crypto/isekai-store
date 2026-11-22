@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, lazy, Suspense, type ReactNode } from "react";
+import "@/lib/invitacion";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/NotFound";

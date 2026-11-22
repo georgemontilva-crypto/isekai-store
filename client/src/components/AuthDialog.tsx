@@ -1,3 +1,4 @@
+import { invitacionPendiente } from "@/lib/invitacion";
 import { useState, useEffect } from "react";
 import { ES_APP } from "@/lib/appActual";
 import { X, Mail, ArrowRight, Loader2 } from "lucide-react";
@@ -35,7 +36,8 @@ export default function AuthDialog() {
       const res = await fetch("/api/auth/magic-link", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ email }),
+        // Si llegó invitado al raid, el código viaja en el enlace del correo
+        body:    JSON.stringify({ email, inv: invitacionPendiente() || undefined }),
       });
       if (!res.ok) throw new Error("Error");
       setSent(true);

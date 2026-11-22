@@ -42,7 +42,7 @@ export type JefeMazmorra = {
  * `children` recibe `onEstado`: el raid avisa cuándo la persona ya puede salir
  * (terminó su oportunidad de ataque). Mientras tanto, no hay salida.
  */
-export default function MazmorraJefe({ en, jefes }: { en: boolean; jefes: JefeMazmorra[] }) {
+export default function MazmorraJefe({ en, jefes, aviso }: { en: boolean; jefes: JefeMazmorra[]; /** Aviso sobre el botón de entrar (por ejemplo, una invitación) */ aviso?: string }) {
   const [clave, setClave] = useState(jefes[0]?.clave ?? "");
   const jefe = jefes.find(j => j.clave === clave) ?? jefes[0];
   const [fase, setFase] = useState<Fase>("puerta");
@@ -103,6 +103,8 @@ export default function MazmorraJefe({ en, jefes }: { en: boolean; jefes: JefeMa
           <span className="pk-mazmorra-suelo" aria-hidden="true" />
           <div className="pk-ancho relative">
             <p className="pk-mono pk-mazmorra-aviso">⚠ {en ? "S-RANK GATE DETECTED" : "GATE DE RANGO S DETECTADO"} ⚠</p>
+            {/* Arriba de la puerta: es lo primero que ve quien llega invitado */}
+            {aviso && <p className="pk-mazmorra-invita">{aviso}</p>}
             <div className="pk-mazmorra-puerta" aria-hidden="true">
               <GatePortal />
             </div>

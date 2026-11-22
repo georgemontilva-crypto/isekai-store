@@ -7,6 +7,8 @@ import type { Translations } from "@/i18n/es";
 import { useRaidSocket } from "@/hooks/useRaidSocket";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { openLoginModal } from "@/const";
+import { useLang } from "@/i18n/LangContext";
+import { enlaceDeInvitacion, invitacionPendiente } from "@/lib/invitacion";
 
 /**
  * Raid comunitario: todos los visitantes golpean al mismo jefe.
@@ -29,6 +31,15 @@ function colorCombo(n: number) {
 }
 
 type T = Translations["evento"]["v2"];
+
+/** «1 d 5 h», «5 h 20 min», «12 min»: lo que falta para una fecha */
+function falta(hasta: number): string {
+  const min = Math.max(1, Math.round((hasta - Date.now()) / 60_000));
+  const d = Math.floor(min / 1440), h = Math.floor((min % 1440) / 60), m = min % 60;
+  if (d > 0) return h > 0 ? `${d} d ${h} h` : `${d} d`;
+  if (h > 0) return m > 0 ? `${h} h ${m} min` : `${h} h`;
+  return `${m} min`;
+}
 type Fase = "listo" | "cuenta" | "jugando" | "enviando" | "resultado";
 
 /**
@@ -173,6 +184,7 @@ export default function RaidJefe({
 }) {
   /** Para atacar hace falta cuenta: cada ataque queda a nombre del usuario */
   const { isAuthenticated, user } = useAuth();
+  const { lang } = useLang();
   /** Marca aleatoria de esta pestaña: reconoce su propio aviso en vivo */
   const refNavegador = useMemo(
     () => Array.from(crypto.getRandomValues(new Uint8Array(6)), b => b.toString(16).padStart(2, "0")).join(""),
@@ -299,7 +311,7 @@ export default function RaidJefe({
         intervalos: tq.intervalos.slice(0, 400), sinteticos: tq.sinteticos, posiciones: tq.puntos.size,
       });
       if (r.ok) setDanioFinal(r.golpes);
-      if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())}${r.multiplicador > 1 ? ` ${t.raidBonusX2}` : ""} ${t.raidVuelve}`);
+      if (r.ok) setMensaje(`${t.raidResultado.replace("{n}", r.golpes.toLocaleString())}${r.multiplicador > 1 ? ` ${t.raidBonusX.replace("{n}", String(r.multiplicador))}` : ""} ${t.raidVuelve}`);
       else if (r.motivo === "autoclicker") setMensaje(t.raidTrampa);
       else if (r.motivo === "yaAtaco") setMensaje(t.raidYaAtacaste);
       else if (r.motivo === "limite") setMensaje(t.raidLimite);
@@ -339,7 +351,7 @@ export default function RaidJefe({
       // atacó hoy) y la de la página, que decide si la pieza está revelada
       utils.raid.estado.setData(undefined, viejo =>
         viejo && viejo.activo
-          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador, miNombre: viejo.miNombre, miDanio: viejo.miDanio }
+          ? { ...vivo, yaAtaco: viejo.yaAtaco, misAtaques: viejo.misAtaques, multiplicador: viejo.multiplicador, miNombre: viejo.miNombre, miDanio: viejo.miDanio, motivoX: viejo.motivoX, invitacion: viejo.invitacion }
           : viejo);
     },
     golpe => {
@@ -368,6 +380,18 @@ export default function RaidJefe({
     f = requestAnimationFrame(paso);
     return () => cancelAnimationFrame(f);
   }, [fase, danioFinal]);
+
+  /** Compartir el enlace de invitación: hoja de compartir del teléfono o copiar */
+  const [invCopiado, setInvCopiado] = useState(false);
+  const copiarInvitacion = async (url: string) => {
+    try { await navigator.clipboard.writeText(url); setInvCopiado(true); window.setTimeout(() => setInvCopiado(false), 2200); } catch { /* sin permiso */ }
+  };
+  const compartirInvitacion = async (url: string) => {
+    try {
+      if (navigator.share) { await navigator.share({ title: t.raidTitulo, text: t.raidInvMensaje, url }); return; }
+    } catch { return; /* canceló */ }
+    await copiarInvitacion(url);
+  };
 
   const empezar = async () => {
     // Ticket de la ronda: el servidor anota la hora de inicio
@@ -470,6 +494,10 @@ export default function RaidJefe({
   const top = data.top ?? [];
   const miDanio = data.miDanio ?? 0;
   const miFila = miDanio > 0 ? top.findIndex(p => p.nombre === data.miNombre && p.danio === miDanio) : -1;
+  // Invitaciones: enlace propio y bonos activos
+  const inv = data.invitacion ?? null;
+  const enlaceInv = inv ? enlaceDeInvitacion(inv.codigo) : "";
+  const idioma = lang === "en" ? "en" : "es-VE";
 
   return (
     <section ref={setSeccion} id="raid" className="ev2-diferida scroll-mt-16 ev-grid relative overflow-hidden border-y border-[#f43f5e]/20 bg-gradient-to-b from-[#12060d] to-[#06040d] px-6 py-20 lg:px-16 lg:py-24">
@@ -739,14 +767,16 @@ export default function RaidJefe({
               >
                 <Swords size={18} /> {t.raidIniciaSesion}
               </button>
-              <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-[#9d7f8f]">{t.raidNecesitasCuenta}</p>
+              {invitacionPendiente()
+                ? <p className="mx-auto mt-3 max-w-xs text-xs font-bold leading-relaxed text-[#fde68a]">{t.raidInvInvitado}</p>
+                : <p className="mx-auto mt-3 max-w-xs text-xs leading-relaxed text-[#9d7f8f]">{t.raidNecesitasCuenta}</p>}
             </div>
           )}
 
           {/* Cazador veterano: desde su 5.º ataque válido, daño doble */}
           {isAuthenticated && !caido && (data.multiplicador ?? 1) > 1 && fase !== "jugando" && (
             <p className="ev2-veterano mb-3 inline-flex items-center gap-1.5 border border-[#fbbf24]/50 bg-[#fbbf24]/10 px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-[0.15em] text-[#fde68a]">
-              ⚡ {t.raidVeteranoX2}
+              ⚡ {data.motivoX === "refuerzo" ? t.raidX4Refuerzo : data.motivoX === "bono" ? t.raidX2Bono : t.raidVeteranoX2}
             </p>
           )}
           {isAuthenticated && !caido && (data.multiplicador ?? 1) === 1 && fase === "listo" && (
@@ -772,6 +802,45 @@ export default function RaidJefe({
             </button>
           )}
         </div>
+
+        {/* Invitar: compartir el enlace propio y ver los bonos activos */}
+        {isAuthenticated && inv && !caido && !enRonda && (
+          <div className="mx-auto mt-10 max-w-md border border-[#fbbf24]/35 bg-[#fbbf24]/[0.07] px-5 py-5">
+            <p className="font-mono text-[10px] font-bold uppercase tracking-[0.3em] text-[#fbbf24]">{t.raidInvTitulo}</p>
+            <p className="mt-2 text-sm leading-relaxed text-[#f3e6c4]">{t.raidInvTexto}</p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => compartirInvitacion(enlaceInv)}
+                className="ev-press min-h-[44px] flex-1 bg-[#fbbf24] px-4 text-sm font-bold uppercase tracking-wider text-[#1a1204]"
+              >
+                {t.raidInvCompartir}
+              </button>
+              <button
+                onClick={() => copiarInvitacion(enlaceInv)}
+                className="ev-press min-h-[44px] shrink-0 border border-[#fbbf24]/60 px-4 text-sm font-bold uppercase tracking-wider text-[#fde68a]"
+              >
+                {invCopiado ? t.raidInvCopiado : t.raidInvCopiar}
+              </button>
+            </div>
+            {inv.refuerzoHasta > 0 && (
+              <p className="mt-4 text-sm font-bold leading-relaxed text-[#fde68a]">
+                ⚡ {t.raidInvActivo.replace("{t}", falta(inv.refuerzoHasta))} {inv.acumulados < 2 ? t.raidInvSuma : t.raidInvTope}
+              </p>
+            )}
+            {inv.refuerzoHasta === 0 && inv.esperaHasta > 0 && (
+              <p className="mt-4 text-sm leading-relaxed text-[#f3e6c4]">
+                {t.raidInvEspera.replace("{f}", new Date(inv.esperaHasta).toLocaleDateString(idioma, { day: "numeric", month: "long" }))}
+              </p>
+            )}
+            {inv.bonoHasta > 0 && inv.refuerzoHasta === 0 && (
+              <p className="mt-4 text-sm font-bold leading-relaxed text-[#fde68a]">⚡ {t.raidInvBono.replace("{t}", falta(inv.bonoHasta))}</p>
+            )}
+            {inv.invitados > 0 && (
+              <p className="mt-2 font-mono text-[11px] text-[#c9b98f]">{t.raidInvUnidos.replace("{n}", String(inv.invitados))}</p>
+            )}
+            <p className="mt-3 text-xs leading-relaxed text-[#a89a78]">{t.raidInvRegla}</p>
+          </div>
+        )}
 
         {/* Los 10 cazadores con más daño; el primero lleva la corona */}
         {top.length > 0 && (

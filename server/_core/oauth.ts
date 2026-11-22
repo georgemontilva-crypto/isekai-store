@@ -155,7 +155,10 @@ export function registerOAuthRoutes(app: Express): void {
 
       // El enlace vuelve a la dirección desde la que se pidió: la web (siempre
       // con www, la que nunca falla) o la app del Equipo / de Admin
-      const verifyUrl = `${origenParaEnlace(req)}/api/auth/verify?token=${token}${paraClave ? "&clave=1" : ""}`;
+      // Invitación al raid: viaja en el enlace por si el correo se abre en
+      // otro navegador que el que recibió la invitación
+      const inv = typeof req.body?.inv === "string" && /^[a-z0-9]{5,14}$/.test(req.body.inv) ? req.body.inv : "";
+      const verifyUrl = `${origenParaEnlace(req)}/api/auth/verify?token=${token}${paraClave ? "&clave=1" : ""}${inv ? `&inv=${inv}` : ""}`;
 
       if (!ENV.resendApiKey) {
         return res.status(503).json({ error: "El servicio de email no está disponible en este momento" });
@@ -184,7 +187,8 @@ export function registerOAuthRoutes(app: Express): void {
 
       await abrirSesionPorCorreo(req, res, record.email);
       // «clave=1»: llegó para crear su clave (primera vez o la olvidó)
-      res.redirect(req.query.clave === "1" ? "/?welcome=1&clave=1" : "/?welcome=1");
+      const inv = typeof req.query.inv === "string" && /^[a-z0-9]{5,14}$/.test(req.query.inv) ? req.query.inv : "";
+      res.redirect(`${req.query.clave === "1" ? "/?welcome=1&clave=1" : "/?welcome=1"}${inv ? `&inv=${inv}` : ""}`);
     } catch (err) {
       console.error("[Auth] Verify error:", err);
       res.redirect("/?auth=error");
