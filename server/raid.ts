@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { getDb } from "./db";
-import { users, wfRaid, wfRaidAtaques } from "../drizzle/schema";
+import { siteSettings, users, wfRaid, wfRaidAtaques } from "../drizzle/schema";
 import { io } from "./_core/socket";
 import { ENV } from "./_core/env";
 import { revisarDescanso } from "./raidDescansos";
@@ -565,4 +565,27 @@ export async function reiniciarRaid(vidaMax: number) {
   } catch (e) { console.error("[Raid] aviso de reinicio:", e); }
   console.log(`[Raid] jefe reiniciado con ${vidaMax} de vida`);
   return resumenAdminRaid();
+}
+
+/**
+ * Reinicio pedido el 22 nov 2026: jefe nuevo con 2.000.000 de vida y todos
+ * en cero. Se hace una sola vez, al arrancar el servidor con este cambio.
+ * Si el jefe activo ya tiene 2.000.000 (se reinició desde el panel) no se
+ * toca. Queda anotado en los ajustes para no repetirlo nunca.
+ */
+const REINICIO_CLAVE = "wf_raid_reinicio_20261122";
+const REINICIO_VIDA = 2_000_000;
+export async function reinicioUnaVez(): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  const [hecho] = await db.select({ v: siteSettings.value }).from(siteSettings).where(eq(siteSettings.key, REINICIO_CLAVE)).limit(1);
+  if (hecho?.v) return;
+  const r = await raidActivo();
+  if (!r) return;
+  const anotar = (nota: string) => db.insert(siteSettings).values({ key: REINICIO_CLAVE, value: nota })
+    .onDuplicateKeyUpdate({ set: { value: nota } });
+  if (r.vidaMax === REINICIO_VIDA) { await anotar(`ya estaba en ${REINICIO_VIDA}`); return; }
+  // Se anota antes de reiniciar: si algo falla a medias, no se repite solo
+  await anotar(`reiniciado ${new Date().toISOString()} (antes: ${r.danio}/${r.vidaMax})`);
+  await reiniciarRaid(REINICIO_VIDA);
 }

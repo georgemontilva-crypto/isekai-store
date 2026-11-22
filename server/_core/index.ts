@@ -389,6 +389,8 @@ async function startServer() {
     iniciarOptimizacionImagenes();
     // Apps aparte: revisa si ya responden en su dirección
     vigilarApps();
+    // Reinicio único del jefe del raid (2.000.000 de vida, todos en cero)
+    void import("../raid").then(m => m.reinicioUnaVez()).catch(e => console.error("[Raid] reinicio único:", e));
   });
 }
 
