@@ -91,6 +91,7 @@ const LinkBio = lazy(() => import("./pages/LinkBio"));
 const CosplayLanding = lazy(() => import("./pages/CosplayLanding"));
 const RuedaPrensa = lazy(() => import("./pages/RuedaPrensa"));
 const Stands = lazy(() => import("./pages/Stands"));
+const StandSaldo = lazy(() => import("./pages/StandSaldo"));
 const StaffRueda = lazy(() => import("./pages/StaffRueda"));
 const Boleteria = lazy(() => import("./pages/Boleteria"));
 const EquipoApp = lazy(() => import("./equipo/EquipoApp"));
@@ -232,6 +233,9 @@ function Router() {
         {/* Invitación a la rueda de negocios del World Fest */}
         <Route path="/rueda-de-negocios" component={RuedaPrensa} />
         <Route path="/stands" component={Stands} />
+        {/* Enlace personal de cada tienda para pagar el saldo de su stand */}
+        <Route path="/stands/saldo/:clave/cashea" component={StandSaldo} />
+        <Route path="/stands/saldo/:clave" component={StandSaldo} />
         <Route path="/boletos" component={ComprarBoletos} />
         <Route path="/boleto/:token" component={MiBoleto} />
         <Route path="/staff/rueda">{() => <SoloEnSuApp de="equipo"><StaffRueda /></SoloEnSuApp>}</Route>

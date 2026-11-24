@@ -3,7 +3,7 @@ import { getDb } from "./db";
 import { io } from "./_core/socket";
 
 /** Aviso en vivo: la página de stands y el admin se actualizan solos */
-function avisarCambio() {
+export function avisarCambio() {
   try { io?.to("stands").emit("stands:cambio"); io?.to("admin").emit("stands:cambio"); } catch { /* sin canal en vivo */ }
 }
 
@@ -286,14 +286,20 @@ export async function crearSolicitud(d: DatosSolicitud) {
 /** Todo para el admin: mesas, solicitudes y pagos */
 export async function panelStands() {
   const db = await getDb();
-  if (!db) return { stands: [], reservas: [], pagos: [] };
+  if (!db) return { stands: [], reservas: [], pagos: [], cashea: { activo: false, ordenes: [] } };
   const stands = filas<any>(await db.execute(sql`SELECT * FROM festStands ORDER BY tipo, numero`))
     .map(s => ({ ...s, x: s.x === null ? null : Number(s.x), y: s.y === null ? null : Number(s.y) }));
   const reservas = filas<any>(await db.execute(sql`SELECT r.*, s.numero FROM festStandReservas r JOIN festStands s ON s.id = r.standId ORDER BY r.creadoEn DESC`))
     .map(r => ({ ...r, precio: Number(r.precio), pagado: Number(r.pagado) }));
   const pagos = filas<any>(await db.execute(sql`SELECT * FROM festStandPagos ORDER BY creadoEn DESC`))
     .map(p => ({ ...p, monto: Number(p.monto) }));
-  return { stands, reservas, pagos };
+  // Enlace personal de cada tienda para pagar su saldo, y las órdenes de Cashea
+  const saldo = await import("./standSaldo");
+  return {
+    stands, pagos,
+    reservas: reservas.map(r => ({ ...r, enlaceSaldo: saldo.enlaceDeSaldo(Number(r.id)) })),
+    cashea: { activo: saldo.casheaConfig().activo, ordenes: await saldo.casheaPanel() },
+  };
 }
 
 /**
@@ -341,6 +347,9 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
     const { sendEmail } = await import("./_core/notification");
     const t = TIPOS_STAND[reserva.tipo as TipoStand];
     const saldo = Math.max(0, Number(reserva.precio) - pagado);
+    const { enlaceDeSaldo, casheaConfig } = await import("./standSaldo");
+    const enlaceSaldo = enlaceDeSaldo(Number(reserva.id));
+    const casheaActivo = casheaConfig().activo;
     const fila = (k: string, v: string) => `<tr><td style="padding:8px 0;color:#9a93a6">${k}</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${v}</td></tr>`;
     const asunto = completo
       ? `✅ Tu stand ${s?.numero} está pagado · Isekai World Fest 2027`
@@ -358,8 +367,10 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
       </table>
       ${factura ? `<div style="text-align:center;margin:20px 0 4px"><a href="${factura.url}" class="btn">Ver y descargar tu factura →</a></div>
       <p style="text-align:center;color:#9a93a6;font-size:13px">Ábrela y toca «Imprimir o guardar en PDF» para conservarla.</p>` : ""}
-      ${saldo > 0 ? `<p>El saldo de <strong>$${saldo.toFixed(2)}</strong> lo puedes pagar cuando quieras antes del evento. Escríbenos a <a href="mailto:ventas@isekaiworld.co">ventas@isekaiworld.co</a> para coordinarlo.</p>` : ""}
-      <div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/stands" class="btn">Ver el plano de stands →</a></div>
+      ${saldo > 0 ? `<p>El saldo de <strong>$${saldo.toFixed(2)}</strong> lo puedes pagar cuando quieras antes del evento, desde tu enlace personal${casheaActivo ? ": de contado o en cuotas con Cashea" : ""}. Guarda este correo para tenerlo a mano.</p>
+      <div style="text-align:center;margin:20px 0 4px"><a href="${enlaceSaldo}" class="btn">Pagar el saldo de tu stand →</a></div>
+      <p style="text-align:center;color:#9a93a6;font-size:13px">¿Dudas? Escríbenos a <a href="mailto:ventas@isekaiworld.co">ventas@isekaiworld.co</a>.</p>` : ""}
+      <div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/stands" ${saldo > 0 ? 'style="color:#9a93a6"' : 'class="btn"'}>Ver el plano de stands →</a></div>
       <p style="color:#9a93a6">Isekai World Fest 2027 · 14 y 15 de agosto · Maracaibo, Venezuela</p>`,
       completo ? `Stand ${s?.numero} pagado por completo` : `Tu stand ${s?.numero} quedó apartado a tu nombre`);
   } catch (e) { console.warn("[Stands] correo al cliente:", e); }

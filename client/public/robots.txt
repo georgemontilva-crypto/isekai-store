@@ -8,5 +8,6 @@ Disallow: /vender
 Disallow: /acceso
 Disallow: /guild/mejoras
 Disallow: /worldfest/pass
+Disallow: /stands/saldo
 
 Sitemap: https://isekaiworld.co/sitemap.xml

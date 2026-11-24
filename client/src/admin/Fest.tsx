@@ -14,12 +14,13 @@ import { useEvento, ComprasWeb, Boletos, Tipos, Equipo, Codigos, Eventos, Puesta
  */
 const TIPO: Record<string, string> = { mercader: "Mercader", gremio: "Gremio", gran_gremio: "Gran Gremio" };
 const PRECIO: Record<string, number> = { mercader: 299, gremio: 399, gran_gremio: 499 };
-const METODO: Record<string, string> = { pago_movil: "Pago Móvil", crypto: "Binance Pay", efectivo: "Efectivo", transferencia: "Transferencia", zelle: "Zelle", otro: "Otro" };
+const METODO: Record<string, string> = { pago_movil: "Pago Móvil", crypto: "Binance Pay", efectivo: "Efectivo", transferencia: "Transferencia", zelle: "Zelle", cashea: "Cashea", otro: "Otro" };
 const aMonto = (t: string) => { const n = parseFloat(t.trim().replace(",", ".")); return n > 0 ? n : null; };
 
 type Mesa = { id: number; numero: string; tipo: string; estado: string; reservaId: number | null; x: number | null; y: number | null };
-type Reserva = { id: number; standId: number; numero: string; tipo: string; negocio: string; contacto: string; email: string; whatsapp: string; rif?: string | null; precio: number; pagado: number; estado: string; modalidad: string; facturaClave?: string | null; facturaNumero?: number | null };
+type Reserva = { id: number; standId: number; numero: string; tipo: string; negocio: string; contacto: string; email: string; whatsapp: string; rif?: string | null; precio: number; pagado: number; estado: string; modalidad: string; facturaClave?: string | null; facturaNumero?: number | null; enlaceSaldo?: string };
 type Pago = { id: number; reservaId: number; monto: number; metodo: string; referencia: string | null; comprobanteUrl: string | null; estado: string; creadoEn: string };
+type OrdenCashea = { id: number; reservaId: number; numero: string; negocio: string; cedula: string; total: number; inicial: number; pagado: number; precio: number; orderId: string | null; estado: string; detalle: string | null; creadoEn: string };
 
 function Contacto({ r }: { r: Reserva }) {
   const tel = paraWhatsApp(r.whatsapp);
@@ -34,7 +35,7 @@ function Contacto({ r }: { r: Reserva }) {
 }
 
 // ── Stands ───────────────────────────────────────────────────────────────────
-type Vista = "revisar" | "cobrar" | "pagados" | "mesas" | "plano";
+type Vista = "revisar" | "cobrar" | "pagados" | "cashea" | "mesas" | "plano";
 
 function Stands() {
   const utils = trpc.useUtils();
@@ -48,16 +49,22 @@ function Stands() {
   const cambiarMesa = trpc.stands.cambiarMesa.useMutation({ onSuccess: () => { toast.success("Mesa cambiada"); refrescar(); }, onError: alFallar });
   const anular = trpc.stands.anular.useMutation({ onSuccess: () => { toast.success("Reserva anulada: la mesa quedó libre"); refrescar(); }, onError: alFallar });
   const bloquear = trpc.stands.bloquear.useMutation({ onSuccess: refrescar, onError: alFallar });
+  const casheaConfirmar = trpc.stands.casheaConfirmar.useMutation({ onSuccess: () => { toast.success("Orden confirmada en Cashea: el stand quedó pagado"); setAbierto(null); refrescar(); }, onError: e => { alFallar(e); refrescar(); } });
+  const casheaCancelar = trpc.stands.casheaCancelar.useMutation({ onSuccess: () => { toast.success("Orden cancelada en Cashea"); setAbierto(null); refrescar(); }, onError: alFallar });
 
   const [vista, setVista] = useState<Vista>("revisar");
   const [abierto, setAbierto] = useState<string | null>(null);
   const [venta, setVenta] = useState(false);
   const [otroMonto, setOtroMonto] = useState("");
   const [cobro, setCobro] = useState({ monto: "", metodo: "pago_movil", ref: "" });
+  const [inicial, setInicial] = useState("");
 
   const mesas = ((panel.data as any)?.stands ?? []) as Mesa[];
   const reservas = ((panel.data as any)?.reservas ?? []) as Reserva[];
   const pagos = ((panel.data as any)?.pagos ?? []) as Pago[];
+  const cashea = ((panel.data as any)?.cashea ?? { activo: false, ordenes: [] }) as { activo: boolean; ordenes: OrdenCashea[] };
+  const casheaPorConfirmar = cashea.ordenes.filter(o => o.estado === "por_confirmar" || o.estado === "error");
+  const copiarEnlace = (v: string) => { void navigator.clipboard.writeText(v).then(() => toast.success("Enlace copiado"), () => toast.error("No se pudo copiar")); };
   const reserva = useMemo(() => new Map(reservas.map(r => [r.id, r])), [reservas]);
   const porRevisar = pagos.filter(p => p.estado === "pendiente" && reserva.get(p.reservaId) && reserva.get(p.reservaId)!.estado !== "rechazada");
   const deben = reservas.filter(r => r.estado === "apartado");
@@ -70,7 +77,10 @@ function Stands() {
 
   const PESTANAS: { id: Vista; texto: string; n: number; hot?: boolean }[] = [
     { id: "revisar", texto: "Pagos por revisar", n: porRevisar.length, hot: true }, { id: "cobrar", texto: "Deben saldo", n: deben.length },
-    { id: "pagados", texto: "Pagados", n: pagados.length }, { id: "mesas", texto: "Mesas", n: 0 }, { id: "plano", texto: "Plano", n: 0 },
+    { id: "pagados", texto: "Pagados", n: pagados.length },
+    // Cashea solo aparece cuando está activo (o si quedaron órdenes guardadas)
+    ...(cashea.activo || cashea.ordenes.length > 0 ? [{ id: "cashea" as Vista, texto: "Cashea", n: casheaPorConfirmar.length, hot: true }] : []),
+    { id: "mesas", texto: "Mesas", n: 0 }, { id: "plano", texto: "Plano", n: 0 },
   ];
 
   return (
@@ -99,7 +109,7 @@ function Stands() {
                   <li key={p.id} className={esta ? "is-open" : undefined}>
                     <button type="button" className="ped__fila" aria-expanded={esta} onClick={() => abrir(clave)}>
                       <span className="ped__quien"><strong>{r.negocio}</strong><span className="rows__side">{dinero(p.monto)}</span></span>
-                      <span className="ped__pie-fila"><small>Stand {r.numero} · {TIPO[r.tipo] ?? r.tipo} · {r.modalidad === "abono" ? "abono del 30%" : "pago completo"} · {fecha(p.creadoEn)}</small><span className="ped__insignias"><Badge tone="hot">Por revisar</Badge></span></span>
+                      <span className="ped__pie-fila"><small>Stand {r.numero} · {TIPO[r.tipo] ?? r.tipo} · {r.estado === "apartado" ? "pago del saldo" : r.modalidad === "abono" ? "abono del 30%" : "pago completo"} · {fecha(p.creadoEn)}</small><span className="ped__insignias"><Badge tone="hot">Por revisar</Badge></span></span>
                     </button>
                     {esta && (
                       <div className="ped__ficha">
@@ -156,8 +166,55 @@ function Stands() {
                             </form>
                           </div>
                         )}
+                        {falta > 0 && r.enlaceSaldo && (
+                          <div className="ped__paso">
+                            <h3>Enlace para que la tienda pague</h3>
+                            <p>Desde este enlace la tienda paga su saldo{cashea.activo ? ", de contado o con Cashea" : ""}. Es personal: envíaselo solo a {r.contacto || r.negocio}.</p>
+                            <div className="eq-acciones">
+                              <button className="btn btn--small" type="button" onClick={() => copiarEnlace(r.enlaceSaldo!)}>Copiar enlace</button>
+                              {paraWhatsApp(r.whatsapp) && <a className="btn btn--ghost btn--small" target="_blank" rel="noreferrer" href={`https://wa.me/${paraWhatsApp(r.whatsapp)}?text=${encodeURIComponent(`Hola, ${r.contacto}. Te escribimos de Isekai World. Este es tu enlace para pagar el saldo de tu stand ${r.numero} (${dinero(falta)}): ${r.enlaceSaldo}`)}`}>Enviar por WhatsApp</a>}
+                            </div>
+                          </div>
+                        )}
                         <Contacto r={r} />
                         <div className="ped__otras"><Confirmar texto="Anular la reserva" pregunta={`¿Anular? La mesa ${r.numero} vuelve a estar libre; lo ya pagado queda registrado.`} si="Sí, anular" disabled={anular.isPending} onSi={() => anular.mutate({ reservaId: r.id })} /></div>
+                      </div>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          ))}
+
+          {vista === "cashea" && (cashea.ordenes.length === 0 ? <p className="empty">Todavía no hay órdenes de Cashea. Aparecen aquí cuando una tienda confirma su plan en Cashea.</p> : (
+            <ul className="ped">
+              {cashea.ordenes.map(o => {
+                const clave = `c${o.id}`, esta = abierto === clave;
+                const porHacer = o.estado === "por_confirmar" || o.estado === "error";
+                const monto = aMonto(inicial);
+                return (
+                  <li key={o.id} className={esta ? "is-open" : undefined}>
+                    <button type="button" className="ped__fila" aria-expanded={esta} onClick={() => { abrir(clave); setInicial(o.pagado.toFixed(2)); }}>
+                      <span className="ped__quien"><strong>{o.negocio}</strong><span className="rows__side">{dinero(o.total)}</span></span>
+                      <span className="ped__pie-fila"><small>Stand {o.numero} · orden {o.orderId ?? "sin número"} · {fecha(o.creadoEn)}</small><span className="ped__insignias"><Badge tone={o.estado === "confirmada" ? "ok" : o.estado === "cancelada" ? "off" : "hot"}>{o.estado === "confirmada" ? "Confirmada" : o.estado === "cancelada" ? "Cancelada" : o.estado === "error" ? "Cashea la rechazó" : "Por confirmar"}</Badge></span></span>
+                    </button>
+                    {esta && (
+                      <div className="ped__ficha">
+                        <div className="ped__paso">
+                          <h3>{porHacer ? "Revisa la orden en tu portal de Cashea" : "Orden de Cashea"}</h3>
+                          <p>Orden <strong>{o.orderId}</strong>, cédula {o.cedula}. El stand con Cashea cuesta {dinero(o.total)} ({dinero(o.precio)} más 8 %). La tienda ha pagado {dinero(o.pagado)}{o.estado === "confirmada" ? <> y se confirmó una inicial de {dinero(o.inicial)}</> : null}.</p>
+                          {o.estado === "error" && o.detalle && <p className="notice" role="alert">{o.detalle}</p>}
+                          {porHacer && (
+                            <>
+                              <p className="pa-tenue">Antes de confirmar, comprueba en Cashea que el total sea {dinero(o.total)} y cuánta inicial pide. Al confirmar le avisas a Cashea que la inicial ya está pagada y el stand queda pagado por completo.</p>
+                              <form className="form form--inline" onSubmit={(e: FormEvent) => { e.preventDefault(); if (!monto) { toast.error("Escribe la inicial"); return; } casheaConfirmar.mutate({ id: o.id, inicial: monto }); }}>
+                                <label className="field"><span className="field__label">Inicial que se confirma (USD)</span><input value={inicial} onChange={e => setInicial(e.target.value)} inputMode="decimal" /></label>
+                                <button className="btn btn--small" type="submit" disabled={casheaConfirmar.isPending || casheaCancelar.isPending}>{casheaConfirmar.isPending ? "Confirmando…" : "Confirmar en Cashea"}</button>
+                              </form>
+                              <div className="ped__otras"><Confirmar texto="Cancelar la orden" pregunta={`¿Cancelar la orden ${o.orderId} en Cashea? La tienda podrá empezar de nuevo.`} si="Sí, cancelar" disabled={casheaCancelar.isPending || casheaConfirmar.isPending} onSi={() => casheaCancelar.mutate({ id: o.id })} /></div>
+                            </>
+                          )}
+                        </div>
                       </div>
                     )}
                   </li>
@@ -387,7 +444,8 @@ export default function Fest() {
   const ordenes = trpc.boletosOnline.ordenes.useQuery(undefined, { refetchInterval: 60_000 });
   const panel = trpc.stands.panel.useQuery(undefined, { refetchInterval: 60_000 });
   const reservas = new Map((((panel.data as any)?.reservas ?? []) as Reserva[]).map(r => [r.id, r]));
-  const pagosStands = (((panel.data as any)?.pagos ?? []) as Pago[]).filter(p => p.estado === "pendiente" && reservas.get(p.reservaId) && reservas.get(p.reservaId)!.estado !== "rechazada").length;
+  const pagosStands = (((panel.data as any)?.pagos ?? []) as Pago[]).filter(p => p.estado === "pendiente" && reservas.get(p.reservaId) && reservas.get(p.reservaId)!.estado !== "rechazada").length
+    + ((((panel.data as any)?.cashea?.ordenes ?? []) as OrdenCashea[]).filter(o => o.estado === "por_confirmar" || o.estado === "error").length);
   const comprasWeb = ((ordenes.data ?? []) as unknown as Orden[]).filter(o => o.estado === "pendiente").length;
   const listaTipos = (tipos.data ?? []) as unknown as Tipo[];
   const extras = trpc.standTienda.extras.useQuery(undefined, { refetchInterval: 60_000 });

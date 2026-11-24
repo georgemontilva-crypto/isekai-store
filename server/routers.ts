@@ -1391,6 +1391,65 @@ export const appRouter = router({
       .mutation(async ({ input }) => (await import("./stands")).ubicarStand(input.standId, input.x, input.y)),
     bloquear: adminProcedure.input(z.object({ standId: z.number().int().positive(), bloquear: z.boolean() }))
       .mutation(async ({ input }) => (await import("./stands")).bloquearStand(input.standId, input.bloquear)),
+
+    // ─── Saldo del stand: la tienda paga lo que le falta desde su enlace ───
+    saldo: publicProcedure.input(z.object({ clave: z.string().trim().max(40) }))
+      .query(async ({ input }) => {
+        try { return await (await import("./standSaldo")).estadoSaldo(input.clave); }
+        catch (e: any) { throw new TRPCError({ code: "NOT_FOUND", message: e.message }); }
+      }),
+    pagarSaldo: publicProcedure
+      .input(z.object({
+        clave: z.string().trim().max(40),
+        monto: z.number().positive().max(100000),
+        metodo: z.enum(["pago_movil", "crypto", "efectivo"]),
+        referencia: z.string().trim().min(3).max(120).transform(v => v.replace(/[<>]/g, "")),
+        comprobanteUrl: z.string().url().max(600).optional(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!limitarPorUsuario(`stand-saldo:${clientIp(ctx.req)}`, 10, 60 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados intentos. Intenta más tarde." });
+        }
+        try { const { clave, ...d } = input; return await (await import("./standSaldo")).reportarPagoSaldo(clave, d); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    /** Cashea, paso 1: datos para el botón oficial (solo viaja la llave pública) */
+    casheaIniciar: publicProcedure
+      .input(z.object({
+        clave: z.string().trim().max(40),
+        cedula: z.string().trim().max(20).transform(v => v.replace(/\D/g, ""))
+          .refine(v => /^\d{6,10}$/.test(v), "Escribe tu cédula, solo números"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!limitarPorUsuario(`stand-cashea:${clientIp(ctx.req)}`, 12, 60 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados intentos. Intenta más tarde." });
+        }
+        // Cashea devuelve a la tienda a esta dirección (en pruebas locales, a localhost)
+        const host = ctx.req.get("host") ?? "";
+        const origen = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) ? `http://${host}` : "https://www.isekaiworld.co";
+        try { return await (await import("./standSaldo")).casheaIniciar(input.clave, input.cedula, origen); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    /** Cashea, paso 2: la tienda vuelve con el número de su orden */
+    casheaVolver: publicProcedure
+      .input(z.object({ clave: z.string().trim().max(40), orderId: z.string().trim().regex(/^[A-Za-z0-9_-]{1,40}$/, "Número de orden inválido") }))
+      .mutation(async ({ input, ctx }) => {
+        if (!limitarPorUsuario(`stand-cashea-v:${clientIp(ctx.req)}`, 20, 60 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiados intentos. Intenta más tarde." });
+        }
+        try { return await (await import("./standSaldo")).casheaVolver(input.clave, input.orderId); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    casheaConfirmar: adminProcedure.input(z.object({ id: z.number().int().positive(), inicial: z.number().positive().max(100000).optional() }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./standSaldo")).casheaConfirmar(input.id, input.inicial); }
+        catch (e: any) { throw new TRPCError({ code: "CONFLICT", message: e.message }); }
+      }),
+    casheaCancelar: adminProcedure.input(z.object({ id: z.number().int().positive() }))
+      .mutation(async ({ input }) => {
+        try { return await (await import("./standSaldo")).casheaCancelar(input.id); }
+        catch (e: any) { throw new TRPCError({ code: "CONFLICT", message: e.message }); }
+      }),
   }),
 
   prensa: router({
