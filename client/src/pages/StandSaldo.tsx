@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { trpc } from "@/lib/trpc";
 import { useSEO } from "@/hooks/useSEO";
 import { PAGO_MOVIL, BINANCE_PAY_ID } from "@shared/payment";
+import { montarBotonCashea, mensajeDeError } from "@/lib/cashea";
 
 /**
  * Saldo de un stand (/stands/saldo/<clave>): la página personal de cada
@@ -20,8 +21,7 @@ const elegida = { borderColor: "#ff3d9e", background: "rgba(255,61,158,0.12)" };
 const sinElegir = { borderColor: "rgba(255,255,255,0.12)" };
 
 type Forma = "contado" | "cashea";
-/** Los errores de validación llegan como JSON: al público se le da un texto simple */
-const mensaje = (e: { message: string }, respaldo: string) => (e.message.trim().startsWith("[") ? respaldo : e.message);
+const mensaje = mensajeDeError;
 type Metodo = "pago_movil" | "crypto" | "efectivo";
 
 export default function StandSaldo() {
@@ -54,12 +54,20 @@ export default function StandSaldo() {
 
   const d = saldo.data;
   const porPagar = d ? Math.max(0, Math.round((d.saldo - d.enRevision) * 100) / 100) : 0;
+  /** Orden de Cashea esperando confirmación */
+  const ordenViva = d?.orden && d.orden.estado !== "confirmada" ? d.orden : null;
+  /** Reservó con Cashea y aún no ha pagado nada: le falta la inicial */
+  const faltaInicial = Boolean(ordenViva && d && d.pagado <= 0 && d.enRevision <= 0);
+  // Quien reservó con Cashea y vuelve sin terminar, sigue con Cashea
+  const modalidad = d?.modalidad;
+  useEffect(() => { if (modalidad === "cashea") setForma("cashea"); }, [modalidad]);
+  const alReportar = (r: { monto: number; aprobado: boolean; completo: boolean }) => { setHecho(r); void utils.stands.saldo.invalidate(); window.scrollTo({ top: 0 }); };
 
   return (
     <main className="min-h-[100svh] bg-[#06050a] px-5 pb-20 pt-8 text-white">
       <div className="mx-auto max-w-xl">
         <Link href="/stands" className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#9a93a6]"><ArrowLeft size={15} /> Stands del Isekai World Fest</Link>
-        <h1 className="mt-5 text-[28px] font-black leading-tight">Paga el saldo de tu stand</h1>
+        <h1 className="mt-5 text-[28px] font-black leading-tight">{d?.estado === "pagado" ? "Tu stand" : d && d.pagado <= 0 ? "Paga tu stand" : "Paga el saldo de tu stand"}</h1>
 
         {saldo.isLoading || volver.isPending ? (
           <p className="mt-10 flex items-center justify-center gap-2 text-[15px] text-[#bfb8c9]"><Loader2 size={18} className="animate-spin" /> {volver.isPending ? "Guardando tu orden de Cashea…" : "Cargando tu stand…"}</p>
@@ -74,33 +82,45 @@ export default function StandSaldo() {
               <p className="text-[18px] font-black">Stand {d.numero} · {d.plan}</p>
               <p className="text-[14px] text-[#9a93a6]">{d.negocio}</p>
               <dl className="mt-4 divide-y divide-white/8 text-[15px]">
-                <Linea k="Precio del stand" v={dinero(d.precio)} />
+                <Linea k={ordenViva ? "Stand con Cashea" : "Precio del stand"} v={dinero(ordenViva ? ordenViva.total : d.precio)} />
                 <Linea k="Ya pagaste" v={dinero(d.pagado)} />
                 {d.enRevision > 0 && <Linea k="Pago en revisión" v={dinero(d.enRevision)} />}
-                <Linea k={d.saldo > 0 ? "Te falta por pagar" : "Saldo"} v={d.saldo > 0 ? dinero(d.saldo) : "Pagado"} fuerte />
+                {ordenViva
+                  ? <Linea k="El resto" v="En cuotas con Cashea" fuerte />
+                  : <Linea k={d.saldo > 0 ? "Te falta por pagar" : "Saldo"} v={d.saldo > 0 ? dinero(d.saldo) : "Pagado"} fuerte />}
               </dl>
             </section>
 
             {d.estado === "pagado" ? (
               <Aviso tono="ok" titulo="Tu stand está pagado por completo">No tienes nada pendiente. Tu factura te llegó por correo; si no la encuentras, escríbenos a ventas@isekaiworld.co.</Aviso>
-            ) : d.estado === "pendiente" ? (
-              <Aviso tono="espera" titulo="Estamos revisando tu primer pago">Cuando lo confirmemos, tu mesa queda apartada y desde aquí podrás pagar el saldo. Te avisamos por correo.</Aviso>
-            ) : d.estado !== "apartado" ? (
+            ) : d.estado !== "apartado" && d.estado !== "pendiente" ? (
               <Aviso tono="espera" titulo="Esta reserva no está activa">Si crees que es un error, escríbenos a ventas@isekaiworld.co.</Aviso>
+            ) : d.estado === "pendiente" && !d.mesaLibre ? (
+              <Aviso tono="espera" titulo={`El stand ${d.numero} ya lo reservó otra tienda`}>Su pago se confirmó antes. Escríbenos a ventas@isekaiworld.co y te asignamos otro stand del mismo tipo.</Aviso>
             ) : hecho ? (
               <Aviso tono="ok" titulo={hecho.completo ? "Pago verificado: tu stand quedó pagado" : hecho.aprobado ? "Pago verificado" : "Recibimos tu pago"}>
                 {hecho.aprobado ? `Confirmamos tu pago de ${dinero(hecho.monto)}.` : `Reportaste ${dinero(hecho.monto)}. Lo revisamos y te avisamos por correo cuando esté confirmado.`}
-                {!hecho.completo && porPagar > 0 && <> Te quedan {dinero(porPagar)} por pagar. <button type="button" className="font-bold text-white underline" onClick={() => setHecho(null)}>Reportar otro pago</button></>}
+                {ordenViva
+                  ? <> Con ese pago cerramos tu orden de Cashea n.º {ordenViva.orderId} y tu stand queda pagado.</>
+                  : !hecho.completo && porPagar > 0 && <> Te quedan {dinero(porPagar)} por pagar. <button type="button" className="font-bold text-white underline" onClick={() => setHecho(null)}>Reportar otro pago</button></>}
               </Aviso>
             ) : (
               <>
-                {d.orden && d.orden.estado !== "confirmada" && (
-                  <Aviso tono="espera" titulo={`Recibimos tu orden de Cashea n.º ${d.orden.orderId}`}>
-                    La estamos confirmando y te avisamos por correo. No tienes que hacer nada más, salvo que Cashea te haya pedido una inicial mayor a lo que ya pagaste ({dinero(d.pagado)}): esa diferencia se paga de contado.
+                {ordenViva && (
+                  <Aviso tono="espera" titulo={`Recibimos tu orden de Cashea n.º ${ordenViva.orderId}`}>
+                    {faltaInicial
+                      ? "Falta un paso: paga aquí abajo la inicial que te indicó Cashea. Cuando la confirmemos, cerramos tu orden y tu stand queda reservado y pagado."
+                      : d.pagado <= 0
+                        ? `Estamos revisando tu pago de ${dinero(d.enRevision)}. Cuando lo confirmemos, cerramos tu orden con Cashea y te avisamos por correo.`
+                        : `La estamos confirmando y te avisamos por correo. No tienes que hacer nada más, salvo que Cashea te haya pedido una inicial mayor a lo que ya pagaste (${dinero(d.pagado)}): esa diferencia se paga de contado.`}
                   </Aviso>
                 )}
-                {d.orden && d.orden.estado !== "confirmada" && !pagarAparte ? (
-                  porPagar > 0 && <button type="button" onClick={() => setPagarAparte(true)} className="mt-4 w-full rounded-full border border-white/15 py-3.5 text-[15px] font-bold text-white">Pagar la diferencia de contado</button>
+                {faltaInicial ? (
+                  <DeContado clave={clave} porPagar={porPagar} tasa={tasa} inicial alTerminar={alReportar} />
+                ) : ordenViva && !pagarAparte ? (
+                  porPagar > 0 && <button type="button" onClick={() => setPagarAparte(true)} className="mt-4 w-full rounded-full border border-white/15 py-3.5 text-[15px] font-bold text-white">{d.pagado > 0 ? "Pagar la diferencia de contado" : "Reportar otro pago"}</button>
+                ) : d.estado === "pendiente" && d.enRevision > 0 ? (
+                  <Aviso tono="espera" titulo="Estamos revisando tu primer pago">Cuando lo confirmemos, tu mesa queda apartada y desde aquí podrás pagar el saldo. Te avisamos por correo.</Aviso>
                 ) : porPagar <= 0 ? (
                   <Aviso tono="espera" titulo="Estamos revisando tu pago">Ya reportaste el pago de todo tu saldo. Te avisamos por correo cuando esté confirmado.</Aviso>
                 ) : (
@@ -109,20 +129,20 @@ export default function StandSaldo() {
                       <>
                         <p className={`${etiqueta} mt-7`}>¿Cómo quieres pagar?</p>
                         <div className="grid grid-cols-2 gap-2">
+                          <button type="button" aria-pressed={forma === "cashea"} onClick={() => setForma("cashea")} className="rounded-xl border px-3 py-3 text-left" style={forma === "cashea" ? elegida : sinElegir}>
+                            <p className="text-[14px] font-bold">En cuotas con Cashea</p>
+                            <p className="text-[13px] text-[#cfc9d8]">{d.pagado > 0 ? `${dinero(d.cashea.financiado)} financiados` : `${dinero(d.cashea.total)} en total`}</p>
+                          </button>
                           <button type="button" aria-pressed={forma === "contado"} onClick={() => setForma("contado")} className="rounded-xl border px-3 py-3 text-left" style={forma === "contado" ? elegida : sinElegir}>
                             <p className="text-[14px] font-bold">De contado</p>
                             <p className="text-[13px] text-[#cfc9d8]">{dinero(porPagar)}</p>
-                          </button>
-                          <button type="button" aria-pressed={forma === "cashea"} onClick={() => setForma("cashea")} className="rounded-xl border px-3 py-3 text-left" style={forma === "cashea" ? elegida : sinElegir}>
-                            <p className="text-[14px] font-bold">En cuotas con Cashea</p>
-                            <p className="text-[13px] text-[#cfc9d8]">{dinero(d.cashea.financiado)} financiados</p>
                           </button>
                         </div>
                       </>
                     )}
                     {forma === "cashea" && d.cashea.disponible
-                      ? <ConCashea clave={clave} plan={d.cashea} precio={d.precio} />
-                      : <DeContado clave={clave} porPagar={porPagar} tasa={tasa} alTerminar={r => { setHecho(r); void utils.stands.saldo.invalidate(); window.scrollTo({ top: 0 }); }} />}
+                      ? <ConCashea clave={clave} plan={d.cashea} precio={d.precio} pagado={d.pagado} />
+                      : <DeContado clave={clave} porPagar={porPagar} tasa={tasa} alTerminar={alReportar} />}
                   </>
                 )}
               </>
@@ -138,7 +158,7 @@ function Linea({ k, v, fuerte }: { k: string; v: string; fuerte?: boolean }) {
   return (
     <div className="flex items-baseline justify-between gap-3 py-2.5">
       <dt className={fuerte ? "font-bold text-white" : "text-[#9a93a6]"}>{k}</dt>
-      <dd className={fuerte ? "text-[20px] font-black text-white" : "font-semibold text-white"}>{v}</dd>
+      <dd className={fuerte ? `${v.length > 10 ? "text-[15px]" : "text-[20px]"} text-right font-black text-white` : "font-semibold text-white"}>{v}</dd>
     </div>
   );
 }
@@ -158,11 +178,13 @@ function Aviso({ tono, titulo, children }: { tono: "ok" | "espera"; titulo: stri
 }
 
 // ─── De contado ────────────────────────────────────────────────────────────
-function DeContado({ clave, porPagar, tasa, alTerminar }: {
+function DeContado({ clave, porPagar, tasa, inicial, alTerminar }: {
   clave: string; porPagar: number; tasa: number;
+  /** Es la inicial de Cashea: el monto lo escribe la tienda (se lo indicó Cashea) */
+  inicial?: boolean;
   alTerminar: (r: { monto: number; aprobado: boolean; completo: boolean }) => void;
 }) {
-  const [montoTexto, setMontoTexto] = useState(porPagar.toFixed(2));
+  const [montoTexto, setMontoTexto] = useState(inicial ? "" : porPagar.toFixed(2));
   const [metodo, setMetodo] = useState<Metodo>("pago_movil");
   const [referencia, setReferencia] = useState("");
   const [comprobanteUrl, setComprobanteUrl] = useState("");
@@ -172,7 +194,7 @@ function DeContado({ clave, porPagar, tasa, alTerminar }: {
     onSuccess: r => { if (r.aviso) toast.message(r.aviso, { duration: 9000 }); alTerminar({ monto: r.monto, aprobado: r.aprobado, completo: r.completo }); },
     onError: e => toast.error(mensaje(e, "Revisa el monto y la referencia."), { duration: 8000 }),
   });
-  useEffect(() => { setMontoTexto(porPagar.toFixed(2)); }, [porPagar]);
+  useEffect(() => { if (!inicial) setMontoTexto(porPagar.toFixed(2)); }, [porPagar, inicial]);
 
   const monto = Math.round(Number(montoTexto.replace(",", ".")) * 100) / 100;
   const montoValido = Number.isFinite(monto) && monto >= 1 && monto <= porPagar + 0.009;
@@ -203,10 +225,12 @@ function DeContado({ clave, porPagar, tasa, alTerminar }: {
   return (
     <section className="mt-5 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6" aria-label="Pago de contado">
       <label>
-        <span className={etiqueta}>Monto que vas a pagar (USD)</span>
-        <input value={montoTexto} onChange={e => setMontoTexto(e.target.value)} inputMode="decimal" className={campo} aria-invalid={!montoValido} />
+        <span className={etiqueta}>{inicial ? "Inicial que te indicó Cashea (USD) *" : "Monto que vas a pagar (USD)"}</span>
+        <input value={montoTexto} onChange={e => setMontoTexto(e.target.value)} inputMode="decimal" placeholder={inicial ? "Ej.: 129.20" : ""} className={campo} aria-invalid={montoTexto !== "" && !montoValido} />
       </label>
-      <p className="mt-1.5 text-[12px] text-[#9a93a6]">{montoValido ? "Puedes pagar todo el saldo o una parte." : `Escribe un monto entre $1 y ${dinero(porPagar)}.`}</p>
+      <p className="mt-1.5 text-[12px] text-[#9a93a6]">{inicial
+        ? "Es el monto de la inicial que viste en Cashea al confirmar tu plan. Las cuotas se las pagas a Cashea."
+        : montoValido ? "Puedes pagar todo el saldo o una parte." : `Escribe un monto entre $1 y ${dinero(porPagar)}.`}</p>
 
       <p className={`${etiqueta} mt-5`}>Paga por:</p>
       <div className="grid grid-cols-3 gap-2">
@@ -258,7 +282,7 @@ function DeContado({ clave, porPagar, tasa, alTerminar }: {
         onClick={() => pagar.mutate({ clave, monto, metodo, referencia: referencia.trim() || "Efectivo por entregar", comprobanteUrl: comprobanteUrl || undefined })}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#ff3d9e] py-4 text-[16px] font-black disabled:opacity-40"
       >
-        {pagar.isPending && <Loader2 size={18} className="animate-spin" />} Reportar pago{montoValido ? ` de ${dinero(monto)}` : ""}
+        {pagar.isPending && <Loader2 size={18} className="animate-spin" />} {inicial ? "Reportar la inicial" : "Reportar pago"}{montoValido ? ` de ${dinero(monto)}` : ""}
       </button>
       <p className="mt-3 text-center text-[12px] text-[#8d8697]">Confirmamos tu pago y te avisamos por correo.</p>
     </section>
@@ -275,8 +299,8 @@ function Dato({ k, v, copiar }: { k: string; v: string; copiar: (v: string) => v
 }
 
 // ─── Con Cashea ────────────────────────────────────────────────────────────
-function ConCashea({ clave, plan, precio }: {
-  clave: string; precio: number;
+function ConCashea({ clave, plan, precio, pagado }: {
+  clave: string; precio: number; pagado: number;
   plan: { total: number; inicial: number; financiado: number; recargoPct: number };
 }) {
   const [cedula, setCedula] = useState("");
@@ -293,25 +317,28 @@ function ConCashea({ clave, plan, precio }: {
     setCargando(true);
     try {
       const { publicKey, payload } = await iniciar.mutateAsync({ clave, cedula: numeros });
-      const modulo: any = await import("cashea-web-checkout-sdk");
-      const CheckoutSDK = modulo.default ?? modulo.WebCheckoutSDK ?? modulo;
-      caja.current.replaceChildren();
-      new CheckoutSDK({ apiKey: publicKey }).createCheckoutButton({ payload, container: caja.current });
+      await montarBotonCashea(caja.current, publicKey, payload);
       setMontado(true);
     } catch (e: any) {
-      toast.error(mensaje({ message: String(e?.message ?? "[") }, "No pudimos preparar el pago con Cashea. Revisa tu cédula e intenta de nuevo."), { duration: 8000 });
+      toast.error(mensaje(e, "No pudimos preparar el pago con Cashea. Revisa tu cédula e intenta de nuevo."), { duration: 8000 });
     } finally { setCargando(false); }
   };
 
   return (
     <section className="mt-5 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-6" aria-label="Pago con Cashea">
       <p className="text-[14px] leading-relaxed text-[#cfc9d8]">Con Cashea el stand cuesta {dinero(plan.total)}: su precio de {dinero(precio)} más {plan.recargoPct} % por pagar en cuotas.</p>
-      <dl className="mt-3 divide-y divide-white/8 text-[15px]">
-        <Linea k="Stand con Cashea" v={dinero(plan.total)} />
-        <Linea k="Tu inicial (lo que ya pagaste)" v={dinero(plan.inicial)} />
-        <Linea k="Lo pagas en cuotas a Cashea" v={dinero(plan.financiado)} fuerte />
-      </dl>
-      <p className="mt-3 text-[13px] leading-relaxed text-[#9a93a6]">El número de cuotas y la inicial final los define Cashea según tu nivel. Si te pide una inicial mayor a lo que ya pagaste, la diferencia la pagas de contado desde esta misma página.</p>
+      {pagado > 0 ? (
+        <>
+          <dl className="mt-3 divide-y divide-white/8 text-[15px]">
+            <Linea k="Stand con Cashea" v={dinero(plan.total)} />
+            <Linea k="Tu inicial (lo que ya pagaste)" v={dinero(plan.inicial)} />
+            <Linea k="Lo pagas en cuotas a Cashea" v={dinero(plan.financiado)} fuerte />
+          </dl>
+          <p className="mt-3 text-[13px] leading-relaxed text-[#9a93a6]">El número de cuotas y la inicial final los define Cashea según tu nivel. Si te pide una inicial mayor a lo que ya pagaste, la diferencia la pagas de contado desde esta misma página.</p>
+        </>
+      ) : (
+        <p className="mt-3 text-[13px] leading-relaxed text-[#9a93a6]">Cashea define tu inicial y tus cuotas según tu nivel. La inicial nos la pagas a nosotros al volver a esta página (Pago Móvil, Binance Pay o efectivo); las cuotas se las pagas a Cashea.</p>
+      )}
 
       <label className="mt-5 block">
         <span className={etiqueta}>Tu cédula, la misma de tu cuenta de Cashea *</span>
@@ -326,7 +353,7 @@ function ConCashea({ clave, plan, precio }: {
       )}
       {montado && <p className="mt-5 text-center text-[13px] text-[#cfc9d8]">Todo listo. Toca el botón para ver tu plan y confirmar en Cashea.</p>}
       <div ref={caja} className="mt-3" />
-      <p className="mt-3 text-center text-[12px] text-[#8d8697]">Al confirmar en Cashea vuelves aquí. Tu stand queda pagado cuando revisemos la orden.</p>
+      <p className="mt-3 text-center text-[12px] text-[#8d8697]">Al confirmar en Cashea vuelves aquí. {pagado > 0 ? "Tu stand queda pagado cuando revisemos la orden." : "Tu stand queda reservado cuando confirmemos tu inicial."}</p>
     </section>
   );
 }

@@ -20,7 +20,7 @@ const aMonto = (t: string) => { const n = parseFloat(t.trim().replace(",", "."))
 type Mesa = { id: number; numero: string; tipo: string; estado: string; reservaId: number | null; x: number | null; y: number | null };
 type Reserva = { id: number; standId: number; numero: string; tipo: string; negocio: string; contacto: string; email: string; whatsapp: string; rif?: string | null; precio: number; pagado: number; estado: string; modalidad: string; facturaClave?: string | null; facturaNumero?: number | null; enlaceSaldo?: string };
 type Pago = { id: number; reservaId: number; monto: number; metodo: string; referencia: string | null; comprobanteUrl: string | null; estado: string; creadoEn: string };
-type OrdenCashea = { id: number; reservaId: number; numero: string; negocio: string; cedula: string; total: number; inicial: number; pagado: number; precio: number; orderId: string | null; estado: string; detalle: string | null; creadoEn: string };
+type OrdenCashea = { id: number; reservaId: number; numero: string; negocio: string; cedula: string; total: number; inicial: number; pagado: number; precio: number; orderId: string | null; estado: string; detalle: string | null; creadoEn: string; estadoReserva?: string };
 
 function Contacto({ r }: { r: Reserva }) {
   const tel = paraWhatsApp(r.whatsapp);
@@ -109,13 +109,14 @@ function Stands() {
                   <li key={p.id} className={esta ? "is-open" : undefined}>
                     <button type="button" className="ped__fila" aria-expanded={esta} onClick={() => abrir(clave)}>
                       <span className="ped__quien"><strong>{r.negocio}</strong><span className="rows__side">{dinero(p.monto)}</span></span>
-                      <span className="ped__pie-fila"><small>Stand {r.numero} · {TIPO[r.tipo] ?? r.tipo} · {r.estado === "apartado" ? "pago del saldo" : r.modalidad === "abono" ? "abono del 30%" : "pago completo"} · {fecha(p.creadoEn)}</small><span className="ped__insignias"><Badge tone="hot">Por revisar</Badge></span></span>
+                      <span className="ped__pie-fila"><small>Stand {r.numero} · {TIPO[r.tipo] ?? r.tipo} · {r.modalidad === "cashea" && r.estado !== "apartado" ? "inicial de Cashea" : r.estado === "apartado" ? "pago del saldo" : r.modalidad === "abono" ? "abono del 30%" : "pago completo"} · {fecha(p.creadoEn)}</small><span className="ped__insignias"><Badge tone="hot">Por revisar</Badge></span></span>
                     </button>
                     {esta && (
                       <div className="ped__ficha">
                         <div className="ped__paso">
                           <h3>Revisa el pago</h3>
                           <p>Reportó {dinero(p.monto)} por {METODO[p.metodo] ?? p.metodo}{p.referencia ? <>, referencia <strong>{p.referencia}</strong></> : null}. El stand cuesta {dinero(r.precio)}.</p>
+                          {casheaPorConfirmar.some(o => o.reservaId === r.id) && <p className="pa-tenue">Esta tienda paga con Cashea (orden {casheaPorConfirmar.find(o => o.reservaId === r.id)?.orderId}). Este pago es su inicial: después de aprobarlo, confirma la orden en la pestaña Cashea.</p>}
                           {p.comprobanteUrl ? <a className="ped__comprobante" href={p.comprobanteUrl} target="_blank" rel="noreferrer"><img src={p.comprobanteUrl} alt="Comprobante de pago" loading="lazy" /><span>Abrir comprobante</span></a> : <span className="pa-tenue">Sin comprobante</span>}
                           {tomada && (
                             <label className="pa-select fes__aviso">La mesa {r.numero} ya la tomó otra tienda. Dale otra antes de aprobar:
@@ -191,12 +192,13 @@ function Stands() {
               {cashea.ordenes.map(o => {
                 const clave = `c${o.id}`, esta = abierto === clave;
                 const porHacer = o.estado === "por_confirmar" || o.estado === "error";
+                const sinInicial = porHacer && o.pagado <= 0;
                 const monto = aMonto(inicial);
                 return (
                   <li key={o.id} className={esta ? "is-open" : undefined}>
                     <button type="button" className="ped__fila" aria-expanded={esta} onClick={() => { abrir(clave); setInicial(o.pagado.toFixed(2)); }}>
                       <span className="ped__quien"><strong>{o.negocio}</strong><span className="rows__side">{dinero(o.total)}</span></span>
-                      <span className="ped__pie-fila"><small>Stand {o.numero} · orden {o.orderId ?? "sin número"} · {fecha(o.creadoEn)}</small><span className="ped__insignias"><Badge tone={o.estado === "confirmada" ? "ok" : o.estado === "cancelada" ? "off" : "hot"}>{o.estado === "confirmada" ? "Confirmada" : o.estado === "cancelada" ? "Cancelada" : o.estado === "error" ? "Cashea la rechazó" : "Por confirmar"}</Badge></span></span>
+                      <span className="ped__pie-fila"><small>Stand {o.numero} · orden {o.orderId ?? "sin número"} · {fecha(o.creadoEn)}</small><span className="ped__insignias"><Badge tone={o.estado === "confirmada" ? "ok" : o.estado === "cancelada" ? "off" : sinInicial ? "warn" : "hot"}>{o.estado === "confirmada" ? "Confirmada" : o.estado === "cancelada" ? "Cancelada" : o.estado === "error" ? "Cashea la rechazó" : sinInicial ? "Falta la inicial" : "Por confirmar"}</Badge></span></span>
                     </button>
                     {esta && (
                       <div className="ped__ficha">
@@ -204,12 +206,13 @@ function Stands() {
                           <h3>{porHacer ? "Revisa la orden en tu portal de Cashea" : "Orden de Cashea"}</h3>
                           <p>Orden <strong>{o.orderId}</strong>, cédula {o.cedula}. El stand con Cashea cuesta {dinero(o.total)} ({dinero(o.precio)} más 8 %). La tienda ha pagado {dinero(o.pagado)}{o.estado === "confirmada" ? <> y se confirmó una inicial de {dinero(o.inicial)}</> : null}.</p>
                           {o.estado === "error" && o.detalle && <p className="notice" role="alert">{o.detalle}</p>}
+                          {sinInicial && <p className="notice">La tienda todavía no tiene la inicial pagada. Cuando la reporte la verás en «Pagos por revisar»: apruébala y vuelve aquí a confirmar la orden.</p>}
                           {porHacer && (
                             <>
                               <p className="pa-tenue">Antes de confirmar, comprueba en Cashea que el total sea {dinero(o.total)} y cuánta inicial pide. Al confirmar le avisas a Cashea que la inicial ya está pagada y el stand queda pagado por completo.</p>
                               <form className="form form--inline" onSubmit={(e: FormEvent) => { e.preventDefault(); if (!monto) { toast.error("Escribe la inicial"); return; } casheaConfirmar.mutate({ id: o.id, inicial: monto }); }}>
                                 <label className="field"><span className="field__label">Inicial que se confirma (USD)</span><input value={inicial} onChange={e => setInicial(e.target.value)} inputMode="decimal" /></label>
-                                <button className="btn btn--small" type="submit" disabled={casheaConfirmar.isPending || casheaCancelar.isPending}>{casheaConfirmar.isPending ? "Confirmando…" : "Confirmar en Cashea"}</button>
+                                <button className="btn btn--small" type="submit" disabled={casheaConfirmar.isPending || casheaCancelar.isPending || sinInicial}>{casheaConfirmar.isPending ? "Confirmando…" : "Confirmar en Cashea"}</button>
                               </form>
                               <div className="ped__otras"><Confirmar texto="Cancelar la orden" pregunta={`¿Cancelar la orden ${o.orderId} en Cashea? La tienda podrá empezar de nuevo.`} si="Sí, cancelar" disabled={casheaCancelar.isPending || casheaConfirmar.isPending} onSi={() => casheaCancelar.mutate({ id: o.id })} /></div>
                             </>

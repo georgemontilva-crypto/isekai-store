@@ -347,9 +347,11 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
     const { sendEmail } = await import("./_core/notification");
     const t = TIPOS_STAND[reserva.tipo as TipoStand];
     const saldo = Math.max(0, Number(reserva.precio) - pagado);
-    const { enlaceDeSaldo, casheaConfig } = await import("./standSaldo");
+    const { enlaceDeSaldo, casheaConfig, ordenCasheaDe } = await import("./standSaldo");
     const enlaceSaldo = enlaceDeSaldo(Number(reserva.id));
     const casheaActivo = casheaConfig().activo;
+    // Si la tienda paga con Cashea, el resto no lo paga aquí: lo financia Cashea
+    const ordenCashea = completo ? null : await ordenCasheaDe(Number(reserva.id));
     const fila = (k: string, v: string) => `<tr><td style="padding:8px 0;color:#9a93a6">${k}</td><td style="padding:8px 0;text-align:right;font-weight:700;color:#ffffff">${v}</td></tr>`;
     const asunto = completo
       ? `✅ Tu stand ${s?.numero} está pagado · Isekai World Fest 2027`
@@ -362,12 +364,13 @@ export async function aprobarPago(pagoId: number, montoReal?: number) {
         ${fila("Stand", `${s?.numero ?? ""} · ${t?.nombre ?? reserva.tipo}`)}
         ${fila("Precio del stand", `$${Number(reserva.precio).toFixed(2)}`)}
         ${fila("Pagado hasta hoy", `$${pagado.toFixed(2)}`)}
-        ${fila(saldo > 0 ? "Saldo pendiente" : "Saldo", saldo > 0 ? `$${saldo.toFixed(2)}` : "Pagado ✓")}
+        ${fila(saldo > 0 ? (ordenCashea ? "Resto (con Cashea)" : "Saldo pendiente") : "Saldo", saldo > 0 ? `$${saldo.toFixed(2)}` : "Pagado ✓")}
         ${factura ? fila("Factura", `N.º ${factura.numero}`) : ""}
       </table>
       ${factura ? `<div style="text-align:center;margin:20px 0 4px"><a href="${factura.url}" class="btn">Ver y descargar tu factura →</a></div>
       <p style="text-align:center;color:#9a93a6;font-size:13px">Ábrela y toca «Imprimir o guardar en PDF» para conservarla.</p>` : ""}
-      ${saldo > 0 ? `<p>El saldo de <strong>$${saldo.toFixed(2)}</strong> lo puedes pagar cuando quieras antes del evento, desde tu enlace personal${casheaActivo ? ": de contado o en cuotas con Cashea" : ""}. Guarda este correo para tenerlo a mano.</p>
+      ${saldo > 0 && ordenCashea ? `<p>Con este pago queda cubierta tu inicial. Ahora cerramos tu orden de Cashea n.º ${ordenCashea.orderId ?? ""}: el resto lo pagas en cuotas a Cashea. Te avisamos por correo cuando tu stand quede pagado.</p>
+      <div style="text-align:center;margin:20px 0 4px"><a href="${enlaceSaldo}" class="btn">Ver tu stand →</a></div>` : saldo > 0 ? `<p>El saldo de <strong>$${saldo.toFixed(2)}</strong> lo puedes pagar cuando quieras antes del evento, desde tu enlace personal${casheaActivo ? ": de contado o en cuotas con Cashea" : ""}. Guarda este correo para tenerlo a mano.</p>
       <div style="text-align:center;margin:20px 0 4px"><a href="${enlaceSaldo}" class="btn">Pagar el saldo de tu stand →</a></div>
       <p style="text-align:center;color:#9a93a6;font-size:13px">¿Dudas? Escríbenos a <a href="mailto:ventas@isekaiworld.co">ventas@isekaiworld.co</a>.</p>` : ""}
       <div style="text-align:center;margin:24px 0"><a href="https://www.isekaiworld.co/stands" ${saldo > 0 ? 'style="color:#9a93a6"' : 'class="btn"'}>Ver el plano de stands →</a></div>

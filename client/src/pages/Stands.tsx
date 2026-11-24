@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "wouter";
 import { ArrowLeft, Check, Copy, Loader2, Map as MapaIcono, Store, Upload } from "lucide-react";
 import { toast } from "sonner";
@@ -6,7 +6,8 @@ import { trpc } from "@/lib/trpc";
 import { useSEO } from "@/hooks/useSEO";
 import { useStandsSocket } from "@/hooks/useStandsSocket";
 import MapaStands, { COLOR_TIPO, type MesaPlano } from "@/components/fest/MapaStands";
-import { PAGO_MOVIL, BINANCE_PAY_ID } from "@shared/payment";
+import { PAGO_MOVIL, BINANCE_PAY_ID, RECARGO_CASHEA_PCT, aceptaCashea, precioCashea } from "@shared/payment";
+import { montarBotonCashea, mensajeDeError } from "@/lib/cashea";
 
 /**
  * Tienda de stands del Isekai World Fest (/stands).
@@ -82,7 +83,7 @@ export default function Stands() {
         <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-[#ff3d9e]">14 y 15 de agosto 2027 · Maracaibo</p>
         <h1 className="mt-2 text-[34px] font-black leading-[1.05] sm:text-[46px]">Reserva tu stand</h1>
         <p className="mt-3 max-w-2xl text-[15px] leading-relaxed text-[#bfb8c9]">
-          Elige el tipo de stand y tu mesa en el plano. Apártala con un abono del {data?.abonoPct ?? 30}% o págala completa: en cuanto confirmemos tu pago, esa mesa es tuya y nadie más puede tomarla.
+          Elige el tipo de stand y tu mesa en el plano. Apártala con un abono del {data?.abonoPct ?? 30}%, págala completa{(data as any)?.cashea?.activo ? " o llévala en cuotas con Cashea" : ""}: en cuanto confirmemos tu pago, esa mesa es tuya y nadie más puede tomarla.
         </p>
 
         {/* Tipos con su conteo de disponibles */}
@@ -164,18 +165,28 @@ export default function Stands() {
           </div>
         </div>
 
-        {mesa && tipos && <Formulario mesa={mesa} tipos={tipos} abonoPct={data?.abonoPct ?? 30} tasa={parseFloat(settings?.["bs_rate"] ?? "")} onListo={setHecho} />}
+        {mesa && tipos && <Formulario mesa={mesa} tipos={tipos} abonoPct={data?.abonoPct ?? 30} tasa={parseFloat(settings?.["bs_rate"] ?? "")} cashea={Boolean((data as any)?.cashea?.activo)} onListo={setHecho} />}
       </section>
     </main>
   );
 }
 
-function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
+function Formulario({ mesa, tipos, abonoPct, tasa, cashea, onListo }: {
   mesa: MesaPlano; tipos: Record<string, { nombre: string; precio: number }>; abonoPct: number; tasa: number;
+  /** Cashea está activo: se puede reservar pagando todo el stand en cuotas */
+  cashea: boolean;
   onListo: (r: { numero: string; monto: number; tipo: string; aprobado?: boolean }) => void;
 }) {
   const t = tipos[mesa.tipo];
-  const [modalidad, setModalidad] = useState<"abono" | "completo">("abono");
+  const totalCashea = precioCashea(t.precio);
+  const hayCashea = cashea && aceptaCashea(totalCashea);
+  const [modalidad, setModalidad] = useState<"abono" | "completo" | "cashea">(hayCashea ? "cashea" : "abono");
+  const conCashea = modalidad === "cashea" && hayCashea;
+  const [cedula, setCedula] = useState("");
+  const [botonListo, setBotonListo] = useState(false);
+  const [preparando, setPreparando] = useState(false);
+  const cajaCashea = useRef<HTMLDivElement>(null);
+  const solicitarCashea = trpc.stands.solicitarCashea.useMutation();
   const [negocio, setNegocio] = useState("");
   const [contacto, setContacto] = useState("");
   const [email, setEmail] = useState("");
@@ -193,6 +204,27 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
   });
 
   const monto = modalidad === "abono" ? Math.round(t.precio * abonoPct) / 100 : t.precio;
+  const cedulaNumeros = cedula.replace(/\D/g, "");
+  const datosListos = negocio.trim().length >= 2 && contacto.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && whatsapp.replace(/\D/g, "").length >= 7;
+  const listoCashea = datosListos && cedulaNumeros.length >= 6 && cedulaNumeros.length <= 10;
+
+  // Si cambia algún dato, el botón de Cashea se vuelve a preparar con los datos nuevos
+  useEffect(() => { cajaCashea.current?.replaceChildren(); setBotonListo(false); }, [negocio, contacto, email, whatsapp, rif, cedula, modalidad, mesa.id]);
+
+  /** Guarda la solicitud y monta el botón oficial de Cashea */
+  const prepararCashea = async () => {
+    if (!listoCashea || !cajaCashea.current) return;
+    setPreparando(true);
+    try {
+      const r = await solicitarCashea.mutateAsync({ standId: mesa.id, negocio, contacto, email, whatsapp, rif: rif || undefined, cedula: cedulaNumeros });
+      await montarBotonCashea(cajaCashea.current, r.publicKey, r.payload);
+      setBotonListo(true);
+    } catch (e: any) {
+      const m = String(e?.message ?? "");
+      toast.error(m.includes("WhatsApp") ? "Revisa el número de WhatsApp" : m.includes("email") ? "Revisa el correo" : mensajeDeError(e, "No pudimos preparar el pago con Cashea. Revisa tus datos e intenta de nuevo."), { duration: 8000 });
+      void utils.stands.publico.invalidate();
+    } finally { setPreparando(false); }
+  };
   const montoBs = Number.isFinite(tasa) && tasa > 0 ? monto * tasa : 0;
   const copiar = (v: string) => { void navigator.clipboard?.writeText(v).then(() => toast.success("Copiado")).catch(() => {}); };
 
@@ -215,7 +247,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
     finally { setSubiendo(false); }
   };
 
-  const listo = negocio.trim().length >= 2 && contacto.trim().length >= 2 && /\S+@\S+\.\S+/.test(email) && whatsapp.replace(/\D/g, "").length >= 7 && (metodo === "efectivo" || referencia.trim().length >= 3);
+  const listo = datosListos && (metodo === "efectivo" || referencia.trim().length >= 3);
 
   return (
     <div id="stand-formulario" className="mt-10 scroll-mt-20 rounded-3xl border border-white/10 bg-white/[0.03] p-5 sm:p-7">
@@ -233,6 +265,17 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
         </p>
       )}
       <p className={`${etiqueta} mt-6`}>¿Cómo quieres pagar?</p>
+      {hayCashea && (
+        <button type="button" aria-pressed={conCashea} onClick={() => setModalidad("cashea")}
+          className="mb-2 flex w-full items-center justify-between gap-3 rounded-xl border px-3 py-3 text-left"
+          style={conCashea ? { borderColor: "#ff3d9e", background: "rgba(255,61,158,0.12)" } : { borderColor: "rgba(255,255,255,0.12)" }}>
+          <span>
+            <span className="block text-[14px] font-bold">En cuotas con Cashea</span>
+            <span className="block text-[13px] text-[#cfc9d8]">Pagas una inicial y el resto en cuotas</span>
+          </span>
+          <span className="text-[15px] font-black">{dinero(totalCashea)}</span>
+        </button>
+      )}
       <div className="grid grid-cols-2 gap-2">
         {(["abono", "completo"] as const).map(m => (
           <button key={m} type="button" onClick={() => setModalidad(m)}
@@ -243,6 +286,7 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
           </button>
         ))}
       </div>
+      {conCashea && <p className="mt-2 text-[12px] leading-relaxed text-[#9a93a6]">Con Cashea el stand cuesta {dinero(totalCashea)}: su precio de {dinero(t.precio)} más {RECARGO_CASHEA_PCT} % por pagar en cuotas. Cashea define tu inicial y tus cuotas según tu nivel.</p>}
       {modalidad === "abono" && <p className="mt-2 text-[12px] text-[#9a93a6]">Con el abono la mesa queda apartada a tu nombre; el saldo de {dinero(t.precio - monto)} se paga después.</p>}
 
       <div className="mt-6 grid gap-4 sm:grid-cols-2">
@@ -253,6 +297,29 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
         <label className="sm:col-span-2"><span className={etiqueta}>RIF o cédula (opcional)</span><input value={rif} onChange={e => setRif(e.target.value)} maxLength={40} className={campo} /></label>
       </div>
 
+      {conCashea ? (
+        <>
+          <label className="mt-6 block">
+            <span className={etiqueta}>Tu cédula, la misma de tu cuenta de Cashea *</span>
+            <input value={cedula} onChange={e => setCedula(e.target.value)} inputMode="numeric" autoComplete="off" maxLength={12} placeholder="Solo números" className={campo} />
+          </label>
+          <ol className="mt-4 list-decimal space-y-1 rounded-2xl bg-black/40 py-4 pl-9 pr-4 text-[13px] leading-relaxed text-[#bfb8c9]">
+            <li>En Cashea ves tu plan (inicial y cuotas) y lo confirmas.</li>
+            <li>Vuelves aquí y nos pagas la inicial por Pago Móvil, Binance Pay o efectivo.</li>
+            <li>Confirmamos tu inicial y tu stand queda reservado y pagado. Las cuotas se las pagas a Cashea.</li>
+          </ol>
+          {!botonListo && (
+            <button type="button" disabled={!listoCashea || !mesa.libre || preparando} onClick={() => void prepararCashea()}
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#ff3d9e] py-4 text-[16px] font-black disabled:opacity-40">
+              {preparando ? <Loader2 size={18} className="animate-spin" /> : <Store size={18} />} Continuar con el stand {mesa.numero}
+            </button>
+          )}
+          {botonListo && <p className="mt-6 text-center text-[13px] text-[#cfc9d8]">Todo listo. Toca el botón para ver tu plan y confirmar en Cashea.</p>}
+          <div ref={cajaCashea} className="mt-3" />
+          <p className="mt-3 text-center text-[12px] text-[#8d8697]">La mesa queda reservada cuando confirmemos el pago de tu inicial. Te avisamos por correo.</p>
+        </>
+      ) : (
+        <>
       <p className={`${etiqueta} mt-6`}>Paga {dinero(monto)} por:</p>
       <div className="grid grid-cols-3 gap-2">
         {([["pago_movil", "Pago Móvil"], ["crypto", "Binance Pay"], ["efectivo", "Efectivo"]] as const).map(([id, n]) => (
@@ -300,12 +367,15 @@ function Formulario({ mesa, tipos, abonoPct, tasa, onListo }: {
 
       <button
         disabled={!listo || !mesa.libre || solicitar.isPending || subiendo}
-        onClick={() => solicitar.mutate({ standId: mesa.id, negocio, contacto, email, whatsapp, rif: rif || undefined, modalidad, metodo, referencia: referencia.trim() || (metodo === "efectivo" ? "Efectivo por entregar" : referencia), comprobanteUrl: comprobanteUrl || undefined })}
+        onClick={() => solicitar.mutate({ standId: mesa.id, negocio, contacto, email, whatsapp, rif: rif || undefined, modalidad: modalidad === "completo" ? "completo" : "abono", metodo, referencia: referencia.trim() || (metodo === "efectivo" ? "Efectivo por entregar" : referencia), comprobanteUrl: comprobanteUrl || undefined })}
         className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-[#ff3d9e] py-4 text-[16px] font-black disabled:opacity-40"
       >
         {solicitar.isPending ? <Loader2 size={18} className="animate-spin" /> : <Store size={18} />} Reportar pago y reservar {mesa.numero}
       </button>
       <p className="mt-3 text-center text-[12px] text-[#8d8697]">La mesa queda reservada cuando confirmemos tu pago. Te avisamos por correo.</p>
+        </>
+      )}
+
     </div>
   );
 }

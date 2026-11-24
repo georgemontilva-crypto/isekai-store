@@ -1324,7 +1324,8 @@ export const appRouter = router({
     publico: publicProcedure.query(async () => {
       const { standsPublicos, TIPOS_STAND, ABONO_PCT } = await import("./stands");
       const r = await standsPublicos();
-      return { ...r, tipos: TIPOS_STAND, abonoPct: ABONO_PCT };
+      const { casheaConfig } = await import("./standSaldo");
+      return { ...r, tipos: TIPOS_STAND, abonoPct: ABONO_PCT, cashea: { activo: casheaConfig().activo } };
     }),
     solicitar: publicProcedure
       .input(z.object({
@@ -1346,6 +1347,28 @@ export const appRouter = router({
         }
         const { crearSolicitud } = await import("./stands");
         try { return await crearSolicitud(input); }
+        catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
+      }),
+    /** Reserva nueva pagando todo con Cashea: guarda la solicitud y prepara el botón */
+    solicitarCashea: publicProcedure
+      .input(z.object({
+        standId: z.number().int().positive(),
+        negocio: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        contacto: z.string().trim().min(2).max(150).transform(v => v.replace(/[<>]/g, "")),
+        email: z.string().trim().toLowerCase().email().max(320),
+        whatsapp: z.string().trim().max(40).transform(v => (v.trim().startsWith("+") ? "+" : "") + v.replace(/[^0-9]/g, ""))
+          .refine(v => { const d = v.replace(/\D/g, "").length; return d >= 7 && d <= 20; }, "WhatsApp inválido"),
+        rif: z.string().trim().max(40).optional(),
+        cedula: z.string().trim().max(20).transform(v => v.replace(/\D/g, ""))
+          .refine(v => /^\d{6,10}$/.test(v), "Escribe tu cédula, solo números"),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        if (!limitarPorUsuario(`stand:${clientIp(ctx.req)}`, 10, 60 * 60 * 1000)) {
+          throw new TRPCError({ code: "TOO_MANY_REQUESTS", message: "Demasiadas solicitudes. Intenta más tarde." });
+        }
+        const host = ctx.req.get("host") ?? "";
+        const origen = /^(localhost|127\.0\.0\.1)(:\d+)?$/.test(host) ? `http://${host}` : "https://www.isekaiworld.co";
+        try { return await (await import("./standSaldo")).crearReservaCashea(input, origen); }
         catch (e: any) { throw new TRPCError({ code: "BAD_REQUEST", message: e.message }); }
       }),
     panel: adminProcedure.query(async () => (await import("./stands")).panelStands()),

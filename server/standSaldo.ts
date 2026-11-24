@@ -28,6 +28,11 @@ import { TIPOS_STAND, aprobarPago, avisarCambio, type TipoStand } from "./stands
  *         pide una inicial mayor a lo abonado, la tienda paga la diferencia de
  *         contado desde la misma página antes de que se confirme.
  *
+ * Las tiendas nuevas también pueden reservar pagando todo con Cashea desde
+ * /stands: ahí todavía no han pagado nada, así que al volver de Cashea pagan
+ * la inicial que Cashea les indicó (de contado, en esta misma página) y con
+ * ese pago aprobado se confirma la orden.
+ *
  * Cashea solo se ofrece cuando están configuradas sus variables de entorno.
  */
 
@@ -115,7 +120,7 @@ function asegurarTabla(): Promise<void> {
   return tabla;
 }
 
-type Reserva = { id: number; standId: number; tipo: TipoStand; precio: number; negocio: string; contacto: string; email: string; estado: string; pagado: number };
+type Reserva = { id: number; standId: number; tipo: TipoStand; precio: number; negocio: string; contacto: string; email: string; estado: string; pagado: number; modalidad: string };
 type Orden = { id: number; reservaId: number; cedula: string; total: number; inicial: number; orderId: string | null; estado: string; detalle: string | null; creadoEn: string };
 
 async function reservaDe(clave: string): Promise<{ r: Reserva; numero: string }> {
@@ -127,7 +132,11 @@ async function reservaDe(clave: string): Promise<{ r: Reserva; numero: string }>
   return { r: { ...f, precio: Number(f.precio), pagado: Number(f.pagado) }, numero: String(f.numero) };
 }
 
-/** Precio del stand con Cashea y cómo se reparte: lo abonado es la inicial */
+/**
+ * Precio del stand con Cashea y cómo se reparte: lo que la tienda ya pagó
+ * cuenta como inicial (en una reserva nueva todavía es cero: la inicial la
+ * indica Cashea y la tienda la paga al volver).
+ */
 function planCashea(r: Reserva) {
   const total = precioCashea(r.precio);
   const inicial = Math.round(r.pagado * 100) / 100;
@@ -153,23 +162,34 @@ export async function estadoSaldo(clave: string) {
   const plan = planCashea(r);
   let orden: Orden | null = null;
   try { orden = await ordenVigente(r.id); } catch (e) { console.warn("[Saldo] órdenes de Cashea:", e); }
-  // Cashea se ofrece con la mesa ya apartada, saldo por pagar y nada en revisión
-  const casheaDisponible = c.activo && r.estado === "apartado" && saldo > 0 && r.pagado > 0
+  // Una reserva sin pago confirmado todavía no tiene la mesa: otra tienda pudo tomarla
+  const [mesa] = filas<{ estado: string; reservaId: number | null }>(await db.execute(sql`SELECT estado, reservaId FROM festStands WHERE id = ${r.standId} LIMIT 1`));
+  const mesaLibre = !!mesa && (mesa.estado === "libre" || Number(mesa.reservaId) === r.id);
+  // Cashea se ofrece con saldo por pagar, nada en revisión y sin otra orden viva:
+  // a las tiendas que ya apartaron (preventa) y a las que reservan pagando con Cashea
+  const casheaDisponible = c.activo && (r.estado === "apartado" || (r.estado === "pendiente" && mesaLibre)) && saldo > 0
     && Number(enRevision) === 0 && aceptaCashea(plan.total) && plan.financiado > 0 && !orden;
   return {
-    numero, plan: TIPOS_STAND[r.tipo]?.nombre ?? r.tipo, negocio: r.negocio,
+    numero, plan: TIPOS_STAND[r.tipo]?.nombre ?? r.tipo, negocio: r.negocio, modalidad: r.modalidad, mesaLibre,
     precio: r.precio, pagado: r.pagado, saldo, estado: r.estado, enRevision: Number(enRevision) || 0,
     cashea: { activo: c.activo, disponible: casheaDisponible, ...plan },
     orden: orden ? { orderId: orden.orderId, estado: orden.estado, total: orden.total } : null,
   };
 }
 
-/** La tienda reporta un pago de contado de su saldo: queda por revisar */
+/**
+ * La tienda reporta un pago de contado: el saldo de un stand ya apartado, o
+ * el primer pago de una reserva hecha con Cashea (su inicial). Queda por revisar.
+ */
 export async function reportarPagoSaldo(clave: string, d: { monto: number; metodo: string; referencia: string; comprobanteUrl?: string }) {
   const { r, numero } = await reservaDe(clave);
   const db = (await getDb())!;
   if (r.estado === "pagado") throw new Error("Tu stand ya está pagado por completo.");
-  if (r.estado !== "apartado") throw new Error("Primero tenemos que confirmar tu primer pago. Te avisamos por correo.");
+  if (r.estado !== "apartado" && r.estado !== "pendiente") throw new Error("Esta reserva no está activa. Escríbenos a ventas@isekaiworld.co.");
+  if (r.estado === "pendiente") {
+    const [mesa] = filas<{ estado: string; reservaId: number | null }>(await db.execute(sql`SELECT estado, reservaId FROM festStands WHERE id = ${r.standId} LIMIT 1`));
+    if (!mesa || (mesa.estado !== "libre" && Number(mesa.reservaId) !== r.id)) throw new Error(`El stand ${numero} ya fue reservado por otra tienda. Escríbenos a ventas@isekaiworld.co y te asignamos otro.`);
+  }
   const [{ enRevision }] = filas<{ enRevision: number }>(await db.execute(
     sql`SELECT COALESCE(SUM(monto), 0) AS enRevision FROM festStandPagos WHERE reservaId = ${r.id} AND estado = 'pendiente'`));
   const porPagar = Math.round((r.precio - r.pagado - Number(enRevision)) * 100) / 100;
@@ -194,9 +214,19 @@ export async function reportarPagoSaldo(clave: string, d: { monto: number; metod
       aviso = MENSAJE_BINANCE[v.motivo] ?? null;
     } catch (e: any) { console.warn("[Saldo] verificación Binance:", e?.message ?? e); }
   }
-  await avisarAdmin(`💵 Saldo del stand ${numero} · ${r.negocio}`, `Reportó $${monto.toFixed(2)}. Revisa el pago.`, `saldo-${r.id}`);
+  const deCashea = !!(await ordenCasheaDe(r.id));
+  await avisarAdmin(`💵 ${deCashea ? "Inicial de Cashea" : r.estado === "pendiente" ? "Primer pago" : "Saldo"} del stand ${numero} · ${r.negocio}`,
+    `Reportó $${monto.toFixed(2)}. Revisa el pago${deCashea ? " y después confirma la orden en la pestaña Cashea" : ""}.`, `saldo-${r.id}`);
   avisarCambio();
   return { ok: true, aprobado: false, completo: false, monto, aviso };
+}
+
+/** La orden de Cashea que una reserva tiene esperando confirmación (o nada) */
+export async function ordenCasheaDe(reservaId: number): Promise<{ orderId: string | null; total: number } | null> {
+  try {
+    const o = await ordenVigente(reservaId);
+    return o && o.estado !== "confirmada" ? { orderId: o.orderId, total: o.total } : null;
+  } catch { return null; }
 }
 
 async function avisarAdmin(titulo: string, cuerpo: string, etiqueta: string) {
@@ -254,6 +284,39 @@ export async function casheaIniciar(clave: string, cedula: string, origen: strin
   };
 }
 
+/**
+ * Reserva nueva pagando con Cashea desde la página de stands: se guarda la
+ * solicitud (sin pago todavía) y se devuelve lo que necesita el botón de
+ * Cashea. La mesa se toma cuando se aprueba el pago de la inicial.
+ */
+export async function crearReservaCashea(d: { standId: number; negocio: string; contacto: string; email: string; whatsapp: string; rif?: string; cedula: string }, origen: string) {
+  const c = casheaConfig();
+  if (!c.activo) throw new Error("El pago con Cashea todavía no está disponible.");
+  const db = await getDb();
+  if (!db) throw new Error("Base de datos no disponible");
+  const [stand] = filas<{ id: number; numero: string; tipo: TipoStand; estado: string }>(
+    await db.execute(sql`SELECT id, numero, tipo, estado FROM festStands WHERE id = ${d.standId} LIMIT 1`));
+  if (!stand) throw new Error("Ese stand no existe");
+  if (stand.estado !== "libre") throw new Error(`El stand ${stand.numero} ya fue reservado. Elige otro, por favor.`);
+  const t = TIPOS_STAND[stand.tipo];
+  if (!aceptaCashea(precioCashea(t.precio))) throw new Error("Este stand no se puede pagar con Cashea.");
+
+  // Si la misma tienda repite el intento, se sigue con su misma solicitud
+  const [previa] = filas<{ id: number }>(await db.execute(sql`SELECT r.id FROM festStandReservas r
+    WHERE r.standId = ${stand.id} AND r.email = ${d.email} AND r.modalidad = 'cashea' AND r.estado = 'pendiente'
+      AND NOT EXISTS (SELECT 1 FROM festStandPagos p WHERE p.reservaId = r.id) ORDER BY r.id DESC LIMIT 1`));
+  let reservaId = previa ? Number(previa.id) : 0;
+  if (reservaId) {
+    await db.execute(sql`UPDATE festStandReservas SET negocio = ${d.negocio}, contacto = ${d.contacto}, whatsapp = ${d.whatsapp}, rif = ${d.rif ?? null} WHERE id = ${reservaId}`);
+  } else {
+    reservaId = insertado(await db.execute(sql`INSERT INTO festStandReservas
+      (standId, tipo, precio, negocio, contacto, email, whatsapp, rif, modalidad)
+      VALUES (${stand.id}, ${stand.tipo}, ${t.precio}, ${d.negocio}, ${d.contacto}, ${d.email}, ${d.whatsapp}, ${d.rif ?? null}, 'cashea')`));
+  }
+  const clave = claveDeReserva(reservaId);
+  return { clave, numero: stand.numero, ...(await casheaIniciar(clave, d.cedula, origen)) };
+}
+
 /** Paso 2: la tienda vuelve de Cashea con el número de su orden */
 export async function casheaVolver(clave: string, orderId: string) {
   const { r, numero } = await reservaDe(clave);
@@ -267,7 +330,25 @@ export async function casheaVolver(clave: string, orderId: string) {
   const [intento] = filas<any>(await db.execute(sql`SELECT id, total FROM festStandCashea WHERE reservaId = ${r.id} AND estado = 'creada' ORDER BY id DESC LIMIT 1`));
   if (!intento) throw new Error("No encontramos tu intento de pago con Cashea. Vuelve a empezar desde tu enlace de saldo.");
   await db.execute(sql`UPDATE festStandCashea SET orderId = ${orderId}, estado = 'por_confirmar' WHERE id = ${intento.id} AND estado = 'creada'`);
-  await avisarAdmin(`🟡 Cashea · stand ${numero} · ${r.negocio}`, `Orden ${orderId} por $${Number(intento.total).toFixed(2)}. Revísala y confírmala.`, `cashea-${r.id}`);
+  const faltaInicial = r.pagado <= 0;
+  await avisarAdmin(`🟡 Cashea · stand ${numero} · ${r.negocio}`,
+    `Orden ${orderId} por $${Number(intento.total).toFixed(2)}. ${faltaInicial ? "Falta que la tienda pague la inicial." : "Revísala y confírmala."}`, `cashea-${r.id}`);
+  // Correo a la tienda con su enlace, por si cierra la página antes de pagar la inicial
+  if (r.email) {
+    try {
+      const { sendEmail } = await import("./_core/notification");
+      await sendEmail(r.email, `Tu orden de Cashea del stand ${numero} · Isekai World Fest 2027`, `
+        <h2>Recibimos tu orden de Cashea</h2>
+        <p>Hola, ${r.contacto}. Registramos la orden <strong>n.º ${orderId}</strong> de <strong>${r.negocio}</strong> por el stand <strong>${numero}</strong> ($${Number(intento.total).toFixed(2)} con Cashea).</p>
+        ${faltaInicial
+          ? `<p><strong>Falta un paso:</strong> paga la inicial que te indicó Cashea desde tu enlace personal. Cuando la confirmemos, cerramos tu orden con Cashea y tu stand queda reservado y pagado.</p>
+             <div style="text-align:center;margin:24px 0"><a href="${enlaceDeSaldo(r.id)}" class="btn">Pagar la inicial →</a></div>`
+          : `<p>La estamos confirmando con Cashea. Te avisamos por correo cuando tu stand quede pagado.</p>
+             <div style="text-align:center;margin:24px 0"><a href="${enlaceDeSaldo(r.id)}" class="btn">Ver tu stand →</a></div>`}
+        <p style="color:#9a93a6">¿Dudas? Escríbenos a <a href="mailto:ventas@isekaiworld.co">ventas@isekaiworld.co</a>.</p>`,
+        faltaInicial ? "Falta pagar la inicial que te indicó Cashea" : "Estamos confirmando tu orden con Cashea");
+    } catch (e) { console.warn("[Saldo] correo de la orden de Cashea:", e); }
+  }
   avisarCambio();
   return { ok: true, orderId, estado: "por_confirmar" };
 }
@@ -284,6 +365,7 @@ export async function casheaPanel() {
       id: Number(o.id), reservaId: Number(o.reservaId), numero: String(o.numero), negocio: String(o.negocio), cedula: String(o.cedula),
       total: Number(o.total), inicial: Number(o.inicial), pagado: Number(o.pagado), precio: Number(o.precio),
       orderId: o.orderId ? String(o.orderId) : null, estado: String(o.estado), detalle: o.detalle ? String(o.detalle) : null, creadoEn: o.creadoEn,
+      estadoReserva: String(o.estadoReserva),
     }));
   } catch (e) { console.warn("[Saldo] panel de Cashea:", e); return []; }
 }
@@ -302,7 +384,9 @@ export async function casheaConfirmar(id: number, inicialIndicada?: number) {
   if (!["por_confirmar", "error"].includes(o.estado) || !o.orderId) throw new Error("Esta orden no se puede confirmar");
   const [r] = filas<any>(await db.execute(sql`SELECT * FROM festStandReservas WHERE id = ${o.reservaId} LIMIT 1`));
   if (!r) throw new Error("Reserva no encontrada");
-  if (r.estado !== "apartado") throw new Error(r.estado === "pagado" ? "Este stand ya está pagado por completo. Cancela la orden de Cashea." : "La reserva no está apartada");
+  if (r.estado === "pagado") throw new Error("Este stand ya está pagado por completo. Cancela la orden de Cashea.");
+  if (r.estado === "pendiente") throw new Error("La tienda todavía no tiene la inicial pagada. Si ya la reportó, apruébala primero en «Pagos por revisar».");
+  if (r.estado !== "apartado") throw new Error("Esta reserva no está activa");
   // La inicial que se le confirma a Cashea: por defecto, todo lo que la tienda ya pagó
   const pagado = Math.round(Number(r.pagado) * 100) / 100;
   const inicial = Math.round((inicialIndicada ?? pagado) * 100) / 100;
